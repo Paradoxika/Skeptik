@@ -4,7 +4,7 @@
  */
 
 package resolutionproofcompression
-import Main
+import resolutionproofcompression.Main
 
 object Proof1 {
 val cl1 = Input(List(L("v435",p)))
