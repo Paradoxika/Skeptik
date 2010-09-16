@@ -7,150 +7,10 @@ package resolutionproofcompression
 
 import scala.collection.mutable._
 
+
 object Main {
 
-  type Atom = String
-  case class L(atom: Atom, polarity: Boolean) {
-    var ancestorInputClauses: List[Clause] = null
-    override def toString = {
-      if (polarity) atom
-      else "-" + atom
-    }
-  }
-  type Literal = L
-
-  type Clause = List[Literal]
-
-  abstract class ResolutionProof {
-    def clause : Clause  // the final clause of the proof
-  }
-  case class Input(clause: Clause) extends ResolutionProof {
-    override def toString: String = {
-      var string = "{" + clause.head
-      for (lit <- clause.tail) string += ("," + lit)
-      string += "}"
-      return string
-    }
-  }
-  case class Resolvent(left: ResolutionProof, right: ResolutionProof) extends ResolutionProof {
-    private var resolvent: Option[Clause] = None
-    private var resolvedLiterals: Option[(Literal,Literal)] = None
-    def clause : Clause = resolvent match {
-      case Some(c) => return c
-      case None => {
-        val c = resolve(left.clause, right.clause)
-        resolvent = Some(c)
-        return c
-      }
-    }
-    def pivot : (Literal,Literal) = resolvedLiterals match {
-      case Some(litPair) => litPair
-      case None => {
-        val p = findResolvedLiterals(left.clause, right.clause)
-        resolvedLiterals = Some(p)
-        return p
-      }
-    }
-    override def toString: String = {
-      var string = "(" + left + "+" + right + ")"
-      return string
-    }
-  }
-
-  def resolve(clause1: Clause, clause2: Clause) : Clause = {
-    var resolvent : Clause = Nil
-    for (l1 <- clause1) {
-      var hasMatchingLiteral = false
-      for (l2 <- clause2) {
-        if (l1.atom == l2.atom) {
-          hasMatchingLiteral = true
-          if (l1.polarity == l2.polarity) resolvent = (new L(l1.atom, l1.polarity))::resolvent
-        }
-      }
-      if (!hasMatchingLiteral) resolvent = (new L(l1.atom, l1.polarity))::resolvent
-    }
-    for (l2 <- clause2) {
-      var hasMatchingLiteral = false
-      for (l1 <- clause1) {
-        if (l1.atom == l2.atom) hasMatchingLiteral = true
-      }
-      if (!hasMatchingLiteral) resolvent = (new L(l2.atom, l2.polarity))::resolvent
-    }
-    return resolvent
-  }
-
-  def findResolvedLiterals(clause1: Clause, clause2: Clause) : (Literal,Literal) = {
-    for (l1 <- clause1; l2 <- clause2) {
-      if (l1.atom == l2.atom && l1.polarity != l2.polarity) return (l1, l2)
-    }
-    throw new Exception("No resolved literals found...")
-  }
-  def equalClauses(clause1:Clause, clause2:Clause) : Boolean = {
-    if (clause1.length == clause2.length) {
-      for (l1 <- clause1) {
-        clause2.find(l2 => (l2.atom == l1.atom && l2.polarity == l1. polarity)) match {
-          case None => return false
-          case _ => 
-        }
-      }
-      return true
-    } else return false
-  }
-
-
-  def setAncestorInputClausesInLiteral(proof: ResolutionProof) =  setAncestorInputClausesInLiteralRec(proof,
-                                          new HashSet[ResolutionProof])
-  def setAncestorInputClausesInLiteralRec(proof: ResolutionProof,
-                                          visitedProofs: HashSet[ResolutionProof]): Unit =
-    if (!visitedProofs.contains(proof)) {
-      visitedProofs += proof
-      proof match {
-        case Input(c) => {
-          def initializeAncestors(lit:Literal) = lit.ancestorInputClauses = c::Nil
-          c.foreach(initializeAncestors)
-        }
-        case Resolvent(left, right) => {
-          setAncestorInputClausesInLiteralRec(left, visitedProofs)
-          setAncestorInputClausesInLiteralRec(right, visitedProofs)
-          for (lit <- proof.clause) {
-            val litLeftOption = left.clause.find(l => l == lit)
-            val litRightOption = right.clause.find(l => l == lit)
-            (litLeftOption, litRightOption) match {
-              case (Some(litLeft), Some(litRight)) => lit.ancestorInputClauses = litLeft.ancestorInputClauses:::litRight.ancestorInputClauses // appends the two lists
-              case (Some(litLeft), None) => lit.ancestorInputClauses = litLeft.ancestorInputClauses
-              case (None, Some(litRight)) => lit.ancestorInputClauses = litRight.ancestorInputClauses
-              case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
-            }
-          }
-        }
-      }
-    }
-
-  def proofLength(proof: ResolutionProof): Int = proofLengthRec(proof, new HashSet[ResolutionProof])
-//  def proofLengthRec(proof: ResolutionProof, visitedProofs: HashSet[ResolutionProof]) : Int =
-//    if (!visitedProofs.contains(proof)) {
-//      visitedProofs += proof
-//      proof match {
-//        case Input(c) => return 0
-//        case Resolvent(left, right) => {
-//          return (proofLengthRec(left, visitedProofs) + proofLengthRec(right, visitedProofs))
-//        }
-//      }
-//    } else return 0
-  def proofLengthRec(proof: ResolutionProof, visitedProofs: HashSet[ResolutionProof]) : Int = {
-    var result = 0
-    if (!visitedProofs.contains(proof)) {
-      visitedProofs += proof
-      proof match {
-        case Input(c) => result = 0
-        case Resolvent(left, right) => {
-          result = (proofLengthRec(left, visitedProofs) + proofLengthRec(right, visitedProofs) + 1)
-        }
-      }
-    }
-    println("Length: " + result + " ; ProofTree: " + proof)
-    return result
-  }
+  import resolutionproofcompression.ResolutionCalculus._
 
   def argmin[A](list: List[A], f: Function[A, Int]): (A,Int) = list match {
     case Nil => throw new Exception("List is Empty")
@@ -231,7 +91,7 @@ object Main {
       val edges = edgesContainingThisNode.iterator
       println(edgesContainingThisNode.map(e => e.id))
       //println(edges.hasNext)
-      if (!edges.hasNext) return false
+      if (edgesContainingThisNode.length == 0) return false
       else {
         //println("hi " + edges.hasNext)
         var currentPivot = edgesContainingThisNode.head.pivot
@@ -553,37 +413,6 @@ object Main {
    * @param args the command line arguments
    */
   def main(args: Array[String]): Unit = {
-    val p = true
-    val n = false
-
-//    val pK7 = Input(L("b", n)::L("a",n)::L("g",p)::Nil)
-//    val pK1 = Input(L("a",p)::Nil)
-//    val pK2 = Input(L("b",p)::Nil)
-//
-//    val pD = Resolvent(Resolvent(pK2,
-//                                 Resolvent(pK1,
-//                                           Resolvent(Input(L("g",n)::L("c",p)::Nil),
-//                                                     pK7))),
-//                       Input(L("c",n)::L("d",p)::Nil))
-//
-//    val proof = Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(Input(L("g",n)::L("e",n)::L("f",p)::Nil),
-//                                                                  pK7),
-//                                                        pK1),
-//                                              pK2),
-//                                    Resolvent(Input(L("d",n)::L("f",n)::Nil),
-//                                              pD)),
-//                          Resolvent(Input(L("d",n)::L("e",p)::Nil),
-//                                    pD))
-//
-//    val graph = new ResolutionHypergraph(proof)
-//
-//    println("INITIAL GRAPH:")
-//    println(graph)
-//
-//    graph.simplify
-//
-//    println("FINAL RESULT:")
-//    println(graph)
 
 
     // PigeonDAG
@@ -614,21 +443,33 @@ object Main {
 //    println("FINAL RESULT:")
 //    println(pigeonDAGGraph)
 
-    val cl1 = Input(List(L("v1",p),L("v2",p),L("v3",p)))
-    val cl2 = Input(List(L("v1",n),L("v2",p),L("v3",p)))
-    val cl3 = Input(List(L("v1",p),L("v2",n),L("v3",p)))
-    val cl4 = Input(List(L("v1",n),L("v2",n),L("v3",p)))
-    val cl5 = Input(List(L("v1",p),L("v2",p),L("v3",n)))
-    val cl6 = Input(List(L("v1",n),L("v2",p),L("v3",n)))
-    val cl7 = Input(List(L("v1",p),L("v2",n),L("v3",n)))
-    val cl8 = Input(List(L("v1",n),L("v2",n),L("v3",n)))
-    val cl9 = Resolvent(cl3,cl1)
-    val cl10 = Resolvent(Resolvent(cl7,cl5),cl9)
-    val cl11 = Resolvent(Resolvent(cl8,cl4),cl10)
-    val cl12 = Resolvent(Resolvent(cl2,cl11),cl10)
-    val cl13 = Resolvent(Resolvent(Resolvent(cl6,cl11),cl10),cl12)
+//    val cl1 = Input(List(L("v1",p),L("v2",p),L("v3",p)))
+//    val cl2 = Input(List(L("v1",n),L("v2",p),L("v3",p)))
+//    val cl3 = Input(List(L("v1",p),L("v2",n),L("v3",p)))
+//    val cl4 = Input(List(L("v1",n),L("v2",n),L("v3",p)))
+//    val cl5 = Input(List(L("v1",p),L("v2",p),L("v3",n)))
+//    val cl6 = Input(List(L("v1",n),L("v2",p),L("v3",n)))
+//    val cl7 = Input(List(L("v1",p),L("v2",n),L("v3",n)))
+//    val cl8 = Input(List(L("v1",n),L("v2",n),L("v3",n)))
+//    val cl9 = Resolvent(cl3,cl1)
+//    val cl10 = Resolvent(Resolvent(cl7,cl5),cl9)
+//    val cl11 = Resolvent(Resolvent(cl8,cl4),cl10)
+//    val cl12 = Resolvent(Resolvent(cl2,cl11),cl10)
+//    val cl13 = Resolvent(Resolvent(Resolvent(cl6,cl11),cl10),cl12)
+//
+//    val g = new ResolutionHypergraph(cl13)
+//
+//    println("INITIAL GRAPH:")
+//    println(g)
+//
+//    g.simplify
+//
+//    println("FINAL RESULT:")
+//    println(g)
+//    println(proofLength(cl13))
 
-    val g = new ResolutionHypergraph(cl13)
+
+    val g = new ResolutionHypergraph(P4.clempty)
 
     println("INITIAL GRAPH:")
     println(g)
@@ -637,13 +478,7 @@ object Main {
 
     println("FINAL RESULT:")
     println(g)
-    println(proofLength(cl13))
-
-    //println(proof)
-    //println(resolve(L("b", n)::L("a",n)::L("g",p)::Nil, L("a",p)::Nil))
-    //println(findResolvedLiterals(L("b", n)::L("a",n)::L("g",p)::Nil, L("a",p)::Nil))
-    //println(proof.clause)
-    //println(graph)
+    println(proofLength(P4.clempty))
   }
 
 }
