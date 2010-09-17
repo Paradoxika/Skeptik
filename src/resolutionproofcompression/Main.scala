@@ -125,7 +125,7 @@ object Main {
       var numberOfNodes = 1
       var edgesAux = edges
       println("here")
-      while (edgesAux.head.pivot == edgesAux.tail.head.pivot) {
+      while (edgesAux.tail != Nil && edgesAux.head.pivot == edgesAux.tail.head.pivot) {
         println("here2")
         println(edgesAux)
         numberOfNodes += 1
@@ -201,7 +201,6 @@ object Main {
       this()
       val visitedProofs = new HashSet[ResolutionProof]
       val hashMapClauseToNode = new HashMap[Clause,Node]
-      setAncestorInputClausesInLiteral(proof)
       buildResolutionHypergraphRec(proof, visitedProofs, hashMapClauseToNode)
       for (n <- nodes if (n.isSplittable)) {
         println("adding: " + n.id)
@@ -276,7 +275,7 @@ object Main {
     def simplify = {
       mergeAllMergeableEdges
       var counter = 0
-      while (!isTrivial && counter < 1000) {
+      while (!isTrivial) {
         counter += 1
         while (hasAResolvableEdge) resolveAResolvableEdge
         if (hasASplittableNode) splitASplittableNode
@@ -478,6 +477,7 @@ object Main {
 
     println("FINAL RESULT:")
     println(g)
+    
     println(proofLength(P4.clempty))
   }
 
