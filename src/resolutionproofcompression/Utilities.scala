@@ -9,11 +9,11 @@ object Utilities {
   def gcd(a:Int, b:Int) = if (a > b) gcdRec(a,b) else gcdRec(b,a)
   def gcdRec(a:Int, b:Int):Int = if (b==0) a else gcdRec(b, a % b)
   def gcd(list: List[Int]): Int = list match {
-    case a::b::Nil => gcd(a,b)
-    case a::b::tail => {
-      val gcdAB = gcd(a,b)
-      if (gcd(a,b) == 1) 1 else gcd(gcdAB::tail)
+    case Nil => 0 // throw new Exception("The list of integers should not be empty.")
+    case a::Nil => a
+    case a::tail => {
+      val tailGCD = gcd(tail)
+      if (tailGCD == 1) 1 else gcd(a,tailGCD)
     }
-    case _ => throw new Exception("The list of integers should have at least two elements")
   }
 }
