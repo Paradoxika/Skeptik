@@ -6,6 +6,7 @@
 package resolutionproofcompression
 
 import scala.collection.mutable._
+import resolutionproofcompression.Utilities._
 
 
 object Main {
@@ -37,6 +38,26 @@ object Main {
     val proof: ResolutionProof = p
     val clause: Clause = c
     val id: Int = NodeCounter.get
+
+    private var edgesContainingThisNode: List[Edge] = Nil
+    def edges : List[Edge] = edgesContainingThisNode.toList
+    def addEdge(e:Edge) = {
+      edgesContainingThisNode = addEdgeRec(e, edgesContainingThisNode) // edges are sorted first by pivot and then by id.
+    }
+
+    private def edgesGroupedByPivot : List[List[Edge]] = edgesGroupedByPivotRec(edgesContainingThisNode)
+    private def edgesGroupedByPivotRec(list:List[Edge]): List[List[Edge]]  = list match {
+      case Nil => Nil
+      case e::rest => {
+        val restResult = edgesGroupedByPivotRec(rest)
+        if (restResult.length > 0) {
+          if (restResult.head.head.pivot == e.pivot) return (e::restResult.head)::restResult.tail
+          else return (e::Nil)::restResult
+        } else {
+          return (e::Nil)::Nil
+        }
+      }
+    }
 
     def this(n1:Node, n2: Node) = {
       this(Resolvent(n1.proof, n2.proof),resolve(n1.clause,n2.clause))
@@ -75,51 +96,14 @@ object Main {
       (listOfListsOfEdges :\ emptyList)(merge)
     }
 
-    private var edgesContainingThisNode: List[Edge] = Nil
-    def edges : List[Edge] = edgesContainingThisNode.toList
-    def addEdge(e:Edge) = {
-      edgesContainingThisNode = addEdgeRec(e, edgesContainingThisNode) // edges are sorted first by pivot and then by id.
-    }
+
     private def addEdgeRec(e:Edge, edges: List[Edge]): List[Edge] = edges match {
       case Nil => e::Nil
       case h::tail => if (e > h) e::edges else h::addEdgeRec(e, tail)
     }
     def deleteEdge(e:Edge) = {edgesContainingThisNode = edgesContainingThisNode.filterNot(edge => edge == e)}
-    def isSplittable: Boolean = {
-      println("Checking Splittability for Node: " + id)
-      var edgesPerPivot: Array[Int] = new Array(edgesContainingThisNode.size)
-      val edges = edgesContainingThisNode.iterator
-      println(edgesContainingThisNode.map(e => e.id))
-      //println(edges.hasNext)
-      if (edgesContainingThisNode.length == 0) return false
-      else {
-        //println("hi " + edges.hasNext)
-        var currentPivot = edgesContainingThisNode.head.pivot
-        var currentIndex = 0
-        edgesPerPivot(currentIndex) = 0
-        while (edges.hasNext) {
-          println("current pivot: " + currentPivot + "; current index: " + currentIndex + "; number of edges: " + edgesPerPivot(currentIndex))
-          val currentEdge = edges.next
-          if (currentEdge.pivot != currentPivot) {
-            if (currentIndex > 0) { // This is just an optimization for early pruning of the counting...
-              if (edgesPerPivot(currentIndex) != edgesPerPivot(currentIndex-1)) return false
-            }
-            currentPivot = currentEdge.pivot
-            currentIndex += 1
-            edgesPerPivot(currentIndex) = 0
-          }
-          edgesPerPivot(currentIndex) = edgesPerPivot(currentIndex) + 1
-        }
-        if (currentIndex > 0 && edgesPerPivot(currentIndex) != edgesPerPivot(currentIndex-1)) return false
-        else {
-          if (edgesPerPivot(currentIndex) > 1) {
-            println("is splittable")
-            return true
-          }
-          else return false
-        }
-      }
-    }
+    def isSplittable: Boolean = (1 < gcd(edgesGroupedByPivot.map(l => l.length)))
+
     def split : List[Node] = {
       // require( isSplittable )
       var numberOfNodes = 1
@@ -412,63 +396,7 @@ object Main {
    * @param args the command line arguments
    */
   def main(args: Array[String]): Unit = {
-
-
-    // PigeonDAG
-//    val phi1 = Input(List(L("p11",p),L("p12",p)))
-//    val phi2 = Input(List(L("p21",p),L("p22",p)))
-//    val phi3 = Input(List(L("p31",p),L("p32",p)))
-//
-//    val pigeonDAGProof = Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(phi2,
-//                                                                                               Input(List(L("p21",n),L("p31",n)))),
-//                                                                                     phi3),
-//                                                                           Input(List(L("p32",n),L("p12",n)))),
-//                                                                 phi1),
-//                                                       Input(List(L("p11",n),L("p21",n)))),
-//                                             phi2),
-//                                   Resolvent(Resolvent(phi3,
-//                                                       Resolvent(Resolvent(Input(List(L("p12",n),L("p22",n))),
-//                                                                           phi1),
-//                                                                 Input(List(L("p31",n),L("p11",n))))),
-//                                             Input(List(L("p22",n),L("p32",n)))))
-//
-//    val pigeonDAGGraph = new ResolutionHypergraph(pigeonDAGProof)
-//
-//    println("INITIAL GRAPH:")
-//    println(pigeonDAGGraph)
-//
-//    pigeonDAGGraph.simplify
-//
-//    println("FINAL RESULT:")
-//    println(pigeonDAGGraph)
-
-//    val cl1 = Input(List(L("v1",p),L("v2",p),L("v3",p)))
-//    val cl2 = Input(List(L("v1",n),L("v2",p),L("v3",p)))
-//    val cl3 = Input(List(L("v1",p),L("v2",n),L("v3",p)))
-//    val cl4 = Input(List(L("v1",n),L("v2",n),L("v3",p)))
-//    val cl5 = Input(List(L("v1",p),L("v2",p),L("v3",n)))
-//    val cl6 = Input(List(L("v1",n),L("v2",p),L("v3",n)))
-//    val cl7 = Input(List(L("v1",p),L("v2",n),L("v3",n)))
-//    val cl8 = Input(List(L("v1",n),L("v2",n),L("v3",n)))
-//    val cl9 = Resolvent(cl3,cl1)
-//    val cl10 = Resolvent(Resolvent(cl7,cl5),cl9)
-//    val cl11 = Resolvent(Resolvent(cl8,cl4),cl10)
-//    val cl12 = Resolvent(Resolvent(cl2,cl11),cl10)
-//    val cl13 = Resolvent(Resolvent(Resolvent(cl6,cl11),cl10),cl12)
-//
-//    val g = new ResolutionHypergraph(cl13)
-//
-//    println("INITIAL GRAPH:")
-//    println(g)
-//
-//    g.simplify
-//
-//    println("FINAL RESULT:")
-//    println(g)
-//    println(proofLength(cl13))
-
-
-    val g = new ResolutionHypergraph(P4.clempty)
+    val g = new ResolutionHypergraph(Proof2.clempty)
 
     println("INITIAL GRAPH:")
     println(g)
@@ -478,7 +406,6 @@ object Main {
     println("FINAL RESULT:")
     println(g)
     
-    println(proofLength(P4.clempty))
+    println(proofLength(Proof2.clempty))
   }
-
 }
