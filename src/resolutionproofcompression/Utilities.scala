@@ -10,7 +10,10 @@ object Utilities {
   def gcdRec(a:Int, b:Int):Int = if (b==0) a else gcdRec(b, a % b)
   def gcd(list: List[Int]): Int = list match {
     case a::b::Nil => gcd(a,b)
-    case a::b::tail => gcd(gcd(a,b)::tail)
+    case a::b::tail => {
+      val gcdAB = gcd(a,b)
+      if (gcd(a,b) == 1) 1 else gcd(gcdAB::tail)
+    }
     case _ => throw new Exception("The list of integers should have at least two elements")
   }
 }
