@@ -208,8 +208,10 @@ object Main {
               val rightNodes = rightPivot.ancestorInputClauses.map(c => hashMapClauseToNode(c))
               val newEdge = new Edge((new HashSet[Node] ++ leftNodes) ++ rightNodes, leftPivot.atom)
               addEdge(newEdge)
-              if (newEdge.nodes.size == 2) {
+              //if (newEdge.nodes.size == 2) {
+              if (true) {
                 var isResolvable = true
+                if (newEdge.nodes.size != 2) isResolvable = false
                 var edgesMergeableWithNewEdge = new HashSet[Edge]
                 for (n <- newEdge.nodes; e <- (n.edges) if (newEdge != e)) {
                   if (e.pivot == newEdge.pivot) {
@@ -237,10 +239,10 @@ object Main {
     //private def deleteEdge(e:Edge) = {edges.remove(e.id)}
 
 
-    private def addToResolvableEdges(e:Edge) = {resolvableEdges = e::resolvableEdges}
+    private def addToResolvableEdges(e:Edge) = {resolvableEdges = resolvableEdges:::(e::Nil)}
     private def removeFromResolvableEdges(e:Edge) = {resolvableEdges = resolvableEdges.filterNot(edge => e == edge)}
 
-    private def addToSplittableNodes(n:Node) = {splittableNodes = n::splittableNodes}
+    private def addToSplittableNodes(n:Node) = {splittableNodes = splittableNodes:::(n::Nil)}
     private def removeFromSplittableNodes(n:Node) = {splittableNodes = splittableNodes.filterNot(node => n == node)}
     private def removeFromSplittableNodes(nodes:HashSet[Node]) = {splittableNodes = splittableNodes.filter(node => !nodes.contains(node))}
 
@@ -335,7 +337,6 @@ object Main {
       updateMergeableEdges(resolvedNode)
       if (resolvedNode.isSplittable) addToSplittableNodes(resolvedNode)
       if (mergeableEdges != Nil) mergeAllMergeableEdges
-      mergeNodesWith(resolvedNode)
       println("RESOLVING EDGE - Result:")
       println("Edges: " + edges.map(e => e.id))
       println("Mergeable Edges: " + mergeableEdges.map(s => s.map(e => e.id)))
@@ -370,22 +371,11 @@ object Main {
       println(" ")
     }
 
-    private def mergeNodesWith(n: Node) {
-      val mergeableNodes : List[Node] = (for (node <- nodes  if equalClauses(node.clause, n.clause)) yield node).toList;
-      if (mergeableNodes.length > 1) {
-        val newNode = new Node(mergeableNodes)
-        addNode(newNode)
-        updateMergeableEdges(newNode)
-        if (newNode.isSplittable) addToSplittableNodes(newNode)
-        for (n <- mergeableNodes) deleteNode(n)
-        mergeAllMergeableEdges
-      }     
-    }
-
     private def updateMergeableEdges(newNode: Node) = {
       // require( mergeableEdges == Nil ) // Otherwise, updating mergeableEdges would be much more complicated.
       val edgesAlreadyInMergeableSet = new HashSet[Edge]
-      for (edge <- newNode.edges if edge.nodes.size == 2) {
+      //for (edge <- newNode.edges if edge.nodes.size == 2) {
+      for (edge <- newNode.edges) {
         if (!edge.isResolvable) removeFromResolvableEdges(edge)
         else if (!resolvableEdges.contains(edge)) addToResolvableEdges(edge)
         if (!edgesAlreadyInMergeableSet.contains(edge)) {
