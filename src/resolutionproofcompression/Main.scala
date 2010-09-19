@@ -105,30 +105,27 @@ object Main {
     def isSplittable: Boolean = (1 < gcd(edgesGroupedByPivot.map(l => l.length)))
 
     def split : List[Node] = {
-      // require( isSplittable )
-      var numberOfNodes = 1
-      var edgesAux = edges
-      println("here")
-      while (edgesAux.tail != Nil && edgesAux.head.pivot == edgesAux.tail.head.pivot) {
-        println("here2")
-        println(edgesAux)
-        numberOfNodes += 1
-        edgesAux = edgesAux.tail
-      }
-      println("here3")
+      val edgesGBP = edgesGroupedByPivot
+      val edgesGBPLengths = edgesGBP.map(list => list.length)
+      val numberOfNodes = gcd(edgesGBPLengths)
       val newNodes = for (i <- 1 to numberOfNodes) yield new Node(proof, clause)
-      println("here4")
+      val numberOfEdgesPerNode = edgesGBPLengths.map(length => length / numberOfNodes)
       var nodeIndex = 0
-      for (e <- edges) { // This loop distributes the edges among the new nodes
-        e.nodes -= this
-        println(nodeIndex)
-        e.nodes += newNodes(nodeIndex)
-        newNodes(nodeIndex).addEdge(e)
-        if (nodeIndex == numberOfNodes - 1) nodeIndex = 0
-        else nodeIndex += 1
+      for (n <- newNodes) {
+        var edgeGroupIndex = 0
+        for (edgeGroup <- edgesGBP) {
+          for (edgeIndex <- (nodeIndex*numberOfEdgesPerNode(edgeGroupIndex)) to ((nodeIndex+1)*numberOfEdgesPerNode(edgeGroupIndex) - 1)) {
+            println(edgeIndex)
+            val e = edgeGroup(edgeIndex)
+            e.nodes -= this
+            e.nodes += n
+            n.addEdge(e)
+          }
+          edgeGroupIndex += 1
+        }
+        nodeIndex += 1
       }
-
-      return newNodes.toList
+      newNodes.toList
     }
     override def toString = {
       var string = "Node " + id  + " (" + proof + "): "
@@ -263,6 +260,26 @@ object Main {
         counter += 1
         while (hasAResolvableEdge) resolveAResolvableEdge
         if (hasASplittableNode) splitASplittableNode
+
+        if (counter == 10000) {
+          println("resolvable")
+          for (e <- edges) {
+            println(e.isResolvable)
+          }
+          println("splittable")
+          for (n <- nodes) {
+            println(n.isSplittable)
+          }
+          println("mergeable")
+          for (e1 <- edges; e2 <- edges if (e2 != e1) ) {
+            if (e1.pivot == e2.pivot && e1.nodes == e2.nodes) {
+              println(true)
+              println(e1)
+              println(e2)
+            } else println(false)
+          }
+
+        }
       }
     }
 
@@ -396,7 +413,7 @@ object Main {
    * @param args the command line arguments
    */
   def main(args: Array[String]): Unit = {
-    val g = new ResolutionHypergraph(Proof2.clempty)
+    val g = new ResolutionHypergraph(P4.clempty)
 
     println("INITIAL GRAPH:")
     println(g)
@@ -406,6 +423,6 @@ object Main {
     println("FINAL RESULT:")
     println(g)
     
-    println(proofLength(Proof2.clempty))
+    println(proofLength(P4.clempty))
   }
 }
