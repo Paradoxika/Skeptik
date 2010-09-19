@@ -15,7 +15,7 @@ object PigeonProof {
   val phi2 = Input(List(L("p21",p),L("p22",p)))
   val phi3 = Input(List(L("p31",p),L("p32",p)))
 
-  val pigeonDAGProof = Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(phi2,
+  val clempty = Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(Resolvent(phi2,
                                                                                              Input(List(L("p21",n),L("p31",n)))),
                                                                                    phi3),
                                                                          Input(List(L("p32",n),L("p12",n)))),
