@@ -6,6 +6,7 @@
 package resolutionproofcompression
 
 import scala.collection.mutable._
+//import scala.collection.immutable._
 import resolutionproofcompression.Utilities._
 import resolutionproofcompression.ResolutionCalculus._
 
@@ -106,8 +107,14 @@ object Hypergraph {
       }
       newNodes.toList
     }
+
+    def neighbours : scala.collection.immutable.Set[Node] = {
+      val neighboursSeq = for (e <- edges; n <- e.nodes if n != this) yield n
+      return neighboursSeq.toSet
+    }
+
     override def toString = {
-      var string = "Node " + id  + " (" + proof + "): "
+      var string = "Node " + id  + " (" + clause + "): " + " (" + proof + "): "
       for (e <- edges) string += e.id + "; "
       string
     }
@@ -117,15 +124,35 @@ object Hypergraph {
   class Edge(n: HashSet[Node], a: Atom) extends Ordered[Edge] {
     val nodes = n; val pivot = a; val id = EdgeCounter.get
 
-    def isResolvable: Boolean = {
-      if (nodes.size > 2) return false
-      else {
-        for (n <- nodes; e <- n.edges if (e != this)) {
-          if (e.pivot == pivot) return false
-        }
-        return true
-      }
+//    def isResolvable: Boolean = {
+////      println("checking resolvability for edge: " + this.id)
+////      println("size: " + nodes.size)
+////      println("pivot: " + pivot)
+//      if (nodes.size > 2) return false
+//      else {
+//        for (n <- nodes; e <- n.edges if (e != this)) {
+////          println(n.id + " ; " + e.id + " ; " + e.pivot)
+//          if (e.pivot == pivot) return false
+//        }
+//        return true
+//      }
+//    }
+
+    def isWeaklyResolvable: Boolean = {
+      (nodes.size == 2) && (nodes.forall(n => (n.edges.forall(e => e == this || e.pivot != pivot))))
     }
+
+    def isResolvable: Boolean = {
+      if (id == 3) {
+        println("HERE!!!")
+        println(nodes.head.neighbours)
+        println(nodes.last.neighbours)
+      }
+
+      (nodes.size == 2) && (nodes.forall(n => (n.edges.forall(e => e == this || e.pivot != pivot)))) &&
+      nodes.head.neighbours.intersect(nodes.last.neighbours).forall(n => n.edges.exists(e => e.nodes.contains(nodes.head) && e.nodes.contains(nodes.last)))
+    }
+
     def compare(that: Edge):Int = {
       if (this.pivot == that.pivot) return this.id - that.id
       else return this.pivot.compare(that.pivot)
@@ -166,6 +193,7 @@ object Hypergraph {
         println("adding: " + n.id)
         addToSplittableNodes(n)
       }
+      for (e <- edges if (e.isResolvable)) addToResolvableEdges(e)
     }
     private def buildResolutionHypergraphRec(proof: ResolutionProof,
                                      visitedProofs: HashSet[ResolutionProof],
@@ -188,20 +216,20 @@ object Hypergraph {
               val newEdge = new Edge((new HashSet[Node] ++ leftNodes) ++ rightNodes, leftPivot.atom)
               addEdge(newEdge)
               //if (newEdge.nodes.size == 2) {
-              if (true) {
-                var isResolvable = true
-                if (newEdge.nodes.size != 2) isResolvable = false
-                var edgesMergeableWithNewEdge = new HashSet[Edge]
-                for (n <- newEdge.nodes; e <- (n.edges) if (newEdge != e)) {
-                  if (e.pivot == newEdge.pivot) {
-                    isResolvable = false
-                    if (e.nodes.size == 2) removeFromResolvableEdges(e)
-                    if (newEdge.nodes == e.nodes) edgesMergeableWithNewEdge += e
-                  }
-                }
-                if (isResolvable) addToResolvableEdges(newEdge)
-                if (edgesMergeableWithNewEdge.size > 0) addToMergeableEdges(edgesMergeableWithNewEdge, newEdge)
-              }
+//              if (true) {
+//                var isResolvable = true
+//                if (newEdge.nodes.size != 2) isResolvable = false
+//                var edgesMergeableWithNewEdge = new HashSet[Edge]
+//                for (n <- newEdge.nodes; e <- (n.edges) if (newEdge != e)) {
+//                  if (e.pivot == newEdge.pivot) {
+//                    isResolvable = false
+//                    if (e.nodes.size == 2) removeFromResolvableEdges(e)
+//                    if (newEdge.nodes == e.nodes) edgesMergeableWithNewEdge += e
+//                  }
+//                }
+//                if (isResolvable) addToResolvableEdges(newEdge)
+//                if (edgesMergeableWithNewEdge.size > 0) addToMergeableEdges(edgesMergeableWithNewEdge, newEdge)
+//              }
               for (n <- newEdge.nodes) n.addEdge(newEdge)
           }
         }
@@ -214,8 +242,6 @@ object Hypergraph {
 
     def addEdge(e:Edge) = {edges += e}
     private def deleteEdge(e:Edge) = {edges -= e}
-    //def addEdge(e:Edge) = {edges.update(e.id, e)}
-    //private def deleteEdge(e:Edge) = {edges.remove(e.id)}
 
 
     private def addToResolvableEdges(e:Edge) = {resolvableEdges = resolvableEdges:::(e::Nil)}
@@ -235,14 +261,29 @@ object Hypergraph {
     private def addToMergeableEdges(S:HashSet[Edge]):Unit = {mergeableEdges = S::mergeableEdges}
 
     def simplify = {
-      mergeAllMergeableEdges
+      //mergeAllMergeableEdges
       var counter = 0
-      while (!isTrivial && counter < 10003) {
+      var resCounter = 0
+      var splitCounter = 0
+      while (!isTrivial && counter < 25) {
         counter += 1
-        while (hasAResolvableEdge) resolveAResolvableEdge
-        if (hasASplittableNode) splitASplittableNode
+        
+        println("Counter: " + resCounter + " " + splitCounter)
 
-        if (counter == 10000) {
+        for (e <- edges if e.isResolvable) {
+          resCounter += 1
+          resolveEdge(e)
+        }
+//        while (hasAResolvableEdge) {
+//          resCounter += 1
+//          resolveAResolvableEdge
+//        }
+        if (hasASplittableNode) {
+          splitCounter += 1
+          splitASplittableNode
+        }
+
+        if (counter == 24 ) {
           println("resolvable")
           for (e <- edges) {
             println(e.isResolvable)
@@ -251,37 +292,73 @@ object Hypergraph {
           for (n <- nodes) {
             println(n.isSplittable)
           }
-          println("mergeable")
-          for (e1 <- edges; e2 <- edges if (e2 != e1) ) {
-            if (e1.pivot == e2.pivot && e1.nodes == e2.nodes) {
-              println(true)
-              println(e1)
-              println(e2)
-            } else println(false)
-          }
-          println("All Nodes (" + nodes.size + "): " + nodes.map(n => n.id) )
-          for (n <- nodes) {
-            val visitedNodes = new HashSet[Node]
-            var nodesToBeVisited = n::Nil
-            while (nodesToBeVisited.length > 0) {
-              val currentNode = nodesToBeVisited.head
-              nodesToBeVisited = nodesToBeVisited.tail
-              visitedNodes += currentNode
-              for (e <- currentNode.edges) {
-                for (candidateNode <- e.nodes) {
-                  if (candidateNode != n && !nodesToBeVisited.contains(candidateNode) && !visitedNodes.contains(candidateNode)) {
-                    nodesToBeVisited = candidateNode::nodesToBeVisited
-                  }
-                }
-              }
-            }
-            println("Reachable from node " + n.id + " (" + visitedNodes.size + "): " + visitedNodes.map(node => node.id))
-          }
+//          println("mergeable")
+//          for (e1 <- edges; e2 <- edges if (e2 != e1) ) {
+//            if (e1.pivot == e2.pivot && e1.nodes == e2.nodes) {
+//              println(true)
+//              println(e1)
+//              println(e2)
+//            } else println(false)
+//          }
+          
         }
       }
     }
 
-    private def mergeAllMergeableEdges = {
+    private def invariant = {
+      // Checks if the hypergraph is connected
+      var connected = true
+      for (n <- nodes) {
+        val visitedNodes = new HashSet[Node]
+        var nodesToBeVisited = n::Nil
+        while (nodesToBeVisited.length > 0) {
+          val currentNode = nodesToBeVisited.head
+          nodesToBeVisited = nodesToBeVisited.tail
+          visitedNodes += currentNode
+          for (e <- currentNode.edges; candidateNode <- e.nodes) {
+            if (candidateNode != n && !nodesToBeVisited.contains(candidateNode) && !visitedNodes.contains(candidateNode)) {
+                nodesToBeVisited = candidateNode::nodesToBeVisited
+            }
+          }
+        }
+        if (visitedNodes.size != nodes.size) { connected = false; throw new Exception("Hypergraph has mutually disconnected components") }
+      }
+
+
+//      def hasTautologicalCycle : Boolean = {
+//        for (n <- nodes) if (hasTautologicalCycleRec(n,n,new HashSet[Node],Nil)) return true
+//        return false
+//      }
+//      def hasTautologicalCycleRec(initialNode: Node, currentNode:Node, visitedNodes:HashSet[Node], path:List[Atom]) : Boolean = {
+//        if (visitedNodes.contains(currentNode)) return false
+//        else {
+//          if (currentNode.id == initialNode.id) {
+//            throw new Exception("Hypergraph has tautological cycles.")
+//            return true
+//          }
+//          for (e <- currentNode.edges if !path.contains(e.pivot); n <- e.nodes if n.id != currentNode.id && !visitedNodes.contains(n)) {
+//            if (hasTautologicalCycleRec(initialNode,n,visitedNodes+currentNode,e.pivot::path)) return true
+//          }
+//          return false
+//        }
+//      }
+
+      // Checks that simplification of the graph is not stuck.
+      var stuck = false
+      if (!isTrivial && resolvableEdges == Nil && splittableNodes == Nil && mergeableEdges == Nil) {stuck = true; throw new Exception("Hypergraph Simplification is Stuck")}
+
+      var trulyStuck = true
+      if (isTrivial) trulyStuck = false
+      for (n <- nodes if n.isSplittable) trulyStuck = false
+      for (e <- edges if (e.isResolvable)) trulyStuck = false
+      for (e1 <- edges; e2 <- edges if (e2 != e1 && e1.pivot == e2.pivot && e1.nodes == e2.nodes) ) trulyStuck = false
+      if (trulyStuck) throw new Exception("Hypergraph simplification is truly stuck")
+
+
+      if (connected && !stuck && !trulyStuck) true else false
+    }
+
+      private def mergeAllMergeableEdges = {
       println("MERGING EDGES - Begin:")
       println("Edges: " + edges.map(e => e.id))
       println("Mergeable Edges: " + mergeableEdges.map(s => s.map(e => e.id)))
@@ -289,13 +366,12 @@ object Hypergraph {
       println("Splittable Nodes: " + splittableNodes.map(n => n.id))
       val affectedNodes = new HashSet[Node]
       for (M <- mergeableEdges) {
-        val newMergedEdge = new Edge(M.head.nodes, M.head.pivot)
-        for (e <- M) {
+        val keptEdge = M.head
+        for (e <- M if e != keptEdge) {
           deleteEdge(e) ; for (n <- e.nodes) n.deleteEdge(e)
         }
-        addEdge(newMergedEdge) ; for (n <- newMergedEdge.nodes) n.addEdge(newMergedEdge)
-        if (newMergedEdge.isResolvable) addToResolvableEdges(newMergedEdge)
-        affectedNodes ++= newMergedEdge.nodes
+        if (keptEdge.isResolvable) addToResolvableEdges(keptEdge)
+        affectedNodes ++= keptEdge.nodes
       }
       val (splittableAffectedNodes, nonSplittableAffectedNodes) = affectedNodes.partition(n => n.isSplittable)
       for (n <- splittableAffectedNodes) if (!splittableNodes.contains(n)) addToSplittableNodes(n)
@@ -307,6 +383,69 @@ object Hypergraph {
       println("Resolvable Edges: " + resolvableEdges.map(e => e.id))
       println("Splittable Nodes: " + splittableNodes.map(n => n.id))
       println(this)
+      //require(invariant)
+    }
+
+//    private def mergeAllMergeableEdges = {
+//      println("MERGING EDGES - Begin:")
+//      println("Edges: " + edges.map(e => e.id))
+//      println("Mergeable Edges: " + mergeableEdges.map(s => s.map(e => e.id)))
+//      println("Resolvable Edges: " + resolvableEdges.map(e => e.id))
+//      println("Splittable Nodes: " + splittableNodes.map(n => n.id))
+//      val affectedNodes = new HashSet[Node]
+//      for (M <- mergeableEdges) {
+//        val newMergedEdge = new Edge(M.head.nodes, M.head.pivot)
+//        for (e <- M) {
+//          deleteEdge(e) ; for (n <- e.nodes) n.deleteEdge(e)
+//        }
+//        addEdge(newMergedEdge) ; for (n <- newMergedEdge.nodes) n.addEdge(newMergedEdge)
+//        if (newMergedEdge.isResolvable) addToResolvableEdges(newMergedEdge)
+//        affectedNodes ++= newMergedEdge.nodes
+//      }
+//      val (splittableAffectedNodes, nonSplittableAffectedNodes) = affectedNodes.partition(n => n.isSplittable)
+//      for (n <- splittableAffectedNodes) if (!splittableNodes.contains(n)) addToSplittableNodes(n)
+//      removeFromSplittableNodes(nonSplittableAffectedNodes)
+//      mergeableEdges = Nil  //Resets the mergeableEdges list
+//      println("MERGING EDGES - Result:")
+//      println("Edges: " + edges.map(e => e.id))
+//      println("Mergeable Edges: " + mergeableEdges.map(s => s.map(e => e.id)))
+//      println("Resolvable Edges: " + resolvableEdges.map(e => e.id))
+//      println("Splittable Nodes: " + splittableNodes.map(n => n.id))
+//      println(this)
+//      require(invariant)
+//    }
+
+    private def resolveEdge(e: Edge) = {
+      println("RESOLVING EDGE - Begin:")
+      println("Edges: " + edges.map(e => e.id))
+      println("Mergeable Edges: " + mergeableEdges.map(s => s.map(e => e.id)))
+      println("Resolvable Edges: " + resolvableEdges.map(e => e.id))
+      println("Splittable Nodes: " + splittableNodes.map(n => n.id))
+      println("Resolving Edge: " + e)
+      val node1 = e.nodes.head
+      val node2 = e.nodes.last
+      deleteEdge(e)
+      println("Edges: " + edges.map(e => e.id))
+      node1.deleteEdge(e)
+      node2.deleteEdge(e)
+      val resolvedNode = new Node(node1,node2)
+      deleteNode(node1)
+      deleteNode(node2)
+      removeFromSplittableNodes(node1)
+      removeFromSplittableNodes(node2)
+      addNode(resolvedNode)
+      //updateMergeableEdges(resolvedNode)
+      if (resolvedNode.isSplittable) addToSplittableNodes(resolvedNode)
+      for (e <- resolvedNode.edges if (e.isResolvable && !resolvableEdges.contains(e))) addToResolvableEdges(e)
+//      if (mergeableEdges != Nil) mergeAllMergeableEdges
+      println("RESOLVING EDGE - Result:")
+      println("Edges: " + edges.map(e => e.id))
+      println("Mergeable Edges: " + mergeableEdges.map(s => s.map(e => e.id)))
+      println("Resolvable Edges: " + resolvableEdges.map(e => e.id))
+      println("Splittable Nodes: " + splittableNodes.map(n => n.id))
+      println(this)
+      println(" ")
+      //require(invariant)
     }
 
     private def resolveAResolvableEdge = {
@@ -330,9 +469,10 @@ object Hypergraph {
       removeFromSplittableNodes(node1)
       removeFromSplittableNodes(node2)
       addNode(resolvedNode)
-      updateMergeableEdges(resolvedNode)
+      //updateMergeableEdges(resolvedNode)
       if (resolvedNode.isSplittable) addToSplittableNodes(resolvedNode)
-      if (mergeableEdges != Nil) mergeAllMergeableEdges
+      for (e <- resolvedNode.edges if (e.isResolvable && !resolvableEdges.contains(e))) addToResolvableEdges(e)
+//      if (mergeableEdges != Nil) mergeAllMergeableEdges
       println("RESOLVING EDGE - Result:")
       println("Edges: " + edges.map(e => e.id))
       println("Mergeable Edges: " + mergeableEdges.map(s => s.map(e => e.id)))
@@ -340,6 +480,7 @@ object Hypergraph {
       println("Splittable Nodes: " + splittableNodes.map(n => n.id))
       println(this)
       println(" ")
+      //require(invariant)
     }
 
     private def splitASplittableNode = {
@@ -365,10 +506,11 @@ object Hypergraph {
       println("Splittable Nodes: " + splittableNodes.map(n => n.id))
       println(this)
       println(" ")
+      //require(invariant)
     }
 
     private def updateMergeableEdges(newNode: Node) = {
-      // require( mergeableEdges == Nil ) // Otherwise, updating mergeableEdges would be much more complicated.
+      require( mergeableEdges == Nil ) // Otherwise, updating mergeableEdges would be much more complicated.
       val edgesAlreadyInMergeableSet = new HashSet[Edge]
       //for (edge <- newNode.edges if edge.nodes.size == 2) {
       for (edge <- newNode.edges) {

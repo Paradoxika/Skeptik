@@ -15,19 +15,23 @@ object Main {
    * @param args the command line arguments
    */
   def main(args: Array[String]): Unit = {
-    val g = new ResolutionHypergraph(PigeonProof.clempty)
+//    val g = new ResolutionHypergraph(PigeonProof.clempty)
+//
+//    println("INITIAL GRAPH:")
+//    println(g)
+//
+//    g.simplify
+//
+//    println("FINAL RESULT:")
+//    println(g)
+//
+//    println(proofLength(PigeonProof.clempty))
 
-    println("INITIAL GRAPH:")
-    println(g)
+//    val g2 = new ResolutionHypergraph(P4.cl1115)
+//    val g2 = new ResolutionHypergraph(P4.cl1116)
+    val g2 = new ResolutionHypergraph(P4.cl1138)
 
-    g.simplify
-
-    println("FINAL RESULT:")
-    println(g)
-
-    println(proofLength(PigeonProof.clempty))
-
-    val g2 = new ResolutionHypergraph(P4.clempty)
+    
 
     println("INITIAL GRAPH:")
     println(g2)
@@ -37,6 +41,6 @@ object Main {
     println("FINAL RESULT:")
     println(g2)
     
-    println(proofLength(P4.clempty))
+    println(proofLength(P1.cl799))
   }
 }
