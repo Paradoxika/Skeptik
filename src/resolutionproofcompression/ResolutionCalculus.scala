@@ -12,7 +12,7 @@ import scala.collection.mutable._
 object ResolutionCalculus {
   type Atom = String
   case class L(atom: Atom, polarity: Boolean) {
-    var ancestorInputClauses: List[Clause] = null
+    var ancestorInputs: List[Input] = null
     override def toString = {
       if (polarity) atom
       else "-" + atom
@@ -26,7 +26,7 @@ object ResolutionCalculus {
     def clause : Clause  // the final clause of the proof
   }
   case class Input(clause: Clause) extends ResolutionProof {
-    for (lit <- clause) lit.ancestorInputClauses = clause::Nil
+    for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
       if (clause.isEmpty) "{}"
       else {
@@ -43,9 +43,9 @@ object ResolutionCalculus {
       val litLeftOption = left.clause.find(l => l == lit)
       val litRightOption = right.clause.find(l => l == lit)
       (litLeftOption, litRightOption) match {
-        case (Some(litLeft), Some(litRight)) => lit.ancestorInputClauses = litLeft.ancestorInputClauses:::litRight.ancestorInputClauses // appends the two lists
-        case (Some(litLeft), None) => lit.ancestorInputClauses = litLeft.ancestorInputClauses
-        case (None, Some(litRight)) => lit.ancestorInputClauses = litRight.ancestorInputClauses
+        case (Some(litLeft), Some(litRight)) => lit.ancestorInputs = litLeft.ancestorInputs:::litRight.ancestorInputs // appends the two lists
+        case (Some(litLeft), None) => lit.ancestorInputs = litLeft.ancestorInputs
+        case (None, Some(litRight)) => lit.ancestorInputs = litRight.ancestorInputs
         case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
       }
     }
@@ -101,7 +101,7 @@ object ResolutionCalculus {
     if (!visitedProofs.contains(proof)) {
       visitedProofs += proof
       proof match {
-        case Input(c) => return 0
+        case Input(c) => return 1
         case Resolvent(left, right) => {
           return (proofLengthRec(left, visitedProofs) + proofLengthRec(right, visitedProofs) + 1)
         }
