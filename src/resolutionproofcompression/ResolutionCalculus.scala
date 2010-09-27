@@ -6,7 +6,7 @@
 package resolutionproofcompression
 
 import scala.collection.mutable._
-
+import resolutionproofcompression.Utilities._
 
 
 object ResolutionCalculus {
@@ -22,8 +22,10 @@ object ResolutionCalculus {
 
   type Clause = List[Literal]
 
+  val ProofCounter = new Counter
   abstract class ResolutionProof {
     def clause : Clause  // the final clause of the proof
+    val id = ProofCounter.get
   }
   case class Input(clause: Clause) extends ResolutionProof {
     for (lit <- clause) lit.ancestorInputs = this::Nil
@@ -35,6 +37,7 @@ object ResolutionCalculus {
         string + "}"
       }
     }
+    override def hashCode = id
   }
   case class Resolvent(left: ResolutionProof, right: ResolutionProof) extends ResolutionProof {
     val clause : Clause = resolve(left.clause, right.clause)
@@ -53,6 +56,7 @@ object ResolutionCalculus {
       var string = "(" + left + "+" + right + ")"
       return string
     }
+    override def hashCode = id
   }
 
   def resolve(clause1: Clause, clause2: Clause) : Clause = {
@@ -106,5 +110,8 @@ object ResolutionCalculus {
           return (proofLengthRec(left, visitedProofs) + proofLengthRec(right, visitedProofs) + 1)
         }
       }
-    } else return 0
+    } else {
+      println(proof.clause)
+      return 0
+    }
 }

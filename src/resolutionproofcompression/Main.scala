@@ -31,19 +31,19 @@ object Main {
 //    }
 //
 //
-//    for (i <- 1 to 10) {
-//    val g3 = new ResolutionHypergraph(Proof2.clempty)
-//
-//    println("INITIAL GRAPH:")
-//    println(g3)
-//
-//    g3.simplify
-//
-//    println("FINAL RESULT:")
-//    println(g3)
-//
-//    println(proofLength(Proof2.clempty))
-//  }
+    for (i <- 1 to 10) {
+    val g3 = new ResolutionHypergraph(Proof2.clempty)
+
+    println("INITIAL GRAPH:")
+    println(g3)
+
+    g3.simplify
+
+    println("FINAL RESULT:")
+    println(g3)
+
+    println(proofLength(Proof2.clempty))
+  }
 
 //    val g2 = new ResolutionHypergraph(P4.cl1115)
 //    val g2 = new ResolutionHypergraph(P4.cl1116)
@@ -60,7 +60,7 @@ object Main {
     //
 //    val g2 = new ResolutionHypergraph(P4.cl1145) Solved from 1145 to 1148
 
-    val g2 = new ResolutionHypergraph(P4.cl1149)
+//    val g2 = new ResolutionHypergraph(P4.cl1149)
 
 //    val g2 = new ResolutionHypergraph(P4.cl1200)
 
@@ -73,14 +73,14 @@ object Main {
 
 
 
-    println("INITIAL GRAPH:")
-    println(g2)
-//
-    g2.simplify
-//
-    println("FINAL RESULT:")
-    println(g2)
-//
-    println(proofLength(P4.clempty))
+//    println("INITIAL GRAPH:")
+//    println(g2)
+////
+//    g2.simplify
+////
+//    println("FINAL RESULT:")
+//    println(g2)
+////
+//    println(proofLength(P4.clempty))
   }
 }

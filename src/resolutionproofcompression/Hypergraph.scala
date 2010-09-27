@@ -290,7 +290,7 @@ object Hypergraph {
       if (connected && !stuck) true else false
     }
 
-    val debugResolveEdge = false
+    val debugResolveEdge = true
     private def resolveEdge(e: Edge) = {
       if (debugResolveEdge) {
         println("RESOLVING EDGE - Begin:")
@@ -314,7 +314,6 @@ object Hypergraph {
         println(this)
         println(" ")
       }
-      //require(invariant)
     }
 
 
@@ -322,7 +321,7 @@ object Hypergraph {
     private def splitNode(node: Node) = {
       if (debugSplitNode) {
         println("SPLITTING NODE - Begin:")
-        //println("Edges: " + edges.map(e => e.id))
+        println("Edges: " + edges.map(e => e.id))
         println("Splitting Node: " + node.id + " having edges: " + node.edges.map(e => e.id))
       }
 
@@ -333,12 +332,11 @@ object Hypergraph {
       deleteNode(node)
 
       if (debugSplitNode) {
-        //println("SPLITTING NODE - Result:")
-        //println("Edges: " + edges.map(e => e.id))
-        //println(this)
+        println("SPLITTING NODE - Result:")
+        println("Edges: " + edges.map(e => e.id))
+        println(this)
         println(" ")
       }
-      //require(invariant)
     }
   }
 }
