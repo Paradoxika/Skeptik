@@ -6,7 +6,6 @@
 package resolutionproofcompression
 
 import scala.collection.mutable._
-//import scala.collection.immutable._
 import resolutionproofcompression.Utilities._
 import resolutionproofcompression.ResolutionCalculus._
 
@@ -79,10 +78,7 @@ object Hypergraph {
       val emptyList: List[Edge] = Nil
       (listOfListsOfEdges :\ emptyList)(merge)
     }
-
-
-
-    
+ 
     def isSplittable: Boolean = (1 < gcd(edgesGroupedByPivot.map(l => l.length)))
 
     def split : List[Node] = {
@@ -108,15 +104,15 @@ object Hypergraph {
       newNodes.toList
     }
 
-    def isNeighbourOf(that: Node, e: Edge) = {
-      val (positiveNodes, negativeNodes) = e.partitionByPolarity
-      (positiveNodes.contains(this) && negativeNodes.contains(that)) || (positiveNodes.contains(that) && negativeNodes.contains(this))
-    }
-
-    def neighbours : scala.collection.immutable.Set[(Node,Edge)] = {
-      val neighboursSeq = for (e <- edges; n <- e.nodes if isNeighbourOf(n,e) ) yield (n,e)
-      return neighboursSeq.toSet
-    }
+//    def isNeighbourOf(that: Node, e: Edge) = {
+//      val (positiveNodes, negativeNodes) = e.partitionByPolarity
+//      (positiveNodes.contains(this) && negativeNodes.contains(that)) || (positiveNodes.contains(that) && negativeNodes.contains(this))
+//    }
+//
+//    def neighbours : scala.collection.immutable.Set[(Node,Edge)] = {
+//      val neighboursSeq = for (e <- edges; n <- e.nodes if isNeighbourOf(n,e) ) yield (n,e)
+//      return neighboursSeq.toSet
+//    }
 
     override def toString = {
       var string = "Node " + id  + " (" + clause + "): " + " (" + proof + "): "
@@ -143,41 +139,16 @@ object Hypergraph {
     def isResolvable: Boolean = {
       if (false) {
         println("Is Edge " + id + " resolvable?")
-        println("Neighbours of Node " + nodes.head.id + ":" + nodes.head.neighbours.map(neigh => neigh._1.id))
-        println("Neighbours of Node " + nodes.last.id + ":" + nodes.last.neighbours.map(neigh => neigh._1.id))
         println(nodes.size == 2)
         println((nodes.forall(n => (n.edges.forall(e => e == this || e.pivot != pivot)))))
-        //println(isTriangleSafe)
       }
 
-//      def isTriangleSafe: Boolean = {
-//        val n1 = nodesAsSet.head
-//        val n2 = nodesAsSet.last
-//        for ((n1N,e1) <- n1.neighbours) {
-//          for ((n2N,e2) <- n2.neighbours if n2N == n1N) {
-//            if (false) {
-//              println()
-//              println((e1,e2))
-//              println(e1 != e2)
-//              println(e1.pivot == e2.pivot)
-//            }
-//            if (e1 != e2 && e1.pivot == e2.pivot) {return false}
-//          }
-//        }
-//        //println("triangle safe")
-//        return true
-//      }
       def isSafe: Boolean = {
         val n1 = nodesAsSet.head
         val n2 = nodesAsSet.last
         for (e1 <- n1.edges) {
           for (e2 <- n2.edges) {
-            if (false) {
-              println()
-              println((e1,e2))
-              println(e1 != e2)
-              println(e1.pivot == e2.pivot)
-            }
+            if (false) { println(); println((e1,e2)); println(e1 != e2); println(e1.pivot == e2.pivot)}
             if (e1 != e2 && e1.pivot == e2.pivot) {return false}
           }
         }
@@ -252,7 +223,6 @@ object Hypergraph {
     private def deleteEdge(e:Edge) = {edges -= e}
 
     def simplify = {
-      //mergeAllMergeableEdges
       var counter = 0
       var resCounter = 0
       var splitCounter = 0
@@ -308,26 +278,6 @@ object Hypergraph {
         }
         if (visitedNodes.size != nodes.size) { connected = false; throw new Exception("Hypergraph has mutually disconnected components") }
       }
-
-
-//      def hasTautologicalCycle : Boolean = {
-//        for (n <- nodes) if (hasTautologicalCycleRec(n,n,new HashSet[Node],Nil)) return true
-//        return false
-//      }
-//      def hasTautologicalCycleRec(initialNode: Node, currentNode:Node, visitedNodes:HashSet[Node], path:List[Atom]) : Boolean = {
-//        if (visitedNodes.contains(currentNode)) return false
-//        else {
-//          if (currentNode.id == initialNode.id) {
-//            throw new Exception("Hypergraph has tautological cycles.")
-//            return true
-//          }
-//          for (e <- currentNode.edges if !path.contains(e.pivot); n <- e.nodes if n.id != currentNode.id && !visitedNodes.contains(n)) {
-//            if (hasTautologicalCycleRec(initialNode,n,visitedNodes+currentNode,e.pivot::path)) return true
-//          }
-//          return false
-//        }
-//      }
-
 
       var stuck = true
       if (isTrivial) stuck = false
