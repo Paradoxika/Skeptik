@@ -110,8 +110,5 @@ object ResolutionCalculus {
           return (proofLengthRec(left, visitedProofs) + proofLengthRec(right, visitedProofs) + 1)
         }
       }
-    } else {
-      println(proof.clause)
-      return 0
-    }
+    } else return 0
 }
