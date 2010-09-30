@@ -81,10 +81,10 @@ object GUI {
     g.addEdge( "v3", "v1" );
     g.addEdge( "v4", "v3" );
 
-  //  positionVertexAt( "v1", 130, 40 );
-  //  positionVertexAt( "v2", 60, 200 );
-  //  positionVertexAt( "v3", 310, 230 );
-  //  positionVertexAt( "v4", 380, 70 );
+    positionVertexAt( "v1", 130, 40 );
+    positionVertexAt( "v2", 60, 200 );
+    positionVertexAt( "v3", 310, 230 );
+    positionVertexAt( "v4", 380, 70 );
 
 
 
@@ -106,7 +106,7 @@ object GUI {
       val attr: AttributeMap = cell.getAttributes(  );
       val b = GraphConstants.getBounds( attr ); // Rectangle
   
-      GraphConstants.setBounds( attr, new Rectangle( x, y, b.asInstanceOf[Rectangle].width, b.asInstanceOf[Rectangle].height ) );
+      GraphConstants.setBounds( attr, new Rectangle( x, y, b.getWidth.asInstanceOf[Int], b.getHeight.asInstanceOf[Int] ) );
   
       val cellAttr = new HashMap[DefaultGraphCell,AttributeMap]();
       cellAttr.put(cell, attr);
