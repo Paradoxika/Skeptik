@@ -8,6 +8,21 @@ package resolutionproofcompression
 import resolutionproofcompression.ResolutionCalculus._
 
 
+object Proof0 {
+  val p = true
+  val n = false
+
+  val c1 = Input(List(L("a",p),L("b",p)))
+  val c2 = Input(List(L("a",n),L("c",p)))
+  val c3 = Input(List(L("a",p),L("b",n)))
+  val c4 = Input(List(L("c",n)))
+  val c5 = Resolvent(c1,c2)
+  val c6 = Resolvent(c2,c3)
+  val c7 = Resolvent(c6,c4)
+  val c8 = Resolvent(c5,c7)
+}
+
+
 object Proof3 {
   val p = true
   val n = false
