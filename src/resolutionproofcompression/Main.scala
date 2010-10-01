@@ -5,6 +5,7 @@
 
 package resolutionproofcompression
 
+import resolutionproofcompression.GUI._
 import scala.collection.mutable._
 import resolutionproofcompression.Utilities._
 import resolutionproofcompression.ResolutionCalculus._
@@ -16,34 +17,39 @@ object Main {
    */
   def main(args: Array[String]): Unit = {
 
-//    for (i <- 1 to 10) {
-//    val g = new ResolutionHypergraph(PigeonProof.clempty)
+//    val gui = new HypergraphVisualizer
+//
+//
+////    for (i <- 1 to 10) {
+////    val g = new ResolutionHypergraph(PigeonProof.clempty)
+////
+////    println("INITIAL GRAPH:")
+////    println(g)
+////
+////    g.simplify
+////
+////    println("FINAL RESULT:")
+////    println(g)
+////
+////    println(proofLength(PigeonProof.clempty))
+////    }
+////
+////
+//
+//    val g3 = new ResolutionHypergraph(Proof2.clempty)
+//
+//    gui.displayHypergraph(g3)
 //
 //    println("INITIAL GRAPH:")
-//    println(g)
+//    println(g3)
 //
-//    g.simplify
+//    g3.simplify
 //
 //    println("FINAL RESULT:")
-//    println(g)
+//    println(g3)
 //
-//    println(proofLength(PigeonProof.clempty))
-//    }
-//
-//
-    for (i <- 1 to 10) {
-    val g3 = new ResolutionHypergraph(Proof2.clempty)
-
-    println("INITIAL GRAPH:")
-    println(g3)
-
-    g3.simplify
-
-    println("FINAL RESULT:")
-    println(g3)
-
-    println(proofLength(Proof2.clempty))
-  }
+//    println(proofLength(Proof2.clempty))
+  
 
 //    val g2 = new ResolutionHypergraph(P4.cl1115)
 //    val g2 = new ResolutionHypergraph(P4.cl1116)
@@ -60,9 +66,12 @@ object Main {
     //
 //    val g2 = new ResolutionHypergraph(P4.cl1145) Solved from 1145 to 1148
 
-//    val g2 = new ResolutionHypergraph(P4.cl1149)
+//    val g2 = new ResolutionHypergraph(P4.cl1149) Solved until 1154
 
-//    val g2 = new ResolutionHypergraph(P4.cl1200)
+//    val f = P4.cl1155
+
+    //val f = P4.cl1180
+//    val g2 = new ResolutionHypergraph(f)
 
 //    val g2 = new ResolutionHypergraph(P4.cl1200)
 //    val g2 = new ResolutionHypergraph(P4.cl1200)
@@ -72,15 +81,22 @@ object Main {
 //    val g2 = new ResolutionHypergraph(P4.clempty)
 
 
+    val f = Proof0.c8
+    val g = new ResolutionHypergraph(f)
 
-//    println("INITIAL GRAPH:")
-//    println(g2)
+    val gui = new HypergraphVisualizer
+    gui.displayHypergraph(g)
+
+    println("INITIAL GRAPH:")
+    println(g)
 ////
-//    g2.simplify
+    g.simplify
 ////
-//    println("FINAL RESULT:")
-//    println(g2)
+    println("FINAL RESULT:")
+    println(g)
 ////
-//    println(proofLength(P4.clempty))
+    println(proofLength(f))
+
+    
   }
 }
