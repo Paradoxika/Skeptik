@@ -5,112 +5,96 @@
 
 package resolutionproofcompression
 
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Rectangle
-
-import java.util.HashMap
-import java.util.Map
-
-import javax.swing.JApplet
 import javax.swing.JFrame
-
-import org.jgrapht.ListenableGraph
-import org.jgrapht.ext.JGraphModelAdapter
-import org.jgrapht.graph.ListenableDirectedGraph
-import org.jgrapht.graph.DefaultEdge
-
-import org.jgraph.JGraph
-import org.jgraph.graph.DefaultGraphCell
-import org.jgraph.graph.GraphConstants
-import org.jgraph.graph.AttributeMap
 
 import com.mxgraph.swing.mxGraphComponent
 import com.mxgraph.view.mxGraph
+import resolutionproofcompression.Hypergraph._
+
+import scala.collection.mutable._
+
+import Math._
 
 object GUI {
 
   class HypergraphVisualizer {
     val graph = new mxGraph();
     val parent = graph.getDefaultParent();
-
-    graph.getModel().beginUpdate();
-    val v1 = graph.insertVertex(parent, null, "Hello", 20, 20, 80,
-                            30);
-    val v2 = graph.insertVertex(parent, null, "World!", 240, 150,
-                            80, 30);
-    graph.insertEdge(parent, null, "Edge", v1, v2);
-    graph.getModel().endUpdate();
-
-
     val graphComponent = new mxGraphComponent(graph);
+
     val frame = new JFrame();
     frame.getContentPane().add(graphComponent);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(400, 320);
-    frame.setVisible(true);
+    frame.setSize(1440, 880); frame.setVisible(true);
+    
 
-    def test = {
-      graph.insertVertex(parent, null, "Oi", 120, 60, 80,
-                            30);
+
+    def displayHypergraph(hg: ResolutionHypergraph) = {
+      cleanDisplayedGraph
+      graph.getModel().beginUpdate();
+      val edgeHashMap = new HashMap[Edge,Pair[Object,Pair[Int,Int]]]
+      val nodeHashMap = new HashMap[Node,Pair[Object,Pair[Int,Int]]]
+      val nodes = hg.getNodes
+      val edges = hg.getEdges
+
+      var index = 0
+      val angleInterval = 2*Pi/nodes.length
+      val radius = 40*nodes.length
+      for (n <- nodes) {
+        val angle = index*angleInterval
+        val x = 10 + radius + (radius*cos(angle)).toInt
+        val y = 10 + radius + (radius*sin(angle)).toInt
+        println(n.id + ": " + (x,y))
+        val label : String = n.id + ": " + n.clause
+        val v = addNodeVertex(label, x, y)
+        nodeHashMap += (n -> (v,(x,y)))
+        index += 1
+      }
+
+      for (e <- edges) {
+        val label: String = e.id + ": " + e.pivot
+        var xSum = 0
+        var ySum = 0
+        for (n <- e.nodes) {
+          val position = nodeHashMap(n)._2
+          xSum += position._1
+          ySum += position._2
+        }
+        val x = xSum/e.nodes.length
+        val y = ySum/e.nodes.length
+        val v = addEdgeVertex(label, x, y)
+
+
+        val (positiveNodes, negativeNodes) = e.partitionByPolarity
+        for (n <- positiveNodes.toSet[Node]) {
+          val multiplicity = positiveNodes.count(node => node.id == n.id)
+          addConnection(multiplicity.toString, v, nodeHashMap(n)._1 )
+        }
+        for (n <- negativeNodes.toSet[Node]) {
+          val multiplicity = negativeNodes.count(node => node.id == n.id)
+          addConnection(multiplicity.toString, nodeHashMap(n)._1, v )
+        }
+      }
+      graph.getModel().endUpdate()  
     }
-  }
 
+    def addNodeVertex(label: String, x: Int, y: Int): Object = {
+      return graph.insertVertex(parent, null, label, x, y, label.length * 10, 30)
+    }
 
-  class GraphVisualizer {
-    private val DEFAULT_BG_COLOR = Color.decode( "#FAFBFF" );
-    private val DEFAULT_SIZE = new Dimension( 530, 320 );
+    def addEdgeVertex(label: String, x: Int, y: Int): Object = {
+      return graph.insertVertex(parent, null, label, x, y, label.length * 10, 30, "fillColor=yellow")
+    }
 
-    val g : ListenableGraph[String,DefaultEdge] = new ListenableDirectedGraph( classOf[DefaultEdge] );
-    private val m_jgAdapter = new JGraphModelAdapter( g )
+    def addConnection(label: String, nodeVertex: Object, edgeVertex: Object): Object = {
+      return graph.insertEdge(parent, null, label, nodeVertex, edgeVertex)
+    }
 
-    val jgraph = new JGraph( m_jgAdapter );
-
-    val frame = new JFrame()
-    adjustDisplaySettings( jgraph );
-    frame.getContentPane(  ).add( jgraph );
-    frame.resize( DEFAULT_SIZE );
-
-    g.addVertex( "v1" );
-    g.addVertex( "v2" );
-    g.addVertex( "v3" );
-    g.addVertex( "v4" );
-
-    g.addEdge( "v1", "v2" );
-    g.addEdge( "v2", "v3" );
-    g.addEdge( "v3", "v1" );
-    g.addEdge( "v4", "v3" );
-
-    positionVertexAt( "v1", 130, 40 );
-    positionVertexAt( "v2", 60, 200 );
-    positionVertexAt( "v3", 310, 230 );
-    positionVertexAt( "v4", 380, 70 );
-
-
-
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-    frame.setVisible(true)
-
-
-    private def adjustDisplaySettings(jg: JGraph) = {
-        jg.setPreferredSize( DEFAULT_SIZE );
-        val  c        = DEFAULT_BG_COLOR;
-        var colorStr: String = null;
-        jg.setBackground( c );
+    def cleanDisplayedGraph = {
+      graph.selectAll()
+      graph.removeCells()
     }
 
 
-    private def positionVertexAt( vertex:Object, x: Int, y:Int ) = {
-      val cell : DefaultGraphCell = m_jgAdapter.getVertexCell( vertex );
-  
-      val attr: AttributeMap = cell.getAttributes(  );
-      val b = GraphConstants.getBounds( attr ); // Rectangle
-  
-      GraphConstants.setBounds( attr, new Rectangle( x, y, b.getWidth.asInstanceOf[Int], b.getHeight.asInstanceOf[Int] ) );
-  
-      val cellAttr = new HashMap[DefaultGraphCell,AttributeMap]();
-      cellAttr.put(cell, attr);
-      m_jgAdapter.edit(cellAttr.asInstanceOf[Map[DefaultGraphCell,AttributeMap]], null, null, null);
-    }
   }
 }
