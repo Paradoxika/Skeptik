@@ -8,6 +8,7 @@ package resolutionproofcompression
 import scala.collection.mutable._
 import resolutionproofcompression.Utilities._
 import resolutionproofcompression.ResolutionCalculus._
+import resolutionproofcompression.GUI._
 
 object Hypergraph {
   val EdgeCounter = new Counter
@@ -79,7 +80,11 @@ object Hypergraph {
       (listOfListsOfEdges :\ emptyList)(merge)
     }
  
-    def isSplittable: Boolean = (1 < gcd(edgesGroupedByPivot.map(l => l.length)))
+    def isSplittable: Boolean = {
+      val edgesGBP : List[List[Edge]] = edgesGroupedByPivot
+      edgesGBP.exists(list => list.toSet[Edge].size > 1) && 
+      (1 < gcd(edgesGBP.map(l => l.length).toList))
+    }
 
     def split : List[Node] = {
       val edgesGBP = edgesGroupedByPivot
@@ -129,9 +134,12 @@ object Hypergraph {
     def nodesAsSet = nodesInThisEdge.toSet
     def addNode(node:Node) = {nodesInThisEdge = node::nodesInThisEdge}
     def deleteNode(node:Node) = {nodesInThisEdge = deleteNodeRec(node, nodesInThisEdge)}
-    private def deleteNodeRec(node:Node, list: List[Node]) : List[Node] = list match {
-      case Nil => throw new Exception("Node " + node.id + " not found in edge " + id + ". Therefore it cannot be deleted.")
-      case n::tail => if (n == node) tail else n::deleteNodeRec(node,tail)
+    private def deleteNodeRec(node:Node, list: List[Node]) : List[Node] = {
+      //println(node.id + " : " + list.map(n => n.id))
+      list match {
+        case Nil => throw new Exception("Node " + node.id + " not found in edge " + id + ". Therefore it cannot be deleted.")
+        case n::tail => if (n == node) tail else n::deleteNodeRec(node,tail)
+      }
     }
 
     def partitionByPolarity: (List[Node], List[Node]) = nodes.partition(n => n.clause.exists(lit => lit.atom == pivot && lit.polarity == true))
@@ -171,6 +179,8 @@ object Hypergraph {
   class ResolutionHypergraph {
     private val nodes: HashSet[Node] = new HashSet[Node]
     private val edges: HashSet[Edge] = new HashSet[Edge]
+    def getNodes = nodes.toList
+    def getEdges = edges.toList
 
     def isTrivial = {nodes.size == 1}
 
@@ -226,7 +236,7 @@ object Hypergraph {
       var counter = 0
       var resCounter = 0
       var splitCounter = 0
-      while (!isTrivial && counter < 250) {
+      while (!isTrivial && counter < 130) {
         counter += 1
         
         println("Counter: " + counter + " " + resCounter + " " + splitCounter)
@@ -246,7 +256,14 @@ object Hypergraph {
           case None =>
         }
 
-        if (counter == 249 ) {
+        if (edges.forall(e => !e.isResolvable) && nodes.forall(n => !n.isSplittable)) mergeAllSplittedNodes
+
+        if (counter == 129 ) {
+          //invariant
+
+          val gui = new HypergraphVisualizer
+          gui.displayHypergraph(this)
+
           println("resolvable")
           for (e <- edges) {
             println(e.isResolvable)
@@ -290,7 +307,7 @@ object Hypergraph {
       if (connected && !stuck) true else false
     }
 
-    val debugResolveEdge = true
+    val debugResolveEdge = false
     private def resolveEdge(e: Edge) = {
       if (debugResolveEdge) {
         println("RESOLVING EDGE - Begin:")
@@ -317,7 +334,7 @@ object Hypergraph {
     }
 
 
-    val debugSplitNode = true
+    val debugSplitNode = false
     private def splitNode(node: Node) = {
       if (debugSplitNode) {
         println("SPLITTING NODE - Begin:")
@@ -336,6 +353,26 @@ object Hypergraph {
         println("Edges: " + edges.map(e => e.id))
         println(this)
         println(" ")
+      }
+    }
+
+    private def mergeAllSplittedNodes = {
+      println("hey!")
+      for (e <- edges) {
+        //println("EDGE: " + e)
+        val (positiveNodes, negativeNodes) = e.partitionByPolarity
+        val positiveNodesAsSet = positiveNodes.toSet[Node]
+        val negativeNodesAsSet = negativeNodes.toSet[Node]
+        //println("PositiveNodes: " + positiveNodesAsSet.map(n => n.id))
+        //println("NegativeNodes: " + negativeNodesAsSet.map(n => n.id))
+        def mergeIfSplitted(set: scala.collection.immutable.Set[Node]) = if (set.size > 1 && set.forall(n => equalClauses(n.clause, set.head.clause))) {
+          println("SPLITTED!!! :" + set.map(n => n.id) )
+          val newNode = new Node(set.toList)
+          addNode(newNode)
+          for (n <- set) deleteNode(n)
+        }
+        mergeIfSplitted(positiveNodesAsSet)
+        mergeIfSplitted(negativeNodesAsSet)
       }
     }
   }
