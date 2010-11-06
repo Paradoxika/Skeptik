@@ -43,6 +43,7 @@ object ResolutionCalculus {
   case class Resolvent(left: ResolutionProof, right: ResolutionProof) extends ResolutionProof {
     val clause : Clause = resolve(left.clause, right.clause)
     val pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
+    val resolvedAtom = pivot._1.atom
 
     left.children = this::left.children
     right.children = this::right.children
@@ -70,6 +71,10 @@ object ResolutionCalculus {
       for (upNext <- up.children; if isBelow(down,upNext)) return true
       return false
     }
+  }
+
+  def isDependent(down:Resolvent, up:Resolvent) = {
+    isBelow(down,up) && down.resolvedAtom != up.resolvedAtom
   }
 
   def resolve(clause1: Clause, clause2: Clause) : Clause = {
