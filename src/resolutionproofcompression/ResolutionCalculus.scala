@@ -64,6 +64,14 @@ object ResolutionCalculus {
     override def hashCode = id
   }
 
+  def isBelow(down: Resolvent, up: Resolvent): Boolean = {
+    if (down == up) return true
+    else {
+      for (upNext <- up.children; if isBelow(down,upNext)) return true
+      return false
+    }
+  }
+
   def resolve(clause1: Clause, clause2: Clause) : Clause = {
     var resolvent : Clause = Nil
     for (l1 <- clause1) {
