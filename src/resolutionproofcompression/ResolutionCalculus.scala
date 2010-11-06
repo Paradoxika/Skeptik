@@ -26,6 +26,7 @@ object ResolutionCalculus {
   abstract class ResolutionProof {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
+    var children : List[Resolvent] = Nil
   }
   case class Input(clause: Clause) extends ResolutionProof {
     for (lit <- clause) lit.ancestorInputs = this::Nil
@@ -41,7 +42,11 @@ object ResolutionCalculus {
   }
   case class Resolvent(left: ResolutionProof, right: ResolutionProof) extends ResolutionProof {
     val clause : Clause = resolve(left.clause, right.clause)
-    val pivot : (Literal,Literal) = findPivots(left.clause, right.clause)  
+    val pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
+
+    left.children = this::left.children
+    right.children = this::right.children
+
     for (lit <- clause) {
       val litLeftOption = left.clause.find(l => l == lit)
       val litRightOption = right.clause.find(l => l == lit)
