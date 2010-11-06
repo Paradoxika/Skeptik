@@ -127,9 +127,10 @@ object Hypergraph {
   }
 
 
-  class Edge(nodeList: List[Node], a: Atom) extends Ordered[Edge] {
-    val pivot = a; val id = EdgeCounter.get
-    private var nodesInThisEdge = nodeList;
+  class Edge(nodeList: List[Node], resolvent: Resolvent) extends Ordered[Edge] {
+    def pivot = resolvent.pivot._1.atom
+    def id = resolvent.id
+    private var nodesInThisEdge = nodeList
     def nodes : List[Node] = nodesInThisEdge
     def nodesAsSet = nodesInThisEdge.toSet
     def addNode(node:Node) = {nodesInThisEdge = node::nodesInThisEdge}
@@ -217,7 +218,7 @@ object Hypergraph {
               val (leftPivot,rightPivot) = proof.asInstanceOf[Resolvent].pivot
               val leftNodes = leftPivot.ancestorInputs.map(c => hashMapInputToNode(c))
               val rightNodes = rightPivot.ancestorInputs.map(c => hashMapInputToNode(c))
-              val newEdge = new Edge(leftNodes:::rightNodes, leftPivot.atom)
+              val newEdge = new Edge(leftNodes:::rightNodes, proof.asInstanceOf[Resolvent])
               addEdge(newEdge)
               for (n <- newEdge.nodes) n.addEdge(newEdge)
           }
