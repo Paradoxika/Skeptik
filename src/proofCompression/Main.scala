@@ -3,13 +3,15 @@
  * and open the template in the editor.
  */
 
-package resolutionproofcompression
+package proofCompression
 
-import resolutionproofcompression.GUI._
+
 import scala.collection.mutable._
-import resolutionproofcompression.Utilities._
-import resolutionproofcompression.ResolutionCalculus._
-import resolutionproofcompression.Hypergraph._
+import proofCompression.Utilities._
+import proofCompression.ResolutionCalculus._
+import proofCompression.Hypergraph._
+import proofCompression.GUI._
+import proofs._
 
 object Main {
   /**
@@ -21,34 +23,34 @@ object Main {
 //
 //
 ////    for (i <- 1 to 10) {
-////    val g = new ResolutionHypergraph(PigeonProof.clempty)
-////
-////    println("INITIAL GRAPH:")
-////    println(g)
-////
-////    g.simplify
-////
-////    println("FINAL RESULT:")
-////    println(g)
-////
-////    println(proofLength(PigeonProof.clempty))
+    val g4 = new ResolutionHypergraph(PigeonProof.clempty)
+
+    println("INITIAL GRAPH:")
+    println(g4)
+
+    g4.simplify
+
+    println("FINAL RESULT:")
+    println(g4)
+
+    println(proofLength(PigeonProof.clempty))
 ////    }
 ////
 ////
 //
-//    val g3 = new ResolutionHypergraph(Proof2.clempty)
-//
+    val g3 = new ResolutionHypergraph(Proof2.clempty)
+
 //    gui.displayHypergraph(g3)
-//
-//    println("INITIAL GRAPH:")
-//    println(g3)
-//
-//    g3.simplify
-//
-//    println("FINAL RESULT:")
-//    println(g3)
-//
-//    println(proofLength(Proof2.clempty))
+
+    println("INITIAL GRAPH:")
+    println(g3)
+
+    g3.simplify
+
+    println("FINAL RESULT:")
+    println(g3)
+
+    println(proofLength(Proof2.clempty))
   
 
 //    val g2 = new ResolutionHypergraph(P4.cl1115)

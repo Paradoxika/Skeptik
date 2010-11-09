@@ -3,10 +3,10 @@
  * and open the template in the editor.
  */
 
-package resolutionproofcompression
+package proofCompression
 
 import scala.collection.mutable._
-import resolutionproofcompression.Utilities._
+import proofCompression.Utilities._
 
 
 object ResolutionCalculus {

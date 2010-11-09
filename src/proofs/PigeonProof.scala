@@ -3,9 +3,9 @@
  * and open the template in the editor.
  */
 
-package resolutionproofcompression
+package proofs
 
-import resolutionproofcompression.ResolutionCalculus._
+import proofCompression.ResolutionCalculus._
 
 object PigeonProof {
   val p = true

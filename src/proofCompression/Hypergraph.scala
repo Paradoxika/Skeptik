@@ -3,12 +3,12 @@
  * and open the template in the editor.
  */
 
-package resolutionproofcompression
+package proofCompression
 
 import scala.collection.mutable._
-import resolutionproofcompression.Utilities._
-import resolutionproofcompression.ResolutionCalculus._
-import resolutionproofcompression.GUI._
+import proofCompression.Utilities._
+import proofCompression.ResolutionCalculus._
+import proofCompression.GUI._
 
 object Hypergraph {
   val EdgeCounter = new Counter
@@ -80,10 +80,21 @@ object Hypergraph {
       (listOfListsOfEdges :\ emptyList)(merge)
     }
  
+//    def isSplittable: Boolean = {
+//      val edgesGBP : List[List[Edge]] = edgesGroupedByPivot
+//      edgesGBP.exists(list => list.toSet[Edge].size > 1) &&
+//      (1 < gcd(edgesGBP.map(l => l.length).toList))
+//    }
+
     def isSplittable: Boolean = {
-      val edgesGBP : List[List[Edge]] = edgesGroupedByPivot
-      edgesGBP.exists(list => list.toSet[Edge].size > 1) && 
-      (1 < gcd(edgesGBP.map(l => l.length).toList))
+      println("checking splittability for " + this.clause)
+      if (edges.length == 0) return false
+      for (edge <- edges; if edges.forall(e => isDependent(e.resolvent,edge.resolvent))) {
+        println(edge.id + " dominates. Not splittable.")
+        return false
+      }
+      println("splittable.")
+      return true
     }
 
     def split : List[Node] = {
@@ -109,15 +120,7 @@ object Hypergraph {
       newNodes.toList
     }
 
-//    def isNeighbourOf(that: Node, e: Edge) = {
-//      val (positiveNodes, negativeNodes) = e.partitionByPolarity
-//      (positiveNodes.contains(this) && negativeNodes.contains(that)) || (positiveNodes.contains(that) && negativeNodes.contains(this))
-//    }
-//
-//    def neighbours : scala.collection.immutable.Set[(Node,Edge)] = {
-//      val neighboursSeq = for (e <- edges; n <- e.nodes if isNeighbourOf(n,e) ) yield (n,e)
-//      return neighboursSeq.toSet
-//    }
+
 
     override def toString = {
       var string = "Node " + id  + " (" + clause + "): " + " (" + proof + "): "
@@ -127,7 +130,8 @@ object Hypergraph {
   }
 
 
-  class Edge(nodeList: List[Node], resolvent: Resolvent) extends Ordered[Edge] {
+  class Edge(nodeList: List[Node], r: Resolvent) extends Ordered[Edge] {
+    def resolvent = r
     def pivot = resolvent.pivot._1.atom
     def id = resolvent.id
     private var nodesInThisEdge = nodeList
@@ -262,8 +266,9 @@ object Hypergraph {
         if (counter == 129 ) {
           //invariant
 
-          val gui = new HypergraphVisualizer
-          gui.displayHypergraph(this)
+          //val gui = new HypergraphVisualizer
+          //gui.displayHypergraph(this)
+          println(this)
 
           println("resolvable")
           for (e <- edges) {
@@ -308,7 +313,7 @@ object Hypergraph {
       if (connected && !stuck) true else false
     }
 
-    val debugResolveEdge = false
+    val debugResolveEdge = true
     private def resolveEdge(e: Edge) = {
       if (debugResolveEdge) {
         println("RESOLVING EDGE - Begin:")
@@ -335,7 +340,7 @@ object Hypergraph {
     }
 
 
-    val debugSplitNode = false
+    val debugSplitNode = true
     private def splitNode(node: Node) = {
       if (debugSplitNode) {
         println("SPLITTING NODE - Begin:")

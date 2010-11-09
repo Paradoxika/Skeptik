@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package resolutionproofcompression
+package proofCompression
 
 object Utilities {
   def gcd(a:Int, b:Int) = if (a > b) gcdRec(a,b) else gcdRec(b,a)

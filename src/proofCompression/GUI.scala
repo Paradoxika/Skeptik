@@ -3,13 +3,13 @@
  * and open the template in the editor.
  */
 
-package resolutionproofcompression
+package proofCompression
 
 import javax.swing.JFrame
 
 import com.mxgraph.swing.mxGraphComponent
 import com.mxgraph.view.mxGraph
-import resolutionproofcompression.Hypergraph._
+import proofCompression.Hypergraph._
 
 import scala.collection.mutable._
 
