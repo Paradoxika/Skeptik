@@ -25,7 +25,7 @@ object GUI {
     val frame = new JFrame();
     frame.getContentPane().add(graphComponent);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setSize(1440, 880); frame.setVisible(true);
+    frame.setSize(600, 400); frame.setVisible(true);
     
 
 
