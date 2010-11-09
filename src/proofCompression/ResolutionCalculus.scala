@@ -27,8 +27,11 @@ object ResolutionCalculus {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
+    var literalsBelow : List[HashSet[Literal]]  // One set of literals per child, in order to generalize Strichman's algorithm
+    //def clone : ResolutionProof
   }
   case class Input(clause: Clause) extends ResolutionProof {
+    //def clone
     for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
       if (clause.isEmpty) "{}"
