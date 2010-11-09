@@ -28,11 +28,11 @@ object ResolutionCalculus {
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
     var literalsBelow : List[HashSet[Literal]]  // One set of literals per child, in order to generalize Strichman's algorithm
-    //def clone : ResolutionProof
+    def duplicate : ResolutionProof
   }
   case class Input(clause: Clause) extends ResolutionProof {
-    //def clone
     for (lit <- clause) lit.ancestorInputs = this::Nil
+    def duplicate = new Input(clause)
     override def toString: String = {
       if (clause.isEmpty) "{}"
       else {
@@ -61,6 +61,7 @@ object ResolutionCalculus {
         case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
       }
     }
+    def duplicate = new Resolvent(left.duplicate, right.duplicate)
     override def toString: String = {
       var string = "(" + left + "+" + right + ")"
       return string
