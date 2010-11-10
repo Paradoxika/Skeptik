@@ -44,7 +44,7 @@ object ResolutionCalculus {
     override def hashCode = id
   }
   case class Resolvent(var left: ResolutionProof, var right: ResolutionProof) extends ResolutionProof {
-    val clause : Clause = resolve(left.clause, right.clause)
+    var clause : Clause = resolve(left.clause, right.clause)
     val pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
     val resolvedAtom = pivot._1.atom
 
