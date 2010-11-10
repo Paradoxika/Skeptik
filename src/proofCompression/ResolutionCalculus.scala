@@ -27,12 +27,12 @@ object ResolutionCalculus {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
-    var literalsBelow : List[HashSet[Literal]]  // One set of literals per child, in order to generalize Strichman's algorithm
+    var literalsBelow = new HashMap[Resolvent,HashSet[Literal]]
     def duplicate : ResolutionProof
   }
   case class Input(clause: Clause) extends ResolutionProof {
     for (lit <- clause) lit.ancestorInputs = this::Nil
-    def duplicate = new Input(clause)
+    def duplicate = this // Input clauses do not need to be duplicated. new Input(clause)
     override def toString: String = {
       if (clause.isEmpty) "{}"
       else {
@@ -43,7 +43,7 @@ object ResolutionCalculus {
     }
     override def hashCode = id
   }
-  case class Resolvent(left: ResolutionProof, right: ResolutionProof) extends ResolutionProof {
+  case class Resolvent(var left: ResolutionProof, var right: ResolutionProof) extends ResolutionProof {
     val clause : Clause = resolve(left.clause, right.clause)
     val pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
     val resolvedAtom = pivot._1.atom
@@ -61,7 +61,7 @@ object ResolutionCalculus {
         case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
       }
     }
-    def duplicate = new Resolvent(left.duplicate, right.duplicate)
+    def duplicate = new Resolvent(left.duplicate, right.duplicate) // ToDo: Wrong
     override def toString: String = {
       var string = "(" + left + "+" + right + ")"
       return string
