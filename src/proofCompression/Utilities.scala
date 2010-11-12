@@ -5,6 +5,8 @@
 
 package proofCompression
 
+import scala.collection.mutable._
+
 object Utilities {
   def gcd(a:Int, b:Int) = if (a > b) gcdRec(a,b) else gcdRec(b,a)
   def gcdRec(a:Int, b:Int):Int = if (b==0) a else gcdRec(b, a % b)
@@ -33,5 +35,14 @@ object Utilities {
       }
       return (currentBestArgument,currentBestValue)
     }
+  }
+
+  def union[T](list: List[HashSet[T]]): HashSet[T] = list match {
+    case Nil => new HashSet[T]
+    case head::tail => union(tail) ++ head
+  }
+  def intersection[T](list: List[HashSet[T]]): HashSet[T] = list match {
+    case Nil => new HashSet[T]
+    case head::tail => intersection(tail).diff(head)
   }
 }

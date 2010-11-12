@@ -11,6 +11,7 @@ import proofCompression.Utilities._
 import proofCompression.ResolutionCalculus._
 import proofCompression.Hypergraph._
 import proofCompression.GUI._
+import proofCompression.ProofRegularization._
 import proofs._
 
 object Main {
@@ -20,38 +21,53 @@ object Main {
   def main(args: Array[String]): Unit = {
 
 //    val gui = new HypergraphVisualizer
-//
-//
-////    for (i <- 1 to 10) {
-    val g4 = new ResolutionHypergraph(PigeonProof.clempty)
-
-    println("INITIAL GRAPH:")
-    println(g4)
-
-    g4.simplify
-
-    println("FINAL RESULT:")
-    println(g4)
-
-    println(proofLength(PigeonProof.clempty))
-////    }
-////
-////
-//
-    val g3 = new ResolutionHypergraph(Proof2.clempty)
-
 //    gui.displayHypergraph(g3)
+//
+    println(PigeonProof.clempty)
+    regularize(PigeonProof.clempty)
+    println(PigeonProof.clempty)
+    fixProof(PigeonProof.clempty)
+    println(PigeonProof.clempty)
+    println()
 
-    println("INITIAL GRAPH:")
-    println(g3)
+    println(Proof2.clempty)
+    regularize(Proof2.clempty)
+    println(Proof2.clempty)
+    println()
 
-    g3.simplify
+    println(Proof0.c8)
+    regularize(Proof0.c8)
+    println(Proof0.c8)
+    println()
 
-    println("FINAL RESULT:")
-    println(g3)
-
-    println(proofLength(Proof2.clempty))
-  
+//    val g4 = new ResolutionHypergraph(PigeonProof.clempty)
+//
+//    println("INITIAL GRAPH:")
+//    println(g4)
+//
+//    g4.simplify
+//
+//    println("FINAL RESULT:")
+//    println(g4)
+//
+//    println(proofLength(PigeonProof.clempty))
+//
+//
+//
+//    val g3 = new ResolutionHypergraph(Proof2.clempty)
+//
+//
+//
+//    println("INITIAL GRAPH:")
+//    println(g3)
+//
+//    g3.simplify
+//
+//    println("FINAL RESULT:")
+//    println(g3)
+//
+//    println(proofLength(Proof2.clempty))
+//
 
 //    val g2 = new ResolutionHypergraph(P4.cl1115)
 //    val g2 = new ResolutionHypergraph(P4.cl1116)
@@ -83,21 +99,21 @@ object Main {
 //    val g2 = new ResolutionHypergraph(P4.clempty)
 
 
-    val f = Proof0.c8
-    val g = new ResolutionHypergraph(f)
-
-    val gui = new HypergraphVisualizer
-    gui.displayHypergraph(g)
-
-    println("INITIAL GRAPH:")
-    println(g)
-////
-    g.simplify
-////
-    println("FINAL RESULT:")
-    println(g)
-////
-    println(proofLength(f))
+//    val f = Proof0.c8
+//    val g = new ResolutionHypergraph(f)
+//
+//    val gui = new HypergraphVisualizer
+//    gui.displayHypergraph(g)
+//
+//    println("INITIAL GRAPH:")
+//    println(g)
+//////
+//    g.simplify
+//////
+//    println("FINAL RESULT:")
+//    println(g)
+//////
+//    println(proofLength(f))
 
     
   }
