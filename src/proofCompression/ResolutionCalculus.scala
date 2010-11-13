@@ -29,10 +29,6 @@ object ResolutionCalculus {
     var children : List[Resolvent] = Nil
     var literalsBelow = new HashMap[Resolvent,HashSet[Literal]]
     def duplicate : ResolutionProof = {
-
-      duplicateRec(this, new HashMap[ResolutionProof,ResolutionProof])
-    }
-
       def duplicateRec(proof: ResolutionProof, visitedProofs: HashMap[ResolutionProof,ResolutionProof]) : ResolutionProof = {
         if (visitedProofs.contains(proof)) return visitedProofs(proof)
         else {
@@ -44,6 +40,8 @@ object ResolutionCalculus {
           return newProof
         }
       }
+      duplicateRec(this, new HashMap[ResolutionProof,ResolutionProof])
+    }
   }
   case class Input(clause: Clause) extends ResolutionProof {
     for (lit <- clause) lit.ancestorInputs = this::Nil
