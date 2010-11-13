@@ -41,8 +41,11 @@ object Utilities {
     case Nil => new HashSet[T]
     case head::tail => union(tail) ++ head
   }
-  def intersection[T](list: List[HashSet[T]]): HashSet[T] = list match {
-    case Nil => new HashSet[T]
-    case head::tail => intersection(tail).diff(head)
+  def intersection[T](list: List[HashSet[T]]): HashSet[T] = {
+    list match {
+      case Nil => new HashSet[T]
+      case head::Nil => head.clone
+      case head::tail => head.clone.intersect(intersection(tail))
+    }
   }
 }
