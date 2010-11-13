@@ -28,11 +28,25 @@ object ResolutionCalculus {
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
     var literalsBelow = new HashMap[Resolvent,HashSet[Literal]]
-    def duplicate : ResolutionProof
+    def duplicate : ResolutionProof = {
+
+      duplicateRec(this, new HashMap[ResolutionProof,ResolutionProof])
+    }
+
+      def duplicateRec(proof: ResolutionProof, visitedProofs: HashMap[ResolutionProof,ResolutionProof]) : ResolutionProof = {
+        if (visitedProofs.contains(proof)) return visitedProofs(proof)
+        else {
+          val newProof = proof match {
+            case Resolvent(l,r) => new Resolvent(duplicateRec(l, visitedProofs), duplicateRec(r,visitedProofs))
+            case Input(c) => proof
+          }
+          visitedProofs += (proof -> newProof)
+          return newProof
+        }
+      }
   }
   case class Input(clause: Clause) extends ResolutionProof {
     for (lit <- clause) lit.ancestorInputs = this::Nil
-    def duplicate = this // Input clauses do not need to be duplicated. new Input(clause)
     override def toString: String = {
       if (clause.isEmpty) "{}"
       else {
@@ -61,7 +75,6 @@ object ResolutionCalculus {
         case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
       }
     }
-    def duplicate = new Resolvent(left.duplicate, right.duplicate) // ToDo: Wrong
     override def toString: String = {
       var string = "(" + left + "+" + right + ")"
       return string
