@@ -21,86 +21,14 @@ object ProofRegularization {
   }
  
 
+  def isDAG(p: ResolutionProof)  = {
+    def isDAGRec(proof: ResolutionProof): Boolean = proof match {
+      case Input(_) => proof.children.length > 1
+      case Resolvent(l, r) =>  proof.children.length > 1 || isDAGRec(l) || isDAGRec(r)
+    }
+    isDAGRec(p)
+  }
 
-//  def regularize(proof:ResolutionProof): Unit = {
-//    if (proof.isInstanceOf[Resolvent]) {
-//      val n = proof.asInstanceOf[Resolvent]
-//      if (allChildrenAreVisited(proof)) {
-//        if (proof.children.length > 1) {
-//          println(proof.clause)
-//          val literalsBelow = (for (child <- proof.children) yield proof.literalsBelow(child)).toList
-//          val intersectionOfLiteralsBelow = intersection(literalsBelow)
-//          println("INTERSECTION :" + intersectionOfLiteralsBelow)
-//          val problematicLiterals = union(literalsBelow).diff(intersectionOfLiteralsBelow)
-//          println("Problematic: " + problematicLiterals)
-//
-//          if (problematicLiterals.isEmpty) {
-//            println("problematic literals is empty...")
-//            n.left.literalsBelow += (n -> intersectionOfLiteralsBelow)
-//            n.right.literalsBelow += (n -> intersectionOfLiteralsBelow)
-//            regularize(n.left)
-//            regularize(n.right)
-//          }
-//          else {
-//            def findProblematicLiteralsAbove(literals: HashSet[Literal], p: ResolutionProof, visitedProofs: HashSet[ResolutionProof]): Boolean = {
-//              if (!visitedProofs.contains(p)) {
-//                visitedProofs += p
-//                p match {
-//                  case Input(c) => return false
-//                  case Resolvent(l,r) => {
-//                    if (literals.contains(p.asInstanceOf[Resolvent].pivot._1) || literals.contains(p.asInstanceOf[Resolvent].pivot._2)) return true
-//                    else return (findProblematicLiteralsAbove(literals, l, visitedProofs) || findProblematicLiteralsAbove(literals, r, visitedProofs))
-//                  }
-//                }
-//              } else return false
-//            }
-//            if (findProblematicLiteralsAbove(problematicLiterals, n, new HashSet[ResolutionProof])) {
-//              println("found problematic literals..."  + problematicLiterals)
-//              for (child <- n.children) {
-//                val newProof = n.duplicate
-//                newProof.children = child::Nil
-//                newProof.literalsBelow += (child -> n.literalsBelow(child))
-//                if (child.left == proof) child.left = newProof
-//                else child.right = newProof
-//                regularize(newProof)
-//              }
-//            }
-//            else {
-//              println("did not find problematic literals...")
-//              n.left.literalsBelow += (n -> intersectionOfLiteralsBelow)
-//              n.right.literalsBelow += (n -> intersectionOfLiteralsBelow)
-//              regularize(n.left)
-//              regularize(n.right)
-//            }
-//          }
-//
-//        }
-//        else if (proof.children.length == 0) {
-//          n.left.literalsBelow += (n -> (new HashSet[Literal] + n.pivot._2))
-//          n.right.literalsBelow += (n -> (new HashSet[Literal] + n.pivot._1))
-//          regularize(n.left)
-//          regularize(n.right)
-//        }
-//        else {
-//          val literalsBelow = n.literalsBelow.get(n.children.head) match {case Some(set) => set; case None => throw new Exception("Literals Below was not initialized properly") }
-//          if (!literalsBelow.contains(n.pivot._1) && !literalsBelow.contains(n.pivot._2)) {
-//            n.left.literalsBelow += (n -> (literalsBelow.clone + n.pivot._2))
-//            n.right.literalsBelow += (n -> (literalsBelow.clone + n.pivot._1))
-//          }
-//          else if (literalsBelow.contains(n.pivot._1)) {
-//            n.left = deletedSubProof
-//            n.right.literalsBelow += (n -> literalsBelow)
-//          }
-//          else { // if (literalsBelow.contains(n.pivot._2))
-//            n.right = deletedSubProof
-//            n.left.literalsBelow += (n -> literalsBelow)
-//          }
-//          regularize(n.left)
-//          regularize(n.right)
-//        }
-//      }
-//    }
-//  }
 
   def regularize(proof:ResolutionProof): Unit = {
     if (proof.isInstanceOf[Resolvent]) {
