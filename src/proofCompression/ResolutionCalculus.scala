@@ -74,7 +74,7 @@ object ResolutionCalculus {
       }
     }
     override def toString: String = {
-      var string = "(" + left + "+" + right + ")"
+      var string = "(" + left + "." + right + ")"
       return string
     }
     override def hashCode = id
