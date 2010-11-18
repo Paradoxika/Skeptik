@@ -35,7 +35,6 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
   def proofName: Parser[String] = """[a-zA-Z0-9]\w*""".r
   def atom: Parser[String] = """[a-zA-Z0-9]\w*""".r
 
-
   def getProofFromFile(filename: String) = {
     map = new HashMap[String,ResolutionProof]
     parse(proof, new FileReader(filename))
