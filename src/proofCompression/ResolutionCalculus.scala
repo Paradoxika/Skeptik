@@ -27,7 +27,8 @@ object ResolutionCalculus {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
-    var literalsBelow = new HashMap[Resolvent,HashSet[Literal]]
+    var literalsBelow = new HashMap[Resolvent,List[Literal]]
+    var pivotAtomsAbove : HashSet[Atom]
     def duplicate : ResolutionProof = {
       def duplicateRec(proof: ResolutionProof, visitedProofs: HashMap[ResolutionProof,ResolutionProof]) : ResolutionProof = {
         if (visitedProofs.contains(proof)) return visitedProofs(proof)
@@ -42,8 +43,11 @@ object ResolutionCalculus {
       }
       duplicateRec(this, new HashMap[ResolutionProof,ResolutionProof])
     }
+    var expectedNumberOfCalls = 0
+    var numberOfCalls = 0
   }
   case class Input(clause: Clause) extends ResolutionProof {
+    var pivotAtomsAbove = new HashSet[Atom]
     for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
       if (clause.isEmpty) "{}"
@@ -53,12 +57,19 @@ object ResolutionCalculus {
         string + "}"
       }
     }
-    override def hashCode = id
+    override def hashCode = 41 + id
+    override def canEqual(other:Any): Boolean = other.isInstanceOf[Input]
+    override def equals(other:Any): Boolean = other match {
+      case that: Input => (that canEqual this) && that.id == this.id
+      case _ => false
+    }
   }
   case class Resolvent(var left: ResolutionProof, var right: ResolutionProof) extends ResolutionProof {
     var clause : Clause = resolve(left.clause, right.clause)
     val pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
     val resolvedAtom = pivot._1.atom
+    var pivotAtomsAbove = left.pivotAtomsAbove.clone.union(right.pivotAtomsAbove)
+    pivotAtomsAbove += resolvedAtom
 
     left.children = this::left.children
     right.children = this::right.children
@@ -77,14 +88,19 @@ object ResolutionCalculus {
       var string = "(" + left + "." + right + ")"
       return string
     }
-    override def hashCode = id
+    override def hashCode = 41 + id
+    override def canEqual(other:Any): Boolean = other.isInstanceOf[Resolvent]
+    override def equals(other:Any): Boolean = other match {
+      case that: Resolvent => (that canEqual this) && that.id == this.id
+      case _ => false
+    }
   }
 
-  def isBelow(down: Resolvent, up: Resolvent): Boolean = {
-    if (down == up) return true
-    else {
-      for (upNext <- up.children; if isBelow(down,upNext)) return true
-      return false
+  def isBelow(down: ResolutionProof, up: ResolutionProof): Boolean = {
+    if (down.id == up.id) return true
+    else down match {
+      case Input(_) => return false
+      case Resolvent(l,r) => return isBelow(l,up) || isBelow(r,up)
     }
   }
 

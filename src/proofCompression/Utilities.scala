@@ -37,15 +37,15 @@ object Utilities {
     }
   }
 
-  def unite[T](list: List[HashSet[T]]): HashSet[T] = list match {
-    case Nil => new HashSet[T]
+  def unite[T](list: List[List[T]]): List[T] = list match {
+    case Nil => Nil
     case head::tail => unite(tail) ++ head
   }
-  def intersect[T](list: List[HashSet[T]]): HashSet[T] = {
+  def intersect[T](list: List[List[T]]): List[T] = {
     list match {
-      case Nil => new HashSet[T]
-      case head::Nil => head.clone
-      case head::tail => head.clone.intersect(intersect(tail))
+      case Nil => Nil
+      case head::Nil => head
+      case head::tail => head.intersect(intersect(tail))
     }
   }
 }
