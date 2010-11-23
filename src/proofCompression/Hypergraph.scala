@@ -79,12 +79,6 @@ object Hypergraph {
       val emptyList: List[Edge] = Nil
       (listOfListsOfEdges :\ emptyList)(merge)
     }
- 
-//    def isSplittable: Boolean = {
-//      val edgesGBP : List[List[Edge]] = edgesGroupedByPivot
-//      edgesGBP.exists(list => list.toSet[Edge].size > 1) &&
-//      (1 < gcd(edgesGBP.map(l => l.length).toList))
-//    }
 
     def isSplittable: Boolean = {
       println("checking splittability for " + this.clause)
