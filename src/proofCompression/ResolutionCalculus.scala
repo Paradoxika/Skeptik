@@ -43,8 +43,21 @@ object ResolutionCalculus {
       }
       duplicateRec(this, new HashMap[ResolutionProof,ResolutionProof])
     }
-    var expectedNumberOfCalls = 0
-    var numberOfCalls = 0
+    def replaces(that: ResolutionProof) = {
+      for (c <- that.children) {
+        children = c::children
+        if (c.left == that) c.left = this
+        else c.right = this
+      }
+      that.children = Nil
+    }
+    def isBelow(that: ResolutionProof): Boolean = {
+      if (id == that.id) return true
+      else this match {
+        case Input(_) => return false
+        case Resolvent(l,r) => return (l isBelow that) || (r isBelow that)
+      }
+    }
   }
   case class Input(clause: Clause) extends ResolutionProof {
     var pivotAtomsAbove = new HashSet[Atom]
@@ -96,17 +109,31 @@ object ResolutionCalculus {
     }
   }
 
-  def isBelow(down: ResolutionProof, up: ResolutionProof): Boolean = {
-    if (down.id == up.id) return true
-    else down match {
-      case Input(_) => return false
-      case Resolvent(l,r) => return isBelow(l,up) || isBelow(r,up)
+  def getNodeById(p: ResolutionProof, id: Int, visitedProofs: HashMap[ResolutionProof, ResolutionProof]): ResolutionProof = {
+    if (visitedProofs.contains(p)) return visitedProofs(p)
+    else {
+      var result: ResolutionProof = null
+      if (p.id == id) result = p
+      else {
+        p match {
+          case Input(_) => return null
+          case Resolvent(l,r) => {
+            val lR = getNodeById(l, id, visitedProofs)
+            if (lR != null) result = lR
+            else {
+              val rR = getNodeById(r, id, visitedProofs)
+              if (rR != null) result = rR
+            }
+          }
+        }
+      }
+      visitedProofs += (p -> result)
+      return result
     }
   }
 
-  def isDependent(down:Resolvent, up:Resolvent) = {
-    isBelow(down,up) && down.resolvedAtom != up.resolvedAtom
-  }
+
+
 
   def resolve(clause1: Clause, clause2: Clause) : Clause = {
     var resolvent : Clause = Nil
@@ -160,4 +187,12 @@ object ResolutionCalculus {
         }
       }
     } else return 0
+
+  def isNonTree(proof: ResolutionProof)  = {
+    def isNonTreeRec(p: ResolutionProof): Boolean = p match {
+      case Input(_) => p.children.length > 1
+      case Resolvent(l, r) =>  p.children.length > 1 || isNonTreeRec(l) || isNonTreeRec(r)
+    }
+    isNonTreeRec(proof)
+  }
 }

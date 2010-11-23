@@ -10,40 +10,17 @@ import proofCompression.Utilities._
 import scala.collection.mutable._
 
 object ProofRegularization {
-  val deletedSubProof = Input(L("DELETED",true)::Nil)
+  val deletedSubProof = Input(L("Deleted SubProof",true)::Nil)
 
-  def getNodeById(p: ResolutionProof, id: Int, visitedProofs: HashMap[ResolutionProof, ResolutionProof]): ResolutionProof = {
-    if (visitedProofs.contains(p)) return visitedProofs(p)
-    else {
-      var result: ResolutionProof = null
-      if (p.id == id) result = p
-      else {
-        p match {
-          case Input(_) => return null
-          case Resolvent(l,r) => {
-            val lR = getNodeById(l, id, visitedProofs)
-            if (lR != null) result = lR
-            else {
-              val rR = getNodeById(r, id, visitedProofs)
-              if (rR != null) result = rR
-            }
-          }
-        }
-      }
-      visitedProofs += (p -> result)
-      return result
-    }
-  }
-
-  def getNonRegularNodes(proof: ResolutionProof) = {
-    def getNonRegularNodesRec(p: ResolutionProof, pivotsBelow: List[Atom]) : List[Int] = {
+  def getIrregularNodes(proof: ResolutionProof) = {
+    def getIrregularNodesRec(p: ResolutionProof, pivotsBelow: List[Atom]) : List[Int] = {
       p match {
         case Input(_) => Nil
         case Resolvent(l,r) => {
           if (p.asInstanceOf[Resolvent].pivot._1.atom == "v115") println(p.id)
           val pivotsBelowNext = p.asInstanceOf[Resolvent].pivot._1.atom::pivotsBelow
-          val listL = getNonRegularNodesRec(l,pivotsBelowNext)
-          val listR = getNonRegularNodesRec(r,pivotsBelowNext)
+          val listL = getIrregularNodesRec(l,pivotsBelowNext)
+          val listR = getIrregularNodesRec(r,pivotsBelowNext)
           if (pivotsBelow.contains(p.asInstanceOf[Resolvent].pivot._1.atom)) {
             println(p.id + " (" + p.asInstanceOf[Resolvent].left.id + "," + p.asInstanceOf[Resolvent].right.id + ") " + p.asInstanceOf[Resolvent].pivot + " : " + pivotsBelow)
             return p.id::(listL:::listR)
@@ -52,22 +29,7 @@ object ProofRegularization {
         }
       }
     }
-    getNonRegularNodesRec(proof, Nil)
-  }
-
-    def getUnvisitedNodes(proof: ResolutionProof) = {
-    def getUnvisitedNodesRec(p: ResolutionProof) : List[(Int,Int,Int)] = {
-      p match {
-        case Input(_) => Nil
-        case Resolvent(l,r) => {
-          val listL = getUnvisitedNodesRec(l)
-          val listR = getUnvisitedNodesRec(r)
-          if (p.expectedNumberOfCalls != p.numberOfCalls) return (p.id, p.expectedNumberOfCalls, p.numberOfCalls)::(listL:::listR)
-          else return listL:::listR
-        }
-      }
-    }
-    getUnvisitedNodesRec(proof)
+    getIrregularNodesRec(proof, Nil)
   }
 
   def isRegular(proof: ResolutionProof) = {
@@ -87,67 +49,18 @@ object ProofRegularization {
   }
 
 
-  def isNonTree(proof: ResolutionProof)  = {
-    def isNonTreeRec(p: ResolutionProof): Boolean = p match {
-      case Input(_) => p.children.length > 1
-      case Resolvent(l, r) =>  p.children.length > 1 || isNonTreeRec(l) || isNonTreeRec(r)
-    }
-    isNonTreeRec(proof)
-  }
+
 
   def regularize(proof:ResolutionProof): Unit = {
-
-    //val n640 = getNodeById(proof, 640, new HashMap[ResolutionProof,ResolutionProof])
-    //val n740 = getNodeById(proof, 740, new HashMap[ResolutionProof,ResolutionProof])
-    val n573 = getNodeById(proof, 573, new HashMap[ResolutionProof,ResolutionProof])
-    val n586 = getNodeById(proof, 586, new HashMap[ResolutionProof,ResolutionProof])
-    val n343 = getNodeById(proof, 343, new HashMap[ResolutionProof,ResolutionProof])
-
     val regularizedProofs = new HashSet[ResolutionProof]
     def regularizeRec(p: ResolutionProof, callingChild: Resolvent, litB: Option[List[Literal]]): Unit = {
-
-
-      //val debug = isBelow(n740,p) && isBelow(p,n640)
-      val debug = isBelow(n586,p) && isBelow(p,n573)
-      //val debug = isBelow(n343,p) && isBelow(p,n573)
-      def dP(s: Any) = {
-        //if ((p.isInstanceOf[Resolvent] && p.asInstanceOf[Resolvent].pivot._1.atom == "v208") || List(155, 132, 893, 889, 887, 885, 881, 878, 842, 840, 837, 833, 825, 823, 821, 819, 93, 274, 597, 555, 573, 640).contains(p.id)) {
-        if (debug) {
-          println(s)
-        }
-      }
-      if (p.numberOfCalls == 0) {
-        if (p.children.length > 0) p.expectedNumberOfCalls = p.children.length
-        else p.expectedNumberOfCalls = 1 // p is root
-      }
-      p.numberOfCalls += 1
-
-      //dP(p.expectedNumberOfCalls)
-      //dP(p.numberOfCalls)
-
       p match {
         case Input(_) => return
         case Resolvent(left,right) => {
-          if ((p.asInstanceOf[Resolvent].pivot._1.atom == "v208"))
-
-          try {require(p.numberOfCalls <= p.expectedNumberOfCalls)}
-          catch {
-            case _ => {
-              println("Expected Calls: " + p.expectedNumberOfCalls + " ; numberOfCalls: " + p.numberOfCalls)
-              println(p.id + "(" + p.asInstanceOf[Resolvent].left.id + "," + p.asInstanceOf[Resolvent].right.id + ")" + p.children.map(c => c.id))
-              throw new Exception
-            }
-          }
-
-
           if (callingChild == null) { // Root of the Proof
-            dP("null calling child")
             doRegularize(litB.asInstanceOf[Some[List[Literal]]].get)
           }
           else {
-            dP("")
-            dP("Calling Child: " + callingChild.id )
-            dP("Called node: id" + p.id)
             litB match {
               case None => p.children = p.children - callingChild   // Calling Child is orphan of the called Parent
               case Some(literalsB) => p.literalsBelow += (callingChild -> literalsB)
@@ -156,31 +69,17 @@ object ProofRegularization {
               p.children.forall(c => p.literalsBelow.contains(c))
             }
             if (hasReceivedAllCalls) {
-              require( (p.expectedNumberOfCalls == p.numberOfCalls) )
               val lBPerChild = (for (child <- p.children) yield p.literalsBelow(child)).toList
               val intersection = intersect(lBPerChild)
               val union = unite(lBPerChild)
               val criticalLiterals = union.diff(intersection)
               val problematicLiterals = criticalLiterals.filter(l => p.pivotAtomsAbove.contains(l.atom))
               val r = p.asInstanceOf[Resolvent]
-              dP(p.id + "(" + left.id + "," + right.id + ") " + p.children.map(c => c.id) + " , " + r.pivot)
-
-              //dP("litB: " + litB)
-              //dP("lBPerChild: " + lBPerChild)
-              dP("union: " + union)
-              //dP("intersection: " + intersection)
-              //dP("critical: " + criticalLiterals)
-              //dP("pivotAtomsAbove: " + p.pivotAtomsAbove)
-              dP("problematic: " + problematicLiterals)
               if (problematicLiterals.length != 0) duplicateAndRegularize
               else doRegularize(union)
             }
           }
           def duplicateAndRegularize = {
-            for (c <- p.children) {
-              dP(c.id + " -> " + p.literalsBelow(c))
-            }
-
             for (c <- p.children.tail) {
               val newProof = p.duplicate
               newProof.children = c::Nil
@@ -189,16 +88,8 @@ object ProofRegularization {
               p.children = p.children - c
               val literalsBelowForNewProof = p.literalsBelow(c)
               p.literalsBelow -= c
-              dP("duplicate: " + newProof.id)
-              //dP(newProof.clause)
-              //dP(p.clause)
-              //dP(p.literalsBelow.get(c))
               regularizeRec(newProof, c, Some(literalsBelowForNewProof))
             }
-            for (c <- p.children) {
-              dP(c.id + " -> " + p.literalsBelow(c))
-            }
-            dP(p.literalsBelow(p.children.head))
             doRegularize(p.literalsBelow(p.children.head))
           }
 
@@ -206,32 +97,22 @@ object ProofRegularization {
             try require(!regularizedProofs.contains(p))
             catch {case _ => println("id" + p.id + " ; " + p.children.map(c => c.id) + " " + regularizedProofs.map(n => n.id) + regularizedProofs.map(n => n.equals(p)) + regularizedProofs.contains(p)); throw new Exception("scheiße")}
             val r = p.asInstanceOf[Resolvent]
-            dP("id" + p.id + " is going to be regularized")
             if (!literalsBelow.contains(r.pivot._1) && !literalsBelow.contains(r.pivot._2)) {
-              dP("Alright!")
-              dP("literalsBelowLeft: " + r.pivot._2::literalsBelow)
-              dP("literalsBelowRight: " + r.pivot._1::literalsBelow)
               regularizeRec(left, r, Some(r.pivot._2::literalsBelow))
               regularizeRec(right, r, Some(r.pivot._1::literalsBelow))
 
             }
             else if (literalsBelow.contains(r.pivot._1)) {
-              dP("Irregular Left")
               regularizeRec(left, r, None)
               r.left = deletedSubProof
-              dP("literalsBelowRight: " + literalsBelow)
               regularizeRec(right, r, Some(literalsBelow))
             }
             else {
-              require(literalsBelow.contains(r.pivot._2))
-              dP("Irregular Right")
               regularizeRec(right, r, None)
               r.right = deletedSubProof
-              dP("literalsBelowLeft: " + literalsBelow)
               regularizeRec(left, r, Some(literalsBelow))
             }
             regularizedProofs += p
-            dP("id" + p.id + " was regularized and added")
           }
         }
       }
@@ -324,9 +205,6 @@ object ProofRegularization {
   }
 
   def allChildrenAreVisited(proof:ResolutionProof): Boolean = {
-    if (proof.isInstanceOf[Resolvent]) {
-      println("Have All Children of id" + proof.id + " ( id" + proof.asInstanceOf[Resolvent].left.id +  " , id" + proof.asInstanceOf[Resolvent].right.id + " ) Been Visited? : " + (proof.children.length == proof.literalsBelow.size) )
-    }
     proof.children.length == proof.literalsBelow.size 
   }
 }

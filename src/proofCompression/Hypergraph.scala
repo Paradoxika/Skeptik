@@ -89,7 +89,7 @@ object Hypergraph {
     def isSplittable: Boolean = {
       println("checking splittability for " + this.clause)
       if (edges.length == 0) return false
-      for (edge <- edges; if edges.forall(e => isDependent(e.resolvent,edge.resolvent))) {
+      for (edge <- edges; if edges.forall(e => e.resolvent isBelow edge.resolvent)) {
         println(edge.id + " dominates. Not splittable.")
         return false
       }

@@ -10,15 +10,6 @@ import proofCompression.Utilities._
 import scala.collection.mutable._
 
 object ProofDAGification {
-  def replace(replaced: ResolutionProof, replacer: ResolutionProof) = {
-    for (c <- replaced.children) {
-      replacer.children = c::replacer.children
-      if (c.left == replaced) c.left = replacer
-      else c.right = replacer
-    }
-    replaced.children = Nil
-  }
-
   def DAGify(proof: ResolutionProof) = {
     def DAGifyRec(p: ResolutionProof, visitedProofs: HashSet[ResolutionProof], map: HashMap[scala.collection.immutable.Set[Literal],ResolutionProof]): Unit = {
       if (!visitedProofs.contains(p)) {
@@ -30,16 +21,15 @@ object ProofDAGification {
           case None => map += (p.clause.toSet[Literal] -> p)
           case Some(otherProof) => {
             if (proofLength(otherProof) < proofLength(p)) {
-              replace(p, otherProof)
+              otherProof replaces p
             }
             else {
-              replace(otherProof, p)
+              p replaces otherProof
               map -= otherProof.clause.toSet[Literal]
               map += (p.clause.toSet[Literal] -> p)
             }
           }
         }
-
         visitedProofs += p
       }
     }

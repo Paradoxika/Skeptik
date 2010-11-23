@@ -48,4 +48,6 @@ object Utilities {
       case head::tail => head.intersect(intersect(tail))
     }
   }
+
+  def dP(debug: Boolean, s: Any) = if (debug) println(s)
 }
