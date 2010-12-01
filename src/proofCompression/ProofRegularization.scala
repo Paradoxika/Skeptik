@@ -168,14 +168,9 @@ object ProofRegularization {
           fixProofRec(left, visitedProofs)
           fixProofRec(right, visitedProofs)
           if (n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) {
-            n.clause = resolve(n.left.clause, n.right.clause)
+            n.update
           }
           else {
-            if (n.id == 573 || n.id == 574) {
-              println(n.id)
-              println(left == deletedSubProof)
-              println(right == deletedSubProof)
-            }
             val survivingParent : ResolutionProof =
             if (n.left == deletedSubProof) n.right
             else if (n.right == deletedSubProof) n.left
@@ -185,18 +180,12 @@ object ProofRegularization {
               if (proofLength(n.left) < proofLength(n.right)) n.left
               else n.right
             }
-            if (n.id == 573 || n.id == 574) {
-              println(survivingParent.id)
-            }
+            survivingParent.children -= n
+
             for (child <- n.children) {
-              if (n.id == 573 || n.id == 574) {
-                println("updating child")
-                println(child.id)
-                println(child.left == n)
-                println(child.right == n)
-              }
               if (child.left == n) child.left = survivingParent
               else child.right = survivingParent
+              survivingParent.children = child::survivingParent.children
             }
           }
         }

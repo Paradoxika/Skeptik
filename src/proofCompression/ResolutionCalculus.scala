@@ -12,7 +12,7 @@ import proofCompression.Utilities._
 object ResolutionCalculus {
   type Atom = String
   case class L(atom: Atom, polarity: Boolean) {
-    var ancestorInputs: List[Input] = null
+    var ancestorInputs: List[Input] = Nil
     override def toString = {
       if (polarity) atom
       else "-" + atom
@@ -22,13 +22,53 @@ object ResolutionCalculus {
 
   type Clause = List[Literal]
 
+  def resolve(clause1: Clause, clause2: Clause) : Clause = {
+    var resolvent : Clause = Nil
+    for (l1 <- clause1) {
+      var hasMatchingLiteral = false
+      for (l2 <- clause2) {
+        if (l1.atom == l2.atom) {
+          hasMatchingLiteral = true
+          if (l1.polarity == l2.polarity) resolvent = (new L(l1.atom, l1.polarity))::resolvent
+        }
+      }
+      if (!hasMatchingLiteral) resolvent = (new L(l1.atom, l1.polarity))::resolvent
+    }
+    for (l2 <- clause2) {
+      var hasMatchingLiteral = false
+      for (l1 <- clause1) {
+        if (l1.atom == l2.atom) hasMatchingLiteral = true
+      }
+      if (!hasMatchingLiteral) resolvent = (new L(l2.atom, l2.polarity))::resolvent
+    }
+    for (lit <- resolvent) {
+      val litLeftOption = clause1.find(l => l == lit)
+      val litRightOption = clause2.find(l => l == lit)
+      (litLeftOption, litRightOption) match {
+        case (Some(litLeft), Some(litRight)) => lit.ancestorInputs = litLeft.ancestorInputs:::litRight.ancestorInputs // appends the two lists
+        case (Some(litLeft), None) => lit.ancestorInputs = litLeft.ancestorInputs
+        case (None, Some(litRight)) => lit.ancestorInputs = litRight.ancestorInputs
+        case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
+      }
+    }
+    return resolvent
+  }
+
+  def findPivots(clause1: Clause, clause2: Clause) : (Literal,Literal) = {
+    for (l1 <- clause1; l2 <- clause2) {
+      if (l1.atom == l2.atom && l1.polarity != l2.polarity) return (l1, l2)
+    }
+    throw new Exception("No pivots found...")
+  }
+
+
   val ProofCounter = new Counter
   abstract class ResolutionProof {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
-    var literalsBelow = new HashMap[Resolvent,List[Literal]]
-    var pivotAtomsAbove : HashSet[Atom]
+    val literalsBelow = new HashMap[Resolvent,List[Literal]]
+    val pivotAtomsAbove : HashSet[Atom]
     def duplicate : ResolutionProof = {
       def duplicateRec(proof: ResolutionProof, visitedProofs: HashMap[ResolutionProof,ResolutionProof]) : ResolutionProof = {
         if (visitedProofs.contains(proof)) return visitedProofs(proof)
@@ -45,9 +85,16 @@ object ResolutionCalculus {
     }
     def replaces(that: ResolutionProof) = {
       for (c <- that.children) {
+        println(c.clause)
+        println(c.pivot)
+        println(c.left.clause)
+        println(c.right.clause)
+        println(clause)
+        println()
         children = c::children
         if (c.left == that) c.left = this
         else c.right = this
+        c.update
       }
       that.children = Nil
     }
@@ -60,7 +107,7 @@ object ResolutionCalculus {
     }
   }
   case class Input(clause: Clause) extends ResolutionProof {
-    var pivotAtomsAbove = new HashSet[Atom]
+    val pivotAtomsAbove = new HashSet[Atom]
     for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
       if (clause.isEmpty) "{}"
@@ -79,24 +126,22 @@ object ResolutionCalculus {
   }
   case class Resolvent(var left: ResolutionProof, var right: ResolutionProof) extends ResolutionProof {
     var clause : Clause = resolve(left.clause, right.clause)
-    val pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
-    val resolvedAtom = pivot._1.atom
-    var pivotAtomsAbove = left.pivotAtomsAbove.clone.union(right.pivotAtomsAbove)
+    var pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
+    def resolvedAtom = pivot._1.atom
+    val pivotAtomsAbove = left.pivotAtomsAbove.clone.union(right.pivotAtomsAbove)
     pivotAtomsAbove += resolvedAtom
 
     left.children = this::left.children
     right.children = this::right.children
 
-    for (lit <- clause) {
-      val litLeftOption = left.clause.find(l => l == lit)
-      val litRightOption = right.clause.find(l => l == lit)
-      (litLeftOption, litRightOption) match {
-        case (Some(litLeft), Some(litRight)) => lit.ancestorInputs = litLeft.ancestorInputs:::litRight.ancestorInputs // appends the two lists
-        case (Some(litLeft), None) => lit.ancestorInputs = litLeft.ancestorInputs
-        case (None, Some(litRight)) => lit.ancestorInputs = litRight.ancestorInputs
-        case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
-      }
+
+
+    def update = {
+      clause = resolve(left.clause,right.clause)
+      pivot = findPivots(left.clause,right.clause)
     }
+
+
     override def toString: String = {
       var string = "(" + left + "." + right + ")"
       return string
@@ -135,34 +180,7 @@ object ResolutionCalculus {
 
 
 
-  def resolve(clause1: Clause, clause2: Clause) : Clause = {
-    var resolvent : Clause = Nil
-    for (l1 <- clause1) {
-      var hasMatchingLiteral = false
-      for (l2 <- clause2) {
-        if (l1.atom == l2.atom) {
-          hasMatchingLiteral = true
-          if (l1.polarity == l2.polarity) resolvent = (new L(l1.atom, l1.polarity))::resolvent
-        }
-      }
-      if (!hasMatchingLiteral) resolvent = (new L(l1.atom, l1.polarity))::resolvent
-    }
-    for (l2 <- clause2) {
-      var hasMatchingLiteral = false
-      for (l1 <- clause1) {
-        if (l1.atom == l2.atom) hasMatchingLiteral = true
-      }
-      if (!hasMatchingLiteral) resolvent = (new L(l2.atom, l2.polarity))::resolvent
-    }
-    return resolvent
-  }
 
-  def findPivots(clause1: Clause, clause2: Clause) : (Literal,Literal) = {
-    for (l1 <- clause1; l2 <- clause2) {
-      if (l1.atom == l2.atom && l1.polarity != l2.polarity) return (l1, l2)
-    }
-    throw new Exception("No pivots found...")
-  }
   
   def equalClauses(clause1:Clause, clause2:Clause) : Boolean = {
     if (clause1.length == clause2.length) {

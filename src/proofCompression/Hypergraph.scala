@@ -207,6 +207,7 @@ object Hypergraph {
           case Input(c) => {
               val newNode = new Node(proof, c)
               hashMapInputToNode += ( proof.asInstanceOf[Input] -> newNode )
+              println("new input: " + proof.id + " ; " + proof.clause )
               addNode(newNode)
           }
           case Resolvent(left, right) => {
@@ -214,6 +215,12 @@ object Hypergraph {
               buildResolutionHypergraphRec(right,visitedProofs, hashMapInputToNode)
 
               val (leftPivot,rightPivot) = proof.asInstanceOf[Resolvent].pivot
+              println(left.clause)
+              println(right.clause)
+              println(leftPivot.ancestorInputs.map(c => c.id.toString + " " + c.clause))
+              println(rightPivot.ancestorInputs.map(c => c.id))
+              println(hashMapInputToNode)
+              println()
               val leftNodes = leftPivot.ancestorInputs.map(c => hashMapInputToNode(c))
               val rightNodes = rightPivot.ancestorInputs.map(c => hashMapInputToNode(c))
               val newEdge = new Edge(leftNodes:::rightNodes, proof.asInstanceOf[Resolvent])

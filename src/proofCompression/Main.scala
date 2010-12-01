@@ -15,6 +15,7 @@ import proofCompression.ProofRegularization._
 import proofCompression.ProofDAGification._
 import proofs._
 import proofCompression._
+import evaluation._
 
 object Main {
   /**
@@ -30,46 +31,44 @@ object Main {
 //    writer.write("hello world", 7, 1)
 //    writer.close
 
-    val proof = ProofParser.getProofFromFile("proofs/BWPProofs/simple.proof")
-    println(proof)
+    val directory = "proofs/BWPProofs/"
+    val proofFiles = List("TheFirstChallenge2",
+                          "TheFirstChallenge1",
+                          "TheFirstChallenge",
+                          "pigeon(3)(2)",
+                          "DAGifiableTree",
+                          "SMT2010",
+                          "irregularWithProblematicLiterals",
+                          "irregularWithoutProblematicLiterals",
+                          "simple")
 
-    // ProofExporter.writeProofToFile(Proof2.clempty, "proofs/PascalProofs/SMT2010.proof")
+    Experimenter.run(directory, proofFiles, "output201011241636.txt")
+    println("yes")
+    Experimenter.runHypergraph(directory, proofFiles, "output.txt")
+   
 
-//    for (p <- List(PigeonProof.clempty, IrregularProofWithoutProblematicLiterals.cEmpty, IrregularProofWithProblematicLiterals.cEmpty, Proof2.clempty, Proof0.c8)) {
-//      println(p)
-//      println("Proof Length:" + proofLength(p))
-//      println("Is regular? : " + isRegular(p))
-//      println("Is DAG? : " + isDAG(p))
-//      regularize(p)
-//      println(p)
-//      println("Proof Length:" + proofLength(p))
-//      fixProof(p)
-//      println(p)
-//      println("Proof Length:" + proofLength(p))
-//      println("Final Clause :" + p.clause)
-//      println()
-//    }
+
       //for (p <- List("proofs/BWPProofs/DAGifiableTree.proof").map(file => ProofParser.getProofFromFile(file))) {
       //for (p <- List("proofs/BWPProofs/pigeon(3)(2).proof").map(file => ProofParser.getProofFromFile(file))) {
       //for (p <- List("proofs/PascalProofs/TheFirstChallenge.proof").map(file => ProofParser.getProofFromFile(file))) {
-      for (p <- List("proofs/PascalProofs/TheFirstChallenge2.proof", "proofs/BWPProofs/pigeon(3)(2).proof").map(file => ProofParser.getProofFromFile(file))) {
-      
-      
-
-        println(p)
-        println("Proof Length:" + proofLength(p))
-        println("Is regular? : " + isRegular(p))
-        println("Is DAG? : " + isNonTree(p))
-        regularize(p)
-        println("Regularized Proof Length:" + proofLength(p))
-        fixProof(p)
-        println("Fixed Proof Length:" + proofLength(p))
-        println("Is regular? : " + isRegular(p))
-        DAGify(p)
-        println("DAGified Proof Length:" + proofLength(p))
-        println("Final Clause :" + p.clause)
-        println()
-      }
+//      for (p <- List("proofs/PascalProofs/TheFirstChallenge2.proof", "proofs/BWPProofs/pigeon(3)(2).proof").map(file => ProofParser.getProofFromFile(file))) {
+//
+//
+//
+//        println(p)
+//        println("Proof Length:" + proofLength(p))
+//        println("Is regular? : " + isRegular(p))
+//        println("Is DAG? : " + isNonTree(p))
+//        regularize(p)
+//        println("Regularized Proof Length:" + proofLength(p))
+//        fixProof(p)
+//        println("Fixed Proof Length:" + proofLength(p))
+//        println("Is regular? : " + isRegular(p))
+//        DAGify(p)
+//        println("DAGified Proof Length:" + proofLength(p))
+//        println("Final Clause :" + p.clause)
+//        println()
+//      }
 
 //    val g4 = new ResolutionHypergraph(PigeonProof.clempty)
 //

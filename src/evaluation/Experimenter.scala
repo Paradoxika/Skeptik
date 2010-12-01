@@ -16,6 +16,67 @@ import proofCompression._
 import java.io.FileWriter
 
 object Experimenter {
+
+  def runHypergraph(directory: String, proofFiles: List[String], outputFilename: String) = {
+    //val writer = new FileWriter(directory + outputFilename)
+    //val firstLine = "Filename \t\t\t" +
+                    "InputLength \t" +
+                    //"InputSize \t" +
+                    //"InputAverageNumberOfChildrenPerNode \t" +
+                    "ParsingTime \t\t" +
+                    "R_Length \t" +            // length after regularization
+                    "R_Time \t" +              // regularization time
+                    "DAG_Length \t" +          // length after DAGification
+                    "DAG_Time \t" +            // DAGification time
+                    "RP_Length \t" +           // length after pivot recycling
+                    "RP_Time \t" +             // pivot recycling time
+                    "R-DAG_Length \t" +        // length after regularization and DAGification
+                    "R-DAG_Time \t" +            // regularization and DAGification time
+                    "\n"
+    //writer.write(firstLine, 0, firstLine.length)
+    for (proofFile <- proofFiles) {
+      val startParsingTime = System.nanoTime
+      val p = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+      val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
+      val inputLength = proofLength(p)
+
+      val startRTime = System.nanoTime
+      regularize(p)
+      fixProof(p)
+      val ellapsedRTime = (System.nanoTime - startRTime)/1000
+      val RLength = proofLength(p)
+
+      val startRDAGTime = System.nanoTime
+      DAGify(p)
+      val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
+      val RDAGLength = proofLength(p)
+
+      val startHypergraphConstructionTime = System.nanoTime
+      val g = new ResolutionHypergraph(p)
+      val ellapsedHypergraphConstructionTime = (System.nanoTime - startHypergraphConstructionTime)/1000
+
+      val startHypergraphSimplificationTime = System.nanoTime
+      g.simplify
+      val ellapsedHypergraphSimplificationTime = (System.nanoTime - startHypergraphSimplificationTime)/1000
+      println(g.isTrivial)
+      val ReconstructedProofLength = proofLength(g.getNodes.head.proof)
+
+      val thisLine = inputLength + "\t" +
+                     ellapsedParsingTime + "\t" +
+                     RLength*1.0/inputLength + "\t" +
+                     ellapsedRTime + "\t" +
+                     RDAGLength*1.0/inputLength + "\t" +
+                     ellapsedRDAGTime + "\t" +
+                     ellapsedHypergraphConstructionTime + "\t" +
+                     ReconstructedProofLength*1.0/inputLength + "\t" +
+                     ellapsedHypergraphSimplificationTime + "\t" +
+                     proofFile + "\n"
+      println(thisLine)
+      //writer.write(thisLine, 0, thisLine.length)
+    }
+    //writer.close
+  }
+
   def run(directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
     val firstLine = "Filename \t\t\t" +
@@ -49,7 +110,6 @@ object Experimenter {
 
       val startRDAGTime = System.nanoTime
       DAGify(p1)
-      println(isRegular(p1))
       val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
       val RDAGLength = proofLength(p1)
 
@@ -62,8 +122,6 @@ object Experimenter {
       val startRPTime = System.nanoTime
       recyclePivot(p3)
       fixProof(p3)
-      println(isRegular(p3))
-      println()
       val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
       val RPLength = proofLength(p3)
 
