@@ -5,7 +5,8 @@
 
 package proofCompression
 
-import scala.collection.mutable._
+import scala.collection._
+//import scala.collection.mutable._
 import proofCompression.Utilities._
 
 
@@ -22,6 +23,33 @@ object ResolutionCalculus {
 
   type Clause = List[Literal]
 
+
+  object C {
+    def apply(literals: Literal*) = {
+      immutable.HashSet(literals).asInstanceOf[C]
+    }    
+  }
+  class C extends immutable.HashSet[Literal] {
+    def resolve(that: C) = {
+
+    }
+  }
+
+  
+
+  def equalClauses(clause1:Clause, clause2:Clause) : Boolean = {
+    if (clause1.length == clause2.length) {
+      for (l1 <- clause1) {
+        clause2.find(l2 => (l2.atom == l1.atom && l2.polarity == l1. polarity)) match {
+          case None => return false
+          case _ =>
+        }
+      }
+      return true
+    } else return false
+  }
+
+
   def resolve(clause1: Clause, clause2: Clause) : Clause = {
     var resolvent : Clause = Nil
     for (l1 <- clause1) {
@@ -29,27 +57,21 @@ object ResolutionCalculus {
       for (l2 <- clause2) {
         if (l1.atom == l2.atom) {
           hasMatchingLiteral = true
-          if (l1.polarity == l2.polarity) resolvent = (new L(l1.atom, l1.polarity))::resolvent
+          if (l1.polarity == l2.polarity) {
+            val newL = new L(l1.atom, l1.polarity)
+            newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs
+            resolvent = newL::resolvent
+          }
         }
       }
-      if (!hasMatchingLiteral) resolvent = (new L(l1.atom, l1.polarity))::resolvent
+      if (!hasMatchingLiteral) resolvent = l1::resolvent
     }
     for (l2 <- clause2) {
       var hasMatchingLiteral = false
       for (l1 <- clause1) {
         if (l1.atom == l2.atom) hasMatchingLiteral = true
       }
-      if (!hasMatchingLiteral) resolvent = (new L(l2.atom, l2.polarity))::resolvent
-    }
-    for (lit <- resolvent) {
-      val litLeftOption = clause1.find(l => l == lit)
-      val litRightOption = clause2.find(l => l == lit)
-      (litLeftOption, litRightOption) match {
-        case (Some(litLeft), Some(litRight)) => lit.ancestorInputs = litLeft.ancestorInputs:::litRight.ancestorInputs // appends the two lists
-        case (Some(litLeft), None) => lit.ancestorInputs = litLeft.ancestorInputs
-        case (None, Some(litRight)) => lit.ancestorInputs = litRight.ancestorInputs
-        case (None, None) => throw new Exception("Literal has no ancestor!! But it should have! Something went terribly wrong...")
-      }
+      if (!hasMatchingLiteral) resolvent = l2::resolvent
     }
     return resolvent
   }
@@ -67,10 +89,10 @@ object ResolutionCalculus {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
-    val literalsBelow = new HashMap[Resolvent,List[Literal]]
-    val pivotAtomsAbove : HashSet[Atom]
+    var literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
+    var pivotAtomsAbove : mutable.HashSet[Atom]
     def duplicate : ResolutionProof = {
-      def duplicateRec(proof: ResolutionProof, visitedProofs: HashMap[ResolutionProof,ResolutionProof]) : ResolutionProof = {
+      def duplicateRec(proof: ResolutionProof, visitedProofs: mutable.HashMap[ResolutionProof,ResolutionProof]) : ResolutionProof = {
         if (visitedProofs.contains(proof)) return visitedProofs(proof)
         else {
           val newProof = proof match {
@@ -81,7 +103,7 @@ object ResolutionCalculus {
           return newProof
         }
       }
-      duplicateRec(this, new HashMap[ResolutionProof,ResolutionProof])
+      duplicateRec(this, new mutable.HashMap[ResolutionProof,ResolutionProof])
     }
     def replaces(that: ResolutionProof) = {
       for (c <- that.children) {
@@ -107,7 +129,7 @@ object ResolutionCalculus {
     }
   }
   case class Input(clause: Clause) extends ResolutionProof {
-    val pivotAtomsAbove = new HashSet[Atom]
+    var pivotAtomsAbove = new mutable.HashSet[Atom]
     for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
       if (clause.isEmpty) "{}"
@@ -128,8 +150,7 @@ object ResolutionCalculus {
     var clause : Clause = resolve(left.clause, right.clause)
     var pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
     def resolvedAtom = pivot._1.atom
-    val pivotAtomsAbove = left.pivotAtomsAbove.clone.union(right.pivotAtomsAbove)
-    pivotAtomsAbove += resolvedAtom
+    var pivotAtomsAbove = left.pivotAtomsAbove.clone.union(right.pivotAtomsAbove) + resolvedAtom
 
     left.children = this::left.children
     right.children = this::right.children
@@ -154,7 +175,7 @@ object ResolutionCalculus {
     }
   }
 
-  def getNodeById(p: ResolutionProof, id: Int, visitedProofs: HashMap[ResolutionProof, ResolutionProof]): ResolutionProof = {
+  def getNodeById(p: ResolutionProof, id: Int, visitedProofs: mutable.HashMap[ResolutionProof, ResolutionProof]): ResolutionProof = {
     if (visitedProofs.contains(p)) return visitedProofs(p)
     else {
       var result: ResolutionProof = null
@@ -182,20 +203,10 @@ object ResolutionCalculus {
 
 
   
-  def equalClauses(clause1:Clause, clause2:Clause) : Boolean = {
-    if (clause1.length == clause2.length) {
-      for (l1 <- clause1) {
-        clause2.find(l2 => (l2.atom == l1.atom && l2.polarity == l1. polarity)) match {
-          case None => return false
-          case _ =>
-        }
-      }
-      return true
-    } else return false
-  }
 
-  def proofLength(proof: ResolutionProof): Int = proofLengthRec(proof, new HashSet[ResolutionProof])
-  def proofLengthRec(proof: ResolutionProof, visitedProofs: HashSet[ResolutionProof]) : Int =
+
+  def proofLength(proof: ResolutionProof): Int = proofLengthRec(proof, new mutable.HashSet[ResolutionProof])
+  def proofLengthRec(proof: ResolutionProof, visitedProofs: mutable.HashSet[ResolutionProof]) : Int =
     if (!visitedProofs.contains(proof)) {
       visitedProofs += proof
       proof match {
