@@ -8,9 +8,10 @@ package proofCompression
 import proofCompression.ResolutionCalculus._
 import proofCompression.Utilities._
 import scala.collection.mutable._
+import scala.collection._
 
 object ProofRegularization {
-  val deletedSubProof = Input(L("Deleted SubProof",true)::Nil)
+  val deletedSubProof = Input(immutable.HashSet(L("Deleted SubProof",true)))
 
   def getIrregularNodes(proof: ResolutionProof) = {
     def getIrregularNodesRec(p: ResolutionProof, pivotsBelow: List[Atom]) : List[Int] = {

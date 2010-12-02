@@ -45,7 +45,7 @@ object Hypergraph {
     }
 
     def this(n1:Node, n2: Node) = {
-      this(Resolvent(n1.proof, n2.proof),resolve(n1.clause,n2.clause))
+      this(Resolvent(n1.proof, n2.proof), resolve(n1.clause, n2.clause))
       for (e <- n1.edges) {
         e.deleteNode(n1)
         e.addNode(this)
@@ -372,7 +372,7 @@ object Hypergraph {
         val negativeNodesAsSet = negativeNodes.toSet[Node]
         //println("PositiveNodes: " + positiveNodesAsSet.map(n => n.id))
         //println("NegativeNodes: " + negativeNodesAsSet.map(n => n.id))
-        def mergeIfSplitted(set: scala.collection.immutable.Set[Node]) = if (set.size > 1 && set.forall(n => equalClauses(n.clause, set.head.clause))) {
+        def mergeIfSplitted(set: scala.collection.immutable.Set[Node]) = if (set.size > 1 && set.forall(n => n.clause == set.head.clause)) {
           println("SPLITTED!!! :" + set.map(n => n.id) )
           val newNode = new Node(set.toList)
           addNode(newNode)

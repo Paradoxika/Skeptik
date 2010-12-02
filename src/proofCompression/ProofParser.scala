@@ -23,7 +23,7 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
     case name: String => map(name)
   }
   def input: Parser[proofCompression.ResolutionCalculus.Input] = "{" ~> repsep(literal,",") <~ "}" ^^ {
-    list => Input(list)
+    list => Input(list.toSet[Literal])
   }
   def resolvent: Parser[Resolvent] = "(" ~> subproof ~ "." ~ subproof <~ ")" ^^ {
     case ~(~(left,_),right) => Resolvent(left,right)

@@ -14,6 +14,7 @@ object ResolutionCalculus {
   type Atom = String
   case class L(atom: Atom, polarity: Boolean) {
     var ancestorInputs: List[Input] = Nil
+    def dual(that: L) = (atom == that.atom && polarity != that.polarity)
     override def toString = {
       if (polarity) atom
       else "-" + atom
@@ -21,67 +22,29 @@ object ResolutionCalculus {
   }
   type Literal = L
 
-  type Clause = List[Literal]
-
-
-  object C {
-    def apply(literals: Literal*) = {
-      immutable.HashSet(literals).asInstanceOf[C]
-    }    
+  type Clause = immutable.Set[Literal]
+  object Clause {
+    def apply(literals: Literal*) = immutable.HashSet(literals)
   }
-  class C extends immutable.HashSet[Literal] {
-    def resolve(that: C) = {
-
-    }
-  }
-
-  
-
-  def equalClauses(clause1:Clause, clause2:Clause) : Boolean = {
-    if (clause1.length == clause2.length) {
-      for (l1 <- clause1) {
-        clause2.find(l2 => (l2.atom == l1.atom && l2.polarity == l1. polarity)) match {
-          case None => return false
-          case _ =>
-        }
-      }
-      return true
-    } else return false
-  }
-
-
-  def resolve(clause1: Clause, clause2: Clause) : Clause = {
-    var resolvent : Clause = Nil
-    for (l1 <- clause1) {
-      var hasMatchingLiteral = false
-      for (l2 <- clause2) {
-        if (l1.atom == l2.atom) {
-          hasMatchingLiteral = true
-          if (l1.polarity == l2.polarity) {
-            val newL = new L(l1.atom, l1.polarity)
-            newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs
-            resolvent = newL::resolvent
-          }
-        }
-      }
-      if (!hasMatchingLiteral) resolvent = l1::resolvent
-    }
-    for (l2 <- clause2) {
-      var hasMatchingLiteral = false
-      for (l1 <- clause1) {
-        if (l1.atom == l2.atom) hasMatchingLiteral = true
-      }
-      if (!hasMatchingLiteral) resolvent = l2::resolvent
-    }
-    return resolvent
-  }
-
-  def findPivots(clause1: Clause, clause2: Clause) : (Literal,Literal) = {
-    for (l1 <- clause1; l2 <- clause2) {
-      if (l1.atom == l2.atom && l1.polarity != l2.polarity) return (l1, l2)
+  def pivotLiterals(c1: Clause, c2: Clause) : (Literal,Literal) = {
+    for (l1 <- c1; l2 <- c2) {
+      if (l1 dual l2) return (l1, l2)
     }
     throw new Exception("No pivots found...")
   }
+  def resolve(c1: Clause, c2: Clause): Clause = {
+    val (pl1, pl2) = pivotLiterals(c1,c2)
+    val contractedLiterals = for (l1 <- c1 if c2 contains l1) yield (l1, c2.find(l2 => l1 == l2).get)
+    val newLiterals = for ((l1,l2) <- contractedLiterals) yield {
+      val newL = new L(l1.atom, l1.polarity)
+      newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs
+      newL
+    }
+    return (c1 - pl1 -- contractedLiterals.map(pair => pair._1)) ++
+           (c2 - pl2 -- contractedLiterals.map(pair => pair._2)) ++
+           newLiterals
+  }
+  
 
 
   val ProofCounter = new Counter
@@ -147,8 +110,8 @@ object ResolutionCalculus {
     }
   }
   case class Resolvent(var left: ResolutionProof, var right: ResolutionProof) extends ResolutionProof {
-    var clause : Clause = resolve(left.clause, right.clause)
-    var pivot : (Literal,Literal) = findPivots(left.clause, right.clause)
+    var clause : Clause = resolve(left.clause,right.clause)
+    var pivot : (Literal,Literal) = pivotLiterals(left.clause,right.clause)
     def resolvedAtom = pivot._1.atom
     var pivotAtomsAbove = left.pivotAtomsAbove.clone.union(right.pivotAtomsAbove) + resolvedAtom
 
@@ -159,7 +122,7 @@ object ResolutionCalculus {
 
     def update = {
       clause = resolve(left.clause,right.clause)
-      pivot = findPivots(left.clause,right.clause)
+      pivot = pivotLiterals(left.clause, right.clause)
     }
 
 

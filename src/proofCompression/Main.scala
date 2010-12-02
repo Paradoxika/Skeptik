@@ -13,7 +13,6 @@ import proofCompression.Hypergraph._
 import proofCompression.GUI._
 import proofCompression.ProofRegularization._
 import proofCompression.ProofDAGification._
-import proofs._
 import proofCompression._
 import evaluation._
 
