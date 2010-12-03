@@ -22,6 +22,12 @@ object ResolutionCalculus {
   }
   type Literal = L
 
+
+  abstract class LiteralId
+  case class LLeaf(input: Input) extends LiteralId
+  case class LSplit(copyNumber: Int, tail: LiteralId) extends LiteralId
+  case class LContract(left:LiteralId,right:LiteralId) extends LiteralId
+
   type Clause = immutable.Set[Literal]
   object Clause {
     def apply(literals: Literal*) = immutable.HashSet(literals)
