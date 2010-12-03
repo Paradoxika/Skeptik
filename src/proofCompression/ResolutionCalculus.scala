@@ -23,10 +23,20 @@ object ResolutionCalculus {
   type Literal = L
 
 
-  abstract class LiteralId
-  case class LLeaf(input: Input) extends LiteralId
-  case class LSplit(copyNumber: Int, tail: LiteralId) extends LiteralId
-  case class LContract(left:LiteralId,right:LiteralId) extends LiteralId
+  abstract class LiteralId {
+    def getInputs: List[Input]
+  }
+  case class LLeaf(input: Input) extends LiteralId {
+    def getInputs = input::Nil
+  }
+  case class LSplit(copyNumber: Int, tail: LiteralId) extends LiteralId {
+    def getInputs = tail.getInputs
+  }
+  case class LContract(left:LiteralId,right:LiteralId) extends LiteralId {
+    def getInputs = left.getInputs:::right.getInputs
+  }
+
+
 
   type Clause = immutable.Set[Literal]
   object Clause {
