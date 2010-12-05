@@ -55,7 +55,7 @@ object Hypergraph {
         e.deleteNode(n2)
         e.addNode(this)
       }
-      edgesContainingThisNode = merge(n1.edges,n2.edges) // merges in a sorted way
+      edgesContainingThisNode = n1.edges ::: n2.edges // merges in a sorted way
     }
     def this(nodesToBeMerged:List[Node]) = {
       this(argmin(nodesToBeMerged.map(n => n.proof).toList, proofLength)._1,nodesToBeMerged.head.clause)
@@ -64,21 +64,8 @@ object Hypergraph {
         e.addNode(this)
       }
       val edgesOfEachNode = nodesToBeMerged.map(n => n.edges).toList
-      edgesContainingThisNode = merge(edgesOfEachNode)
-    }
-    private def merge(list1: List[Edge],list2: List[Edge]): List[Edge] = {
-      (list1, list2) match {
-        case (Nil, _) => list2
-        case (_, Nil) => list1
-        case (h1::t1, h2::t2) => {
-          if (h1 >= h2) h1 :: merge(t1, list2)
-          else h2 :: merge(list1, t2)
-        }
-      }
-    }
-    private def merge(listOfListsOfEdges: List[List[Edge]]): List[Edge] = {
-      val emptyList: List[Edge] = Nil
-      (listOfListsOfEdges :\ emptyList)(merge)
+      def append[T](l1: List[T],l2: List[T]) = l1 ::: l2
+      edgesContainingThisNode = (edgesOfEachNode :\ Nil.asInstanceOf[List[Edge]])(append)
     }
 
     def isSplittable: Boolean = {
@@ -119,6 +106,8 @@ object Hypergraph {
       for (e <- edges) {
         e.deleteNode(this)
       }
+
+      require(edges.forall(e => !e.nodes.contains(this) ))
 
       val newNodesArray = newNodes.toArray
       val partitionOfEdgesArray = partition.toArray
