@@ -86,12 +86,12 @@ object ResolutionCalculus {
     }
     def replaces(that: ResolutionProof) = {
       for (c <- that.children) {
-        println(c.clause)
-        println(c.pivot)
-        println(c.left.clause)
-        println(c.right.clause)
-        println(clause)
-        println()
+//        println(c.clause)
+//        println(c.pivot)
+//        println(c.left.clause)
+//        println(c.right.clause)
+//        println(clause)
+//        println()
         children = c::children
         if (c.left == that) c.left = this
         else c.right = this

@@ -6,6 +6,7 @@
 package proofCompression
 
 import scala.collection.mutable._
+import scala.collection._
 import proofCompression.Utilities._
 import proofCompression.ResolutionCalculus._
 import proofCompression.GUI._
@@ -81,35 +82,57 @@ object Hypergraph {
     }
 
     def isSplittable: Boolean = {
-      println("checking splittability for " + this.clause)
-      if (edges.length == 0) return false
-      for (edge <- edges; if edges.forall(e => e.resolvent isBelow edge.resolvent)) {
-        println(edge.id + " dominates. Not splittable.")
-        return false
+      //println("checking splittability for " + this.clause)
+      partitionOfEdges.size >= 2
+    }
+
+    private def partitionOfEdges : mutable.HashSet[mutable.HashSet[Edge]] = {
+      val partition = new mutable.HashSet[mutable.HashSet[Edge]]
+      for (e <- edges) {
+        var wasAdded = false
+        for (part <- partition) {
+          if (wasAdded == false &&
+              !(part contains e) &&
+              (part.exists(otherEdge => (e.resolvent isBelow otherEdge.resolvent)) ||
+               part.forall(otherEdge => (otherEdge.resolvent isBelow e.resolvent))
+              )) {
+            part += e
+            wasAdded = true
+          }
+        }
+        if (wasAdded == false) partition += mutable.HashSet(e)
       }
-      println("splittable.")
-      return true
+      return partition
     }
 
     def split : List[Node] = {
-      val edgesGBP = edgesGroupedByPivot
-      val edgesGBPLengths = edgesGBP.map(list => list.length)
-      val numberOfNodes = gcd(edgesGBPLengths)
+
+      val partition = partitionOfEdges
+
+      val numberOfNodes = partition.size
+      println(id)
+      println(edges.map(e => e.id + " " + e.pivot))
+      println(numberOfNodes)
+      println(partition)
       val newNodes = for (i <- 1 to numberOfNodes) yield new Node(proof, clause)
-      val numberOfEdgesPerNode = edgesGBPLengths.map(length => length / numberOfNodes)
-      var nodeIndex = 0
-      for (n <- newNodes) {
-        var edgeGroupIndex = 0
-        for (edgeGroup <- edgesGBP) {
-          for (edgeIndex <- (nodeIndex*numberOfEdgesPerNode(edgeGroupIndex)) to ((nodeIndex+1)*numberOfEdgesPerNode(edgeGroupIndex) - 1)) {
-            val e = edgeGroup(edgeIndex)
-            e.deleteNode(this)
-            e.addNode(n)
-            n.addEdge(e)
-          }
-          edgeGroupIndex += 1
+
+      for (e <- edges) {
+        e.deleteNode(this)
+      }
+
+      val newNodesArray = newNodes.toArray
+      val partitionOfEdgesArray = partition.toArray
+      for (i <- 0 to numberOfNodes-1) {
+        val n = newNodesArray(i)
+        val part = partitionOfEdgesArray(i)
+        //println(partitionOfEdges)
+        for (e <- part) {
+          //println(e.id + " ; " + e.pivot + " ; " + e.nodes.map(node => node.id))
+          
+          e.addNode(n)
+          n.addEdge(e)
+          //println(e.nodes.map(node => node.id))
         }
-        nodeIndex += 1
       }
       newNodes.toList
     }
@@ -143,7 +166,18 @@ object Hypergraph {
 
     def partitionByPolarity: (List[Node], List[Node]) = nodes.partition(n => n.clause.exists(lit => lit.atom == pivot && lit.polarity == true))
 
+
     def isResolvable: Boolean = {
+      if (nodesAsSet.size != 2) return false
+      else {
+        val n1 = nodesAsSet.head
+        val n2 = nodesAsSet.last
+        n1.edges.forall(e => e.resolvent isBelow this.resolvent) &&
+        n2.edges.forall(e => e.resolvent isBelow this.resolvent)
+      }
+    }
+
+    def isResolvableNotWorkingButShould: Boolean = {
       if (false) {
         println("Is Edge " + id + " resolvable?")
         println(nodes.size == 2)
@@ -156,12 +190,14 @@ object Hypergraph {
         for (e1 <- n1.edges) {
           for (e2 <- n2.edges) {
             if (false) { println(); println((e1,e2)); println(e1 != e2); println(e1.pivot == e2.pivot)}
-            if (e1 != e2 && e1.pivot == e2.pivot) {return false}
+            if (e1 != e2 && 
+                e1.pivot == e2.pivot &&
+                !(e1.nodesAsSet(n2) && e2.nodesAsSet(n1))) {return false}
           }
         }
         return true
       }
-      (nodesAsSet.size == 2) && (nodesAsSet.forall(n => (n.edges.forall(e => e == this || e.pivot != pivot)))) && isSafe
+      (nodesAsSet.size == 2) && nodesAsSet.forall(n => !(n.isSplittable)) && isSafe
     }
 
     def compare(that: Edge):Int = {
@@ -207,7 +243,7 @@ object Hypergraph {
           case Input(c) => {
               val newNode = new Node(proof, c)
               hashMapInputToNode += ( proof.asInstanceOf[Input] -> newNode )
-              println("new input: " + proof.id + " ; " + proof.clause )
+              //println("new input: " + proof.id + " ; " + proof.clause )
               addNode(newNode)
           }
           case Resolvent(left, right) => {
@@ -215,12 +251,12 @@ object Hypergraph {
               buildResolutionHypergraphRec(right,visitedProofs, hashMapInputToNode)
 
               val (leftPivot,rightPivot) = proof.asInstanceOf[Resolvent].pivot
-              println(left.clause)
-              println(right.clause)
-              println(leftPivot.ancestorInputs.map(c => c.id.toString + " " + c.clause))
-              println(rightPivot.ancestorInputs.map(c => c.id))
-              println(hashMapInputToNode)
-              println()
+//              println(left.clause)
+//              println(right.clause)
+//              println(leftPivot.ancestorInputs.map(c => c.id.toString + " " + c.clause))
+//              println(rightPivot.ancestorInputs.map(c => c.id))
+//              println(hashMapInputToNode)
+//              println()
               val leftNodes = leftPivot.ancestorInputs.map(c => hashMapInputToNode(c))
               val rightNodes = rightPivot.ancestorInputs.map(c => hashMapInputToNode(c))
               val newEdge = new Edge(leftNodes:::rightNodes, proof.asInstanceOf[Resolvent])
@@ -242,7 +278,7 @@ object Hypergraph {
       var counter = 0
       var resCounter = 0
       var splitCounter = 0
-      while (!isTrivial && counter < 130) {
+      while (!isTrivial && counter < 300) {
         counter += 1
         
         println("Counter: " + counter + " " + resCounter + " " + splitCounter)
@@ -262,9 +298,9 @@ object Hypergraph {
           case None =>
         }
 
-        if (edges.forall(e => !e.isResolvable) && nodes.forall(n => !n.isSplittable)) mergeAllSplittedNodes
+        //if (edges.forall(e => !e.isResolvable) && nodes.forall(n => !n.isSplittable)) mergeAllSplittedNodes
 
-        if (counter == 129 ) {
+        if (counter == 299 ) {
           //invariant
 
           //val gui = new HypergraphVisualizer
@@ -314,8 +350,9 @@ object Hypergraph {
       if (connected && !stuck) true else false
     }
 
-    val debugResolveEdge = true
+    val debugResolveEdge = false
     private def resolveEdge(e: Edge) = {
+      println("Resolving Edge: " + e)
       if (debugResolveEdge) {
         println("RESOLVING EDGE - Begin:")
         println("Edges: " + edges.map(e => e.id))
@@ -341,7 +378,7 @@ object Hypergraph {
     }
 
 
-    val debugSplitNode = true
+    val debugSplitNode = false
     private def splitNode(node: Node) = {
       if (debugSplitNode) {
         println("SPLITTING NODE - Begin:")

@@ -79,7 +79,7 @@ object GUI {
     }
 
     def addNodeVertex(label: String, x: Int, y: Int): Object = {
-      return graph.insertVertex(parent, null, label, x, y, label.length * 10, 30)
+      return graph.insertVertex(parent, null, label, x, y, label.length * 8, 30)
     }
 
     def addEdgeVertex(label: String, x: Int, y: Int): Object = {

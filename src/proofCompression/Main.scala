@@ -31,18 +31,22 @@ object Main {
 //    writer.close
 
     val directory = "proofs/BWPProofs/"
-    val proofFiles = List("TheFirstChallenge2",
+    val proofFiles = List(//"ContractionAndSplittingCase1",
+                          //"ContractionAndSplittingCase2",
+                          //"ContractionAndSplittingCase3"
                           "TheFirstChallenge1",
-                          "TheFirstChallenge",
-                          "pigeon(3)(2)",
-                          "DAGifiableTree",
-                          "SMT2010",
-                          "irregularWithProblematicLiterals",
-                          "irregularWithoutProblematicLiterals",
-                          "simple")
+                          //"TheFirstChallenge",
+                          //"pigeon(3)(2)",
+                          //"DAGifiableTree",
+                          //"SMT2010",
+                          //"irregularWithProblematicLiterals",
+                          //"irregularWithoutProblematicLiterals",
+                          //"simple"
+                          "TheFirstChallenge2"
+                          )
 
-    Experimenter.run(directory, proofFiles, "output201011241636.txt")
-    println("yes")
+    //Experimenter.run(directory, proofFiles, "output201011241636.txt")
+    
     Experimenter.runHypergraph(directory, proofFiles, "output.txt")
    
 

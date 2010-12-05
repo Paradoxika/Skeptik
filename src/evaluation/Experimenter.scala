@@ -55,6 +55,10 @@ object Experimenter {
       val g = new ResolutionHypergraph(p)
       val ellapsedHypergraphConstructionTime = (System.nanoTime - startHypergraphConstructionTime)/1000
 
+      //val gui = new HypergraphVisualizer
+      //gui.displayHypergraph(g)
+
+
       val startHypergraphSimplificationTime = System.nanoTime
       g.simplify
       val ellapsedHypergraphSimplificationTime = (System.nanoTime - startHypergraphSimplificationTime)/1000
@@ -63,15 +67,18 @@ object Experimenter {
 
       val thisLine = inputLength + "\t" +
                      ellapsedParsingTime + "\t" +
-                     RLength*1.0/inputLength + "\t" +
+                     RLength + "\t" +
                      ellapsedRTime + "\t" +
-                     RDAGLength*1.0/inputLength + "\t" +
+                     RDAGLength + "\t" +
                      ellapsedRDAGTime + "\t" +
                      ellapsedHypergraphConstructionTime + "\t" +
-                     ReconstructedProofLength*1.0/inputLength + "\t" +
+                     ReconstructedProofLength + "\t" +
                      ellapsedHypergraphSimplificationTime + "\t" +
                      proofFile + "\n"
       println(thisLine)
+
+      ProofExporter.writeProofToFile(g.getNodes.head.proof, directory + proofFile + "Reconstructed.proof")
+
       //writer.write(thisLine, 0, thisLine.length)
     }
     //writer.close
