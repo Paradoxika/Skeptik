@@ -35,8 +35,9 @@ object Experimenter {
                     "\n"
     //writer.write(firstLine, 0, firstLine.length)
     for (proofFile <- proofFiles) {
+      println(proofFile)
       val startParsingTime = System.nanoTime
-      val p = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+      val p = ProofParser.getProofFromFile(directory + proofFile + ".proof").asInstanceOf[Resolvent].left
       val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
       val inputLength = proofLength(p)
 
@@ -102,46 +103,60 @@ object Experimenter {
                     "\n"
     //writer.write(firstLine, 0, firstLine.length)
     for (proofFile <- proofFiles) {
+      println(proofFile)
       val startParsingTime = System.nanoTime
-      val p1 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+      val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
       val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
-      val p2 = p1.duplicate
-      val p3 = p1.duplicate
+      val p1 = p0.duplicate
+      val p2 = p0.duplicate
+      val p3 = p0.duplicate
       val inputLength = proofLength(p1)
 
+      println("regularizing")
       val startRTime = System.nanoTime
       regularize(p1)
       fixProof(p1)
       val ellapsedRTime = (System.nanoTime - startRTime)/1000
       val RLength = proofLength(p1)
 
-      val startRDAGTime = System.nanoTime
-      DAGify(p1)
-      val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
-      val RDAGLength = proofLength(p1)
+      println("removing new sinks")
+      val p4 = p1.duplicate  // this removes the new sinks
+      //println(inputLength)
+      //println(RLength)
 
+
+      println("DAGifying")
+      val startRDAGTime = System.nanoTime
+      DAGify(p4)
+      val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
+      val RDAGLength = proofLength(p4)
+      //println("DAGified")
+
+      println("DAGifying the original proof")
       val startDAGTime = System.nanoTime
       DAGify(p2)
       //println(isRegular(p2))
       val ellapsedDAGTime = (System.nanoTime - startDAGTime)/1000
       val DAGLength = proofLength(p2)
 
+      println("recycle pivots")
       val startRPTime = System.nanoTime
       recyclePivot(p3)
       fixProof(p3)
       val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
       val RPLength = proofLength(p3)
+      
 
       val thisLine = inputLength + "\t" +
-                     ellapsedParsingTime + "\t" +
+                     //ellapsedParsingTime + "\t" +
                      RLength*1.0/inputLength + "\t" +
-                     ellapsedRTime + "\t" +
+                     //ellapsedRTime + "\t" +
                      DAGLength*1.0/inputLength + "\t" +
-                     ellapsedDAGTime + "\t" +
+                     //ellapsedDAGTime + "\t" +
                      RPLength*1.0/inputLength + "\t" +
-                     ellapsedRPTime + "\t" +
-                     RDAGLength*1.0/inputLength + "\t" +
-                     ellapsedRDAGTime + "\n" //+
+                     //ellapsedRPTime + "\t" +
+                     RDAGLength*1.0/inputLength + "\n"
+                     //ellapsedRDAGTime + "\n" //+
                      //proofFile + "\n"
       writer.write(thisLine, 0, thisLine.length)
     }

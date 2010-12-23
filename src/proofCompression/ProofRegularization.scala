@@ -55,6 +55,12 @@ object ProofRegularization {
   def regularize(proof:ResolutionProof): Unit = {
     val regularizedProofs = new HashSet[ResolutionProof]
     def regularizeRec(p: ResolutionProof, callingChild: Resolvent, litB: Option[List[Literal]]): Unit = {
+
+//      try {
+//        val node6354 = getNodeById(proof, 6354, new HashMap[ResolutionProof,ResolutionProof])
+//        println(proof isBelow node6354)
+//      } catch {case e => println("node not yet created.")}
+
       p match {
         case Input(_) => return
         case Resolvent(left,right) => {
@@ -66,6 +72,11 @@ object ProofRegularization {
               case None => p.children = p.children - callingChild   // Calling Child is orphan of the called Parent
               case Some(literalsB) => p.literalsBelow += (callingChild -> literalsB)
             }
+
+//            println(p.id)
+//            println(p.literalsBelow.map(m => m._2))
+//            println()
+
             def hasReceivedAllCalls = {
               p.children.forall(c => p.literalsBelow.contains(c))
             }
@@ -94,6 +105,10 @@ object ProofRegularization {
             doRegularize(p.literalsBelow(p.children.head))
           }
 
+//          def deleteUselessSink(sink: ResolutionProof) = sink match {
+//            sink.left.children -= sink
+//          }
+
           def doRegularize(literalsBelow: List[Literal]) = {
             try require(!regularizedProofs.contains(p))
             catch {case _ => println("id" + p.id + " ; " + p.children.map(c => c.id) + " " + regularizedProofs.map(n => n.id) + regularizedProofs.map(n => n.equals(p)) + regularizedProofs.contains(p)); throw new Exception("scheiße")}
@@ -105,6 +120,7 @@ object ProofRegularization {
             }
             else if (literalsBelow.contains(r.pivot._1)) {
               regularizeRec(left, r, None)
+//              if (left.children.length == 0) deleteUselessSink(left)
               r.left = deletedSubProof
               regularizeRec(right, r, Some(literalsBelow))
             }
@@ -124,7 +140,13 @@ object ProofRegularization {
 
 
   def recyclePivot(proof:ResolutionProof): Unit = {
+   
     if (proof.isInstanceOf[Resolvent]) {
+
+//      println(proof.id)
+//      println(proof.literalsBelow.map(m => m._2))
+//      println()
+
       val n = proof.asInstanceOf[Resolvent]
       if (allChildrenAreVisited(proof)) {
         if (proof.children.length > 1) {
@@ -162,14 +184,25 @@ object ProofRegularization {
   private def fixProofRec(proof:ResolutionProof, visitedProofs: HashSet[ResolutionProof]) : Unit = {
     if (!visitedProofs.contains(proof)) {
       visitedProofs += proof
+
+      //if (proof.id == 6354) throw new Exception("found")
+      
       proof match {
         case Input(c) => return
-        case Resolvent(left,right) => {
-          val n = proof.asInstanceOf[Resolvent]
-          fixProofRec(left, visitedProofs)
-          fixProofRec(right, visitedProofs)
+        case n : Resolvent => {
+
+//          println()
+//          println(n.id + " : " + n.clause)
+//          println(n.left.id + " : " + n.left.clause)
+//          println(n.right.id + " : " + n.right.clause)
+          fixProofRec(n.left, visitedProofs)
+          fixProofRec(n.right, visitedProofs)
+//          println(n.left.id + " : " + n.left.clause)
+//          println(n.right.id + " : " + n.right.clause)
           if (n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) {
             n.update
+//            println(n.id + " : " + n.clause)
+//            println(n.id + " : " + n.pivot)
           }
           else {
             val survivingParent : ResolutionProof =
@@ -181,16 +214,23 @@ object ProofRegularization {
               if (proofLength(n.left) < proofLength(n.right)) n.left
               else n.right
             }
-            survivingParent.children -= n
+//            if (survivingParent == n.left) println("surving parent left: " + n.left.id)
+//            else println("surving parent right: " + n.right.id)
+
+            n.left.children -= n
+            n.right.children -= n
 
             for (child <- n.children) {
               if (child.left == n) child.left = survivingParent
               else child.right = survivingParent
               survivingParent.children = child::survivingParent.children
+              
             }
           }
+
         }
       }
+      
     }
   }
 

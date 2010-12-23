@@ -85,12 +85,16 @@ object ResolutionCalculus {
       duplicateRec(this, new mutable.HashMap[ResolutionProof,ResolutionProof])
     }
     def replaces(that: ResolutionProof) = {
+      require(clause == that.clause)
+//      println("replacing")
+//      println(id + " : " + clause)
+//      println(that.id  + " : " +  that.clause)
+//      println("children:")
       for (c <- that.children) {
-//        println(c.clause)
-//        println(c.pivot)
-//        println(c.left.clause)
-//        println(c.right.clause)
-//        println(clause)
+        
+//        println(c.id  + " : " +  c.clause + " : " +  c.pivot)
+//        println(c.left.id  + " : " + c.left.clause)
+//        println(c.right.id  + " : " + c.right.clause)
 //        println()
         children = c::children
         if (c.left == that) c.left = this
@@ -137,6 +141,9 @@ object ResolutionCalculus {
 
 
     def update = {
+      //println("update")
+      //println(left.clause)
+      //println(right.clause)
       clause = resolve(left.clause,right.clause)
       pivot = pivotLiterals(left.clause, right.clause)
     }
@@ -155,6 +162,7 @@ object ResolutionCalculus {
   }
 
   def getNodeById(p: ResolutionProof, id: Int, visitedProofs: mutable.HashMap[ResolutionProof, ResolutionProof]): ResolutionProof = {
+    //println(p.id)
     if (visitedProofs.contains(p)) return visitedProofs(p)
     else {
       var result: ResolutionProof = null
@@ -189,7 +197,7 @@ object ResolutionCalculus {
     if (!visitedProofs.contains(proof)) {
       visitedProofs += proof
       proof match {
-        case Input(c) => return 1
+        case Input(c) => return 0
         case Resolvent(left, right) => {
           return (proofLengthRec(left, visitedProofs) + proofLengthRec(right, visitedProofs) + 1)
         }

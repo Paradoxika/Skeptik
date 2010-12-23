@@ -38,6 +38,6 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
   def getProofFromFile(filename: String) = {
     map = new HashMap[String,ResolutionProof]
     parse(proof, new FileReader(filename))
-    map("qed")
+    map("clempty")
   }
 }

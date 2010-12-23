@@ -34,7 +34,7 @@ object Main {
     val proofFiles = List(//"ContractionAndSplittingCase1",
                           //"ContractionAndSplittingCase2",
                           //"ContractionAndSplittingCase3"
-                          "TheFirstChallenge1",
+                          //"TheFirstChallenge1",
                           //"TheFirstChallenge",
                           //"pigeon(3)(2)",
                           //"DAGifiableTree",
@@ -45,9 +45,105 @@ object Main {
                           "TheFirstChallenge2"
                           )
 
-    //Experimenter.run(directory, proofFiles, "output201011241636.txt")
-    
-    Experimenter.runHypergraph(directory, proofFiles, "output.txt")
+    val directory2 = "proofs/PascalProofs/"
+    val proofFilesAim = List("50-1_6-no-1",
+                             "50-1_6-no-2",
+                             "50-1_6-no-3",
+                             "50-1_6-no-4",
+                             "50-2_0-no-1",
+                             "50-2_0-no-2",
+                             "50-2_0-no-3",
+                             "50-2_0-no-4",
+                             "100-1_6-no-1",
+                             "100-1_6-no-2",
+                             "100-1_6-no-3",
+                             "100-1_6-no-4",
+                             "100-2_0-no-1",
+                             "100-2_0-no-2",
+                             "100-2_0-no-3",
+                             "100-2_0-no-4",
+                             "200-1_6-no-1",
+                             "200-1_6-no-2",
+                             "200-1_6-no-3",
+                             "200-1_6-no-4",
+                             "200-2_0-no-1",
+                             "200-2_0-no-2",
+                             "200-2_0-no-3",
+                             "200-2_0-no-4"
+                          ).map(s => "aim-" + s)
+
+    val proofFilesPigeonHole = List("6",
+                             "7",
+                             "8",
+                             "9"
+                          ).map(s => "hole" + s)
+
+    val proofFilesJNH = List("2",
+                             "3",
+                             "4",
+                             "5",
+                             "6",  // runs for quite some time
+                             "8",
+                             "9",
+                             "10",
+                             "11",
+                             "13",
+                             "14",
+                             "15",
+                             //"16", // Stack Overflow after almost 10 minutes
+                             "18",
+                             "19",
+                             "20",
+                             "202",
+                             "203",
+                             //"206", // Stack Overflow after about 5 minutes
+                             //"208", // Stack Overflow after about 6 minutes
+                             "211",
+                             "214",
+                             "215",
+                             "216",
+                             "219",
+                             "302",
+                             "303",
+                             "304",
+                             "305",
+                             // "306", // Stack Overflow after about 6 minutes
+                             "307",
+                             "308",
+                             "309",
+                             "310"
+                          ).map(s => "jnh" + s)
+
+    val proofFilesBF = List("0432-007",
+                             "1355-075",
+                             "1355-638",
+                             "2670-001"
+                          ).map(s => "bf" + s)
+
+    val proofFilesPret = List("60_25",
+                              "60_40",
+                              "60_60",
+                              "60_75"
+                              //"150_25",
+                              //"150_40",
+                              //"150_60",
+                              //"150_75"
+                          ).map(s => "pret" + s)
+
+    val proofFilesSSA = List("0432-003",
+                             "2670-130",
+                             //"2670-141",  Runs for too long... I interrupted after 13minutes...
+                             "6288-047"
+                          ).map(s => "ssa" + s)
+
+    Experimenter.run(directory2, proofFilesAim, "outputAim20101223.txt")
+    //Experimenter.run(directory2, proofFilesPigeonHole, "outputPigeon20101208.txt")
+    Experimenter.run(directory2, proofFilesJNH, "outputJNH20101223.txt")
+    //Experimenter.run(directory2, proofFilesBF, "outputBF20101208.txt")
+    //Experimenter.run(directory2, proofFilesPret, "outputPret20101208.txt")
+    //Experimenter.run(directory2, proofFilesSSA, "outputSSA20101208.txt")
+    //Experimenter.runHypergraph(directory2, proofFilesAim, "outputAimHypergraph20101208.txt")
+    //Experimenter.runHypergraph(directory, proofFiles, "output.txt")
    
 
 
