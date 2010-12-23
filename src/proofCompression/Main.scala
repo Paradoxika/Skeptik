@@ -45,7 +45,7 @@ object Main {
                           "TheFirstChallenge2"
                           )
 
-    val directory2 = "proofs/PascalProofs/"
+    val directory2 = "proofs/SmallProofs/"
     val proofFilesAim = List("50-1_6-no-1",
                              "50-1_6-no-2",
                              "50-1_6-no-3",
