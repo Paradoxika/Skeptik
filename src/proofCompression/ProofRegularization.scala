@@ -13,6 +13,9 @@ import scala.collection._
 object ProofRegularization {
   val deletedSubProof = Input(immutable.HashSet(L("Deleted SubProof",true)))
 
+  // Very inneficient way of removing unused resolvents
+  def removeUnusedResolvents(proof: ResolutionProof) = proof.duplicate
+
   def getIrregularNodes(proof: ResolutionProof) = {
     def getIrregularNodesRec(p: ResolutionProof, pivotsBelow: List[Atom]) : List[Int] = {
       p match {

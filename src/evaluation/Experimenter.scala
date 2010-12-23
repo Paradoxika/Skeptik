@@ -104,6 +104,7 @@ object Experimenter {
     //writer.write(firstLine, 0, firstLine.length)
     for (proofFile <- proofFiles) {
       println(proofFile)
+      println("parsing")
       val startParsingTime = System.nanoTime
       val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
       val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
@@ -120,9 +121,7 @@ object Experimenter {
       val RLength = proofLength(p1)
 
       println("removing new sinks")
-      val p4 = p1.duplicate  // this removes the new sinks
-      //println(inputLength)
-      //println(RLength)
+      val p4 = removeUnusedResolvents(p1)
 
 
       println("DAGifying")
