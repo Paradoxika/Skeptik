@@ -26,10 +26,6 @@ object Main {
 //    gui.displayHypergraph(g3)
 //
 
-//    val writer = new FileWriter("myfile2.test")
-//    writer.write("hello world", 7, 1)
-//    writer.close
-
     val directory = "proofs/BWPProofs/"
     val proofFiles = List(//"ContractionAndSplittingCase1",
                           //"ContractionAndSplittingCase2",
@@ -72,11 +68,26 @@ object Main {
                              "200-2_0-no-4"
                           ).map(s => "aim-" + s)
 
-    val proofFilesPigeonHole = List("6",
-                             "7",
-                             "8",
-                             "9"
+    val proofFilesPigeonHole = List(//"6", // Stack overflow during parsing after 1 minute
+                             // "7", // Stack Overflow during parsing after 51 seconds
+                             // "8", // Stack Overflow during parsin after 1 minute 32 seconds
+                             //"9" // Stack Overflow during parsin after 54 seconds
                           ).map(s => "hole" + s)
+
+    val proofFilesDubois = List(
+                             "20",
+                             "21",
+                             //"22", // Stack overflow during regularization after about 6 minutes
+                             "23",
+                             "24",
+                             "25",
+                             //"26", // Stack overflow during regularization after about 7 minutes
+                             "27",
+                             "28",
+                             "29",
+                             "30"
+                             //"50" // Stack overflow during regularization after about 7 minutes
+                          ).map(s => "dubois" + s)
 
     val proofFilesJNH = List("2",
                              "3",
@@ -90,14 +101,14 @@ object Main {
                              "13",
                              "14",
                              "15",
-                             //"16", // Stack Overflow after almost 10 minutes
+                             //"16", // Stack Overflow during Regularization after almost 10 minutes
                              "18",
                              "19",
                              "20",
                              "202",
                              "203",
-                             //"206", // Stack Overflow after about 5 minutes
-                             //"208", // Stack Overflow after about 6 minutes
+                             //"206", // Stack Overflow during Regularization after about 5 minutes
+                             //"208", // Stack Overflow during Regularization after about 6 minutes
                              "211",
                              "214",
                              "215",
@@ -107,14 +118,14 @@ object Main {
                              "303",
                              "304",
                              "305",
-                             // "306", // Stack Overflow after about 6 minutes
+                             // "306", // Stack Overflow during Regularization after about 6 minutes
                              "307",
                              "308",
                              "309",
                              "310"
                           ).map(s => "jnh" + s)
 
-    val proofFilesBF = List("0432-007",
+    val proofFilesBF = List(//"0432-007", // Stack overflow during regularization after 3 minutes 35 seconds
                              "1355-075",
                              "1355-638",
                              "2670-001"
@@ -124,126 +135,27 @@ object Main {
                               "60_40",
                               "60_60",
                               "60_75"
-                              //"150_25",
-                              //"150_40",
-                              //"150_60",
-                              //"150_75"
+                              //"150_25" // Stack Overflow during Regularization after about 10 minutes
+                              //"150_40", // Stack Overflow
+                              //"150_60", // Stack Overflow
+                              //"150_75" // Stack Overflow
                           ).map(s => "pret" + s)
 
     val proofFilesSSA = List("0432-003",
-                             "2670-130",
+                             //"2670-130", // Stack overflow during regularization after about 5 minutes
                              //"2670-141",  Runs for too long... I interrupted after 13minutes...
                              "6288-047"
                           ).map(s => "ssa" + s)
 
-    Experimenter.run(directory2, proofFilesAim, "outputAim20101223.txt")
-    //Experimenter.run(directory2, proofFilesPigeonHole, "outputPigeon20101208.txt")
-    Experimenter.run(directory2, proofFilesJNH, "outputJNH20101223.txt")
-    //Experimenter.run(directory2, proofFilesBF, "outputBF20101208.txt")
-    //Experimenter.run(directory2, proofFilesPret, "outputPret20101208.txt")
-    //Experimenter.run(directory2, proofFilesSSA, "outputSSA20101208.txt")
+    //Experimenter.run(directory2, proofFilesAim, "outputAim20101223.txt")
+    //Experimenter.run(directory2, proofFilesPigeonHole, "outputPigeon20101223.txt")
+    //Experimenter.run(directory2, proofFilesJNH, "outputJNH20101223.txt")
+    //Experimenter.run(directory2, proofFilesBF, "outputBF20101223.txt")
+    Experimenter.run(directory2, proofFilesDubois, "outputDubois20101223.txt")
+    //Experimenter.run(directory2, proofFilesPret, "outputPret20101223.txt")
+    //Experimenter.run(directory2, proofFilesSSA, "outputSSA20101223.txt")
     //Experimenter.runHypergraph(directory2, proofFilesAim, "outputAimHypergraph20101208.txt")
     //Experimenter.runHypergraph(directory, proofFiles, "output.txt")
-   
 
-
-      //for (p <- List("proofs/BWPProofs/DAGifiableTree.proof").map(file => ProofParser.getProofFromFile(file))) {
-      //for (p <- List("proofs/BWPProofs/pigeon(3)(2).proof").map(file => ProofParser.getProofFromFile(file))) {
-      //for (p <- List("proofs/PascalProofs/TheFirstChallenge.proof").map(file => ProofParser.getProofFromFile(file))) {
-//      for (p <- List("proofs/PascalProofs/TheFirstChallenge2.proof", "proofs/BWPProofs/pigeon(3)(2).proof").map(file => ProofParser.getProofFromFile(file))) {
-//
-//
-//
-//        println(p)
-//        println("Proof Length:" + proofLength(p))
-//        println("Is regular? : " + isRegular(p))
-//        println("Is DAG? : " + isNonTree(p))
-//        regularize(p)
-//        println("Regularized Proof Length:" + proofLength(p))
-//        fixProof(p)
-//        println("Fixed Proof Length:" + proofLength(p))
-//        println("Is regular? : " + isRegular(p))
-//        DAGify(p)
-//        println("DAGified Proof Length:" + proofLength(p))
-//        println("Final Clause :" + p.clause)
-//        println()
-//      }
-
-//    val g4 = new ResolutionHypergraph(PigeonProof.clempty)
-//
-//    println("INITIAL GRAPH:")
-//    println(g4)
-//
-//    g4.simplify
-//
-//    println("FINAL RESULT:")
-//    println(g4)
-//
-//    println(proofLength(PigeonProof.clempty))
-//
-//
-//
-//    val g3 = new ResolutionHypergraph(Proof2.clempty)
-//
-//
-//
-//    println("INITIAL GRAPH:")
-//    println(g3)
-//
-//    g3.simplify
-//
-//    println("FINAL RESULT:")
-//    println(g3)
-//
-//    println(proofLength(Proof2.clempty))
-//
-
-//    val g2 = new ResolutionHypergraph(P4.cl1115)
-//    val g2 = new ResolutionHypergraph(P4.cl1116)
-//    val g2 = new ResolutionHypergraph(P4.cl1138) Solved
-//    val g2 = new ResolutionHypergraph(P4.cl1139) Solved
-//    val g2 = new ResolutionHypergraph(P4.cl1140) Solved
-
-//    val g2 = new ResolutionHypergraph(P4.cl1141) // Hard
-
-//    val g2 = new ResolutionHypergraph(P4.cl1142) Solved
-//    val g2 = new ResolutionHypergraph(P4.cl1143) Solved
-
-//    val g2 = new ResolutionHypergraph(P4.cl1144) Solved
-    //
-//    val g2 = new ResolutionHypergraph(P4.cl1145) Solved from 1145 to 1148
-
-//    val g2 = new ResolutionHypergraph(P4.cl1149) Solved until 1154
-
-//    val f = P4.cl1155
-
-    //val f = P4.cl1180
-//    val g2 = new ResolutionHypergraph(f)
-
-//    val g2 = new ResolutionHypergraph(P4.cl1200)
-//    val g2 = new ResolutionHypergraph(P4.cl1200)
-//    val g2 = new ResolutionHypergraph(P4.cl1200)
-//    val g2 = new ResolutionHypergraph(P4.cl1170)
-//    val g2 = new ResolutionHypergraph(P4.cl1200)
-//    val g2 = new ResolutionHypergraph(P4.clempty)
-
-
-//    val f = Proof0.c8
-//    val g = new ResolutionHypergraph(f)
-//
-//    val gui = new HypergraphVisualizer
-//    gui.displayHypergraph(g)
-//
-//    println("INITIAL GRAPH:")
-//    println(g)
-//////
-//    g.simplify
-//////
-//    println("FINAL RESULT:")
-//    println(g)
-//////
-//    println(proofLength(f))
-
-    
   }
 }
