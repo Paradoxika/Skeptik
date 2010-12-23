@@ -71,31 +71,23 @@ object ResolutionCalculus {
     var literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
     var pivotAtomsAbove : mutable.HashSet[Atom]
     def duplicate : ResolutionProof = {
-      def duplicateRec(proof: ResolutionProof, visitedProofs: mutable.HashMap[ResolutionProof,ResolutionProof]) : ResolutionProof = {
+      val visitedProofs = new mutable.HashMap[ResolutionProof,ResolutionProof]
+      def duplicateRec(proof: ResolutionProof) : ResolutionProof = {
         if (visitedProofs.contains(proof)) return visitedProofs(proof)
         else {
           val newProof = proof match {
-            case Resolvent(l,r) => new Resolvent(duplicateRec(l, visitedProofs), duplicateRec(r,visitedProofs))
+            case Resolvent(l,r) => new Resolvent(duplicateRec(l), duplicateRec(r))
             case Input(c) => proof
           }
           visitedProofs += (proof -> newProof)
           return newProof
         }
       }
-      duplicateRec(this, new mutable.HashMap[ResolutionProof,ResolutionProof])
+      duplicateRec(this)
     }
     def replaces(that: ResolutionProof) = {
       require(clause == that.clause)
-//      println("replacing")
-//      println(id + " : " + clause)
-//      println(that.id  + " : " +  that.clause)
-//      println("children:")
       for (c <- that.children) {
-        
-//        println(c.id  + " : " +  c.clause + " : " +  c.pivot)
-//        println(c.left.id  + " : " + c.left.clause)
-//        println(c.right.id  + " : " + c.right.clause)
-//        println()
         children = c::children
         if (c.left == that) c.left = this
         else c.right = this
@@ -141,9 +133,6 @@ object ResolutionCalculus {
 
 
     def update = {
-      //println("update")
-      //println(left.clause)
-      //println(right.clause)
       clause = resolve(left.clause,right.clause)
       pivot = pivotLiterals(left.clause, right.clause)
     }
