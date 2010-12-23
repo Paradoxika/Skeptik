@@ -127,15 +127,50 @@ object ProofRegularization {
   }
 
 
-
-  def recyclePivot(proof:ResolutionProof): Unit = {
-   
+  def recyclePivot(proof:ResolutionProof): Unit = {  
     if (proof.isInstanceOf[Resolvent]) {
       val n = proof.asInstanceOf[Resolvent]
       if (allChildrenAreVisited(proof)) {
         if (proof.children.length > 1) {
           n.left.literalsBelow += (n -> Nil)
           n.right.literalsBelow += (n -> Nil)
+        }
+        else if (proof.children.length == 0) {
+          n.left.literalsBelow += (n -> (n.pivot._2::Nil))
+          n.right.literalsBelow += (n -> (n.pivot._1::Nil))
+        }
+        else {
+          val literalsBelow = n.literalsBelow.get(n.children.head) match {case Some(set) => set; case None => throw new Exception("Literals Below was not initialized properly") }
+          if (!literalsBelow.contains(n.pivot._1) && !literalsBelow.contains(n.pivot._2)) {
+            n.left.literalsBelow += (n -> (n.pivot._2::literalsBelow ))
+            n.right.literalsBelow += (n -> (n.pivot._1::literalsBelow))
+          }
+          else if (literalsBelow.contains(n.pivot._1)) {
+            n.left.children = n.left.children - n
+            n.left = deletedSubProof
+            n.right.literalsBelow += (n -> literalsBelow)
+          }
+          else { // if (literalsBelow.contains(n.pivot._2))
+            n.right.children = n.right.children - n
+            n.right = deletedSubProof
+            n.left.literalsBelow += (n -> literalsBelow)
+          }
+        }
+        recyclePivot(n.left)
+        recyclePivot(n.right)
+      }
+    }
+  }
+
+    def recyclePivotImproved(proof:ResolutionProof): Unit = {
+    if (proof.isInstanceOf[Resolvent]) {
+      val n = proof.asInstanceOf[Resolvent]
+      if (allChildrenAreVisited(proof)) {
+        if (proof.children.length > 1) {
+          val lBPerChild = (for (child <- proof.children) yield proof.literalsBelow(child)).toList
+          val intersection = intersect(lBPerChild)
+          n.left.literalsBelow += (n -> intersection)
+          n.right.literalsBelow += (n -> intersection)
         }
         else if (proof.children.length == 0) {
           n.left.literalsBelow += (n -> (n.pivot._2::Nil))
