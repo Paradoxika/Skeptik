@@ -164,11 +164,18 @@ object ProofRegularization {
 
     def recyclePivotImproved(proof:ResolutionProof): Unit = {
     if (proof.isInstanceOf[Resolvent]) {
+
+//      println(proof.id + " " + proof.children.length)
+//      if (proof.children.length > 1) println("has many children")
+
       val n = proof.asInstanceOf[Resolvent]
       if (allChildrenAreVisited(proof)) {
         if (proof.children.length > 1) {
+//          println("yes")
           val lBPerChild = (for (child <- proof.children) yield proof.literalsBelow(child)).toList
           val intersection = intersect(lBPerChild)
+//          println(lBPerChild)
+//          println(intersection)
           n.left.literalsBelow += (n -> intersection)
           n.right.literalsBelow += (n -> intersection)
         }
@@ -193,8 +200,8 @@ object ProofRegularization {
             n.left.literalsBelow += (n -> literalsBelow)
           }
         }
-        recyclePivot(n.left)
-        recyclePivot(n.right)
+        recyclePivotImproved(n.left)
+        recyclePivotImproved(n.right)
       }
     }
   }

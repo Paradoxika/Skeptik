@@ -161,4 +161,40 @@ object Experimenter {
     }
     writer.close
   }
+
+    def runRecyclePivots(directory: String, proofFiles: List[String], outputFilename: String) = {
+    val writer = new FileWriter(directory + outputFilename)
+    for (proofFile <- proofFiles) {
+      println(proofFile)
+      println("parsing")
+      val startParsingTime = System.nanoTime
+      val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+      val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
+      println("duplicating")
+      val p1 = p0.duplicate
+      println("duplicating")
+      val p2 = p0.duplicate
+      val inputLength = proofLength(p1)
+
+      println("recycle pivots")
+      val startRPTime = System.nanoTime
+      recyclePivot(p1)
+      fixProof(p1)
+      val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
+      val RPLength = proofLength(p1)
+
+      println("recycle pivots (improved)")
+      val startRPITime = System.nanoTime
+      recyclePivotImproved(p2)
+      fixProof(p2)
+      val ellapsedRPITime = (System.nanoTime - startRPITime)/1000
+      val RPILength = proofLength(p2)
+
+      val thisLine = inputLength + "\t" +
+                     (inputLength*1.0 - RPLength)/inputLength + "\t" +
+                     (inputLength*1.0 - RPILength)/inputLength + "\n"
+      writer.write(thisLine, 0, thisLine.length)
+    }
+    writer.close
+  }
 }

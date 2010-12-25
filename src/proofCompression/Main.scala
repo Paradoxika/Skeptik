@@ -135,7 +135,7 @@ object Main {
                               "60_40",
                               "60_60",
                               "60_75"
-                              //"150_25" // Stack Overflow during Regularization after about 10 minutes
+                              //"150_25", // Stack Overflow during Regularization after about 10 minutes
                               //"150_40", // Stack Overflow
                               //"150_60", // Stack Overflow
                               //"150_75" // Stack Overflow
@@ -143,15 +143,23 @@ object Main {
 
     val proofFilesSSA = List("0432-003",
                              //"2670-130", // Stack overflow during regularization after about 5 minutes
-                             //"2670-141",  Runs for too long... I interrupted after 13minutes...
+                             //"2670-141",  // Runs for too long... I interrupted after 13minutes...
                              "6288-047"
                           ).map(s => "ssa" + s)
+
+    Experimenter.runRecyclePivots(directory2, proofFilesAim, "RPI-outputAim20101225.txt")
+    Experimenter.runRecyclePivots(directory2, proofFilesJNH, "RPI-outputJNH20101225.txt")
+    Experimenter.runRecyclePivots(directory2, proofFilesBF, "RPI-outputBF20101225.txt")
+    Experimenter.runRecyclePivots(directory2, proofFilesDubois, "RPI-outputDubois20101225.txt")
+    Experimenter.runRecyclePivots(directory2, proofFilesPret, "RPI-outputPret20101225.txt")
+    Experimenter.runRecyclePivots(directory2, proofFilesSSA, "RPI-outputSSA20101225.txt")
+
 
     //Experimenter.run(directory2, proofFilesAim, "outputAim20101223.txt")
     //Experimenter.run(directory2, proofFilesPigeonHole, "outputPigeon20101223.txt")
     //Experimenter.run(directory2, proofFilesJNH, "outputJNH20101223.txt")
     //Experimenter.run(directory2, proofFilesBF, "outputBF20101223.txt")
-    Experimenter.run(directory2, proofFilesDubois, "outputDubois20101223.txt")
+    //Experimenter.run(directory2, proofFilesDubois, "outputDubois20101223.txt")
     //Experimenter.run(directory2, proofFilesPret, "outputPret20101223.txt")
     //Experimenter.run(directory2, proofFilesSSA, "outputSSA20101223.txt")
     //Experimenter.runHypergraph(directory2, proofFilesAim, "outputAimHypergraph20101208.txt")

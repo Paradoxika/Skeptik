@@ -130,7 +130,8 @@ object ResolutionCalculus {
     left.children = this::left.children
     right.children = this::right.children
 
-
+//    if (left.children.length > 1) println("yes" + left.isInstanceOf[Input] + left.id)
+//    if (right.children.length > 1) println("yes" + right.isInstanceOf[Input] + right.id)
 
     def update = {
       clause = resolve(left.clause,right.clause)
