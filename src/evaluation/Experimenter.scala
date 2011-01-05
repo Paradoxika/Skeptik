@@ -10,8 +10,8 @@ import proofCompression.Utilities._
 import proofCompression.ResolutionCalculus._
 import proofCompression.Hypergraph._
 import proofCompression.GUI._
-import proofCompression.ProofRegularization._
-import proofCompression.ProofDAGification._
+import proofCompression.Regularization._
+import proofCompression.DAGification._
 import proofCompression._
 import java.io.FileWriter
 
@@ -39,18 +39,18 @@ object Experimenter {
       val startParsingTime = System.nanoTime
       val p = ProofParser.getProofFromFile(directory + proofFile + ".proof").asInstanceOf[Resolvent].left
       val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
-      val inputLength = proofLength(p)
+      val inputLength = p.length
 
       val startRTime = System.nanoTime
       regularize(p)
       fixProof(p)
       val ellapsedRTime = (System.nanoTime - startRTime)/1000
-      val RLength = proofLength(p)
+      val RLength = p.length
 
       val startRDAGTime = System.nanoTime
-      DAGify(p)
+      DAGify(p, p => p.length)
       val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
-      val RDAGLength = proofLength(p)
+      val RDAGLength = p.length
 
       val startHypergraphConstructionTime = System.nanoTime
       val g = new ResolutionHypergraph(p)
@@ -64,7 +64,7 @@ object Experimenter {
       g.simplify
       val ellapsedHypergraphSimplificationTime = (System.nanoTime - startHypergraphSimplificationTime)/1000
       println(g.isTrivial)
-      val ReconstructedProofLength = proofLength(g.getNodes.head.proof)
+      val ReconstructedProofLength = g.getNodes.head.proof.length
 
       val thisLine = inputLength + "\t" +
                      ellapsedParsingTime + "\t" +
@@ -111,14 +111,14 @@ object Experimenter {
       val p1 = p0.duplicate
       val p2 = p0.duplicate
       val p3 = p0.duplicate
-      val inputLength = proofLength(p1)
+      val inputLength = p1.length
 
       println("regularizing")
       val startRTime = System.nanoTime
       regularize(p1)
       fixProof(p1)
       val ellapsedRTime = (System.nanoTime - startRTime)/1000
-      val RLength = proofLength(p1)
+      val RLength = p1.length
 
       println("removing new sinks")
       val p4 = removeUnusedResolvents(p1)
@@ -126,24 +126,24 @@ object Experimenter {
 
       println("DAGifying")
       val startRDAGTime = System.nanoTime
-      DAGify(p4)
+      DAGify(p4, p => p.length)
       val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
-      val RDAGLength = proofLength(p4)
+      val RDAGLength = p4.length
       //println("DAGified")
 
       println("DAGifying the original proof")
       val startDAGTime = System.nanoTime
-      DAGify(p2)
+      DAGify(p2, p => p.length)
       //println(isRegular(p2))
       val ellapsedDAGTime = (System.nanoTime - startDAGTime)/1000
-      val DAGLength = proofLength(p2)
+      val DAGLength = p2.length
 
       println("recycle pivots")
       val startRPTime = System.nanoTime
       recyclePivot(p3)
       fixProof(p3)
       val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
-      val RPLength = proofLength(p3)
+      val RPLength = p3.length
       
 
       val thisLine = inputLength + "\t" +
@@ -174,21 +174,21 @@ object Experimenter {
       val p1 = p0.duplicate
       println("duplicating")
       val p2 = p0.duplicate
-      val inputLength = proofLength(p1)
+      val inputLength = p1.length
 
       println("recycle pivots")
       val startRPTime = System.nanoTime
       recyclePivot(p1)
       fixProof(p1)
       val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
-      val RPLength = proofLength(p1)
+      val RPLength = p1.length
 
       println("recycle pivots (improved)")
       val startRPITime = System.nanoTime
       recyclePivotImproved(p2)
       fixProof(p2)
       val ellapsedRPITime = (System.nanoTime - startRPITime)/1000
-      val RPILength = proofLength(p2)
+      val RPILength = p2.length
 
       val thisLine = inputLength + "\t" +
                      (inputLength*1.0 - RPLength)/inputLength + "\t" +
