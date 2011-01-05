@@ -23,18 +23,18 @@ object ResolutionCalculus {
   type Literal = L
 
 
-  abstract class LiteralId {
-    def getInputs: List[Input]
-  }
-  case class LLeaf(input: Input) extends LiteralId {
-    def getInputs = input::Nil
-  }
-  case class LSplit(copyNumber: Int, tail: LiteralId) extends LiteralId {
-    def getInputs = tail.getInputs
-  }
-  case class LContract(left:LiteralId,right:LiteralId) extends LiteralId {
-    def getInputs = left.getInputs:::right.getInputs
-  }
+//  abstract class LiteralId {
+//    def getInputs: List[Input]
+//  }
+//  case class LLeaf(input: Input) extends LiteralId {
+//    def getInputs = input::Nil
+//  }
+//  case class LSplit(copyNumber: Int, tail: LiteralId) extends LiteralId {
+//    def getInputs = tail.getInputs
+//  }
+//  case class LContract(left:LiteralId,right:LiteralId) extends LiteralId {
+//    def getInputs = left.getInputs:::right.getInputs
+//  }
 
 
 
@@ -64,28 +64,28 @@ object ResolutionCalculus {
 
 
   val ProofCounter = new Counter
-  abstract class ResolutionProof {
+  abstract class Proof {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
     var literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
     var pivotAtomsAbove : mutable.HashSet[Atom]
-    def duplicate : ResolutionProof = {
-      val visitedProofs = new mutable.HashMap[ResolutionProof,ResolutionProof]
-      def duplicateRec(proof: ResolutionProof) : ResolutionProof = {
-        if (visitedProofs.contains(proof)) return visitedProofs(proof)
+    def duplicate : Proof = {
+      val visitedProofs = new mutable.HashMap[Proof,Proof]
+      def duplicateRec(p: Proof) : Proof = {
+        if (visitedProofs.contains(p)) return visitedProofs(p)
         else {
-          val newProof = proof match {
+          val newProof = p match {
             case Resolvent(l,r) => new Resolvent(duplicateRec(l), duplicateRec(r))
-            case Input(c) => proof
+            case Input(c) => new Input(c)
           }
-          visitedProofs += (proof -> newProof)
+          visitedProofs += (p -> newProof)
           return newProof
         }
       }
       duplicateRec(this)
     }
-    def replaces(that: ResolutionProof) = {
+    def replaces(that: Proof) = {
       require(clause == that.clause)
       for (c <- that.children) {
         children = c::children
@@ -95,15 +95,150 @@ object ResolutionCalculus {
       }
       that.children = Nil
     }
-    def isBelow(that: ResolutionProof): Boolean = {
+    def isBelow(that: Proof): Boolean = {
       if (id == that.id) return true
       else this match {
         case Input(_) => return false
         case Resolvent(l,r) => return (l isBelow that) || (r isBelow that)
       }
     }
+    def unsatCore = {
+      val visitedProofs = new mutable.HashSet[Proof]
+      def unsatCoreRec(p: Proof) : List[Input] = {
+        if (!visitedProofs.contains(p)) {
+          visitedProofs += p
+          p match {
+            case Input(c) => p.asInstanceOf[Input]::Nil
+            case Resolvent(left, right) => unsatCoreRec(left):::unsatCoreRec(right)
+          }
+        } else Nil
+      }
+      unsatCoreRec(this)
+    }
+    def length : Int = {
+      val visitedProofs = new mutable.HashSet[Proof]
+      def rec(p: Proof) : Int = {
+        if (!visitedProofs.contains(p)) {
+          visitedProofs += p
+          p match {
+            case Input(c) => 1
+            case Resolvent(left, right) => (rec(left) + rec(right) + 1)
+          }
+        } else 0
+      }
+      rec(this)
+    }
+    def literalCount : Int = {
+      val visitedProofs = new mutable.HashSet[Proof]
+      def rec(p: Proof) : Int = {
+        if (!visitedProofs.contains(p)) {
+          visitedProofs += p
+          p match {
+            case Input(c) => c.size
+            case Resolvent(left, right) => (rec(left) + rec(right) + p.clause.size)
+          }
+        } else 0
+      }
+      rec(this)
+    }
+    def size : Int = {
+      val visitedProofs = new mutable.HashSet[Proof]
+      def rec(p: Proof) : Int = {
+        if (!visitedProofs.contains(p)) {
+          visitedProofs += p
+          val namingCost = if (p.children.length > 1) 1 else 0
+          p match {
+            case Input(c) => c.size + 2*namingCost
+            case Resolvent(left, right) => (rec(left) + rec(right) + 1 + 2*namingCost)
+          }
+        } else 1
+      }
+      rec(this)
+    }
+    def treeLength : Int = {
+      val visitedProofs = new mutable.HashMap[Proof,Int]
+      def rec(p: Proof) : Int = {
+        if (!visitedProofs.contains(p)) {
+          val result = p match {
+            case Input(c) => 1
+            case Resolvent(left, right) => (rec(left) + rec(right) + 1)
+          }
+          visitedProofs += (p -> result)
+          result
+        } else visitedProofs(p)
+      }
+      rec(this)
+    }
+    def nonTreeness : Double = {
+      val visitedProofs = new mutable.HashSet[Proof]
+      def rec(p: Proof) : Int = {
+        if (!visitedProofs.contains(p)) {
+          visitedProofs += p
+          val countIfHasManyChildren = if (p.children.length > 1) 1 else 0
+          p match {
+            case Input(c) => countIfHasManyChildren
+            case Resolvent(left, right) => (rec(left) + rec(right) + countIfHasManyChildren)
+          }
+        } else return 0
+      }
+      1.0*rec(this)/length
+    }
+    def averageNumberOfChildren : Double = {
+      val visitedProofs = new mutable.HashSet[Proof]
+      def rec(p: Proof) : Int = {
+        if (!visitedProofs.contains(p)) {
+          visitedProofs += p
+          p match {
+            case Input(c) => p.children.length
+            case Resolvent(left, right) => rec(left) + rec(right) + p.children.length
+          }
+        } else 0
+      }
+      (1.0*rec(this))/length
+    }
+    def getAllSubproofs(measure: Proof => Int): List[Proof] = {
+      val visitedProofs = new mutable.HashSet[Proof]
+      def rec(p: Proof): List[Proof] = {
+        if (visitedProofs.contains(p)) return Nil
+        else {
+          visitedProofs += p
+          p match {
+            case Input(_) => p::Nil
+            case Resolvent(l,r) => insert(p, merge(rec(l),rec(r),measure),measure)
+          }
+        }
+      }
+      rec(this)
+    }
+
+    def getSubproof(id: Int) = {
+      val visitedProofs = new mutable.HashMap[Proof, Proof]
+      def rec(p: Proof): Proof = {
+        if (visitedProofs.contains(p)) return visitedProofs(p)
+        else {
+          val result: Proof =
+            if (p.id == id) p
+            else {
+              p match {
+                case Input(_) => null
+                case Resolvent(l,r) => {
+                  val lR = rec(l)
+                  if (lR != null) lR
+                  else {
+                    val rR = rec(r)
+                    if (rR != null) rR else null
+                  }
+                }
+              }
+            }
+          visitedProofs += (p -> result)
+          return result
+        }
+      }
+      rec(this)
+    }
   }
-  case class Input(clause: Clause) extends ResolutionProof {
+  case class Input(clause: Clause) extends Proof {
     var pivotAtomsAbove = new mutable.HashSet[Atom]
     for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
@@ -121,7 +256,7 @@ object ResolutionCalculus {
       case _ => false
     }
   }
-  case class Resolvent(var left: ResolutionProof, var right: ResolutionProof) extends ResolutionProof {
+  case class Resolvent(var left: Proof, var right: Proof) extends Proof {
     var clause : Clause = resolve(left.clause,right.clause)
     var pivot : (Literal,Literal) = pivotLiterals(left.clause,right.clause)
     def resolvedAtom = pivot._1.atom
@@ -135,7 +270,6 @@ object ResolutionCalculus {
       pivot = pivotLiterals(left.clause, right.clause)
     }
 
-
     override def toString: String = {
       var string = "(" + left + "." + right + ")"
       return string
@@ -147,55 +281,5 @@ object ResolutionCalculus {
       case _ => false
     }
   }
-
-  def getNodeById(p: ResolutionProof, id: Int, visitedProofs: mutable.HashMap[ResolutionProof, ResolutionProof]): ResolutionProof = {
-    //println(p.id)
-    if (visitedProofs.contains(p)) return visitedProofs(p)
-    else {
-      var result: ResolutionProof = null
-      if (p.id == id) result = p
-      else {
-        p match {
-          case Input(_) => return null
-          case Resolvent(l,r) => {
-            val lR = getNodeById(l, id, visitedProofs)
-            if (lR != null) result = lR
-            else {
-              val rR = getNodeById(r, id, visitedProofs)
-              if (rR != null) result = rR
-            }
-          }
-        }
-      }
-      visitedProofs += (p -> result)
-      return result
-    }
-  }
-
-
-
-
-
   
-
-
-  def proofLength(proof: ResolutionProof): Int = proofLengthRec(proof, new mutable.HashSet[ResolutionProof])
-  def proofLengthRec(proof: ResolutionProof, visitedProofs: mutable.HashSet[ResolutionProof]) : Int =
-    if (!visitedProofs.contains(proof)) {
-      visitedProofs += proof
-      proof match {
-        case Input(c) => return 0
-        case Resolvent(left, right) => {
-          return (proofLengthRec(left, visitedProofs) + proofLengthRec(right, visitedProofs) + 1)
-        }
-      }
-    } else return 0
-
-  def isNonTree(proof: ResolutionProof)  = {
-    def isNonTreeRec(p: ResolutionProof): Boolean = p match {
-      case Input(_) => p.children.length > 1
-      case Resolvent(l, r) =>  p.children.length > 1 || isNonTreeRec(l) || isNonTreeRec(r)
-    }
-    isNonTreeRec(proof)
-  }
 }

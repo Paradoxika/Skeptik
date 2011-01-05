@@ -49,5 +49,26 @@ object Utilities {
     }
   }
 
+  def merge[T](l1: List[T], l2: List[T], measure: T => Int): List[T] = {
+    (l1,l2) match {
+      case (Nil, Nil) => Nil
+      case (Nil, l) => l
+      case (l, Nil) => l
+      case (h1::t1, h2::t2) => {
+        if (measure(h1) < measure(h2)) h1::merge(t1, l2, measure)
+        else h2::merge(l1,t2,measure)
+      }
+    }
+  }
+  def insert[T](e: T, list: List[T], measure: T => Int) : List[T] = {
+    list match {
+      case Nil => e::Nil
+      case h::t => {
+        if (measure(e) < measure(h)) e::list
+        else h::insert(e,t,measure)
+      }
+    }
+  }
+
   def dP(debug: Boolean, s: Any) = if (debug) println(s)
 }
