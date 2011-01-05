@@ -11,13 +11,13 @@ import scala.collection.mutable._
 import java.io.FileReader
 
 object ProofParser extends JavaTokenParsers with RegexParsers {
-  private var map = new HashMap[String,ResolutionProof]
+  private var map = new HashMap[String,Proof]
 
   def proof: Parser[Any] = rep(line)
-  def line: Parser[(String,ResolutionProof)] = proofName ~ "=" ~ subproof ^^ {
+  def line: Parser[(String,Proof)] = proofName ~ "=" ~ subproof ^^ {
     case ~(~(name,_),p) => {map += (name -> p); (name,p)}
   }
-  def subproof: Parser[ResolutionProof] = (input | resolvent | proofName) ^^ {
+  def subproof: Parser[Proof] = (input | resolvent | proofName) ^^ {
     case p: proofCompression.ResolutionCalculus.Input => p
     case p: Resolvent => p
     case name: String => map(name)
@@ -36,7 +36,7 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
   def atom: Parser[String] = """[a-zA-Z0-9]\w*""".r
 
   def getProofFromFile(filename: String) = {
-    map = new HashMap[String,ResolutionProof]
+    map = new HashMap[String,Proof]
     parse(proof, new FileReader(filename))
     map("clempty")
   }

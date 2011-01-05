@@ -11,10 +11,10 @@ import scala.collection.mutable._
 import java.io.FileWriter
 
 object ProofExporter {
-  def writeProofToFile(proof:ResolutionProof, filename: String) = {
+  def writeProofToFile(proof:Proof, filename: String) = {
     var counter = 0
     val writer = new FileWriter(filename)
-    def writeProofToFileRec(p:ResolutionProof, visitedProofs: HashMap[ResolutionProof,String]): String = {
+    def writeProofToFileRec(p:Proof, visitedProofs: HashMap[Proof,String]): String = {
       if (visitedProofs.contains(p)) return visitedProofs(p)
       else {
         p match {
@@ -47,7 +47,7 @@ object ProofExporter {
         }
       }
     }
-    writeProofToFileRec(proof, new HashMap[ResolutionProof,String])
+    writeProofToFileRec(proof, new HashMap[Proof,String])
     val lastLine = "qed = c" + (counter-1)
     writer.write(lastLine, 0, lastLine.length)
     writer.close

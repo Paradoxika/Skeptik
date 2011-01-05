@@ -15,8 +15,8 @@ object Hypergraph {
   val EdgeCounter = new Counter
   val NodeCounter = new Counter
 
-  class Node(p: ResolutionProof, c: Clause) {
-    val proof: ResolutionProof = p
+  class Node(p: Proof, c: Clause) {
+    val proof: Proof = p
     val clause: Clause = c
     val id: Int = NodeCounter.get
 
@@ -58,7 +58,7 @@ object Hypergraph {
       edgesContainingThisNode = n1.edges ::: n2.edges // merges in a sorted way
     }
     def this(nodesToBeMerged:List[Node]) = {
-      this(argmin(nodesToBeMerged.map(n => n.proof).toList, proofLength)._1,nodesToBeMerged.head.clause)
+      this(argmin[Proof](nodesToBeMerged.map(n => n.proof).toList, (p => p.length))._1,nodesToBeMerged.head.clause)
       for (n <- nodesToBeMerged; e <- n.edges) {
         e.deleteNode(n)
         e.addNode(this)
@@ -212,19 +212,19 @@ object Hypergraph {
       var string = ""
       for (e <- edges) string += e.toString + "\n"
       for (n <- nodes) string += n.toString + "\n"
-      if (isTrivial) string += "Proof length: " + proofLength(nodes.head.proof)
+      if (isTrivial) string += "Proof length: " + nodes.head.proof.length
       string
     }
 
 
-    def this(proof: ResolutionProof) = {
+    def this(proof: Proof) = {
       this()
-      val visitedProofs = new HashSet[ResolutionProof]
+      val visitedProofs = new HashSet[Proof]
       val hashMapInputToNode = new HashMap[Input,Node]
       buildResolutionHypergraphRec(proof, visitedProofs, hashMapInputToNode)
     }
-    private def buildResolutionHypergraphRec(proof: ResolutionProof,
-                                     visitedProofs: HashSet[ResolutionProof],
+    private def buildResolutionHypergraphRec(proof: Proof,
+                                     visitedProofs: HashSet[Proof],
                                      hashMapInputToNode: HashMap[Input, Node]) : Unit = {
       if (!visitedProofs.contains(proof)) {
         visitedProofs += proof

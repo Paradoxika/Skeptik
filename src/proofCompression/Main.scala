@@ -11,8 +11,8 @@ import proofCompression.Utilities._
 import proofCompression.ResolutionCalculus._
 import proofCompression.Hypergraph._
 import proofCompression.GUI._
-import proofCompression.ProofRegularization._
-import proofCompression.ProofDAGification._
+import proofCompression.Regularization._
+import proofCompression.DAGification._
 import proofCompression._
 import evaluation._
 
@@ -147,12 +147,12 @@ object Main {
                              "6288-047"
                           ).map(s => "ssa" + s)
 
-    Experimenter.runRecyclePivots(directory2, proofFilesAim, "RPI-outputAim20101225.txt")
-    Experimenter.runRecyclePivots(directory2, proofFilesJNH, "RPI-outputJNH20101225.txt")
-    Experimenter.runRecyclePivots(directory2, proofFilesBF, "RPI-outputBF20101225.txt")
-    Experimenter.runRecyclePivots(directory2, proofFilesDubois, "RPI-outputDubois20101225.txt")
-    Experimenter.runRecyclePivots(directory2, proofFilesPret, "RPI-outputPret20101225.txt")
-    Experimenter.runRecyclePivots(directory2, proofFilesSSA, "RPI-outputSSA20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesAim, "RPI-outputAim20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesJNH, "RPI-outputJNH20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesBF, "RPI-outputBF20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesDubois, "RPI-outputDubois20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesPret, "RPI-outputPret20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesSSA, "RPI-outputSSA20101225.txt")
 
 
     //Experimenter.run(directory2, proofFilesAim, "outputAim20101223.txt")
