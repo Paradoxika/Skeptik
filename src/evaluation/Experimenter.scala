@@ -140,7 +140,7 @@ object Experimenter {
 
       println("recycle pivots")
       val startRPTime = System.nanoTime
-      recyclePivot(p3)
+      recyclePivots(p3)
       fixProof(p3)
       val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
       val RPLength = p3.length
@@ -162,38 +162,43 @@ object Experimenter {
     writer.close
   }
 
-    def runRecyclePivots(directory: String, proofFiles: List[String], outputFilename: String) = {
+  def runRecyclePivots(directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
     for (proofFile <- proofFiles) {
       println(proofFile)
-      println("parsing")
-      val startParsingTime = System.nanoTime
-      val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
-      val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
-      println("duplicating")
-      val p1 = p0.duplicate
-      println("duplicating")
-      val p2 = p0.duplicate
-      val inputLength = p1.length
+      try {
+        println("parsing")
+        val startParsingTime = System.nanoTime
+        val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+        val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
+        println("duplicating")
+        val p1 = p0.duplicate
+        println("duplicating")
+        val p2 = p0.duplicate
+        val inputLength = p1.length
 
-      println("recycle pivots")
-      val startRPTime = System.nanoTime
-      recyclePivot(p1)
-      fixProof(p1)
-      val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
-      val RPLength = p1.length
+        println("recycle pivots")
+        val startRPTime = System.nanoTime
+        recyclePivots(p1)
+        fixProof(p1)
+        val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
+        val RPLength = p1.length
 
-      println("recycle pivots (improved)")
-      val startRPITime = System.nanoTime
-      recyclePivotImproved(p2)
-      fixProof(p2)
-      val ellapsedRPITime = (System.nanoTime - startRPITime)/1000
-      val RPILength = p2.length
+        println("recycle pivots (improved)")
+        val startRPITime = System.nanoTime
+        recyclePivotsWithIntersection(p2)
+        fixProof(p2)
+        val ellapsedRPITime = (System.nanoTime - startRPITime)/1000
+        val RPILength = p2.length
 
-      val thisLine = inputLength + "\t" +
-                     (inputLength*1.0 - RPLength)/inputLength + "\t" +
-                     (inputLength*1.0 - RPILength)/inputLength + "\n"
-      writer.write(thisLine, 0, thisLine.length)
+        val thisLine = inputLength + "\t" +
+                       (inputLength*1.0 - RPLength)/inputLength + "\t" +
+                       (inputLength*1.0 - RPILength)/inputLength + "\n"
+        println(thisLine)
+        writer.write(thisLine, 0, thisLine.length)
+      } catch {
+        case e => e.printStackTrace
+      }
     }
     writer.close
   }
