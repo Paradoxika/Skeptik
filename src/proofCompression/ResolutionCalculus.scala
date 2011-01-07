@@ -84,23 +84,6 @@ object ResolutionCalculus {
       }
       duplicateRec(this)
     }
-    def containsPivotAtomAbove(a: Atom) : Boolean = {
-      val visitedProofs = new mutable.HashMap[Proof, Boolean]
-      def rec(p: Proof) : Boolean = {
-        if (!visitedProofs.contains(p)) {
-          val result = p match {
-            case Input(c) => false
-            case Resolvent(left, right) => {
-              if (p.asInstanceOf[Resolvent].pivot._1.atom == a) true
-              else rec(left) || rec(right)
-            }
-          }
-          visitedProofs += (p -> result)
-          return result
-        } else return visitedProofs(p)
-      }
-      rec(this)
-    }
     def replaces(that: Proof) = {
       require(clause == that.clause)
       for (c <- that.children) {

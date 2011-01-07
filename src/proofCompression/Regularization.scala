@@ -79,9 +79,9 @@ object Regularization {
               val intersection = intersect(lBPerChild)
               val union = unite(lBPerChild)
               val criticalLiterals = union.diff(intersection)
-              val problematicLiterals = criticalLiterals.filter(l => p.pivotAtomsAbove.contains(l.atom))
-              val r = p.asInstanceOf[Resolvent]
-              if (problematicLiterals.length != 0) duplicateAndRegularize
+//              val problematicLiterals = criticalLiterals.filter(l => p.containsPivotAtomAbove(l.atom))
+//              if (problematicLiterals.length != 0) duplicateAndRegularize
+              if (criticalLiterals.length != 0) duplicateAndRegularize
               else doRegularize(union)
             }
           }
