@@ -50,7 +50,7 @@ object ResolutionCalculus {
   }
   def resolve(c1: Clause, c2: Clause): Clause = {
     val (pl1, pl2) = pivotLiterals(c1,c2)
-    val contractedLiterals = for (l1 <- c1 if c2 contains l1) yield (l1, c2.find(l2 => l1 == l2).get)
+    val contractedLiterals = for (l1 <- c1 if c2 contains l1) yield (l1, c2.find(l2 => l1 == l2).get) // ToDo: Improve efficiency
     val newLiterals = for ((l1,l2) <- contractedLiterals) yield {
       val newL = new L(l1.atom, l1.polarity)
       newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs

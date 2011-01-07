@@ -127,7 +127,7 @@ object Regularization {
   }
 
 
-  def recyclePivot(proof:Proof): Unit = {
+  def recyclePivots(proof:Proof): Unit = {
     if (proof.isInstanceOf[Resolvent]) {
       val n = proof.asInstanceOf[Resolvent]
       if (allChildrenAreVisited(proof)) {
@@ -156,13 +156,13 @@ object Regularization {
             n.left.literalsBelow += (n -> literalsBelow)
           }
         }
-        recyclePivot(n.left)
-        recyclePivot(n.right)
+        recyclePivots(n.left)
+        recyclePivots(n.right)
       }
     }
   }
 
-    def recyclePivotImproved(proof:Proof): Unit = {
+    def recyclePivotsWithIntersection(proof:Proof): Unit = {
     if (proof.isInstanceOf[Resolvent]) {
       val n = proof.asInstanceOf[Resolvent]
       if (allChildrenAreVisited(proof)) {
@@ -193,8 +193,8 @@ object Regularization {
             n.left.literalsBelow += (n -> literalsBelow)
           }
         }
-        recyclePivotImproved(n.left)
-        recyclePivotImproved(n.right)
+        recyclePivotsWithIntersection(n.left)
+        recyclePivotsWithIntersection(n.right)
       }
     }
   }
@@ -213,14 +213,14 @@ object Regularization {
           }
           else {
             val survivingParent : Proof =
-            if (n.left == deletedSubProof) n.right
-            else if (n.right == deletedSubProof) n.left
-            else if (n.left.clause.contains(n.pivot._1) && !n.right.clause.contains(n.pivot._2)) n.right
-            else if (!n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) n.left
-            else {
-              if (n.left.length < n.right.length) n.left
-              else n.right
-            }
+              if (n.left == deletedSubProof) n.right
+              else if (n.right == deletedSubProof) n.left
+              else if (n.left.clause.contains(n.pivot._1) && !n.right.clause.contains(n.pivot._2)) n.right
+              else if (!n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) n.left
+              else {
+                if (n.left.length < n.right.length) n.left
+                else n.right
+              }
 
             n.left.children -= n
             n.right.children -= n

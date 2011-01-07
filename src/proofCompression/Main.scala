@@ -41,6 +41,7 @@ object Main {
                           "TheFirstChallenge2"
                           )
 
+
     val directory2 = "proofs/SmallProofs/"
     val proofFilesAim = List("50-1_6-no-1",
                              "50-1_6-no-2",
@@ -68,7 +69,7 @@ object Main {
                              "200-2_0-no-4"
                           ).map(s => "aim-" + s)
 
-    val proofFilesPigeonHole = List(//"6", // Stack overflow during parsing after 1 minute
+    val proofFilesPigeonHole = List("6" // Stack overflow during parsing after 1 minute
                              // "7", // Stack Overflow during parsing after 51 seconds
                              // "8", // Stack Overflow during parsin after 1 minute 32 seconds
                              //"9" // Stack Overflow during parsin after 54 seconds
@@ -77,16 +78,16 @@ object Main {
     val proofFilesDubois = List(
                              "20",
                              "21",
-                             //"22", // Stack overflow during regularization after about 6 minutes
+                             "22", // Stack overflow during regularization after about 6 minutes
                              "23",
                              "24",
                              "25",
-                             //"26", // Stack overflow during regularization after about 7 minutes
+                             "26", // Stack overflow during regularization after about 7 minutes
                              "27",
                              "28",
                              "29",
-                             "30"
-                             //"50" // Stack overflow during regularization after about 7 minutes
+                             "30",
+                             "50" // Stack overflow during regularization after about 7 minutes
                           ).map(s => "dubois" + s)
 
     val proofFilesJNH = List("2",
@@ -101,14 +102,14 @@ object Main {
                              "13",
                              "14",
                              "15",
-                             //"16", // Stack Overflow during Regularization after almost 10 minutes
+                             "16", // Stack Overflow during Regularization after almost 10 minutes
                              "18",
                              "19",
                              "20",
                              "202",
                              "203",
-                             //"206", // Stack Overflow during Regularization after about 5 minutes
-                             //"208", // Stack Overflow during Regularization after about 6 minutes
+                             "206", // Stack Overflow during Regularization after about 5 minutes
+                             "208", // Stack Overflow during Regularization after about 6 minutes
                              "211",
                              "214",
                              "215",
@@ -118,14 +119,14 @@ object Main {
                              "303",
                              "304",
                              "305",
-                             // "306", // Stack Overflow during Regularization after about 6 minutes
+                             "306", // Stack Overflow during Regularization after about 6 minutes
                              "307",
                              "308",
                              "309",
                              "310"
                           ).map(s => "jnh" + s)
 
-    val proofFilesBF = List(//"0432-007", // Stack overflow during regularization after 3 minutes 35 seconds
+    val proofFilesBF = List("0432-007", // Stack overflow during regularization after 3 minutes 35 seconds
                              "1355-075",
                              "1355-638",
                              "2670-001"
@@ -134,25 +135,48 @@ object Main {
     val proofFilesPret = List("60_25",
                               "60_40",
                               "60_60",
-                              "60_75"
-                              //"150_25", // Stack Overflow during Regularization after about 10 minutes
-                              //"150_40", // Stack Overflow
-                              //"150_60", // Stack Overflow
-                              //"150_75" // Stack Overflow
+                              "60_75",
+                              "150_25", // Stack Overflow during Regularization after about 10 minutes
+                              "150_40", // Stack Overflow
+                              "150_60", // Stack Overflow
+                              "150_75" // Stack Overflow
                           ).map(s => "pret" + s)
 
     val proofFilesSSA = List("0432-003",
-                             //"2670-130", // Stack overflow during regularization after about 5 minutes
+                             "2670-130", // Stack overflow during regularization after about 5 minutes
                              //"2670-141",  // Runs for too long... I interrupted after 13minutes...
                              "6288-047"
                           ).map(s => "ssa" + s)
 
+
+    val directorySatRace = "proofs/SatRace2010/"
+    val proofFilesSoftVerificationNec = List("0-U-7061",
+                             "2-U-9007"
+//                             "2-U-10652",
+//                             "6-U-7061",
+//                             "7-U-10652",
+//                             "9-U-10652",
+//                             "10-U-9007",
+//                             "10-U-15228",
+//                             "11-U-7061",
+//                             "12-U-7061",
+//                             "13-U-9007",
+//                             "15-U-10652",
+//                             "18-U-10652",
+//                             "20-U-10652",
+//                             "25-U-7061"
+                          ).map(s => "software-verification/nec/hard-" + s)
+
 //    Experimenter.runRecyclePivots(directory2, proofFilesAim, "RPI-outputAim20101225.txt")
-//    Experimenter.runRecyclePivots(directory2, proofFilesJNH, "RPI-outputJNH20101225.txt")
-//    Experimenter.runRecyclePivots(directory2, proofFilesBF, "RPI-outputBF20101225.txt")
-//    Experimenter.runRecyclePivots(directory2, proofFilesDubois, "RPI-outputDubois20101225.txt")
-//    Experimenter.runRecyclePivots(directory2, proofFilesPret, "RPI-outputPret20101225.txt")
-//    Experimenter.runRecyclePivots(directory2, proofFilesSSA, "RPI-outputSSA20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesJNH, "RPI-outputJNH20110106.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesBF, "RPI-outputBF20110106.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesDubois, "RPI-outputDubois20110106.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesPret, "RPI-outputPret20110106.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesSSA, "RPI-outputSSA20110106.txt")
+
+    //Experimenter.runRecyclePivots(directorySatRace, proofFilesSoftVerificationNec, "RPI-outputSoftVerificationNec20110106.txt")
+
+    Experimenter.runRecyclePivots(directory2, proofFilesPigeonHole, "RPI-outputPigeon20110107.txt")
 
 
     //Experimenter.run(directory2, proofFilesAim, "outputAim20101223.txt")
