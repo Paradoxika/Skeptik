@@ -69,7 +69,6 @@ object ResolutionCalculus {
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
     var literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
-    var pivotAtomsAbove : mutable.HashSet[Atom]
     def duplicate : Proof = {
       val visitedProofs = new mutable.HashMap[Proof,Proof]
       def duplicateRec(p: Proof) : Proof = {
@@ -84,6 +83,23 @@ object ResolutionCalculus {
         }
       }
       duplicateRec(this)
+    }
+    def containsPivotAtomAbove(a: Atom) : Boolean = {
+      val visitedProofs = new mutable.HashMap[Proof, Boolean]
+      def rec(p: Proof) : Boolean = {
+        if (!visitedProofs.contains(p)) {
+          val result = p match {
+            case Input(c) => false
+            case Resolvent(left, right) => {
+              if (p.asInstanceOf[Resolvent].pivot._1.atom == a) true
+              else rec(left) || rec(right)
+            }
+          }
+          visitedProofs += (p -> result)
+          return result
+        } else return visitedProofs(p)
+      }
+      rec(this)
     }
     def replaces(that: Proof) = {
       require(clause == that.clause)
@@ -239,7 +255,6 @@ object ResolutionCalculus {
     }
   }
   case class Input(clause: Clause) extends Proof {
-    var pivotAtomsAbove = new mutable.HashSet[Atom]
     for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
       if (clause.isEmpty) "{}"
@@ -260,7 +275,6 @@ object ResolutionCalculus {
     var clause : Clause = resolve(left.clause,right.clause)
     var pivot : (Literal,Literal) = pivotLiterals(left.clause,right.clause)
     def resolvedAtom = pivot._1.atom
-    var pivotAtomsAbove = left.pivotAtomsAbove.clone.union(right.pivotAtomsAbove) + resolvedAtom
 
     left.children = this::left.children
     right.children = this::right.children
