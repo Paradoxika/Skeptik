@@ -44,7 +44,7 @@ object Experimenter {
 
       val startRTime = System.nanoTime
       regularize(p)
-      fixProof(p)
+      fix(p)
       val ellapsedRTime = (System.nanoTime - startRTime)/1000
       val RLength = p.length
 
@@ -117,7 +117,7 @@ object Experimenter {
       println("regularizing")
       val startRTime = System.nanoTime
       regularize(p1)
-      fixProof(p1)
+      fix(p1)
       val ellapsedRTime = (System.nanoTime - startRTime)/1000
       val RLength = p1.length
 
@@ -142,7 +142,7 @@ object Experimenter {
       println("recycle pivots")
       val startRPTime = System.nanoTime
       recyclePivots(p3)
-      fixProof(p3)
+      fix(p3)
       val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
       val RPLength = p3.length
       
@@ -214,14 +214,14 @@ object Experimenter {
         println("recycle pivots")
         val startRPTime = System.nanoTime
         recyclePivots(p1)
-        fixProof(p1)
+        fix(p1)
         val ellapsedRPTime = (System.nanoTime - startRPTime)/1000
         val RPLength = p1.length
 
         println("recycle pivots (improved)")
         val startRPITime = System.nanoTime
         recyclePivotsWithIntersection(p2)
-        fixProof(p2)
+        fix(p2)
         val ellapsedRPITime = (System.nanoTime - startRPITime)/1000
         val RPILength = p2.length
 
