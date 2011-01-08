@@ -54,149 +54,104 @@ object Regularization {
 
 
 
-
-  def regularize(proof:Proof): Unit = {
-    val regularizedProofs = new HashSet[Proof]
-    def regularizeRec(p: Proof, callingChild: Resolvent, litB: Option[List[Literal]]): Unit = {
-
-      p match {
-        case Input(_) => return
-        case Resolvent(left,right) => {
-          if (callingChild == null) { // Root of the Proof
-            doRegularize(litB.asInstanceOf[Some[List[Literal]]].get)
-          }
-          else {
-            litB match {
-              case None => p.children = p.children - callingChild   // Calling Child is orphan of the called Parent
-              case Some(literalsB) => p.literalsBelow += (callingChild -> literalsB)
-            }
-
-            def hasReceivedAllCalls = {
-              p.children.forall(c => p.literalsBelow.contains(c))
-            }
-            if (hasReceivedAllCalls) {
-              val lBPerChild = (for (child <- p.children) yield p.literalsBelow(child)).toList
-              val intersection = intersect(lBPerChild)
-              val union = unite(lBPerChild)
-              val criticalLiterals = union.diff(intersection)
-//              val problematicLiterals = criticalLiterals.filter(l => p.containsPivotAtomAbove(l.atom))
-//              if (problematicLiterals.length != 0) duplicateAndRegularize
-              if (criticalLiterals.length != 0) duplicateAndRegularize
-              else doRegularize(union)
-            }
-          }
-          def duplicateAndRegularize = {
-            for (c <- p.children.tail) {
-              val newProof = p.duplicate
-              newProof.children = c::Nil
-              if (c.left == p) c.left = newProof
-              else c.right = newProof
-              p.children = p.children - c
-              val literalsBelowForNewProof = p.literalsBelow(c)
-              p.literalsBelow -= c
-              regularizeRec(newProof, c, Some(literalsBelowForNewProof))
-            }
-            doRegularize(p.literalsBelow(p.children.head))
-          }
-
-          def doRegularize(literalsBelow: List[Literal]) = {
-            try require(!regularizedProofs.contains(p))
-            catch {case _ => println("id" + p.id + " ; " + p.children.map(c => c.id) + " " + regularizedProofs.map(n => n.id) + regularizedProofs.map(n => n.equals(p)) + regularizedProofs.contains(p)); throw new Exception("scheiße")}
-            val r = p.asInstanceOf[Resolvent]
-            if (!literalsBelow.contains(r.pivot._1) && !literalsBelow.contains(r.pivot._2)) {
-              regularizeRec(left, r, Some(r.pivot._2::literalsBelow))
-              regularizeRec(right, r, Some(r.pivot._1::literalsBelow))
-
-            }
-            else if (literalsBelow.contains(r.pivot._1)) {
-              regularizeRec(left, r, None)
-              r.left = deletedSubProof
-              regularizeRec(right, r, Some(literalsBelow))
-            }
-            else {
-              regularizeRec(right, r, None)
-              r.right = deletedSubProof
-              regularizeRec(left, r, Some(literalsBelow))
-            }
-            regularizedProofs += p
-          }
-        }
-      }
+  def doRegularize(p: Resolvent, criticalLiterals: List[Literal], continuation: Resolvent => Unit) = {
+    if (!criticalLiterals.contains(p.pivot._1) && !criticalLiterals.contains(p.pivot._2)) {
+      regularizationRecSchema(p.left, p, Some(p.pivot._2::criticalLiterals), continuation)
+      regularizationRecSchema(p.right, p, Some(p.pivot._1::criticalLiterals), continuation)
     }
-    regularizeRec(proof, null, Some(Nil))
+    else if (criticalLiterals.contains(p.pivot._1)) {
+      regularizationRecSchema(p.left, p, None, continuation)
+      p.left = deletedSubProof
+      regularizationRecSchema(p.right, p, Some(criticalLiterals), continuation)
+    }
+    else {
+      regularizationRecSchema(p.right, p, None, continuation)
+      p.right = deletedSubProof
+      regularizationRecSchema(p.left, p, Some(criticalLiterals), continuation)
+    }
   }
 
-
-  def recyclePivots(proof:Proof): Unit = {
-    if (proof.isInstanceOf[Resolvent]) {
-      val n = proof.asInstanceOf[Resolvent]
-      if (allChildrenAreVisited(proof)) {
-        if (proof.children.length > 1) {
-          n.left.literalsBelow += (n -> Nil)
-          n.right.literalsBelow += (n -> Nil)
+  def regularizationRecSchema(p: Proof, callingChild: Resolvent, litB: Option[List[Literal]], continuation: Resolvent => Unit): Unit = {
+    p match {
+      case Input(_) => return
+      case Resolvent(left,right) => {
+        val r = p.asInstanceOf[Resolvent]
+        litB match {
+          case None => p.children = p.children - callingChild   // Calling Child is orphan of the called Parent
+          case Some(literalsB) => p.literalsBelow += (callingChild -> literalsB)
         }
-        else if (proof.children.length == 0) {
-          n.left.literalsBelow += (n -> (n.pivot._2::Nil))
-          n.right.literalsBelow += (n -> (n.pivot._1::Nil))
-        }
-        else {
-          val literalsBelow = n.literalsBelow.get(n.children.head) match {case Some(set) => set; case None => throw new Exception("Literals Below was not initialized properly") }
-          if (!literalsBelow.contains(n.pivot._1) && !literalsBelow.contains(n.pivot._2)) {
-            n.left.literalsBelow += (n -> (n.pivot._2::literalsBelow ))
-            n.right.literalsBelow += (n -> (n.pivot._1::literalsBelow))
-          }
-          else if (literalsBelow.contains(n.pivot._1)) {
-            n.left.children = n.left.children - n
-            n.left = deletedSubProof
-            n.right.literalsBelow += (n -> literalsBelow)
-          }
-          else { // if (literalsBelow.contains(n.pivot._2))
-            n.right.children = n.right.children - n
-            n.right = deletedSubProof
-            n.left.literalsBelow += (n -> literalsBelow)
-          }
-        }
-        recyclePivots(n.left)
-        recyclePivots(n.right)
+        def hasReceivedAllCalls = p.children.forall(c => p.literalsBelow.contains(c))
+        if (hasReceivedAllCalls) continuation(r)
       }
     }
   }
 
-    def recyclePivotsWithIntersection(proof:Proof): Unit = {
-    if (proof.isInstanceOf[Resolvent]) {
-      val n = proof.asInstanceOf[Resolvent]
-      if (allChildrenAreVisited(proof)) {
-        if (proof.children.length > 1) {
-          val lBPerChild = (for (child <- proof.children) yield proof.literalsBelow(child)).toList
-          val intersection = intersect(lBPerChild)
-          n.left.literalsBelow += (n -> intersection)
-          n.right.literalsBelow += (n -> intersection)
-        }
-        else if (proof.children.length == 0) {
-          n.left.literalsBelow += (n -> (n.pivot._2::Nil))
-          n.right.literalsBelow += (n -> (n.pivot._1::Nil))
-        }
-        else {
-          val literalsBelow = n.literalsBelow.get(n.children.head) match {case Some(set) => set; case None => throw new Exception("Literals Below was not initialized properly") }
-          if (!literalsBelow.contains(n.pivot._1) && !literalsBelow.contains(n.pivot._2)) {
-            n.left.literalsBelow += (n -> (n.pivot._2::literalsBelow ))
-            n.right.literalsBelow += (n -> (n.pivot._1::literalsBelow))
-          }
-          else if (literalsBelow.contains(n.pivot._1)) {
-            n.left.children = n.left.children - n
-            n.left = deletedSubProof
-            n.right.literalsBelow += (n -> literalsBelow)
-          }
-          else { // if (literalsBelow.contains(n.pivot._2))
-            n.right.children = n.right.children - n
-            n.right = deletedSubProof
-            n.left.literalsBelow += (n -> literalsBelow)
-          }
-        }
-        recyclePivotsWithIntersection(n.left)
-        recyclePivotsWithIntersection(n.right)
-      }
+  
+
+
+  def recyclePivots(p:Proof) = if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsContinuation)
+  def recyclePivotsContinuation: Resolvent => Unit = r => {
+    val criticalLiterals = if (r.children.length == 1) r.literalsBelow(r.children.head) // case where r has only one child
+                           else Nil                                                     // case where r has zero or many children
+    doRegularize(r, criticalLiterals, recyclePivotsContinuation)
+  }
+
+
+  def recyclePivotsWithIntersection(p:Proof) = if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsWithIntersectionContinuation)
+  def recyclePivotsWithIntersectionContinuation: Resolvent => Unit = r => {
+    val criticalLiterals = if (r.children.length == 1) r.literalsBelow(r.children.head) // case where r has only one child
+                           else if (r.children.length > 1) {                            // case where r has many children
+                             val lBPerChild = (for (child <- r.children) yield r.literalsBelow(child)).toList
+                             intersect(lBPerChild)
+                           }
+                           else Nil // case where r has zero children
+    doRegularize(r, criticalLiterals, recyclePivotsWithIntersectionContinuation)
+  }
+  
+  def fullyRegularizeContinuation(filterCriticalLiterals: List[Literal] => List[Literal], duplicateAndRegularizeDuplicates: (List[Literal] => List[Literal]) => Resolvent => List[Literal] => Unit): Resolvent => Unit = r => {
+    val lBPerChild = (for (child <- r.children) yield r.literalsBelow(child)).toList
+    val intersection = intersect(lBPerChild)
+    val union = unite(lBPerChild)
+    val criticalLiterals = filterCriticalLiterals(union.diff(intersection))
+    if (criticalLiterals.length != 0) duplicateAndRegularizeDuplicates(filterCriticalLiterals)(r)(criticalLiterals)
+    else doRegularize(r, intersection, fullyRegularizeContinuation(filterCriticalLiterals, duplicateAndRegularizeDuplicates))
+  }
+
+  
+  def regularizeNaive(p: Proof) = if (p.isInstanceOf[Resolvent]) {
+    doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
+  }
+  def regularizeOnlyRootDuplication(p: Proof) = if (p.isInstanceOf[Resolvent]) {
+    doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
+  }
+
+
+  def doNotFilterCriticalLiterals(criticalLiterals: List[Literal]) = criticalLiterals
+  def simpleDuplicateAndRegularizeDuplicates(filterCriticalLiterals: List[Literal] => List[Literal])(r: Resolvent)(criticalLiterals: List[Literal]):Unit = {
+    for (c <- r.children.tail) {
+      val newProof = r.duplicate
+      newProof.children = c::Nil
+      if (c.left == r) c.left = newProof
+      else c.right = newProof
+      r.children = r.children - c
+      val literalsBelowForNewProof = r.literalsBelow(c)
+      r.literalsBelow -= c
+      regularizationRecSchema(newProof, c, Some(literalsBelowForNewProof), fullyRegularizeContinuation(filterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
     }
+    doRegularize(r, r.literalsBelow(r.children.head), fullyRegularizeContinuation(filterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
+  }
+  def duplicateOnlyRootAndRegularizeDuplicates(filterCriticalLiterals: List[Literal] => List[Literal])(r: Resolvent)(criticalLiterals: List[Literal]):Unit = {
+    for (c <- r.children.tail) {
+      val newProof = r.duplicateRoot
+      newProof.children = c::Nil
+      if (c.left == r) c.left = newProof
+      else c.right = newProof
+      r.children = r.children - c
+      val literalsBelowForNewProof = r.literalsBelow(c)
+      r.literalsBelow -= c
+      regularizationRecSchema(newProof, c, Some(literalsBelowForNewProof), fullyRegularizeContinuation(filterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
+    }
+    doRegularize(r, r.literalsBelow(r.children.head), fullyRegularizeContinuation(filterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
   }
 
   def fixProof(proof:Proof) = fixProofRec(proof, new HashSet[Proof])
@@ -224,22 +179,93 @@ object Regularization {
 
             n.left.children -= n
             n.right.children -= n
-
             for (child <- n.children) {
               if (child.left == n) child.left = survivingParent
               else child.right = survivingParent
               survivingParent.children = child::survivingParent.children
-              
             }
           }
-
         }
       }
-      
     }
   }
 
-  def allChildrenAreVisited(proof:Proof): Boolean = {
-    proof.children.length == proof.literalsBelow.size 
-  }
+//  def recyclePivotsOld(proof:Proof): Unit = {
+//    if (proof.isInstanceOf[Resolvent]) {
+//      val n = proof.asInstanceOf[Resolvent]
+//      println(n.id + " : " + n.children.length + " : " + allChildrenAreVisited(proof))
+//      if (allChildrenAreVisited(proof)) {
+//        if (proof.children.length > 1) {
+//          n.left.literalsBelow += (n -> Nil)
+//          n.right.literalsBelow += (n -> Nil)
+//        }
+//        else if (proof.children.length == 0) {
+//          n.left.literalsBelow += (n -> (n.pivot._2::Nil))
+//          n.right.literalsBelow += (n -> (n.pivot._1::Nil))
+//        }
+//        else {
+//          val literalsBelow = n.literalsBelow(n.children.head)
+//          if (!literalsBelow.contains(n.pivot._1) && !literalsBelow.contains(n.pivot._2)) {
+//            n.left.literalsBelow += (n -> (n.pivot._2::literalsBelow ))
+//            n.right.literalsBelow += (n -> (n.pivot._1::literalsBelow))
+//          }
+//          else if (literalsBelow.contains(n.pivot._1)) {
+//            n.left.children = n.left.children - n
+//            n.left = deletedSubProof
+//            n.right.literalsBelow += (n -> literalsBelow)
+//          }
+//          else { // if (literalsBelow.contains(n.pivot._2))
+//            n.right.children = n.right.children - n
+//            n.right = deletedSubProof
+//            n.left.literalsBelow += (n -> literalsBelow)
+//          }
+//        }
+//        recyclePivots(n.left)
+//        recyclePivots(n.right)
+//      }
+//    }
+//  }
+//
+//    def recyclePivotsWithIntersectionOld(proof:Proof): Unit = {
+//    if (proof.isInstanceOf[Resolvent]) {
+//      val n = proof.asInstanceOf[Resolvent]
+//      if (allChildrenAreVisited(proof)) {
+//        if (proof.children.length > 1) {
+//          val lBPerChild = (for (child <- proof.children) yield proof.literalsBelow(child)).toList
+//          val intersection = intersect(lBPerChild)
+//          n.left.literalsBelow += (n -> intersection)
+//          n.right.literalsBelow += (n -> intersection)
+//        }
+//        else if (proof.children.length == 0) {
+//          n.left.literalsBelow += (n -> (n.pivot._2::Nil))
+//          n.right.literalsBelow += (n -> (n.pivot._1::Nil))
+//        }
+//        else {
+//          val literalsBelow = n.literalsBelow.get(n.children.head) match {case Some(set) => set; case None => throw new Exception("Literals Below was not initialized properly") }
+//          if (!literalsBelow.contains(n.pivot._1) && !literalsBelow.contains(n.pivot._2)) {
+//            n.left.literalsBelow += (n -> (n.pivot._2::literalsBelow ))
+//            n.right.literalsBelow += (n -> (n.pivot._1::literalsBelow))
+//          }
+//          else if (literalsBelow.contains(n.pivot._1)) {
+//            n.left.children = n.left.children - n
+//            n.left = deletedSubProof
+//            n.right.literalsBelow += (n -> literalsBelow)
+//          }
+//          else { // if (literalsBelow.contains(n.pivot._2))
+//            n.right.children = n.right.children - n
+//            n.right = deletedSubProof
+//            n.left.literalsBelow += (n -> literalsBelow)
+//          }
+//        }
+//        recyclePivotsWithIntersection(n.left)
+//        recyclePivotsWithIntersection(n.right)
+//      }
+//    }
+//  }
+
+
+
+//  def allChildrenAreVisited(proof:Proof): Boolean = {
+//    proof.children.length == proof.literalsBelow.size
+//  }
 }
