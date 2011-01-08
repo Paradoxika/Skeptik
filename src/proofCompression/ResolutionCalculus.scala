@@ -23,21 +23,6 @@ object ResolutionCalculus {
   type Literal = L
 
 
-//  abstract class LiteralId {
-//    def getInputs: List[Input]
-//  }
-//  case class LLeaf(input: Input) extends LiteralId {
-//    def getInputs = input::Nil
-//  }
-//  case class LSplit(copyNumber: Int, tail: LiteralId) extends LiteralId {
-//    def getInputs = tail.getInputs
-//  }
-//  case class LContract(left:LiteralId,right:LiteralId) extends LiteralId {
-//    def getInputs = left.getInputs:::right.getInputs
-//  }
-
-
-
   type Clause = immutable.Set[Literal]
   object Clause {
     def apply(literals: Literal*) = immutable.HashSet(literals)
@@ -53,7 +38,7 @@ object ResolutionCalculus {
     val contractedLiterals = for (l1 <- c1 if c2 contains l1) yield (l1, c2.find(l2 => l1 == l2).get) // ToDo: Improve efficiency
     val newLiterals = for ((l1,l2) <- contractedLiterals) yield {
       val newL = new L(l1.atom, l1.polarity)
-      newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs
+      //newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs
       newL
     }
     return (c1 - pl1 -- contractedLiterals.map(pair => pair._1)) ++
@@ -238,7 +223,7 @@ object ResolutionCalculus {
     }
   }
   case class Input(clause: Clause) extends Proof {
-    for (lit <- clause) lit.ancestorInputs = this::Nil
+    //for (lit <- clause) lit.ancestorInputs = this::Nil
     override def toString: String = {
       if (clause.isEmpty) "{}"
       else {
@@ -266,6 +251,8 @@ object ResolutionCalculus {
       clause = resolve(left.clause,right.clause)
       pivot = pivotLiterals(left.clause, right.clause)
     }
+
+    def duplicateRoot = new Resolvent(left,right)
 
     override def toString: String = {
       var string = "(" + left + "." + right + ")"
