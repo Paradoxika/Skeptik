@@ -265,5 +265,7 @@ object ResolutionCalculus {
       case _ => false
     }
   }
-  
+
+
+  val deletedSubProof = Input(immutable.HashSet(L("Deleted SubProof",true)))
 }

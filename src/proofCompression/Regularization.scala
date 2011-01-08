@@ -11,7 +11,6 @@ import scala.collection.mutable._
 import scala.collection._
 
 object Regularization {
-  val deletedSubProof = Input(immutable.HashSet(L("Deleted SubProof",true)))
 
   // Very inneficient way of removing unused resolvents
   def removeUnusedResolvents(proof: Proof) = proof.duplicate
@@ -121,10 +120,10 @@ object Regularization {
   def regularizeNaive(p: Proof) = if (p.isInstanceOf[Resolvent]) {
     doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
   }
-  def regularizeOnlyRootDuplication(p: Proof) = if (p.isInstanceOf[Resolvent]) {
+  def regularizeWithOnlyRootDuplication(p: Proof) = if (p.isInstanceOf[Resolvent]) {
     doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
   }
-
+  def regularize = p => regularizeWithOnlyRootDuplication(p)
 
   def doNotFilterCriticalLiterals(criticalLiterals: List[Literal]) = criticalLiterals
   def simpleDuplicateAndRegularizeDuplicates(filterCriticalLiterals: List[Literal] => List[Literal])(r: Resolvent)(criticalLiterals: List[Literal]):Unit = {
@@ -153,41 +152,4 @@ object Regularization {
     }
     doRegularize(r, r.literalsBelow(r.children.head), fullyRegularizeContinuation(filterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
   }
-
-  def fixProof(proof:Proof) = fixProofRec(proof, new HashSet[Proof])
-  private def fixProofRec(proof:Proof, visitedProofs: HashSet[Proof]) : Unit = {
-    if (!visitedProofs.contains(proof)) {
-      visitedProofs += proof
-      proof match {
-        case Input(c) => return
-        case n : Resolvent => {
-          fixProofRec(n.left, visitedProofs)
-          fixProofRec(n.right, visitedProofs)
-          if (n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) {
-            n.update
-          }
-          else {
-            val survivingParent : Proof =
-              if (n.left == deletedSubProof) n.right
-              else if (n.right == deletedSubProof) n.left
-              else if (n.left.clause.contains(n.pivot._1) && !n.right.clause.contains(n.pivot._2)) n.right
-              else if (!n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) n.left
-              else {
-                if (n.left.length < n.right.length) n.left
-                else n.right
-              }
-
-            n.left.children -= n
-            n.right.children -= n
-            for (child <- n.children) {
-              if (child.left == n) child.left = survivingParent
-              else child.right = survivingParent
-              survivingParent.children = child::survivingParent.children
-            }
-          }
-        }
-      }
-    }
-  }
-
 }
