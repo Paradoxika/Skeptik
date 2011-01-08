@@ -9,7 +9,7 @@ import proofCompression.ResolutionCalculus._
 import scala.collection._
 
 object ProofFixing {
-  def fixProof(proof:Proof) = {
+  def fix(p:Proof) = {
     val visitedProofs = new mutable.HashSet[Proof]
     def rec(proof:Proof) : Unit = {
       if (!visitedProofs.contains(proof)) {
@@ -44,6 +44,6 @@ object ProofFixing {
         }
       }
     }
-    rec(proof)
+    rec(p)
   }
 }
