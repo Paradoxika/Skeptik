@@ -12,6 +12,7 @@ import proofCompression.Hypergraph._
 import proofCompression.GUI._
 import proofCompression.Regularization._
 import proofCompression.DAGification._
+import proofCompression.ProofFixing._
 import proofCompression._
 import java.io.FileWriter
 
@@ -162,6 +163,39 @@ object Experimenter {
     writer.close
   }
 
+  def compareTwoCompressionAlgorithms(algorithm1: Proof => Unit, algorithm2: Proof => Unit, measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
+    val writer = new FileWriter(directory + outputFilename)
+    for (proofFile <- proofFiles) {
+      println(proofFile)
+      try {
+        println("parsing")
+        val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+        println("duplicating")
+        val p1 = p0.duplicate
+        println("duplicating")
+        val p2 = p0.duplicate
+        val inputMeasure = measure(p1)
+
+        println("running first algorithm")
+        algorithm1(p1)
+        val output1Measure = measure(p1)
+
+        println("running second algorithm")
+        algorithm2(p2)
+        val output2Measure = measure(p2)
+
+        val thisLine = inputMeasure + "\t" +
+                       (inputMeasure*1.0 - output1Measure)/inputMeasure + "\t" +
+                       (inputMeasure*1.0 - output2Measure)/inputMeasure + "\n"
+        println(thisLine)
+        writer.write(thisLine, 0, thisLine.length)
+      } catch {
+        case e => {throw e; println(proofFile); e.printStackTrace}
+      }
+    }
+    writer.close
+  }
+
   def runRecyclePivots(directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
     for (proofFile <- proofFiles) {
@@ -197,7 +231,7 @@ object Experimenter {
         println(thisLine)
         writer.write(thisLine, 0, thisLine.length)
       } catch {
-        case e => e.printStackTrace
+        case e => {throw e; println(proofFile); e.printStackTrace}
       }
     }
     writer.close
