@@ -7,7 +7,6 @@ package proofCompression
 
 import proofCompression.ResolutionCalculus._
 import proofCompression.Utilities._
-import scala.collection.mutable._
 import scala.collection._
 
 object Regularization {
