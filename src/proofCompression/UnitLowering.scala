@@ -43,18 +43,28 @@ object UnitLowering {
 
   private def reinsertUnits(proof: Proof, units: mutable.Queue[Proof]): Proof = {
     val u = units.dequeue
-    val newRootProof = new Resolvent(proof, u)
+    //println("reinserting: " + u.clause)
+    val newRootProof = try {new Resolvent(proof, u)} catch {case _ => {println(u.clause + " failed to resolve"); proof}}
+    //println("new root clause: " + newRootProof.clause)
     if (units.length == 0) newRootProof
     else reinsertUnits(newRootProof, units)
   }
 
-  private def reinsertUnitsFunctional(proof: Proof, units: mutable.Queue[Proof]): Proof = (proof /: units) ((p, u) => new Resolvent(p,u))
+  private def reinsertUnitsFunctional(proof: Proof, units: mutable.Queue[Proof]): Proof = (proof /: units) ((p, u) => try {new Resolvent(p, u)} catch {case _ => {println(u.clause + " failed to resolve"); p}})
     
 
-  def lowerUnits(p: Proof) = {
+  def lowerUnits(p: Proof): Proof = {
     val units = collectUnits(p)
-    fix(p)
-    reinsertUnits(p, units)
+    //println("units: " + units.map(u => u.clause))
+    //println("end clause (after unit collection): " + p.clause)
+    val roots = p::units.toList
+    fix(roots)
+    //println("units (after fixing): " + units.map(u => u.clause))
+    //println("end clause (after fixing): " + p.clause)
+    val result = reinsertUnits(p, units)
+    //println("end clause (after reinsertion): " + result.clause)
+    require(result.clause isEmpty)
+    result
   }
 }
 
