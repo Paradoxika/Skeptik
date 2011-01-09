@@ -163,7 +163,7 @@ object Experimenter {
     writer.close
   }
 
-  def compareTwoCompressionAlgorithms(algorithm1: Proof => Unit, algorithm2: Proof => Unit, measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
+  def compareTwoCompressionAlgorithms(algorithm1: Proof => Proof, algorithm2: Proof => Proof, measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
     for (proofFile <- proofFiles) {
       println(proofFile)
@@ -177,12 +177,12 @@ object Experimenter {
         val inputMeasure = measure(p1)
 
         println("running first algorithm")
-        algorithm1(p1)
-        val output1Measure = measure(p1)
+        val p1Out = algorithm1(p1)
+        val output1Measure = measure(p1Out)
 
         println("running second algorithm")
-        algorithm2(p2)
-        val output2Measure = measure(p2)
+        val p2Out = algorithm2(p2)
+        val output2Measure = measure(p2Out)
 
         val thisLine = inputMeasure + "\t" +
                        (inputMeasure*1.0 - output1Measure)/inputMeasure + "\t" +
