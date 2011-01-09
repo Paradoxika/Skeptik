@@ -52,7 +52,7 @@ object Regularization {
 
 
 
-  def doRegularize(p: Resolvent, criticalLiterals: List[Literal], continuation: Resolvent => Unit) = {
+  private def doRegularize(p: Resolvent, criticalLiterals: List[Literal], continuation: Resolvent => Unit) = {
     if (!criticalLiterals.contains(p.pivot._1) && !criticalLiterals.contains(p.pivot._2)) {
       regularizationRecSchema(p.left, p, Some(p.pivot._2::criticalLiterals), continuation)
       regularizationRecSchema(p.right, p, Some(p.pivot._1::criticalLiterals), continuation)
@@ -69,7 +69,7 @@ object Regularization {
     }
   }
 
-  def regularizationRecSchema(p: Proof, callingChild: Resolvent, litB: Option[List[Literal]], continuation: Resolvent => Unit): Unit = {
+  private def regularizationRecSchema(p: Proof, callingChild: Resolvent, litB: Option[List[Literal]], continuation: Resolvent => Unit): Unit = {
     p match {
       case Input(_) => return
       case Resolvent(left,right) => {
@@ -88,7 +88,7 @@ object Regularization {
 
 
   def recyclePivots(p:Proof) = if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsContinuation)
-  def recyclePivotsContinuation: Resolvent => Unit = r => {
+  private def recyclePivotsContinuation: Resolvent => Unit = r => {
     val criticalLiterals = if (r.children.length == 1) r.literalsBelow(r.children.head) // case where r has only one child
                            else Nil                                                     // case where r has zero or many children
     doRegularize(r, criticalLiterals, recyclePivotsContinuation)
@@ -96,7 +96,7 @@ object Regularization {
 
 
   def recyclePivotsWithIntersection(p:Proof) = if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsWithIntersectionContinuation)
-  def recyclePivotsWithIntersectionContinuation: Resolvent => Unit = r => {
+  private def recyclePivotsWithIntersectionContinuation: Resolvent => Unit = r => {
     val criticalLiterals = if (r.children.length == 1) r.literalsBelow(r.children.head) // case where r has only one child
                            else if (r.children.length > 1) {                            // case where r has many children
                              val lBPerChild = (for (child <- r.children) yield r.literalsBelow(child)).toList
@@ -105,17 +105,8 @@ object Regularization {
                            else Nil // case where r has zero children
     doRegularize(r, criticalLiterals, recyclePivotsWithIntersectionContinuation)
   }
-  
-  def fullyRegularizeContinuation(filterCriticalLiterals: List[Literal] => List[Literal], duplicateAndRegularizeDuplicates: (List[Literal] => List[Literal]) => Resolvent => List[Literal] => Unit): Resolvent => Unit = r => {
-    val lBPerChild = (for (child <- r.children) yield r.literalsBelow(child)).toList
-    val intersection = intersect(lBPerChild)
-    val union = unite(lBPerChild)
-    val criticalLiterals = filterCriticalLiterals(union.diff(intersection))
-    if (criticalLiterals.length != 0) duplicateAndRegularizeDuplicates(filterCriticalLiterals)(r)(criticalLiterals)
-    else doRegularize(r, intersection, fullyRegularizeContinuation(filterCriticalLiterals, duplicateAndRegularizeDuplicates))
-  }
 
-  
+
   def regularizeNaive(p: Proof) = if (p.isInstanceOf[Resolvent]) {
     doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
   }
@@ -124,8 +115,17 @@ object Regularization {
   }
   def regularize = p => regularizeWithOnlyRootDuplication(p)
 
-  def doNotFilterCriticalLiterals(criticalLiterals: List[Literal]) = criticalLiterals
-  def simpleDuplicateAndRegularizeDuplicates(filterCriticalLiterals: List[Literal] => List[Literal])(r: Resolvent)(criticalLiterals: List[Literal]):Unit = {
+  private def fullyRegularizeContinuation(filterCriticalLiterals: List[Literal] => List[Literal], duplicateAndRegularizeDuplicates: (List[Literal] => List[Literal]) => Resolvent => List[Literal] => Unit): Resolvent => Unit = r => {
+    val lBPerChild = (for (child <- r.children) yield r.literalsBelow(child)).toList
+    val intersection = intersect(lBPerChild)
+    val union = unite(lBPerChild)
+    val criticalLiterals = filterCriticalLiterals(union.diff(intersection))
+    if (criticalLiterals.length != 0) duplicateAndRegularizeDuplicates(filterCriticalLiterals)(r)(criticalLiterals)
+    else doRegularize(r, intersection, fullyRegularizeContinuation(filterCriticalLiterals, duplicateAndRegularizeDuplicates))
+  }
+
+  private def doNotFilterCriticalLiterals(criticalLiterals: List[Literal]) = criticalLiterals
+  private def simpleDuplicateAndRegularizeDuplicates(filterCriticalLiterals: List[Literal] => List[Literal])(r: Resolvent)(criticalLiterals: List[Literal]):Unit = {
     for (c <- r.children.tail) {
       val newProof = r.duplicate
       newProof.children = c::Nil
@@ -138,7 +138,7 @@ object Regularization {
     }
     doRegularize(r, r.literalsBelow(r.children.head), fullyRegularizeContinuation(filterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
   }
-  def duplicateOnlyRootAndRegularizeDuplicates(filterCriticalLiterals: List[Literal] => List[Literal])(r: Resolvent)(criticalLiterals: List[Literal]):Unit = {
+  private def duplicateOnlyRootAndRegularizeDuplicates(filterCriticalLiterals: List[Literal] => List[Literal])(r: Resolvent)(criticalLiterals: List[Literal]):Unit = {
     for (c <- r.children.tail) {
       val newProof = r.duplicateRoot
       newProof.children = c::Nil
