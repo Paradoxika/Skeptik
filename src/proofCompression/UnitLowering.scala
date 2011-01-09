@@ -11,7 +11,7 @@ import proofCompression.ProofFixing._
 import scala.collection._
 
 object UnitLowering {
-  def collectUnits(proof: Proof): mutable.Queue[Proof] = {
+  private def collectUnits(proof: Proof): mutable.Queue[Proof] = {
     val units = new mutable.Queue[Proof]
     val visitedProofs = new mutable.HashSet[Proof]
 
@@ -41,14 +41,14 @@ object UnitLowering {
     units
   }
 
-  def reinsertUnits(proof: Proof, units: mutable.Queue[Proof]): Proof = {
+  private def reinsertUnits(proof: Proof, units: mutable.Queue[Proof]): Proof = {
     val u = units.dequeue
     val newRootProof = new Resolvent(proof, u)
     if (units.length == 0) newRootProof
     else reinsertUnits(newRootProof, units)
   }
 
-  def reinsertUnitsFunctional(proof: Proof, units: mutable.Queue[Proof]): Proof = (proof /: units) ((r, u) => new Resolvent(r,u))
+  private def reinsertUnitsFunctional(proof: Proof, units: mutable.Queue[Proof]): Proof = (proof /: units) ((p, u) => new Resolvent(p,u))
     
 
   def lowerUnits(p: Proof) = {
