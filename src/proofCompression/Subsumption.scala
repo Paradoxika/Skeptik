@@ -10,7 +10,7 @@ import proofCompression.Utilities._
 import scala.collection._
 
 object Subsumption {
-//  def replaceSubsumedSubproofsVariant1(proof: Proof, measure: Proof => Int) = {
+//  def replaceSubsumedSubproofsVariant1(proof: Proof, measure: Proof => Int): Proof = {
 //    val visitedProofs = new mutable.HashSet[Proof]
 //    val subProofs = proof.getAllSubproofs(p => p.clause.size)
 //

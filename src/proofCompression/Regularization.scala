@@ -87,7 +87,10 @@ object Regularization {
   
 
 
-  def recyclePivots(p:Proof) = if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsContinuation)
+  def recyclePivots(p:Proof): Proof = {
+    if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsContinuation)
+    p
+  }
   private def recyclePivotsContinuation: Resolvent => Unit = r => {
     val criticalLiterals = if (r.children.length == 1) r.literalsBelow(r.children.head) // case where r has only one child
                            else Nil                                                     // case where r has zero or many children
@@ -95,7 +98,10 @@ object Regularization {
   }
 
 
-  def recyclePivotsWithIntersection(p:Proof) = if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsWithIntersectionContinuation)
+  def recyclePivotsWithIntersection(p:Proof): Proof = {
+    if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, recyclePivotsWithIntersectionContinuation)
+    p
+  }
   private def recyclePivotsWithIntersectionContinuation: Resolvent => Unit = r => {
     val criticalLiterals = if (r.children.length == 1) r.literalsBelow(r.children.head) // case where r has only one child
                            else if (r.children.length > 1) {                            // case where r has many children
@@ -107,11 +113,13 @@ object Regularization {
   }
 
 
-  def regularizeNaive(p: Proof) = if (p.isInstanceOf[Resolvent]) {
-    doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
+  def regularizeNaive(p: Proof): Proof = {
+    if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
+    p
   }
-  def regularizeWithOnlyRootDuplication(p: Proof) = if (p.isInstanceOf[Resolvent]) {
-    doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
+  def regularizeWithOnlyRootDuplication(p: Proof): Proof = {
+    if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], Nil, fullyRegularizeContinuation(doNotFilterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
+    p
   }
   def regularize = p => regularizeWithOnlyRootDuplication(p)
 

@@ -10,7 +10,7 @@ import proofCompression.Utilities._
 import scala.collection._
 
 object DAGification {
-  def DAGify(proof: Proof, measure: Proof => Int) = {
+  def DAGify(proof: Proof, measure: Proof => Int): Proof = {
     val visitedProofs = new mutable.HashSet[Proof]
     val map = new mutable.HashMap[Clause,Proof]
     def rec(p: Proof): Unit = {
@@ -36,5 +36,6 @@ object DAGification {
       }
     }
     rec(proof)
+    proof
   }
 }
