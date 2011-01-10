@@ -13,7 +13,9 @@ import proofCompression.Hypergraph._
 import proofCompression.GUI._
 import proofCompression.Regularization._
 import proofCompression.DAGification._
+import proofCompression.ProofFixing._
 import proofCompression._
+import proofCompression.UnitLowering._
 import evaluation._
 
 object Main {
@@ -69,10 +71,10 @@ object Main {
                              "200-2_0-no-4"
                           ).map(s => "aim-" + s)
 
-    val proofFilesPigeonHole = List("6" // Stack overflow during parsing after 1 minute
-                             // "7", // Stack Overflow during parsing after 51 seconds
-                             // "8", // Stack Overflow during parsin after 1 minute 32 seconds
-                             //"9" // Stack Overflow during parsin after 54 seconds
+    val proofFilesPigeonHole = List("6", // Stack overflow during parsing after 1 minute
+                              "7" // Stack Overflow during parsing after 51 seconds
+                              //"8", // Stack Overflow during parsing after 1 minute 32 seconds
+                             //"9" // Stack Overflow during parsing after 54 seconds
                           ).map(s => "hole" + s)
 
     val proofFilesDubois = List(
@@ -144,7 +146,7 @@ object Main {
 
     val proofFilesSSA = List("0432-003",
                              "2670-130", // Stack overflow during regularization after about 5 minutes
-                             //"2670-141",  // Runs for too long... I interrupted after 13minutes...
+                             "2670-141",  // Runs for too long... I interrupted after 13minutes...
                              "6288-047"
                           ).map(s => "ssa" + s)
 
@@ -167,7 +169,7 @@ object Main {
 //                             "25-U-7061"
                           ).map(s => "software-verification/nec/hard-" + s)
 
-//    Experimenter.runRecyclePivots(directory2, proofFilesAim, "RPI-outputAim20101225.txt")
+//    Experimenter.runRecyclePivots(directory2, proofFilesAim, "RPI-outputAim" + System.currentTimeMillis() + ".txt")
 //    Experimenter.runRecyclePivots(directory2, proofFilesJNH, "RPI-outputJNH20110106.txt")
 //    Experimenter.runRecyclePivots(directory2, proofFilesBF, "RPI-outputBF20110106.txt")
 //    Experimenter.runRecyclePivots(directory2, proofFilesDubois, "RPI-outputDubois20110106.txt")
@@ -176,7 +178,26 @@ object Main {
 
     //Experimenter.runRecyclePivots(directorySatRace, proofFilesSoftVerificationNec, "RPI-outputSoftVerificationNec20110106.txt")
 
-    Experimenter.runRecyclePivots(directory2, proofFilesPigeonHole, "RPI-outputPigeon20110107.txt")
+    //Experimenter.runRecyclePivots(directory2, proofFilesPigeonHole, "RPI-outputPigeon20110107.txt")
+
+    val benchmarks = List((proofFilesAim, "Aim"),
+                          (proofFilesJNH, "JNH"),
+                          (proofFilesBF, "BF"),
+                          (proofFilesDubois,"Dubois"),
+                          (proofFilesPret,"Pret"),
+                          (proofFilesSSA,"SSA")
+                          //(proofFilesPigeonHole,"Pigeon")
+                         )
+
+    for ((benchmarkSet,benchmarkSetName) <- benchmarks) {
+      Experimenter.compareCompressionAlgorithms(List(p => fix(recyclePivots(p)),
+                                                     p => fix(recyclePivotsWithIntersection(p)),
+                                                     p => lowerUnits(p),
+                                                     p => fix(recyclePivotsWithIntersection(lowerUnits(p))),
+                                                     p => DAGify(fix(recyclePivotsWithIntersection(lowerUnits(p))), p => p.length) ),
+                                                p => p.length,
+                                                directory2, benchmarkSet, "Length-RP-RPI-LU-RPILU-RPILUDag - " + benchmarkSetName + " - " + System.currentTimeMillis() + ".txt")
+    }
 
 
     //Experimenter.run(directory2, proofFilesAim, "outputAim20101223.txt")
