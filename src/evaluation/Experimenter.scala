@@ -163,6 +163,34 @@ object Experimenter {
     writer.close
   }
 
+  def compareCompressionAlgorithms(algorithms: List[Proof => Proof], measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
+    val writer = new FileWriter(directory + outputFilename)
+    for (proofFile <- proofFiles) {
+      println(proofFile)
+      try {
+        println("parsing")
+        val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+        println("duplicating and running algorithms")
+        val outputs = for (a <- algorithms) yield a(p0.duplicate)
+
+        val inputMeasure = measure(p0.duplicate)
+        val outputMeasures = for (output <- outputs) yield measure(output)
+
+        def concat(s1: String, s2: String) = s1 + s2
+        val compressionRates = ("" /: outputMeasures.map(m => "\t" + (inputMeasure*1.0 - m)/inputMeasure))(concat)
+
+        val thisLine = inputMeasure +
+                      compressionRates +
+                      "\n"
+        println(thisLine)
+        writer.write(thisLine, 0, thisLine.length)
+      } catch {
+        case e => {throw e; println(proofFile); e.printStackTrace}
+      }
+    }
+    writer.close
+  }
+
   def compareTwoCompressionAlgorithms(algorithm1: Proof => Proof, algorithm2: Proof => Proof, measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
     for (proofFile <- proofFiles) {
