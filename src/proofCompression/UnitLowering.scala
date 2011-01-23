@@ -44,13 +44,19 @@ object UnitLowering {
   private def reinsertUnits(proof: Proof, units: mutable.Queue[Proof]): Proof = {
     val u = units.dequeue
     //println("reinserting: " + u.clause)
-    val newRootProof = try {new Resolvent(proof, u)} catch {case _ => {println(u.clause + " failed to resolve"); proof}}
+    val newRootProof = try {
+      val p = new Resolvent(proof, u)
+      p.pivot
+      p
+    } catch {
+      case _ => {println(u.clause + " failed to resolve"); proof}
+    }
     //println("new root clause: " + newRootProof.clause)
     if (units.length == 0) newRootProof
     else reinsertUnits(newRootProof, units)
   }
 
-  private def reinsertUnitsFunctional(proof: Proof, units: mutable.Queue[Proof]): Proof = (proof /: units) ((p, u) => try {new Resolvent(p, u)} catch {case _ => {println(u.clause + " failed to resolve"); p}})
+  //private def reinsertUnitsFunctional(proof: Proof, units: mutable.Queue[Proof]): Proof = (proof /: units) ((p, u) => try {new Resolvent(p, u)} catch {case _ => {println(u.clause + " failed to resolve"); p}})
     
 
   def lowerUnits(p: Proof): Proof = {
