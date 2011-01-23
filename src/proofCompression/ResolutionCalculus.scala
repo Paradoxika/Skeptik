@@ -11,12 +11,12 @@ import proofCompression.Utilities._
 
 
 object ResolutionCalculus {
-  type Atom = String
+  type Atom = Int
   case class L(atom: Atom, polarity: Boolean) {
     //var ancestorInputs: List[Input] = Nil
     def dual(that: L) = (atom == that.atom && polarity != that.polarity)
     override def toString = {
-      if (polarity) atom
+      if (polarity) atom.toString
       else "-" + atom
     }
   }
@@ -273,5 +273,5 @@ object ResolutionCalculus {
   }
 
 
-  val deletedSubProof = Input(immutable.HashSet(L("Deleted SubProof",true)))
+  val deletedSubProof = Input(immutable.HashSet(L(Int.MaxValue,true)))
 }
