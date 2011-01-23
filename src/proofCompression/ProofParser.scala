@@ -15,7 +15,7 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
 
   def proof: Parser[Any] = rep(line)
   def line: Parser[(String,Proof)] = proofName ~ "=" ~ subproof ^^ {
-    case ~(~(name,_),p) => {map += (name -> p); println(name); (name,p)}
+    case ~(~(name,_),p) => {map += (name -> p); (name,p)}
   }
   def subproof: Parser[Proof] = (input | resolvent | proofName) ^^ {
     case p: proofCompression.ResolutionCalculus.Input => p
