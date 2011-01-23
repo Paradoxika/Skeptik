@@ -246,11 +246,13 @@ object Hypergraph {
 //              println(rightPivot.ancestorInputs.map(c => c.id))
 //              println(hashMapInputToNode)
 //              println()
-              val leftNodes = leftPivot.ancestorInputs.map(c => hashMapInputToNode(c))
-              val rightNodes = rightPivot.ancestorInputs.map(c => hashMapInputToNode(c))
-              val newEdge = new Edge(leftNodes:::rightNodes, proof.asInstanceOf[Resolvent])
-              addEdge(newEdge)
-              for (n <- newEdge.nodes) n.addEdge(newEdge)
+
+      //        val leftNodes = leftPivot.ancestorInputs.map(c => hashMapInputToNode(c))
+      //        val rightNodes = rightPivot.ancestorInputs.map(c => hashMapInputToNode(c))
+
+      //        val newEdge = new Edge(leftNodes:::rightNodes, proof.asInstanceOf[Resolvent])
+      //        addEdge(newEdge)
+      //        for (n <- newEdge.nodes) n.addEdge(newEdge)
           }
         }
       }
