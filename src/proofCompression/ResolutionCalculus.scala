@@ -13,7 +13,7 @@ import proofCompression.Utilities._
 object ResolutionCalculus {
   type Atom = String
   case class L(atom: Atom, polarity: Boolean) {
-    var ancestorInputs: List[Input] = Nil
+    //var ancestorInputs: List[Input] = Nil
     def dual(that: L) = (atom == that.atom && polarity != that.polarity)
     override def toString = {
       if (polarity) atom
@@ -31,13 +31,14 @@ object ResolutionCalculus {
     for (l1 <- c1; l2 <- c2) {
       if (l1 dual l2) return (l1, l2)
     }
-    throw new Exception("No pivots found...")
+    throw new Exception("No pivots found: " + c1 + " ; " + c2)
   }
   def resolve(c1: Clause, c2: Clause): Clause = {
     val (pl1, pl2) = pivotLiterals(c1,c2)
     val contractedLiterals = for (l1 <- c1 if c2 contains l1) yield (l1, c2.find(l2 => l1 == l2).get) // ToDo: Improve efficiency
     val newLiterals = for ((l1,l2) <- contractedLiterals) yield {
-      val newL = new L(l1.atom, l1.polarity)
+      val newL = l1
+      //val newL = new L(l1.atom, l1.polarity)
       //newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs
       newL
     }
@@ -53,7 +54,7 @@ object ResolutionCalculus {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
-    var literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
+    lazy val literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
     def duplicate : Proof = {
       val visitedProofs = new mutable.HashMap[Proof,Proof]
       def duplicateRec(p: Proof) : Proof = {
@@ -240,16 +241,21 @@ object ResolutionCalculus {
     }
   }
   case class Resolvent(var left: Proof, var right: Proof) extends Proof {
-    var clause : Clause = resolve(left.clause,right.clause)
-    var pivot : (Literal,Literal) = pivotLiterals(left.clause,right.clause)
+    private var c : Clause = null
+    def clause = if (c != null) c
+                          else {update; c}
+
+    private var p : (Literal,Literal) = null
+    def pivot = if (p != null) p
+                else {update; p}
     def resolvedAtom = pivot._1.atom
 
     left.children = this::left.children
     right.children = this::right.children
     
     def update = {
-      clause = resolve(left.clause,right.clause)
-      pivot = pivotLiterals(left.clause, right.clause)
+      c = resolve(left.clause,right.clause)
+      p = pivotLiterals(left.clause, right.clause)
     }
 
     def duplicateRoot = new Resolvent(left,right)
