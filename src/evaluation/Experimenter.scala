@@ -13,7 +13,6 @@ import proofCompression.GUI._
 import proofCompression.Regularization._
 import proofCompression.DAGification._
 import proofCompression.ProofFixing._
-import proofCompression._
 import java.io.FileWriter
 
 object Experimenter {
@@ -38,7 +37,7 @@ object Experimenter {
     for (proofFile <- proofFiles) {
       println(proofFile)
       val startParsingTime = System.nanoTime
-      val p = ProofParser.getProofFromFile(directory + proofFile + ".proof").asInstanceOf[Resolvent].left
+      val p = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof").asInstanceOf[Resolvent].left
       val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
       val inputLength = p.length
 
@@ -79,7 +78,7 @@ object Experimenter {
                      proofFile + "\n"
       println(thisLine)
 
-      ProofExporter.writeProofToFile(g.getNodes.head.proof, directory + proofFile + "Reconstructed.proof")
+      proofCompression.ProofExporter.writeProofToFile(g.getNodes.head.proof, directory + proofFile + "Reconstructed.proof")
 
       //writer.write(thisLine, 0, thisLine.length)
     }
@@ -107,7 +106,7 @@ object Experimenter {
       println(proofFile)
       println("parsing")
       val startParsingTime = System.nanoTime
-      val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+      val p0 = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof")
       val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
       val p1 = p0.duplicate
       val p2 = p0.duplicate
@@ -165,13 +164,28 @@ object Experimenter {
 
   def compareCompressionAlgorithms(algorithms: List[Proof => Proof], measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
+    val runtime = Runtime.getRuntime()
     for (proofFile <- proofFiles) {
       println(proofFile)
       try {
+        println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
         println("parsing")
-        val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+        val p0 = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof").duplicate
+        println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
+        runtime.gc
+        println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
         println("duplicating and running algorithms")
-        val outputs = for (a <- algorithms) yield a(p0.duplicate)
+        val outputs = for (a <- algorithms) yield {
+          println("duplicating")
+          runtime.gc
+          println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
+          val p = p0.duplicate
+          println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
+          runtime.gc
+          println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
+          println("running")
+          a(p)
+        }
 
         val inputMeasure = measure(p0.duplicate)
         val outputMeasures = for (output <- outputs) yield measure(output)
@@ -197,7 +211,7 @@ object Experimenter {
       println(proofFile)
       try {
         println("parsing")
-        val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+        val p0 = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof")
         println("duplicating")
         val p1 = p0.duplicate
         println("duplicating")
@@ -231,7 +245,7 @@ object Experimenter {
       try {
         println("parsing")
         val startParsingTime = System.nanoTime
-        val p0 = ProofParser.getProofFromFile(directory + proofFile + ".proof")
+        val p0 = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof")
         val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
         println("duplicating")
         val p1 = p0.duplicate
