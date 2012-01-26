@@ -13,7 +13,6 @@ import proofCompression.Utilities._
 object ResolutionCalculus {
   type Atom = Int
   case class L(atom: Atom, polarity: Boolean) {
-    //var ancestorInputs: List[Input] = Nil
     def dual(that: L) = (atom == that.atom && polarity != that.polarity)
     override def toString = {
       if (polarity) atom.toString
@@ -54,7 +53,14 @@ object ResolutionCalculus {
     def clause : Clause  // the final clause of the proof
     val id = ProofCounter.get
     var children : List[Resolvent] = Nil
-    lazy val literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
+    //lazy val literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
+
+    private var lB : mutable.HashMap[Resolvent,mutable.HashSet[Literal]] = null
+    def literalsBelow = if (lB != null) lB
+                else {lB = new mutable.HashMap[Resolvent,mutable.HashSet[Literal]]; lB}
+
+    def forgetLiteralsBelow = lB = null
+
     def duplicate : Proof = {
       val visitedProofs = new mutable.HashMap[Proof,Proof]
       def duplicateRec(p: Proof) : Proof = {
@@ -71,15 +77,52 @@ object ResolutionCalculus {
       duplicateRec(this)
     }
     def replaces(that: Proof) = {
-      require(clause == that.clause)
+      //require(clause == that.clause)
       for (c <- that.children) {
         children = c::children
         if (c.left == that) c.left = this
         else c.right = this
-        c.update
+        //c.update
       }
       that.children = Nil
     }
+
+    def replacesAsParentOf(that: Proof, child: Resolvent) = {
+      children = child::children
+      if (child.left == that) child.left = this
+      else child.right = this
+      that.children -= child
+    }
+
+    def replacesLeftParentOf(child: Resolvent) = {
+      children = child::children
+      child.left.children -= child
+      child.left = this
+    }
+
+    def replacesRightParentOf(child: Resolvent) = {
+      children = child::children
+      child.right.children -= child
+      child.right = this
+    }
+
+    def delete : Unit = {
+      for (c <- children) {
+        if (c.left == this) c.left = deletedSubProof
+        else c.right = deletedSubProof
+        deletedSubProof.children = c::deletedSubProof.children
+      }
+      children = Nil
+      if (this.isInstanceOf[Resolvent]) {
+        val r = this.asInstanceOf[Resolvent]
+        r.left.children -= r
+        r.right.children -= r
+        r.forget
+      }
+    }
+
+    
+
     def isBelow(that: Proof): Boolean = {
       if (id == that.id) return true
       else this match {
@@ -246,8 +289,11 @@ object ResolutionCalculus {
                           else {update; c}
 
     private var p : (Literal,Literal) = null
-    def pivot = if (p != null) p
-                else {update; p}
+    def pivot = {
+      //if (this.id == 281431) println("pivot hey!")
+      if (p != null) p
+      else {update; p}
+    }
     def resolvedAtom = pivot._1.atom
 
     left.children = this::left.children
@@ -256,6 +302,15 @@ object ResolutionCalculus {
     def update = {
       c = resolve(left.clause,right.clause)
       p = pivotLiterals(left.clause, right.clause)
+    }
+    def forget = {
+      //println("forgetting for: " + this.id)
+      c = null
+      p = null
+    }
+    def forgetClause = {
+      //println("forgetting clause for: " + this.id)
+      c = null
     }
 
     def duplicateRoot = new Resolvent(left,right)
@@ -271,7 +326,17 @@ object ResolutionCalculus {
       case _ => false
     }
   }
+  case class LeftChain(var chain: List[Proof]) extends Proof {
 
+    def clause = null
 
-  val deletedSubProof = Input(immutable.HashSet(L(Int.MaxValue,true)))
+    override def hashCode = 41 + id
+    override def canEqual(other:Any): Boolean = other.isInstanceOf[Resolvent]
+    override def equals(other:Any): Boolean = other match {
+      case that: Resolvent => (that canEqual this) && that.id == this.id
+      case _ => false
+    }
+  }
+
+  val deletedSubProof = Input(immutable.HashSet(L(Int.MaxValue,true),L(Int.MaxValue,false)))
 }

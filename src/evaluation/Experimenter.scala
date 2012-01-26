@@ -17,75 +17,60 @@ import java.io.FileWriter
 
 object Experimenter {
 
-  def runHypergraph(directory: String, proofFiles: List[String], outputFilename: String) = {
-    //val writer = new FileWriter(directory + outputFilename)
-    //val firstLine = "Filename \t\t\t" +
-                    "InputLength \t" +
-                    //"InputSize \t" +
-                    //"InputAverageNumberOfChildrenPerNode \t" +
-                    "ParsingTime \t\t" +
-                    "R_Length \t" +            // length after regularization
-                    "R_Time \t" +              // regularization time
-                    "DAG_Length \t" +          // length after DAGification
-                    "DAG_Time \t" +            // DAGification time
-                    "RP_Length \t" +           // length after pivot recycling
-                    "RP_Time \t" +             // pivot recycling time
-                    "R-DAG_Length \t" +        // length after regularization and DAGification
-                    "R-DAG_Time \t" +            // regularization and DAGification time
-                    "\n"
-    //writer.write(firstLine, 0, firstLine.length)
+  implicit val maxUnnamedResolvents = 200
+
+
+  def run(algorithms: List[(String, Proof => Proof)], measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
+    val writer = new FileWriter(directory + outputFilename)
+    val runtime = Runtime.getRuntime()
     for (proofFile <- proofFiles) {
       println(proofFile)
-      val startParsingTime = System.nanoTime
-      val p = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof").asInstanceOf[Resolvent].left
-      val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
-      val inputLength = p.length
+      try {
+        println("parsing")
+        val p0 = removeUnusedResolvents(proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof"))
 
-      val startRTime = System.nanoTime
-      regularize(p)
-      fix(p)
-      val ellapsedRTime = (System.nanoTime - startRTime)/1000
-      val RLength = p.length
+        println("outputting proof with a single root")
+        proofCompression.ProofExporter.writeProofToFile(p0, directory + proofFile + "(SingleRoot).proof")
 
-      val startRDAGTime = System.nanoTime
-      DAGify(p, p => p.length)
-      val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
-      val RDAGLength = p.length
+        val inputMeasure = measure(p0)
+        val outputMeasures = for (a <- algorithms) yield {
+          println("forcing garbage collection")
+          runtime.gc
+          println("duplicating")
+          val p = p0.duplicate
+          println("running " + a._1)
+          val startTime = System.nanoTime
+          val newP = a._2(p)
+          val time = (System.nanoTime - startTime)/1000000
+          println("exporting to file")
+          proofCompression.ProofExporter.writeProofToFile(newP, directory + proofFile + "(" + a._1 + ").proof")
+          println("measuring output")
+          val m = (measure(newP),time)
+          println((inputMeasure*1.0 - m._1)/inputMeasure)
+          println(time)
+          m
+        }
 
-      val startHypergraphConstructionTime = System.nanoTime
-      val g = new ResolutionHypergraph(p)
-      val ellapsedHypergraphConstructionTime = (System.nanoTime - startHypergraphConstructionTime)/1000
-
-      //val gui = new HypergraphVisualizer
-      //gui.displayHypergraph(g)
+        val compressionRatesAndTimes = ("" /: outputMeasures.map(m => "\t" + (inputMeasure*1.0 - m._1)/inputMeasure + "\t" + m._2 + "\t" + 1000.0*(inputMeasure*1.0 - m._1)/m._2))((s1, s2) => s1 + s2)
 
 
-      val startHypergraphSimplificationTime = System.nanoTime
-      g.simplify
-      val ellapsedHypergraphSimplificationTime = (System.nanoTime - startHypergraphSimplificationTime)/1000
-      println(g.isTrivial)
-      val ReconstructedProofLength = g.getNodes.head.proof.length
-
-      val thisLine = inputLength + "\t" +
-                     ellapsedParsingTime + "\t" +
-                     RLength + "\t" +
-                     ellapsedRTime + "\t" +
-                     RDAGLength + "\t" +
-                     ellapsedRDAGTime + "\t" +
-                     ellapsedHypergraphConstructionTime + "\t" +
-                     ReconstructedProofLength + "\t" +
-                     ellapsedHypergraphSimplificationTime + "\t" +
-                     proofFile + "\n"
-      println(thisLine)
-
-      proofCompression.ProofExporter.writeProofToFile(g.getNodes.head.proof, directory + proofFile + "Reconstructed.proof")
-
-      //writer.write(thisLine, 0, thisLine.length)
+        val thisLine = inputMeasure +
+                      compressionRatesAndTimes +
+                      "\n"
+        println(thisLine)
+        writer.write(thisLine, 0, thisLine.length)
+      } catch {
+        case e => {throw e; println(proofFile); e.printStackTrace}
+      }
     }
-    //writer.close
+    writer.close
   }
-
-  def run(directory: String, proofFiles: List[String], outputFilename: String) = {
+  
+  
+  // Possibly not used code below this line. 
+ 
+  
+    def run(directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
     val firstLine = "Filename \t\t\t" +
                     "InputLength \t" +
@@ -161,37 +146,35 @@ object Experimenter {
     }
     writer.close
   }
-
+  
   def compareCompressionAlgorithms(algorithms: List[Proof => Proof], measure: Proof => Int, directory: String, proofFiles: List[String], outputFilename: String) = {
     val writer = new FileWriter(directory + outputFilename)
     val runtime = Runtime.getRuntime()
     for (proofFile <- proofFiles) {
       println(proofFile)
       try {
-        println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
         println("parsing")
-        val p0 = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof").duplicate
-        println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
-        runtime.gc
-        println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
-        println("duplicating and running algorithms")
-        val outputs = for (a <- algorithms) yield {
+        val p0 = removeUnusedResolvents(proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof"))
+
+        println("outputting proof with a single root")
+        proofCompression.ProofExporter.writeProofToFile(p0, proofFile + "(SingleRoot).proof")
+
+        val inputMeasure = measure(p0)
+        val outputMeasures = for (a <- algorithms) yield {
+          println("forcing garbage collection")
+          runtime.gc
           println("duplicating")
-          runtime.gc
-          println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
           val p = p0.duplicate
-          println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
-          runtime.gc
-          println("Free Memory: " + runtime.freeMemory + " / " + runtime.totalMemory)
           println("running")
-          a(p)
-        }
+          val newP = a(p)
+          println("measuring output")
+          val m = measure(newP)
+          println((inputMeasure*1.0 - m)/inputMeasure)
+          m
+        }   
 
-        val inputMeasure = measure(p0.duplicate)
-        val outputMeasures = for (output <- outputs) yield measure(output)
+        val compressionRates = ("" /: outputMeasures.map(m => "\t" + (inputMeasure*1.0 - m)/inputMeasure))((s1, s2) => s1 + s2)
 
-        def concat(s1: String, s2: String) = s1 + s2
-        val compressionRates = ("" /: outputMeasures.map(m => "\t" + (inputMeasure*1.0 - m)/inputMeasure))(concat)
 
         val thisLine = inputMeasure +
                       compressionRates +
@@ -278,4 +261,75 @@ object Experimenter {
     }
     writer.close
   }
+  
+  
+  
+  def runHypergraph(directory: String, proofFiles: List[String], outputFilename: String) = {
+    //val writer = new FileWriter(directory + outputFilename)
+    //val firstLine = "Filename \t\t\t" +
+                    "InputLength \t" +
+                    //"InputSize \t" +
+                    //"InputAverageNumberOfChildrenPerNode \t" +
+                    "ParsingTime \t\t" +
+                    "R_Length \t" +            // length after regularization
+                    "R_Time \t" +              // regularization time
+                    "DAG_Length \t" +          // length after DAGification
+                    "DAG_Time \t" +            // DAGification time
+                    "RP_Length \t" +           // length after pivot recycling
+                    "RP_Time \t" +             // pivot recycling time
+                    "R-DAG_Length \t" +        // length after regularization and DAGification
+                    "R-DAG_Time \t" +            // regularization and DAGification time
+                    "\n"
+    //writer.write(firstLine, 0, firstLine.length)
+    for (proofFile <- proofFiles) {
+      println(proofFile)
+      val startParsingTime = System.nanoTime
+      val p = proofCompression.ProofParser.getProofFromFile(directory + proofFile + ".proof").asInstanceOf[Resolvent].left
+      val ellapsedParsingTime = (System.nanoTime - startParsingTime)/1000
+      val inputLength = p.length
+
+      val startRTime = System.nanoTime
+      regularize(p)
+      fix(p)
+      val ellapsedRTime = (System.nanoTime - startRTime)/1000
+      val RLength = p.length
+
+      val startRDAGTime = System.nanoTime
+      DAGify(p, p => p.length)
+      val ellapsedRDAGTime = (System.nanoTime - startRDAGTime)/1000 + ellapsedRTime
+      val RDAGLength = p.length
+
+      val startHypergraphConstructionTime = System.nanoTime
+      val g = new ResolutionHypergraph(p)
+      val ellapsedHypergraphConstructionTime = (System.nanoTime - startHypergraphConstructionTime)/1000
+
+      //val gui = new HypergraphVisualizer
+      //gui.displayHypergraph(g)
+
+
+      val startHypergraphSimplificationTime = System.nanoTime
+      g.simplify
+      val ellapsedHypergraphSimplificationTime = (System.nanoTime - startHypergraphSimplificationTime)/1000
+      println(g.isTrivial)
+      val ReconstructedProofLength = g.getNodes.head.proof.length
+
+      val thisLine = inputLength + "\t" +
+                     ellapsedParsingTime + "\t" +
+                     RLength + "\t" +
+                     ellapsedRTime + "\t" +
+                     RDAGLength + "\t" +
+                     ellapsedRDAGTime + "\t" +
+                     ellapsedHypergraphConstructionTime + "\t" +
+                     ReconstructedProofLength + "\t" +
+                     ellapsedHypergraphSimplificationTime + "\t" +
+                     proofFile + "\n"
+      println(thisLine)
+
+      proofCompression.ProofExporter.writeProofToFile(g.getNodes.head.proof, directory + proofFile + "Reconstructed.proof")
+
+      //writer.write(thisLine, 0, thisLine.length)
+    }
+    //writer.close
+  }
+  
 }

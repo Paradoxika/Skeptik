@@ -48,6 +48,17 @@ object Utilities {
       case head::tail => head.intersect(intersect(tail))
     }
   }
+  def unite[T](list: List[HashSet[T]]): HashSet[T] = list match {
+    case Nil => new HashSet[T]
+    case head::tail => unite(tail) ++ head
+  }
+  def intersect[T](list: List[HashSet[T]]): HashSet[T] = {
+    list match {
+      case Nil => new HashSet[T]
+      case head::Nil => head
+      case head::tail => head.intersect(intersect(tail))
+    }
+  }
 
   def merge[T](l1: List[T], l2: List[T], measure: T => Int): List[T] = {
     (l1,l2) match {
