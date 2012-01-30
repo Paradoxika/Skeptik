@@ -3,10 +3,10 @@
  * and open the template in the editor.
  */
 
-package proofCompression
+package ResK.algorithms
 
-import proofCompression.ResolutionCalculus._
-import proofCompression.ResolutionCalculus.measures._
+import ResK.calculi.resolution._
+import ResK.calculi.resolution.measures._
 import scala.collection._
 
 object ProofFixing {

@@ -3,21 +3,11 @@
  * and open the template in the editor.
  */
 
-package proofCompression
+package ResK.utilities
 
 import scala.collection.mutable._
 
 object Utilities {
-  def gcd(a:Int, b:Int) = if (a > b) gcdRec(a,b) else gcdRec(b,a)
-  def gcdRec(a:Int, b:Int):Int = if (b==0) a else gcdRec(b, a % b)
-  def gcd(list: List[Int]): Int = list match {
-    case Nil => 0
-    case a::Nil => a
-    case a::tail => {
-      val tailGCD = gcd(tail)
-      if (tailGCD == 1) 1 else gcd(a,tailGCD)
-    }
-  }
 
   class Counter {private var number = 0;def get:Int={number += 1;return number}}
 

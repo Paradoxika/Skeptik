@@ -1,12 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-package proofCompression
+package ResK.algorithms
 
 import scala.util.parsing.combinator._
-import proofCompression.ResolutionCalculus._
+import ResK.calculi.resolution._
 import scala.collection.mutable._
 import java.io.FileReader
 
@@ -27,7 +22,7 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
     case name: Int => map(name)
   }
   def input: Parser[Proof] = "{" ~> repsep(literal,",") <~ "}" ^^ {
-    list => new proofCompression.ResolutionCalculus.Input(list.toSet[Literal])
+    list => new ResK.calculi.resolution.Input(list.toSet[Literal])
   }
   def resolvent: Parser[Proof] = "(" ~> subproof ~ "." ~ subproof <~ ")" ^^ {
     case ~(~(left,_),right) => new Resolvent(left,right)

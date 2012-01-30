@@ -3,13 +3,13 @@
  * and open the template in the editor.
  */
 
-package proofCompression
+package ResK.calculi
 
 import scala.collection._
-import proofCompression.Utilities._
+import ResK.utilities.Utilities._
 
 
-object ResolutionCalculus {
+object resolution {
   type Atom = Int
   case class L(atom: Atom, polarity: Boolean) {
     def dual(that: L) = (atom == that.atom && polarity != that.polarity)

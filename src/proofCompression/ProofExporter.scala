@@ -3,10 +3,10 @@
  * and open the template in the editor.
  */
 
-package proofCompression
+package ResK.algorithms
 
 import scala.util.parsing.combinator._
-import proofCompression.ResolutionCalculus._
+import ResK.calculi.resolution._
 import scala.collection.mutable._
 import java.io.FileWriter
 

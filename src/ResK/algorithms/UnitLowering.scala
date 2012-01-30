@@ -3,12 +3,12 @@
  * and open the template in the editor.
  */
 
-package proofCompression
+package ResK.algorithms
 
-import proofCompression.ResolutionCalculus._
-import proofCompression.ResolutionCalculus.measures._
-import proofCompression.Utilities._
-import proofCompression.ProofFixing._
+import ResK.calculi.resolution._
+import ResK.calculi.resolution.measures._
+import ResK.utilities.Utilities._
+import ResK.algorithms.ProofFixing._
 import scala.collection._
 
 object UnitLowering {
