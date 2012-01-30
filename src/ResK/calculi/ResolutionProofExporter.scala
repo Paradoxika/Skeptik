@@ -1,9 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-package ResK.algorithms
+package ResK.calculi
 
 import scala.util.parsing.combinator._
 import ResK.calculi.resolution._

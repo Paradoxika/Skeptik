@@ -1,4 +1,4 @@
-package ResK.algorithms
+package ResK.calculi
 
 import scala.util.parsing.combinator._
 import ResK.calculi.resolution._

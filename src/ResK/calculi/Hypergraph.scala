@@ -1,9 +1,4 @@
-///*
-// * To change this template, choose Tools | Templates
-// * and open the template in the editor.
-// */
-//
-//package proofCompression
+//package ResK.calculi
 //
 //import scala.collection.mutable._
 //import scala.collection._

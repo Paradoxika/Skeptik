@@ -13,6 +13,8 @@ import ResK.algorithms.Regularization._
 import ResK.algorithms.DAGification._
 import ResK.algorithms.ProofFixing._
 import java.io.FileWriter
+import ResK.calculi.ProofParser._
+import ResK.calculi.ProofExporter._
 
 object Experimenter {
 
@@ -26,10 +28,10 @@ object Experimenter {
       println(proofFile)
       try {
         println("parsing")
-        val p0 = removeUnusedResolvents(ResK.algorithms.ProofParser.getProofFromFile(directory + proofFile + ".proof"))
+        val p0 = removeUnusedResolvents(getProofFromFile(directory + proofFile + ".proof"))
 
         println("outputting proof with a single root")
-        ResK.algorithms.ProofExporter.writeProofToFile(p0, directory + proofFile + "(SingleRoot).proof")
+        writeProofToFile(p0, directory + proofFile + "(SingleRoot).proof")
 
         val inputMeasure = measure(p0)
         val outputMeasures = for (a <- algorithms) yield {
@@ -42,7 +44,7 @@ object Experimenter {
           val newP = a._2(p)
           val time = (System.nanoTime - startTime)/1000000
           println("exporting to file")
-          ResK.algorithms.ProofExporter.writeProofToFile(newP, directory + proofFile + "(" + a._1 + ").proof")
+          writeProofToFile(newP, directory + proofFile + "(" + a._1 + ").proof")
           println("measuring output")
           val m = (measure(newP),time)
           println((inputMeasure*1.0 - m._1)/inputMeasure)
