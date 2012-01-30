@@ -6,6 +6,7 @@
 package proofCompression
 
 import proofCompression.ResolutionCalculus._
+import proofCompression.ResolutionCalculus.measures._
 import proofCompression.Utilities._
 import proofCompression.ProofFixing._
 import scala.collection._
@@ -68,14 +69,14 @@ object UnitLowering {
         }
       }
     }
-    val k = proof.length
-    println("proof length: " + proof.length)
+    val k = length(proof)
+    println("proof length: " + length(proof))
     rec(proof)
     println(counter)
     if (counter < k) println("ops!")
-    println("proof length: " + proof.length)
-    println(units.length)
-    println((units.map(p => p.length) :\ proof.length)((x,y) => x+y) )
+    println("proof length: " + length(proof))
+    //println(units.length)
+    //println((units.map(p => p.length) :\ proof.length)((x,y) => x+y) )
     counter = 0
     units
   }

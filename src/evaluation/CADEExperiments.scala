@@ -5,17 +5,11 @@
 
 package evaluation
 
-//import scala.collection.mutable._
-//import proofCompression.Utilities._
-//import proofCompression.ResolutionCalculus._
-//import proofCompression.Hypergraph._
-//import proofCompression.GUI._
 import proofCompression.Regularization._
 import proofCompression.DAGification._
 import proofCompression.ProofFixing._
-//import proofCompression._
 import proofCompression.UnitLowering._
-//import evaluation._
+import proofCompression.ResolutionCalculus.measures._
 
 object CADEExperiments {
     
@@ -215,7 +209,7 @@ object CADEExperiments {
                                ("RPILU", p => fix(recyclePivotsWithIntersection(lowerUnits(p)))),
                                ("LURPI", p => lowerUnits(fix(recyclePivotsWithIntersection(p))))
                               ),
-                          p => p.length,
+                          p => length(p),
                           //directorySatRace,
                           directory2,
                           benchmarkSet,

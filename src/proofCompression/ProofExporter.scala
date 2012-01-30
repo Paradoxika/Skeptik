@@ -50,23 +50,6 @@ object ProofExporter {
               return name
             }
           }
-          case LeftChain(chain) => {
-            val chainStrings = chain.map(r => writeProofToFileRec(r))
-            if (p.children.length == 1 && unnamedResolventsCounter <= maxUnnamedResolvents) {
-              unnamedResolventsCounter += 1
-              "L(" + (chainStrings.head /: chainStrings.tail)((x,y) => x + "." + y) +  ")"
-            }
-            else {
-              unnamedResolventsCounter = 0
-              val name = counter.toString
-              counter += 1
-              val subproof = "L(" + (chainStrings.head /: chainStrings.tail)((x,y) => x + "." + y) +  ")"
-              val line = name + " = " + subproof + "\n"
-              writer.write(line, 0, line.length)
-              visitedProofs += (p -> name)
-              return name
-            }
-          }
         }
       }
     }

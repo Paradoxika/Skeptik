@@ -17,7 +17,7 @@ object Regularization {
   }
 
   def getIrregularNodes(proof: Proof) = {
-    def getIrregularNodesRec(p: Proof, pivotsBelow: List[Atom]) : List[Int] = {
+    def getIrregularNodesRec(p: Proof, pivotsBelow: List[Atom]) : List[Proof] = {
       p match {
         case Input(_) => Nil
         case Resolvent(l,r) => {
@@ -25,8 +25,8 @@ object Regularization {
           val listL = getIrregularNodesRec(l,pivotsBelowNext)
           val listR = getIrregularNodesRec(r,pivotsBelowNext)
           if (pivotsBelow.contains(p.asInstanceOf[Resolvent].pivot._1.atom)) {
-            println(p.id + " (" + p.asInstanceOf[Resolvent].left.id + "," + p.asInstanceOf[Resolvent].right.id + ") " + p.asInstanceOf[Resolvent].pivot + " : " + pivotsBelow)
-            return p.id::(listL:::listR)
+            //println(p.id + " (" + p.asInstanceOf[Resolvent].left.id + "," + p.asInstanceOf[Resolvent].right.id + ") " + p.asInstanceOf[Resolvent].pivot + " : " + pivotsBelow)
+            return p::(listL:::listR)
           }
           else return listL:::listR
         }
@@ -40,7 +40,7 @@ object Regularization {
       p match {
         case Input(_) => true
         case Resolvent(l, r) => {
-          if (pivotsBelow.contains(p.asInstanceOf[Resolvent].pivot._1.atom)) println("Non-regular atom: " + p.asInstanceOf[Resolvent].pivot._1.atom + " ; id: " + p.id + " ; number of children: " + p.children.length)
+          //if (pivotsBelow.contains(p.asInstanceOf[Resolvent].pivot._1.atom)) println("Non-regular atom: " + p.asInstanceOf[Resolvent].pivot._1.atom + " ; id: " + p.id + " ; number of children: " + p.children.length)
           val pivotsBelowNext = p.asInstanceOf[Resolvent].pivot._1.atom::pivotsBelow
           !pivotsBelow.contains(p.asInstanceOf[Resolvent].pivot._1.atom) &&
           isRegularRec(l, pivotsBelowNext) &&

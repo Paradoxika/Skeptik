@@ -4,8 +4,8 @@ package proofCompression
 import scala.collection.mutable._
 import proofCompression.Utilities._
 import proofCompression.ResolutionCalculus._
-import proofCompression.Hypergraph._
-import proofCompression.GUI._
+//import proofCompression.Hypergraph._
+//import proofCompression.GUI._
 import proofCompression.Regularization._
 import proofCompression.DAGification._
 import proofCompression.ProofFixing._

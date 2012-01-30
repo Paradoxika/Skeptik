@@ -6,6 +6,7 @@
 package proofCompression
 
 import proofCompression.ResolutionCalculus._
+import proofCompression.ResolutionCalculus.measures._
 import scala.collection._
 
 object ProofFixing {
@@ -14,7 +15,7 @@ object ProofFixing {
     val visitedProofs = new mutable.HashSet[Proof]
     val newRootsMap = new mutable.HashMap[Proof,Proof]
     for (p <- proofs) fixRec(p,visitedProofs,newRootsMap)
-    for (p <- proofs) yield {println(p.id); newRootsMap(p)}
+    for (p <- proofs) yield {newRootsMap(p)}
   }
 
   private def fixRec(proof:Proof, visitedProofs: mutable.HashSet[Proof], newRootsMap: mutable.HashMap[Proof,Proof]) : Unit = {
@@ -46,7 +47,7 @@ object ProofFixing {
               else if (n.left.clause.contains(n.pivot._1) && !n.right.clause.contains(n.pivot._2)) n.right
               else if (!n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) n.left
               else {
-                if (n.left.length < n.right.length) n.left
+                if (length(n.left) < length(n.right)) n.left
                 else n.right
               }
 
@@ -134,20 +135,17 @@ object ProofFixing {
               }
             }
             else {
-              //println("other case")
               val survivingParent : Proof =
                 if (r.left == deletedSubProof) r.right
                 else if (r.right == deletedSubProof) r.left
                 else if (r.left.clause.contains(r.pivot._1) && !r.right.clause.contains(r.pivot._2)) r.right
                 else if (!r.left.clause.contains(r.pivot._1) && r.right.clause.contains(r.pivot._2)) r.left
                 else {
-                  //println("here")
-                  if (r.left.length < r.right.length) r.left
+                  if (length(r.left) < length(r.right)) r.left
                   else r.right
                 }
 
               if (r.children.length == 0) {
-                //println("newRoot Surviving Parent: " + r.id + " " + survivingParent.id)
                 newRootsMap += (r -> survivingParent)
               }
               survivingParent replaces r
