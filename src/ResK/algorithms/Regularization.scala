@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package ResK.algorithms
 
 import ResK.calculi.resolution._
-import ResK.utilities.Utilities._
 import scala.collection._
 
 object Regularization {
@@ -106,6 +100,17 @@ object Regularization {
   }
 
   
+  def unite[T](list: List[mutable.HashSet[T]]): mutable.HashSet[T] = list match {
+    case Nil => new mutable.HashSet[T]
+    case head::tail => unite(tail) ++ head
+  }
+  def intersect[T](list: List[mutable.HashSet[T]]): mutable.HashSet[T] = {
+    list match {
+      case Nil => new mutable.HashSet[T]
+      case head::Nil => head
+      case head::tail => head.intersect(intersect(tail))
+    }
+  }
 
 
   def recyclePivots(p:Proof): Proof = {
@@ -118,7 +123,6 @@ object Regularization {
                            else new mutable.HashSet[Literal]                                                    // case where r has zero or many children
     r.forgetLiteralsBelow
     r.forgetClause
-    //println(r.id)
     doRegularize(r, criticalLiterals, recyclePivotsContinuation)
   }
 

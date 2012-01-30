@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package ResK.algorithms
 
 import ResK.calculi.resolution._
-import ResK.utilities.Utilities._
 import scala.collection._
 
 object Subsumption {

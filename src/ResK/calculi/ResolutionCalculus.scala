@@ -1,13 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package ResK.calculi
 
 import scala.collection._
-import ResK.utilities.Utilities._
-
 
 object resolution {
   type Atom = Int

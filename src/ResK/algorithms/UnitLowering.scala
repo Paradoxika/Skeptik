@@ -1,13 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package ResK.algorithms
 
 import ResK.calculi.resolution._
 import ResK.calculi.resolution.measures._
-import ResK.utilities.Utilities._
 import ResK.algorithms.ProofFixing._
 import scala.collection._
 

@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package ResK.evaluation
 
 import scala.collection.mutable._
-import ResK.utilities.Utilities._
 import ResK.calculi.resolution._
 import ResK.calculi.resolution.measures._
 import ResK.algorithms.Regularization._
