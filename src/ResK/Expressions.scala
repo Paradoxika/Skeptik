@@ -30,16 +30,16 @@ object expressions {
     }
     def =+=(e:E) = alphaEquals(e)
     def alphaEquals(e:E) = {
-      //ToDo: fix bug
-      def alphaEqualsRec(e1:E,e2:E,map:IMap[(String,T),(String,T)]): Boolean = (e1,e2) match {
-        case (Var(n1,t1),Var(n2,t2)) => if (n1==n2 && t1 == t2) true
-                                        else if (map((n1,t1))==(n2, t2)) true
-                                        else false
-        case (Abs(v1,b1),Abs(v2,b2)) => {
-          if (v1 syntaticEquals v2) alphaEqualsRec(b1, b2, map)
-          else if (v1.t == v2.t) {
-            val newMap = if (map contains v1.p) (map.-(v1.p)) + (v1.p -> v2.p)
-                         else map + (v1.p -> v2.p)
+      type V = (String, T)
+      def alphaEqualsRec(e1:E,e2:E,map:IMap[V,V]): Boolean = (e1,e2) match {
+        case (Var(n1,t1),Var(n2,t2)) => if (map contains (n1,t1)) (map((n1,t1))==(n2, t2)) // renamed bound variables
+                                        else (n1==n2 && t1 == t2)  // homonymous bound variables or free variables
+        case (Abs(Var(n1,t1),b1),Abs(Var(n2,t2),b2)) => {
+          if (n1 == n2 && t1 == t2) alphaEqualsRec(b1, b2, map)
+          else if (t1 == t2) {
+            val v1 = (n1,t1); val v2 = (n2,t2);
+            val newMap = if (map contains v1) (map - v1) + (v1 -> v2)
+                         else map + (v1 -> v2)
             alphaEqualsRec(b1, b2, newMap)
           }
           else false
@@ -55,13 +55,13 @@ object expressions {
       case Abs(v,g) => (this occursIn v) || (this occursIn g)
     }
     def /(substitutions: List[Sub]) = applySubstitutions(substitutions) 
-    def applySubstitutions(substitutions: List[Sub]) = {
-      val subs = IMap(substitutions.map(s => (s._1.p -> s._2)): _*)
+    def applySubstitutions(subs: List[Sub]) = {
+      val subsMap = IMap(subs.map(s => ((s._1.name,s._1.t) -> s._2)): _*)
       def sRec(f:E,boundVars:ISet[(String,T)]):E = f match {
         case App(e1, e2) => App(sRec(e1,boundVars),sRec(e2,boundVars))
-        case Abs(x,e) => Abs(x.copy, sRec(e,boundVars + x.p))
-        case v: Var if (boundVars contains v.p) => v.copy 
-        case v: Var if (subs contains v.p) => subs(v.p).copy
+        case Abs(Var(n,t),e) => Abs(Var(n,t), sRec(e, boundVars.+((n,t))))
+        case v: Var if (boundVars contains (v.name, v.t)) => v.copy 
+        case v: Var if (subsMap contains (v.name, v.t)) => subsMap((v.name, v.t)).copy
         case v: Var => v.copy
       }
       sRec(this, new ISet[(String,T)])
@@ -70,7 +70,6 @@ object expressions {
   class Var(val name: String, override val t:T, val labels: LabelMap) extends E {
     override def copy = new Var(name,t,copyLabels(labels))
     override def toString = name
-    def p = (name,t)
   }
   class Abs(val variable: Var, val body: E, val labels: LabelMap) extends E {
     def copy = new Abs(variable.copy,body.copy,copyLabels(labels))
