@@ -8,13 +8,13 @@ object proofs {
   import ResK.formulas._
   import ResK.positions._
   
-  abstract class Proof[T <: Judgment](val premises: List[Proof[T]]) {
-    def conclusion : T
+  abstract class Proof[J <: Judgment](val premises: List[Proof[J]]) {
+    def conclusion : J
     def info = ""
     override def toString = {
       var counter = 0
-      val visited = new MMap[Proof[T],Int]
-      def toStringRec(p:Proof[T]):String = if (!visited.contains(p)) {
+      val visited = new MMap[Proof[J],Int]
+      def toStringRec(p:Proof[J]):String = if (!visited.contains(p)) {
         val recResults = for (premise <- p.premises) yield toStringRec(premise)
         counter += 1
         visited += (p -> counter)
@@ -176,5 +176,50 @@ object proofs {
     }
   }
   
+  
+  
+  object traversal {
+    import scala.collection.mutable.Queue
+    import scala.collection.mutable.Stack
+    import scala.collection.mutable.{HashSet => MSet}
+    
+    class HashQueue[X] {
+      private val q : Queue[X] = Queue()
+      private val isEnqueued: MSet[X] = MSet()
+      def enqueue(x:X):Unit = {q.enqueue(x); isEnqueued += x;}
+      def dequeue = {val x = q.dequeue; isEnqueued -= x; x}
+      def isEmpty = q.isEmpty
+      def contains(x:X) = isEnqueued(x)
+    }
+    
+    def topologicallySort[J <: Judgment](proof:Proof[J]) = {
+      val topDown = new Queue[Proof[J]]
+      val bottomUp = new Stack[Proof[J]]
+      val visited = new MSet[Proof[J]]
+      def visit(p:Proof[J]):Unit = if (!visited(p)){
+        visited += p
+        p.premises.foreach(premise => visit(premise))
+        topDown += p
+        bottomUp.push(p)
+      }
+      visit(proof)
+      (bottomUp,topDown)
+    }
+    
+    def bottomUp[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X, nodes:TraversableOnce[Proof[J]]) = {
+      val resultsFromChildren : MMap[Proof[J],List[X]] = MMap(p -> Nil)
+
+      nodes.foreach(node => {
+        val result = f(node, resultsFromChildren(node))
+        resultsFromChildren -= node
+        node.premises.foreach(premise => {
+            resultsFromChildren += 
+              (premise -> (result::(resultsFromChildren.get(premise) match {
+                                     case None => Nil
+                                     case Some(results)=> results})))           
+        })        
+      })
+    }
+  }
 }
 

@@ -151,6 +151,16 @@ object Main {
                         R(hAiBC,hABi))),
                     hCi)
     println(hrProof)
+    
+    import ResK.proofs.traversal._;
+    
+    val (up, down) = topologicallySort(hrProof)
+    println()
+    up.foreach(n => println(n.conclusion))
+    println()
+    down.foreach(n => println(n.conclusion))
+    println()
+    bottomUp[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)}, up)
   }
 
 }
