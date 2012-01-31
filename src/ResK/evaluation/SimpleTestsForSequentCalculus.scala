@@ -160,7 +160,9 @@ object Main {
     println()
     down.foreach(n => println(n.conclusion))
     println()
-    bottomUp[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)}, up)
+    bottomUp[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})
+    println()
+    topDown[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})
   }
 
 }
