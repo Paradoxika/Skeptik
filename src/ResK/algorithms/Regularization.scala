@@ -93,7 +93,6 @@ object Regularization {
         }
         //def hasReceivedAllCalls = p.children.forall(c => p.literalsBelow.contains(c)) // inefficient
         def hasReceivedAllCalls = p.children.length == p.literalsBelow.size
-        //println(hasReceivedAllCalls)
         if (hasReceivedAllCalls) continuation(r)
       }
     }

@@ -2,6 +2,83 @@ package ResK.calculi
 
 import scala.collection._
 
+
+//object simpleResolution {
+//  type Atom = Int
+//
+//  case class Clause(ant:immutable.Set[Atom],suc:immutable.Set[Atom]) {
+//    def *(that:Clause) = suc.find(a => that.ant.contains(a)) match {
+//      case None => throw new Exception("Clauses are not resolvable.")
+//      case Some(a) => (a, (this - a) ++ (a -: that))
+//    }
+//    
+//    override def toString = (("" + ant.head) /: ant.tail)((s,atom) => s + "," + atom) + ":-" +
+//                            (("" + suc.head) /: suc.tail)((s,atom) => s + "," + atom)
+//  }
+//
+//  abstract class Proof {
+//    def clause : Clause  
+//
+//    def duplicate : Proof = {
+//      val visitedProofs = new mutable.HashMap[Proof,Proof]
+//      def duplicateRec(p: Proof) : Proof = {
+//        if (visitedProofs.contains(p)) return visitedProofs(p)
+//        else {
+//          val newProof = p match {
+//            case R(l,r) => new R(duplicateRec(l), duplicateRec(r))
+//            case I(c) => new I(c)
+//          }
+//          visitedProofs += (p -> newProof)
+//          return newProof
+//        }
+//      }
+//      duplicateRec(this)
+//    }
+//  }
+//  class I(val clause: Clause) extends Proof {
+//    override def toString: String = clause.toString
+//  }
+//  object I {
+//    def apply(clause: Clause) = new I(clause)
+//    def unapply(p:Proof) = p match {
+//      case i:I => Some(i.clause)
+//      case _ => None
+//    }
+//  }
+//  class R(val left: Proof, val right: Proof) extends Proof {
+//    val clause = (left.clause * right.clause)
+//    val pivot : (Literal,Literal) = (left.clause pivotLiterals right.clause)
+//
+//    override def toString = "(" + left + "." + right + ")"
+//  }
+//  object R {
+//    def apply(left: Proof, right: Proof) = new R(left, right)
+//    def unapply(p:Proof) = p match {
+//      case r:R => Some((r.left,r.right))
+//      case _ => None
+//    }
+//  }
+//  
+//  object measures {
+//    def length(proof:Proof) : Int = {
+//      val visitedProofs = new mutable.HashSet[Proof]
+//      def rec(p: Proof) : Int = {
+//        if (!visitedProofs.contains(p)) {
+//          visitedProofs += p
+//          p match {
+//            case I(c) => 1
+//            case R(left, right) => (rec(left) + rec(right) + 1)
+//          }
+//        } else 0
+//      }
+//      rec(proof)
+//    }
+//  }
+//
+//  
+//}
+
+
 object resolution {
   type Atom = Int
   case class L(atom: Atom, polarity: Boolean) {
@@ -29,8 +106,6 @@ object resolution {
     val contractedLiterals = for (l1 <- c1 if c2 contains l1) yield (l1, c2.find(l2 => l1 == l2).get) // ToDo: Improve efficiency
     val newLiterals = for ((l1,l2) <- contractedLiterals) yield {
       val newL = l1
-      //val newL = new L(l1.atom, l1.polarity)
-      //newL.ancestorInputs = l1.ancestorInputs:::l2.ancestorInputs
       newL
     }
     return (c1 - pl1 -- contractedLiterals.map(pair => pair._1)) ++
@@ -42,8 +117,7 @@ object resolution {
   abstract class Proof {
     def clause : Clause  
     var children : List[Resolvent] = Nil
-    //lazy val literalsBelow = new mutable.HashMap[Resolvent,List[Literal]]
-
+    
     private var lB : mutable.HashMap[Resolvent,mutable.HashSet[Literal]] = null
     def literalsBelow = if (lB != null) lB
                 else {lB = new mutable.HashMap[Resolvent,mutable.HashSet[Literal]]; lB}
