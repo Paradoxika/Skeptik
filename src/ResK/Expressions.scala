@@ -16,6 +16,8 @@ object expressions {
   object LabelMap {def apply(l:(String,Label)*) = IMap(l:_*)}
   def copyLabels(lM:LabelMap):LabelMap = lM
 
+  // ToDo: right now, "copy" assumes that expressions are trees. 
+  // This has to be changed, since in general they can be DAGs.
   trait Copiable[X] {def copy: X with Copiable[X]}
   
   abstract class E extends Copiable[E] {

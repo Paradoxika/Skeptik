@@ -198,33 +198,31 @@ object proofs {
       (bottomUp,topDown)
     }
     
-    def topDown[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):X = topDownT(p,f,topologicallySort(p)._2)  
-    def topDownT[J <: Judgment,X](p:Proof[J], 
-                                  f:(Proof[J],List[X])=>X, 
-                                  nodes:TraversableOnce[Proof[J]]):X = {
+    
+    
+    def topDown[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = topDownT(f,topologicallySort(p)._2)  
+    def topDownT[J <: Judgment,X](f:(Proof[J],List[X])=>X, 
+                                  nodes:TraversableOnce[Proof[J]]):Unit = {
       val resultFrom : MMap[Proof[J],X] = MMap()
 
       nodes.foreach(node => {
         val result = f(node, node.premises.map(premise => resultFrom(premise)))
         resultFrom += (node -> result)       
       })
-      resultFrom(p)
     }
     
-    def bottomUp[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = bottomUpT(p,f,topologicallySort(p)._1)  
-    def bottomUpT[J <: Judgment,X](p:Proof[J], 
-                                  f:(Proof[J],List[X])=>X, 
-                                  nodes:TraversableOnce[Proof[J]]):Unit = {
-      val resultsFromChildrenOf : MMap[Proof[J],List[X]] = MMap(p -> Nil)
+    
+    def bottomUp[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = bottomUpT(f,topologicallySort(p)._1)  
+    def bottomUpT[J <: Judgment,X](f:(Proof[J],List[X])=>X, 
+                                   nodes:TraversableOnce[Proof[J]]):Unit = {
+      val resultsFromChildrenOf : MMap[Proof[J],List[X]] = MMap()
 
       nodes.foreach(node => {
-        val result = f(node, resultsFromChildrenOf(node))
+        val result = f(node, resultsFromChildrenOf.getOrElse(node,Nil))
         resultsFromChildrenOf -= node
         node.premises.foreach(premise => {
             resultsFromChildrenOf += 
-              (premise -> (result::(resultsFromChildrenOf.get(premise) match {
-                                     case None => Nil
-                                     case Some(results)=> results})))           
+              (premise -> (result::resultsFromChildrenOf.getOrElse(premise,Nil)))           
         })        
       })
     }

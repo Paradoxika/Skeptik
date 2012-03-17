@@ -162,7 +162,7 @@ object Main {
     println()
     bottomUp[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})
     println()
-    topDown[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})
+    topDown[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})  
   }
 
 }
