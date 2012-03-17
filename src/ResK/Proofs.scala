@@ -7,23 +7,23 @@ object proofs {
   import ResK.expressions.algorithms._
   import ResK.formulas._
   import ResK.positions._
+  import ResK.utilities.prettyPrinting._
   
   abstract class Proof[J <: Judgment](val premises: List[Proof[J]]) {
     def conclusion : J
     def info = ""
     override def toString = {
       var counter = 0
-      val visited = new MMap[Proof[J],Int]
-      def toStringRec(p:Proof[J]):String = if (!visited.contains(p)) {
-        val recResults = for (premise <- p.premises) yield toStringRec(premise)
+      var result = ""
+      def visitNode(n:Proof[J],r:List[Int]): Int = {
         counter += 1
-        visited += (p -> counter)
-        val lastLine = counter.toString + ":  " + p.conclusion.toString + "   | " + p.info + " " +
-                   ("" /: p.premises.map(q => visited(q)))((s1,s2) => s1 + s2 + " ") + "\n"
-        val result = (recResults :\ lastLine)((s1,s2) => s1 + s2)
-        return result
-      } else return ""
-      toStringRec(this)
+        result += counter.toString + " = " + 
+                  n.info + "(" + listToCSVString(r) + 
+                  ") \t:\t" + n.conclusion + "\n"
+        counter
+      }
+      proofs.traversal.topDown(this,visitNode)
+      result
     }
   }
   
@@ -45,7 +45,7 @@ object proofs {
   }
   
   class Axiom(override val conclusion: Sequent) extends SequentProof(Nil,Nil) {
-    override def info = "Axiom"
+    override def info = "Ax"
   }
   
   class AndL(val premise:SequentProof, val auxL:E, val auxR:E) 
@@ -83,7 +83,7 @@ object proofs {
   
  
   
-  class Resolution(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
+  class Res(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
   extends SequentProof(leftPremise::rightPremise::Nil,Sequent(Nil,auxL::Nil)::Sequent(auxR::Nil,Nil)::Nil) {
     val unifier = unify((auxL,auxR)::Nil) match {
       case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
@@ -111,13 +111,13 @@ object proofs {
       }
       else throw new Exception("Resolution: formula does not occur in the conclusion.")
     }
-    override def info = "Resolution"
+    override def info = "R"
   }
 
   object R {
-    def apply(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E) = new Resolution(leftPremise, rightPremise, auxL, auxR)
+    def apply(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E) = new Res(leftPremise, rightPremise, auxL, auxR)
     def apply(leftPremise:SequentProof, rightPremise:SequentProof, findL:E=>Boolean, findR:E=>Boolean) = {
-      new Resolution(leftPremise, rightPremise,
+      new Res(leftPremise, rightPremise,
                      leftPremise.conclusion.suc.find(findL).get,  //ToDo: Catch Exception
                      rightPremise.conclusion.ant.find(findR).get) //ToDo: Catch Exception
     }
@@ -129,13 +129,13 @@ object proofs {
       val unifiablePairs = (for (auxL <- leftPremise.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL,auxR)).filter(isUnifiable)
       if (unifiablePairs.length > 0) { 
         val (auxL,auxR) = unifiablePairs(0)
-        new Resolution(leftPremise, rightPremise, auxL, auxR)
+        new Res(leftPremise, rightPremise, auxL, auxR)
       }
       else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
       else throw new Exception("Resolution: the resolvent is ambiguous.") // ToDo
     }
     def unapply(p:SequentProof) = p match {
-      case p: Resolution => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
+      case p: Res => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
       case _ => None
     }
   }
@@ -183,14 +183,6 @@ object proofs {
     import scala.collection.mutable.Stack
     import scala.collection.mutable.{HashSet => MSet}
     
-    class HashQueue[X] {
-      private val q : Queue[X] = Queue()
-      private val isEnqueued: MSet[X] = MSet()
-      def enqueue(x:X):Unit = {q.enqueue(x); isEnqueued += x;}
-      def dequeue = {val x = q.dequeue; isEnqueued -= x; x}
-      def isEmpty = q.isEmpty
-      def contains(x:X) = isEnqueued(x)
-    }
     
     def topologicallySort[J <: Judgment](proof:Proof[J]) = {
       val topDown = new Queue[Proof[J]]
@@ -222,14 +214,14 @@ object proofs {
     def bottomUpT[J <: Judgment,X](p:Proof[J], 
                                   f:(Proof[J],List[X])=>X, 
                                   nodes:TraversableOnce[Proof[J]]):Unit = {
-      val resultsFromChildren : MMap[Proof[J],List[X]] = MMap(p -> Nil)
+      val resultsFromChildrenOf : MMap[Proof[J],List[X]] = MMap(p -> Nil)
 
       nodes.foreach(node => {
-        val result = f(node, resultsFromChildren(node))
-        resultsFromChildren -= node
+        val result = f(node, resultsFromChildrenOf(node))
+        resultsFromChildrenOf -= node
         node.premises.foreach(premise => {
-            resultsFromChildren += 
-              (premise -> (result::(resultsFromChildren.get(premise) match {
+            resultsFromChildrenOf += 
+              (premise -> (result::(resultsFromChildrenOf.get(premise) match {
                                      case None => Nil
                                      case Some(results)=> results})))           
         })        
