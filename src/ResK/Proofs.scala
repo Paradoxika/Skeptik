@@ -198,16 +198,17 @@ object proofs {
       (bottomUp,topDown)
     }
     
-    def topDown[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = topDownT(p,f,topologicallySort(p)._2)  
+    def topDown[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):X = topDownT(p,f,topologicallySort(p)._2)  
     def topDownT[J <: Judgment,X](p:Proof[J], 
                                   f:(Proof[J],List[X])=>X, 
-                                  nodes:TraversableOnce[Proof[J]]):Unit = {
+                                  nodes:TraversableOnce[Proof[J]]):X = {
       val resultFrom : MMap[Proof[J],X] = MMap()
 
       nodes.foreach(node => {
         val result = f(node, node.premises.map(premise => resultFrom(premise)))
         resultFrom += (node -> result)       
       })
+      resultFrom(p)
     }
     
     def bottomUp[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = bottomUpT(p,f,topologicallySort(p)._1)  
