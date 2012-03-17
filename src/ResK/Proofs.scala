@@ -184,7 +184,7 @@ object proofs {
     import scala.collection.mutable.{HashSet => MSet}
     
     
-    def topologicallySort[J <: Judgment](proof:Proof[J]) = {
+    def topologicallySort[J <: Judgment](roots:Proof[J]*) = {
       val topDown = new Queue[Proof[J]]
       val bottomUp = new Stack[Proof[J]]
       val visited = new MSet[Proof[J]]
@@ -194,7 +194,7 @@ object proofs {
         topDown += p
         bottomUp.push(p)
       }
-      visit(proof)
+      roots foreach { root => visit(root) }
       (bottomUp,topDown)
     }
     
