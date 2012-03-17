@@ -5,6 +5,7 @@ object judgments {
   import scala.collection.LinearSeq
   import ResK.expressions._
   import ResK.logicalConstants._
+  import ResK.utilities.prettyPrinting._
   
   abstract class Judgment
   class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
@@ -18,11 +19,7 @@ object judgments {
     
     def ==(s:Sequent) = (ant.toSet == s.ant.toSet) || (suc.toSet == s.suc.toSet)
     override def hashCode = 42*ant.toSet.hashCode + suc.toSet.hashCode
-    private def cedentToString(l:List[E]) = l match {
-      case Nil => ""
-      case h::t => (h.toString /: t)((x,y) => x + ", " + y)
-    }
-    override def toString = cedentToString(ant) + " :- " + cedentToString(suc)
+    override def toString = listToCSVString(ant) + " :- " + listToCSVString(suc)
   }
   object Sequent {
     def apply(ant:List[E], suc:List[E]) = new Sequent(ant,suc)
