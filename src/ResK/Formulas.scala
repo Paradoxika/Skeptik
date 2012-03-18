@@ -2,9 +2,14 @@ package ResK
 
 object logicalConstants {
   import ResK.expressions._
-  def andC = Var("&", o -> (o -> o))
+  val andS = "&"
+  def andC = Var(andS, o -> (o -> o))
 
+  val allS = "A"
   def allC(t:T) = Var("A", (t -> o ) -> o)
+  
+  val negS = "-"
+  def negC = Var(negS, o -> o)
   
   def isLogicalConnective(c:E) = c match {
     case c: Var => if (c.name == "&" || 
@@ -51,6 +56,14 @@ object formulas {
     def apply(f1: E, f2: E) = App(App(andC,f1),f2)
     def unapply(e:E) = e match {
       case App(App(c,f1),f2) if c syntaticEquals andC => Some((f1,f2))
+      case _ => None
+    }  
+  }
+  
+  object Neg {
+    def apply(f: E) = App(negC,f)
+    def unapply(e:E) = e match {
+      case App(c,f) if c =*= negC => Some(f)
       case _ => None
     }  
   }
