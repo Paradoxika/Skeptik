@@ -169,7 +169,6 @@ object proofs {
   extends SequentProof(leftPremise::rightPremise::Nil,
                        Map(leftPremise -> Sequent(Nil,auxL), rightPremise -> Sequent(Nil,auxR))) 
   with NoImplicitContraction with SingleMainFormula with Right  {
-    //private val main: E = And(auxL,auxR)
     override val mainFormula = And(auxL,auxR)
     override def info = "AndR"
   }
@@ -195,6 +194,7 @@ object proofs {
                        Map(leftPremise -> Sequent(Nil,auxL),
                            rightPremise -> Sequent(auxR,Nil)))
   with NoImplicitContraction with NoMainFormula {
+    require(auxL =*= auxR)
     override def info = "Cut"
   }
   
@@ -203,6 +203,7 @@ object proofs {
                        Map(leftPremise -> Sequent(Nil,auxL),
                            rightPremise -> Sequent(auxR,Nil))) 
   with ImplicitContraction with NoMainFormula {
+    require(auxL =*= auxR)
     override def info = "CutA"
   }
   
@@ -292,6 +293,20 @@ object proofs {
     def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new AndR(leftPremise,rightPremise,auxL,auxR)
     def unapply(p: SequentProof) = p match {
       case p: AndR => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
+      case _ => None
+    }
+  }
+  object Cut {
+    def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new Cut(leftPremise,rightPremise,auxL,auxR)
+    def unapply(p: SequentProof) = p match {
+      case p: Cut => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
+      case _ => None
+    }
+  }
+  object CutIC {
+    def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new CutIC(leftPremise,rightPremise,auxL,auxR)
+    def unapply(p: SequentProof) = p match {
+      case p: CutIC => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
       case _ => None
     }
   }
