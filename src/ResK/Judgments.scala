@@ -10,6 +10,7 @@ object judgments {
   abstract class Judgment
   class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
     def contains(f:E) = (ant contains f) || (suc contains f)
+    def supersequentOf(s:Sequent) = s.ant.forall(f => ant contains f) && s.suc.forall(f => suc contains f)
     def --(s:Sequent) = Sequent(ant -- s.ant, suc -- s.suc)
     def ++(s:Sequent) = Sequent(ant ++ s.ant, suc ++ s.suc)
     def +(f:E) = new Sequent(ant, f::suc)
@@ -23,7 +24,9 @@ object judgments {
   }
   object Sequent {
     def apply(ant:List[E], suc:List[E]) = new Sequent(ant,suc)
-    def apply(ant:TraversableOnce[E], suc:TraversableOnce[E]) = new Sequent(ant.toList,suc.toList)
+    def apply(ant:List[E], suc:E) = new Sequent(ant,suc::Nil)
+    def apply(ant:E, suc:List[E]) = new Sequent(ant::Nil,suc)
+    def apply() = new Sequent(Nil,Nil)
     def apply(ant:LinearSeq[E], suc:LinearSeq[E]) = new Sequent(ant.toList,suc.toList)
   }
 }

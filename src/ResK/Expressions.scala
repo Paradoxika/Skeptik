@@ -9,7 +9,9 @@ object expressions {
   }
   case object i extends T
   case object o extends T
-  case class arrow(t1:T, t2:T) extends T
+  case class arrow(t1:T, t2:T) extends T {
+    override def toString = "(" + t1 + "->" + t2 + ")"
+  }
  
   type Label = Any
   type LabelMap = IMap[String,Label] 
@@ -68,10 +70,12 @@ object expressions {
       }
       sRec(this, new ISet[(String,T)])
     }
+    def stringRep = toString
   }
   class Var(val name: String, override val t:T, val labels: LabelMap) extends E {
     override def copy = new Var(name,t,copyLabels(labels))
     override def toString = name
+    override def stringRep = name + ":" + t
   }
   class Abs(val variable: Var, val body: E, val labels: LabelMap) extends E {
     def copy = new Abs(variable.copy,body.copy,copyLabels(labels))
