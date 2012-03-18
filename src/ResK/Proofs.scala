@@ -43,7 +43,7 @@ object proofs {
     def contextAncestry(f: E, premise: SequentProof): Sequent
     def mainFormulas : Sequent
     def conclusionContext : Sequent
-    // It is very important to have the lazy modifier here, because it uses methods that will only be overriden by subtraits and subclasses.
+    // The lazy modifier here is very important, because "conclusion" calls methods that will only be overriden by subtraits and subclasses.
     override lazy val conclusion = mainFormulas ++ conclusionContext
   }
   
@@ -204,7 +204,7 @@ object proofs {
                            rightPremise -> Sequent(auxR,Nil))) 
   with ImplicitContraction with NoMainFormula {
     require(auxL =*= auxR)
-    override def info = "CutA"
+    override def info = "CutIC"
   }
   
   class Res(val leftPremise:SequentProof, val rightPremise:SequentProof, 

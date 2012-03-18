@@ -104,6 +104,25 @@ object Main {
     val p3 = AllR(p2,p2.conclusion.suc(0),Var("z",i),Var("d", i))
     
     println(p3)
+
+    println()
+    println()
+    
+    val (a1,a2,b1,b2,c1,c2) = (a.copy,a.copy,b.copy,b.copy,c.copy,c.copy)
+    val p4 = CutIC(Axiom(S(a1::Nil,b1::c1::Nil)),
+                   Axiom(S(a2::b2::Nil,c2::Nil)),
+                   b1,
+                   b2)
+    println("p4: \n" + p4)
+
+    println()
+    println()
+    
+    val p5 = Cut(Axiom(S(a1::Nil,b1::c1::Nil)),
+                 Axiom(S(a2::b2::Nil,c2::Nil)),
+                 b1,
+                 b2)
+    println("p5: \n" + p5)
     
     
     println()
