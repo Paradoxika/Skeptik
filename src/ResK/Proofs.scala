@@ -32,9 +32,8 @@ object proofs {
   abstract class SequentProof(override val premises: List[SequentProof],
                               val auxFormulas: Map[SequentProof,Sequent]) 
   extends Proof[Sequent](premises) {
-    require(premises.forall(p => p.conclusion supersequentOf auxFormulas(p)))
-    // given a premise, and given a formula and its side in the conclusion, 
-    // it should return the subsequent of the premise's conclusion
+    require(premises.forall(p => p.conclusion supersequentOf auxFormulas(p))) 
+    // ancestry returns the subsequent of the given premise's conclusion
     // containing only ancestors of the given formula
     def ancestry(f: E, premise: SequentProof): Sequent = {
       if (mainFormulas contains f) activeAncestry(f, premise)
@@ -44,15 +43,8 @@ object proofs {
     def contextAncestry(f: E, premise: SequentProof): Sequent
     def mainFormulas : Sequent
     def conclusionContext : Sequent
-    override lazy val conclusion = {  // It is very important to have the lazy modifier here, because it uses methods that will only be overriden by subtraits and subclasses.
-      //println(info + " SequentProof::conclusion")
-      //println(mainFormulas)
-      //println(conclusionContext)
-      //println("hi")
-      val c = mainFormulas ++ conclusionContext
-      //println(c)
-      c
-    }
+    // It is very important to have the lazy modifier here, because it uses methods that will only be overriden by subtraits and subclasses.
+    override lazy val conclusion = mainFormulas ++ conclusionContext
   }
   
   trait SingleMainFormula extends SequentProof {
@@ -74,14 +66,11 @@ object proofs {
   
   trait NoImplicitContraction extends SequentProof {
     override def conclusionContext: Sequent = {
-      //println(info + " NoImplicitContraction::conclusionContext")
       val premiseContexts = premises.map(p => p.conclusion -- auxFormulas(p))
-      //println(premiseContexts)
-      val c = premiseContexts match {
+      premiseContexts match {
         case h::t => (h /: t)((s1,s2) => s1 ++ s2)
         case Nil => Sequent()
       }
-      c
     }
     override def contextAncestry(f: E, premise: SequentProof): Sequent = {
       require(conclusionContext contains f)
@@ -244,180 +233,6 @@ object proofs {
     override def info = "R"
   }
   
-  
-
-
-//  
-//  abstract class SequentProof(override val premises: List[SequentProof],
-//                              val auxFormulas: Map[SequentProof,Sequent]) 
-//  extends Proof[Sequent](premises) {
-//    // given a premise, and given a formula and its side in the conclusion, 
-//    // it should return the subsequent of the premise's conclusion
-//    // containing only ancestors of the given formula
-//    def ancestry: SequentProof => ((E,Side) => Sequent) 
-//    def mainFormulas : Sequent
-//    def conclusionContext : Sequent
-//    override def conclusion = mainFormulas ++ conclusionContext
-//  }
-//  
-//
-//  
-//  trait SingleMainFormula extends SequentProof {def mainFormula: E}
-//  
-//  trait Left  extends SingleMainFormula {override def mainFormulas = Sequent(mainFormula,Nil)}
-//  trait Right extends SingleMainFormula {override def mainFormulas = Sequent(Nil,mainFormula)}
-// 
-//  trait NoImplicitContraction extends SequentProof {
-//    override val conclusion = {
-//      val premiseContexts = premises.map(p => p.conclusion -- auxFormulas(p))
-//      val conclusionContext: Sequent = premiseContexts match {
-//        case h::t => (h /: t)((s1,s2) => s1 ++ s2)
-//        case Nil => Sequent()
-//      }
-//      mainFormulas ++ conclusionContext
-//    }
-//    def ancestorsOf(f: E) = {
-//      require(conclusion contains f)
-//      require(!(mainFormulas contains f))
-//      p:SequentProof => if (p.conclusion.ant contains f) Sequent(f,Nil)
-//           else if (p.conclusion.suc contains f) Sequent(Nil,f)
-//           else Sequent(Nil,Nil) 
-//    } 
-//  }
-//  
-//  class AxiomNew(override val mainFormulas: Sequent) 
-//  extends SequentProofNew(Nil)
-//  {
-//    override def info = "Ax"
-//  }
-//  
-//  class AndRNew(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E) 
-//  extends SequentProofNew(leftPremise::rightPremise::Nil)
-//  with SingleMainFormula
-//  with Right
-//  with NoImplicitContraction {
-//    require(leftPremise.conclusion.suc.contains(auxL) && rightPremise.conclusion.suc.contains(auxR))
-//    override val mainFormula = And(auxL,auxR)
-//    override lazy val conclusion = {
-//      ((leftPremise.conclusion -- auxFormulas(0)) ++
-//      (rightPremise.conclusion -- auxFormulas(1))) + And(auxL,auxR)
-//    }
-//    override def info = "AndR"
-//  }
-//  
-//  
-//  trait OnlyOneMainFormula extends SequentProof {
-//    override def ancestorsOf(f: E): SequentProof => Sequent = {
-//      if (mainFormulas contains f) auxFormulas
-//      else super.ancestorsOf(f)
-//    }
-//  }
-//  
-//  class Axiom(override val mainFormulas: Sequent) 
-//  extends SequentProof(Nil,Map())
-//  {
-//    override def info = "Ax"
-//  }
-//  
-//  class AndL(val premise:SequentProof, val auxL:E, val auxR:E) 
-//  extends SequentProof(premise::Nil, Sequent(auxL::auxR::Nil,Nil)::Nil) {
-//    require(premise.conclusion.ant.contains(auxL) && premise.conclusion.ant.contains(auxR))
-//    override lazy val conclusion = And(auxL,auxR) +: (premise.conclusion -- auxFormulas(0)) 
-//    override def info = "AndL"
-//  }
-//  
-//  class AndR(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E) 
-//  extends SequentProof(leftPremise::rightPremise::Nil,Sequent(Nil,auxL::Nil)::Sequent(Nil,auxR::Nil)::Nil) {
-//    require(leftPremise.conclusion.suc.contains(auxL) && rightPremise.conclusion.suc.contains(auxR))
-//    override lazy val conclusion = {
-//      ((leftPremise.conclusion -- auxFormulas(0)) ++
-//      (rightPremise.conclusion -- auxFormulas(1))) + And(auxL,auxR)
-//    }
-//    override def info = "AndR"
-//  }
-//  
-//  class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[Position]) 
-//  extends SequentProof(premise::Nil,Sequent(aux::Nil,Nil)::Nil) {
-//    require(premise.conclusion.ant.contains(aux))
-//    override lazy val conclusion = All(aux,v,pl) +: (premise.conclusion -- auxFormulas(0)) 
-//    override def info = "AllL"
-//  }
-// 
-//  class AllR(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var) 
-//  extends SequentProof(premise::Nil,Sequent(Nil,aux::Nil)::Nil) {
-//    require(premise.conclusion.suc.contains(aux))
-//    override val conclusion = (premise.conclusion -- auxFormulas(0)) + All(aux,v,eigenvar) 
-//    require(!conclusion.ant.exists(e => (eigenvar occursIn e)) &&
-//            !conclusion.suc.exists(e => (eigenvar occursIn e)))
-//    override def info = "AllR"
-//  }
-//  
-//  class Cut(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-//  extends SequentProof(leftPremise::rightPremise::Nil,Sequent(Nil,auxL::Nil)::Sequent(auxR::Nil,Nil)::Nil) {
-//    require((leftPremise.conclusion.suc contains auxL) && (rightPremise.conclusion.ant contains auxR))
-//    override val conclusion = {
-//      val antecedent = leftPremise.conclusion.ant ++ (rightPremise.conclusion.ant - auxR)
-//      val succedent = (leftPremise.conclusion.suc - auxL) ++ rightPremise.conclusion.suc
-//      Sequent(antecedent,succedent)
-//    }
-//    override def info = "Cut"
-//  }
-//  
-//  class CutA(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-//  extends SequentProof(leftPremise::rightPremise::Nil,Sequent(Nil,auxL::Nil)::Sequent(auxR::Nil,Nil)::Nil) {
-//    require((leftPremise.conclusion.suc contains auxL) && (rightPremise.conclusion.ant contains auxR))
-//    override val conclusion = {
-//      super.conclusion
-//      def contractDuplicates(l:List[E]) = {
-//        val firstDuplicates = new MSet[E]
-//        val secondDuplicates = new MSet[E]
-//        val seenStringReps = new MMap[String,E]
-//        l foreach { e => {
-//          val stringRep = e.stringRep
-//          if (seenStringReps contains stringRep) {
-//            firstDuplicates += seenStringReps(stringRep)
-//            secondDuplicates += e
-//          }
-//          else seenStringReps contains stringRep
-//        }}
-//        l.filterNot(e => firstDuplicates.contains(e) || firstDuplicates.contains(e))
-//        l ++ firstDuplicates
-//      }
-//    }
-//    override def info = "CutA"
-//  }
-//  
-//  class Res(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-//  extends Cut(leftPremise,rightPremise,auxL,auxR) {
-//    require((leftPremise.conclusion.suc contains auxL) && (rightPremise.conclusion.ant contains auxR))
-//    val unifier = unify((auxL,auxR)::Nil) match {
-//      case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
-//      case Some(u) => u
-//    }
-//    private val ancestorMap = new MMap[E,E]
-//    override val conclusion = {
-//      def descendant(e:E) = {val eS = (e/unifier); ancestorMap += (eS -> e); eS }
-//      val antecedent = leftPremise.conclusion.ant.map(descendant) ++ 
-//                      (rightPremise.conclusion.ant - auxR).map(descendant)
-//      val succedent = (leftPremise.conclusion.suc - auxL).map(descendant) ++ 
-//                      rightPremise.conclusion.suc.map(descendant)
-//      Sequent(antecedent,succedent)
-//    }
-//    override def mainFormulas = Sequent(Nil,Nil)
-//    override def ancestorsOf(f:E) = {
-//      val ancestor = ancestorMap(f)
-//      if (conclusion.ant contains f) {
-//        if (leftPremise.conclusion.ant contains ancestor) Sequent(ancestor::Nil,Nil)::Sequent(Nil,Nil)::Nil
-//        else  Sequent(Nil,Nil)::Sequent(ancestor::Nil,Nil)::Nil
-//      }
-//      else if (conclusion.suc contains f) {
-//        if (leftPremise.conclusion.suc contains ancestor) Sequent(Nil,ancestor::Nil)::Sequent(Nil,Nil)::Nil
-//        else  Sequent(Nil,Nil)::Sequent(Nil,ancestor::Nil)::Nil
-//      }
-//      else throw new Exception("Resolution: formula does not occur in the conclusion.")
-//    }
-//    override def info = "R"
-//  }
 
   object R {
     def apply(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E) = new Res(leftPremise, rightPremise, auxL, auxR)
@@ -480,144 +295,6 @@ object proofs {
       case _ => None
     }
   }
-  
-
-//  abstract class SequentProof(override val premises: List[SequentProof],
-//                              val auxFormulas: List[Sequent]) 
-//  extends Proof[Sequent](premises) {
-//    def mainFormulas = {
-//      def filterFormulasNotInPremises(l:List[E]) = l.filter(f => premises.forall(p => ! p.conclusion.contains(f) )) 
-//      Sequent(filterFormulasNotInPremises(conclusion.ant),filterFormulasNotInPremises(conclusion.suc))
-//    }
-//    def ancestorsOf(f: E): List[Sequent] = {
-//      require(conclusion contains f)
-//      if (mainFormulas contains f) auxFormulas
-//      else (for (p <- premises) yield (if (p.conclusion.ant contains f) Sequent(f::Nil,Nil)
-//                                       else if (p.conclusion.suc contains f) Sequent(Nil,f::Nil)
-//                                       else Sequent(Nil,Nil) )).toList
-//    } 
-//  }
-//  
-//  trait ImplicitContraction extends SequentProof {
-//    
-//  }
-//  
-//  trait Multiplicative extends SequentProof {
-//    override val conclusion = {
-//      val premiseContexts = (premises.map(p => p.conclusion) zip auxFormulas).map(pair => pair._1 -- pair._2)
-//      val conclusionContext = (premiseContexts.head /: premiseContexts.tail)((s1,s2) => s1 ++ s2)
-//      conclusionContext ++ mainFormulas
-//    }
-//  }
-//  
-//  trait Additive extends SequentProof {
-//    
-//  }
-//  
-//  
-//  class Axiom(override val conclusion: Sequent) extends SequentProof(Nil,Nil) {
-//    override def info = "Ax"
-//  }
-//  
-//  class AndL(val premise:SequentProof, val auxL:E, val auxR:E) 
-//  extends SequentProof(premise::Nil, Sequent(auxL::auxR::Nil,Nil)::Nil) {
-//    require(premise.conclusion.ant.contains(auxL) && premise.conclusion.ant.contains(auxR))
-//    override lazy val conclusion = And(auxL,auxR) +: (premise.conclusion -- auxFormulas(0)) 
-//    override def info = "AndL"
-//  }
-//  
-//  class AndR(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E) 
-//  extends SequentProof(leftPremise::rightPremise::Nil,Sequent(Nil,auxL::Nil)::Sequent(Nil,auxR::Nil)::Nil) {
-//    require(leftPremise.conclusion.suc.contains(auxL) && rightPremise.conclusion.suc.contains(auxR))
-//    override lazy val conclusion = {
-//      ((leftPremise.conclusion -- auxFormulas(0)) ++
-//      (rightPremise.conclusion -- auxFormulas(1))) + And(auxL,auxR)
-//    }
-//    override def info = "AndR"
-//  }
-//  
-//  class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[Position]) 
-//  extends SequentProof(premise::Nil,Sequent(aux::Nil,Nil)::Nil) {
-//    require(premise.conclusion.ant.contains(aux))
-//    override lazy val conclusion = All(aux,v,pl) +: (premise.conclusion -- auxFormulas(0)) 
-//    override def info = "AllL"
-//  }
-// 
-//  class AllR(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var) 
-//  extends SequentProof(premise::Nil,Sequent(Nil,aux::Nil)::Nil) {
-//    require(premise.conclusion.suc.contains(aux))
-//    override val conclusion = (premise.conclusion -- auxFormulas(0)) + All(aux,v,eigenvar) 
-//    require(!conclusion.ant.exists(e => (eigenvar occursIn e)) &&
-//            !conclusion.suc.exists(e => (eigenvar occursIn e)))
-//    override def info = "AllR"
-//  }
-//  
-//  class Cut(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-//  extends SequentProof(leftPremise::rightPremise::Nil,Sequent(Nil,auxL::Nil)::Sequent(auxR::Nil,Nil)::Nil) {
-//    require((leftPremise.conclusion.suc contains auxL) && (rightPremise.conclusion.ant contains auxR))
-//    override val conclusion = {
-//      val antecedent = leftPremise.conclusion.ant ++ (rightPremise.conclusion.ant - auxR)
-//      val succedent = (leftPremise.conclusion.suc - auxL) ++ rightPremise.conclusion.suc
-//      Sequent(antecedent,succedent)
-//    }
-//    override def info = "Cut"
-//  }
-//  
-//  class CutA(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-//  extends SequentProof(leftPremise::rightPremise::Nil,Sequent(Nil,auxL::Nil)::Sequent(auxR::Nil,Nil)::Nil) {
-//    require((leftPremise.conclusion.suc contains auxL) && (rightPremise.conclusion.ant contains auxR))
-//    override val conclusion = {
-//      super.conclusion
-//      def contractDuplicates(l:List[E]) = {
-//        val firstDuplicates = new MSet[E]
-//        val secondDuplicates = new MSet[E]
-//        val seenStringReps = new MMap[String,E]
-//        l foreach { e => {
-//          val stringRep = e.stringRep
-//          if (seenStringReps contains stringRep) {
-//            firstDuplicates += seenStringReps(stringRep)
-//            secondDuplicates += e
-//          }
-//          else seenStringReps contains stringRep
-//        }}
-//        l.filterNot(e => firstDuplicates.contains(e) || firstDuplicates.contains(e))
-//        l ++ firstDuplicates
-//      }
-//    }
-//    override def info = "CutA"
-//  }
-//  
-//  class Res(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-//  extends Cut(leftPremise,rightPremise,auxL,auxR) {
-//    require((leftPremise.conclusion.suc contains auxL) && (rightPremise.conclusion.ant contains auxR))
-//    val unifier = unify((auxL,auxR)::Nil) match {
-//      case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
-//      case Some(u) => u
-//    }
-//    private val ancestorMap = new MMap[E,E]
-//    override val conclusion = {
-//      def descendant(e:E) = {val eS = (e/unifier); ancestorMap += (eS -> e); eS }
-//      val antecedent = leftPremise.conclusion.ant.map(descendant) ++ 
-//                      (rightPremise.conclusion.ant - auxR).map(descendant)
-//      val succedent = (leftPremise.conclusion.suc - auxL).map(descendant) ++ 
-//                      rightPremise.conclusion.suc.map(descendant)
-//      Sequent(antecedent,succedent)
-//    }
-//    override def mainFormulas = Sequent(Nil,Nil)
-//    override def ancestorsOf(f:E) = {
-//      val ancestor = ancestorMap(f)
-//      if (conclusion.ant contains f) {
-//        if (leftPremise.conclusion.ant contains ancestor) Sequent(ancestor::Nil,Nil)::Sequent(Nil,Nil)::Nil
-//        else  Sequent(Nil,Nil)::Sequent(ancestor::Nil,Nil)::Nil
-//      }
-//      else if (conclusion.suc contains f) {
-//        if (leftPremise.conclusion.suc contains ancestor) Sequent(Nil,ancestor::Nil)::Sequent(Nil,Nil)::Nil
-//        else  Sequent(Nil,Nil)::Sequent(Nil,ancestor::Nil)::Nil
-//      }
-//      else throw new Exception("Resolution: formula does not occur in the conclusion.")
-//    }
-//    override def info = "R"
-//  }
   
   
   object traversal {
