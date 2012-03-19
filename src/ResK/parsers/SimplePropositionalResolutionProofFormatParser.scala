@@ -8,14 +8,14 @@ import ResK.formulas._
 import ResK.expressions._
 import ResK.judgments._
 
-class SimplePropositionalResolutionProofFormatParser(filename: String) extends JavaTokenParsers with RegexParsers {
+class SimplePropositionalResolutionProofFormatParser(filename: String) 
+extends JavaTokenParsers with RegexParsers {
   
   private val map = new MMap[Int,SequentProof]
-  private var root : SequentProof = null
 
-  def proof: Parser[Any] = rep(line)
+  def proof: Parser[List[(Any,SequentProof)]] = rep(line)
   def line: Parser[(Any,SequentProof)] = ("qed" | proofName) ~ "=" ~ subproof ^^ {
-    case ~(~("qed",_),p) => {root = p; ("qed",p)}
+    case ~(~("qed",_),p) => ("qed",p)
     case ~(~(name,_),p) => {
         //if (name.asInstanceOf[Int]%10000 == 1) println(name.asInstanceOf[Int])
         map += (name.asInstanceOf[Int] -> p); (name,p)
@@ -44,7 +44,10 @@ class SimplePropositionalResolutionProofFormatParser(filename: String) extends J
   def atom: Parser[Var] = wholeNumber ^^ {s => Var(s,o)}
 
   def getProof = {
-    parse(proof, new FileReader(filename))
-    root
+    parse(proof, new FileReader(filename)) match {
+      case Success(list,_) => list.last._2 // proof whose root is in the last line of the proof file
+      case Failure(message,_) => throw new Exception(message)
+      case Error(message,_) => throw new Exception(message)
+    }
   }
 }
