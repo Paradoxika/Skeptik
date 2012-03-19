@@ -1,6 +1,7 @@
 package ResK
 
 object judgments {
+  import scala.collection.TraversableOnce
   import scala.collection.immutable.{HashSet => ISet}
   import scala.collection.mutable.Stack
   import ResK.expressions._
@@ -29,7 +30,7 @@ object judgments {
     def apply(ant:List[E], suc:E) = new Sequent(ant,suc::Nil)
     def apply(ant:E, suc:List[E]) = new Sequent(ant::Nil,suc)
     def apply() = new Sequent(Nil,Nil)
-    def apply(s: ISet[E]) = {
+    def apply(s: TraversableOnce[E]) = {
       val ant = new Stack[E]; val suc = new Stack[E];
       for (f <- s) f match {
         case Neg(g) => ant.push(g)

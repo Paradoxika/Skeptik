@@ -207,7 +207,7 @@ object proofs {
     override def info = "CutIC"
   }
   
-  class Res(val leftPremise:SequentProof, val rightPremise:SequentProof, 
+  class R(val leftPremise:SequentProof, val rightPremise:SequentProof, 
             val auxL:E, val auxR:E)
   extends SequentProof(leftPremise::rightPremise::Nil,
                        Map(leftPremise -> Sequent(Nil,auxL),
@@ -236,9 +236,9 @@ object proofs {
   
 
   object R {
-    def apply(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E) = new Res(leftPremise, rightPremise, auxL, auxR)
+    def apply(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E) = new R(leftPremise, rightPremise, auxL, auxR)
     def apply(leftPremise:SequentProof, rightPremise:SequentProof, findL:E=>Boolean, findR:E=>Boolean) = {
-      new Res(leftPremise, rightPremise,
+      new R(leftPremise, rightPremise,
                      leftPremise.conclusion.suc.find(findL).get,  //ToDo: Catch Exception
                      rightPremise.conclusion.ant.find(findR).get) //ToDo: Catch Exception
     }
@@ -250,13 +250,13 @@ object proofs {
       val unifiablePairs = (for (auxL <- leftPremise.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL,auxR)).filter(isUnifiable)
       if (unifiablePairs.length > 0) { 
         val (auxL,auxR) = unifiablePairs(0)
-        new Res(leftPremise, rightPremise, auxL, auxR)
+        new R(leftPremise, rightPremise, auxL, auxR)
       }
       else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
       else throw new Exception("Resolution: the resolvent is ambiguous.") // ToDo
     }
     def unapply(p:SequentProof) = p match {
-      case p: Res => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
+      case p: R => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
       case _ => None
     }
   }
@@ -305,6 +305,25 @@ object proofs {
   }
   object CutIC {
     def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new CutIC(leftPremise,rightPremise,auxL,auxR)
+    def apply(premise1:SequentProof, premise2:SequentProof) = {
+      def findPivots(p1:SequentProof, p2:SequentProof): Option[(E,E)] = {
+        var result:Option[(E,E)] = None
+        p1.conclusion.suc.find(auxL => {
+          p2.conclusion.ant.find(auxR => auxL =*= auxR) match {
+            case None => false
+            case Some(f) => result = Some(auxL,f); true
+          }
+        })
+        result
+      }
+      findPivots(premise1,premise2) match {
+        case Some((auxL,auxR)) => new CutIC(premise1,premise2,auxL,auxR)
+        case None => findPivots(premise2,premise1) match {
+          case Some((auxL,auxR)) => new CutIC(premise2,premise1,auxL,auxR)
+          case None => throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+        }
+      }
+    }
     def unapply(p: SequentProof) = p match {
       case p: CutIC => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
       case _ => None

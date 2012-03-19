@@ -182,6 +182,27 @@ object Main {
     bottomUp[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})
     println()
     topDown[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})  
+    
+    val dir = "/Users/Bruno/Documents/proofs/"
+    val directory2 = dir + "SmallProofs/"
+    val proofFilesAim = List("50-1_6-no-1",
+                             "50-1_6-no-2",
+                             "50-1_6-no-3",
+                             "50-1_6-no-4",
+                             "50-2_0-no-1",
+                             "50-2_0-no-2",
+                             "50-2_0-no-3",
+                             "50-2_0-no-4"
+                          ).map(s => "aim-" + s)
+                  
+    import ResK.calculi.ProofParserNew._
+    for (proofFile <- proofFilesAim) {
+      println(proofFile)
+      println("parsing")
+      val p = getProofFromFile(directory2 + proofFile + ".proof")
+      println(p)
+    }  
+
   }
 
 }
