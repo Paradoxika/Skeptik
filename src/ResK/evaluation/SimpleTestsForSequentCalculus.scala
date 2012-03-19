@@ -195,11 +195,12 @@ object Main {
                              "50-2_0-no-4"
                           ).map(s => "aim-" + s)
                   
-    import ResK.calculi.ProofParserNew._
+    import ResK.parsers.{SimplePropositionalResolutionProofFormatParser => Parser}
     for (proofFile <- proofFilesAim) {
       println(proofFile)
       println("parsing")
-      val p = getProofFromFile(directory2 + proofFile + ".proof")
+      val parser = new Parser(directory2 + proofFile + ".proof")
+      val p = parser.getProof
       println(p)
     }  
 

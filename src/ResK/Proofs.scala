@@ -13,15 +13,14 @@ object proofs {
   
   abstract class Proof[J <: Judgment](val premises: List[Proof[J]]) {
     def conclusion : J
-    def info = ""
+    def name = ""
+    def parameters = Nil
     override def toString = {
-      var counter = 0
-      var result = ""
+      var counter = 0; var result = "";
       def visitNode(n:Proof[J],r:List[Int]): Int = {
         counter += 1
-        result += counter.toString + " = " + 
-                  n.info + "(" + listToCSVString(r) + 
-                  ") \t:\t" + n.conclusion + "\n"
+        result += counter.toString + ": {" + n.conclusion + "} \t:" +
+                  n.name + "(" + listToCSVString(r) + ")[" + listToCSVString(parameters) + "]\n"
         counter
       }
       proofs.traversal.topDown(this,visitNode)
@@ -43,7 +42,8 @@ object proofs {
     def contextAncestry(f: E, premise: SequentProof): Sequent
     def mainFormulas : Sequent
     def conclusionContext : Sequent
-    // The lazy modifier here is very important, because "conclusion" calls methods that will only be overriden by subtraits and subclasses.
+    // The lazy modifier for "conclusion" is very important, 
+    // because "conclusion" calls methods that will only be overriden by subtraits and subclasses.
     override lazy val conclusion = mainFormulas ++ conclusionContext
   }
   
@@ -155,14 +155,14 @@ object proofs {
   class Axiom(override val mainFormulas: Sequent) extends SequentProof(Nil,Map()) 
   with NoImplicitContraction {
     override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("Active formulas in axioms have no ancestors.")
-    override def info = "Ax"
+    override def name = "Ax"
   }
   
   class AndL(val premise:SequentProof, val auxL:E, val auxR:E) 
   extends SequentProof(premise::Nil, Map(premise -> Sequent(auxL::auxR::Nil,Nil)))
   with SingleMainFormula with Left with NoImplicitContraction{
     override val mainFormula = And(auxL,auxR)
-    override def info = "AndL"
+    override def name = "AndL"
   }
   
   class AndR(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E) 
@@ -170,14 +170,14 @@ object proofs {
                        Map(leftPremise -> Sequent(Nil,auxL), rightPremise -> Sequent(Nil,auxR))) 
   with NoImplicitContraction with SingleMainFormula with Right  {
     override val mainFormula = And(auxL,auxR)
-    override def info = "AndR"
+    override def name = "AndR"
   }
   
   class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[Position]) 
   extends SequentProof(premise::Nil,Map(premise -> Sequent(aux,Nil)))
   with SingleMainFormula with Left with NoImplicitContraction {
     override val mainFormula = All(aux,v,pl)
-    override def info = "AllL"
+    override def name = "AllL"
   }
  
   class AllR(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var) 
@@ -186,7 +186,7 @@ object proofs {
     override val mainFormula = All(aux,v,eigenvar)
     require(!conclusion.ant.exists(e => (eigenvar occursIn e)) &&
             !conclusion.suc.exists(e => (eigenvar occursIn e)))
-    override def info = "AllR"
+    override def name = "AllR"
   }
   
   class Cut(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
@@ -195,7 +195,7 @@ object proofs {
                            rightPremise -> Sequent(auxR,Nil)))
   with NoImplicitContraction with NoMainFormula {
     require(auxL =*= auxR)
-    override def info = "Cut"
+    override def name = "Cut"
   }
   
   class CutIC(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
@@ -204,7 +204,7 @@ object proofs {
                            rightPremise -> Sequent(auxR,Nil))) 
   with ImplicitContraction with NoMainFormula {
     require(auxL =*= auxR)
-    override def info = "CutIC"
+    override def name = "CutIC"
   }
   
   class R(val leftPremise:SequentProof, val rightPremise:SequentProof, 
@@ -231,7 +231,7 @@ object proofs {
       require(premises contains premise)
       ancestryMap.getOrElse((f,premise),Sequent())
     }
-    override def info = "R"
+    override def name = "R"
   }
   
 
