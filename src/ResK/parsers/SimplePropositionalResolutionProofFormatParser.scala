@@ -11,19 +11,15 @@ import ResK.judgments._
 class SimplePropositionalResolutionProofFormatParser(filename: String) 
 extends JavaTokenParsers with RegexParsers {
   
-  private val map = new MMap[Int,SequentProof]
+  private val map = new MMap[String,SequentProof]
 
-  def proof: Parser[List[(Any,SequentProof)]] = rep(line)
-  def line: Parser[(Any,SequentProof)] = ("qed" | proofName) ~ "=" ~ subproof ^^ {
-    case ~(~("qed",_),p) => ("qed",p)
-    case ~(~(name,_),p) => {
-        //if (name.asInstanceOf[Int]%10000 == 1) println(name.asInstanceOf[Int])
-        map += (name.asInstanceOf[Int] -> p); (name,p)
-      }
+  def proof: Parser[List[(String,SequentProof)]] = rep(line)
+  def line: Parser[(String,SequentProof)] = proofName ~ "=" ~ subproof ^^ {
+    case ~(~(name,_),p) => map += (name -> p); (name,p)
   }
   def subproof: Parser[SequentProof] = (input | resolvent | leftChain | proofName) ^^ {
     case p: SequentProof => p
-    case name: Int => map(name)
+    case name: String => map(name)
   }
   def input: Parser[SequentProof] = "{" ~> repsep(literal,",") <~ "}" ^^ {
     list => new Axiom(Sequent(list))
@@ -40,12 +36,12 @@ extends JavaTokenParsers with RegexParsers {
     case ~(Some(_),a) => Neg(a)
     case ~(None,a) => a
   }
-  def proofName: Parser[Int] = wholeNumber ^^ {s => s.toInt}
+  def proofName: Parser[String] = wholeNumber
   def atom: Parser[Var] = wholeNumber ^^ {s => Var(s,o)}
 
   def getProof = {
     parse(proof, new FileReader(filename)) match {
-      case Success(list,_) => list.last._2 // proof whose root is in the last line of the proof file
+      case Success(list,_) => list.last._2 // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception(message)
       case Error(message,_) => throw new Exception(message)
     }
