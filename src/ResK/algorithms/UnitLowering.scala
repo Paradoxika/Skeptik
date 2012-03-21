@@ -14,40 +14,15 @@ object UnitLowering {
     val visitedProofs = new mutable.HashSet[Proof]
 
 
-//    val callCount = new mutable.HashMap[Proof,Int]
-//    callCount += (proof -> -1)
-//    def increaseCallCount(p:Proof) = {
-//      callCount.get(p) match {
-//        case None => callCount += (p -> 1)
-//        case Some(i) => {
-//          callCount -= p
-//          callCount += (p -> (i+1))
-//        }
-//      }
-//    }
-//    def decreaseCallCount(p:Proof) = {
-//      callCount.get(p) match {
-//        case None => callCount += (p -> 1)
-//        case Some(i) => {
-//          callCount -= p
-//          callCount += (p -> (i-1))
-//        }
-//      }
-//    }
-//    def resetCallCount(p:Proof) = callCount -= p
-
-
     def rec(p: Proof): Unit = {
-      //increaseCallCount(p)
       if (p.children.forall(c => visitedProofs contains c )) { // ToDo: This can be made more efficient by keeping a callCount
-        //resetCallCount(p)
+
         visitedProofs += p
 
         counter += 1
 
         if (p.clause.size == 1 && p.children.length > 1) { // p is a unit with many children
           units += p
-          //println(units.length)
           for (c <- p.children) {
             if (p == c.left) deletedSubProof replacesLeftParentOf c
             else deletedSubProof replacesRightParentOf c
@@ -91,8 +66,6 @@ object UnitLowering {
     }
     //println("new root clause: " + newRootProof.clause)
   }
-
-  //private def reinsertUnitsFunctional(proof: Proof, units: mutable.Queue[Proof]): Proof = (proof /: units) ((p, u) => try {new Resolvent(p, u)} catch {case _ => {println(u.clause + " failed to resolve"); p}})
     
 
   def lowerUnits(p: Proof): Proof = {
