@@ -1,11 +1,68 @@
 package ResK.algorithms
 
-import ResK.calculi.resolution._
-import ResK.calculi.resolution.measures._
-import ResK.algorithms.ProofFixing._
-import scala.collection._
+
+object NewUnitLowering {
+  import ResK.proofs._
+  import ResK.judgments.Sequent
+  import ResK.calculi.resolution.measures._
+  import ResK.algorithms.ProofFixing._
+  import scala.collection.mutable.{Queue, HashMap => MMap}
+  //import scala.collection.immutable.{HashSet => ISet}
+
+  private def collectUnits(proof: SequentProof): Queue[SequentProof] = {
+    val units = new Queue[SequentProof]  
+    val childrenOf = new MMap[SequentProof,List[SequentProof]]
+    def addChild(p: SequentProof, child:SequentProof) = childrenOf.update(p, child::childrenOf.getOrElse(p,Nil))
+    def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
+    def visit(ps: Proof[Sequent], l:List[Any]) = {
+      // ToDo: casting is necessary, due to the contravariance in the function argument of bottomUp. The traversals are still not convenient and elegant enough.
+      val p = ps.asInstanceOf[SequentProof]
+      for (premise <- p.premises) 
+        addChild(premise,p)
+      if (isUnitClause(p.conclusion) && childrenOf(p).length > 1) units += p
+    }
+    traversal.bottomUp(proof,visit)
+    units
+  }
+
+  private def moveUnitsDown(proof: SequentProof, units: Queue[SequentProof]): SequentProof = {
+    val unitsSet = units.toSet
+    val fixMap = new MMap[SequentProof,SequentProof]
+    
+    def visit(ps:Proof[Sequent],fixedPremises:List[SequentProof]) = {
+      val p = ps.asInstanceOf[SequentProof]
+      val fixedLeft = fixedPremises.head; val fixedRight = fixedPremises.last;
+      val fixedP = p match {
+        case Axiom(conclusion) => Axiom(conclusion)
+        case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
+        case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
+        case CutIC(left,right,auxL,auxR) => ((fixedLeft.conclusion.suc contains auxL),(fixedRight.conclusion.suc contains auxR)) match {
+          case (true,true) => CutIC(fixedPremises.head,fixedPremises.last,auxL,auxR)
+          case (true,false) => fixedRight
+          case (false,true) => fixedLeft
+          case (false,false) => fixedLeft // ToDo: choosing left arbitrarily here. Should choose the smallest proof though.
+        }
+        case _ => throw new Exception("Unsupported inference rule encountered while lowering units")
+      }
+      if ((unitsSet contains p) || (p == proof)) fixMap += (p -> fixedP)
+      fixedP
+    }
+    traversal.topDown(proof,visit)
+    units.map(fixMap).foldLeft(fixMap(proof))( (left,right) => try {CutIC(left,right)} catch { case e: Exception => left })
+  }
+    
+
+  def apply(proof: SequentProof): SequentProof = moveUnitsDown(proof,collectUnits(proof))
+}
+
+
+
 
 object UnitLowering {
+  import ResK.calculi.resolution._
+  import ResK.calculi.resolution.measures._
+  import ResK.algorithms.ProofFixing._
+  import scala.collection._
 
   private var counter = 0
 

@@ -11,7 +11,7 @@ object proofs {
   import ResK.positions._
   import ResK.utilities.prettyPrinting._
   
-  abstract class Proof[J <: Judgment](val premises: List[Proof[J]]) {
+  abstract class Proof[+J <: Judgment](val premises: List[Proof[J]]) {
     def conclusion : J
     def name = ""
     def parameters = Nil
@@ -261,6 +261,16 @@ object proofs {
     }
   }
 
+ 
+
+  object Axiom {
+    def apply(conclusion: Sequent) = new Axiom(conclusion)
+    def unapply(p: SequentProof) = p match {
+      case p: Axiom => Some(p.conclusion)
+      case _ => None
+    }
+  } 
+
   object AllR {
     def apply(premise:SequentProof, aux:E, v:Var, eigenvar:Var) = new AllR(premise,aux,v,eigenvar)
     def unapply(p: SequentProof) = p match {
@@ -272,13 +282,6 @@ object proofs {
     def apply(premise:SequentProof, aux:E, v:Var, pl:List[Position]) = new AllL(premise,aux,v,pl)
     def unapply(p: SequentProof) = p match {
       case p: AllL => Some((p.premise,p.aux,p.v,p.pl))
-      case _ => None
-    }
-  } 
-  object Axiom {
-    def apply(conclusion: Sequent) = new Axiom(conclusion)
-    def unapply(p: SequentProof) = p match {
-      case p: Axiom => Some(p.conclusion)
       case _ => None
     }
   } 
@@ -307,14 +310,8 @@ object proofs {
     def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new CutIC(leftPremise,rightPremise,auxL,auxR)
     def apply(premise1:SequentProof, premise2:SequentProof) = {
       def findPivots(p1:SequentProof, p2:SequentProof): Option[(E,E)] = {
-        var result:Option[(E,E)] = None
-        p1.conclusion.suc.find(auxL => {
-          p2.conclusion.ant.find(auxR => auxL =*= auxR) match {
-            case None => false
-            case Some(f) => result = Some(auxL,f); true
-          }
-        })
-        result
+        for (auxL <- p1.conclusion.suc; auxR <- p2.conclusion.ant) if (auxL =*= auxR) return Some(auxL,auxR)
+        return None
       }
       findPivots(premise1,premise2) match {
         case Some((auxL,auxR)) => new CutIC(premise1,premise2,auxL,auxR)
@@ -335,6 +332,46 @@ object proofs {
     import scala.collection.mutable.Queue
     import scala.collection.mutable.Stack
     import scala.collection.mutable.{HashSet => MSet}
+  
+    
+//    val test : Any = "bla"
+//    
+//    class A[+K] 
+//    class B extends A[String]
+//    
+//    def m(f:A[Any]=>Unit, a: A[Any]):Unit = {f(a)}
+//    
+//    def va[K](a:A[K]) = {println(a)}
+//    def vb(b:B) = {println(b)}
+//    val a1 = new A[String]
+//    val a2 = new A[Int]
+//    val b = new B
+//    m(vb,a1)
+//    m(vb,a2)
+//    m(vb,b)
+//    m(va,a1)
+//    m(va,a2)
+//    m(va,b)
+    
+//    abstract class ATree[+A](val parents: List[ATree[A]])
+//    class MyTree(parents:List[MyTree]) extends ATree[String](parents)
+//    case class Leaf(a:String) extends MyTree(Nil)
+//    case class Node(l:MyTree,r:MyTree) extends MyTree(l::r::Nil)
+//    
+//    def traverse[A](t: ATree[A], f: ATree[A] => Unit): Unit = {
+//      f(t)
+//      for (p <- t.parents) traverse(p, f)
+//    }
+//    
+//    val example = Node(Leaf("a"),Leaf("b"))
+//    
+//    def doSomething(t:MyTree) = println(t)
+//    
+//    traverse(example, doSomething)
+//    
+//    def doS[A](t:ATree[A]) = println(t.asInstanceOf[MyTree])
+//    
+//    traverse(example, doS)
     
     
     def topologicallySort[J <: Judgment](roots:Proof[J]*) = {
@@ -353,8 +390,8 @@ object proofs {
     
     
     
-    def topDown[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = topDownT(f,topologicallySort(p)._2)  
-    def topDownT[J <: Judgment,X](f:(Proof[J],List[X])=>X, 
+    def topDown[J <: Judgment ,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = topDownT(f,topologicallySort(p)._2)  
+    def topDownT[J <: Judgment ,X](f:(Proof[J],List[X])=>X, 
                                   nodes:TraversableOnce[Proof[J]]):Unit = {
       val resultFrom : MMap[Proof[J],X] = MMap()
 
@@ -364,7 +401,7 @@ object proofs {
       })
     }
     
-    
+
     def bottomUp[J <: Judgment,X](p:Proof[J], f:(Proof[J],List[X])=>X):Unit = bottomUpT(f,topologicallySort(p)._1)  
     def bottomUpT[J <: Judgment,X](f:(Proof[J],List[X])=>X, 
                                    nodes:TraversableOnce[Proof[J]]):Unit = {
@@ -379,6 +416,8 @@ object proofs {
         })        
       })
     }
+    
+    
   }
 }
 
