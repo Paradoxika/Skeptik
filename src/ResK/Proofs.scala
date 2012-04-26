@@ -334,44 +334,26 @@ object proofs {
     import scala.collection.mutable.{HashSet => MSet}
   
     
-//    val test : Any = "bla"
-//    
-//    class A[+K] 
-//    class B extends A[String]
-//    
-//    def m(f:A[Any]=>Unit, a: A[Any]):Unit = {f(a)}
-//    
-//    def va[K](a:A[K]) = {println(a)}
-//    def vb(b:B) = {println(b)}
-//    val a1 = new A[String]
-//    val a2 = new A[Int]
-//    val b = new B
-//    m(vb,a1)
-//    m(vb,a2)
-//    m(vb,b)
-//    m(va,a1)
-//    m(va,a2)
-//    m(va,b)
     
-//    abstract class ATree[+A](val parents: List[ATree[A]])
-//    class MyTree(parents:List[MyTree]) extends ATree[String](parents)
+//    abstract class ATree[+A,+B <: ATree[A,B]](val parents: List[B])
+//    class MyTree(parents:List[MyTree]) extends ATree[String,MyTree](parents)
 //    case class Leaf(a:String) extends MyTree(Nil)
 //    case class Node(l:MyTree,r:MyTree) extends MyTree(l::r::Nil)
 //    
-//    def traverse[A](t: ATree[A], f: ATree[A] => Unit): Unit = {
+//    def traverse[A, B <: ATree[A,B]](t: B, f: B => Unit): Unit = {
 //      f(t)
-//      for (p <- t.parents) traverse(p, f)
+//      for (p <- t.parents) traverse[A,B](p, f)
 //    }
 //    
 //    val example = Node(Leaf("a"),Leaf("b"))
 //    
 //    def doSomething(t:MyTree) = println(t)
 //    
-//    traverse(example, doSomething)
-//    
-//    def doS[A](t:ATree[A]) = println(t.asInstanceOf[MyTree])
-//    
-//    traverse(example, doS)
+//    traverse[String,MyTree](example, doSomething)
+    
+    //def doS[A](t:ATree[A]) = println(t.asInstanceOf[MyTree])
+    
+    //traverse(example, doS)
     
     
     def topologicallySort[J <: Judgment](roots:Proof[J]*) = {
