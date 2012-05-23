@@ -6,14 +6,19 @@ object logicalConstants {
   def andC = Var(andS, o -> (o -> o))
 
   val allS = "A"
-  def allC(t:T) = Var("A", (t -> o ) -> o)
+  def allC(t:T) = Var(allS, (t -> o ) -> o)
+  
+  val exS = "E"
+  def exC(t:T) = Var(exS, (t -> o ) -> o)
   
   val negS = "-"
   def negC = Var(negS, o -> o)
   
   def isLogicalConnective(c:E) = c match {
-    case c: Var => if (c.name == "&" || 
-                       c.name == "A") true else false
+    case c: Var => {
+      val n = c.name 
+      if (n == andS || n == allS || n == exS || n == negS) true else false
+    }
     case _ => false
   }
 }
@@ -55,7 +60,7 @@ object formulas {
   object And {
     def apply(f1: E, f2: E) = App(App(andC,f1),f2)
     def unapply(e:E) = e match {
-      case App(App(c,f1),f2) if c syntaticEquals andC => Some((f1,f2))
+      case App(App(c,f1),f2) if c == andC => Some((f1,f2))
       case _ => None
     }  
   }
@@ -63,27 +68,31 @@ object formulas {
   object Neg {
     def apply(f: E) = App(negC,f)
     def unapply(e:E) = e match {
-      case App(c,f) if c =*= negC => Some(f)
+      case App(c,f) if c == negC => Some(f)
       case _ => None
     }  
   }
   
-  object All {
-    def apply(v:Var, f:E) = App(allC(v.t), Abs(v,f))
+
+  abstract class Q(quantifierC:T=>E) {
+    def apply(v:Var, f:E) = App(quantifierC(v.t), Abs(v,f))
     def apply(f:E, v:Var, pl:List[Position]) = {
       // ToDo: check that the terms in all positions are syntactically equal.
       val h = (f /: pl)((e,p) => deepApply(t => v.copy, e, p)) // This could be made more efficient by traversing the formula only once, instead of traversing it once for each position.
-      App(allC(v.t), Abs(v,h))
+      App(quantifierC(v.t), Abs(v,h))
     }
     def apply(f:E, v:Var, t:E) = {
       val h = deepApplyAll(x => v.copy, f, t)
-      App(allC(v.t), Abs(v,h))
+      App(quantifierC(v.t), Abs(v,h))
     }
     def unapply(e:E) = e match {
-      case App(q, Abs(v,f)) if q syntaticEquals allC(v.t) => Some((v,f))
+      case App(q, Abs(v,f)) if q == quantifierC(v.t) => Some((v,f))
       case _ => None
     }  
   }
+  
+  object All extends Q(allC)  
+  object Ex extends Q(exC)
 }
 
 
@@ -92,7 +101,7 @@ object formulaAlgorithms {
   import positions._
   import formulas._
   
-  def deepApplyAll(f:E=>E, e:E, t:E):E = if (e syntaticEquals t) f(e) else e match {
+  def deepApplyAll(f:E=>E, e:E, t:E):E = if (e == t) f(e) else e match {
     case v: Var => v.copy
     case App(g,a) => App(deepApplyAll(f,g,t),deepApplyAll(f,a,t))
     case Abs(v,g) => Abs(deepApplyAll(f,v,t).asInstanceOf[Var],deepApplyAll(f,g,t))

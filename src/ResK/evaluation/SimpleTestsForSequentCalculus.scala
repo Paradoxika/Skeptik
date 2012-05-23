@@ -7,9 +7,23 @@ import ResK.formulas._
 import ResK.formulaAlgorithms._
 
 
+import org.gridgain.scalar.scalar
+import org.gridgain.scalar.scalar._
+import org.gridgain.grid.GridClosureCallMode._
+
+import ResK.gridgain.GridGainCollection
+
 object Main {
 
   def main(args: Array[String]): Unit = {
+    
+    val input = "Testing Gridgain's mapreduce on this string."
+    
+    val gridtest = new GridGainCollection(input.split(" "))
+
+    //gridtest.mapReduce((w: String) => {println(w); w.length}, (s: Seq[Int]) => s.sum)
+    
+    
     
     println("Lambda Terms:")
     println()
@@ -27,10 +41,10 @@ object Main {
     println("Syntatic Equality versus Object Equality:")
     println()
     println("e1 == e2 :" + e1 == e2)
-    println("e1 syntaticEquals e2 :" + (e1 syntaticEquals e2))
-    println("e1 =*= e2 :" + (e1 =*= e2))
+    println("e1 syntaticEquals e2 :" + (e1 == e2))
+    println("e1 =*= e2 :" + (e1 == e2))
     println("e1 == e1.copy :" + e1 == e1.copy)
-    println("e1 =*= e1.copy :" + (e1 =*= e1.copy))
+    println("e1 =*= e1.copy :" + (e1 == e1.copy))
     
     println()
     println()    
@@ -74,7 +88,7 @@ object Main {
     println("k : " + k)
     println("l : " + l)
     println("k == l :" + k == l)
-    println("k =*= l :" + (k =*= l))
+    println("k =*= l :" + (k == l))
     println("k alphaEquals l :" + (k alphaEquals l))
     println("k =+= l :" + (k =+= l))
     
@@ -132,77 +146,86 @@ object Main {
     
     import ResK.expressions.algorithms._
     
-    val z = Var("z",i->o,"eigen")
-    val P = v("P",i->o)
-    val w = v("u",i)
-    println(unify((App(z,w),App(P,w.copy))::Nil))
-    println(unify((App(z,w),App(Abs(v("x",i),App(P,v("x",i))),w.copy))::Nil))
+    
+    object test2 {
+      def apply() = {
+        val z = Var("z",i->o)
+        val P = v("P",i->o)
+        val w = v("u",i)
+        implicit val uW : Set[Var] = Set(z)
+        println(unify((App(z,w),App(P,w.copy))::Nil))
+        println(unify((App(z,w),App(Abs(v("x",i),App(P,v("x",i))),w.copy))::Nil))
+      }   
+    }
+    test2()
 
-    
-    println()
-    println()   
-    println("Propositional Resolution: ")
-    println()
-    
-    val AiBC = Axiom(S(v("A",o)::Nil, v("B",o)::v("C",o)::Nil))
-    val ABi = Axiom(S(v("A",o)::v("B",o)::Nil, Nil))
-    val Ci = Axiom(S(v("C",o)::Nil, Nil))
-    val iA = Axiom(S(Nil, v("A",o)::Nil))
- 
+
     
     println()
     println()   
     println("Higher-order Resolution: ")
     println()
-    
-    val rProof = R(R(R(iA,AiBC),
-                     R(iA,ABi)),
-                   Ci)
-    println(rProof)
+
     
     val hAiBC = Axiom(S(Atom(v("A",i->o),v("d",i)::Nil)::Nil, Atom(v("B",i->o),v("c",i)::Nil)::v("C",o)::Nil))
-    val hABi = Axiom(S(Atom(v("A",i->o),Var("y",i,"eigen")::Nil)::Atom(v("B",i->o),Var("y",i,"eigen")::Nil)::Nil, Nil))
-    val hCi = Axiom(S(Var("X",o,"eigen")::Nil, Nil))
-    val hiA = Axiom(S(Nil, Atom(v("A",i->o),Var("z",i,"eigen")::Nil)::Nil))
+    val hABi = Axiom(S(Atom(v("A",i->o),Var("y",i)::Nil)::Atom(v("B",i->o),Var("y",i)::Nil)::Nil, Nil))
+    val hCi = Axiom(S(Var("X",o)::Nil, Nil))
+    val hiA = Axiom(S(Nil, Atom(v("A",i->o),Var("z",i)::Nil)::Nil))
     
-    val hrProof = R(R(hiA,
-                      R(hiA,
-                        R(hAiBC,hABi))),
-                    hCi)
-    println(hrProof)
     
-    import ResK.proofs.traversal._;
+    object test1 {
+      def apply() = {
+        implicit val uV = Set(Var("z",i), Var("y",i), Var("X",o))
+
+
+        val hrProof = R(R(hiA,
+                        R(hiA,
+                          R(hAiBC,hABi))),
+                      hCi)
+        println(hrProof)         
+      } 
+    }
+    test1()
+
     
-    val (up, down) = topologicallySort(hrProof)
-    println()
-    up.foreach(n => println(n.conclusion))
-    println()
-    down.foreach(n => println(n.conclusion))
-    println()
-    bottomUp[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})
-    println()
-    topDown[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})  
+//    val hrProof = R(R(hiA,
+//                      R(hiA,
+//                        R(hAiBC,hABi,uV),uV),uV),
+//                    hCi,uV)
+//    println(hrProof)
     
-    val dir = "/Users/Bruno/Documents/proofs/"
-    val directory2 = dir + "SmallProofs/"
-    val proofFilesAim = List("50-1_6-no-1",
-                             "50-1_6-no-2",
-                             "50-1_6-no-3",
-                             "50-1_6-no-4",
-                             "50-2_0-no-1",
-                             "50-2_0-no-2",
-                             "50-2_0-no-3",
-                             "50-2_0-no-4"
-                          ).map(s => "aim-" + s)
-                  
-    import ResK.parsers.{SimplePropositionalResolutionProofFormatParser => Parser}
-    for (proofFile <- proofFilesAim) {
-      println(proofFile)
-      println("parsing")
-      val parser = new Parser(directory2 + proofFile + ".proof")
-      val p = parser.getProof
-      println(p)
-    }  
+//    import ResK.proofs.traversal._;
+//    
+//    val (up, down) = topologicallySort(hrProof)
+//    println()
+//    up.foreach(n => println(n.conclusion))
+//    println()
+//    down.foreach(n => println(n.conclusion))
+//    println()
+//    bottomUp[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})
+//    println()
+//    topDown[Sequent,Any](hrProof,(p,l)=>{println(p.conclusion)})  
+//    
+//    val dir = "/Users/Bruno/Documents/proofs/"
+//    val directory2 = dir + "SmallProofs/"
+//    val proofFilesAim = List("50-1_6-no-1",
+//                             "50-1_6-no-2",
+//                             "50-1_6-no-3",
+//                             "50-1_6-no-4",
+//                             "50-2_0-no-1",
+//                             "50-2_0-no-2",
+//                             "50-2_0-no-3",
+//                             "50-2_0-no-4"
+//                          ).map(s => "aim-" + s)
+//                  
+//    import ResK.parsers.{SimplePropositionalResolutionProofFormatParser => Parser}
+//    for (proofFile <- proofFilesAim) {
+//      println(proofFile)
+//      println("parsing")
+//      val parser = new Parser(directory2 + proofFile + ".proof")
+//      val p = parser.getProof
+//      println(p)
+//    }  
 
   }
 

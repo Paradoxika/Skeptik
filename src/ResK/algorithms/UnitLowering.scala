@@ -1,60 +1,53 @@
 package ResK.algorithms
 
-
-object NewUnitLowering {
+object NewUnitLowering extends Function1[ResK.proofs.SequentProof,ResK.proofs.SequentProof] {
   import ResK.proofs._
   import ResK.judgments.Sequent
   import ResK.calculi.resolution.measures._
   import ResK.algorithms.ProofFixing._
   import scala.collection.mutable.{Queue, HashMap => MMap}
-  //import scala.collection.immutable.{HashSet => ISet}
 
-  private def collectUnits(proof: SequentProof): Queue[SequentProof] = {
-    val units = new Queue[SequentProof]  
-    val childrenOf = new MMap[SequentProof,List[SequentProof]]
-    def addChild(p: SequentProof, child:SequentProof) = childrenOf.update(p, child::childrenOf.getOrElse(p,Nil))
+  // made public for debug. TODO: private
+  def collectUnits(proofs: ProofNodeCollection[SequentProof]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
-    def visit(ps: Proof[Sequent], l:List[Any]) = {
-      // ToDo: casting is necessary, due to the contravariance in the function argument of bottomUp. The traversals are still not convenient and elegant enough.
-      val p = ps.asInstanceOf[SequentProof]
-      for (premise <- p.premises) 
-        addChild(premise,p)
-      if (isUnitClause(p.conclusion) && childrenOf(p).length > 1) units += p
-    }
-    traversal.bottomUp(proof,visit)
-    units
+    proofs.foldRight(Nil:List[SequentProof])((p, acc) =>
+      if (isUnitClause(p.conclusion) && proofs.childrenOf(p).length > 1) p::acc else acc
+    );
   }
 
-  private def moveUnitsDown(proof: SequentProof, units: Queue[SequentProof]): SequentProof = {
-    val unitsSet = units.toSet
-    val fixMap = new MMap[SequentProof,SequentProof]
-    
-    def visit(ps:Proof[Sequent],fixedPremises:List[SequentProof]) = {
-      val p = ps.asInstanceOf[SequentProof]
-      val fixedLeft = fixedPremises.head; val fixedRight = fixedPremises.last;
+  // made public for debug. TODO: private
+  def fixProofs(unitsSet: Set[SequentProof], proofs: ProofNodeCollection[SequentProof]) = {
+    val fixMap = MMap[SequentProof,SequentProof]()
+
+    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
+      lazy val fixedLeft  = fixedPremises.head;
+      lazy val fixedRight = fixedPremises.last;
       val fixedP = p match {
         case Axiom(conclusion) => Axiom(conclusion)
         case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
         case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
-        case CutIC(left,right,auxL,auxR) => ((fixedLeft.conclusion.suc contains auxL),(fixedRight.conclusion.suc contains auxR)) match {
-          case (true,true) => CutIC(fixedPremises.head,fixedPremises.last,auxL,auxR)
-          case (true,false) => fixedRight
-          case (false,true) => fixedLeft
-          case (false,false) => fixedLeft // ToDo: choosing left arbitrarily here. Should choose the smallest proof though.
-        }
-        case _ => throw new Exception("Unsupported inference rule encountered while lowering units")
+        case CutIC(left,right,auxL,auxR) => CutIC(fixedLeft, fixedRight, auxL, auxR)
+//      case CutIC(left,right,auxL,auxR) => ((fixedLeft.conclusion.suc  contains auxL),
+//                                           (fixedRight.conclusion.ant contains auxR)) match {
+//        case (true,true) => CutIC(fixedLeft, fixedRight, auxL, auxR)
+//        case (true,false) => println(p.conclusion + " -> " + fixedRight.conclusion) ; fixedRight
+//        case (false,true) => println(p.conclusion + " -> " + fixedLeft.conclusion) ; fixedLeft
+//        case (false,false) => println("cata") ; fixedLeft // ToDo: choosing left arbitrarily here. Should choose the smallest proof though.
       }
-      if ((unitsSet contains p) || (p == proof)) fixMap += (p -> fixedP)
+      if (p == proofs.root || unitsSet.contains(p)) fixMap.update(p, fixedP)
       fixedP
     }
-    traversal.topDown(proof,visit)
-    units.map(fixMap).foldLeft(fixMap(proof))( (left,right) => try {CutIC(left,right)} catch { case e: Exception => left })
+    proofs.foldDown(visit)
+    fixMap
   }
-    
 
-  def apply(proof: SequentProof): SequentProof = moveUnitsDown(proof,collectUnits(proof))
+  def apply(p: SequentProof) = {
+    val proofs  = ProofNodeCollection(p)
+    val units   = collectUnits(proofs)
+    val fixMap  = fixProofs(units.toSet, proofs)
+    units.map(fixMap).foldLeft(fixMap(p))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
+  }
 }
-
 
 
 
@@ -96,13 +89,7 @@ object UnitLowering {
       }
     }
     val k = length(proof)
-    println("proof length: " + length(proof))
     rec(proof)
-    println(counter)
-    if (counter < k) println("ops!")
-    println("proof length: " + length(proof))
-    //println(units.length)
-    //println((units.map(p => p.length) :\ proof.length)((x,y) => x+y) )
     counter = 0
     units
   }

@@ -113,7 +113,6 @@ object Regularization {
 
 
   def recyclePivots(p:Proof): Proof = {
-    println("recycling pivots")
     if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], new mutable.HashSet[Literal], recyclePivotsContinuation)
     p
   }

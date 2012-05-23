@@ -36,8 +36,8 @@ extends JavaTokenParsers with RegexParsers {
     case ~(Some(_),a) => Neg(a)
     case ~(None,a) => a
   }
-  def proofName: Parser[String] = wholeNumber
-  def atom: Parser[Var] = wholeNumber ^^ {s => Var(s,o)}
+  def proofName: Parser[String] = """\w+""".r
+  def atom: Parser[Var] =  """\w+""".r ^^ {s => Var(s,o)}
 
   def getProof = {
     parse(proof, new FileReader(filename)) match {

@@ -12,6 +12,7 @@ object judgments {
   abstract class Judgment
   class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
     def contains(f:E) = (ant contains f) || (suc contains f)
+    def exists(p:E=>Boolean) = ant.exists(p) || suc.exists(p)
     def supersequentOf(s:Sequent) = s.ant.forall(f => ant contains f) && s.suc.forall(f => suc contains f)
     def --(s:Sequent) = Sequent(ant -- s.ant, suc -- s.suc)
     def ++(s:Sequent) = Sequent(ant ++ s.ant, suc ++ s.suc)
