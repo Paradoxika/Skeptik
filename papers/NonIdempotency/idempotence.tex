@@ -1,0 +1,105 @@
+\documentclass[a4paper]{article}
+
+\usepackage{kpfonts}
+\usepackage[left=2.8cm, right=4cm, bottom=2.5cm]{geometry}
+
+\usepackage{bussproofs}
+\def\defaultHypSeparation{\hskip.1in}
+
+\begin{document}
+
+\section{Proof of RPI's non-idempotence}
+
+In the following proof, we consider, without loss of generality, that every
+expression of the form $\eta \odot_p \eta'$ implies that $p \in \eta$ and $\neg
+p \in \eta'$.
+
+Consider a proof of the form
+$\psi_0[
+  \psi_1[ \psi_2 [ \eta_0 \odot_p \eta_1 ] \odot_p \eta_2 ]
+\odot_q
+  \psi_3 [ (\eta_0 \odot_p \eta_1) \odot_q \eta_3 ]
+]$. If $p$ is resolved neither in $\psi_3$ nor in $\psi_0$ then $p$ isn't a safe
+litteral of $\eta_0 \odot_p \eta_1$. After a first application of the RPI
+algorithm, the compressed proof will be
+$\psi_0[
+  \psi_1[ \psi_2 [ \eta_0 \odot_p \eta_1 ] \odot_p \eta_2 ]
+\odot_q \psi'_3[\eta_3] ]$.
+And then, $p$ is a safe litteral of $\eta_0 \odot_p \eta_1$.  Hence, a second
+application of the RPI algorithm will compress this proof further to
+$\psi_0[ \psi'_1 [ \eta_0 \odot_p \psi'_2[\eta_2] ]
+\odot_q \psi'_3[\eta_3] ]$.
+
+
+\section{Example}
+
+Given the following proof :
+
+\begin{prooftree}
+
+\AxiomC{$\eta_0 : p, x$}
+\AxiomC{$\eta_1 : q, \neg p$}
+\RightLabel{$p$}
+\BinaryInfC{$\eta' : x, q$}
+
+\AxiomC{$p, \neg x$}
+\RightLabel{$x$}
+\BinaryInfC{$q, p$}
+
+\AxiomC{$\eta_2 : \neg p$}
+\RightLabel{$p$}
+\BinaryInfC{$q$}
+
+\AxiomC{$\eta' : x, q$}
+\AxiomC{$\eta_3 : \neg q$}
+\RightLabel{$q$}
+\BinaryInfC{$x$}
+
+\AxiomC{$\neg x, \neg q$}
+\RightLabel{$x$}
+\BinaryInfC{$\neg q$}
+
+\RightLabel{$q$}
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
+A first compression with RPI algorithm returns :
+
+\begin{prooftree}
+
+\AxiomC{$\eta_0 : p, x$}
+\AxiomC{$\eta_1 : q, \neg p$}
+\RightLabel{$p$}
+\BinaryInfC{$\eta' : x, q$}
+
+\AxiomC{$p, \neg x$}
+\RightLabel{$x$}
+\BinaryInfC{$q, p$}
+
+\AxiomC{$\eta_2 : \neg p$}
+\RightLabel{$p$}
+\BinaryInfC{$q$}
+
+\AxiomC{$\eta_3 : \neg q$}
+\RightLabel{$q$}
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
+A second compression with RPI algorithm returns :
+
+\begin{prooftree}
+
+\AxiomC{$\eta_0 : p, x$}
+\AxiomC{$p, \neg x$}
+\RightLabel{$x$}
+\BinaryInfC{$p$}
+
+\AxiomC{$\eta_2 : \neg p$}
+\RightLabel{$p$}
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
+\end{document}
