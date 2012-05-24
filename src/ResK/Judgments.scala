@@ -35,6 +35,7 @@ object judgments {
     def apply(ant:List[E], suc:List[E]) = new Sequent(ant,suc)
     def apply(ant:List[E], suc:E) = new Sequent(ant,suc::Nil)
     def apply(ant:E, suc:List[E]) = new Sequent(ant::Nil,suc)
+    def apply(ant:E, suc:E) = new Sequent(ant::Nil,suc::Nil)
     def apply() = new Sequent(Nil,Nil)
     def apply(s: TraversableOnce[E]) = {
       val ant = new Stack[E]; val suc = new Stack[E];

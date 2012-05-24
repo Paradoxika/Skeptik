@@ -7,15 +7,19 @@ import ResK.formulas._
 import ResK.formulaAlgorithms._
 
 
-import org.gridgain.scalar.scalar
-import org.gridgain.scalar.scalar._
-import org.gridgain.grid.GridClosureCallMode._
-
 import ResK.gridgain.GridGainCollection
+
+import ResK.provers.SimpleProver
 
 object Main {
 
   def main(args: Array[String]): Unit = {
+    
+    
+    val prover = new SimpleProver(Seq(AndL, AxiomTaut, WeakeningL))
+    
+    val goal = Sequent(And(Var("A", o),Var("B",o))::Nil,Var("A", o))
+    println(prover.prove(goal).getOrElse("no proof"))
     
     val input = "Testing Gridgain's mapreduce on this string."
     

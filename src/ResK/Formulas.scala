@@ -33,6 +33,12 @@ object formulas {
   import positions._
   import formulaAlgorithms._
 
+  abstract class FormulaConstructorExtractor {
+    def unapply(f:E):Option[_]
+    def ?:(f: E) = unapply(f).isInstanceOf[Some[Any]] 
+    //def ?:(f: E) = unapply(f).isInstanceOf[Some[Any]] 
+  }
+  
   object Atom {
     def apply(p: E, args: List[E]) = {
       val atom = (p /: args)((p,a) => App(p,a))
@@ -57,7 +63,7 @@ object formulas {
     } 
   }
   
-  object And {
+  object And extends FormulaConstructorExtractor {
     def apply(f1: E, f2: E) = App(App(andC,f1),f2)
     def unapply(e:E) = e match {
       case App(App(c,f1),f2) if c == andC => Some((f1,f2))
