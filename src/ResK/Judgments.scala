@@ -21,7 +21,12 @@ object judgments {
     def -(f:E) = new Sequent(ant, suc - f)
     def -:(f:E) = new Sequent(ant - f, suc)    
     
-    def ==(s:Sequent) = (ant.toSet == s.ant.toSet) || (suc.toSet == s.suc.toSet)
+    override def equals(v:Any) = v match {		
+        case that:Sequent => (that canEqual this) && (ant.toSet == that.ant.toSet) && (suc.toSet == that.suc.toSet)	
+        case _ => false		
+    }		
+    def canEqual(other: Any) = other.isInstanceOf[Sequent]
+    
     override def hashCode = 42*ant.toSet.hashCode + suc.toSet.hashCode
     override def toString = listToCSVString(ant) + " :- " + listToCSVString(suc)
     def toSet: ISet[E] = ISet() ++ ant.map(f => Neg(f)) ++ suc
