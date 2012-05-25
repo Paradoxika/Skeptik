@@ -4,6 +4,9 @@ object logicalConstants {
   import ResK.expressions._
   val andS = "&"
   def andC = Var(andS, o -> (o -> o))
+  
+  val impS = "->"
+  def impC = Var(impS, o -> (o -> o))
 
   val allS = "A"
   def allC(t:T) = Var(allS, (t -> o ) -> o)
@@ -17,7 +20,7 @@ object logicalConstants {
   def isLogicalConnective(c:E) = c match {
     case c: Var => {
       val n = c.name 
-      if (n == andS || n == allS || n == exS || n == negS) true else false
+      if (n == andS || n == impS || n == allS || n == exS || n == negS) true else false
     }
     case _ => false
   }
@@ -71,6 +74,15 @@ object formulas {
     }  
   }
   
+  object Imp extends FormulaConstructorExtractor {
+    def apply(f1: E, f2: E) = App(App(impC,f1),f2)
+    def unapply(e:E) = e match {
+      case App(App(c,f1),f2) if c == impC => Some((f1,f2))
+      case _ => None
+    }  
+  }
+    
+  
   object Neg {
     def apply(f: E) = App(negC,f)
     def unapply(e:E) = e match {
@@ -122,6 +134,8 @@ object formulaAlgorithms {
     }
     case (And(a1,a2),1::tail) => And(deepApply(f,a1,tail),a2.copy)
     case (And(a1,a2),2::tail) => And(a1.copy,deepApply(f,a2,tail))
+    case (Imp(a1,a2),1::tail) => Imp(deepApply(f,a1,tail),a2.copy)
+    case (Imp(a1,a2),2::tail) => Imp(a1.copy,deepApply(f,a2,tail))
     case (All(v,q),1::Nil) => All(f(v).asInstanceOf[Var],q.copy)
     case (All(v,q),2::tail) => All(v.copy,deepApply(f,q,tail))
     case _ => throw new Exception("deepApply: provided position seems to be an invalid position in the formula")
