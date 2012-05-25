@@ -23,10 +23,10 @@ abstract class InferenceRule[J <: Judgment, P <: Proof[J,P]] {
 class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
   // Simple generic bottom-up proof search
 def prove(j: J): Option[P] = {
-    val proofs: Seq[Option[P]] = for (rule <- calculus; subGoals <- rule(j)) yield {
-      val premises: Seq[Option[P]] = subGoals.par.map(subGoal => prove(subGoal)).seq
-      if (premises contains None) None 
-      else rule(premises.map(_.get), j)
+    val proofs = for (rule <- calculus.par; subGoals <- rule(j).par) yield {
+      val premises = subGoals.par.map(subGoal => prove(subGoal))
+      if (premises.seq contains None) None 
+      else rule(premises.map(_.get).seq, j)
     }
     proofs.find(_.isInstanceOf[Some[P]]).getOrElse(None)
   }
