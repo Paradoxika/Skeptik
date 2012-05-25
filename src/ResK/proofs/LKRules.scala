@@ -107,7 +107,7 @@ object AxiomTaut extends InferenceRule[Sequent, SequentProof] {
   }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-  def apply(j: Sequent): Seq[Seq[Sequent]] = ((Nil.toSeq)::Nil).toSeq
+  def apply(j: Sequent): Seq[Seq[Sequent]] = Seq(Seq())
   
   def apply(premises: Seq[SequentProof], conclusion: Sequent): Option[SequentProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 0 && conclusion.ant.length == 1 && conclusion.suc.length == 1 && conclusion.ant.head == conclusion.suc.head) 
