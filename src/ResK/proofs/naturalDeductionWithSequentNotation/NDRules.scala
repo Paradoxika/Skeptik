@@ -92,22 +92,23 @@ object ImpElim extends InferenceRule[Sequent, NaturalDeductionProof] {
   }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-  def apply(j: Sequent): Seq[Seq[Sequent]] = for (h <- j.ant if h ?: Imp) yield h match {
+  def apply(j: Sequent): Seq[Seq[Sequent]] = (for (h <- j.ant) yield h match {
     case Imp(a,b) if b == j.suc.head => {
-      val left = (h -: j) + b
+      val left = (h -: j) - b + a
       val right = Sequent(Imp(a,b),Imp(a,b))
-      Seq(left,right)
+      Some(Seq(left,right))
     }
-  } 
+    case _ => None
+  }).filter(_ != None).map(_.get) 
   
   def apply(premises: Seq[NaturalDeductionProof], conclusion: Sequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 2 && conclusion.suc.length == 1) {
       try {
-        val proof = ImpElim(premises(1), premises(2))
+        val proof = ImpElim(premises(0), premises(1))
         if (proof.conclusion == conclusion) Some(proof)
         else None
       }
-      catch {case _ => None}
+      catch {case e: Exception => None}
     }
     else None
   }
