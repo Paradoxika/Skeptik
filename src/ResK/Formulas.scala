@@ -33,7 +33,10 @@ object positions {
 
   
   abstract class Position {
-    //applies f at this position in formula
+    // returns the subformula of f at this position
+    def !:(f:E):E
+    
+    // applies f at this position in formula
     def @:(f: E => E)(formula:E): E
     
     def isPositiveIn(formula:E): Boolean
@@ -45,13 +48,18 @@ object positions {
   
   // position of the index-th occurrence of subformula
   case class SubformulaP(subformula:E, index:Int) extends Position {
+    def !:(formula:E):E = {
+      //ToDo
+      formula
+    }
+    
     def @:(f: E => E)(formula:E): E = {
       var count = 0
       def rec(e: E): E = {
         if (e == subformula) count += 1
         if (e == subformula && count == index) f(e)
         else e match {
-          case v: Var => v.copy
+          case v: Var => v
           case App(g,a) => App(rec(g),rec(a))
           case Abs(v,g) => Abs(rec(v).asInstanceOf[Var],rec(g))
         }     

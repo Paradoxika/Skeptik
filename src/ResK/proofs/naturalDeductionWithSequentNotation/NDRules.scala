@@ -3,8 +3,6 @@ package ResK.proofs.naturalDeductionWithSequentNotation
 import ResK.judgments.Sequent
 import ResK.expressions.E
 import ResK.formulas._
-import ResK.positions._
-//import ResK.provers.InferenceRule
 import ResK.proofs.{SequentProof,NoImplicitContraction,ImplicitContraction,SingleMainFormula,Right}
 import ResK.provers.InferenceRule
 
@@ -26,6 +24,7 @@ with SingleMainFormula with Right with NoImplicitContraction {
   override val mainFormula = Imp(auxL,premise.conclusion.suc.head)
 }
 
+// ToDo: Maybe the trait ImplicitContraction is not exactly what is needed here. Check! 
 class ImpElim(val leftPremise:SequentProof, val rightPremise:SequentProof)
 extends NaturalDeductionProof("ImpElim", leftPremise::rightPremise::Nil,
                      Map(leftPremise -> Sequent(Nil,leftPremise.conclusion.suc.head), rightPremise -> Sequent(Nil,rightPremise.conclusion.suc.head)))

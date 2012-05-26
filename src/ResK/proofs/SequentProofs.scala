@@ -4,7 +4,9 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import ResK.judgments.Sequent
 import ResK.expressions.E
 
-
+// ToDo: passing arguments in the constructor of this abstract class makes it impossible
+// to initialize these fields with traits. This leads to code duplication.
+// It might be a good idea to transform these into def's.
 abstract class SequentProof(name: String, 
                             override val premises: List[SequentProof],
                             val auxFormulas: Map[SequentProof, Sequent])

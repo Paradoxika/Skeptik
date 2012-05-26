@@ -14,12 +14,12 @@ object judgments {
     def contains(f:E) = (ant contains f) || (suc contains f)
     def exists(p:E=>Boolean) = ant.exists(p) || suc.exists(p)
     def supersequentOf(s:Sequent) = s.ant.forall(f => ant contains f) && s.suc.forall(f => suc contains f)
-    def --(s:Sequent) = Sequent(ant -- s.ant, suc -- s.suc)
+    def --(s:Sequent) = Sequent(ant -- s.ant, suc -- s.suc) // ToDo: this needs to be carefully fixed, because now equals was overriden
     def ++(s:Sequent) = Sequent(ant ++ s.ant, suc ++ s.suc)
     def +(f:E) = new Sequent(ant, f::suc)
     def +:(f:E) = new Sequent(f::ant, suc)
-    def -(f:E) = new Sequent(ant, suc - f)
-    def -:(f:E) = new Sequent(ant - f, suc)    
+    def -(f:E) = new Sequent(ant, suc - f) // ToDo: this needs to be carefully fixed, because now equals was overriden
+    def -:(f:E) = new Sequent(ant - f, suc) // ToDo: this needs to be carefully fixed, because now equals was overriden    
     
     override def equals(v:Any) = v match {		
         case that:Sequent => (that canEqual this) && (ant.toSet == that.ant.toSet) && (suc.toSet == that.suc.toSet)	
