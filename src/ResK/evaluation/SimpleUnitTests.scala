@@ -35,7 +35,10 @@ object Main {
     println( (testF @: position4)( ha ) )
     try {println( (testF @: position5)( ha ) )} catch {case e: InexistentPositionException => println(e)}
     
-    println()
+    println( position1 isPositiveIn ha)
+    println( position2 isPositiveIn ha)
+    println( position3 isPositiveIn ha)
+    println( position4 isPositiveIn ha)
     
     //println((testF @: SubformulaP(Prop("A"),1))( Imp(Prop("A"),Prop("B"))  ))
     

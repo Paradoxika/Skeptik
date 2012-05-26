@@ -28,12 +28,15 @@ object logicalConstants {
 
 object positions {
   import expressions._
+  import formulas._
   
 
   
   abstract class Position {
     //applies f at this position in formula
-    def @:(f: E => E)(formula:E): E 
+    def @:(f: E => E)(formula:E): E
+    
+    def isPositiveIn(formula:E): Boolean
   }
   
   type IntListPosition = List[Int] // ToDo: refactor this into a subclass of Position, if needed. Maybe it is better to try to use SubformulaP instead.
@@ -57,7 +60,35 @@ object positions {
       if (count >= index) result 
       else throw new InexistentPositionException(formula,this)
     }
+    
+    def isPositiveIn(formula: E): Boolean = {
+      var count = 0 
+      def rec(e:E): Option[Boolean] = {
+        if (e == subformula) count += 1
+        
+        def propagateResult(r1:Option[Boolean],r2:Option[Boolean]) = (r1,r2) match {
+          case (Some(b),None) => Some(b)
+          case (None,Some(b)) => Some(b)
+          case (None,None) => None
+          case (Some(b1),Some(b2)) => throw new Exception("this case should never occur.")
+        }
+        
+        if (e == subformula && count == index) Some(true)
+        else e match {
+          case Imp(a,b) => (rec(a),rec(b)) match {
+            case (Some(b),None) => Some(!b)
+            case (r1,r2) => propagateResult(r1,r2) 
+          }
+          case App(g,a) => propagateResult(rec(g),rec(a))
+          case Abs(v,g) => propagateResult(rec(v),rec(g))
+          case v: Var => None
+        }
+      }
+      rec(formula).getOrElse(throw new InexistentPositionException(formula,this))
+    }
   }
+  
+  
 }
 
 object formulas {
