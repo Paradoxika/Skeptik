@@ -2,11 +2,9 @@ package ResK.provers
 
 import ResK.proofs.Proof
 import ResK.judgments.Judgment
-//import scala.collection.parallel.mutable.ParArray
-//import scala.collection.parallel.ParSeq
-//import scala.collection.immutable.Vector
-//import ResK.gridgain.GridGainSeq
-//import scala.collection.mutable.{HashSet => MSet}
+//import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.immutable.{HashSet => ISet}
+
 
 object typeAliases {
   type Calculus[J <: Judgment, P <: Proof[J,P]] = Seq[InferenceRule[J, P]]
@@ -22,20 +20,31 @@ abstract class InferenceRule[J <: Judgment, P <: Proof[J,P]] {
 
 class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
   // Simple generic bottom-up proof search
-def prove(j: J): Option[P] = {
-    val proofs = for (rule <- calculus.par; subGoals <- rule(j).par) yield {
-      val premises = subGoals.par.map(subGoal => prove(subGoal))
-      if (premises.seq contains None) None 
-      else rule(premises.map(_.get).seq, j)
+  def prove(goal:J) : Option[P] = {
+    def proveRec(j: J, seen: ISet[J]): Option[P] = {
+      val proofs = for (rule <- calculus.par; subGoals <- rule(j).par) yield {
+        def proofOf(g: J) = if (seen contains g) None else proveRec(g, seen + j)
+        val premises = subGoals.par.map(subGoal => proofOf(subGoal))
+        if (premises.seq contains None) None 
+        else {
+          //println("goal: " + j)
+          //println("premises")
+          //premises.map(println(_))
+          val p = rule(premises.map(_.get).seq, j)
+          //println("proof: ")
+          //println(p)
+          p
+        }
+      }
+      proofs.find(_.isInstanceOf[Some[P]]).getOrElse(None)
     }
-    proofs.find(_.isInstanceOf[Some[P]]).getOrElse(None)
+    proveRec(goal, new ISet[J])
   }
-  
-  // Simple generic top-down proof search
-  def prove(axioms: Seq[P], target: J): Option[P] = {
-    None // ToDo
+    // Simple generic top-down proof search
+    def prove(axioms: Seq[P], target: J): Option[P] = {
+      None // ToDo
+    }
   }
-}
 
 //class SimpleGridGainProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
 //  // Simple generic bottom-up proof search
