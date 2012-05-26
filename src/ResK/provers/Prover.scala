@@ -21,7 +21,7 @@ abstract class InferenceRule[J <: Judgment, P <: Proof[J,P]] {
 class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
   // Simple generic bottom-up proof search
   def prove(goal:J) : Option[P] = {
-    def proveRec(j: J, seen: ISet[J]): Option[P] = { // "seen" keeps track of goals that already occurred below. This allows the detection of cycles and prevents this kind of non-termination.
+    def proveRec(j: J, seen: ISet[J]): Option[P] = { // "seen" keeps track of goals that already occurred below, in order to detect and prevent cycles.
       val proofs = for (rule <- calculus.par; subGoals <- rule(j).par) yield {
         def proofOf(g: J) = if (seen contains g) None else proveRec(g, seen + j)
         val premises = subGoals.par.map(subGoal => proofOf(subGoal))
