@@ -36,7 +36,7 @@ object positions {
     def @:(f: E => E)(formula:E): E 
   }
   
-  type IntListPosition = List[Int] // ToDo: refactor this into a subclass of Position
+  type IntListPosition = List[Int] // ToDo: refactor this into a subclass of Position, if needed. Maybe it is better to try to use SubformulaP instead.
   
   class InexistentPositionException(formula: E, position: Position) extends Exception("Position " + position + " does not exist in formula " + formula)
   
@@ -45,7 +45,6 @@ object positions {
     def @:(f: E => E)(formula:E): E = {
       var count = 0
       def rec(e: E): E = {
-        //println(e + " ; count: " + count)
         if (e == subformula) count += 1
         if (e == subformula && count == index) f(e)
         else e match {
@@ -59,10 +58,6 @@ object positions {
       else throw new InexistentPositionException(formula,this)
     }
   }
-  
-  //def test(e: E) = e
-  
-  //(test _ @: SingleOccurrencePosition)(Var("a",o))
 }
 
 object formulas {

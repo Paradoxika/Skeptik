@@ -24,12 +24,9 @@ object Main {
     val position3 = SubformulaP(Prop("A"),3)
     val position4 = SubformulaP(Prop("A"),4)
     val position5 = SubformulaP(Prop("A"),5)
-
-    def testF : E => E = (e:E) => Var("Hi",o)
-    //def deepF(f:E) = (testF @: position)(f)
     
-    //val ha = deepF(Imp(Prop("A"),Prop("A")))
-    //println(ha)
+    def testF : E => E = (e:E) => Var("Hi",o)
+
     
     val ha = Imp(Imp(Prop("A"),Prop("A")), Imp(Prop("A"),Prop("A")))
     println( (testF @: position1)( ha ) )
