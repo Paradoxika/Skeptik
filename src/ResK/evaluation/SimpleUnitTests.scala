@@ -4,30 +4,64 @@ import ResK.expressions._
 import ResK.judgments._
 import ResK.proofs._
 import ResK.formulas._
+import ResK.positions._
 import ResK.formulaAlgorithms._
+import ResK.proofs.naturalDeductionWithSequentNotation.{ImpElim,ImpIntro,Axiom => NDAxiom}
 
 
-import ResK.gridgain.GridGainCollection
+//import ResK.gridgain.GridGainSeq
 
 import ResK.provers.SimpleProver
+//import ResK.provers.SimpleGridGainProver
 
 object Main {
 
   def main(args: Array[String]): Unit = {
     
     
-    val prover = new SimpleProver(Seq(AndL, AxiomTaut, WeakeningL))
+    val position1 = SubformulaP(Prop("A"),1)
+    val position2 = SubformulaP(Prop("A"),2)
+    val position3 = SubformulaP(Prop("A"),3)
+    val position4 = SubformulaP(Prop("A"),4)
+    val position5 = SubformulaP(Prop("A"),5)
+
+    def testF : E => E = (e:E) => Var("Hi",o)
+    //def deepF(f:E) = (testF @: position)(f)
     
-    val goal = Sequent(And(Var("A", o),Var("B",o))::Nil,Var("A", o))
-    println(prover.prove(goal).getOrElse("no proof"))
+    //val ha = deepF(Imp(Prop("A"),Prop("A")))
+    //println(ha)
     
-    val input = "Testing Gridgain's mapreduce on this string."
+    val ha = Imp(Imp(Prop("A"),Prop("A")), Imp(Prop("A"),Prop("A")))
+    println( (testF @: position1)( ha ) )
+    println( (testF @: position2)( ha ) )
+    println( (testF @: position3)( ha ) )
+    println( (testF @: position4)( ha ) )
+    try {println( (testF @: position5)( ha ) )} catch {case e: InexistentPositionException => println(e)}
     
-    val gridtest = new GridGainCollection(input.split(" "))
+    println()
+    
+    //println((testF @: SubformulaP(Prop("A"),1))( Imp(Prop("A"),Prop("B"))  ))
+    
+    //val input = "Testing Gridgain's mapreduce on this string."
+    
+    //val gridtest = new GridGainSeq(input.split(" "))
 
     //gridtest.mapReduce((w: String) => {println(w); w.length}, (s: Seq[Int]) => s.sum)
     
+    val prover = new SimpleProver(Seq(AndL, AxiomTaut, WeakeningL))
+    //val parprover = new SimpleGridGainProver(Seq(AndL, AxiomTaut, WeakeningL))
     
+    val goal = Sequent(And(Var("A", o),Var("B",o))::Nil,Var("A", o))
+    println(prover.prove(goal).getOrElse("no proof"))
+    //println(parprover.prove(goal).getOrElse("no proof"))
+    
+
+    val ndProver = new SimpleProver(Seq(ImpElim,ImpIntro,NDAxiom))
+    val ndGoal = Sequent(Nil,Imp(Var("B", o),
+                                 Imp(Imp(Var("B", o),
+                                         Var("C", o)), 
+                                     Var("C", o))))
+    println(ndProver.prove(ndGoal).getOrElse("none"))
     
     println("Lambda Terms:")
     println()

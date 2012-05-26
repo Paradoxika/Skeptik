@@ -27,7 +27,42 @@ object logicalConstants {
 }
 
 object positions {
-  type Position = List[Int]
+  import expressions._
+  
+
+  
+  abstract class Position {
+    //applies f at this position in formula
+    def @:(f: E => E)(formula:E): E 
+  }
+  
+  type IntListPosition = List[Int] // ToDo: refactor this into a subclass of Position
+  
+  class InexistentPositionException(formula: E, position: Position) extends Exception("Position " + position + " does not exist in formula " + formula)
+  
+  // position of the index-th occurrence of subformula
+  case class SubformulaP(subformula:E, index:Int) extends Position {
+    def @:(f: E => E)(formula:E): E = {
+      var count = 0
+      def rec(e: E): E = {
+        //println(e + " ; count: " + count)
+        if (e == subformula) count += 1
+        if (e == subformula && count == index) f(e)
+        else e match {
+          case v: Var => v.copy
+          case App(g,a) => App(rec(g),rec(a))
+          case Abs(v,g) => Abs(rec(v).asInstanceOf[Var],rec(g))
+        }     
+      } 
+      val result = rec(formula)
+      if (count >= index) result 
+      else throw new InexistentPositionException(formula,this)
+    }
+  }
+  
+  //def test(e: E) = e
+  
+  //(test _ @: SingleOccurrencePosition)(Var("a",o))
 }
 
 object formulas {
@@ -40,6 +75,11 @@ object formulas {
     def unapply(f:E):Option[_]
     def ?:(f: E) = unapply(f).isInstanceOf[Some[Any]] 
     //def ?:(f: E) = unapply(f).isInstanceOf[Some[Any]] 
+  }
+  
+  
+  object Prop {
+    def apply(name: String) = Var(name, o)
   }
   
   object Atom {
@@ -94,7 +134,7 @@ object formulas {
 
   abstract class Q(quantifierC:T=>E) {
     def apply(v:Var, f:E) = App(quantifierC(v.t), Abs(v,f))
-    def apply(f:E, v:Var, pl:List[Position]) = {
+    def apply(f:E, v:Var, pl:List[IntListPosition]) = {
       // ToDo: check that the terms in all positions are syntactically equal.
       val h = (f /: pl)((e,p) => deepApply(t => v.copy, e, p)) // This could be made more efficient by traversing the formula only once, instead of traversing it once for each position.
       App(quantifierC(v.t), Abs(v,h))
@@ -125,7 +165,7 @@ object formulaAlgorithms {
     case Abs(v,g) => Abs(deepApplyAll(f,v,t).asInstanceOf[Var],deepApplyAll(f,g,t))
   }
   
-  def deepApply(f:E=>E, e:E, p:Position):E = (e,p) match {
+  def deepApply(f:E=>E, e:E, p:IntListPosition):E = (e,p) match {
     case (e,Nil) => f(e)
     case (Atom(p,args),n::tail) => {
       val newArg = deepApply(f,args(n-1),tail)

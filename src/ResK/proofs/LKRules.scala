@@ -37,13 +37,13 @@ with NoImplicitContraction with SingleMainFormula with Right  {
   override val mainFormula = And(auxL,auxR)
 }
 
-class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[Position])
+class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
 extends SequentProof("AllL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction {
   override val mainFormula = All(aux,v,pl)
 }
 
-class ExR(val premise:SequentProof, val aux:E, val v:Var, val pl:List[Position])
+class ExR(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
 extends SequentProof("ExR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
 with SingleMainFormula with Right with NoImplicitContraction {
   override val mainFormula = Ex(aux,v,pl)
@@ -124,7 +124,7 @@ object AllR {
   }
 }
 object AllL {
-  def apply(premise:SequentProof, aux:E, v:Var, pl:List[Position]) = new AllL(premise,aux,v,pl)
+  def apply(premise:SequentProof, aux:E, v:Var, pl:List[IntListPosition]) = new AllL(premise,aux,v,pl)
   def unapply(p: SequentProof) = p match {
     case p: AllL => Some((p.premise,p.aux,p.v,p.pl))
     case _ => None
