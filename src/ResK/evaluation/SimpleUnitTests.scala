@@ -7,12 +7,13 @@ import ResK.formulas._
 import ResK.positions._
 import ResK.formulaAlgorithms._
 import ResK.proofs.naturalDeductionWithSequentNotation.{ImpElim,ImpIntro,Axiom => NDAxiom}
+import ResK.proofs.naturalDeduction.{NamedE, NaturalDeductionProof, ImpElim => ImpE, ImpIntro => ImpI, Assumption}
 
-
-//import ResK.gridgain.GridGainSeq
 
 import ResK.provers.SimpleProver
-//import ResK.provers.SimpleGridGainProver
+import ResK.provers.SimpleProverWithSideEffects
+
+import scala.collection.immutable.{HashSet => ISet}
 
 object Main {
 
@@ -62,6 +63,19 @@ object Main {
                                          Var("C", o)), 
                                      Var("C", o))))
     println(ndProver.prove(ndGoal).getOrElse("none"))
+    
+    println()
+    
+    val ndProver1 = new SimpleProverWithSideEffects(Seq(ImpE,ImpI,Assumption))
+    val ndGoal1 = Imp(Var("B", o),
+                      Imp(Imp(Var("B", o),
+                              Var("C", o)), 
+                          Var("C", o)))
+    val context1 = new ISet[NamedE]
+    println(ndProver1.prove(ndGoal1,context1).getOrElse("none"))
+    
+    println()
+    
     
     println("Lambda Terms:")
     println()
