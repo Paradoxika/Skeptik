@@ -68,6 +68,10 @@ trait ImplicitContraction extends SequentProof {
     val antDuplicates = new MSet[E]
     val sucSeen = new MSet[E]
     val sucDuplicates = new MSet[E]
+    
+    // ToDo: if a formula appears twice in the same premise, 
+    // it will be implicitly contracted and will appear only once in the conclusion.
+    // This is not alway the intended behaviour. See natural deduction, for example.
     for (p <- premises) {
       for (f <- context(p).ant) {
         if (antSeen contains f) antDuplicates += f

@@ -1,7 +1,7 @@
 package ResK
 
-import scala.collection.immutable.{HashMap => IMap}
-import scala.collection.immutable.{HashSet => ISet}
+import scala.collection.immutable.{HashMap => IMap,HashSet => ISet}
+import ResK.judgments.Judgment
 
 object expressions {
   sealed abstract class T {
@@ -14,7 +14,7 @@ object expressions {
   }
  
   
-  abstract class E {
+  abstract class E extends Judgment {
     def t: T
     
     def copy: E

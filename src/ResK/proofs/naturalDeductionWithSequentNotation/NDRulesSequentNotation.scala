@@ -25,6 +25,7 @@ with SingleMainFormula with Right with NoImplicitContraction {
 }
 
 // ToDo: Maybe the trait ImplicitContraction is not exactly what is needed here. Check! 
+// Indeed it is not! Named formulas are needed in the left side of the sequent.
 class ImpElim(val leftPremise:SequentProof, val rightPremise:SequentProof)
 extends NaturalDeductionProof("ImpElim", leftPremise::rightPremise::Nil,
                      Map(leftPremise -> Sequent(Nil,leftPremise.conclusion.suc.head), rightPremise -> Sequent(Nil,rightPremise.conclusion.suc.head)))
