@@ -85,13 +85,12 @@ object Main {
     
     var yesCounter = 0
     var noCounter = 0
-    for (goal <- generateAcc(generate(3),3).par) {
+    for (goal <- generateAcc(generate(2),2)) {
       val provable = ndProver1.prove(goal,context1) match {
         case None => {noCounter += 1; "no"} 
         case _ => {yesCounter += 1; "yes"}
       }
       println(provable + " goal:" + goal)
-      println()   
     }
     
     println("yes: " + yesCounter)
