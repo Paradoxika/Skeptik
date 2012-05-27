@@ -13,6 +13,8 @@ import ResK.proofs.naturalDeduction.{NamedE, NaturalDeductionProof, ImpElim => I
 import ResK.provers.SimpleProver
 import ResK.provers.SimpleProverWithSideEffects
 
+import ResK.formulaGenerator._
+
 import scala.collection.immutable.{HashSet => ISet}
 
 object Main {
@@ -75,6 +77,26 @@ object Main {
     println(ndProver1.prove(ndGoal1,context1).getOrElse("none"))
     
     println()
+    
+    println(generate(4))
+    println(generate(generate(3),1))
+    println(generate(generate(3),2))
+    println(generateAcc(generate(2),2))
+    
+    var yesCounter = 0
+    var noCounter = 0
+    for (goal <- generateAcc(generate(3),3).par) {
+      val provable = ndProver1.prove(goal,context1) match {
+        case None => {noCounter += 1; "no"} 
+        case _ => {yesCounter += 1; "yes"}
+      }
+      println(provable + " goal:" + goal)
+      println()   
+    }
+    
+    println("yes: " + yesCounter)
+    println("no:" + noCounter)
+    
     
     
     println("Lambda Terms:")

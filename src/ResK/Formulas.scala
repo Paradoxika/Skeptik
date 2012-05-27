@@ -187,6 +187,24 @@ object formulas {
   object Ex extends Q(exC)
 }
 
+object formulaGenerator {
+  import ResK.formulas._
+  import ResK.expressions._
+  
+  def generate(quantity: Int) = for (i <- 1 until quantity+1) yield Prop("P"+i)
+  
+  def generate(expSeq: Seq[E], depth: Int): Seq[E] = {
+    val exps = if (depth == 1) expSeq else generate(expSeq, depth - 1)
+    (for (f1 <- exps.par; f2 <- exps.par) yield Imp(f1,f2)).seq
+  }
+
+  def generateAcc(expSeq: Seq[E], depth: Int): Seq[E] = {
+    val exps = if (depth == 1) expSeq else generateAcc(expSeq, depth - 1)
+    expSeq ++ (for (f1 <- exps.par; f2 <- exps.par) yield Imp(f1,f2)).seq
+  }
+  
+}
+
 
 object formulaAlgorithms {
   import expressions._
