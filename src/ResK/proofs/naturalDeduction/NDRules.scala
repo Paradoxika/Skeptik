@@ -26,6 +26,7 @@ extends Proof[E, NaturalDeductionProof](name, premises) {
 class Assumption(val assumption: NamedE)(implicit val context: Context) extends NaturalDeductionProof("Ax",Nil) {
   require(context contains assumption)
   override val conclusion = assumption.expression
+  override def parameters = context::Nil
 }
 
 class ImpIntro(val premise: NaturalDeductionProof, val assumption: NamedE)
@@ -33,6 +34,7 @@ extends NaturalDeductionProof("ImpIntro",premise::Nil) {
   require(premise.context contains assumption)
   override val context = premise.context - assumption
   override val conclusion = Imp(assumption.expression, premise.conclusion)
+  override def parameters = context::Nil
 }
 
 class ImpElim(val leftPremise:NaturalDeductionProof, val rightPremise:NaturalDeductionProof)
@@ -42,6 +44,7 @@ extends NaturalDeductionProof("ImpElim", leftPremise::rightPremise::Nil) {
     case (a,Imp(b,c)) if a == b => c
     case _ => throw new Exception("Implication Elimination Rule cannot be applied because the formulas do not match")
   }
+  override def parameters = context::Nil
 }
 
 object Assumption extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, Context] {

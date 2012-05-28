@@ -4,6 +4,7 @@ import ResK.proofs.Proof
 import ResK.judgments.Judgment
 //import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashSet => ISet}
+import ResK.proofs.ProofNodeCollection
 
 
 object typeAliases {
@@ -46,16 +47,55 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
 }
 
 class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P], S](calculus: CalculusWithSideEffects[J,P,S]) {
+  import ResK.proofs._  
+
   // Simple generic bottom-up proof search
   def prove(goal:J,context:S) : Option[P] = {
     def proveRec(j: J, seen: ISet[J], c: S): Option[P] = { // "seen" keeps track of goals that already occurred below, in order to detect and prevent cycles.
-      val proofs = for (rule <- calculus.par; subGoals <- rule(j)(c).par) yield {
+      val proofs = for (rule <- calculus; subGoals <- rule(j)(c)) yield {
+//        println("goal: " + j)
+//        println("context: " + c)
+//        println("rule: " + rule)
+//        println("subgoals: " + subGoals)
+//        println()
         def proofOf(g: J, c: S) = if (seen contains g) None else proveRec(g, seen + j, c)
-        val premises = subGoals.par.map({case (state,subGoal) => proofOf(subGoal,state)})
+        val premises = subGoals.map({case (state,subGoal) => proofOf(subGoal,state)})
         if (premises.seq contains None) None 
-        else rule(premises.map(_.get).seq, j)(c)
+        else {
+//          println("    goal: " + j)
+//          println("    rule: " + rule)
+//          println("    premises: " + premises)
+          val proof = rule(premises.map(_.get).seq, j)(c)
+//          println("    proof: " + proof)
+//          println()
+          proof
+        }
       }
-      proofs.find(_.isInstanceOf[Some[P]]).getOrElse(None)
+      //val proof = proofs.find(_.isInstanceOf[Some[P]]).getOrElse(None)
+      val filteredProofs: Seq[P] = proofs.filter(_ != None).map(_.get)
+      
+      if (filteredProofs.length == 0) return None
+      
+      def findShortestProof(seq: Seq[P]): P = {
+        var minSize = 999999999
+        var minIndex = 0
+        for (i <- 0 until seq.length) {
+          val p: P = seq(i)
+          val pc = ProofNodeCollection(p)
+          val size = pc.size
+          if (size < minSize) {
+            minSize = size
+            minIndex = i
+          }
+        }
+        seq(minIndex)
+      }
+      val proof = findShortestProof(filteredProofs)
+//      println("  goal: " + j)
+//      println("  context: " + c)
+//      println("  proof: " + proof)
+//      println()
+      Some(proof)
     }
     proveRec(goal, new ISet[J], context: S)
   }
