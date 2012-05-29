@@ -46,7 +46,7 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
   }
 }
 
-class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P], S](calculus: CalculusWithSideEffects[J,P,S]) {
+class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P] : ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
   import ResK.proofs._  
 
   // Simple generic bottom-up proof search
