@@ -46,7 +46,7 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
   }
 }
 
-class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P] : ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
+class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P], S](calculus: CalculusWithSideEffects[J,P,S]) {
   import ResK.proofs._  
 
   // Simple generic bottom-up proof search
@@ -76,13 +76,27 @@ class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P] : ClassManifest
       
       if (filteredProofs.length == 0) return None
       
+      def getLength(root:P) = {
+        import scala.collection.mutable.{HashSet => MSet,Stack}
+        val nodes = Stack[P]()
+        val visited = MSet[P]()
+        def visit(p:P):Unit = if (!visited(p)){
+          visited += p
+          p.premises.foreach(premise => {
+            visit(premise)
+          })
+          nodes.push(p)
+        }
+        visit(root)
+        nodes.length
+      }
+      
       def findShortestProof(seq: Seq[P]): P = {
         var minSize = 999999999
         var minIndex = 0
         for (i <- 0 until seq.length) {
           val p: P = seq(i)
-          val pc = ProofNodeCollection(p)
-          val size = pc.size
+          val size = getLength(p)
           if (size < minSize) {
             minSize = size
             minIndex = i
