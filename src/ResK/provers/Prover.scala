@@ -2,7 +2,6 @@ package ResK.provers
 
 import ResK.proofs.Proof
 import ResK.judgments.Judgment
-//import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashSet => ISet}
 import ResK.proofs.ProofNodeCollection
 
@@ -18,7 +17,6 @@ import typeAliases._
 abstract class InferenceRule[J <: Judgment, P <: Proof[J,P]] {
   def apply(premises: Seq[P], conclusion: J): Option[P] // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
   def apply(j: J): Seq[Seq[J]] // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.  
-//def apply(premises: Seq[P]) : Seq[P] 
 }
 
 abstract class InferenceRuleWithSideEffects[J <: Judgment, P <: Proof[J,P], S] {
@@ -40,34 +38,20 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
     }
     proveRec(goal, new ISet[J])
   }
-    // Simple generic top-down proof search
-  def prove(axioms: Seq[P], target: J): Option[P] = {
-    None // ToDo
-  }
 }
 
-class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P], S](calculus: CalculusWithSideEffects[J,P,S]) {
+class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
   import ResK.proofs._  
 
   // Simple generic bottom-up proof search
   def prove(goal:J,context:S) : Option[P] = {
     def proveRec(j: J, seen: ISet[J], c: S): Option[P] = { // "seen" keeps track of goals that already occurred below, in order to detect and prevent cycles.
       val proofs = for (rule <- calculus; subGoals <- rule(j)(c)) yield {
-//        println("goal: " + j)
-//        println("context: " + c)
-//        println("rule: " + rule)
-//        println("subgoals: " + subGoals)
-//        println()
         def proofOf(g: J, c: S) = if (seen contains g) None else proveRec(g, seen + j, c)
         val premises = subGoals.map({case (state,subGoal) => proofOf(subGoal,state)})
         if (premises.seq contains None) None 
         else {
-//          println("    goal: " + j)
-//          println("    rule: " + rule)
-//          println("    premises: " + premises)
           val proof = rule(premises.map(_.get).seq, j)(c)
-//          println("    proof: " + proof)
-//          println()
           proof
         }
       }
@@ -76,27 +60,12 @@ class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P], S](calculus: C
       
       if (filteredProofs.length == 0) return None
       
-      def getLength(root:P) = {
-        import scala.collection.mutable.{HashSet => MSet,Stack}
-        val nodes = Stack[P]()
-        val visited = MSet[P]()
-        def visit(p:P):Unit = if (!visited(p)){
-          visited += p
-          p.premises.foreach(premise => {
-            visit(premise)
-          })
-          nodes.push(p)
-        }
-        visit(root)
-        nodes.length
-      }
-      
       def findShortestProof(seq: Seq[P]): P = {
         var minSize = 999999999
         var minIndex = 0
         for (i <- 0 until seq.length) {
           val p: P = seq(i)
-          val size = getLength(p)
+          val size = ProofNodeCollection(p).size
           if (size < minSize) {
             minSize = size
             minIndex = i
@@ -105,10 +74,6 @@ class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P], S](calculus: C
         seq(minIndex)
       }
       val proof = findShortestProof(filteredProofs)
-//      println("  goal: " + j)
-//      println("  context: " + c)
-//      println("  proof: " + proof)
-//      println()
       Some(proof)
     }
     proveRec(goal, new ISet[J], context: S)
