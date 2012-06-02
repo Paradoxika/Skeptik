@@ -4,7 +4,6 @@
 	<groupId>resk</groupId>
 	<artifactId>proof-compression</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
 	<inceptionYear>2008</inceptionYear>
 	<name>ResK</name>
 
@@ -48,11 +47,6 @@
 		<dependency>
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-library</artifactId>
-			<version>${scala.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>jline</artifactId>
 			<version>${scala.version}</version>
 		</dependency>
 		<dependency>
