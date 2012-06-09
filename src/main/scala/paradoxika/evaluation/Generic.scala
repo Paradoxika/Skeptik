@@ -1,4 +1,4 @@
-package ResK.algorithms
+package ResK.evaluation
 
 object generic {
 

@@ -1,82 +1,6 @@
-package ResK.calculi
+package ResK.proofs.oldResolution
 
 import scala.collection._
-
-
-//object simpleResolution {
-//  type Atom = Int
-//
-//  case class Clause(ant:immutable.Set[Atom],suc:immutable.Set[Atom]) {
-//    def *(that:Clause) = suc.find(a => that.ant.contains(a)) match {
-//      case None => throw new Exception("Clauses are not resolvable.")
-//      case Some(a) => (a, (this - a) ++ (a -: that))
-//    }
-//    
-//    override def toString = (("" + ant.head) /: ant.tail)((s,atom) => s + "," + atom) + ":-" +
-//                            (("" + suc.head) /: suc.tail)((s,atom) => s + "," + atom)
-//  }
-//
-//  abstract class Proof {
-//    def clause : Clause  
-//
-//    def duplicate : Proof = {
-//      val visitedProofs = new mutable.HashMap[Proof,Proof]
-//      def duplicateRec(p: Proof) : Proof = {
-//        if (visitedProofs.contains(p)) return visitedProofs(p)
-//        else {
-//          val newProof = p match {
-//            case R(l,r) => new R(duplicateRec(l), duplicateRec(r))
-//            case I(c) => new I(c)
-//          }
-//          visitedProofs += (p -> newProof)
-//          return newProof
-//        }
-//      }
-//      duplicateRec(this)
-//    }
-//  }
-//  class I(val clause: Clause) extends Proof {
-//    override def toString: String = clause.toString
-//  }
-//  object I {
-//    def apply(clause: Clause) = new I(clause)
-//    def unapply(p:Proof) = p match {
-//      case i:I => Some(i.clause)
-//      case _ => None
-//    }
-//  }
-//  class R(val left: Proof, val right: Proof) extends Proof {
-//    val clause = (left.clause * right.clause)
-//    val pivot : (Literal,Literal) = (left.clause pivotLiterals right.clause)
-//
-//    override def toString = "(" + left + "." + right + ")"
-//  }
-//  object R {
-//    def apply(left: Proof, right: Proof) = new R(left, right)
-//    def unapply(p:Proof) = p match {
-//      case r:R => Some((r.left,r.right))
-//      case _ => None
-//    }
-//  }
-//  
-//  object measures {
-//    def length(proof:Proof) : Int = {
-//      val visitedProofs = new mutable.HashSet[Proof]
-//      def rec(p: Proof) : Int = {
-//        if (!visitedProofs.contains(p)) {
-//          visitedProofs += p
-//          p match {
-//            case I(c) => 1
-//            case R(left, right) => (rec(left) + rec(right) + 1)
-//          }
-//        } else 0
-//      }
-//      rec(proof)
-//    }
-//  }
-//
-//  
-//}
 
 
 object resolution {
@@ -154,18 +78,18 @@ object resolution {
       children = child::children
       if (child.left == that) child.left = this
       else child.right = this
-      that.children -= child
+      that.children = that.children.filterNot(_ == child)
     }
 
     def replacesLeftParentOf(child: Resolvent) = {
       children = child::children
-      child.left.children -= child
+      child.left.children = child.left.children.filterNot(_ == child)
       child.left = this
     }
 
     def replacesRightParentOf(child: Resolvent) = {
       children = child::children
-      child.right.children -= child
+      child.right.children = child.right.children.filterNot(_ == child)
       child.right = this
     }
 
@@ -178,8 +102,8 @@ object resolution {
       children = Nil
       if (this.isInstanceOf[Resolvent]) {
         val r = this.asInstanceOf[Resolvent]
-        r.left.children -= r
-        r.right.children -= r
+        r.left.children = r.left.children.filterNot(_ == r)
+        r.right.children = r.right.children.filterNot(_ == r)
         r.forget
       }
     }
@@ -257,19 +181,6 @@ object resolution {
   
   
   object measures {
-  //    def unsatCore = {
-  //      val visitedProofs = new mutable.HashSet[Proof]
-  //      def unsatCoreRec(p: Proof) : List[Input] = {
-  //        if (!visitedProofs.contains(p)) {
-  //          visitedProofs += p
-  //          p match {
-  //            case Input(c) => p.asInstanceOf[Input]::Nil
-  //            case Resolvent(left, right) => unsatCoreRec(left):::unsatCoreRec(right)
-  //          }
-  //        } else Nil
-  //      }
-  //      unsatCoreRec(this)
-  //    }
     def length(proof:Proof) : Int = {
       val visitedProofs = new mutable.HashSet[Proof]
       def rec(p: Proof) : Int = {
@@ -283,116 +194,6 @@ object resolution {
       }
       rec(proof)
     }
-  //    def literalCount : Int = {
-  //      val visitedProofs = new mutable.HashSet[Proof]
-  //      def rec(p: Proof) : Int = {
-  //        if (!visitedProofs.contains(p)) {
-  //          visitedProofs += p
-  //          p match {
-  //            case Input(c) => c.size
-  //            case Resolvent(left, right) => (rec(left) + rec(right) + p.clause.size)
-  //          }
-  //        } else 0
-  //      }
-  //      rec(this)
-  //    }
-  //    def size : Int = {
-  //      val visitedProofs = new mutable.HashSet[Proof]
-  //      def rec(p: Proof) : Int = {
-  //        if (!visitedProofs.contains(p)) {
-  //          visitedProofs += p
-  //          val namingCost = if (p.children.length > 1) 1 else 0
-  //          p match {
-  //            case Input(c) => c.size + 2*namingCost
-  //            case Resolvent(left, right) => (rec(left) + rec(right) + 1 + 2*namingCost)
-  //          }
-  //        } else 1
-  //      }
-  //      rec(this)
-  //    }
-  //    def treeLength : Int = {
-  //      val visitedProofs = new mutable.HashMap[Proof,Int]
-  //      def rec(p: Proof) : Int = {
-  //        if (!visitedProofs.contains(p)) {
-  //          val result = p match {
-  //            case Input(c) => 1
-  //            case Resolvent(left, right) => (rec(left) + rec(right) + 1)
-  //          }
-  //          visitedProofs += (p -> result)
-  //          result
-  //        } else visitedProofs(p)
-  //      }
-  //      rec(this)
-  //    }
-  //    def nonTreeness : Double = {
-  //      val visitedProofs = new mutable.HashSet[Proof]
-  //      def rec(p: Proof) : Int = {
-  //        if (!visitedProofs.contains(p)) {
-  //          visitedProofs += p
-  //          val countIfHasManyChildren = if (p.children.length > 1) 1 else 0
-  //          p match {
-  //            case Input(c) => countIfHasManyChildren
-  //            case Resolvent(left, right) => (rec(left) + rec(right) + countIfHasManyChildren)
-  //          }
-  //        } else return 0
-  //      }
-  //      1.0*rec(this)/length
-  //    }
-  //    def averageNumberOfChildren : Double = {
-  //      val visitedProofs = new mutable.HashSet[Proof]
-  //      def rec(p: Proof) : Int = {
-  //        if (!visitedProofs.contains(p)) {
-  //          visitedProofs += p
-  //          p match {
-  //            case Input(c) => p.children.length
-  //            case Resolvent(left, right) => rec(left) + rec(right) + p.children.length
-  //          }
-  //        } else 0
-  //      }
-  //      (1.0*rec(this))/length
-  //    }
-  //    def getAllSubproofs(measure: Proof => Int): List[Proof] = {
-  //      val visitedProofs = new mutable.HashSet[Proof]
-  //      def rec(p: Proof): List[Proof] = {
-  //        if (visitedProofs.contains(p)) return Nil
-  //        else {
-  //          visitedProofs += p
-  //          p match {
-  //            case Input(_) => p::Nil
-  //            case Resolvent(l,r) => insert(p, merge(rec(l),rec(r),measure),measure)
-  //          }
-  //        }
-  //      }
-  //      rec(this)
-  //    }
-
-  //    def getSubproof(proof: Proof) = {
-  //      val visitedProofs = new mutable.HashMap[Proof, Proof]
-  //      def rec(p: Proof): Proof = {
-  //        if (visitedProofs.contains(p)) return visitedProofs(p)
-  //        else {
-  //          val result: Proof =
-  //            if (p == proof) p
-  //            else {
-  //              p match {
-  //                case Input(_) => null
-  //                case Resolvent(l,r) => {
-  //                  val lR = rec(l)
-  //                  if (lR != null) lR
-  //                  else {
-  //                    val rR = rec(r)
-  //                    if (rR != null) rR else null
-  //                  }
-  //                }
-  //              }
-  //            }
-  //          visitedProofs += (p -> result)
-  //          return result
-  //        }
-  //      }
-  //      rec(this)
-  //    }
-
   }
 
   

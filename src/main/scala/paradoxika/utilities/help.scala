@@ -26,19 +26,19 @@ object help {
     }
   }
 
-  def convertToSequent(clause: calculi.resolution.Clause) = {
+  def convertToSequent(clause: proofs.oldResolution.resolution.Clause) = {
     var ant: List[E] = Nil
     var suc: List[E] = Nil
     clause.foreach { l => if (l.polarity) ant = Var(l.atom.toString,o)::ant else suc = Var(l.atom.toString,o)::suc }
     Sequent(ant,suc)
   }
 
-  def convertToSequentProof(p: calculi.resolution.Proof) = {
-    val toSequent = scala.collection.mutable.HashMap[calculi.resolution.Proof,SequentProof]()
-    def recursive(p: calculi.resolution.Proof):SequentProof = if (toSequent contains p) toSequent(p) else {
+  def convertToSequentProof(p: proofs.oldResolution.resolution.Proof) = {
+    val toSequent = scala.collection.mutable.HashMap[proofs.oldResolution.resolution.Proof,SequentProof]()
+    def recursive(p: proofs.oldResolution.resolution.Proof):SequentProof = if (toSequent contains p) toSequent(p) else {
       val seq = p match {
-        case calculi.resolution.Resolvent(left,right) => CutIC(recursive(left), recursive(right))
-        case calculi.resolution.Input(clause) => Axiom(convertToSequent(clause))
+        case proofs.oldResolution.resolution.Resolvent(left,right) => CutIC(recursive(left), recursive(right))
+        case proofs.oldResolution.resolution.Input(clause) => Axiom(convertToSequent(clause))
       }
       toSequent.update(p, seq)
       seq

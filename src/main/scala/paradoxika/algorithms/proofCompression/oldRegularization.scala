@@ -1,6 +1,6 @@
 package ResK.algorithms
 
-import ResK.calculi.resolution._
+import ResK.proofs.oldResolution.resolution._
 import scala.collection._
 
 object Regularization {
@@ -80,7 +80,7 @@ object Regularization {
         //println("litB" + litB)
 
         litB match {
-          case None => p.children = p.children - callingChild   // Calling Child is orphan of the called Parent
+          case None => p.children = p.children.filterNot(_ == callingChild)   // Calling Child is orphan of the called Parent
           case Some(literalsB) => {
             //println("ok")
             val literals = p.literalsBelow 
@@ -166,7 +166,7 @@ object Regularization {
       newProof.children = c::Nil
       if (c.left == r) c.left = newProof
       else c.right = newProof
-      r.children = r.children - c
+      r.children = r.children.filterNot(_ == c)
       val literalsBelowForNewProof = r.literalsBelow(c)
       r.literalsBelow -= c
       regularizationRecSchema(newProof, c, Some(literalsBelowForNewProof), fullyRegularizeContinuation(filterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
@@ -179,7 +179,7 @@ object Regularization {
       newProof.children = c::Nil
       if (c.left == r) c.left = newProof
       else c.right = newProof
-      r.children = r.children - c
+      r.children = r.children.filterNot(_ == c)
       val literalsBelowForNewProof = r.literalsBelow(c)
       r.literalsBelow -= c
       regularizationRecSchema(newProof, c, Some(literalsBelowForNewProof), fullyRegularizeContinuation(filterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))

@@ -1,6 +1,6 @@
 package ResK.algorithms
 
-import ResK.calculi.resolution._
+import ResK.proofs.oldResolution.resolution._
 import scala.collection._
 
 object DAGification {

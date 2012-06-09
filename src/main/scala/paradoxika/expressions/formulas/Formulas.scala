@@ -49,9 +49,9 @@ object positions {
   
   class InexistentPositionException(formula: E, position: Position) extends Exception("Position " + position + " does not exist in formula " + formula)
   
-  case class EmptyP() extends IntListP(Nil)
+  class EmptyP() extends IntListP(Nil)
   
-  case class SubformulaP(subformula: E, override val index: Int) extends PredicateP(_ == subformula, index)
+  class SubformulaP(subformula: E, override val index: Int) extends PredicateP(_ == subformula, index)
   
   
   // position of the index-th occurrence of subformula

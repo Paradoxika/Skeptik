@@ -1,7 +1,7 @@
-package ResK.calculi
+package ResK.proofs.oldResolution
 
 import scala.util.parsing.combinator._
-import ResK.calculi.resolution._
+import ResK.proofs.oldResolution.resolution._
 import scala.collection.mutable._
 import java.io.FileWriter
 

@@ -1,4 +1,4 @@
-package ResK.calculi
+package ResK.proofs.oldResolution
 
 import scala.util.parsing.combinator._
 import scala.collection.mutable.{HashMap => MMap}
@@ -6,7 +6,7 @@ import java.io.FileReader
 
 
 object ProofParser extends JavaTokenParsers with RegexParsers {
-  import ResK.calculi.resolution._
+  import ResK.proofs.oldResolution.resolution._
   private var map = new MMap[Int,Proof]
   private var root : Proof = null
 
@@ -23,7 +23,7 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
     case name: Int => map(name)
   }
   def input: Parser[Proof] = "{" ~> repsep(literal,",") <~ "}" ^^ {
-    list => new ResK.calculi.resolution.Input(list.toSet[Literal])
+    list => new ResK.proofs.oldResolution.resolution.Input(list.toSet[Literal])
   }
   def resolvent: Parser[Proof] = "(" ~> subproof ~ "." ~ subproof <~ ")" ^^ {
     case ~(~(left,_),right) => new Resolvent(left,right)

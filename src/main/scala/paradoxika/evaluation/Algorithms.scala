@@ -1,8 +1,8 @@
 package ResK.evaluation
 
-import ResK.calculi.resolution.{Proof => OldProof, _}
+import ResK.proofs.oldResolution.resolution.{Proof => OldProof, _}
 import ResK.proofs._
-import ResK.algorithms.generic._
+import ResK.evaluation.generic._
 
 
 abstract class WrappedAlgorithm (name: String) {

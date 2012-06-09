@@ -47,7 +47,7 @@ object ImpIntroC extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, 
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: E)(implicit c: Context): Seq[Seq[(Context,E)]] = {
-    val positivePositions = EmptyP().getSubpositions(j).filter(_.isPositiveIn(j))
+    val positivePositions = new EmptyP().getSubpositions(j).filter(_.isPositiveIn(j))
     (for (p <- positivePositions) yield {
       val deepMain = j !: p
       deepMain match {
@@ -59,7 +59,7 @@ object ImpIntroC extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, 
   
   def apply(premises: Seq[NaturalDeductionProof], conclusion: E)(implicit c: Context): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 1) {
-      val positions = EmptyP().getSubpositions(conclusion)
+      val positions = new EmptyP().getSubpositions(conclusion)
       //println(positions)
       val positivePositions = positions.filter(p => p.isPositiveIn(conclusion) && p.existsIn(premises(0).conclusion) && p.isPositiveIn(premises(0).conclusion))
       val optionProofs = (for (p <- positivePositions) yield {
@@ -94,7 +94,7 @@ object ImpElimC extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, C
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: E)(implicit c: Context): Seq[Seq[(Context,E)]] = {
-    val outerPositions = EmptyP().getSubpositions(j)
+    val outerPositions = new EmptyP().getSubpositions(j)
     var result: Seq[Seq[(Context,E)]] = Seq()
     
     //println(j)
@@ -102,7 +102,7 @@ object ImpElimC extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, C
     
     for (outP <- outerPositions) {
       val semiDeepMain = j !: outP
-      val innerPositions = EmptyP().getSubpositions(semiDeepMain)
+      val innerPositions = new EmptyP().getSubpositions(semiDeepMain)
       for (inP <- innerPositions) {
         val deepMain = semiDeepMain !: inP
         for (auxR <- c) {
@@ -140,11 +140,11 @@ object ImpElimC extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, C
       val auxR = premises(1).conclusion
       
       
-      val positionsR = EmptyP().getSubpositions(auxR).filter(_ isPositiveIn auxR)
+      val positionsR = new EmptyP().getSubpositions(auxR).filter(_ isPositiveIn auxR)
       
       val proofs: Seq[NaturalDeductionProof] = (for (posR <- positionsR) yield (auxR !: posR) match {
         case Imp(a,b) => {
-          val positionsL = EmptyP().getSubpositions(auxL).filter(pos => (pos isPositiveIn auxL) && (auxL !: pos) == a)
+          val positionsL = new EmptyP().getSubpositions(auxL).filter(pos => (pos isPositiveIn auxL) && (auxL !: pos) == a)
           for (posL <- positionsL) yield Seq(ImpElimC(premises(0), premises(1), posL, posR, LeftArrow), 
                                              ImpElimC(premises(0), premises(1), posL, posR, RightArrow)) 
 

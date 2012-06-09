@@ -1,7 +1,7 @@
 package ResK.evaluation
 
-import ResK.calculi._
-import ResK.calculi.resolution.{Proof => OldProof, _}
+import ResK.proofs.oldResolution._
+import ResK.proofs.oldResolution.resolution.{Proof => OldProof, _}
 import ResK.proofs._
 import ResK.algorithms._
 
@@ -19,7 +19,7 @@ object MeasurerFactory {
     // Todo
     new MeasurerFactory(
       PercentMeasure("ratio", (p: OldProof) =>
-        ResK.calculi.resolution.measures.length(p).toDouble),
+        ResK.proofs.oldResolution.resolution.measures.length(p).toDouble),
       PercentMeasure("ratio", (p: SequentProof) =>
         ProofNodeCollection(p).size.toDouble)
       )

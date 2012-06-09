@@ -18,7 +18,7 @@ import ResK.formulaGenerator._
 
 import scala.collection.immutable.{HashSet => ISet}
 
-object Main {
+object SimpleUnitTests {
 
   def main(args: Array[String]): Unit = {
     

@@ -21,8 +21,8 @@ with NoMainFormula {
   override val conclusionContext = {
     def descendant(e:E, p:SequentProof, anc: Sequent) = {val eS = (e/unifier); ancestryMap += ((eS,p) -> anc); eS }
     val antecedent = leftPremise.conclusion.ant.map(e=>descendant(e,leftPremise,Sequent(e,Nil))) ++
-                    (rightPremise.conclusion.ant - auxR).map(e=>descendant(e,rightPremise,Sequent(e,Nil)))
-    val succedent = (leftPremise.conclusion.suc - auxL).map(e=>descendant(e,leftPremise,Sequent(Nil,e))) ++
+                    (rightPremise.conclusion.ant.filter(_ != auxR)).map(e=>descendant(e,rightPremise,Sequent(e,Nil)))
+    val succedent = (leftPremise.conclusion.suc.filter(_ != auxL)).map(e=>descendant(e,leftPremise,Sequent(Nil,e))) ++
                     rightPremise.conclusion.suc.map(e=>descendant(e,rightPremise,Sequent(Nil,e)))
     Sequent(antecedent,succedent)
   }

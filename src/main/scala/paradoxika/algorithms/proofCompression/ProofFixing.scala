@@ -1,7 +1,7 @@
 package ResK.algorithms
 
-import ResK.calculi.resolution._
-import ResK.calculi.resolution.measures._
+import ResK.proofs.oldResolution.resolution._
+import ResK.proofs.oldResolution.resolution.measures._
 import scala.collection._
 
 object ProofFixing {

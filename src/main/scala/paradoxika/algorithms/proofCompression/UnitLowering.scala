@@ -3,7 +3,7 @@ package ResK.algorithms
 object NewUnitLowering extends Function1[ResK.proofs.SequentProof,ResK.proofs.SequentProof] {
   import ResK.proofs._
   import ResK.judgments.Sequent
-  import ResK.calculi.resolution.measures._
+  import ResK.proofs.oldResolution.resolution.measures._
   import ResK.algorithms.ProofFixing._
   import scala.collection.mutable.{Queue, HashMap => MMap}
 
@@ -46,8 +46,8 @@ object NewUnitLowering extends Function1[ResK.proofs.SequentProof,ResK.proofs.Se
 
 
 object UnitLowering {
-  import ResK.calculi.resolution._
-  import ResK.calculi.resolution.measures._
+  import ResK.proofs.oldResolution.resolution._
+  import ResK.proofs.oldResolution.resolution.measures._
   import ResK.algorithms.ProofFixing._
   import scala.collection._
 
