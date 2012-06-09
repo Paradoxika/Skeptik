@@ -70,7 +70,7 @@ extends Function1[SequentProof,SequentProof] {
   }
 }
 
-trait Empty
+trait outIntersection
 extends RecyclePivots {
   def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],

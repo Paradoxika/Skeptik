@@ -27,12 +27,6 @@ object NewUnitLowering extends Function1[ResK.proofs.SequentProof,ResK.proofs.Se
         case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
         case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
         case CutIC(left,right,auxL,auxR) => CutIC(fixedLeft, fixedRight, auxL, auxR)
-//      case CutIC(left,right,auxL,auxR) => ((fixedLeft.conclusion.suc  contains auxL),
-//                                           (fixedRight.conclusion.ant contains auxR)) match {
-//        case (true,true) => CutIC(fixedLeft, fixedRight, auxL, auxR)
-//        case (true,false) => println(p.conclusion + " -> " + fixedRight.conclusion) ; fixedRight
-//        case (false,true) => println(p.conclusion + " -> " + fixedLeft.conclusion) ; fixedLeft
-//        case (false,false) => println("cata") ; fixedLeft // ToDo: choosing left arbitrarily here. Should choose the smallest proof though.
       }
       if (p == proofs.root || unitsSet.contains(p)) fixMap.update(p, fixedP)
       fixedP

@@ -64,8 +64,6 @@ object Regularization {
       //println("here3")
       regularizationRecSchema(p.right, p, None, continuation)
       deletedSubProof replacesAsParentOf (p.right, p)
-
-      
       regularizationRecSchema(p.left, p, Some(criticalLiterals), continuation)
     }
   }

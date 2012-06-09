@@ -1,0 +1,131 @@
+\documentclass[a4paper]{article}
+
+\usepackage{kpfonts}
+\usepackage[left=2.8cm, right=4cm, bottom=2.5cm]{geometry}
+
+\usepackage{bussproofs}
+\def\defaultHypSeparation{\hskip.1in}
+
+\begin{document}
+
+\section{Analyse of deletion of both premises}
+
+In the following proof, we consider, without loss of generality, that every
+expression of the form $\eta \odot_p \eta'$ implies that $p \in \eta$ and $\neg
+p \in \eta'$.
+
+Combining RPI and LU, both premises of the same proof node might be marked for
+deletion. The whole proof have to be of the form
+$\psi_0[\eta_0 \odot_p \psi_1[\eta_1 \odot_p \eta']]$ or
+$\psi_0[\psi_1[\eta' \odot_p \eta_1] \odot_p \eta_0]$ with $\eta'$ beeing an
+unit. In that case, the proof can be replaced by $\psi_0[\eta_0] \odot_p \eta'$
+or $\eta' \odot_p \psi_0[\eta_0]$.
+
+\section{Implementation}
+
+Finding the $\psi_1$ to delete is expensive (either in memory or in time).
+Experiments show that the case is rare. And as RPI has been proved to not be
+idempotent, a pragmatic solution is to only take into account one premise for
+each application.
+
+If $\eta_1$ is deleted first, we get a proof of the form
+$\psi_0[\eta_0 \odot_p \eta']$ or $\psi_0[\eta' \odot_p \eta_0]$. A second
+application of the algorithm gives the final result.
+
+If $\eta'$ is lowered first, we get a proof of the form
+$\psi_0[\eta_0 \odot_p \psi_1[\eta_1]] \odot_p \eta'$ or
+$\eta' \odot_p \psi_0[\psi_1[\eta_1] \odot_p \eta_0]$. Again, a second
+application of the algorithm gives the final result.
+
+\section{Example}
+
+The following proof :
+
+\begin{prooftree}
+
+\AxiomC{$\eta' : a$}
+\AxiomC{$\neg a, y$}
+\RightLabel{$a$}
+\BinaryInfC{$y$}
+
+\AxiomC{$\eta' : a$}
+\AxiomC{$\eta_1 : \neg a, x$}
+\RightLabel{$a$}
+\BinaryInfC{$x$}
+
+\AxiomC{$\neg x, a$}
+\RightLabel{$x$}
+\BinaryInfC{$a$}
+
+\AxiomC{$\eta_0 : \neg a, \neg y$}
+\RightLabel{$a$}
+\BinaryInfC{$\neg y$}
+
+\RightLabel{$y$}
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
+should be compressed to :
+
+\begin{prooftree}
+
+\AxiomC{$\eta' : a$}
+
+\AxiomC{$\neg a, y$}
+\AxiomC{$\eta_0 : \neg a, \neg y$}
+\RightLabel{$y$}
+\BinaryInfC{$\neg a$}
+
+\RightLabel{$a$}
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
+A first application removing $\eta_1$ gives :
+
+\begin{prooftree}
+
+\AxiomC{$\eta' : a$}
+
+\AxiomC{$\neg a, y$}
+
+\AxiomC{$\eta' : a$}
+\AxiomC{$\eta_0 : \neg a, \neg y$}
+\RightLabel{$a$}
+\BinaryInfC{$\neg y$}
+
+\RightLabel{$y$}
+\BinaryInfC{$\neg a$}
+
+\RightLabel{$a$}
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
+A first application lowering $\eta'$ gives :
+
+\begin{prooftree}
+
+\AxiomC{$\eta' : a$}
+
+\AxiomC{$\neg a, y$}
+
+\AxiomC{$\eta_1 : \neg a, x$}
+\AxiomC{$\neg x, a$}
+\RightLabel{$x$}
+\BinaryInfC{$\neg a, a$}
+
+\AxiomC{$\eta_0 : \neg a, \neg y$}
+\RightLabel{$a$}
+\BinaryInfC{$\neg a, \neg y$}
+
+\RightLabel{$y$}
+\BinaryInfC{$\neg a$}
+
+\RightLabel{$a$}
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
+\end{document}
