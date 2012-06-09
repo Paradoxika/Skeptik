@@ -6,7 +6,6 @@ import ResK.proofs._
 import ResK.formulas._
 import ResK.positions._
 import ResK.formulaAlgorithms._
-import ResK.proofs.naturalDeductionWithSequentNotation.{ImpElim,ImpIntro,Axiom => NDAxiom}
 import ResK.proofs.naturalDeduction.{NamedE, ImpElim => ImpE, ImpIntro => ImpI, Assumption}
 import ResK.proofs.naturalDeduction.{ImpElimC, ImpIntroC}
 

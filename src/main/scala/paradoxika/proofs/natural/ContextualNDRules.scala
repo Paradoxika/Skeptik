@@ -4,10 +4,13 @@ import ResK.expressions.E
 import ResK.formulas.Imp
 import ResK.positions.{IntListP => Position,EmptyP}
 import ResK.provers.InferenceRuleWithSideEffects
-import ResK.proofs.naturalDeductionWithSequentNotation.{ImpElimCArrow,RightArrow,LeftArrow}
 import typeAliases._
 
 // ToDo: Add Intuitionistic Soundness Condition
+
+sealed abstract class ImpElimCArrow
+case object RightArrow extends ImpElimCArrow
+case object LeftArrow extends ImpElimCArrow
 
 class ImpIntroC(val premise: NaturalDeductionProof, val assumption: NamedE, val position: Position)
 extends NaturalDeductionProof("ImpIntroC",premise::Nil) {
