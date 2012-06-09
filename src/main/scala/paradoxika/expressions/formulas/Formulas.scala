@@ -203,8 +203,7 @@ object formulas {
 
   abstract class FormulaConstructorExtractor {
     def unapply(f:E):Option[_]
-    def ?:(f: E) = unapply(f).isInstanceOf[Some[Any]] 
-    //def ?:(f: E) = unapply(f).isInstanceOf[Some[Any]] 
+    def ?:(f: E) = unapply(f).isInstanceOf[Some[_]]
   }
   
   

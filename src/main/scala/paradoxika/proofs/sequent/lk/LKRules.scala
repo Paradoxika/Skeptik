@@ -140,7 +140,7 @@ object AndL extends InferenceRule[Sequent, SequentProof] {
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: Sequent): Seq[Seq[Sequent]] = { 
     for (main <- j.ant if main ?: And) yield {
-      val (auxL, auxR): (E,E) = main match {case And(aL,aR) => (aL,aR)}
+      val (auxL, auxR) = main match {case And(aL,aR) => (aL,aR)}
       ( (auxL +: (auxR +: (main -: j))) :: Nil ).toSeq
     }
   }

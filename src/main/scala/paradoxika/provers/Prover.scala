@@ -34,7 +34,7 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
         if (premises.seq contains None) None 
         else rule(premises.map(_.get).seq, j)
       }
-      proofs.find(_.isInstanceOf[Some[P]]).getOrElse(None)
+      proofs.find(_.isInstanceOf[Some[_]]).getOrElse(None)
     }
     proveRec(goal, new ISet[J])
   }
