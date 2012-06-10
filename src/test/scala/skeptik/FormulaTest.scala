@@ -1,25 +1,11 @@
-package skeptik
+package skeptik;
 
-import skeptik.expressions._
-import skeptik.judgment._
-import skeptik.proofs._
-import skeptik.formulas._
-import skeptik.positions._
-import skeptik.formulaAlgorithms._
-import skeptik.proofs.naturalDeduction.{ NamedE, ImpElim => ImpE, ImpIntro => ImpI, Assumption }
-import skeptik.proofs.naturalDeduction.{ ImpElimC, ImpIntroC }
+import skeptik.algorithm.generator.formulaGen._;
 
-import skeptik.provers.SimpleProver
-import skeptik.provers.SimpleProverWithSideEffects
-
-import skeptik.proofs.ProofNodeCollection
-
-import skeptik.formulaGenerator._
-
-import scala.collection.immutable.{ HashSet => ISet }
-import org.specs2.mutable._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
+import scala.collection.immutable.{ HashSet => ISet };
+import org.specs2.mutable._;
+import org.junit.runner.RunWith;
+import org.specs2.runner.JUnitRunner;
 
 @RunWith(classOf[JUnitRunner])
 class FormulaTest extends SpecificationWithJUnit {
