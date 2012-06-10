@@ -15,6 +15,7 @@ class FormulaGeneratorTests extends SpecificationWithJUnit {
     }
     "produce 58 items for (2,5)" in {
       val goals = generate2(2, 5)
+      
       goals must have length 58
     }
   }
