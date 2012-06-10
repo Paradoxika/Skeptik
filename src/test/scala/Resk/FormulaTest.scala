@@ -1,21 +1,21 @@
-package Resk
+package skeptik
 
-import ResK.expressions._
-import ResK.judgments._
-import ResK.proofs._
-import ResK.formulas._
-import ResK.positions._
-import ResK.formulaAlgorithms._
-import ResK.proofs.naturalDeductionWithSequentNotation.{ ImpElim, ImpIntro, Axiom => NDAxiom }
-import ResK.proofs.naturalDeduction.{ NamedE, ImpElim => ImpE, ImpIntro => ImpI, Assumption }
-import ResK.proofs.naturalDeduction.{ ImpElimC, ImpIntroC }
+import skeptik.expressions._
+import skeptik.judgments._
+import skeptik.proofs._
+import skeptik.formulas._
+import skeptik.positions._
+import skeptik.formulaAlgorithms._
+import skeptik.proofs.naturalDeductionWithSequentNotation.{ ImpElim, ImpIntro, Axiom => NDAxiom }
+import skeptik.proofs.naturalDeduction.{ NamedE, ImpElim => ImpE, ImpIntro => ImpI, Assumption }
+import skeptik.proofs.naturalDeduction.{ ImpElimC, ImpIntroC }
 
-import ResK.provers.SimpleProver
-import ResK.provers.SimpleProverWithSideEffects
+import skeptik.provers.SimpleProver
+import skeptik.provers.SimpleProverWithSideEffects
 
-import ResK.proofs.ProofNodeCollection
+import skeptik.proofs.ProofNodeCollection
 
-import ResK.formulaGenerator._
+import skeptik.formulaGenerator._
 
 import scala.collection.immutable.{ HashSet => ISet }
 import org.specs2.mutable._
