@@ -1,8 +1,10 @@
-package skeptik.algorithms
+package skeptik.algorithm.compressor
 
-import skeptik.proofs._
-import skeptik.judgments._
-import skeptik.expressions._
+import skeptik.proof.ProofNodeCollection
+import skeptik.proof.sequent._
+import skeptik.proof.sequent.lk._
+import skeptik.judgment._
+import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
 import scala.collection.Map
 

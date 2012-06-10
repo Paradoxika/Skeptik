@@ -1,8 +1,8 @@
-package skeptik.proofs
+package skeptik.proof
 
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
-import skeptik.judgments.Judgment
-import skeptik.utilities.prettyPrinting._
+import skeptik.judgment.Judgment
+import skeptik.util.prettyPrinting._
 
 abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassManifest] (val name: String, val premises: List[P])
 {

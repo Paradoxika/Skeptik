@@ -1,4 +1,4 @@
-package skeptik.evaluation
+package skeptik.evaluator
 
 object generic {
 

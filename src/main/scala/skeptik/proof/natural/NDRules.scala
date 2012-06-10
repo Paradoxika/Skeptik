@@ -1,9 +1,9 @@
-package skeptik.proofs.naturalDeduction
+package skeptik.proof
+package natural
 
-import skeptik.expressions._
-import skeptik.formulas._
-import skeptik.proofs.Proof
-import skeptik.provers.InferenceRuleWithSideEffects
+import skeptik.expression._
+import skeptik.expression.formula._
+import skeptik.prover.InferenceRuleWithSideEffects
 import scala.collection.Set
 
 case class NamedE(name:String, expression:E)

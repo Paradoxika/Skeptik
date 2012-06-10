@@ -1,4 +1,4 @@
-package skeptik.proofs.oldResolution
+package skeptik.proof.oldResolution
 
 import scala.util.parsing.combinator._
 import scala.collection.mutable.{HashMap => MMap}
@@ -6,7 +6,8 @@ import java.io.FileReader
 
 
 object ProofParser extends JavaTokenParsers with RegexParsers {
-  import skeptik.proofs.oldResolution.resolution._
+  import skeptik.proof.oldResolution._
+  import skeptik.proof.oldResolution.typeAliases._
   private var map = new MMap[Int,Proof]
   private var root : Proof = null
 
@@ -23,7 +24,7 @@ object ProofParser extends JavaTokenParsers with RegexParsers {
     case name: Int => map(name)
   }
   def input: Parser[Proof] = "{" ~> repsep(literal,",") <~ "}" ^^ {
-    list => new skeptik.proofs.oldResolution.resolution.Input(list.toSet[Literal])
+    list => new skeptik.proof.oldResolution.Input(list.toSet[Literal])
   }
   def resolvent: Parser[Proof] = "(" ~> subproof ~ "." ~ subproof <~ ")" ^^ {
     case ~(~(left,_),right) => new Resolvent(left,right)

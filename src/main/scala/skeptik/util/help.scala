@@ -1,8 +1,13 @@
 package skeptik
 
-import skeptik.proofs._
-import skeptik.judgments._
-import skeptik.expressions._
+import skeptik.proof._
+import skeptik.proof.sequent._
+import skeptik.proof.sequent.lk._
+import skeptik.judgment._
+import skeptik.expression._
+import skeptik.exptype._
+import skeptik.proof.oldResolution.defs._
+import skeptik.proof.oldResolution.typeAliases._
 
 // A collection of functions to analyse proofs and differences between proofs.
 object help {
@@ -26,19 +31,19 @@ object help {
     }
   }
 
-  def convertToSequent(clause: proofs.oldResolution.resolution.Clause) = {
+  def convertToSequent(clause: Clause) = {
     var ant: List[E] = Nil
     var suc: List[E] = Nil
     clause.foreach { l => if (l.polarity) ant = Var(l.atom.toString,o)::ant else suc = Var(l.atom.toString,o)::suc }
     Sequent(ant,suc)
   }
 
-  def convertToSequentProof(p: proofs.oldResolution.resolution.Proof) = {
-    val toSequent = scala.collection.mutable.HashMap[proofs.oldResolution.resolution.Proof,SequentProof]()
-    def recursive(p: proofs.oldResolution.resolution.Proof):SequentProof = if (toSequent contains p) toSequent(p) else {
+  def convertToSequentProof(p: proof.oldResolution.Proof) = {
+    val toSequent = scala.collection.mutable.HashMap[proof.oldResolution.Proof,SequentProof]()
+    def recursive(p: proof.oldResolution.Proof):SequentProof = if (toSequent contains p) toSequent(p) else {
       val seq = p match {
-        case proofs.oldResolution.resolution.Resolvent(left,right) => CutIC(recursive(left), recursive(right))
-        case proofs.oldResolution.resolution.Input(clause) => Axiom(convertToSequent(clause))
+        case proof.oldResolution.Resolvent(left,right) => CutIC(recursive(left), recursive(right))
+        case proof.oldResolution.Input(clause) => Axiom(convertToSequent(clause))
       }
       toSequent.update(p, seq)
       seq

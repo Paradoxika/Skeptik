@@ -1,9 +1,9 @@
 package skeptik
 
-import skeptik.evaluation._
+import skeptik.evaluator._
 
 object Main {
   def main(args: Array[String]): Unit = {
-    skeptik.evaluation.SimpleUnitTests.main(Array());
+    skeptik.evaluator.SimpleUnitTests.main(Array());
   }
 }

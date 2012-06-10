@@ -1,8 +1,9 @@
-package skeptik.proofs
+package skeptik.proof
+package sequent
 
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import skeptik.judgments.Sequent
-import skeptik.expressions.E
+import skeptik.judgment.Sequent
+import skeptik.expression.E
 
 // ToDo: passing arguments in the constructor of this abstract class makes it impossible
 // to initialize these fields with traits. This leads to code duplication.

@@ -1,12 +1,11 @@
 package skeptik
 
 import skeptik.expressions._
-import skeptik.judgments._
+import skeptik.judgment._
 import skeptik.proofs._
 import skeptik.formulas._
 import skeptik.positions._
 import skeptik.formulaAlgorithms._
-import skeptik.proofs.naturalDeductionWithSequentNotation.{ ImpElim, ImpIntro, Axiom => NDAxiom }
 import skeptik.proofs.naturalDeduction.{ NamedE, ImpElim => ImpE, ImpIntro => ImpI, Assumption }
 import skeptik.proofs.naturalDeduction.{ ImpElimC, ImpIntroC }
 

@@ -1,11 +1,11 @@
-package skeptik.proofs.oldResolution
+package skeptik
 
 import scala.util.parsing.combinator._
-import skeptik.proofs.oldResolution.resolution._
+import skeptik.proof.oldResolution._
 import scala.collection.mutable._
 import java.io.FileWriter
 
-object ProofExporter {
+package object exporter {
   def writeProofToFile(proof:Proof, filename: String)(implicit maxUnnamedResolvents: Int) = {
     var unnamedResolventsCounter = 0
     var counter = 0

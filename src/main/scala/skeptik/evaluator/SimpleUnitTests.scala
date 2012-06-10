@@ -1,20 +1,21 @@
-package skeptik.evaluation
+package skeptik.evaluator
 
-import skeptik.expressions._
-import skeptik.judgments._
-import skeptik.proofs._
-import skeptik.formulas._
-import skeptik.positions._
-import skeptik.formulaAlgorithms._
-import skeptik.proofs.naturalDeduction.{NamedE, ImpElim => ImpE, ImpIntro => ImpI, Assumption}
-import skeptik.proofs.naturalDeduction.{ImpElimC, ImpIntroC}
+import skeptik.expression._
+import skeptik.judgment._
+import skeptik.proof._
+import skeptik.expression.formula._
+//import skeptik.expressionpositions._
+//import skeptik.formulaAlgorithms._
+import skeptik.proof.natural.{NamedE, ImpElim => ImpE, ImpIntro => ImpI, Assumption}
+import skeptik.proof.natural.{ImpElimC, ImpIntroC}
+import skeptik.exptype._
 
-import skeptik.provers.SimpleProver
-import skeptik.provers.SimpleProverWithSideEffects
+import skeptik.prover.SimpleProver
+import skeptik.prover.SimpleProverWithSideEffects
 
-import skeptik.proofs.ProofNodeCollection
+import skeptik.proof.ProofNodeCollection
 
-import skeptik.formulaGenerator._
+import skeptik.algorithm.generator.formulaGen._
 
 import scala.collection.immutable.{HashSet => ISet}
 
@@ -260,7 +261,7 @@ object SimpleUnitTests {
 //    println("Unification: ")
 //    println()
 //    
-//    import skeptik.expressions.algorithms._
+//    import skeptik.expression.algorithms._
 //    
 //    
 //    object test2 {

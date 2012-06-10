@@ -1,9 +1,9 @@
-package skeptik.provers
+package skeptik.prover
 
-import skeptik.proofs.Proof
-import skeptik.judgments.Judgment
+import skeptik.proof.Proof
+import skeptik.judgment.Judgment
 import scala.collection.immutable.{HashSet => ISet}
-import skeptik.proofs.ProofNodeCollection
+import skeptik.proof.ProofNodeCollection
 
 
 object typeAliases {
@@ -41,7 +41,7 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
 }
 
 class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
-  import skeptik.proofs._  
+  import skeptik.proof._  
 
   // Simple generic bottom-up proof search
   def prove(goal:J,context:S) : Option[P] = {

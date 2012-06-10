@@ -1,4 +1,4 @@
-package skeptik.utilities
+package skeptik.util
 
 object debug {
   def apply(condition: Boolean, s: Any) = if (condition) println(s)

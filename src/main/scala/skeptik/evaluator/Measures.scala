@@ -1,4 +1,4 @@
-package skeptik.evaluation
+package skeptik.evaluator
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable._

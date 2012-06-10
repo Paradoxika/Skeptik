@@ -1,10 +1,12 @@
-package skeptik.proofs
+package skeptik.proof
+package sequent
+package lk
 
-import skeptik.judgments.Sequent
-import skeptik.expressions.{E,Var}
-import skeptik.formulas._
-import skeptik.positions._
-import skeptik.provers.InferenceRule
+import skeptik.judgment.Sequent
+import skeptik.expression.{E,Var}
+import skeptik.expression.formula._
+import skeptik.expression.formula.position.deprecated.IntListPosition
+import skeptik.prover.InferenceRule
 
 
 class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProof("Ax",Nil,Map())

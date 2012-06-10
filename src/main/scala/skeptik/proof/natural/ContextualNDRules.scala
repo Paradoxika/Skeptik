@@ -1,9 +1,9 @@
-package skeptik.proofs.naturalDeduction
+package skeptik.proof.natural
 
-import skeptik.expressions.E
-import skeptik.formulas.Imp
-import skeptik.positions.{IntListP => Position,EmptyP}
-import skeptik.provers.InferenceRuleWithSideEffects
+import skeptik.expression.E
+import skeptik.expression.formula.Imp
+import skeptik.expression.formula.position.{IntListP => Position,EmptyP}
+import skeptik.prover.InferenceRuleWithSideEffects
 import typeAliases._
 
 // ToDo: Add Intuitionistic Soundness Condition

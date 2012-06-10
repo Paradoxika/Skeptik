@@ -1,9 +1,10 @@
-package skeptik.evaluation
+package skeptik.evaluator
 
-import skeptik.proofs.oldResolution._
-import skeptik.proofs.oldResolution.resolution.{Proof => OldProof, _}
-import skeptik.proofs._
-import skeptik.algorithms._
+import skeptik.proof.oldResolution._
+import skeptik.proof.oldResolution.{Proof => OldProof, _}
+import skeptik.proof.sequent._
+import skeptik.algorithm.compressor._
+import skeptik.proof.ProofNodeCollection
 
 
 // I don't know if this factory should be in that file. Measure.scala is really generic...
@@ -19,7 +20,7 @@ object MeasurerFactory {
     // Todo
     new MeasurerFactory(
       PercentMeasure("ratio", (p: OldProof) =>
-        skeptik.proofs.oldResolution.resolution.measures.length(p).toDouble),
+        skeptik.proof.oldResolution.defs.length(p).toDouble),
       PercentMeasure("ratio", (p: SequentProof) =>
         ProofNodeCollection(p).size.toDouble)
       )

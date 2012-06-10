@@ -1,9 +1,11 @@
-package skeptik.proofs
+package skeptik.proof.sequent
+package resolution
 
 import scala.collection.mutable.{HashMap => MMap}
-import skeptik.judgments.Sequent
-import skeptik.expressions.{Var,E}
-import skeptik.expressions.algorithms._
+import skeptik.judgment.Sequent
+import skeptik.expression.{Var,E}
+import skeptik.expression.formula.formulaAlgorithms._
+import skeptik.algorithm.unifier._
 
 
 class R(val leftPremise:SequentProof, val rightPremise:SequentProof,

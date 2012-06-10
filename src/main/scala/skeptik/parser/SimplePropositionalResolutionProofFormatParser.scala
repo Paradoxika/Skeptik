@@ -3,10 +3,12 @@ package skeptik.parsers
 import scala.util.parsing.combinator._
 import scala.collection.mutable.{HashMap => MMap}
 import java.io.FileReader
-import skeptik.proofs._
-import skeptik.formulas._
-import skeptik.expressions._
-import skeptik.judgments._
+import skeptik.proof.sequent._
+import skeptik.proof.sequent.lk._
+import skeptik.expression.formula._
+import skeptik.expression._
+import skeptik.judgment._
+import skeptik.exptype._
 
 class SimplePropositionalResolutionProofFormatParser(filename: String) 
 extends JavaTokenParsers with RegexParsers {

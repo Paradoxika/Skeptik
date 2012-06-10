@@ -1,6 +1,7 @@
-package skeptik.algorithms
+package skeptik.algorithm.compressor
 
-import skeptik.proofs.oldResolution.resolution._
+import skeptik.proof.oldResolution._
+import skeptik.proof.oldResolution.typeAliases._
 import scala.collection._
 
 object DAGification {
