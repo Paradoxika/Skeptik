@@ -1,9 +1,8 @@
-package skeptik.evaluator
+package skeptik.experiment.compression
 
-import skeptik.proof.oldResolution.{Proof => OldProof, _}
-import skeptik.proof._
-import skeptik.proof.sequent._
-import skeptik.evaluator.generic._
+
+import skeptik.proof.oldResolution.{Proof => OldProof}
+import skeptik.proof.sequent.SequentProof
 
 
 abstract class WrappedAlgorithm (name: String) {

@@ -1,9 +1,7 @@
 package skeptik
 
-import skeptik.evaluator._
-
 object Main {
   def main(args: Array[String]): Unit = {
-    skeptik.evaluator.SimpleUnitTests.main(Array());
+    skeptik.experiment.proving.ProverExperiment.main(Array());
   }
 }

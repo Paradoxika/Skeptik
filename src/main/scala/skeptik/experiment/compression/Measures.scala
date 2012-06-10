@@ -1,7 +1,10 @@
-package skeptik.evaluator
+package skeptik.experiment.compression
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable._
+import scala.collection.immutable.HashMap
+import scala.collection.immutable.List
+import scala.collection.immutable.Map
+import scala.collection.immutable.MapLike
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.Builder
 

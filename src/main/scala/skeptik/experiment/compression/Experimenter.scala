@@ -1,10 +1,25 @@
-package skeptik.evaluator
+package skeptik.experiment.compression
 
-import skeptik.proof.oldResolution._
-import skeptik.proof.oldResolution.{Proof => OldProof, _}
-import skeptik.proof.sequent._
-import skeptik.algorithm.compressor._
+import scala.Array.canBuildFrom
+import skeptik.algorithm.compressor.AlwaysLowerInitialUnits
+import skeptik.algorithm.compressor.CombinedIntersection
+import skeptik.algorithm.compressor.CombinedRPILU
+import skeptik.algorithm.compressor.Intersection
+import skeptik.algorithm.compressor.LeftHeuristic
+import skeptik.algorithm.compressor.LeftHeuristicC
+import skeptik.algorithm.compressor.MinConclusionHeuristic
+import skeptik.algorithm.compressor.MinProofHeuristic
+import skeptik.algorithm.compressor.NewUnitLowering
+import skeptik.algorithm.compressor.OptimizedIntersection
+import skeptik.algorithm.compressor.ProofFixing
+import skeptik.algorithm.compressor.RecyclePivots
+import skeptik.algorithm.compressor.Regularization
+import skeptik.algorithm.compressor.UnitLowering
+import skeptik.algorithm.compressor.outIntersection
 import skeptik.proof.ProofNodeCollection
+import skeptik.proof.oldResolution.{Proof => OldProof}
+import skeptik.proof.sequent.SequentProof
+import skeptik.parser._
 
 
 // I don't know if this factory should be in that file. Measure.scala is really generic...
@@ -153,7 +168,7 @@ object Experimenter {
       if (hasSequent) {
         // TODO: add timer and output
         sequentProof = 
-          (new skeptik.parsers.SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof
+          (new SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof
         sequentMeasurer = measurerFactory.seqMeasurer(sequentProof)
       }
       println(String.format(" (%.2f s)", double2Double((java.lang.System.currentTimeMillis - beginParsing)/1000.)))

@@ -1,4 +1,4 @@
-package skeptik.parsers
+package skeptik.parser
 
 import scala.util.parsing.combinator._
 import scala.collection.mutable.{HashMap => MMap}
