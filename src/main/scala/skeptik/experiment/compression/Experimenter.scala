@@ -1,21 +1,7 @@
 package skeptik.experiment.compression
 
 import scala.Array.canBuildFrom
-import skeptik.algorithm.compressor.AlwaysLowerInitialUnits
-import skeptik.algorithm.compressor.CombinedIntersection
-import skeptik.algorithm.compressor.CombinedRPILU
-import skeptik.algorithm.compressor.Intersection
-import skeptik.algorithm.compressor.LeftHeuristic
-import skeptik.algorithm.compressor.LeftHeuristicC
-import skeptik.algorithm.compressor.MinConclusionHeuristic
-import skeptik.algorithm.compressor.MinProofHeuristic
-import skeptik.algorithm.compressor.NewUnitLowering
-import skeptik.algorithm.compressor.OptimizedIntersection
-import skeptik.algorithm.compressor.ProofFixing
-import skeptik.algorithm.compressor.RecyclePivots
-import skeptik.algorithm.compressor.Regularization
-import skeptik.algorithm.compressor.UnitLowering
-import skeptik.algorithm.compressor.outIntersection
+import skeptik.algorithm.compressor._
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.oldResolution.{Proof => OldProof}
 import skeptik.proof.sequent.SequentProof
@@ -46,6 +32,7 @@ object WrappedAlgorithmFactory {
   def SimpleOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
       WrappedOldAlgorithm(name, fct)
   def SimpleSequentAlgorithm(name: String, fct: SequentProof => SequentProof)= (env: Map[String,String]) =>
+//      WrappedSequentAlgorithm(name, fct)
       WrappedSequentAlgorithm(name, { (p:SequentProof) => val r = fct(p) ; println(r.conclusion) ; r})
 
   def RepeatOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
@@ -84,8 +71,11 @@ object WrappedAlgorithmFactory {
   val newLURPI = SimpleSequentAlgorithm("new LURPI", { (p:SequentProof) =>
     NewUnitLowering((new RecyclePivots with OptimizedIntersection with LeftHeuristic)(p)) })
 
-  val combined = SimpleSequentAlgorithm("comb RPI", new CombinedRPILU with CombinedIntersection with LeftHeuristicC)
-  val combLower= SimpleSequentAlgorithm("comb RPI", new AlwaysLowerInitialUnits with LeftHeuristicC)
+  val combined = SimpleSequentAlgorithm("comb Reg", new CombinedRPILU with CombinedIntersection with LeftHeuristicC)
+  val combLower= SimpleSequentAlgorithm("comb Low", new AlwaysLowerInitialUnits with LeftHeuristicC)
+
+  val weakReg = SimpleSequentAlgorithm("Weak Reg", new WeakCombined with AlwaysRegularize with CombinedIntersection with LeftHeuristicC)
+  val weakLow = SimpleSequentAlgorithm("Weak Low", new WeakCombined with AlwaysLower      with CombinedIntersection with LeftHeuristicC)
 
   val allAlgos = List(
     oldUnitLowering,
@@ -121,7 +111,9 @@ object WrappedAlgorithmFactory {
     "combL" -> combLower,
     "combr" -> combinedr,
     "nLURPI"-> newLURPI,
-    "nRPILU"-> newRPILU
+    "nRPILU"-> newRPILU,
+    "wReg"  -> weakReg,
+    "wLow"  -> weakLow
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =
