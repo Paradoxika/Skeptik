@@ -44,6 +44,10 @@ extends Function1[SequentProof,SequentProof] {
     case _::_ => 2
   }
 
+  def isUnit(proof: SequentProof, iterator: ProofNodeCollection[SequentProof]) =
+    (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
+    (fakeSize(iterator.childrenOf.getOrElse(proof,Nil)) > 1)
+
   def collectEdgesToDelete(iterator: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
@@ -116,7 +120,7 @@ extends Function1[SequentProof,SequentProof] {
         if (literal == introducedLiteral) {
           node.next = new LList((literal,  newProof), node.next)
           afterInsert(oldProof, literal)
-          println("+ " + newProof.conclusion + " (" + literal + ")")
+//          println("+ " + newProof.conclusion + " (" + literal + ")")
         }
 
       // invariant : size <= limit
@@ -137,10 +141,11 @@ extends Function1[SequentProof,SequentProof] {
 
     def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
+//      if (isUnit(oldProof,iterator)) println("unit " + oldProof.conclusion + " => " + newProof.conclusion)
       def prependUnit(literal: Either[E,E]) = {
         units = new LList((literal, newProof), units)
         afterInsert(oldProof, literal)
-        println("- " + newProof.conclusion)
+//        println("- " + newProof.conclusion)
       }
 
       val children = iterator.childrenOf.getOrElse(oldProof, Nil)
@@ -230,10 +235,6 @@ abstract class AlwaysLowerInitialUnits extends CombinedRPILU {
                           ) : (Set[E],Set[E]) =
     throw new Exception("This function should never be called")
   
-  def isUnit(proof: SequentProof, iterator: ProofNodeCollection[SequentProof]) =
-    (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
-    (fakeSize(iterator.childrenOf.getOrElse(proof,Nil)) > 1)
-
   override def collectEdgesToDelete(iterator: ProofNodeCollection[SequentProof]) = {
     var (unitsLiteralsL, unitsLiteralsR) = (Set[E](),Set[E]())
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
@@ -246,35 +247,36 @@ abstract class AlwaysLowerInitialUnits extends CombinedRPILU {
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
 
-      val (safeL,safeR) =
-        (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(iterator.childrenOf.getOrElse(p,Nil))) match {
-          case (1,0,2) => val ret = unitsLiteralsR ; unitsLiteralsR += p.conclusion.ant(0) ; (unitsLiteralsL, ret)
-          case (0,1,2) => val ret = unitsLiteralsL ; unitsLiteralsL += p.conclusion.suc(0) ; (ret, unitsLiteralsR)
-          case _ => childrensSafeLiterals.filter { x => !childIsMarkedToDeleteParent(x._1, p, edgesToDelete)} match {
-            case Nil  => iterator.foldLeft((Set[E](p.conclusion.ant:_*), Set[E](p.conclusion.suc:_*))) { (acc, p) =>
-              (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(iterator.childrenOf.getOrElse(p,Nil))) match {
-                case (1,0,2) => (acc._1, acc._2 + p.conclusion.ant(0))
-                case (0,1,2) => (acc._1 + p.conclusion.suc(0), acc._2)
-                case _ => acc
-              }
-            }
-            case h::t => t.foldLeft(safeLiteralsFromChild(h)) { (acc, v) =>
-              val (safeL, safeR) = safeLiteralsFromChild(v)
-              (acc._1 intersect safeL, acc._2 intersect safeR)
-            }
+      var (safeL,safeR) = childrensSafeLiterals.filter { x => !childIsMarkedToDeleteParent(x._1, p, edgesToDelete)} match {
+        case Nil  => iterator.foldLeft((Set[E](p.conclusion.ant:_*), Set[E](p.conclusion.suc:_*))) { (acc, p) =>
+          (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(iterator.childrenOf.getOrElse(p,Nil))) match {
+            case (1,0,2) => (acc._1, acc._2 + p.conclusion.ant(0))
+            case (0,1,2) => (acc._1 + p.conclusion.suc(0), acc._2)
+            case _ => acc
           }
         }
+        case h::t => t.foldLeft(safeLiteralsFromChild(h)) { (acc, v) =>
+          val (sL, sR) = safeLiteralsFromChild(v)
+          (acc._1 intersect sL, acc._2 intersect sR)
+        }
+      }
+
+      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(iterator.childrenOf.getOrElse(p,Nil))) match {
+        case (1,0,2) => safeR = safeR intersect unitsLiteralsR ; unitsLiteralsR += p.conclusion.ant(0)
+        case (0,1,2) => safeL = safeL intersect unitsLiteralsL ; unitsLiteralsL += p.conclusion.suc(0)
+        case _ => Unit
+      }
 
       p match {
-        case CutIC(_,right,auxL,_) if (safeR contains auxL) && !isUnit(right,iterator) => edgesToDelete.update(p, RightDS) ; println("del R " + right.conclusion + " from " + p.conclusion + " with " + safeR)
-        case CutIC(left,_,_,auxR)  if (safeL contains auxR) && !isUnit(left,iterator) => edgesToDelete.update(p, LeftDS) ; println("del L " + left.conclusion + " from " + p.conclusion + " with " + safeL)
+        case CutIC(_,right,auxL,_) if (safeR contains auxL) && !isUnit(right,iterator) => edgesToDelete.update(p, RightDS)
+        case CutIC(left,_,_,auxR)  if (safeL contains auxR) && !isUnit(left,iterator) => edgesToDelete.update(p, LeftDS)
         case _ => Unit
       }
       (p, safeL, safeR)
     }
     iterator.bottomUp(visit)
-    println("Left  " + unitsLiteralsL)
-    println("Right " + unitsLiteralsR)
+//    println("Left  " + unitsLiteralsL)
+//    println("Right " + unitsLiteralsR)
     edgesToDelete
   }
 

@@ -46,6 +46,7 @@ object WrappedAlgorithmFactory {
   def SimpleOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
       WrappedOldAlgorithm(name, fct)
   def SimpleSequentAlgorithm(name: String, fct: SequentProof => SequentProof)= (env: Map[String,String]) =>
+//      WrappedSequentAlgorithm(name, fct)
       WrappedSequentAlgorithm(name, { (p:SequentProof) => val r = fct(p) ; println(r.conclusion) ; r})
 
   def RepeatOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
@@ -84,8 +85,8 @@ object WrappedAlgorithmFactory {
   val newLURPI = SimpleSequentAlgorithm("new LURPI", { (p:SequentProof) =>
     NewUnitLowering((new RecyclePivots with OptimizedIntersection with LeftHeuristic)(p)) })
 
-  val combined = SimpleSequentAlgorithm("comb RPI", new CombinedRPILU with CombinedIntersection with LeftHeuristicC)
-  val combLower= SimpleSequentAlgorithm("comb RPI", new AlwaysLowerInitialUnits with LeftHeuristicC)
+  val combined = SimpleSequentAlgorithm("comb Reg", new CombinedRPILU with CombinedIntersection with LeftHeuristicC)
+  val combLower= SimpleSequentAlgorithm("comb Low", new AlwaysLowerInitialUnits with LeftHeuristicC)
 
   val allAlgos = List(
     oldUnitLowering,
