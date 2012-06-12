@@ -8,10 +8,8 @@ import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
 import scala.collection.Map
 
-
-abstract class CombinedRPILU
+abstract class AbstractRPILUAlgorithm
 extends Function1[SequentProof,SequentProof] {
-
   protected sealed abstract  class DeletedSide
   protected object LeftDS  extends DeletedSide
   protected object RightDS extends DeletedSide
@@ -48,6 +46,126 @@ extends Function1[SequentProof,SequentProof] {
     (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
     (fakeSize(iterator.childrenOf.getOrElse(proof,Nil)) > 1)
 
+  def deleteFromChildren(oldProof: SequentProof, iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) =
+    iterator.childrenOf(oldProof).foreach { child =>
+      // Deleting both premises of a node being too complicated, regularization takes precedence over unit lowering.
+      if (!(edgesToDelete contains child)) edgesToDelete.update(child, sideOf(oldProof, child))
+    }
+
+  def fixProofs(edgesToDelete: Map[SequentProof,DeletedSide])
+               (p: SequentProof, fixedPremises: List[SequentProof]) = {
+    lazy val fixedLeft  = fixedPremises.head;
+    lazy val fixedRight = fixedPremises.last;
+    p match {
+      case Axiom(conclusion) => Axiom(conclusion)
+      case CutIC(left,right,_,_) if edgesToDelete contains p => edgesToDelete(p) match {
+        case LeftDS  => fixedRight
+        case RightDS => fixedLeft
+      }
+      case CutIC(left,right,auxL,auxR) => ((fixedLeft.conclusion.suc  contains auxL),
+                                           (fixedRight.conclusion.ant contains auxR)) match {
+        case (true,true) => CutIC(fixedLeft, fixedRight, auxL, auxR)
+        case (true,false) => fixedRight
+        case (false,true) => fixedLeft
+        case (false,false) => heuristicChoose(fixedLeft, fixedRight)
+      }
+    }
+  }
+}
+
+
+abstract class WeakCombined
+extends AbstractRPILUAlgorithm {
+
+  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: List[SequentProof]):Boolean
+
+  private def collect(iterator: ProofNodeCollection[SequentProof]) = {
+    val edgesToDelete = MMap[SequentProof,DeletedSide]()
+    val units = scala.collection.mutable.Queue[SequentProof]()
+
+    def isUnitAndSomething(something: (SequentProof, List[SequentProof]) => Boolean)
+                          (p: SequentProof) =
+      (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
+        // we don't use filter because we don't care about the order
+        val aliveChildren = iterator.foldLeft(List[SequentProof]()) { (acc,child) =>
+          if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else child::acc
+        }
+        (fakeSize(aliveChildren) > 2) && (something(p, aliveChildren))
+      }
+    val isUnitToLower = isUnitAndSomething(lowerInsteadOfRegularize _) _
+    val isTrueUnit = isUnitAndSomething { (_,_) => true } _
+
+
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
+      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
+        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
+        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
+        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+        case _ => throw new Exception("Unknown or impossible inference rule")
+      }
+      var (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      def regularize(position: DeletedSide) = 
+        if (isUnitToLower(p)) lower() else {
+          edgesToDelete.update(p, position)
+          (p, safeL, safeR)
+        }
+      def lower() = {
+        units.enqueue(p)
+        deleteFromChildren(p, iterator, edgesToDelete)
+        if (fakeSize(p.conclusion.ant) == 1)
+          (p, Set[E](), Set(p.conclusion.ant(0)))
+        else
+          (p, Set(p.conclusion.suc(0)), Set[E]())
+      }
+      p match {
+        case CutIC(_,_,_,auxR) if safeL contains auxR => regularize(LeftDS)
+        case CutIC(_,_,auxL,_) if safeR contains auxL => regularize(RightDS)
+        case p => if (isTrueUnit(p)) lower() else (p, safeL, safeR)
+      }
+    }
+
+    iterator.bottomUp(visit)
+    (units,edgesToDelete)
+  }
+
+  private def mapFixedProofs(proofsToMap: Set[SequentProof],
+                        edgesToDelete: Map[SequentProof,DeletedSide],
+                        iterator: ProofNodeCollection[SequentProof]) = {
+    val fixMap = MMap[SequentProof,SequentProof]()
+    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
+      val result = fixProofs(edgesToDelete)(p, fixedPremises)
+      if (proofsToMap contains p) fixMap.update(p, result)
+      result
+    }
+    iterator.foldDown(visit)
+    fixMap
+  }
+
+  def apply(proof: SequentProof): SequentProof = {
+    val iterator = ProofNodeCollection(proof)
+    val (units,edgesToDelete) = collect(iterator)
+    if (edgesToDelete.isEmpty) proof else {
+      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, iterator)
+      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
+        try {CutIC(left,right)} catch {case e:Exception => left}
+      }
+    }
+  }
+}
+
+trait AlwaysLower extends WeakCombined {
+  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: List[SequentProof]):Boolean = true
+}
+trait AlwaysRegularize extends WeakCombined {
+  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: List[SequentProof]):Boolean = {
+    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren.length + " children")
+    false
+  }
+}
+
+abstract class CombinedRPILU
+extends AbstractRPILUAlgorithm {
+
   def collectEdgesToDelete(iterator: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
@@ -69,26 +187,6 @@ extends Function1[SequentProof,SequentProof] {
     edgesToDelete
   }
 
-  private def fixProofs(edgesToDelete: Map[SequentProof,DeletedSide])
-               (p: SequentProof, fixedPremises: List[SequentProof]) = {
-    lazy val fixedLeft  = fixedPremises.head;
-    lazy val fixedRight = fixedPremises.last;
-    p match {
-      case Axiom(conclusion) => Axiom(conclusion)
-      case CutIC(left,right,_,_) if edgesToDelete contains p => edgesToDelete(p) match {
-        case LeftDS  => fixedRight
-        case RightDS => fixedLeft
-      }
-      case CutIC(left,right,auxL,auxR) => ((fixedLeft.conclusion.suc  contains auxL),
-                                           (fixedRight.conclusion.ant contains auxR)) match {
-        case (true,true) => CutIC(fixedLeft, fixedRight, auxL, auxR)
-        case (true,false) => fixedRight
-        case (false,true) => fixedLeft
-        case (false,false) => heuristicChoose(fixedLeft, fixedRight)
-      }
-    }
-  }
-
   private def fixProofAndLowerUnits(iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
 
     // Ordered list of (pseudo-)units
@@ -97,19 +195,13 @@ extends Function1[SequentProof,SequentProof] {
     var unitsLimit = 1
     val literalsDeletedByUnits = (MSet[E](),MSet[E]())
 
-    def deleteFromChildren(oldProof: SequentProof) =
-      iterator.childrenOf(oldProof).foreach { child =>
-        // Deleting both premises of a node being too complicated, regularization takes precedence over unit lowering.
-        if (!(edgesToDelete contains child)) edgesToDelete.update(child, sideOf(oldProof, child))
-      }
-
     def afterInsert(oldProof: SequentProof, literal: Either[E,E]) = {
       unitsLimit += 1
       literal match {
         case Left(v)  => literalsDeletedByUnits._1.add(v)
         case Right(v) => literalsDeletedByUnits._2.add(v)
       }
-      deleteFromChildren(oldProof)
+      deleteFromChildren(oldProof, iterator, edgesToDelete)
     }
 
     // This function scans the units list for insertion, introducing quadratic complexity.
@@ -178,7 +270,7 @@ extends Function1[SequentProof,SequentProof] {
            literalsIntroducedByDeletion._2 diff literalsDeletedByUnits._1)
 
         (literalsRemainingFromDeletion._1.size, literalsRemainingFromDeletion._2.size) match {
-          case (0,0) => deleteFromChildren(oldProof)
+          case (0,0) => deleteFromChildren(oldProof, iterator, edgesToDelete)
           case (1,0) => checkLoweredLiteralGetResolved(Right(literalsRemainingFromDeletion._1.head))
           case (0,1) => checkLoweredLiteralGetResolved(Left(literalsRemainingFromDeletion._2.head))
           case _ => Unit
@@ -188,8 +280,8 @@ extends Function1[SequentProof,SequentProof] {
     }
 
     val pseudoRoot = iterator.foldDown(reconstructProof _)
-    println("root " + pseudoRoot.conclusion)
-    println("units " + (units.map(_._1 match { case Left(v) => v ; case Right(v) => v })))
+//    println("root " + pseudoRoot.conclusion)
+//    println("units " + (units.map(_._1 match { case Left(v) => v ; case Right(v) => v })))
     val orderedUnits = units.foldLeft(List[SequentProof]()) { (lst,u) => (u._2)::lst }
     (pseudoRoot, orderedUnits)
   }
@@ -205,7 +297,7 @@ extends Function1[SequentProof,SequentProof] {
 }
 
 trait CombinedIntersection
-extends CombinedRPILU {
+extends AbstractRPILUAlgorithm {
   def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
                           edgesToDelete: Map[SequentProof,DeletedSide],
@@ -222,12 +314,13 @@ extends CombinedRPILU {
 }
 
 trait LeftHeuristicC
-extends CombinedRPILU {
+extends AbstractRPILUAlgorithm {
   def heuristicChoose(left: SequentProof, right: SequentProof):SequentProof = left
 }
 
 // TODO: Refactor class and traits hierarchie between LU, RPI and Combined.
-abstract class AlwaysLowerInitialUnits extends CombinedRPILU {
+abstract class AlwaysLowerInitialUnits
+extends CombinedRPILU {
   def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
                           edgesToDelete: Map[SequentProof,DeletedSide],
