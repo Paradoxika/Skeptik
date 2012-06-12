@@ -5,3 +5,6 @@ project/target/
 .project
 .cache
 .settings
+.history
+*~
+*.swp
