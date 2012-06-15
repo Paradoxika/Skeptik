@@ -2,7 +2,6 @@ package skeptik.expression
 
 import scala.collection.immutable.{HashMap => IMap,HashSet => ISet}
 import skeptik.judgment.Judgment
-import skeptik.exptype._
  
   
 abstract class E extends Judgment {

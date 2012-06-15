@@ -4,7 +4,7 @@ import scala.collection.immutable.{HashSet => ISet}
 import skeptik.algorithm.generator.formulaGen.generate2
 import skeptik.expression.Var
 import skeptik.expression.formula.Imp
-import skeptik.exptype.o
+import skeptik.expression.o
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.natural.Assumption
 import skeptik.proof.natural.{ImpElim => ImpE}

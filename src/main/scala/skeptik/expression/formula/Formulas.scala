@@ -1,7 +1,7 @@
 package skeptik.expression
 package formula
 
-import skeptik.exptype._
+import skeptik.expression._
 
 abstract class FormulaConstructorExtractor {
   def unapply(f:E):Option[_]
