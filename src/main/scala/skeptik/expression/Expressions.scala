@@ -12,15 +12,10 @@ abstract class E extends Judgment {
   def =+=(e:E) = alphaEquals(e)
   def alphaEquals(e:E) = {
     def alphaEqualsRec(e1:E,e2:E,map:IMap[Var,Var]): Boolean = (e1,e2) match {
-      case (v1:Var, v2:Var) => if (map contains v1) (map(v1)==v2) // renamed bound variables
-                               else (v1 == v2)  // homonymous bound variables or free variables
+      case (v1:Var, v2:Var) => map.getOrElse(v1,v1)==v2
       case (Abs(v1@Var(_,t1),b1),Abs(v2@Var(_,t2),b2)) => {
         if (v1 == v2) alphaEqualsRec(b1, b2, map)
-        else if (t1 == t2) {
-          val newMap = if (map contains v1) (map - v1) + (v1 -> v2)  // ToDo: improve this line
-                       else map + (v1 -> v2)
-          alphaEqualsRec(b1, b2, newMap)
-        }
+        else if (t1 == t2) alphaEqualsRec(b1, b2, map.updated(v1,v2))
         else false
       }
       case (App(f1,a1),App(f2,a2)) => alphaEqualsRec(f1, f2, map) && alphaEqualsRec(a1, a2, map)
