@@ -12,13 +12,17 @@ class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
 	def contains(f:E) = (ant contains f) || (suc contains f)
 	def exists(p:E=>Boolean) = ant.exists(p) || suc.exists(p)
 	def supersequentOf(s:Sequent) = s.ant.forall(f => ant contains f) && s.suc.forall(f => suc contains f)
-  def --(s:Sequent) = new Sequent(ant.filterNot(f => s.ant.exists(_ == f)), suc.filterNot(f => s.suc.exists(_ == f)))
+  
   def ++(s:Sequent) = new Sequent(ant ++ s.ant, suc ++ s.suc)
   def +(f:E) = new Sequent(ant, f::suc)
   def +:(f:E) = new Sequent(f::ant, suc)
   def -(f:E) = new Sequent(ant, suc.filterNot(_ == f)) 
-  def -:(f:E) = new Sequent(ant.filterNot(_ == f), suc)    
-  
+  def -:(f:E) = new Sequent(ant.filterNot(_ == f), suc) 
+	def --(s:Sequent) = new Sequent(ant.filterNot(f => s.ant.exists(_ == f)), suc.filterNot(f => s.suc.exists(_ == f)))
+	def -*(f:E) = new Sequent(ant, suc.filterNot(_ eq f)) 
+  def -*:(f:E) = new Sequent(ant.filterNot(_ eq f), suc)  
+  def --*(s:Sequent) = new Sequent(ant.filterNot(f => s.ant.exists(_ eq f)), suc.filterNot(f => s.suc.exists(_ eq f)))
+	
   override def equals(v:Any) = v match {		
       case that:Sequent => (that canEqual this) && (ant.toSet == that.ant.toSet) && (suc.toSet == that.suc.toSet)	
       case _ => false		
