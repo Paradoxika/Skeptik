@@ -64,7 +64,13 @@ trait NoImplicitContraction extends SequentProof {
 
 trait ImplicitContraction extends SequentProof {
   private val contextAndAncestryAux: (Sequent, MMap[(E,SequentProof),Sequent]) = {
-    val context = premises.map(p => (p -> (p.conclusion --* auxFormulas(p)))).toMap
+    // ToDo: --* should be used instead of -- . 
+    // However, doing this makes the proof compression algorithms stop working.
+    // The bug is actually in the proof fixing codes (e.g. in line 30 in UnitLowering.scala)
+    // The bug shall be properly fixed once all proof fixing codes are refactored into a single
+    // method in a superclass or in a trait.
+    // val context = premises.map(p => (p -> (p.conclusion --* auxFormulas(p)))).toMap
+    val context = premises.map(p => (p -> (p.conclusion -- auxFormulas(p)))).toMap
     val antSeen = new MSet[E]
     val antDuplicates = new MSet[E]
     val sucSeen = new MSet[E]
@@ -72,7 +78,7 @@ trait ImplicitContraction extends SequentProof {
     
     // ToDo: if a formula appears twice in the same premise, 
     // it will be implicitly contracted and will appear only once in the conclusion.
-    // This is not alway the intended behaviour.
+    // This is not always the intended behaviour.
     for (p <- premises) {
       for (f <- context(p).ant) {
         if (antSeen contains f) antDuplicates += f
