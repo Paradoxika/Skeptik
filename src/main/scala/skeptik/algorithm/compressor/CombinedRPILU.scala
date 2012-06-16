@@ -73,24 +73,38 @@ extends Function1[SequentProof,SequentProof] {
   }
 }
 
+trait UnitsCollectingBeforeFixing
+extends AbstractRPILUAlgorithm {
+  def mapFixedProofs(proofsToMap: Set[SequentProof],
+                     edgesToDelete: Map[SequentProof,DeletedSide],
+                     iterator: ProofNodeCollection[SequentProof]) = {
+    val fixMap = MMap[SequentProof,SequentProof]()
+    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
+      val result = fixProofs(edgesToDelete)(p, fixedPremises)
+      if (proofsToMap contains p) fixMap.update(p, result)
+      result
+    }
+    iterator.foldDown(visit)
+    fixMap
+  }
+}
 
 abstract class WeakCombined
-extends AbstractRPILUAlgorithm {
+extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing {
 
-  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: List[SequentProof]):Boolean
+  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean
 
   private def collect(iterator: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     val units = scala.collection.mutable.Queue[SequentProof]()
 
-    def isUnitAndSomething(something: (SequentProof, List[SequentProof]) => Boolean)
+    def isUnitAndSomething(something: (SequentProof, Int) => Boolean)
                           (p: SequentProof) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
-        // we don't use filter because we don't care about the order
-        val aliveChildren = iterator.childrenOf.getOrElse(p,Nil).foldLeft(List[SequentProof]()) { (acc,child) =>
-          if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else child::acc
+        val aliveChildren = iterator.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
+          if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
         }
-        (fakeSize(aliveChildren) > 1) && (something(p, aliveChildren))
+        (aliveChildren > 1) && (something(p, aliveChildren))
       }
     val isUnitToLower = isUnitAndSomething(lowerInsteadOfRegularize _) _
     val isTrueUnit = isUnitAndSomething { (_,_) => true } _
@@ -103,7 +117,7 @@ extends AbstractRPILUAlgorithm {
         case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
-      var (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
       def regularize(position: DeletedSide) = 
         if (isUnitToLower(p)) lower() else {
           edgesToDelete.update(p, position)
@@ -128,17 +142,93 @@ extends AbstractRPILUAlgorithm {
     (units,edgesToDelete)
   }
 
-  private def mapFixedProofs(proofsToMap: Set[SequentProof],
-                        edgesToDelete: Map[SequentProof,DeletedSide],
-                        iterator: ProofNodeCollection[SequentProof]) = {
-    val fixMap = MMap[SequentProof,SequentProof]()
-    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
-      val result = fixProofs(edgesToDelete)(p, fixedPremises)
-      if (proofsToMap contains p) fixMap.update(p, result)
-      result
+  def apply(proof: SequentProof): SequentProof = {
+    val iterator = ProofNodeCollection(proof)
+    val (units,edgesToDelete) = collect(iterator)
+    if (edgesToDelete.isEmpty) proof else {
+      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, iterator)
+      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
+        try {CutIC(left,right)} catch {case e:Exception => left}
+      }
     }
-    iterator.foldDown(visit)
-    fixMap
+  }
+}
+
+class RegularizationInformation (val nodeSize: Float, val leftMap: Map[E,Float], val rightMap: Map[E,Float]) {
+  def +(that: RegularizationInformation) =
+    new RegularizationInformation(this.nodeSize + that.nodeSize, 
+                                  RegularizationInformation.addMap(this.leftMap, that.leftMap),
+                                  RegularizationInformation.addMap(this.rightMap, that.rightMap))
+  def /(v: Float) = new RegularizationInformation(nodeSize / v, leftMap.mapValues(_/v), rightMap.mapValues(_/v))
+}     
+object RegularizationInformation {
+  def addMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
+    ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0..toFloat))) }
+  def apply() =
+    new RegularizationInformation(1, Map[E,Float](), Map[E,Float]())
+  def apply(nodeSize: Float) =
+    new RegularizationInformation(nodeSize, Map[E,Float](), Map[E,Float]())
+  def apply(nodeSize: Float, leftMap: Map[E,Float], rightMap: Map[E,Float]) =
+    new RegularizationInformation(nodeSize, leftMap, rightMap)
+}
+
+abstract class InformedCombined
+extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedIntersection with LeftHeuristicC {
+
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])         ):Boolean
+  
+  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+                         left:  SequentProof, leftInfo: RegularizationInformation,
+                         right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation
+
+  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation]
+
+  private def collect(iterator: ProofNodeCollection[SequentProof]) = {
+    val edgesToDelete = MMap[SequentProof,DeletedSide]()
+    val units = scala.collection.mutable.Queue[SequentProof]()
+    val informationMap = collectInformationMap(iterator)
+
+    def isTrueUnit(p: SequentProof, safeLiterals: (Set[E],Set[E])) =
+      (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
+        val aliveChildren = iterator.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
+          if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
+        }
+        (aliveChildren > 1) && (lowerInsteadOfRegularize(p, aliveChildren, informationMap(p), safeLiterals))
+      }
+
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
+      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
+        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
+        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
+        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+        case _ => throw new Exception("Unknown or impossible inference rule")
+      }
+      val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      def regularize(position: DeletedSide) = {
+        edgesToDelete.update(p, position)
+        (p, safeL, safeR)
+      }
+      def lower() = {
+        units.enqueue(p)
+        deleteFromChildren(p, iterator, edgesToDelete)
+        if (fakeSize(p.conclusion.ant) == 1)
+          (p, Set(p.conclusion.ant(0)), Set[E]())
+        else
+          (p, Set[E](), Set(p.conclusion.suc(0)))
+      }
+      p match {
+        case p if isTrueUnit(p, (safeL,safeR)) => lower()
+        case CutIC(_,_,_,auxR) if safeL contains auxR => regularize(LeftDS)
+        case CutIC(_,_,auxL,_) if safeR contains auxL => regularize(RightDS)
+        case p => (p, safeL, safeR)
+      }
+    }
+
+    iterator.bottomUp(visit)
+    (units,edgesToDelete)
   }
 
   def apply(proof: SequentProof): SequentProof = {
@@ -153,12 +243,164 @@ extends AbstractRPILUAlgorithm {
   }
 }
 
+abstract class InformedCombinedSame
+extends InformedCombined {
+  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
+    var informationMap = MMap[SequentProof, RegularizationInformation]()
+    def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) =  {
+      val ret = p match {
+        case CutIC(left, right, aux, _) => evaluateDerivation(p, iterator, aux, left, premisesInformation(0), right, premisesInformation(1))
+        case _ => RegularizationInformation()
+      }
+      if (isUnit(p, iterator)) informationMap.update(p, ret)
+      ret
+    }
+    iterator.foldDown(visit)
+    informationMap
+  }
+}
+
+abstract class InformedCombinedDiscrete
+extends InformedCombined {
+  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
+    var informationMap = MMap[SequentProof, RegularizationInformation]()
+    def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
+      val nbChildren = iterator.childrenOf.getOrElse(p, Nil).length
+      def evaluate = p match {
+        case CutIC(left, right, aux, _) => evaluateDerivation(p, iterator, aux, left, premisesInformation(0), right, premisesInformation(1))
+        case Axiom(_) => RegularizationInformation()
+      }
+      (nbChildren, fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc)) match {
+        case (1,_) => evaluate
+        case (0,_) => RegularizationInformation()
+        case (_,1) => informationMap.update(p, evaluate) ; RegularizationInformation()
+        case (_,_) => RegularizationInformation()
+      }
+    }
+    iterator.foldDown(visit)
+    informationMap
+  }
+}
+
+abstract class InformedCombinedCube
+extends InformedCombined {
+  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
+    var informationMap = MMap[SequentProof, RegularizationInformation]()
+    def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
+      val nbChildren = iterator.childrenOf.getOrElse(p, Nil).length
+      def evaluate = p match {
+        case CutIC(left, right, aux, _) => evaluateDerivation(p, iterator, aux, left, premisesInformation(0), right, premisesInformation(1))
+        case Axiom(_) => RegularizationInformation()
+      }
+      (nbChildren, fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc)) match {
+        case (1,_) => evaluate
+        case (0,_) => RegularizationInformation()
+        case (_,1) => val ret = evaluate ; informationMap.update(p, ret) ; ret / (nbChildren * nbChildren).toFloat
+        case (_,_) => evaluate / (nbChildren * nbChildren).toFloat
+      }
+    }
+    iterator.foldDown(visit)
+    informationMap
+  }
+}
+
+trait AlwaysLowerI extends InformedCombined {
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])         ):Boolean = true
+}
+trait AlwaysRegularizeI extends InformedCombined {
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+    val ret = !(safeLiterals._1.exists(information.leftMap  contains _) ||
+      safeLiterals._2.exists(information.rightMap contains _)   )
+    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children: " + ret)
+    ret
+  }
+}
+trait EvalAddMapMaxReg extends InformedCombined {
+  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+                         left:  SequentProof, leftInfo: RegularizationInformation,
+                         right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
+    def evalRegularization(node: SequentProof, information: RegularizationInformation) =
+      if (fakeSize(iterator.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+    RegularizationInformation(
+      evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1..toFloat,
+      RegularizationInformation.addMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
+      RegularizationInformation.addMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> evalRegularization(right,rightInfo))
+    )
+  }
+}
+trait EvalMaxMapMaxReg extends InformedCombined {
+  def maxMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
+    ma.keys.foldLeft(mb) { (acc,k) =>
+      acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
+    }
+  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+                         left:  SequentProof, leftInfo: RegularizationInformation,
+                         right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
+    def evalRegularization(node: SequentProof, information: RegularizationInformation) =
+      if (fakeSize(iterator.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+    RegularizationInformation(
+      evalRegularization(left, leftInfo) + evalRegularization(right, rightInfo) - 1..toFloat,
+      maxMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
+      maxMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> evalRegularization(right,rightInfo))
+    )
+  }
+}
+trait EvalDifferent extends InformedCombined {
+}
+trait CleverChoice extends InformedCombined {
+  def max(x: Float, y: Float) = if (x < y) y else x
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+    val regularizeGain = max(
+      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  },
+      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) })
+    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+            information.nodeSize + " reg " + regularizeGain)
+    (notDeletedChildren - 1).toFloat > regularizeGain
+  }
+}
+trait CleverTwo extends InformedCombined {
+  def max(x: Float, y: Float) = if (x < y) y else x
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+    val regularizeGain = max(
+      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  },
+      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) })
+    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+            information.nodeSize + " reg " + regularizeGain)
+    (notDeletedChildren - 1).toFloat + (information.nodeSize / 3..toFloat) > regularizeGain
+  }
+}
+trait CleverThree extends InformedCombined {
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+    val regularizeGain =
+      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => acc + information.leftMap.getOrElse(k,0..toFloat)  } +
+      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => acc + information.rightMap.getOrElse(k,0..toFloat) }
+    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+            information.nodeSize + " reg " + regularizeGain)
+    (notDeletedChildren - 1).toFloat + (information.nodeSize / 2..toFloat) > regularizeGain
+  }
+}
+
 trait AlwaysLower extends WeakCombined {
-  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: List[SequentProof]):Boolean = true
+  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = true
 }
 trait AlwaysRegularize extends WeakCombined {
-  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: List[SequentProof]):Boolean = {
-    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren.length + " children")
+  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = {
+    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children")
     false
   }
 }

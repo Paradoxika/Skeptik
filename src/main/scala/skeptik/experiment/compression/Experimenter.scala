@@ -76,6 +76,15 @@ object WrappedAlgorithmFactory {
 
   val weakReg = SimpleSequentAlgorithm("Weak Reg", new WeakCombined with AlwaysRegularize with CombinedIntersection with LeftHeuristicC)
   val weakLow = SimpleSequentAlgorithm("Weak Low", new WeakCombined with AlwaysLower      with CombinedIntersection with LeftHeuristicC)
+  val infoReg = SimpleSequentAlgorithm("Info Reg", new InformedCombinedSame with AlwaysRegularizeI with EvalAddMapMaxReg)
+  val infoLow = SimpleSequentAlgorithm("Info Low", new InformedCombinedSame with AlwaysLowerI      with EvalAddMapMaxReg)
+  val infoCle = SimpleSequentAlgorithm("Info Cle", new InformedCombinedSame with CleverChoice      with EvalAddMapMaxReg)
+  val infoCl2 = SimpleSequentAlgorithm("Info Cl2", new InformedCombinedSame with CleverTwo         with EvalMaxMapMaxReg)
+  val infoCl3 = SimpleSequentAlgorithm("Info Cl3", new InformedCombinedSame with CleverThree       with EvalAddMapMaxReg)
+  val infoDis = SimpleSequentAlgorithm("Info Dis", new InformedCombinedDiscrete with CleverTwo     with EvalMaxMapMaxReg)
+  val infoDi2 = SimpleSequentAlgorithm("Info Di2", new InformedCombinedDiscrete with CleverChoice  with EvalMaxMapMaxReg)
+  val infoCub = SimpleSequentAlgorithm("Info Cub", new InformedCombinedCube with CleverTwo    with EvalMaxMapMaxReg)
+  val infoCu2 = SimpleSequentAlgorithm("Info Cu2", new InformedCombinedCube with CleverChoice with EvalMaxMapMaxReg)
 
   val allAlgos = List(
     oldUnitLowering,
@@ -113,7 +122,16 @@ object WrappedAlgorithmFactory {
     "nLURPI"-> newLURPI,
     "nRPILU"-> newRPILU,
     "wReg"  -> weakReg,
-    "wLow"  -> weakLow
+    "wLow"  -> weakLow,
+    "iReg"  -> infoReg,
+    "iLow"  -> infoLow,
+    "iCle"  -> infoCle,
+    "iCl2"  -> infoCl2,
+    "iCl3"  -> infoCl3,
+    "iDis"  -> infoDis,
+    "iDi2"  -> infoDi2,
+    "iCub"  -> infoCub,
+    "iCu2"  -> infoCu2
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =
