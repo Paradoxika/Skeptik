@@ -87,10 +87,10 @@ extends AbstractRPILUAlgorithm {
                           (p: SequentProof) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
         // we don't use filter because we don't care about the order
-        val aliveChildren = iterator.foldLeft(List[SequentProof]()) { (acc,child) =>
+        val aliveChildren = iterator.childrenOf.getOrElse(p,Nil).foldLeft(List[SequentProof]()) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else child::acc
         }
-        (fakeSize(aliveChildren) > 2) && (something(p, aliveChildren))
+        (fakeSize(aliveChildren) > 1) && (something(p, aliveChildren))
       }
     val isUnitToLower = isUnitAndSomething(lowerInsteadOfRegularize _) _
     val isTrueUnit = isUnitAndSomething { (_,_) => true } _
@@ -113,9 +113,9 @@ extends AbstractRPILUAlgorithm {
         units.enqueue(p)
         deleteFromChildren(p, iterator, edgesToDelete)
         if (fakeSize(p.conclusion.ant) == 1)
-          (p, Set[E](), Set(p.conclusion.ant(0)))
+          (p, Set(p.conclusion.ant(0)), Set[E]())
         else
-          (p, Set(p.conclusion.suc(0)), Set[E]())
+          (p, Set[E](), Set(p.conclusion.suc(0)))
       }
       p match {
         case CutIC(_,_,_,auxR) if safeL contains auxR => regularize(LeftDS)
