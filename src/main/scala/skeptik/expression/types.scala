@@ -1,6 +1,5 @@
 package skeptik.expression
 
-
 sealed abstract class T {
   def ->(t:T) = arrow(this,t)
 }
