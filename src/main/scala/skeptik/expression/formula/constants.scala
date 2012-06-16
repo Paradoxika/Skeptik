@@ -1,6 +1,6 @@
 package skeptik.expression
 
-import skeptik.exptype._
+import skeptik.expression._
 
 package object formula {
   val andS = "&"

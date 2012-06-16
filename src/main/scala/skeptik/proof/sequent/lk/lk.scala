@@ -143,7 +143,7 @@ object AndL extends InferenceRule[Sequent, SequentProof] {
   def apply(j: Sequent): Seq[Seq[Sequent]] = { 
     for (main <- j.ant if main ?: And) yield {
       val (auxL, auxR) = main match {case And(aL,aR) => (aL,aR)}
-      ( (auxL +: (auxR +: (main -: j))) :: Nil ).toSeq
+      ( (auxL +: (auxR +: (main -*: j))) :: Nil ).toSeq
     }
   }
  
@@ -181,7 +181,7 @@ object WeakeningL extends InferenceRule[Sequent, SequentProof] {
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: Sequent): Seq[Seq[Sequent]] = { 
-    for (main <- j.ant) yield ( (main -: j) :: Nil ).toSeq
+    for (main <- j.ant) yield ( (main -*: j) :: Nil ).toSeq
   }
  
   // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.

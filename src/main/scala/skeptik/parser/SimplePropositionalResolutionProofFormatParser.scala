@@ -8,7 +8,7 @@ import skeptik.proof.sequent.lk._
 import skeptik.expression.formula._
 import skeptik.expression._
 import skeptik.judgment._
-import skeptik.exptype._
+import skeptik.expression._
 
 class SimplePropositionalResolutionProofFormatParser(filename: String) 
 extends JavaTokenParsers with RegexParsers {

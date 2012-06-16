@@ -5,7 +5,7 @@ import skeptik.proof.sequent._
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
 import skeptik.expression._
-import skeptik.exptype._
+import skeptik.expression._
 import skeptik.proof.oldResolution.defs._
 import skeptik.proof.oldResolution.typeAliases._
 

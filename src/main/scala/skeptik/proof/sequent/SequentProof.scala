@@ -47,7 +47,7 @@ trait NoMainFormula extends SequentProof {
 
 trait NoImplicitContraction extends SequentProof {
   override def conclusionContext: Sequent = {
-    val premiseContexts = premises.map(p => p.conclusion -- auxFormulas(p))
+    val premiseContexts = premises.map(p => p.conclusion --* auxFormulas(p))
     premiseContexts match {
       case h::t => (h /: t)((s1,s2) => s1 ++ s2)
       case Nil => Sequent()
@@ -64,7 +64,7 @@ trait NoImplicitContraction extends SequentProof {
 
 trait ImplicitContraction extends SequentProof {
   private val contextAndAncestryAux: (Sequent, MMap[(E,SequentProof),Sequent]) = {
-    val context = premises.map(p => (p -> (p.conclusion -- auxFormulas(p)))).toMap
+    val context = premises.map(p => (p -> (p.conclusion --* auxFormulas(p)))).toMap
     val antSeen = new MSet[E]
     val antDuplicates = new MSet[E]
     val sucSeen = new MSet[E]
@@ -72,7 +72,7 @@ trait ImplicitContraction extends SequentProof {
     
     // ToDo: if a formula appears twice in the same premise, 
     // it will be implicitly contracted and will appear only once in the conclusion.
-    // This is not alway the intended behaviour. See natural deduction, for example.
+    // This is not alway the intended behaviour.
     for (p <- premises) {
       for (f <- context(p).ant) {
         if (antSeen contains f) antDuplicates += f
