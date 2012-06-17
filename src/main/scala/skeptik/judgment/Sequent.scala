@@ -5,6 +5,7 @@ import scala.collection.immutable.{HashSet => ISet}
 import scala.collection.mutable.Stack
 import skeptik.expression._
 import skeptik.util.prettyPrinting._
+import skeptik.util.unicode._
 import skeptik.expression.formula._
   
 
@@ -30,7 +31,7 @@ class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
   def canEqual(other: Any) = other.isInstanceOf[Sequent]
   
   override def hashCode = 42*ant.toSet.hashCode + suc.toSet.hashCode
-  override def toString = listToCSVString(ant) + " :- " + listToCSVString(suc)
+  override def toString = listToCSVString(ant) + unicodeOrElse(" \u22A2 "," :- ") + listToCSVString(suc)
   def toSet: ISet[E] = ISet() ++ ant.map(f => Neg(f)) ++ suc
 }
 object Sequent {

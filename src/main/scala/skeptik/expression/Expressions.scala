@@ -1,7 +1,7 @@
 package skeptik.expression
 
 import skeptik.judgment.Judgment
- 
+import skeptik.util.unicode._
   
 abstract class E extends Judgment {
   def t: T
@@ -49,7 +49,7 @@ case class Var(val name: String, override val t:T) extends E {
 case class Abs(val variable: Var, val body: E) extends E {
   def copy = new Abs(variable.copy,body.copy)
   override lazy val t = variable.t -> body.t
-  override def toString = "@" + variable.name + ":" + variable.t + "." + body
+  override def toString = unicodeOrElse("\u03BB","@") + variable.name + ":" + variable.t + "." + body
 }
 case class App(val function: E, val argument: E) extends E {
   require(function.t.asInstanceOf[arrow].t1 == argument.t)

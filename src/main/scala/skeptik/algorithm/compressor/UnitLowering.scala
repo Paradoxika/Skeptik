@@ -1,7 +1,7 @@
 package skeptik.algorithm.compressor
 
 import skeptik.proof.sequent._
-import skeptik.proof.sequent.lk._
+import skeptik.proof.sequent.lk.{Axiom,CutIC}
 import skeptik.judgment.Sequent
 import scala.collection.mutable.{Queue, HashMap => MMap}
 import skeptik.proof.ProofNodeCollection
