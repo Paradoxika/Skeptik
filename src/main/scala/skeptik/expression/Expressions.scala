@@ -9,6 +9,8 @@ abstract class E extends Judgment {
   // ToDo: should think whether this is really needed.
   def copy: E
     
+  def size: Int
+  
   //ToDo: should call canEqual
   //alphaEquals
   def =+=(e:E) = {
@@ -43,18 +45,29 @@ abstract class E extends Judgment {
   }
 }
 case class Var(val name: String, override val t:T) extends E {
-  override def copy = new Var(name,t)
+  def copy = new Var(name,t)
+  def size = 1
   override def toString = name
 }
 case class Abs(val variable: Var, val body: E) extends E {
   def copy = new Abs(variable.copy,body.copy)
   override lazy val t = variable.t -> body.t
+  // ToDo: should take the size of the variable's type into account. 
+  def size = variable.size + body.size + 1
   override def toString = unicodeOrElse("\u03BB","@") + variable.name + ":" + variable.t + "." + body
 }
 case class App(val function: E, val argument: E) extends E {
   require(function.t.asInstanceOf[arrow].t1 == argument.t)
   def copy = new App(function.copy,argument.copy)
   override lazy val t = function.t.asInstanceOf[arrow].t2
-  override def toString = "(" + function + " " + argument + ")"
+  def size = function.size + argument.size + 1
+  
+  //override def toString = "(" + function + " " + argument + ")"
+  // ToDo: the code below is an ugly hack...
+  import formula.{Imp, impS}
+  override def toString = this match {
+    case Imp(a,b) => "(" + a + " " + impS + " " + b +  ")"
+    case _ => "(" + function + " " + argument + ")"
+  }
 }
 

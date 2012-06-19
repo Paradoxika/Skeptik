@@ -48,10 +48,18 @@ object ImpIntroC extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, 
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: E)(implicit c: Context): Seq[Seq[(Context,E)]] = {
     val positivePositions = new EmptyP().getSubpositions(j).filter(_.isPositiveIn(j))
+    val seen = new scala.collection.mutable.HashSet[E]
     (for (p <- positivePositions) yield {
       val deepMain = j !: p
       deepMain match {
-        case i @ Imp(a,deepAux) => Some(Seq((c + NamedE(nameFactory(), a),  (((_:E)=>deepAux) @: p)(j)   ))) 
+        case i @ Imp(a,deepAux) => {
+          val subGoal = (((_:E)=>deepAux) @: p)(j)
+          if (seen contains subGoal) None
+          else {
+            seen += subGoal
+            Some(Seq((c + NamedE(nameFactory(), a),  subGoal )))
+          } 
+        } 
         case _ => None
       }      
     }).filter(_ != None).map(r => r.get)
@@ -93,40 +101,36 @@ object ImpElimC extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, C
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: E)(implicit c: Context): Seq[Seq[(Context,E)]] = {
-    val outerPositions = new EmptyP().getSubpositions(j)
+    val outerPositions = new EmptyP().getSubpositions(j).filter(_.isPositiveIn(j))
     var result: Seq[Seq[(Context,E)]] = Seq()
-    
-    //println(j)
-    //println(outerPositions)
     
     for (outP <- outerPositions) {
       val semiDeepMain = j !: outP
-      val innerPositions = new EmptyP().getSubpositions(semiDeepMain)
+      val innerPositions = new EmptyP().getSubpositions(semiDeepMain).filter(_.isPositiveIn(semiDeepMain))
       for (inP <- innerPositions) {
         val deepMain = semiDeepMain !: inP
-        for (auxR <- c) {
-          if (inP existsIn auxR.expression) {
-            val deepAuxRIn = auxR.expression !: inP
-            deepAuxRIn match {
+        for (n <- c) {
+          val auxR = n.expression
+          def computeSubGoals(leftP: Position, rightP: Position, auxLBase: E) = {
+            val deepAuxR = auxR !: rightP 
+            deepAuxR match {
               case Imp(a,b) if b == deepMain => {
-                val auxR = (((_:E) => deepAuxRIn) @: inP)(semiDeepMain) 
-                val auxL = (((_:E) => a) @: outP)(j)
-                result = result :+ Seq((c,auxL),(c,auxR))
+                
+                val bOccursPositivelyInA = (new EmptyP).getSubpositions(a).filter(p => p.isPositiveIn(a) && (a !: p) == b).length > 0
+                
+                if (!bOccursPositivelyInA) {
+                  val auxL = (((_:E) => a) @: leftP)(auxLBase)
+                  result = result :+ Seq((c,auxL),(c,auxR))
+                }
               }
               case _ => 
             }
           }
-          if (outP existsIn auxR.expression) {
-            val deepAuxROut = auxR.expression !: outP
-            deepAuxROut match {
-              case Imp(a,b) if b == deepMain => {
-                val auxR = (((_:E) => deepAuxROut) @: outP)(j) 
-                val auxL = (((_:E) => a) @: inP)(semiDeepMain)
-                result = result :+ Seq((c,auxL),(c,auxR))
-              }
-              case _ => 
-            }
-          }
+            
+          if (inP existsIn auxR) computeSubGoals(outP, inP, j)
+
+          if (outP existsIn auxR) computeSubGoals(inP, outP, semiDeepMain)
+
         }
       }
     }

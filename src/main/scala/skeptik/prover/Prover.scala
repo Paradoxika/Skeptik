@@ -45,13 +45,34 @@ class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest,
 
   // Simple generic bottom-up proof search
   def prove(goal:J,context:S) : Option[P] = {
-    def proveRec(j: J, seen: ISet[J], c: S): Option[P] = { // "seen" keeps track of goals that already occurred below, in order to detect and prevent cycles.
+    val maxSubgoalSize = 1 * goal.size
+    def proveRec(j: J, seen: List[J], c: S): Option[P] = { // "seen" keeps track of goals that already occurred below, in order to detect and prevent cycles.
+      //println(j)
+      //println(c)
+      //println()
       val proofs = for (rule <- calculus; subGoals <- rule(j)(c)) yield {
-        def proofOf(g: J, c: S) = if (seen contains g) None else proveRec(g, seen + j, c)
+        println("rule and subgoals")
+        println(j)
+        println(c)
+        println("seen subgoals below")
+        seen.map(println _)
+        println(rule)
+        subGoals.map(println _)
+        println()
+        def proofOf(g: J, c: S) = 
+          if ((seen contains g) || g.size > maxSubgoalSize) {
+            println("seenGoal: " + g)
+            None
+          } 
+          else proveRec(g, j::seen, c)
         val premises = subGoals.map({case (state,subGoal) => proofOf(subGoal,state)})
+        println()
+        System.in.read()
         if (premises.seq contains None) None 
         else {
           val proof = rule(premises.map(_.get).seq, j)(c)
+          println(proof)
+          println()
           proof
         }
       }
@@ -76,6 +97,66 @@ class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest,
       val proof = findShortestProof(filteredProofs)
       Some(proof)
     }
-    proveRec(goal, new ISet[J], context: S)
+    proveRec(goal, List[J](), context: S)
+  }
+}
+
+
+class SimpleProverWithSideEffects2[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
+  import scala.collection
+  def prove(goal:J, context:S) : Option[P] = {
+    val maxSubgoalSize = 1 * goal.size
+    
+    def debug(s: Any)(implicit i:Int) = {
+      println(((1 to i).toList.map(x => "    ") :\ "")(_+_) + s)
+    }
+    
+    
+    class B(var b : Boolean) {
+      override def toString = b.toString
+    }
+    
+    def proveRec(j: J, seen: List[(J,B)], c: S)(implicit d:Int): Option[P] = {
+      debug("")
+      if (
+          j.size > maxSubgoalSize || 
+          seen.exists({case (g,b) => g == j //|| 
+                                     // b.b == true
+            })) {
+        debug(j)
+        debug(c)
+        debug("seen subgoals below")
+        seen.map(debug _)
+        debug("seen goal!")
+        debug("")
+        None
+      } 
+      else {
+        val proofs = for (rule <- calculus; subGoals <- rule(j)(c)) yield {
+          
+          debug(j)
+          debug(c)
+          debug("seen subgoals below")
+          seen.map(debug _)
+          debug(rule)
+          subGoals.map(debug _)
+          //System.in.read()
+          debug("")
+          val hasBeenProved = new B(false)
+          val premises = subGoals.map({case (state,subGoal) => proveRec(subGoal, (j,hasBeenProved)::seen, state)(d+1)})
+          debug("")
+          if (premises.seq contains None) None 
+          else {
+            hasBeenProved.b = true
+            val proof = rule(premises.map(_.get).seq, j)(c)
+            debug(proof)
+            debug("")
+            proof
+          }
+        }
+        proofs.find(_.isInstanceOf[Some[_]]).getOrElse(None)
+      }
+    }
+    proveRec(goal, List(), context: S)(0)
   }
 }

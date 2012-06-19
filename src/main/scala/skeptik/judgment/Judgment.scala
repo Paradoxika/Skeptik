@@ -1,3 +1,5 @@
 package skeptik.judgment 
   
-abstract class Judgment
+abstract class Judgment {
+  def size: Int
+}
