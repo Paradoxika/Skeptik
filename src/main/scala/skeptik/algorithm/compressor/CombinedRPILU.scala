@@ -317,7 +317,7 @@ trait AlwaysRegularizeI extends InformedCombined {
                                safeLiterals: (Set[E],Set[E])          ):Boolean = {
     val ret = !(safeLiterals._1.exists(information.leftMap  contains _) ||
       safeLiterals._2.exists(information.rightMap contains _)   )
-    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children: " + ret)
+//    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children: " + ret)
     ret
   }
 }
@@ -351,8 +351,22 @@ trait EvalMaxMapMaxReg extends InformedCombined {
     )
   }
 }
-trait EvalDifferent extends InformedCombined {
+trait EvalOptimized extends InformedCombined {
+  def maxMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
+    ma.keys.foldLeft(mb) { (acc,k) =>
+      acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
+    }
+  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+                         left:  SequentProof, leftInfo: RegularizationInformation,
+                         right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
+    RegularizationInformation(
+      leftInfo.nodeSize + rightInfo.nodeSize - 1..toFloat,
+      maxMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> leftInfo.nodeSize),
+      maxMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> rightInfo.nodeSize)
+    )
+  }
 }
+
 trait CleverChoice extends InformedCombined {
   def max(x: Float, y: Float) = if (x < y) y else x
   def lowerInsteadOfRegularize(proof: SequentProof,
@@ -362,8 +376,8 @@ trait CleverChoice extends InformedCombined {
     val regularizeGain = max(
       safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  },
       safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) })
-    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-            information.nodeSize + " reg " + regularizeGain)
+//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+//            information.nodeSize + " reg " + regularizeGain)
     (notDeletedChildren - 1).toFloat > regularizeGain
   }
 }
@@ -376,8 +390,8 @@ trait CleverTwo extends InformedCombined {
     val regularizeGain = max(
       safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  },
       safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) })
-    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-            information.nodeSize + " reg " + regularizeGain)
+//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+//            information.nodeSize + " reg " + regularizeGain)
     (notDeletedChildren - 1).toFloat + (information.nodeSize / 3..toFloat) > regularizeGain
   }
 }
@@ -389,8 +403,8 @@ trait CleverThree extends InformedCombined {
     val regularizeGain =
       safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => acc + information.leftMap.getOrElse(k,0..toFloat)  } +
       safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => acc + information.rightMap.getOrElse(k,0..toFloat) }
-    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-            information.nodeSize + " reg " + regularizeGain)
+//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+//            information.nodeSize + " reg " + regularizeGain)
     (notDeletedChildren - 1).toFloat + (information.nodeSize / 2..toFloat) > regularizeGain
   }
 }
@@ -400,7 +414,7 @@ trait AlwaysLower extends WeakCombined {
 }
 trait AlwaysRegularize extends WeakCombined {
   def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = {
-    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children")
+//    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children")
     false
   }
 }

@@ -32,8 +32,8 @@ object WrappedAlgorithmFactory {
   def SimpleOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
       WrappedOldAlgorithm(name, fct)
   def SimpleSequentAlgorithm(name: String, fct: SequentProof => SequentProof)= (env: Map[String,String]) =>
-//      WrappedSequentAlgorithm(name, fct)
-      WrappedSequentAlgorithm(name, { (p:SequentProof) => val r = fct(p) ; println(r.conclusion) ; r})
+      WrappedSequentAlgorithm(name, fct)
+//      WrappedSequentAlgorithm(name, { (p:SequentProof) => val r = fct(p) ; println(r.conclusion) ; r})
 
   def RepeatOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
       RepeatingOldAlgorithm(name, fct)
@@ -85,6 +85,7 @@ object WrappedAlgorithmFactory {
   val infoDi2 = SimpleSequentAlgorithm("Info Di2", new InformedCombinedDiscrete with CleverChoice  with EvalMaxMapMaxReg)
   val infoCub = SimpleSequentAlgorithm("Info Cub", new InformedCombinedCube with CleverTwo    with EvalMaxMapMaxReg)
   val infoCu2 = SimpleSequentAlgorithm("Info Cu2", new InformedCombinedCube with CleverChoice with EvalMaxMapMaxReg)
+  val infoOpt = SimpleSequentAlgorithm("Info Opt", new InformedCombinedDiscrete with CleverChoice with EvalOptimized)
 
   val allAlgos = List(
     oldUnitLowering,
@@ -131,7 +132,8 @@ object WrappedAlgorithmFactory {
     "iDis"  -> infoDis,
     "iDi2"  -> infoDi2,
     "iCub"  -> infoCub,
-    "iCu2"  -> infoCu2
+    "iCu2"  -> infoCu2,
+    "iOpt"  -> infoOpt
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =
