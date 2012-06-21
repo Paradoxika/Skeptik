@@ -243,7 +243,7 @@ extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedInt
   }
 }
 
-abstract class InformedCombinedSame
+trait SimpleCollector
 extends InformedCombined {
   def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
@@ -260,7 +260,7 @@ extends InformedCombined {
   }
 }
 
-abstract class InformedCombinedDiscrete
+trait DiscreteCollector
 extends InformedCombined {
   def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
@@ -282,7 +282,7 @@ extends InformedCombined {
   }
 }
 
-abstract class InformedCombinedCube
+trait QuadraticCollector
 extends InformedCombined {
   def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
@@ -321,7 +321,7 @@ trait AlwaysRegularizeI extends InformedCombined {
     ret
   }
 }
-trait EvalAddMapMaxReg extends InformedCombined {
+trait AddEval extends InformedCombined {
   def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
@@ -334,7 +334,7 @@ trait EvalAddMapMaxReg extends InformedCombined {
     )
   }
 }
-trait EvalMaxMapMaxReg extends InformedCombined {
+trait MaxEval extends InformedCombined {
   def maxMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
     ma.keys.foldLeft(mb) { (acc,k) =>
       acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
@@ -351,7 +351,7 @@ trait EvalMaxMapMaxReg extends InformedCombined {
     )
   }
 }
-trait EvalOptimized extends InformedCombined {
+trait OptimizedEval extends InformedCombined {
   def maxMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
     ma.keys.foldLeft(mb) { (acc,k) =>
       acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
@@ -367,7 +367,8 @@ trait EvalOptimized extends InformedCombined {
   }
 }
 
-trait CleverChoice extends InformedCombined {
+abstract class MaxChoice (deletionProbability: Double)
+extends InformedCombined {
   def max(x: Float, y: Float) = if (x < y) y else x
   def lowerInsteadOfRegularize(proof: SequentProof,
                                notDeletedChildren: Int,
@@ -378,24 +379,11 @@ trait CleverChoice extends InformedCombined {
       safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) })
 //    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
 //            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat > regularizeGain
+    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
   }
 }
-trait CleverTwo extends InformedCombined {
-  def max(x: Float, y: Float) = if (x < y) y else x
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    val regularizeGain = max(
-      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  },
-      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) })
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat + (information.nodeSize / 3..toFloat) > regularizeGain
-  }
-}
-trait CleverThree extends InformedCombined {
+abstract class AddChoice (deletionProbability: Double)
+extends InformedCombined {
   def lowerInsteadOfRegularize(proof: SequentProof,
                                notDeletedChildren: Int,
                                information: RegularizationInformation,
@@ -405,7 +393,22 @@ trait CleverThree extends InformedCombined {
       safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => acc + information.rightMap.getOrElse(k,0..toFloat) }
 //    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
 //            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat + (information.nodeSize / 2..toFloat) > regularizeGain
+    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
+  }
+}
+abstract class MixChoice (deletionProbability: Double)
+extends InformedCombined {
+  def max(x: Float, y: Float) = if (x < y) y else x
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+    val regularizeGain =
+      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  } +
+      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) }
+//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+//            information.nodeSize + " reg " + regularizeGain)
+    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
   }
 }
 

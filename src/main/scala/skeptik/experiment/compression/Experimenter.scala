@@ -76,16 +76,67 @@ object WrappedAlgorithmFactory {
 
   val weakReg = SimpleSequentAlgorithm("Weak Reg", new WeakCombined with AlwaysRegularize with CombinedIntersection with LeftHeuristicC)
   val weakLow = SimpleSequentAlgorithm("Weak Low", new WeakCombined with AlwaysLower      with CombinedIntersection with LeftHeuristicC)
-  val infoReg = SimpleSequentAlgorithm("Info Reg", new InformedCombinedSame with AlwaysRegularizeI with EvalAddMapMaxReg)
-  val infoLow = SimpleSequentAlgorithm("Info Low", new InformedCombinedSame with AlwaysLowerI      with EvalAddMapMaxReg)
-  val infoCle = SimpleSequentAlgorithm("Info Cle", new InformedCombinedSame with CleverChoice      with EvalAddMapMaxReg)
-  val infoCl2 = SimpleSequentAlgorithm("Info Cl2", new InformedCombinedSame with CleverTwo         with EvalMaxMapMaxReg)
-  val infoCl3 = SimpleSequentAlgorithm("Info Cl3", new InformedCombinedSame with CleverThree       with EvalAddMapMaxReg)
-  val infoDis = SimpleSequentAlgorithm("Info Dis", new InformedCombinedDiscrete with CleverTwo     with EvalMaxMapMaxReg)
-  val infoDi2 = SimpleSequentAlgorithm("Info Di2", new InformedCombinedDiscrete with CleverChoice  with EvalMaxMapMaxReg)
-  val infoCub = SimpleSequentAlgorithm("Info Cub", new InformedCombinedCube with CleverTwo    with EvalMaxMapMaxReg)
-  val infoCu2 = SimpleSequentAlgorithm("Info Cu2", new InformedCombinedCube with CleverChoice with EvalMaxMapMaxReg)
-  val infoOpt = SimpleSequentAlgorithm("Info Opt", new InformedCombinedDiscrete with CleverChoice with EvalOptimized)
+
+  val simAdAd3 = SimpleSequentAlgorithm("SimAdAd3", new AddChoice(1./3.) with SimpleCollector with AddEval)
+  val simAdAd0 = SimpleSequentAlgorithm("SimAdAd0", new AddChoice(0.) with SimpleCollector with AddEval)
+  val simAdAd2 = SimpleSequentAlgorithm("SimAdAd2", new AddChoice(0.5) with SimpleCollector with AddEval)
+  val simAdMa3 = SimpleSequentAlgorithm("SimAdMa3", new MaxChoice(1./3.) with SimpleCollector with AddEval)
+  val simAdMa0 = SimpleSequentAlgorithm("SimAdMa0", new MaxChoice(0.) with SimpleCollector with AddEval)
+  val simAdMa2 = SimpleSequentAlgorithm("SimAdMa2", new MaxChoice(0.5) with SimpleCollector with AddEval)
+  val simAdMi3 = SimpleSequentAlgorithm("SimAdMi3", new MixChoice(1./3.) with SimpleCollector with AddEval)
+  val simAdMi0 = SimpleSequentAlgorithm("SimAdMi0", new MixChoice(0.) with SimpleCollector with AddEval)
+  val simAdMi2 = SimpleSequentAlgorithm("SimAdMi2", new MixChoice(0.5) with SimpleCollector with AddEval)
+  val simAdReg = SimpleSequentAlgorithm("SimAdReg", new InformedCombined with SimpleCollector with AddEval with AlwaysRegularizeI)
+  val simMaAd3 = SimpleSequentAlgorithm("SimMaAd3", new AddChoice(1./3.) with SimpleCollector with MaxEval)
+  val simMaAd0 = SimpleSequentAlgorithm("SimMaAd0", new AddChoice(0.) with SimpleCollector with MaxEval)
+  val simMaAd2 = SimpleSequentAlgorithm("SimMaAd2", new AddChoice(0.5) with SimpleCollector with MaxEval)
+  val simMaMa3 = SimpleSequentAlgorithm("SimMaMa3", new MaxChoice(1./3.) with SimpleCollector with MaxEval)
+  val simMaMa0 = SimpleSequentAlgorithm("SimMaMa0", new MaxChoice(0.) with SimpleCollector with MaxEval)
+  val simMaMa2 = SimpleSequentAlgorithm("SimMaMa2", new MaxChoice(0.5) with SimpleCollector with MaxEval)
+  val simMaMi3 = SimpleSequentAlgorithm("SimMaMi3", new MixChoice(1./3.) with SimpleCollector with MaxEval)
+  val simMaMi0 = SimpleSequentAlgorithm("SimMaMi0", new MixChoice(0.) with SimpleCollector with MaxEval)
+  val simMaMi2 = SimpleSequentAlgorithm("SimMaMi2", new MixChoice(0.5) with SimpleCollector with MaxEval)
+  val simMaReg = SimpleSequentAlgorithm("SimMaReg", new InformedCombined with SimpleCollector with MaxEval with AlwaysRegularizeI)
+  val disMaAd3 = SimpleSequentAlgorithm("DisMaAd3", new AddChoice(1./3.) with DiscreteCollector with MaxEval)
+  val disMaAd0 = SimpleSequentAlgorithm("DisMaAd0", new AddChoice(0.) with DiscreteCollector with MaxEval)
+  val disMaAd2 = SimpleSequentAlgorithm("DisMaAd2", new AddChoice(0.5) with DiscreteCollector with MaxEval)
+  val disMaMa3 = SimpleSequentAlgorithm("DisMaMa3", new MaxChoice(1./3.) with DiscreteCollector with MaxEval)
+  val disMaMa0 = SimpleSequentAlgorithm("DisMaMa0", new MaxChoice(0.) with DiscreteCollector with MaxEval)
+  val disMaMa2 = SimpleSequentAlgorithm("DisMaMa2", new MaxChoice(0.5) with DiscreteCollector with MaxEval)
+  val disMaMi3 = SimpleSequentAlgorithm("DisMaMi3", new MixChoice(1./3.) with DiscreteCollector with MaxEval)
+  val disMaMi0 = SimpleSequentAlgorithm("DisMaMi0", new MixChoice(0.) with DiscreteCollector with MaxEval)
+  val disMaMi2 = SimpleSequentAlgorithm("DisMaMi2", new MixChoice(0.5) with DiscreteCollector with MaxEval)
+  val disMaReg = SimpleSequentAlgorithm("DisMaReg", new InformedCombined with DiscreteCollector with MaxEval with AlwaysRegularizeI)
+  val disOpAd3 = SimpleSequentAlgorithm("DisOpAd3", new AddChoice(1./3.) with DiscreteCollector with OptimizedEval)
+  val disOpAd0 = SimpleSequentAlgorithm("DisOpAd0", new AddChoice(0.) with DiscreteCollector with OptimizedEval)
+  val disOpAd2 = SimpleSequentAlgorithm("DisOpAd2", new AddChoice(0.5) with DiscreteCollector with OptimizedEval)
+  val disOpMa3 = SimpleSequentAlgorithm("DisOpMa3", new MaxChoice(1./3.) with DiscreteCollector with OptimizedEval)
+  val disOpMa0 = SimpleSequentAlgorithm("DisOpMa0", new MaxChoice(0.) with DiscreteCollector with OptimizedEval)
+  val disOpMa2 = SimpleSequentAlgorithm("DisOpMa2", new MaxChoice(0.5) with DiscreteCollector with OptimizedEval)
+  val disOpMi3 = SimpleSequentAlgorithm("DisOpMi3", new MixChoice(1./3.) with DiscreteCollector with OptimizedEval)
+  val disOpMi0 = SimpleSequentAlgorithm("DisOpMi0", new MixChoice(0.) with DiscreteCollector with OptimizedEval)
+  val disOpMi2 = SimpleSequentAlgorithm("DisOpMi2", new MixChoice(0.5) with DiscreteCollector with OptimizedEval)
+  val disOpReg = SimpleSequentAlgorithm("DisOpReg", new InformedCombined with DiscreteCollector with OptimizedEval with AlwaysRegularizeI)
+  val quaMaAd3 = SimpleSequentAlgorithm("QuaMaAd3", new AddChoice(1./3.) with QuadraticCollector with MaxEval)
+  val quaMaAd0 = SimpleSequentAlgorithm("QuaMaAd0", new AddChoice(0.) with QuadraticCollector with MaxEval)
+  val quaMaAd2 = SimpleSequentAlgorithm("QuaMaAd2", new AddChoice(0.5) with QuadraticCollector with MaxEval)
+  val quaMaMa3 = SimpleSequentAlgorithm("QuaMaMa3", new MaxChoice(1./3.) with QuadraticCollector with MaxEval)
+  val quaMaMa0 = SimpleSequentAlgorithm("QuaMaMa0", new MaxChoice(0.) with QuadraticCollector with MaxEval)
+  val quaMaMa2 = SimpleSequentAlgorithm("QuaMaMa2", new MaxChoice(0.5) with QuadraticCollector with MaxEval)
+  val quaMaMi3 = SimpleSequentAlgorithm("QuaMaMi3", new MixChoice(1./3.) with QuadraticCollector with MaxEval)
+  val quaMaMi0 = SimpleSequentAlgorithm("QuaMaMi0", new MixChoice(0.) with QuadraticCollector with MaxEval)
+  val quaMaMi2 = SimpleSequentAlgorithm("QuaMaMi2", new MixChoice(0.5) with QuadraticCollector with MaxEval)
+  val quaMaReg = SimpleSequentAlgorithm("QuaMaReg", new InformedCombined with QuadraticCollector with MaxEval with AlwaysRegularizeI)
+  val quaOpAd3 = SimpleSequentAlgorithm("QuaOpAd3", new AddChoice(1./3.) with QuadraticCollector with OptimizedEval)
+  val quaOpAd0 = SimpleSequentAlgorithm("QuaOpAd0", new AddChoice(0.) with QuadraticCollector with OptimizedEval)
+  val quaOpAd2 = SimpleSequentAlgorithm("QuaOpAd2", new AddChoice(0.5) with QuadraticCollector with OptimizedEval)
+  val quaOpMa3 = SimpleSequentAlgorithm("QuaOpMa3", new MaxChoice(1./3.) with QuadraticCollector with OptimizedEval)
+  val quaOpMa0 = SimpleSequentAlgorithm("QuaOpMa0", new MaxChoice(0.) with QuadraticCollector with OptimizedEval)
+  val quaOpMa2 = SimpleSequentAlgorithm("QuaOpMa2", new MaxChoice(0.5) with QuadraticCollector with OptimizedEval)
+  val quaOpMi3 = SimpleSequentAlgorithm("QuaOpMi3", new MixChoice(1./3.) with QuadraticCollector with OptimizedEval)
+  val quaOpMi0 = SimpleSequentAlgorithm("QuaOpMi0", new MixChoice(0.) with QuadraticCollector with OptimizedEval)
+  val quaOpMi2 = SimpleSequentAlgorithm("QuaOpMi2", new MixChoice(0.5) with QuadraticCollector with OptimizedEval)
+  val quaOpReg = SimpleSequentAlgorithm("QuaOpReg", new InformedCombined with QuadraticCollector with OptimizedEval with AlwaysRegularizeI)
 
   val allAlgos = List(
     oldUnitLowering,
@@ -124,16 +175,66 @@ object WrappedAlgorithmFactory {
     "nRPILU"-> newRPILU,
     "wReg"  -> weakReg,
     "wLow"  -> weakLow,
-    "iReg"  -> infoReg,
-    "iLow"  -> infoLow,
-    "iCle"  -> infoCle,
-    "iCl2"  -> infoCl2,
-    "iCl3"  -> infoCl3,
-    "iDis"  -> infoDis,
-    "iDi2"  -> infoDi2,
-    "iCub"  -> infoCub,
-    "iCu2"  -> infoCu2,
-    "iOpt"  -> infoOpt
+    "SimAdAd0" -> simAdAd0,
+    "SimAdAd2" -> simAdAd2,
+    "SimAdAd3" -> simAdAd3,
+    "SimAdMa0" -> simAdMa0,
+    "SimAdMa2" -> simAdMa2,
+    "SimAdMa3" -> simAdMa3,
+    "SimAdMi0" -> simAdMi0,
+    "SimAdMi2" -> simAdMi2,
+    "SimAdMi3" -> simAdMi3,
+    "SimAdReg" -> simAdReg,
+    "SimMaAd0" -> simMaAd0,
+    "SimMaAd2" -> simMaAd2,
+    "SimMaAd3" -> simMaAd3,
+    "SimMaMa0" -> simMaMa0,
+    "SimMaMa2" -> simMaMa2,
+    "SimMaMa3" -> simMaMa3,
+    "SimMaMi0" -> simMaMi0,
+    "SimMaMi2" -> simMaMi2,
+    "SimMaMi3" -> simMaMi3,
+    "SimMaReg" -> simMaReg,
+    "DisMaAd0" -> disMaAd0,
+    "DisMaAd2" -> disMaAd2,
+    "DisMaAd3" -> disMaAd3,
+    "DisMaMa0" -> disMaMa0,
+    "DisMaMa2" -> disMaMa2,
+    "DisMaMa3" -> disMaMa3,
+    "DisMaMi0" -> disMaMi0,
+    "DisMaMi2" -> disMaMi2,
+    "DisMaMi3" -> disMaMi3,
+    "DisMaReg" -> disMaReg,
+    "DisOpAd0" -> disOpAd0,
+    "DisOpAd2" -> disOpAd2,
+    "DisOpAd3" -> disOpAd3,
+    "DisOpMa0" -> disOpMa0,
+    "DisOpMa2" -> disOpMa2,
+    "DisOpMa3" -> disOpMa3,
+    "DisOpMi0" -> disOpMi0,
+    "DisOpMi2" -> disOpMi2,
+    "DisOpMi3" -> disOpMi3,
+    "DisOpReg" -> disOpReg,
+    "QuaMaAd0" -> quaMaAd0,
+    "QuaMaAd2" -> quaMaAd2,
+    "QuaMaAd3" -> quaMaAd3,
+    "QuaMaMa0" -> quaMaMa0,
+    "QuaMaMa2" -> quaMaMa2,
+    "QuaMaMa3" -> quaMaMa3,
+    "QuaMaMi0" -> quaMaMi0,
+    "QuaMaMi2" -> quaMaMi2,
+    "QuaMaMi3" -> quaMaMi3,
+    "QuaMaReg" -> quaMaReg,
+    "QuaOpAd0" -> quaOpAd0,
+    "QuaOpAd2" -> quaOpAd2,
+    "QuaOpAd3" -> quaOpAd3,
+    "QuaOpMa0" -> quaOpMa0,
+    "QuaOpMa2" -> quaOpMa2,
+    "QuaOpMa3" -> quaOpMa3,
+    "QuaOpMi0" -> quaOpMi0,
+    "QuaOpMi2" -> quaOpMi2,
+    "QuaOpMi3" -> quaOpMi3,
+    "QuaOpReg" -> quaOpReg
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =
