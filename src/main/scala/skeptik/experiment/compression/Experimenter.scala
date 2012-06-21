@@ -138,6 +138,52 @@ object WrappedAlgorithmFactory {
   val quaOpMi2 = SimpleSequentAlgorithm("QuaOpMi2", new MixChoice(0.5) with QuadraticCollector with OptimizedEval)
   val quaOpReg = SimpleSequentAlgorithm("QuaOpReg", new InformedCombined with QuadraticCollector with OptimizedEval with AlwaysRegularizeI)
 
+  val disOpt00 = SimpleSequentAlgorithm("DisOpt00", new MixChoice(0.000) with DiscreteCollector with OptimizedEval)
+  val disOpt02 = SimpleSequentAlgorithm("DisOpt02", new MixChoice(0.002) with DiscreteCollector with OptimizedEval)
+  val disOpt04 = SimpleSequentAlgorithm("DisOpt04", new MixChoice(0.004) with DiscreteCollector with OptimizedEval)
+  val disOpt06 = SimpleSequentAlgorithm("DisOpt06", new MixChoice(0.006) with DiscreteCollector with OptimizedEval)
+  val disOpt08 = SimpleSequentAlgorithm("DisOpt08", new MixChoice(0.008) with DiscreteCollector with OptimizedEval)
+  val disOpt10 = SimpleSequentAlgorithm("DisOpt10", new MixChoice(0.010) with DiscreteCollector with OptimizedEval)
+  val disOpt12 = SimpleSequentAlgorithm("DisOpt12", new MixChoice(0.012) with DiscreteCollector with OptimizedEval)
+  val disOpt14 = SimpleSequentAlgorithm("DisOpt14", new MixChoice(0.014) with DiscreteCollector with OptimizedEval)
+  val disOpt16 = SimpleSequentAlgorithm("DisOpt16", new MixChoice(0.016) with DiscreteCollector with OptimizedEval)
+  val disOpt18 = SimpleSequentAlgorithm("DisOpt18", new MixChoice(0.018) with DiscreteCollector with OptimizedEval)
+  val disOpt20 = SimpleSequentAlgorithm("DisOpt20", new MixChoice(0.020) with DiscreteCollector with OptimizedEval)
+  val disOpt22 = SimpleSequentAlgorithm("DisOpt22", new MixChoice(0.022) with DiscreteCollector with OptimizedEval)
+  val disOpt24 = SimpleSequentAlgorithm("DisOpt24", new MixChoice(0.024) with DiscreteCollector with OptimizedEval)
+  val disOpt26 = SimpleSequentAlgorithm("DisOpt26", new MixChoice(0.026) with DiscreteCollector with OptimizedEval)
+  val disOpt28 = SimpleSequentAlgorithm("DisOpt28", new MixChoice(0.028) with DiscreteCollector with OptimizedEval)
+  val disOpt30 = SimpleSequentAlgorithm("DisOpt30", new MixChoice(0.030) with DiscreteCollector with OptimizedEval)
+  val disOpt32 = SimpleSequentAlgorithm("DisOpt32", new MixChoice(0.032) with DiscreteCollector with OptimizedEval)
+  val disOpt34 = SimpleSequentAlgorithm("DisOpt34", new MixChoice(0.034) with DiscreteCollector with OptimizedEval)
+  val disOpt36 = SimpleSequentAlgorithm("DisOpt36", new MixChoice(0.036) with DiscreteCollector with OptimizedEval)
+  val disOpt38 = SimpleSequentAlgorithm("DisOpt38", new MixChoice(0.038) with DiscreteCollector with OptimizedEval)
+  val disOpt40 = SimpleSequentAlgorithm("DisOpt40", new MixChoice(0.040) with DiscreteCollector with OptimizedEval)
+  val disOpt42 = SimpleSequentAlgorithm("DisOpt42", new MixChoice(0.042) with DiscreteCollector with OptimizedEval)
+  val disOpt44 = SimpleSequentAlgorithm("DisOpt44", new MixChoice(0.044) with DiscreteCollector with OptimizedEval)
+  val disOpt46 = SimpleSequentAlgorithm("DisOpt46", new MixChoice(0.046) with DiscreteCollector with OptimizedEval)
+  val disOpt48 = SimpleSequentAlgorithm("DisOpt48", new MixChoice(0.048) with DiscreteCollector with OptimizedEval)
+  val disOpt50 = SimpleSequentAlgorithm("DisOpt50", new MixChoice(0.050) with DiscreteCollector with OptimizedEval)
+  val disOpt52 = SimpleSequentAlgorithm("DisOpt52", new MixChoice(0.052) with DiscreteCollector with OptimizedEval)
+  val disOpt54 = SimpleSequentAlgorithm("DisOpt54", new MixChoice(0.054) with DiscreteCollector with OptimizedEval)
+  val disOpt56 = SimpleSequentAlgorithm("DisOpt56", new MixChoice(0.056) with DiscreteCollector with OptimizedEval)
+  val disOpt58 = SimpleSequentAlgorithm("DisOpt58", new MixChoice(0.058) with DiscreteCollector with OptimizedEval)
+  val disOpt60 = SimpleSequentAlgorithm("DisOpt60", new MixChoice(0.060) with DiscreteCollector with OptimizedEval)
+  val disOpt62 = SimpleSequentAlgorithm("DisOpt62", new MixChoice(0.062) with DiscreteCollector with OptimizedEval)
+  val disOpt64 = SimpleSequentAlgorithm("DisOpt64", new MixChoice(0.064) with DiscreteCollector with OptimizedEval)
+  val disOpt66 = SimpleSequentAlgorithm("DisOpt66", new MixChoice(0.066) with DiscreteCollector with OptimizedEval)
+  val disOpt68 = SimpleSequentAlgorithm("DisOpt68", new MixChoice(0.068) with DiscreteCollector with OptimizedEval)
+  val disOpt70 = SimpleSequentAlgorithm("DisOpt70", new MixChoice(0.070) with DiscreteCollector with OptimizedEval)
+  val disOpt72 = SimpleSequentAlgorithm("DisOpt72", new MixChoice(0.072) with DiscreteCollector with OptimizedEval)
+  val disOpt74 = SimpleSequentAlgorithm("DisOpt74", new MixChoice(0.074) with DiscreteCollector with OptimizedEval)
+  val disOpt76 = SimpleSequentAlgorithm("DisOpt76", new MixChoice(0.076) with DiscreteCollector with OptimizedEval)
+  val disOpt78 = SimpleSequentAlgorithm("DisOpt78", new MixChoice(0.078) with DiscreteCollector with OptimizedEval)
+  val disOpt80 = SimpleSequentAlgorithm("DisOpt80", new MixChoice(0.080) with DiscreteCollector with OptimizedEval)
+
+  val disOptBi = SimpleSequentAlgorithm("DisOptBi", new InformedCombined with DiscreteCollector with OptimizedEval with OptChoice)
+  val disOptMM = SimpleSequentAlgorithm("DisOptMM", new MixMinChoice(0.) with DiscreteCollector with OptimizedEval)
+  val disOptMp = SimpleSequentAlgorithm("DisOptMp", new MixMinChoice(0.001) with DiscreteCollector with OptimizedEval)
+
   val allAlgos = List(
     oldUnitLowering,
     newUnitLowering,
@@ -234,7 +280,51 @@ object WrappedAlgorithmFactory {
     "QuaOpMi0" -> quaOpMi0,
     "QuaOpMi2" -> quaOpMi2,
     "QuaOpMi3" -> quaOpMi3,
-    "QuaOpReg" -> quaOpReg
+    "QuaOpReg" -> quaOpReg,
+    "DisOpt00" -> disOpt00,
+    "DisOpt02" -> disOpt02,
+    "DisOpt04" -> disOpt04,
+    "DisOpt06" -> disOpt06,
+    "DisOpt08" -> disOpt08,
+    "DisOpt10" -> disOpt10,
+    "DisOpt12" -> disOpt12,
+    "DisOpt14" -> disOpt14,
+    "DisOpt16" -> disOpt16,
+    "DisOpt18" -> disOpt18,
+    "DisOpt20" -> disOpt20,
+    "DisOpt22" -> disOpt22,
+    "DisOpt24" -> disOpt24,
+    "DisOpt26" -> disOpt26,
+    "DisOpt28" -> disOpt28,
+    "DisOpt30" -> disOpt30,
+    "DisOpt32" -> disOpt32,
+    "DisOpt34" -> disOpt34,
+    "DisOpt36" -> disOpt36,
+    "DisOpt38" -> disOpt38,
+    "DisOpt40" -> disOpt40,
+    "DisOpt42" -> disOpt42,
+    "DisOpt44" -> disOpt44,
+    "DisOpt46" -> disOpt46,
+    "DisOpt48" -> disOpt48,
+    "DisOpt50" -> disOpt50,
+    "DisOpt52" -> disOpt52,
+    "DisOpt54" -> disOpt54,
+    "DisOpt56" -> disOpt56,
+    "DisOpt58" -> disOpt58,
+    "DisOpt60" -> disOpt60,
+    "DisOpt62" -> disOpt62,
+    "DisOpt64" -> disOpt64,
+    "DisOpt66" -> disOpt66,
+    "DisOpt68" -> disOpt68,
+    "DisOpt70" -> disOpt70,
+    "DisOpt72" -> disOpt72,
+    "DisOpt74" -> disOpt74,
+    "DisOpt76" -> disOpt76,
+    "DisOpt78" -> disOpt78,
+    "DisOpt80" -> disOpt80,
+    "DisOptBi" -> disOptBi,
+    "DisOptMM" -> disOptMM,
+    "DisOptMp" -> disOptMp
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =

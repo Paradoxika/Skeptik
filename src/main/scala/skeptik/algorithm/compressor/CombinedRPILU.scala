@@ -411,6 +411,41 @@ extends InformedCombined {
     (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
   }
 }
+abstract class MixMinChoice (deletionProbability: Double)
+extends InformedCombined {
+  def max(x: Float, y: Float) = if (x < y) y else x
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+    def foldFunction(info: Map[E,Float])(acc: Float, k: E) =
+      if (info contains k) {
+        val nval = info(k)
+        if (nval < acc || acc == 0) nval else acc
+      }
+      else acc
+    val regularizeGain =
+      safeLiterals._1.foldLeft(0..toFloat)(foldFunction(information.leftMap))  +
+      safeLiterals._2.foldLeft(0..toFloat)(foldFunction(information.rightMap))
+//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+//            information.nodeSize + " reg " + regularizeGain)
+    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
+  }
+}
+trait OptChoice extends InformedCombined {
+  def max(x: Float, y: Float) = if (x < y) y else x
+  def lowerInsteadOfRegularize(proof: SequentProof,
+                               notDeletedChildren: Int,
+                               information: RegularizationInformation,
+                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+    val regularizeGain =
+      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  } +
+      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) }
+//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
+//            information.nodeSize + " reg " + regularizeGain)
+    (notDeletedChildren - 1).toFloat >= regularizeGain
+  }
+}
 
 trait AlwaysLower extends WeakCombined {
   def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = true
