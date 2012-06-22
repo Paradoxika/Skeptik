@@ -91,6 +91,7 @@ extends AbstractRPILUAlgorithm {
     val fixMap = MMap[SequentProof,SequentProof]()
     def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
       val result = fixProofs(edgesToDelete)(p, fixedPremises)
+//      if (proofsToMap contains p) { fixMap.update(p, result) ; println(p.conclusion + " => " + result.conclusion) }
       if (proofsToMap contains p) fixMap.update(p, result)
       result
     }

@@ -83,6 +83,7 @@ object WrappedAlgorithmFactory {
   val reMinReg = SimpleSequentAlgorithm("ReMinReg", new RegularizationEvaluation with DiscreteCollector with MinEval with OptimizedMinRegularizationChoice)
   val reMinLow = SimpleSequentAlgorithm("ReMinLow", new RegularizationEvaluation with DiscreteCollector with MinEval with OptimizedMinLoweringChoice)
 
+  val threeLow = SimpleSequentAlgorithm("3passLow", new ThreePassLower)
 
   val allAlgos = List(
     oldUnitLowering,
@@ -123,7 +124,8 @@ object WrappedAlgorithmFactory {
     "ReMaxReg" -> reMaxReg,
     "ReMaxLow" -> reMaxLow,
     "ReMinReg" -> reMinReg,
-    "ReMinLow" -> reMinLow
+    "ReMinLow" -> reMinLow,
+    "3passLow" -> threeLow
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =
