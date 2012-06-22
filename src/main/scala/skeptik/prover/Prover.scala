@@ -4,6 +4,7 @@ import skeptik.proof.Proof
 import skeptik.judgment.Judgment
 import scala.collection.immutable.{HashSet => ISet}
 import skeptik.proof.ProofNodeCollection
+import skeptik.util.debug._
 
 
 object typeAliases {
@@ -39,42 +40,23 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
 }
 
 class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
-  import scala.collection
   def prove(goal:J, context:S) : Option[P] = {
     val maxSubgoalSize = 1 * goal.size
     
-    def debug(s: Any)(implicit i:Int) = {
-      //println(((1 to i).toList.map(x => "    ") :\ "")(_+_) + s)
-    }
-    
-    
     def proveRec(j: J, seen: Set[J], c: S)(implicit d:Int): Option[P] = {
-      debug("")
-      if (seen contains j) {
-        debug(j)
-        debug(c)
-        debug("seen subgoals below")
-        seen.map(debug _)
-        debug("seen goal!")
-        debug("")
+      if (seen contains j) { // avoids cycles
+        debug(j); debug(c); debug("seen subgoals below"); seen.map(debug _); debug("seen goal!"); debug("")
         return None
       } 
       else {
-        for (rule <- calculus; subGoals <- rule(j)(c)) yield {         
-          debug(j)
-          debug(c)
-          debug("seen subgoals below")
-          seen.map(debug _)
-          debug(rule)
-          subGoals.map(debug _)
-          //System.in.read()
-          debug("")
+        // ToDo: the prover doesn't terminate if "calculus.par" is used.
+        for (rule <- calculus; subGoals <- rule(j)(c).par) yield {         
+          debug(j); debug(c); debug("seen subgoals below"); seen.map(debug _); debug(rule); subGoals.map(debug _); debug("")
           val premises = subGoals.map({case (state,subGoal) => proveRec(subGoal, seen + j, state)(d+1)})
           debug("")
           if (!premises.contains(None)) {
             val proof = rule(premises.map(_.get).seq, j)(c)
-            debug(proof)
-            debug("")
+            debug(proof); debug("")
             if (proof.isInstanceOf[Some[_]]) return proof 
           }
         }
