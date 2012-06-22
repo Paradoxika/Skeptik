@@ -101,14 +101,13 @@ class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest,
   }
 }
 
-
 class SimpleProverWithSideEffects2[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
   import scala.collection
   def prove(goal:J, context:S) : Option[P] = {
     val maxSubgoalSize = 1 * goal.size
     
     def debug(s: Any)(implicit i:Int) = {
-      println(((1 to i).toList.map(x => "    ") :\ "")(_+_) + s)
+      //println(((1 to i).toList.map(x => "    ") :\ "")(_+_) + s)
     }
     
     
@@ -120,19 +119,20 @@ class SimpleProverWithSideEffects2[J <: Judgment, P <: Proof[J,P]: ClassManifest
       debug("")
       if (
           j.size > maxSubgoalSize || 
-          seen.exists({case (g,b) => g == j //|| 
-                                     // b.b == true
+          seen.exists({case (g,b) => g == j || 
+                                     b.b == true
             })) {
+        if (seen.exists({case (g,b) => b.b == true})) debug("ABORTED!!!")
         debug(j)
         debug(c)
         debug("seen subgoals below")
         seen.map(debug _)
         debug("seen goal!")
         debug("")
-        None
+        return None
       } 
       else {
-        val proofs = for (rule <- calculus; subGoals <- rule(j)(c)) yield {
+        for (rule <- calculus; subGoals <- rule(j)(c)) yield {
           
           debug(j)
           debug(c)
@@ -145,16 +145,15 @@ class SimpleProverWithSideEffects2[J <: Judgment, P <: Proof[J,P]: ClassManifest
           val hasBeenProved = new B(false)
           val premises = subGoals.map({case (state,subGoal) => proveRec(subGoal, (j,hasBeenProved)::seen, state)(d+1)})
           debug("")
-          if (premises.seq contains None) None 
-          else {
+          if (!premises.contains(None)) {
             hasBeenProved.b = true
             val proof = rule(premises.map(_.get).seq, j)(c)
             debug(proof)
             debug("")
-            proof
+            if (proof.isInstanceOf[Some[_]]) return proof 
           }
         }
-        proofs.find(_.isInstanceOf[Some[_]]).getOrElse(None)
+        return None
       }
     }
     proveRec(goal, List(), context: S)(0)

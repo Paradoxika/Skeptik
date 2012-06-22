@@ -26,7 +26,8 @@ object ProverExperiment {
     
     println()
     
-    //val goals = (new FormulaGenerator).generate(5,2)
+    val goals = (new FormulaGenerator).generate(7,7)
+    println(goals.length)
 //    val goals = List(Imp(
 //                        Imp(
 //                            Imp(Prop("A"),Prop("B")),
@@ -34,12 +35,12 @@ object ProverExperiment {
 //                        Prop("A")))
 //  
     
-    val goals = List(Imp(Imp(
-                             Imp(
-                                 Imp(Prop("B"),Prop("A")),
-                                 Prop("B")),
-                             Prop("A")),
-                         Prop("A") ))
+//    val goals = List(Imp(Imp(
+//                             Imp(
+//                                 Imp(Prop("B"),Prop("A")),
+//                                 Prop("B")),
+//                             Prop("A")),
+//                         Prop("A") ))
     
     println()
     
