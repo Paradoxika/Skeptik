@@ -12,7 +12,7 @@ import skeptik.proof.natural.ImpElimC
 import skeptik.proof.natural.{ImpIntro => ImpI}
 import skeptik.proof.natural.ImpIntroC
 import skeptik.proof.natural.NamedE
-import skeptik.prover.SimpleProverWithSideEffects2
+import skeptik.prover.SimpleProverWithSideEffects
 
 object ProverExperiment {
 
