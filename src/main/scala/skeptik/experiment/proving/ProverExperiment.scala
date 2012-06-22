@@ -1,9 +1,9 @@
 package skeptik.experiment.proving
 
 import scala.collection.immutable.{HashSet => ISet}
-import skeptik.algorithm.generator.formulaGen.generate2
+import skeptik.algorithm.generator.FormulaGenerator
 import skeptik.expression.Var
-import skeptik.expression.formula.Imp
+import skeptik.expression.formula.{Prop,Imp}
 import skeptik.expression.o
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.natural.Assumption
@@ -12,21 +12,34 @@ import skeptik.proof.natural.ImpElimC
 import skeptik.proof.natural.{ImpIntro => ImpI}
 import skeptik.proof.natural.ImpIntroC
 import skeptik.proof.natural.NamedE
-import skeptik.prover.SimpleProverWithSideEffects
+import skeptik.prover.SimpleProverWithSideEffects2
 
 object ProverExperiment {
 
   def main(args: Array[String]): Unit = {
    
-    val ndProver = new SimpleProverWithSideEffects(Seq(ImpE,ImpI,Assumption))
-    val ndcProver = new SimpleProverWithSideEffects(Seq(ImpElimC,ImpIntroC,Assumption))
+    val ndProver = new SimpleProverWithSideEffects2(Seq(ImpE,ImpI,Assumption))
+    val ndcProver = new SimpleProverWithSideEffects2(Seq(Assumption,ImpIntroC,ImpElimC))
 
     
     val context = new ISet[NamedE]
     
     println()
     
-    val goals = generate2(2,3)
+    //val goals = (new FormulaGenerator).generate(5,2)
+//    val goals = List(Imp(
+//                        Imp(
+//                            Imp(Prop("A"),Prop("B")),
+//                                Prop("A")),
+//                        Prop("A")))
+//  
+    
+    val goals = List(Imp(Imp(
+                             Imp(
+                                 Imp(Prop("B"),Prop("A")),
+                                 Prop("B")),
+                             Prop("A")),
+                         Prop("A") ))
     
     println()
     
@@ -39,8 +52,11 @@ object ProverExperiment {
     var cumulativeCSize = 0
     var cSize = 0
     for (goal <- goals) {
+      //println(goal)
       System.gc()
       val proof = ndProver.prove(goal,context)
+      //val proof = None
+      println("goal" + goal + " ; " + proof)
       val provable = proof match {
         case None => {noCounter += 1; "no"} 
         case Some(p) => {yesCounter += 1;
@@ -50,17 +66,20 @@ object ProverExperiment {
                          //println(p); 
                          "yes"}
       }
+      println("started proving " + goal)
       val deepProof =  ndcProver.prove(goal,context)
+      println("finished proving " + goal + " ; " + deepProof)
       val deepProvable = deepProof match {
         case None => {noCCounter += 1; "no"} 
         case Some(p) => {
             yesCCounter += 1; 
             cSize = ProofNodeCollection(p).size
-            cumulativeCSize += cSize
+            if (proof != None) cumulativeCSize += cSize
             //println(size); 
             //println(p); 
             "yes"}
       }
+      //println("ho")
       if (true) println(yesCounter + " , " + noCounter + " , " + provable + " , " + size + " , " + cumulativeSize + " , " + deepProvable + " , " + cSize + " , " + cumulativeCSize + "  , goal:" + goal)
     }
     
