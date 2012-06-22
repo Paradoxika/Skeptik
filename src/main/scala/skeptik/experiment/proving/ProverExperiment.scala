@@ -1,6 +1,5 @@
 package skeptik.experiment.proving
 
-import scala.collection.immutable.{HashSet => ISet}
 import skeptik.algorithm.generator.FormulaGenerator
 import skeptik.expression.Var
 import skeptik.expression.formula.{Prop,Imp}
@@ -22,25 +21,13 @@ object ProverExperiment {
     val ndcProver = new SimpleProverWithSideEffects(Seq(Assumption,ImpIntroC,ImpElimC))
 
     
-    val context = new ISet[NamedE]
+    val context = Set[NamedE]()
     
     println()
     
     val goals = (new FormulaGenerator).generate(7,7)
     println(goals.length)
-//    val goals = List(Imp(
-//                        Imp(
-//                            Imp(Prop("A"),Prop("B")),
-//                                Prop("A")),
-//                        Prop("A")))
-//  
-    
-//    val goals = List(Imp(Imp(
-//                             Imp(
-//                                 Imp(Prop("B"),Prop("A")),
-//                                 Prop("B")),
-//                             Prop("A")),
-//                         Prop("A") ))
+
     
     println()
     
@@ -56,15 +43,12 @@ object ProverExperiment {
       //println(goal)
       System.gc()
       val proof = ndProver.prove(goal,context)
-      //val proof = None
       println("goal" + goal + " ; " + proof)
       val provable = proof match {
         case None => {noCounter += 1; "no"} 
         case Some(p) => {yesCounter += 1;
                          size = ProofNodeCollection(p).size
                          cumulativeSize += size
-                         //println(size); 
-                         //println(p); 
                          "yes"}
       }
       println("started proving " + goal)
@@ -76,8 +60,6 @@ object ProverExperiment {
             yesCCounter += 1; 
             cSize = ProofNodeCollection(p).size
             if (proof != None) cumulativeCSize += cSize
-            //println(size); 
-            //println(p); 
             "yes"}
       }
       //println("ho")
