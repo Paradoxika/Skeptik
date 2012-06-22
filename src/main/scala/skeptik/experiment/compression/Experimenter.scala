@@ -78,7 +78,10 @@ object WrappedAlgorithmFactory {
   val irunLow = SimpleSequentAlgorithm("IrUn Low", new IrregularUnits with AlwaysLowerIrregularUnits     )
 
   val reMaxReg = SimpleSequentAlgorithm("ReMaxReg", new RegularizationEvaluation with DiscreteCollector with OptimizedEval with OptimizedRegularizationChoice)
-  val reMaxLow = SimpleSequentAlgorithm("ReMaxReg", new RegularizationEvaluation with DiscreteCollector with OptimizedEval with OptimizedLoweringChoice)
+  val reMaxLow = SimpleSequentAlgorithm("ReMaxLow", new RegularizationEvaluation with DiscreteCollector with OptimizedEval with OptimizedLoweringChoice)
+
+  val reMinReg = SimpleSequentAlgorithm("ReMinReg", new MixMinChoice(0.) with DiscreteCollector with MinEval)
+  val reMinLow = SimpleSequentAlgorithm("ReMinLow", new MixMinChoice(0.01) with DiscreteCollector with MinEval)
 
 
   val allAlgos = List(
@@ -118,7 +121,9 @@ object WrappedAlgorithmFactory {
     "IrUnReg"  -> irunReg,
     "IrUnLow"  -> irunLow,
     "ReMaxReg" -> reMaxReg,
-    "ReMaxLow" -> reMaxLow
+    "ReMaxLow" -> reMaxLow,
+    "ReMinReg" -> reMinReg,
+    "ReMinLow" -> reMinLow
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =

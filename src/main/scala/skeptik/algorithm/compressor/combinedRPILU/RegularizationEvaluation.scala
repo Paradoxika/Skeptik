@@ -218,6 +218,22 @@ trait OptimizedEval extends RegularizationEvaluation {
   }
 }
 
+trait MinEval extends RegularizationEvaluation {
+  def minMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
+    ma.keys.foldLeft(mb) { (acc,k) =>
+      acc + (k -> (if ((mb contains k) && (mb(k) < ma(k))) mb(k) else ma(k)))
+    }
+  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+                         left:  SequentProof, leftInfo: RegularizationInformation,
+                         right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
+    RegularizationInformation(
+      leftInfo.nodeSize + rightInfo.nodeSize - 1..toFloat,
+      minMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> leftInfo.nodeSize),
+      minMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> rightInfo.nodeSize)
+    )
+  }
+}
+
 // Choices
 
 trait AlwaysLowerI extends RegularizationEvaluation {
@@ -288,7 +304,6 @@ extends RegularizationEvaluation {
 
 abstract class MixMinChoice (deletionProbability: Double)
 extends RegularizationEvaluation {
-  def max(x: Float, y: Float) = if (x < y) y else x
   def lowerInsteadOfRegularize(proof: SequentProof,
                                notDeletedChildren: Int,
                                information: RegularizationInformation,
