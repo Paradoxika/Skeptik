@@ -80,8 +80,8 @@ object WrappedAlgorithmFactory {
   val reMaxReg = SimpleSequentAlgorithm("ReMaxReg", new RegularizationEvaluation with DiscreteCollector with OptimizedEval with OptimizedRegularizationChoice)
   val reMaxLow = SimpleSequentAlgorithm("ReMaxLow", new RegularizationEvaluation with DiscreteCollector with OptimizedEval with OptimizedLoweringChoice)
 
-  val reMinReg = SimpleSequentAlgorithm("ReMinReg", new MixMinChoice(0.) with DiscreteCollector with MinEval)
-  val reMinLow = SimpleSequentAlgorithm("ReMinLow", new MixMinChoice(0.01) with DiscreteCollector with MinEval)
+  val reMinReg = SimpleSequentAlgorithm("ReMinReg", new RegularizationEvaluation with DiscreteCollector with MinEval with OptimizedMinRegularizationChoice)
+  val reMinLow = SimpleSequentAlgorithm("ReMinLow", new RegularizationEvaluation with DiscreteCollector with MinEval with OptimizedMinLoweringChoice)
 
 
   val allAlgos = List(
