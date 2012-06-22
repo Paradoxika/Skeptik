@@ -18,8 +18,8 @@ object ProverExperiment {
 
   def main(args: Array[String]): Unit = {
    
-    val ndProver = new SimpleProverWithSideEffects2(Seq(ImpE,ImpI,Assumption))
-    val ndcProver = new SimpleProverWithSideEffects2(Seq(Assumption,ImpIntroC,ImpElimC))
+    val ndProver = new SimpleProverWithSideEffects(Seq(ImpE,ImpI,Assumption))
+    val ndcProver = new SimpleProverWithSideEffects(Seq(Assumption,ImpIntroC,ImpElimC))
 
     
     val context = new ISet[NamedE]
