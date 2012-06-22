@@ -3,71 +3,58 @@ package natural
 
 import skeptik.expression._
 import skeptik.expression.formula._
-import skeptik.prover.InferenceRuleWithSideEffects
+import skeptik.prover.InferenceRule
 import scala.collection.Set
+import skeptik.judgment.{NaturalSequent,NamedE}
 
-case class NamedE(name:String, expression:E)
 
 object nameFactory {
   private var counter = 0
   def apply():String = {counter += 1; "e" + counter}
 }
 
-object typeAliases {
-  type Context = Set[NamedE]  
-}
-import typeAliases._
+
 
 abstract class NaturalDeductionProof(name: String, override val premises: List[NaturalDeductionProof])
-extends Proof[E, NaturalDeductionProof](name, premises) {
-  def context: Context
-}
+extends Proof[NaturalSequent, NaturalDeductionProof](name, premises) 
 
-class Assumption(val assumption: NamedE)(implicit val context: Context) extends NaturalDeductionProof("Ax",Nil) {
-  require(context contains assumption)
-  override val conclusion = assumption.expression
-  override def parameters = context::Nil
+
+class Assumption(val conclusion: NaturalSequent) extends NaturalDeductionProof("Ax",Nil) {
+  require(conclusion.context.exists(_.expression == conclusion.e))
 }
 
 class ImpIntro(val premise: NaturalDeductionProof, val assumption: NamedE)
 extends NaturalDeductionProof("ImpIntro",premise::Nil) {
-  require(premise.context contains assumption)
-  override val context = premise.context - assumption
-  override val conclusion = Imp(assumption.expression, premise.conclusion)
-  override def parameters = context::Nil
+  require(premise.conclusion.context contains assumption)
+  override val conclusion = new NaturalSequent(premise.conclusion.context - assumption, Imp(assumption.expression, premise.conclusion.e))
 }
 
 class ImpElim(val leftPremise:NaturalDeductionProof, val rightPremise:NaturalDeductionProof)
 extends NaturalDeductionProof("ImpElim", leftPremise::rightPremise::Nil) {
-  override lazy val context = leftPremise.context ++ rightPremise.context
-  override val conclusion = (leftPremise.conclusion,rightPremise.conclusion) match {
-    case (a,Imp(b,c)) if a == b => c
+  override val conclusion = (leftPremise.conclusion.e,rightPremise.conclusion.e) match {
+    case (a,Imp(b,c)) if a == b => new NaturalSequent(leftPremise.conclusion.context ++ rightPremise.conclusion.context, c)
     case _ => throw new Exception("Implication Elimination Rule cannot be applied because the formulas do not match")
   }
-  override def parameters = context::Nil
 }
 
-object Assumption extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, Context] {
-  def apply(assumption: NamedE)(implicit context: Context) = new Assumption(assumption)
-  def unapply(p: NaturalDeductionProof) = p match {
-    case p: Assumption => Some(p.assumption, p.context)
-    case _ => None
-  }
+object Assumption extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
+//  def apply(conclusion: NaturalSequent) = new Assumption(conclusion)
+//  def unapply(p: NaturalDeductionProof) = p match {
+//    case p: Assumption => Some(p.conclusion)
+//    case _ => None
+//  }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-  def apply(j: E)(implicit context: Context): Seq[Seq[(Context, E)]] = Seq(Seq())
+  def apply(j: NaturalSequent) = Seq(Seq())
   
-  def apply(premises: Seq[NaturalDeductionProof], conclusion: E)(implicit c: Context): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
-    if (premises.length == 0) c.find(_.expression == conclusion) match {
-      case Some(namedE) => Some(new Assumption(namedE))
-      case None => None
-    } 
+  def apply(premises: Seq[NaturalDeductionProof], conclusion: NaturalSequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+    if (premises.length == 0 && conclusion.context.exists(_.expression == conclusion.e)) Some(new Assumption(conclusion))
     else None
   }
 }
 
 
-object ImpIntro extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, Context] {
+object ImpIntro extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   def apply(premise: NaturalDeductionProof, assumption: NamedE) = new ImpIntro(premise, assumption)
   def unapply(p: NaturalDeductionProof) = p match {
     case p: ImpIntro => Some((p.premise, p.assumption))
@@ -75,15 +62,15 @@ object ImpIntro extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, C
   }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-  def apply(j: E)(implicit c: Context): Seq[Seq[(Context,E)]] = j match {
-    case i @ Imp(a,b) => Seq(Seq((c + NamedE(nameFactory(), a), b))) 
+  def apply(j: NaturalSequent): Seq[Seq[NaturalSequent]] = j.e match {
+    case Imp(a,b) => Seq(Seq(new NaturalSequent(j.context + NamedE(nameFactory(), a), b))) 
     case _ => Seq()
   } 
   
-  def apply(premises: Seq[NaturalDeductionProof], conclusion: E)(implicit c: Context): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
-    if (premises.length == 1) conclusion match {
-      case i @ Imp(a,b) => {
-        if (b == premises(0).conclusion) premises(0).context.find(_.expression == a) match {
+  def apply(premises: Seq[NaturalDeductionProof], conclusion: NaturalSequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+    if (premises.length == 1) conclusion.e match {
+      case Imp(a,b) => {
+        if (b == premises(0).conclusion.e) premises(0).conclusion.context.find(_.expression == a) match {
           case Some(assumption) => Some(new ImpIntro(premises(0), assumption))
           case None => None
         }
@@ -96,7 +83,7 @@ object ImpIntro extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, C
 }
 
 
-object ImpElim extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, Context] {
+object ImpElim extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   def apply(leftPremise: NaturalDeductionProof, rightPremise: NaturalDeductionProof) = new ImpElim(leftPremise, rightPremise)
   def unapply(p: NaturalDeductionProof) = p match {
     case p: ImpElim => Some((p.leftPremise, p.rightPremise))
@@ -104,16 +91,14 @@ object ImpElim extends InferenceRuleWithSideEffects[E, NaturalDeductionProof, Co
   }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-  def apply(j: E)(implicit c: Context): Seq[Seq[(Context,E)]] = (for (h <- c) yield h match {
+  def apply(j: NaturalSequent) = (for (h <- j.context) yield h match {
     case NamedE(n,Imp(a,b)) if b == j => {
-      val left = a
-      val right = Imp(a,b)
-      Some(Seq((c,left),(c,right)))
+      Some(Seq(new NaturalSequent(j.context,a), new NaturalSequent(j.context,Imp(a,b))))
     }
     case _ => None
   }).filter(_ != None).map(_.get).toSeq 
-  
-  def apply(premises: Seq[NaturalDeductionProof], conclusion: E)(implicit c: Context): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+ 
+  def apply(premises: Seq[NaturalDeductionProof], conclusion: NaturalSequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 2) {
       try {
         val proof = ImpElim(premises(0), premises(1))

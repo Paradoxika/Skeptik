@@ -7,10 +7,10 @@ object unicode {
 }
 
 object prettyPrinting {
-  def listToCSVString[X](l:List[X]) = {
-    l match {
+  def csv[X](l:TraversableOnce[X]) = {
+    l.toList match {
       case Nil => ""
-      case h::t => (h.toString /: t)((x,y)=> "" + x + "," + y)
+      case h::t => (h.toString /: t)((x,y)=> "" + x + ", " + y)
     }
   }
 }

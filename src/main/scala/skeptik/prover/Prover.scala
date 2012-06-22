@@ -9,7 +9,6 @@ import skeptik.util.debug._
 
 object typeAliases {
   type Calculus[J <: Judgment, P <: Proof[J,P]] = Seq[InferenceRule[J, P]]
-  type CalculusWithSideEffects[J <: Judgment, P <: Proof[J,P], S] = Seq[InferenceRuleWithSideEffects[J, P, S]]
 }
 
 import typeAliases._
@@ -39,23 +38,23 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
   }
 }
 
-class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: CalculusWithSideEffects[J,P,S]) {
-  def prove(goal:J, context:S) : Option[P] = {
-    val maxSubgoalSize = 1 * goal.size
+class SimpleProver2[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: Calculus[J,P]) {
+  def prove(goal:J) : Option[P] = {
+    val maxSubgoalSize = 3 * goal.size
     
-    def proveRec(j: J, seen: Set[J], c: S)(implicit d:Int): Option[P] = {
+    def proveRec(j: J, seen: Set[J])(implicit d:Int): Option[P] = {
       if (seen contains j) { // avoids cycles
-        debug(j); debug(c); debug("seen subgoals below"); seen.map(debug _); debug("seen goal!"); debug("")
+        debug(j); debug("seen subgoals below"); seen.map(debug _); debug("seen goal!"); debug("")
         return None
       } 
       else {
         // ToDo: the prover doesn't terminate if "calculus.par" is used.
-        for (rule <- calculus; subGoals <- rule(j)(c).par) yield {         
-          debug(j); debug(c); debug("seen subgoals below"); seen.map(debug _); debug(rule); subGoals.map(debug _); debug("")
-          val premises = subGoals.map({case (state,subGoal) => proveRec(subGoal, seen + j, state)(d+1)})
+        for (rule <- calculus; subGoals <- rule(j).par) yield {         
+          debug(j); debug("seen subgoals below"); seen.map(debug _); debug(rule); subGoals.map(debug _); debug("")
+          val premises = subGoals.map({subGoal => proveRec(subGoal, seen + j)(d+1)})
           debug("")
           if (!premises.contains(None)) {
-            val proof = rule(premises.map(_.get).seq, j)(c)
+            val proof = rule(premises.map(_.get).seq, j)
             debug(proof); debug("")
             if (proof.isInstanceOf[Some[_]]) return proof 
           }
@@ -63,6 +62,6 @@ class SimpleProverWithSideEffects[J <: Judgment, P <: Proof[J,P]: ClassManifest,
         return None
       }
     }
-    proveRec(goal, Set(), context: S)(0)
+    proveRec(goal, Set())(0)
   }
 }

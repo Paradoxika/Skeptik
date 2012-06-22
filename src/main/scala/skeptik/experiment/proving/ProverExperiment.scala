@@ -10,22 +10,22 @@ import skeptik.proof.natural.{ImpElim => ImpE}
 import skeptik.proof.natural.ImpElimC
 import skeptik.proof.natural.{ImpIntro => ImpI}
 import skeptik.proof.natural.ImpIntroC
-import skeptik.proof.natural.NamedE
-import skeptik.prover.SimpleProverWithSideEffects
+import skeptik.judgment.{NaturalSequent, NamedE}
+import skeptik.prover.SimpleProver2
 
 object ProverExperiment {
 
   def main(args: Array[String]): Unit = {
-   
-    val ndProver = new SimpleProverWithSideEffects(Seq(ImpE,ImpI,Assumption))
-    val ndcProver = new SimpleProverWithSideEffects(Seq(Assumption,ImpIntroC,ImpElimC))
 
+    val ndProver = new SimpleProver2(Seq(Assumption,ImpI,ImpE))
+    val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))
     
     val context = Set[NamedE]()
     
     println()
     
-    val goals = (new FormulaGenerator).generate(7,7)
+    val goals = (new FormulaGenerator).generate(5,5)
+    //val goals = Seq(Imp(Prop("A"),Prop("A")))
     println(goals.length)
 
     
@@ -40,10 +40,11 @@ object ProverExperiment {
     var cumulativeCSize = 0
     var cSize = 0
     for (goal <- goals) {
-      //println(goal)
+      println("shallow")
       System.gc()
-      val proof = ndProver.prove(goal,context)
-      println("goal" + goal + " ; " + proof)
+      //val proof = ndProver.prove(goal,context)
+      val proof = ndProver.prove(new NaturalSequent(Set(),goal))
+      println("goal" + goal + " ; shallow proof: " + proof)
       val provable = proof match {
         case None => {noCounter += 1; "no"} 
         case Some(p) => {yesCounter += 1;
@@ -51,8 +52,10 @@ object ProverExperiment {
                          cumulativeSize += size
                          "yes"}
       }
+      println("end shallow")
       println("started proving " + goal)
-      val deepProof =  ndcProver.prove(goal,context)
+      //val deepProof =  ndcProver.prove(goal,context)
+      val deepProof =  ndcProver.prove(new NaturalSequent(Set(),goal))
       println("finished proving " + goal + " ; " + deepProof)
       val deepProvable = deepProof match {
         case None => {noCCounter += 1; "no"} 

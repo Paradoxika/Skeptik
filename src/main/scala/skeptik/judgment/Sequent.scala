@@ -33,7 +33,7 @@ class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
   def size = ((ant:::suc).map(_.size) :\ 0)(_ + _ + 1) 
   
   override def hashCode = 42*ant.toSet.hashCode + suc.toSet.hashCode
-  override def toString = listToCSVString(ant) + unicodeOrElse(" \u22A2 "," :- ") + listToCSVString(suc)
+  override def toString = csv(ant) + unicodeOrElse(" \u22A2 "," :- ") + csv(suc)
   def toSet: ISet[E] = ISet() ++ ant.map(f => Neg(f)) ++ suc
 }
 object Sequent {
