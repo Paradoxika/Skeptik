@@ -3,17 +3,15 @@ package skeptik.expression
 import skeptik.judgment.Judgment
 import skeptik.util.unicode._
   
-abstract class E extends Judgment {
+sealed abstract class E extends Judgment {
   def t: T
     
-  // ToDo: should think whether this is really needed.
   def copy: E
     
   def size: Int
   
-  //ToDo: should call canEqual
   //alphaEquals
-  def =+=(e:E) = {
+  def =+=(that:E) = {
     def rec(e1:E,e2:E,map:Map[Var,Var]): Boolean = (e1,e2) match {
       case (v1:Var, v2:Var) => map.getOrElse(v1,v1)==v2
       case (Abs(v1@Var(_,t1),b1),Abs(v2@Var(_,t2),b2)) => {
@@ -24,7 +22,7 @@ abstract class E extends Judgment {
       case (App(f1,a1),App(f2,a2)) => rec(f1, f2, map) && rec(a1, a2, map)
       case _ => false
     }
-    rec(this, e, Map())
+    rec(this, that, Map())
   }
   def occursIn(e:E):Boolean = if (this == e) true else e match {
     case v: Var => false
@@ -51,9 +49,8 @@ case class Var(val name: String, override val t:T) extends E {
 }
 case class Abs(val variable: Var, val body: E) extends E {
   def copy = new Abs(variable.copy,body.copy)
-  override lazy val t = variable.t -> body.t
-  // ToDo: should take the size of the variable's type into account. 
-  def size = variable.size + body.size + 1
+  override lazy val t = variable.t -> body.t 
+  def size = (variable.t.size + 1) + body.size + 1
   override def toString = unicodeOrElse("\u03BB","@") + variable.name + ":" + variable.t + "." + body
 }
 case class App(val function: E, val argument: E) extends E {
