@@ -17,10 +17,7 @@ abstract class Position {
   def getSubpositions(formula: E) : Seq[Position]
 }
 
-//package object deprecated {
-//  @deprecated
-//  type IntListPosition = List[Int] // ToDo: refactor this into a subclass of Position, if needed. Maybe it is better to try to use SubformulaP instead.
-//}
+
 class InexistentPositionException(formula: E, position: Position) extends Exception("Position " + position + " does not exist in formula " + formula)
 
 class EmptyP() extends IntListP(Nil)

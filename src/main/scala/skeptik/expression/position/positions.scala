@@ -2,6 +2,7 @@ package skeptik.expression
 package position
   
 abstract class Position {
+  
   // returns the subformulas of f at these positions
   def !!:(e:E): Seq[E]
   
@@ -10,9 +11,9 @@ abstract class Position {
 
   def existsIn(e: E): Boolean = ! !!:(e).isEmpty
   
-  def ||(that: Position): Position = new OrPosition(this,that)
+  def ||(that: Position) = new OrPosition(this, that)
   
-  def *(that: Position): Position = new ComposedPosition(this,that)
+  def *(that: Position) = new ComposedPosition(this, that)
   
   def toSinglePositions(e: E) = {
     val subs = !!:(e)
@@ -25,6 +26,11 @@ abstract class SinglePosition extends Position {
   def !!:(e:E) = !:(e) match {
     case None => Seq()
     case Some(exp) => Seq(exp)
+  }
+  
+  def getSubpositions[P](e: E):Seq[SinglePosition] = !:(e) match {
+    case Some(sub) => for (p <- TotalPosition.toSinglePositions(sub)) yield (this * p).toSinglePositions(e)(0) 
+    case None => Seq()
   }
 }
 
@@ -56,12 +62,12 @@ class OrPosition(left: Position, right: Position) extends Position {
   def @:(f: E => E)(exp: E) = (f @: new PredicatePosition(e => !!:(exp).exists(_ eq e) ))(exp)
 }
 
-class EmptyPosition extends Position {
+object EmptyPosition extends Position {
   def !!:(e: E) = Seq(e)
   def @:(f: E => E)(e:E) = f(e)
 }
 
-class TotalPosition extends PredicatePosition(_ => true)
+object TotalPosition extends PredicatePosition(_ => true)
 
 class PredicatePosition(val isSearchedExpression: E => Boolean) extends Position {
   def !!:(expression:E) = {
