@@ -21,7 +21,7 @@ object DAGification {
               otherProof replaces p
             }
             else {
-              p replaces otherProof   // ToDo: I changed the "replaces" method. Hence this line might not work anymore.
+              p replaces otherProof   // TODO: I changed the "replaces" method. Hence this line might not work anymore.
               map -= otherProof.clause
               map += (p.clause -> p)
             }

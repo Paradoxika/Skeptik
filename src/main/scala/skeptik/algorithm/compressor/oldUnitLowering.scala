@@ -15,7 +15,7 @@ object UnitLowering {
 
 
     def rec(p: Proof): Unit = {
-      if (p.children.forall(c => visitedProofs contains c )) { // ToDo: This can be made more efficient by keeping a callCount
+      if (p.children.forall(c => visitedProofs contains c )) { // TODO: This can be made more efficient by keeping a callCount
 
         visitedProofs += p
 

@@ -39,8 +39,8 @@ object R {
   def apply(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E)(implicit unifiableVariables:Set[Var]) = new R(leftPremise, rightPremise, auxL, auxR)// unifiableVariables)
   def apply(leftPremise:SequentProof, rightPremise:SequentProof, findL:E=>Boolean, findR:E=>Boolean)(implicit unifiableVariables:Set[Var]) = {
     new R(leftPremise, rightPremise,
-          leftPremise.conclusion.suc.find(findL).get,  //ToDo: Catch Exception
-          rightPremise.conclusion.ant.find(findR).get) //ToDo: Catch Exception
+          leftPremise.conclusion.suc.find(findL).get,  //TODO: Catch Exception
+          rightPremise.conclusion.ant.find(findR).get) //TODO: Catch Exception
   }
   def apply(leftPremise:SequentProof, rightPremise:SequentProof)(implicit unifiableVariables:Set[Var]) = {
     def isUnifiable(p:(E,E)) = unify(p::Nil)(unifiableVariables) match {
@@ -53,7 +53,7 @@ object R {
       new R(leftPremise, rightPremise, auxL, auxR)
     }
     else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
-    else throw new Exception("Resolution: the resolvent is ambiguous.") // ToDo
+    else throw new Exception("Resolution: the resolvent is ambiguous.")
   }
   def unapply(p:SequentProof) = p match {
     case p: R => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))

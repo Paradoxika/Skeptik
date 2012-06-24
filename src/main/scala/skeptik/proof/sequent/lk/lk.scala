@@ -215,7 +215,6 @@ object AndR {
     case _ => None
   }
 }
-//ToDo: Companion objects for ExL and ExR are missing. They are not needed yet.
 object Cut {
   def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new Cut(leftPremise,rightPremise,auxL,auxR)
   def unapply(p: SequentProof) = p match {

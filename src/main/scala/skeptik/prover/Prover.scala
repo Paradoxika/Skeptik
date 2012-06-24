@@ -48,7 +48,7 @@ class SimpleProver2[J <: Judgment, P <: Proof[J,P]: ClassManifest, S](calculus: 
         return None
       } 
       else {
-        // ToDo: the prover doesn't terminate if "calculus.par" is used.
+        // TODO: the prover doesn't terminate if "calculus.par" is used.
         for (rule <- calculus; subGoals <- rule(j).par) yield {         
           debug(j); debug("seen subgoals below"); seen.map(debug _); debug(rule); subGoals.map(debug _); debug("")
           val premises = subGoals.map({subGoal => proveRec(subGoal, seen + j)(d+1)})
