@@ -29,18 +29,6 @@ sealed abstract class E extends Judgment {
     case App(f,a) => (this occursIn f) || (this occursIn a)
     case Abs(v,g) => (this occursIn v) || (this occursIn g)
   }
-  // ToDo: maybe substitutions should be moved outside this class. 
-  // They should be programmed as an internal DSL, similar to positions. 
-  def /(subs: Map[Var,E]) =  {
-    def rec(f:E,boundVars:Set[Var]):E = f match {
-      case App(e1, e2) => App(rec(e1,boundVars),rec(e2,boundVars))
-      case Abs(v,e) => Abs(v.copy, rec(e, boundVars + v))
-      case v: Var if (boundVars contains v) => v.copy 
-      case v: Var if (subs contains v) => subs(v).copy
-      case v: Var => v.copy
-    }
-    rec(this, Set())
-  }
 }
 case class Var(val name: String, override val t:T) extends E {
   def copy = new Var(name,t)

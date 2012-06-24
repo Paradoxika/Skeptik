@@ -20,7 +20,7 @@ with NoMainFormula {
   }
   private val ancestryMap = new MMap[(E,SequentProof),Sequent]
   override val conclusionContext = {
-    def descendant(e:E, p:SequentProof, anc: Sequent) = {val eS = (e/unifier); ancestryMap += ((eS,p) -> anc); eS }
+    def descendant(e:E, p:SequentProof, anc: Sequent) = {val eS = unifier(e); ancestryMap += ((eS,p) -> anc); eS }
     val antecedent = leftPremise.conclusion.ant.map(e=>descendant(e,leftPremise,Sequent(e,Nil))) ++
                     (rightPremise.conclusion.ant.filter(_ != auxR)).map(e=>descendant(e,rightPremise,Sequent(e,Nil)))
     val succedent = (leftPremise.conclusion.suc.filter(_ != auxL)).map(e=>descendant(e,leftPremise,Sequent(Nil,e))) ++
