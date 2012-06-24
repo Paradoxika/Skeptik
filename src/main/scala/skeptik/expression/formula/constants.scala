@@ -22,10 +22,8 @@ package object formula {
   def negC = Var(negS, o -> o)
   
   def isLogicalConnective(c:E) = c match {
-    case c: Var => {
-      val n = c.name 
-      if (n == andS || n == orS || n == impS || n == allS || n == exS || n == negS) true else false
-    }
+    case Var(n,_) if (n == andS || n == orS || n == impS || 
+                      n == allS || n == exS || n == negS) => true
     case _ => false
   }
 }
