@@ -61,13 +61,11 @@ case class App(val function: E, val argument: E) extends E {
   def copy = new App(function.copy,argument.copy)
   override lazy val t = function.t.asInstanceOf[arrow].t2
   def size = function.size + argument.size + 1
-  
-  //override def toString = "(" + function + " " + argument + ")"
-  // ToDo: the code below is an ugly hack...
-  import formula.{Imp, impS}
+
   override def toString = this match {
-    case Imp(a,b) => "(" + a + " " + impS + " " + b +  ")"
+    case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
     case _ => "(" + function + " " + argument + ")"
   }
 }
 
+trait Infix extends Var
