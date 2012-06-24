@@ -1,6 +1,8 @@
 package skeptik.expression
 package position
   
+class InexistentPositionException(e: E, position: Position) extends Exception("Position " + position + " does not exist in expression " + e)
+
 abstract class Position {
   
   // returns the subformulas of f at these positions
@@ -28,7 +30,7 @@ abstract class SinglePosition extends Position {
     case Some(exp) => Seq(exp)
   }
   
-  def getSubpositions[P](e: E):Seq[SinglePosition] = !:(e) match {
+  def getSubpositions(e: E):Seq[SinglePosition] = !:(e) match {
     case Some(sub) => for (p <- TotalPosition.toSinglePositions(sub)) yield (this * p).toSinglePositions(e)(0) 
     case None => Seq()
   }

@@ -2,7 +2,7 @@ package skeptik.proof.natural
 
 import skeptik.expression.E
 import skeptik.expression.formula.Imp
-import skeptik.expression.formula.position.{IntListP => Position,EmptyP}
+import skeptik.expression.formula.position.{IntListPosition => Position,EmptyP}
 import skeptik.prover.InferenceRule
 import skeptik.judgment.{NaturalSequent,NamedE}
 
@@ -24,8 +24,8 @@ class ImpElimC(val leftPremise: NaturalDeductionProof, val rightPremise: Natural
 extends NaturalDeductionProof("ImpElimC", leftPremise::rightPremise::Nil) {
   require(leftPosition isPositiveIn leftPremise.conclusion.e)
   require(rightPosition isPositiveIn rightPremise.conclusion.e)
-  private def deepAuxL = leftPremise.conclusion.e !: leftPosition 
-  private def deepAuxR = rightPremise.conclusion.e !: rightPosition;
+  private def deepAuxL = (leftPremise.conclusion.e !: leftPosition).get 
+  private def deepAuxR = (rightPremise.conclusion.e !: rightPosition).get
   private def deepMain = (deepAuxL,deepAuxR) match {
     case (a,Imp(b,c)) if a == b => c
     case _ => throw new Exception("Implication Elimination Rule cannot be applied because the formulas do not match")
@@ -46,10 +46,10 @@ object ImpIntroC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: NaturalSequent): Seq[Seq[NaturalSequent]] = {
-    val positivePositions = new EmptyP().getSubpositions(j.e).filter(_.isPositiveIn(j.e))
+    val positivePositions = EmptyP.getSubpositions(j.e).filter(_.isPositiveIn(j.e))
     val seen = new scala.collection.mutable.HashSet[E]
     (for (p <- positivePositions) yield {
-      val deepMain = j.e !: p
+      val deepMain = (j.e !: p).get
       deepMain match {
         case Imp(a,deepAux) => {
           val subGoal = (((_:E)=>deepAux) @: p)(j.e)
@@ -66,13 +66,13 @@ object ImpIntroC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   
   def apply(premises: Seq[NaturalDeductionProof], conclusion: NaturalSequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 1) {
-      val positions = new EmptyP().getSubpositions(conclusion.e)
+      val positions = EmptyP.getSubpositions(conclusion.e)
       val positivePositions = positions.filter(p => p.isPositiveIn(conclusion.e) && p.existsIn(premises(0).conclusion.e) && p.isPositiveIn(premises(0).conclusion.e))
       val optionProofs = (for (p <- positivePositions) yield {
-        val deepMain = conclusion.e !: p
+        val deepMain = (conclusion.e !: p).get
         deepMain match {
           case i @ Imp(a,b) => {
-            val deepAux = premises(0).conclusion.e !: p
+            val deepAux = (premises(0).conclusion.e !: p).get
             if (b == deepAux) premises(0).conclusion.context.find(_.expression == a) match {
               case Some(assumption) => Some(new ImpIntroC(premises(0), assumption, p))
               case None => None
@@ -100,22 +100,22 @@ object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: NaturalSequent): Seq[Seq[NaturalSequent]] = {
-    val outerPositions = new EmptyP().getSubpositions(j.e).filter(_.isPositiveIn(j.e))
+    val outerPositions = EmptyP.getSubpositions(j.e).filter(_.isPositiveIn(j.e))
     var result: Seq[Seq[NaturalSequent]] = Seq()
     
     for (outP <- outerPositions) {
-      val semiDeepMain = j.e !: outP
-      val innerPositions = new EmptyP().getSubpositions(semiDeepMain).filter(_.isPositiveIn(semiDeepMain))
+      val semiDeepMain = (j.e !: outP).get
+      val innerPositions = EmptyP.getSubpositions(semiDeepMain).filter(_.isPositiveIn(semiDeepMain))
       for (inP <- innerPositions) {
-        val deepMain = semiDeepMain !: inP
+        val deepMain = (semiDeepMain !: inP).get
         for (n <- j.context) {
           val auxR = n.expression
           def computeSubGoals(leftP: Position, rightP: Position, auxLBase: E) = {
-            val deepAuxR = auxR !: rightP 
+            val deepAuxR = (auxR !: rightP).get 
             deepAuxR match {
               case Imp(a,b) if b == deepMain => {
                 
-                val bOccursPositivelyInA = (new EmptyP).getSubpositions(a).filter(p => p.isPositiveIn(a) && (a !: p) == b).length > 0
+                val bOccursPositivelyInA = EmptyP.getSubpositions(a).filter(p => p.isPositiveIn(a) && (a !: p).get == b).length > 0
                 
                 if (!bOccursPositivelyInA) {
                   val auxL = (((_:E) => a) @: leftP)(auxLBase)
@@ -142,11 +142,11 @@ object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
       val auxR = premises(1).conclusion.e
       
       
-      val positionsR = new EmptyP().getSubpositions(auxR).filter(_ isPositiveIn auxR)
+      val positionsR = EmptyP.getSubpositions(auxR).filter(_ isPositiveIn auxR)
       
-      val proofs: Seq[NaturalDeductionProof] = (for (posR <- positionsR) yield (auxR !: posR) match {
+      val proofs: Seq[NaturalDeductionProof] = (for (posR <- positionsR) yield (auxR !: posR).get match {
         case Imp(a,b) => {
-          val positionsL = new EmptyP().getSubpositions(auxL).filter(pos => (pos isPositiveIn auxL) && (auxL !: pos) == a)
+          val positionsL = EmptyP.getSubpositions(auxL).filter(pos => (pos isPositiveIn auxL) && (auxL !: pos).get == a)
           for (posL <- positionsL) yield Seq(ImpElimC(premises(0), premises(1), posL, posR, LeftArrow), 
                                              ImpElimC(premises(0), premises(1), posL, posR, RightArrow)) 
 
