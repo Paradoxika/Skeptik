@@ -6,7 +6,7 @@ import skeptik.expression.formula.position.{IntListPosition => Position,EmptyP}
 import skeptik.prover.InferenceRule
 import skeptik.judgment.{NaturalSequent,NamedE}
 
-// TODO: Add Intuitionistic Soundness Condition
+// TODO: (Bruno) Add Intuitionistic Soundness Condition
 
 sealed abstract class ImpElimCArrow
 case object RightArrow extends ImpElimCArrow

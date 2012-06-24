@@ -5,7 +5,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import skeptik.judgment.Sequent
 import skeptik.expression.E
 
-// TODO: passing arguments in the constructor of this abstract class makes it impossible
+// TODO: (Bruno) passing arguments in the constructor of this abstract class makes it impossible
 // to initialize these fields with traits. This leads to code duplication.
 // It might be a good idea to transform these into def's.
 abstract class SequentProof(name: String, 
@@ -64,7 +64,7 @@ trait NoImplicitContraction extends SequentProof {
 
 trait ImplicitContraction extends SequentProof {
   private val contextAndAncestryAux: (Sequent, MMap[(E,SequentProof),Sequent]) = {
-    // TODO: --* should be used instead of -- . 
+    // TODO: (Bruno) --* should be used instead of -- . 
     // However, doing this makes the proof compression algorithms stop working.
     // The bug is actually in the proof fixing codes (e.g. in line 30 in UnitLowering.scala)
     // The bug shall be properly fixed once all proof fixing codes are refactored into a single
@@ -76,7 +76,7 @@ trait ImplicitContraction extends SequentProof {
     val sucSeen = new MSet[E]
     val sucDuplicates = new MSet[E]
     
-    // TODO: if a formula appears twice in the same premise, 
+    // TODO: (Bruno) if a formula appears twice in the same premise, 
     // it will be implicitly contracted and will appear only once in the conclusion.
     // This is not always the intended behaviour.
     for (p <- premises) {
@@ -113,7 +113,7 @@ trait ImplicitContraction extends SequentProof {
         conclusionContextAnt += descendant
         contextAncestryMap += ((descendant,p) -> Sequent(f,Nil))
       }
-      for (f <- context(p).suc) {   //TODO: remove code duplication for ant and suc
+      for (f <- context(p).suc) {   //TODO: (Bruno) remove code duplication for ant and suc
         val descendant:E = {
           if (sucDuplicates contains f) {
             if (descendantsForSucDuplicates contains f) {

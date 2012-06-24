@@ -5,7 +5,7 @@ import skeptik.expression.{E,Var,App,Abs}
 import skeptik.expression.substitution.Substitution
 
 
-// TODO: this is an ad-hoc unification algorithm.
+// TODO: (Bruno) this is an ad-hoc unification algorithm.
 object unify {
  
   def apply(equations: List[(E,E)])(implicit variables: Set[Var]): Option[Substitution] = {
