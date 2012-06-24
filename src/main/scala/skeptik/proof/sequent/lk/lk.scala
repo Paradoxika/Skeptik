@@ -5,7 +5,7 @@ package lk
 import skeptik.judgment.Sequent
 import skeptik.expression.{E,Var}
 import skeptik.expression.formula._
-import skeptik.expression.formula.position.deprecated.IntListPosition
+import skeptik.expression.position.Position
 import skeptik.prover.InferenceRule
 
 
@@ -39,16 +39,16 @@ with NoImplicitContraction with SingleMainFormula with Right  {
   val mainFormula = And(auxL,auxR)
 }
 
-class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
+class AllL(val premise:SequentProof, val aux:E, val v:Var, val position:Position)
 extends SequentProof("AllL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction {
-  val mainFormula = All(aux,v,pl)
+  val mainFormula = All(aux, v, position)
 }
 
-class ExR(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
+class ExR(val premise:SequentProof, val aux:E, val v:Var, val position:Position)
 extends SequentProof("ExR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
 with SingleMainFormula with Right with NoImplicitContraction {
-  val mainFormula = Ex(aux,v,pl)
+  val mainFormula = Ex(aux, v, position)
 }
 
 trait EigenvariableCondition extends SequentProof {
@@ -126,9 +126,9 @@ object AllR {
   }
 }
 object AllL {
-  def apply(premise:SequentProof, aux:E, v:Var, pl:List[IntListPosition]) = new AllL(premise,aux,v,pl)
+  def apply(premise:SequentProof, aux:E, v:Var, p:Position) = new AllL(premise,aux,v,p)
   def unapply(p: SequentProof) = p match {
-    case p: AllL => Some((p.premise,p.aux,p.v,p.pl))
+    case p: AllL => Some((p.premise,p.aux,p.v,p.position))
     case _ => None
   }
 }

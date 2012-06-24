@@ -17,17 +17,16 @@ abstract class Position {
   def getSubpositions(formula: E) : Seq[Position]
 }
 
-package object deprecated {
-  type IntListPosition = List[Int] // ToDo: refactor this into a subclass of Position, if needed. Maybe it is better to try to use SubformulaP instead.
-}
+//package object deprecated {
+//  @deprecated
+//  type IntListPosition = List[Int] // ToDo: refactor this into a subclass of Position, if needed. Maybe it is better to try to use SubformulaP instead.
+//}
 class InexistentPositionException(formula: E, position: Position) extends Exception("Position " + position + " does not exist in formula " + formula)
 
 class EmptyP() extends IntListP(Nil)
 
 class SubformulaP(subformula: E, override val index: Int) extends PredicateP(_ == subformula, index)
 
-
-// position of the index-th occurrence of subformula
 case class IntListP(list: List[Int]) extends Position {
   def !:(formula:E):E = {
     (list, formula) match {

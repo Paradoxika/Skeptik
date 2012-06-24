@@ -1,6 +1,5 @@
 package skeptik.expression
 
-import skeptik.expression._
 import skeptik.util.unicode._
 
 package object formula {
