@@ -29,26 +29,26 @@ with SingleMainFormula with Left with NoImplicitContraction {
 class AndL(val premise:SequentProof, val auxL:E, val auxR:E)
 extends SequentProof("AndL", premise::Nil, Map(premise -> Sequent(auxL::auxR::Nil,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction {
-  override val mainFormula = And(auxL,auxR)
+  val mainFormula = And(auxL,auxR)
 }
 
 class AndR(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
 extends SequentProof("AndR", leftPremise::rightPremise::Nil,
                       Map(leftPremise -> Sequent(Nil,auxL), rightPremise -> Sequent(Nil,auxR)))
 with NoImplicitContraction with SingleMainFormula with Right  {
-  override val mainFormula = And(auxL,auxR)
+  val mainFormula = And(auxL,auxR)
 }
 
 class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
 extends SequentProof("AllL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction {
-  override val mainFormula = All(aux,v,pl)
+  val mainFormula = All(aux,v,pl)
 }
 
 class ExR(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
 extends SequentProof("ExR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
 with SingleMainFormula with Right with NoImplicitContraction {
-  override val mainFormula = Ex(aux,v,pl)
+  val mainFormula = Ex(aux,v,pl)
 }
 
 trait EigenvariableCondition extends SequentProof {
@@ -61,14 +61,14 @@ class AllR(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var)
 extends SequentProof("AllR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
 with SingleMainFormula with Right with NoImplicitContraction
 with EigenvariableCondition {
-  override val mainFormula = All(aux,v,eigenvar)
+  val mainFormula = All(aux,v,eigenvar)
 }
 
 class ExL(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var)
 extends SequentProof("ExL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction 
 with EigenvariableCondition {
-  override val mainFormula = Ex(aux,v,eigenvar)
+  val mainFormula = Ex(aux,v,eigenvar)
 }
 
 
