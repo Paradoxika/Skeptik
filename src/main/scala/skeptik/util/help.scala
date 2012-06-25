@@ -39,7 +39,7 @@ object help {
   }
 
   def convertToSequentProof(p: proof.oldResolution.Proof) = {
-    val toSequent = scala.collection.mutable.HashMap[proof.oldResolution.Proof,SequentProof]()
+    val toSequent = collection.mutable.HashMap[proof.oldResolution.Proof,SequentProof]()
     def recursive(p: proof.oldResolution.Proof):SequentProof = if (toSequent contains p) toSequent(p) else {
       val seq = p match {
         case proof.oldResolution.Resolvent(left,right) => CutIC(recursive(left), recursive(right))
@@ -54,7 +54,7 @@ object help {
   def printDigraph[A](filename: String, in: Map[A,List[(A,A)]]) = {
     val out = new java.io.PrintStream(filename)
     var next = 0
-    val map = scala.collection.mutable.HashMap[A,String]()
+    val map = collection.mutable.HashMap[A,String]()
     def nodeString(node: A) =
       if (map contains node) map(node) else {
         val ret = "n" + next

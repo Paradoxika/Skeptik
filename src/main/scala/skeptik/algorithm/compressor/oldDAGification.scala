@@ -2,7 +2,7 @@ package skeptik.algorithm.compressor
 
 import skeptik.proof.oldResolution._
 import skeptik.proof.oldResolution.typeAliases._
-import scala.collection._
+import collection._
 
 object DAGification {
   def DAGify(proof: Proof, measure: Proof => Int): Proof = {

@@ -1,12 +1,12 @@
 package skeptik.experiment.compression
 
-import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.HashMap
-import scala.collection.immutable.List
-import scala.collection.immutable.Map
-import scala.collection.immutable.MapLike
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Builder
+import collection.generic.CanBuildFrom
+import collection.immutable.HashMap
+import collection.immutable.List
+import collection.immutable.Map
+import collection.immutable.MapLike
+import collection.mutable.ArrayBuffer
+import collection.mutable.Builder
 
 
 class Report private (val m: HashMap[String,Double])

@@ -1,6 +1,6 @@
 package skeptik.proof
 
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
+import collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
 import skeptik.judgment.Judgment
 import skeptik.util.prettyPrinting._
 
@@ -26,7 +26,7 @@ abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassManifest] (val name
 // Proof tree is rotated clockwise. That means that traversing "left" is bottom-up.
 // Traversing "right" is top-down and we ensure that premises of a proof are processed before that proof.
 // For convenience, children of proofs are computed as well.
-class ProofNodeCollection[P <: Proof[_,P]] private(nodeArray: Array[P], children: scala.collection.Map[P,List[P]])
+class ProofNodeCollection[P <: Proof[_,P]] private(nodeArray: Array[P], children: collection.Map[P,List[P]])
 extends Iterable[P]
 {
   override def iterator:Iterator[P] = new SimpleIterator(nodeArray)

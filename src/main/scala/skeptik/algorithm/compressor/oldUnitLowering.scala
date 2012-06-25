@@ -2,7 +2,7 @@ package skeptik.algorithm.compressor
 import skeptik.proof.oldResolution._
 import skeptik.proof.oldResolution.defs._
 import skeptik.algorithm.compressor.ProofFixing._
-import scala.collection._
+import collection._
 
 object UnitLowering {
 

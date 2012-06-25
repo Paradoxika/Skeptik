@@ -2,7 +2,7 @@ package skeptik.prover
 
 import skeptik.proof.Proof
 import skeptik.judgment.Judgment
-import scala.collection.immutable.{HashSet => ISet}
+import collection.immutable.{HashSet => ISet}
 import skeptik.proof.ProofNodeCollection
 import skeptik.util.debug._
 

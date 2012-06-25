@@ -5,8 +5,8 @@ import skeptik.proof.sequent._
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
 import skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
+import collection.Map
 
 abstract class AbstractRPILUAlgorithm
 extends Function1[SequentProof,SequentProof] {
@@ -81,7 +81,7 @@ extends AbstractRPILUAlgorithm {
 
   private def collect(iterator: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val units = scala.collection.mutable.Queue[SequentProof]()
+    val units = collection.mutable.Queue[SequentProof]()
 
     def isUnitAndSomething(something: (SequentProof, List[SequentProof]) => Boolean)
                           (p: SequentProof) =

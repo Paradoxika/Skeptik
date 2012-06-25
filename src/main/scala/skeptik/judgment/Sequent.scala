@@ -1,8 +1,8 @@
 package skeptik.judgment 
 
-import scala.collection.TraversableOnce
-import scala.collection.immutable.{HashSet => ISet}
-import scala.collection.mutable.Stack
+import collection.TraversableOnce
+import collection.immutable.{HashSet => ISet}
+import collection.mutable.Stack
 import skeptik.expression._
 import skeptik.util.prettyPrinting._
 import skeptik.util.unicode._

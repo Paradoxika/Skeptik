@@ -1,7 +1,7 @@
 package skeptik.proof.sequent
 package resolution
 
-import scala.collection.mutable.{HashMap => MMap}
+import collection.mutable.{HashMap => MMap}
 import skeptik.judgment.Sequent
 import skeptik.expression.{Var,E}
 import skeptik.algorithm.unifier._

@@ -1,6 +1,6 @@
 package skeptik.algorithm.unifier
 
-import scala.collection.mutable.{HashMap => MMap}
+import collection.mutable.{HashMap => MMap}
 import skeptik.expression.{E,Var,App,Abs}
 import skeptik.expression.substitution.Substitution
 

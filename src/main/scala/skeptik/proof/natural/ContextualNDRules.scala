@@ -47,7 +47,7 @@ object ImpIntroC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: NaturalSequent): Seq[Seq[NaturalSequent]] = {
     val positivePositions = EmptyP.getSubpositions(j.e).filter(_.isPositiveIn(j.e))
-    val seen = new scala.collection.mutable.HashSet[E]
+    val seen = new collection.mutable.HashSet[E]
     (for (p <- positivePositions) yield {
       val deepMain = (j.e !: p).get
       deepMain match {

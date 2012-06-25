@@ -4,7 +4,7 @@ package natural
 import skeptik.expression._
 import skeptik.expression.formula._
 import skeptik.prover.InferenceRule
-import scala.collection.Set
+import collection.Set
 import skeptik.judgment.{NaturalSequent,NamedE}
 
 

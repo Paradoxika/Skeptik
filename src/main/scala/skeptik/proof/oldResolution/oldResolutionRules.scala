@@ -1,6 +1,6 @@
 package skeptik.proof.oldResolution
 
-import scala.collection._
+import collection._
 
 object typeAliases {
   type Atom = Int

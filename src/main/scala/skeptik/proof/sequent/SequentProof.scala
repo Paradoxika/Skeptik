@@ -1,7 +1,7 @@
 package skeptik.proof
 package sequent
 
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import skeptik.judgment.Sequent
 import skeptik.expression.E
 
@@ -76,9 +76,6 @@ trait ImplicitContraction extends SequentProof {
     val sucSeen = new MSet[E]
     val sucDuplicates = new MSet[E]
     
-    // TODO: (Bruno) if a formula appears twice in the same premise, 
-    // it will be implicitly contracted and will appear only once in the conclusion.
-    // This is not always the intended behaviour.
     for (p <- premises) {
       for (f <- context(p).ant) {
         if (antSeen contains f) antDuplicates += f

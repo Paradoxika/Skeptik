@@ -2,7 +2,7 @@ package skeptik
 
 import scala.util.parsing.combinator._
 import skeptik.proof.oldResolution._
-import scala.collection.mutable._
+import collection.mutable._
 import java.io.FileWriter
 
 package object exporter {
