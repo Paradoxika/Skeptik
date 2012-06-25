@@ -4,7 +4,7 @@ package resolution
 import collection.mutable.{HashMap => MMap}
 import skeptik.judgment.Sequent
 import skeptik.expression.{Var,E}
-import skeptik.algorithm.unifier._
+import skeptik.algorithm.unifier.{MartelliMontanari => unify}
 
 
 class R(val leftPremise:SequentProof, val rightPremise:SequentProof,
@@ -14,13 +14,13 @@ extends SequentProof("R", leftPremise::rightPremise::Nil,
                           rightPremise -> Sequent(auxR,Nil)))
 with NoMainFormula {
   //implicit val uV = unifiableVariables 
-  val unifier = unify((auxL,auxR)::Nil) match {
+  val mgu = unify((auxL,auxR)::Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => u
   }
   private val ancestryMap = new MMap[(E,SequentProof),Sequent]
   override val conclusionContext = {
-    def descendant(e:E, p:SequentProof, anc: Sequent) = {val eS = unifier(e); ancestryMap += ((eS,p) -> anc); eS }
+    def descendant(e:E, p:SequentProof, anc: Sequent) = {val eS = mgu(e); ancestryMap += ((eS,p) -> anc); eS }
     val antecedent = leftPremise.conclusion.ant.map(e=>descendant(e,leftPremise,Sequent(e,Nil))) ++
                     (rightPremise.conclusion.ant.filter(_ != auxR)).map(e=>descendant(e,rightPremise,Sequent(e,Nil)))
     val succedent = (leftPremise.conclusion.suc.filter(_ != auxL)).map(e=>descendant(e,leftPremise,Sequent(Nil,e))) ++
