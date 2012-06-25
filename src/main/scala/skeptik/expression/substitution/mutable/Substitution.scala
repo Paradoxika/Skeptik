@@ -27,7 +27,7 @@ object Substitution extends {
   
   def newBuilder: Builder[(Var, E), Substitution] = new MMapBuilder[Var, E, Substitution](empty)
   
-  implicit def canBuildFrom[T]: CanBuildFrom[Substitution, (Var, E), Substitution] = 
+  implicit def canBuildFrom: CanBuildFrom[Substitution, (Var, E), Substitution] = 
       new CanBuildFrom[Substitution, (Var, E), Substitution] {
         def apply(from: Substitution) = newBuilder
         def apply() = newBuilder
