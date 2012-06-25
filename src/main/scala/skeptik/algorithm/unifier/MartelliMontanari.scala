@@ -5,7 +5,6 @@ import skeptik.expression.{E,Var,App,Abs}
 import skeptik.expression.substitution.immutable.Substitution
 import skeptik.expression.substitution.mutable.{Substitution => MSub}
 
-
 object MartelliMontanari {
   def apply(equations: Iterable[(E,E)])(implicit variables: Set[Var]): Option[Substitution] = {
     var eqs = equations.toSeq
@@ -17,6 +16,7 @@ object MartelliMontanari {
         case (v1:Var,v2:Var) if (v1 == v2) => eqs = eqs.tail 
         case (e:E,v:Var) if variables contains v => eqs = Seq((v,e)) ++ eqs.tail
         case (v:Var,e:E) if variables contains v => {
+          // without occur-check
           mgu += (v -> e) 
           val sub = Substitution(v -> e)
           eqs = for (eq <- eqs.tail) yield (sub(eq._1),sub(eq._2)) 
