@@ -2,7 +2,8 @@ package skeptik.algorithm.unifier
 
 import collection.mutable.{HashMap => MMap}
 import skeptik.expression.{E,Var,App,Abs}
-import skeptik.expression.substitution.Substitution
+import skeptik.expression.substitution.immutable.Substitution
+import skeptik.expression.substitution.mutable.{Substitution => MSub}
 
 
 // TODO: (Bruno) this is an ad-hoc unification algorithm.
@@ -10,7 +11,7 @@ object unify {
  
   def apply(equations: List[(E,E)])(implicit variables: Set[Var]): Option[Substitution] = {
     var eqs = equations
-    val unifier = new MMap[Var,E]
+    val unifier = new MSub
     while (eqs != Nil) {
       eqs.head match {
         case (App(f1,a1),App(f2,a2)) => eqs = (f1,f2)::(a1,a2)::eqs.tail
@@ -35,7 +36,7 @@ object unify {
                           })
                         })
                        
-    if (clash) None else Some(new Substitution(unifier.toMap))
+    if (clash) None else Some(unifier.toImmutable)
   }
 }
  
