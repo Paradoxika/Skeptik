@@ -96,40 +96,31 @@ trait ImplicitContraction extends SequentProof {
     val descendantsForAntDuplicates = new MMap[E,E] // stores the new copy that will serve as the contraction for several duplicates in the antecedent.
     val descendantsForSucDuplicates = new MMap[E,E] // stores the new copy that will serve as the contraction for several duplicates in the succedent.
     for (p <- premises) {
-      for (f <- context(p).ant) {
-        val descendant:E = {
-          if (antDuplicates contains f) {
-            if (descendantsForAntDuplicates contains f) {
-              descendantsForAntDuplicates(f)
+      def computeConclusionAndAncestry(cedent: Iterable[E], 
+                                       duplicates: MSet[E], 
+                                       descendantsForDuplicates: MMap[E,E],
+                                       conclusionContextCedent: MSet[E], 
+                                       s: E => Sequent) = {
+        for (f <- cedent) {
+          val descendant:E = {
+            if (duplicates contains f) {
+              if (descendantsForDuplicates contains f) {
+                descendantsForDuplicates(f)
+              }
+              else {
+                val desc = f.copy
+                descendantsForDuplicates += (f -> desc)
+                desc
+              }
             }
-            else {
-              val desc = f.copy
-              descendantsForAntDuplicates += (f -> desc)
-              desc
-            }
+            else f
           }
-          else f
+          conclusionContextCedent += descendant
+          contextAncestryMap += ((descendant,p) -> s(f))
         }
-        conclusionContextAnt += descendant
-        contextAncestryMap += ((descendant,p) -> Sequent(f,Nil))
       }
-      for (f <- context(p).suc) {   //TODO: (Bruno) remove code duplication for ant and suc
-        val descendant:E = {
-          if (sucDuplicates contains f) {
-            if (descendantsForSucDuplicates contains f) {
-              descendantsForSucDuplicates(f)
-            }
-            else {
-              val desc = f.copy
-              descendantsForSucDuplicates += (f -> desc)
-              desc
-            }
-          }
-          else f
-        }
-        conclusionContextSuc += descendant
-        contextAncestryMap += ((descendant,p) -> Sequent(Nil,f))
-      }
+      computeConclusionAndAncestry(context(p).ant, antDuplicates, descendantsForAntDuplicates, conclusionContextAnt, Sequent(_,Nil))  
+      computeConclusionAndAncestry(context(p).suc, sucDuplicates, descendantsForSucDuplicates, conclusionContextSuc, Sequent(Nil,_))
     }
     (Sequent(conclusionContextAnt.toList,conclusionContextSuc.toList), contextAncestryMap)
   }
