@@ -7,7 +7,6 @@ import skeptik.expression.substitution.mutable.{Substitution => MSub}
 
 
 object MartelliMontanari {
- 
   def apply(equations: Iterable[(E,E)])(implicit variables: Set[Var]): Option[Substitution] = {
     var eqs = equations.toSeq
     val mgu = new MSub
@@ -26,15 +25,6 @@ object MartelliMontanari {
       }
     }
     return Some(mgu.toImmutable)
-    
-//    val clash: Boolean = mgu.exists(s1 => {
-//                          mgu.exists(s2 => {
-//                              ((s1._1 == s2._1) && 
-//                               !(s1._2 == s2._2))    
-//                          })
-//                        })
-//                       
-//    if (clash) None else Some(mgu.toImmutable)
   }
 }
  
