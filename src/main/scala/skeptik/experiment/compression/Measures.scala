@@ -18,7 +18,7 @@ extends Map[String,Double] with MapLike[String,Double,Report] {
     else
       m + kv
   }
-  def +(kv: (String, Double)) = new Report(m + kv)
+  def +(kv: (String, Double)) = new Report(m + kv) // TODO: I think this method is now subsumed by the method above, and hence could be deleted.
   def -(key: String) = new Report(m - key)
   override def empty = new Report(HashMap())
   def iterator = m.iterator
