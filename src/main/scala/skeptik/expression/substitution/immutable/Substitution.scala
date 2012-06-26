@@ -16,7 +16,7 @@ extends AbstractSubstitution with Map[Var, E] with MapLike[Var, E, Substitution]
   }
   def - (key: Var)  = new Substitution(m - key) 
   override def empty = new Substitution(Map[Var,E]())  
-  override def toString = "Substitution(" + m + ")"
+  override def stringPrefix = "Substitution"
 }
 object Substitution {
   def empty = new Substitution(Map[Var,E]())  

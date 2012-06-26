@@ -19,7 +19,8 @@ extends AbstractSubstitution with MMap[Var, E] with MMapLike[Var, E, Substitutio
   def iterator: Iterator[(Var, E)] = mm.iterator
   def += (kv: (Var, E)): this.type = { update(kv._1, kv._2); this } 
   def -= (key: Var): this.type  = { remove(key); this }
-  override def empty = new Substitution    
+  override def empty = new Substitution 
+  override def stringPrefix = "Substitution"
 }
 object Substitution extends {
   def empty = new Substitution
