@@ -29,7 +29,6 @@ class TestsForImmutableSubstitution extends SpecificationWithJUnit {
     "return a new collection of type Map2 after a new element of type Seq is added" in {
 
       val z = s + (Var("c",i) -> Seq("d"))
-      println(z)
       z.getClass.getSimpleName must beEqualTo( "Map2" )
     }
   }
