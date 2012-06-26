@@ -5,13 +5,9 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import skeptik.judgment.Sequent
 import skeptik.expression.E
 
-// TODO: (Bruno) passing arguments in the constructor of this abstract class makes it impossible
-// to initialize these fields with traits. This leads to code duplication.
-// It might be a good idea to transform these into def's.
-abstract class SequentProof(override val premises: List[SequentProof],
-                            val auxFormulas: Map[SequentProof, Sequent])
+abstract class SequentProof
 extends Proof[Sequent, SequentProof] {
-  require(premises.forall(p => p.conclusion supersequentOf auxFormulas(p)))
+  require(premises.forall(p => p.conclusion supersequentOf auxFormulasMap(p)))
   // ancestry returns the subsequent of the given premise's conclusion
   // containing only ancestors of the given formula
   def ancestry(f: E, premise: SequentProof): Sequent = {
@@ -20,6 +16,7 @@ extends Proof[Sequent, SequentProof] {
   }
   def activeAncestry(f: E, premise: SequentProof): Sequent
   def contextAncestry(f: E, premise: SequentProof): Sequent
+  def auxFormulasMap: Map[SequentProof, Sequent]
   def mainFormulas : Sequent
   def conclusionContext : Sequent
   // The lazy modifier for "conclusion" is very important,
@@ -27,11 +24,61 @@ extends Proof[Sequent, SequentProof] {
   override lazy val conclusion = mainFormulas ++ conclusionContext
 }
 
+trait Nullary extends SequentProof {
+  def premises = Seq()
+  def auxFormulasMap = Map()
+}
+
+trait Unary extends SequentProof {
+  def premise: SequentProof
+  def premises = Seq(premise)
+  def auxFormulas: Sequent
+  def auxFormulasMap = Map(premise -> auxFormulas)
+}
+
+trait NoAuxFormula extends Unary { def auxFormulas = Sequent() }
+
+trait SingleAuxFormula { def aux: E }
+trait InAnt extends Unary with SingleAuxFormula { def auxFormulas = Sequent(aux,Nil) }
+trait InSuc extends Unary with SingleAuxFormula { def auxFormulas = Sequent(Nil,aux) }
+
+trait TwoAuxFormulas { def auxL: E ; def auxR: E }
+trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(List(auxL,auxR),Nil) }
+trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(Nil,List(auxL,auxR)) }
+trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR) }
+
+
+trait Binary extends SequentProof {
+  def leftPremise: SequentProof
+  def rightPremise: SequentProof
+  def premises = Seq(leftPremise, rightPremise)
+  
+  def leftAuxFormulas: Sequent
+  def rightAuxFormulas: Sequent
+  def auxFormulasMap = Map(leftPremise -> leftAuxFormulas, rightPremise -> rightAuxFormulas)
+}
+
+trait OnePerAntecedent extends Binary with TwoAuxFormulas {
+  def leftAuxFormulas = Sequent(auxL,Nil)
+  def rightAuxFormulas = Sequent(auxR,Nil)
+}
+
+trait OnePerSuccedent extends Binary with TwoAuxFormulas {
+  def leftAuxFormulas = Sequent(Nil,auxL)
+  def rightAuxFormulas = Sequent(Nil,auxR)
+}
+
+trait LeftInSucRightInAnt extends Binary with TwoAuxFormulas {
+  def leftAuxFormulas = Sequent(Nil,auxL)
+  def rightAuxFormulas = Sequent(auxR,Nil)
+}
+
+
 trait SingleMainFormula extends SequentProof {
   def mainFormula : E
   override def activeAncestry(f:E,premise:SequentProof) = {
     require(f eq mainFormula); require(premises contains premise)
-    auxFormulas.getOrElse(premise,Sequent())
+    auxFormulasMap.getOrElse(premise,Sequent())
   }
 }
 
@@ -46,7 +93,7 @@ trait NoMainFormula extends SequentProof {
 
 trait NoImplicitContraction extends SequentProof {
   override def conclusionContext: Sequent = {
-    val premiseContexts = premises.map(p => p.conclusion --* auxFormulas(p))
+    val premiseContexts = premises.map(p => p.conclusion --* auxFormulasMap(p))
     premiseContexts match {
       case h::t => (h /: t)((s1,s2) => s1 ++ s2)
       case Nil => Sequent()
@@ -69,7 +116,7 @@ trait ImplicitContraction extends SequentProof {
     // The bug shall be properly fixed once all proof fixing codes are refactored into a single
     // method in a superclass or in a trait.
     // val context = premises.map(p => (p -> (p.conclusion --* auxFormulas(p)))).toMap
-    val context = premises.map(p => (p -> (p.conclusion -- auxFormulas(p)))).toMap
+    val context = premises.map(p => (p -> (p.conclusion -- auxFormulasMap(p)))).toMap
     val antSeen = new MSet[E]
     val antDuplicates = new MSet[E]
     val sucSeen = new MSet[E]

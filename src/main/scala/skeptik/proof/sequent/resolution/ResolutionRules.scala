@@ -9,11 +9,10 @@ import skeptik.algorithm.unifier.{MartelliMontanari => unify}
 
 class R(val leftPremise:SequentProof, val rightPremise:SequentProof,
           val auxL:E, val auxR:E)(implicit unifiableVariables: Set[Var])
-extends SequentProof(leftPremise::rightPremise::Nil,
-                      Map(leftPremise -> Sequent(Nil,auxL),
-                          rightPremise -> Sequent(auxR,Nil)))
+extends SequentProof with Binary
 with NoMainFormula {
-  //implicit val uV = unifiableVariables 
+  val leftAuxFormulas = Sequent(Nil,auxL)
+  val rightAuxFormulas = Sequent(auxR,Nil)
   val mgu = unify((auxL,auxR)::Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => u
