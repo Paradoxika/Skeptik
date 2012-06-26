@@ -15,22 +15,22 @@ object nameFactory {
 
 
 
-abstract class NaturalDeductionProof(name: String, override val premises: List[NaturalDeductionProof])
-extends Proof[NaturalSequent, NaturalDeductionProof](name, premises) 
+abstract class NaturalDeductionProof(override val premises: List[NaturalDeductionProof])
+extends Proof[NaturalSequent, NaturalDeductionProof]
 
 
-class Assumption(val conclusion: NaturalSequent) extends NaturalDeductionProof("Ax",Nil) {
+class Assumption(val conclusion: NaturalSequent) extends NaturalDeductionProof(Nil) {
   require(conclusion.context.exists(_.expression == conclusion.e))
 }
 
 class ImpIntro(val premise: NaturalDeductionProof, val assumption: NamedE)
-extends NaturalDeductionProof("ImpIntro",premise::Nil) {
+extends NaturalDeductionProof(premise::Nil) {
   require(premise.conclusion.context contains assumption)
   override val conclusion = new NaturalSequent(premise.conclusion.context - assumption, Imp(assumption.expression, premise.conclusion.e))
 }
 
 class ImpElim(val leftPremise:NaturalDeductionProof, val rightPremise:NaturalDeductionProof)
-extends NaturalDeductionProof("ImpElim", leftPremise::rightPremise::Nil) {
+extends NaturalDeductionProof(leftPremise::rightPremise::Nil) {
   override val conclusion = (leftPremise.conclusion.e,rightPremise.conclusion.e) match {
     case (a,Imp(b,c)) if a == b => new NaturalSequent(leftPremise.conclusion.context ++ rightPremise.conclusion.context, c)
     case _ => throw new Exception("Implication Elimination Rule cannot be applied because the formulas do not match")

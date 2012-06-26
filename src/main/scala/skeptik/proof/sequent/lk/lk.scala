@@ -9,44 +9,44 @@ import skeptik.expression.position.Position
 import skeptik.prover.InferenceRule
 
 
-class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProof("Ax",Nil,Map())
+class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProof(Nil,Map())
 with NoImplicitContraction {
   override def mainFormulas = Sequent(mainLeft,mainRight)
   override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("Active formulas in axioms have no ancestors.")
 }
 
-class Axiom(override val mainFormulas: Sequent) extends SequentProof("Ax",Nil,Map())
+class Axiom(override val mainFormulas: Sequent) extends SequentProof(Nil,Map())
 with NoImplicitContraction {
   override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("Active formulas in axioms have no ancestors.")
 }
 
 class WeakeningL(val premise:SequentProof, override val mainFormula :E)
-extends SequentProof("WeakeningL", premise::Nil, Map(premise -> Sequent(Nil,Nil)))
+extends SequentProof(premise::Nil, Map(premise -> Sequent(Nil,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction { 
   
 }
 
 class AndL(val premise:SequentProof, val auxL:E, val auxR:E)
-extends SequentProof("AndL", premise::Nil, Map(premise -> Sequent(auxL::auxR::Nil,Nil)))
+extends SequentProof(premise::Nil, Map(premise -> Sequent(auxL::auxR::Nil,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction {
   val mainFormula = And(auxL,auxR)
 }
 
 class AndR(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-extends SequentProof("AndR", leftPremise::rightPremise::Nil,
+extends SequentProof(leftPremise::rightPremise::Nil,
                       Map(leftPremise -> Sequent(Nil,auxL), rightPremise -> Sequent(Nil,auxR)))
 with NoImplicitContraction with SingleMainFormula with Right  {
   val mainFormula = And(auxL,auxR)
 }
 
 class AllL(val premise:SequentProof, val aux:E, val v:Var, val position:Position)
-extends SequentProof("AllL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
+extends SequentProof(premise::Nil,Map(premise -> Sequent(aux,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction {
   val mainFormula = All(aux, v, position)
 }
 
 class ExR(val premise:SequentProof, val aux:E, val v:Var, val position:Position)
-extends SequentProof("ExR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
+extends SequentProof(premise::Nil,Map(premise -> Sequent(Nil,aux)))
 with SingleMainFormula with Right with NoImplicitContraction {
   val mainFormula = Ex(aux, v, position)
 }
@@ -58,14 +58,14 @@ trait EigenvariableCondition extends SequentProof {
 }
 
 class AllR(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var)
-extends SequentProof("AllR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
+extends SequentProof(premise::Nil,Map(premise -> Sequent(Nil,aux)))
 with SingleMainFormula with Right with NoImplicitContraction
 with EigenvariableCondition {
   val mainFormula = All(aux,v,eigenvar)
 }
 
 class ExL(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var)
-extends SequentProof("ExL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
+extends SequentProof(premise::Nil,Map(premise -> Sequent(aux,Nil)))
 with SingleMainFormula with Left with NoImplicitContraction 
 with EigenvariableCondition {
   val mainFormula = Ex(aux,v,eigenvar)
@@ -74,7 +74,7 @@ with EigenvariableCondition {
 
 abstract class AbstractCut(val leftPremise:SequentProof, val rightPremise:SequentProof, 
                             val auxL:E, val auxR:E)
-extends SequentProof("Cut",leftPremise::rightPremise::Nil,
+extends SequentProof(leftPremise::rightPremise::Nil,
                       Map(leftPremise -> Sequent(Nil,auxL),
                           rightPremise -> Sequent(auxR,Nil)))
 with NoMainFormula {

@@ -33,12 +33,12 @@ extends Iterable[P]
   def root = nodeArray(0)
   def childrenOf = children
 
-  def foldDown[X](f: (P, List[X]) => X): X = {
+  def foldDown[X](f: (P, List[X]) => X): X = {  // TODO:  List -> Seq
     val resultFrom = MMap[P,X]()
     def iterate(pos:Int):Unit = {
       if (pos < 0) return
       val proof = nodeArray(pos)
-      resultFrom.update(proof, f(proof, proof.premises.map(resultFrom)))
+      resultFrom.update(proof, f(proof, proof.premises.toList.map(resultFrom))) // TODO: remove "toList"
       iterate(pos-1)
     }
     iterate(nodeArray.length - 1)

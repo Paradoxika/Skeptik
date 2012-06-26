@@ -9,7 +9,7 @@ import skeptik.algorithm.unifier.{MartelliMontanari => unify}
 
 class R(val leftPremise:SequentProof, val rightPremise:SequentProof,
           val auxL:E, val auxR:E)(implicit unifiableVariables: Set[Var])
-extends SequentProof("R", leftPremise::rightPremise::Nil,
+extends SequentProof(leftPremise::rightPremise::Nil,
                       Map(leftPremise -> Sequent(Nil,auxL),
                           rightPremise -> Sequent(auxR,Nil)))
 with NoMainFormula {

@@ -8,10 +8,9 @@ import skeptik.expression.E
 // TODO: (Bruno) passing arguments in the constructor of this abstract class makes it impossible
 // to initialize these fields with traits. This leads to code duplication.
 // It might be a good idea to transform these into def's.
-abstract class SequentProof(name: String, 
-                            override val premises: List[SequentProof],
+abstract class SequentProof(override val premises: List[SequentProof],
                             val auxFormulas: Map[SequentProof, Sequent])
-extends Proof[Sequent, SequentProof](name, premises) {
+extends Proof[Sequent, SequentProof] {
   require(premises.forall(p => p.conclusion supersequentOf auxFormulas(p)))
   // ancestry returns the subsequent of the given premise's conclusion
   // containing only ancestors of the given formula

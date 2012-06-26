@@ -13,7 +13,7 @@ case object RightArrow extends ImpElimCArrow
 case object LeftArrow extends ImpElimCArrow
 
 class ImpIntroC(val premise: NaturalDeductionProof, val assumption: NamedE, val position: Position)
-extends NaturalDeductionProof("ImpIntroC",premise::Nil) {
+extends NaturalDeductionProof(premise::Nil) {
   require(premise.conclusion.context contains assumption)
   require(position isPositiveIn premise.conclusion.e)
   override val conclusion = new NaturalSequent(premise.conclusion.context - assumption , (((e:E) => Imp(assumption.expression,e)) @: position)(premise.conclusion.e))
@@ -21,7 +21,7 @@ extends NaturalDeductionProof("ImpIntroC",premise::Nil) {
 
 class ImpElimC(val leftPremise: NaturalDeductionProof, val rightPremise: NaturalDeductionProof, 
                val leftPosition: Position, val rightPosition: Position, val arrow: ImpElimCArrow)
-extends NaturalDeductionProof("ImpElimC", leftPremise::rightPremise::Nil) {
+extends NaturalDeductionProof(leftPremise::rightPremise::Nil) {
   require(leftPosition isPositiveIn leftPremise.conclusion.e)
   require(rightPosition isPositiveIn rightPremise.conclusion.e)
   private def deepAuxL = (leftPremise.conclusion.e !: leftPosition).get 
