@@ -24,14 +24,11 @@ extends Proof[Sequent, SequentProof] {
   override lazy val conclusion = mainFormulas ++ conclusionContext
 }
 
-trait Nullary extends SequentProof {
-  def premises = Seq()
+trait Nullary extends SequentProof with GenNullary[Sequent,SequentProof] {
   def auxFormulasMap = Map()
 }
 
-trait Unary extends SequentProof {
-  def premise: SequentProof
-  def premises = Seq(premise)
+trait Unary extends SequentProof with GenUnary[Sequent,SequentProof] {
   def auxFormulas: Sequent
   def auxFormulasMap = Map(premise -> auxFormulas)
 }
@@ -48,11 +45,7 @@ trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(Ni
 trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR) }
 
 
-trait Binary extends SequentProof {
-  def leftPremise: SequentProof
-  def rightPremise: SequentProof
-  def premises = Seq(leftPremise, rightPremise)
-  
+trait Binary extends SequentProof with GenBinary[Sequent,SequentProof] {  
   def leftAuxFormulas: Sequent
   def rightAuxFormulas: Sequent
   def auxFormulasMap = Map(leftPremise -> leftAuxFormulas, rightPremise -> rightAuxFormulas)

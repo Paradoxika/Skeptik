@@ -7,30 +7,32 @@ import skeptik.prover.InferenceRule
 import collection.Set
 import skeptik.judgment.{NaturalSequent,NamedE}
 
-
 object nameFactory {
   private var counter = 0
   def apply():String = {counter += 1; "e" + counter}
 }
 
+trait Nullary extends NaturalDeductionProof with GenNullary[NaturalSequent, NaturalDeductionProof]
+trait Unary extends NaturalDeductionProof with GenUnary[NaturalSequent, NaturalDeductionProof]
+trait Binary extends NaturalDeductionProof with GenBinary[NaturalSequent, NaturalDeductionProof]
 
-
-abstract class NaturalDeductionProof(override val premises: List[NaturalDeductionProof])
+abstract class NaturalDeductionProof
 extends Proof[NaturalSequent, NaturalDeductionProof]
 
 
-class Assumption(val conclusion: NaturalSequent) extends NaturalDeductionProof(Nil) {
+class Assumption(val conclusion: NaturalSequent) 
+extends NaturalDeductionProof with Nullary {
   require(conclusion.context.exists(_.expression == conclusion.e))
 }
 
 class ImpIntro(val premise: NaturalDeductionProof, val assumption: NamedE)
-extends NaturalDeductionProof(premise::Nil) {
+extends NaturalDeductionProof with Unary {
   require(premise.conclusion.context contains assumption)
   override val conclusion = new NaturalSequent(premise.conclusion.context - assumption, Imp(assumption.expression, premise.conclusion.e))
 }
 
 class ImpElim(val leftPremise:NaturalDeductionProof, val rightPremise:NaturalDeductionProof)
-extends NaturalDeductionProof(leftPremise::rightPremise::Nil) {
+extends NaturalDeductionProof with Binary {
   override val conclusion = (leftPremise.conclusion.e,rightPremise.conclusion.e) match {
     case (a,Imp(b,c)) if a == b => new NaturalSequent(leftPremise.conclusion.context ++ rightPremise.conclusion.context, c)
     case _ => throw new Exception("Implication Elimination Rule cannot be applied because the formulas do not match")

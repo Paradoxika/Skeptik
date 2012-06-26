@@ -21,3 +21,16 @@ abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassManifest]
     result
   }
 }
+
+trait GenNullary[+J <: Judgment, +P <: Proof[J,P]] extends Proof[J,P] { def premises = Seq() }
+
+trait GenUnary[+J <: Judgment, +P <: Proof[J,P]] extends Proof[J,P] {
+  def premise: P
+  def premises = Seq(premise)
+}
+
+trait GenBinary[+J <: Judgment, +P <: Proof[J,P]] extends Proof[J,P] {
+  def leftPremise: P
+  def rightPremise: P
+  def premises = Seq(leftPremise, rightPremise)
+}
