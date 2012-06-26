@@ -13,15 +13,6 @@ extends AbstractSubstitution with Map[Var, E] with MapLike[Var, E, Substitution]
   def + [B >: E](kv: (Var, B)) = {
     if (kv._2.isInstanceOf[E]) new Substitution(m + kv.asInstanceOf[(Var,E)])
     else m + kv
-//
-//  // Due to type erasure, this always matches the first case, and creates a new Substitution even when the value is not of type E!
-//  kv match {
-//    case kv: (Var, E) => new Substitution(m + kv)
-//    case _ => m + kv
-//  }
-//
-//  // This causes ClassCastException when the method "map" is used 
-//  m + kv
   }
   def - (key: Var)  = new Substitution(m - key) 
   override def empty = new Substitution(Map[Var,E]())  
