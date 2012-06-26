@@ -1,4 +1,5 @@
-package skeptik.proof.natural
+package skeptik.proof
+package natural
 
 import skeptik.expression.E
 import skeptik.expression.formula.Imp
@@ -6,7 +7,7 @@ import skeptik.expression.formula.position.{IntListPosition => Position,EmptyP}
 import skeptik.prover.InferenceRule
 import skeptik.judgment.{NaturalSequent,NamedE}
 
-// TODO: (Bruno) Add Intuitionistic Soundness Condition
+
 
 sealed abstract class ImpElimCArrow
 case object RightArrow extends ImpElimCArrow
@@ -17,6 +18,10 @@ extends NaturalDeductionProof with Unary {
   require(premise.conclusion.context contains assumption)
   require(position isPositiveIn premise.conclusion.e)
   override val conclusion = new NaturalSequent(premise.conclusion.context - assumption , (((e:E) => Imp(assumption.expression,e)) @: position)(premise.conclusion.e))
+}
+
+trait IntuitionisticSoundnessCondition extends ImpIntroC {
+  // TODO: (Bruno) Add Intuitionistic Soundness Condition
 }
 
 class ImpElimC(val leftPremise: NaturalDeductionProof, val rightPremise: NaturalDeductionProof, 

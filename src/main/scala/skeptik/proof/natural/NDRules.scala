@@ -23,6 +23,7 @@ extends Proof[NaturalSequent, NaturalDeductionProof]
 class Assumption(val conclusion: NaturalSequent) 
 extends NaturalDeductionProof with Nullary {
   require(conclusion.context.exists(_.expression == conclusion.e))
+  def namedE = conclusion.context.find(_.expression == conclusion.e).get
 }
 
 class ImpIntro(val premise: NaturalDeductionProof, val assumption: NamedE)
@@ -41,10 +42,10 @@ extends NaturalDeductionProof with Binary {
 
 object Assumption extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
 //  def apply(conclusion: NaturalSequent) = new Assumption(conclusion)
-//  def unapply(p: NaturalDeductionProof) = p match {
-//    case p: Assumption => Some(p.conclusion)
-//    case _ => None
-//  }
+  def unapply(p: NaturalDeductionProof) = p match {
+    case p: Assumption => Some(p.conclusion)
+    case _ => None
+  }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: NaturalSequent) = Seq(Seq())

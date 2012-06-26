@@ -42,9 +42,9 @@ case class Abs(val variable: Var, val body: E) extends E {
   override def toString = unicodeOrElse("\u03BB","@") + variable.name + ":" + variable.t + "." + body
 }
 case class App(val function: E, val argument: E) extends E {
-  require(function.t.asInstanceOf[arrow].t1 == argument.t)
+  require(function.t.asInstanceOf[Arrow].t1 == argument.t)
   def copy = new App(function.copy,argument.copy)
-  override lazy val t = function.t.asInstanceOf[arrow].t2
+  override lazy val t = function.t.asInstanceOf[Arrow].t2
   def size = function.size + argument.size + 1
 
   override def toString = this match {

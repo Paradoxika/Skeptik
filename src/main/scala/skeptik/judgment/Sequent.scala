@@ -7,6 +7,7 @@ import skeptik.expression._
 import skeptik.util.unicode._
 import skeptik.expression.formula._
   
+// TODO: (B) Make Sequent a proper Scala collection
 
 class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
 	def contains(f:E) = (ant contains f) || (suc contains f)

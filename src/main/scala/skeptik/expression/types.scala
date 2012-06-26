@@ -2,8 +2,8 @@ package skeptik.expression
 
 import skeptik.util.unicode._
 
-sealed abstract class T {
-  def ->(t:T) = arrow(this,t)
+abstract class T {
+  def ->(t:T) = Arrow(this,t)
   def size: Int
 }
 trait Atomic {
@@ -11,7 +11,10 @@ trait Atomic {
 }
 case object i extends T with Atomic
 case object o extends T with Atomic
-final case class arrow(t1:T, t2:T) extends T {
+final case class AtomicType(name: String) extends T with Atomic {
+  override def toString = name
+}
+final case class Arrow(t1:T, t2:T) extends T {
   override def toString = "(" + t1 + unicodeOrElse("\u2192","->") + t2 + ")"
   def size = t1.size + t2.size + 1
 }
