@@ -2,10 +2,11 @@ package skeptik.expression
 package substitution
 package mutable
 
-import collection.mutable.{Map => MMap, MapLike => MMapLike, MapBuilder => MMapBuilder, Builder}
+import collection.mutable.{Map => MMap, MapLike => MMapLike}
+import collection.mutable.{MapBuilder, Builder}
 import collection.generic.CanBuildFrom
 
-class Substitution 
+final class Substitution
 extends AbstractSubstitution with MMap[Var, E] with MMapLike[Var, E, Substitution] {
   override protected def m = mm.toMap
   private val mm = MMap[Var, E]()
@@ -25,7 +26,7 @@ object Substitution extends {
   
   def apply(kvs: (Var, E)*): Substitution = { val s = empty; for (kv <- kvs) s += kv ; s }
   
-  def newBuilder: Builder[(Var, E), Substitution] = new MMapBuilder[Var, E, Substitution](empty)
+  def newBuilder: Builder[(Var, E), Substitution] = new MapBuilder[Var, E, Substitution](empty)
   
   implicit def canBuildFrom: CanBuildFrom[Substitution, (Var, E), Substitution] = 
       new CanBuildFrom[Substitution, (Var, E), Substitution] {
