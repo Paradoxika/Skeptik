@@ -13,7 +13,7 @@ class Report private (val m: HashMap[String,Double])
 extends Map[String,Double] with MapLike[String,Double,Report] {
   // useless
   def +[B >: Double](kv: (String, B)) = {
-    if (kv.isInstanceOf[(String,Double)])
+    if (kv._2.isInstanceOf[Double])
       new Report(m + kv.asInstanceOf[(String,Double)])
     else
       m + kv
