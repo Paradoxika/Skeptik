@@ -4,7 +4,6 @@ import collection.TraversableOnce
 import collection.immutable.{HashSet => ISet}
 import collection.mutable.Stack
 import skeptik.expression._
-import skeptik.util.prettyPrinting._
 import skeptik.util.unicode._
 import skeptik.expression.formula._
   
@@ -26,7 +25,7 @@ class NaturalSequent(val context:Set[NamedE], val e:E) extends Judgment {
   def size = e.size
   
   override def hashCode = 42*context.hashCode + e.hashCode
-  override def toString = csv(context) + unicodeOrElse(" \u22A2 "," :- ") + e
+  override def toString = context.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + e
 }
 
 

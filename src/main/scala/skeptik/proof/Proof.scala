@@ -1,9 +1,9 @@
 package skeptik.proof
 
 import skeptik.judgment.Judgment
-import skeptik.util.prettyPrinting._
 
-abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassManifest] (val name: String, val premises: List[P])
+abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassManifest] 
+(val name: String, val premises: List[P])
 {
   private val self = asInstanceOf[P]
   def conclusion : J
@@ -13,7 +13,7 @@ abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassManifest] (val name
     def visitNode(n:P, r:List[Int]): Int = {
       counter += 1
       result += counter.toString + ": {" + n.conclusion + "} \t:" +
-                n.name + "(" + csv(r) + ")[" + csv(parameters) + "]\n"
+                n.name + "(" + r.mkString(", ") + ")[" + parameters.mkString(", ") + "]\n"
       counter
     }
     ProofNodeCollection(self).foldDown(visitNode)

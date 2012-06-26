@@ -4,7 +4,6 @@ import collection.TraversableOnce
 import collection.immutable.{HashSet => ISet}
 import collection.mutable.Stack
 import skeptik.expression._
-import skeptik.util.prettyPrinting._
 import skeptik.util.unicode._
 import skeptik.expression.formula._
   
@@ -33,7 +32,7 @@ class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
   def size = ((ant:::suc).map(_.size) :\ 0)(_ + _ + 1) 
   
   override def hashCode = 42*ant.toSet.hashCode + suc.toSet.hashCode
-  override def toString = csv(ant) + unicodeOrElse(" \u22A2 "," :- ") + csv(suc)
+  override def toString = ant.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + suc.mkString(", ")
   def toSet: ISet[E] = ISet() ++ ant.map(f => Neg(f)) ++ suc
 }
 object Sequent {
