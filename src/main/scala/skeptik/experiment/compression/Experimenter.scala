@@ -70,10 +70,14 @@ object WrappedAlgorithmFactory {
     (new RecyclePivots with OptimizedIntersection with LeftHeuristic)(NewUnitLowering(p)) })
   val newLURPI = SimpleSequentAlgorithm("new LURPI", { (p:SequentProof) =>
     NewUnitLowering((new RecyclePivots with OptimizedIntersection with LeftHeuristic)(p)) })
+  val nLURPILU = SimpleSequentAlgorithm("nLURPILU", { (p:SequentProof) =>
+    val lu = NewUnitLowering
+    val rpi = new RecyclePivots with OptimizedIntersection with LeftHeuristic
+    lu(rpi(lu(p)))
+  })
 
-  val psunReg = SimpleSequentAlgorithm("PsUn Reg", new PseudoUnitsAfter with CombinedIntersection)
-  val psunNew = SimpleSequentAlgorithm("PsUn Reg", new NewPseudoUnitsAfter with CombinedIntersection)
-  val psunLow = SimpleSequentAlgorithm("PsUn Low", new PseudoUnitsBeforeAndAfter)
+  val psunReg = SimpleSequentAlgorithm("PsUn Reg", new PseudoUnitsAfter)
+//  val psunLow = SimpleSequentAlgorithm("PsUn Low", new PseudoUnitsBeforeAndAfter)
 
   val irunReg = SimpleSequentAlgorithm("IrUn Reg", new IrregularUnits with AlwaysRegularizeIrregularUnits)
   val irunLow = SimpleSequentAlgorithm("IrUn Low", new IrregularUnits with AlwaysLowerIrregularUnits     )
@@ -118,9 +122,9 @@ object WrappedAlgorithmFactory {
     "sRPIr" -> sizeRPIr,
     "nLURPI"-> newLURPI,
     "nRPILU"-> newRPILU,
+    "nLURPILU" -> nLURPILU,
     "PsUnReg"  -> psunReg,
-    "PsUnNew"  -> psunNew,
-    "PsUnLow"  -> psunLow,
+//    "PsUnLow"  -> psunLow,
     "IrUnReg"  -> irunReg,
     "IrUnLow"  -> irunLow,
     "ReMaxReg" -> reMaxReg,

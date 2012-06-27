@@ -100,6 +100,30 @@ extends AbstractRPILUAlgorithm {
   }
 }
 
+trait EdgesCollectingUsingSafeLiterals
+extends AbstractRPILUAlgorithm {
+  def collectEdgesToDelete(iterator: ProofNodeCollection[SequentProof]) = {
+    val edgesToDelete = MMap[SequentProof,DeletedSide]()
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
+      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
+        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
+        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
+        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+        case _ => throw new Exception("Unknown or impossible inference rule")
+      }
+      val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      p match {
+        case CutIC(_,_,auxL,_) if safeR contains auxL => edgesToDelete.update(p, RightDS)
+        case CutIC(_,_,_,auxR) if safeL contains auxR => edgesToDelete.update(p, LeftDS)
+        case _ => Unit
+      }
+      (p, safeL, safeR)
+    }
+    iterator.bottomUp(visit)
+    edgesToDelete
+  }
+}
+
 trait CombinedIntersection
 extends AbstractRPILUAlgorithm {
   def computeSafeLiterals(proof: SequentProof,
