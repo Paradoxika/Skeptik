@@ -33,8 +33,8 @@ object WrappedAlgorithmFactory {
   def SimpleOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
       WrappedOldAlgorithm(name, fct)
   def SimpleSequentAlgorithm(name: String, fct: SequentProof => SequentProof)= (env: Map[String,String]) =>
-      WrappedSequentAlgorithm(name, fct)
-//      WrappedSequentAlgorithm(name, { (p:SequentProof) => val r = fct(p) ; println(r.conclusion) ; r})
+//      WrappedSequentAlgorithm(name, fct)
+      WrappedSequentAlgorithm(name, { (p:SequentProof) => val r = fct(p) ; println(r.conclusion) ; r})
 
   def RepeatOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
       RepeatingOldAlgorithm(name, fct)
@@ -72,6 +72,7 @@ object WrappedAlgorithmFactory {
     NewUnitLowering((new RecyclePivots with OptimizedIntersection with LeftHeuristic)(p)) })
 
   val psunReg = SimpleSequentAlgorithm("PsUn Reg", new PseudoUnitsAfter with CombinedIntersection)
+  val psunNew = SimpleSequentAlgorithm("PsUn Reg", new NewPseudoUnitsAfter with CombinedIntersection)
   val psunLow = SimpleSequentAlgorithm("PsUn Low", new PseudoUnitsBeforeAndAfter)
 
   val irunReg = SimpleSequentAlgorithm("IrUn Reg", new IrregularUnits with AlwaysRegularizeIrregularUnits)
@@ -118,6 +119,7 @@ object WrappedAlgorithmFactory {
     "nLURPI"-> newLURPI,
     "nRPILU"-> newRPILU,
     "PsUnReg"  -> psunReg,
+    "PsUnNew"  -> psunNew,
     "PsUnLow"  -> psunLow,
     "IrUnReg"  -> irunReg,
     "IrUnLow"  -> irunLow,
