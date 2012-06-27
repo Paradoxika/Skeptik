@@ -1,18 +1,13 @@
 package skeptik.proof
 package sequent
 
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import skeptik.judgment.Sequent
 import skeptik.expression.E
 
-// ToDo: passing arguments in the constructor of this abstract class makes it impossible
-// to initialize these fields with traits. This leads to code duplication.
-// It might be a good idea to transform these into def's.
-abstract class SequentProof(name: String, 
-                            override val premises: List[SequentProof],
-                            val auxFormulas: Map[SequentProof, Sequent])
-extends Proof[Sequent, SequentProof](name, premises) {
-  require(premises.forall(p => p.conclusion supersequentOf auxFormulas(p)))
+abstract class SequentProof
+extends Proof[Sequent, SequentProof] {
+  require(premises.forall(p => p.conclusion supersequentOf auxFormulasMap(p)))
   // ancestry returns the subsequent of the given premise's conclusion
   // containing only ancestors of the given formula
   def ancestry(f: E, premise: SequentProof): Sequent = {
@@ -21,6 +16,7 @@ extends Proof[Sequent, SequentProof](name, premises) {
   }
   def activeAncestry(f: E, premise: SequentProof): Sequent
   def contextAncestry(f: E, premise: SequentProof): Sequent
+  def auxFormulasMap: Map[SequentProof, Sequent]
   def mainFormulas : Sequent
   def conclusionContext : Sequent
   // The lazy modifier for "conclusion" is very important,
@@ -28,11 +24,54 @@ extends Proof[Sequent, SequentProof](name, premises) {
   override lazy val conclusion = mainFormulas ++ conclusionContext
 }
 
+trait Nullary extends SequentProof with GenNullary[Sequent,SequentProof] {
+  def auxFormulasMap = Map()
+}
+
+trait Unary extends SequentProof with GenUnary[Sequent,SequentProof] {
+  def auxFormulas: Sequent
+  def auxFormulasMap = Map(premise -> auxFormulas)
+}
+
+trait NoAuxFormula extends Unary { def auxFormulas = Sequent() }
+
+trait SingleAuxFormula { def aux: E }
+trait InAnt extends Unary with SingleAuxFormula { def auxFormulas = Sequent(aux,Nil) }
+trait InSuc extends Unary with SingleAuxFormula { def auxFormulas = Sequent(Nil,aux) }
+
+trait TwoAuxFormulas { def auxL: E ; def auxR: E }
+trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(List(auxL,auxR),Nil) }
+trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(Nil,List(auxL,auxR)) }
+trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR) }
+
+
+trait Binary extends SequentProof with GenBinary[Sequent,SequentProof] {  
+  def leftAuxFormulas: Sequent
+  def rightAuxFormulas: Sequent
+  def auxFormulasMap = Map(leftPremise -> leftAuxFormulas, rightPremise -> rightAuxFormulas)
+}
+
+trait OnePerAntecedent extends Binary with TwoAuxFormulas {
+  def leftAuxFormulas = Sequent(auxL,Nil)
+  def rightAuxFormulas = Sequent(auxR,Nil)
+}
+
+trait OnePerSuccedent extends Binary with TwoAuxFormulas {
+  def leftAuxFormulas = Sequent(Nil,auxL)
+  def rightAuxFormulas = Sequent(Nil,auxR)
+}
+
+trait LeftInSucRightInAnt extends Binary with TwoAuxFormulas {
+  def leftAuxFormulas = Sequent(Nil,auxL)
+  def rightAuxFormulas = Sequent(auxR,Nil)
+}
+
+
 trait SingleMainFormula extends SequentProof {
   def mainFormula : E
   override def activeAncestry(f:E,premise:SequentProof) = {
     require(f eq mainFormula); require(premises contains premise)
-    auxFormulas.getOrElse(premise,Sequent())
+    auxFormulasMap.getOrElse(premise,Sequent())
   }
 }
 
@@ -47,7 +86,7 @@ trait NoMainFormula extends SequentProof {
 
 trait NoImplicitContraction extends SequentProof {
   override def conclusionContext: Sequent = {
-    val premiseContexts = premises.map(p => p.conclusion --* auxFormulas(p))
+    val premiseContexts = premises.map(p => p.conclusion --* auxFormulasMap(p))
     premiseContexts match {
       case h::t => (h /: t)((s1,s2) => s1 ++ s2)
       case Nil => Sequent()
@@ -64,21 +103,18 @@ trait NoImplicitContraction extends SequentProof {
 
 trait ImplicitContraction extends SequentProof {
   private val contextAndAncestryAux: (Sequent, MMap[(E,SequentProof),Sequent]) = {
-    // ToDo: --* should be used instead of -- . 
+    // TODO: (Bruno) --* should be used instead of -- . 
     // However, doing this makes the proof compression algorithms stop working.
     // The bug is actually in the proof fixing codes (e.g. in line 30 in UnitLowering.scala)
     // The bug shall be properly fixed once all proof fixing codes are refactored into a single
     // method in a superclass or in a trait.
     // val context = premises.map(p => (p -> (p.conclusion --* auxFormulas(p)))).toMap
-    val context = premises.map(p => (p -> (p.conclusion -- auxFormulas(p)))).toMap
+    val context = premises.map(p => (p -> (p.conclusion -- auxFormulasMap(p)))).toMap
     val antSeen = new MSet[E]
     val antDuplicates = new MSet[E]
     val sucSeen = new MSet[E]
     val sucDuplicates = new MSet[E]
     
-    // ToDo: if a formula appears twice in the same premise, 
-    // it will be implicitly contracted and will appear only once in the conclusion.
-    // This is not always the intended behaviour.
     for (p <- premises) {
       for (f <- context(p).ant) {
         if (antSeen contains f) antDuplicates += f
@@ -96,40 +132,31 @@ trait ImplicitContraction extends SequentProof {
     val descendantsForAntDuplicates = new MMap[E,E] // stores the new copy that will serve as the contraction for several duplicates in the antecedent.
     val descendantsForSucDuplicates = new MMap[E,E] // stores the new copy that will serve as the contraction for several duplicates in the succedent.
     for (p <- premises) {
-      for (f <- context(p).ant) {
-        val descendant:E = {
-          if (antDuplicates contains f) {
-            if (descendantsForAntDuplicates contains f) {
-              descendantsForAntDuplicates(f)
+      def computeConclusionAndAncestry(cedent: Iterable[E], 
+                                       duplicates: MSet[E], 
+                                       descendantsForDuplicates: MMap[E,E],
+                                       conclusionContextCedent: MSet[E], 
+                                       s: E => Sequent) = {
+        for (f <- cedent) {
+          val descendant:E = {
+            if (duplicates contains f) {
+              if (descendantsForDuplicates contains f) {
+                descendantsForDuplicates(f)
+              }
+              else {
+                val desc = f.copy
+                descendantsForDuplicates += (f -> desc)
+                desc
+              }
             }
-            else {
-              val desc = f.copy
-              descendantsForAntDuplicates += (f -> desc)
-              desc
-            }
+            else f
           }
-          else f
+          conclusionContextCedent += descendant
+          contextAncestryMap += ((descendant,p) -> s(f))
         }
-        conclusionContextAnt += descendant
-        contextAncestryMap += ((descendant,p) -> Sequent(f,Nil))
       }
-      for (f <- context(p).suc) {   //ToDo: remove code duplication for ant and suc
-        val descendant:E = {
-          if (sucDuplicates contains f) {
-            if (descendantsForSucDuplicates contains f) {
-              descendantsForSucDuplicates(f)
-            }
-            else {
-              val desc = f.copy
-              descendantsForSucDuplicates += (f -> desc)
-              desc
-            }
-          }
-          else f
-        }
-        conclusionContextSuc += descendant
-        contextAncestryMap += ((descendant,p) -> Sequent(Nil,f))
-      }
+      computeConclusionAndAncestry(context(p).ant, antDuplicates, descendantsForAntDuplicates, conclusionContextAnt, Sequent(_,Nil))  
+      computeConclusionAndAncestry(context(p).suc, sucDuplicates, descendantsForSucDuplicates, conclusionContextSuc, Sequent(Nil,_))
     }
     (Sequent(conclusionContextAnt.toList,conclusionContextSuc.toList), contextAncestryMap)
   }

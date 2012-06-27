@@ -3,7 +3,7 @@ package skeptik.algorithm.compressor
 import skeptik.proof.oldResolution._
 import skeptik.proof.oldResolution.typeAliases._
 import skeptik.proof.oldResolution.defs._
-import scala.collection._
+import collection._
 
 object Regularization {
 

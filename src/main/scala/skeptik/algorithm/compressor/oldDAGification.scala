@@ -2,7 +2,7 @@ package skeptik.algorithm.compressor
 
 import skeptik.proof.oldResolution._
 import skeptik.proof.oldResolution.typeAliases._
-import scala.collection._
+import collection._
 
 object DAGification {
   def DAGify(proof: Proof, measure: Proof => Int): Proof = {
@@ -21,7 +21,7 @@ object DAGification {
               otherProof replaces p
             }
             else {
-              p replaces otherProof   // ToDo: I changed the "replaces" method. Hence this line might not work anymore.
+              p replaces otherProof   // OldToDo: I changed the "replaces" method. Hence this line might not work anymore.
               map -= otherProof.clause
               map += (p.clause -> p)
             }

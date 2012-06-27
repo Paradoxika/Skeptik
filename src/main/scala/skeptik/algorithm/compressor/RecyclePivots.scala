@@ -5,8 +5,8 @@ import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
 import skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap}
+import collection.Map
 
 
 abstract class RecyclePivots

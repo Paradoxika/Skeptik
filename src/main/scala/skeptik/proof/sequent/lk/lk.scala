@@ -5,89 +5,82 @@ package lk
 import skeptik.judgment.Sequent
 import skeptik.expression.{E,Var}
 import skeptik.expression.formula._
-import skeptik.expression.formula.position.deprecated.IntListPosition
+import skeptik.expression.position.Position
 import skeptik.prover.InferenceRule
 
 
-class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProof("Ax",Nil,Map())
-with NoImplicitContraction {
+class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProof
+with Nullary with NoImplicitContraction {
   override def mainFormulas = Sequent(mainLeft,mainRight)
   override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("Active formulas in axioms have no ancestors.")
 }
 
-class Axiom(override val mainFormulas: Sequent) extends SequentProof("Ax",Nil,Map())
-with NoImplicitContraction {
+class Axiom(override val mainFormulas: Sequent) extends SequentProof
+with Nullary with NoImplicitContraction {
   override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("Active formulas in axioms have no ancestors.")
 }
 
 class WeakeningL(val premise:SequentProof, override val mainFormula :E)
-extends SequentProof("WeakeningL", premise::Nil, Map(premise -> Sequent(Nil,Nil)))
-with SingleMainFormula with Left with NoImplicitContraction { 
-  
-}
+extends SequentProof with Unary with NoAuxFormula
+with SingleMainFormula with Left with NoImplicitContraction 
+
 
 class AndL(val premise:SequentProof, val auxL:E, val auxR:E)
-extends SequentProof("AndL", premise::Nil, Map(premise -> Sequent(auxL::auxR::Nil,Nil)))
+extends SequentProof with Unary with TwoAuxFormulas with BothInAnt
 with SingleMainFormula with Left with NoImplicitContraction {
-  override val mainFormula = And(auxL,auxR)
+  val mainFormula = And(auxL,auxR)
 }
 
 class AndR(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
-extends SequentProof("AndR", leftPremise::rightPremise::Nil,
-                      Map(leftPremise -> Sequent(Nil,auxL), rightPremise -> Sequent(Nil,auxR)))
+extends SequentProof with Binary with TwoAuxFormulas with OnePerSuccedent
 with NoImplicitContraction with SingleMainFormula with Right  {
-  override val mainFormula = And(auxL,auxR)
+  val mainFormula = And(auxL,auxR)
 }
 
-class AllL(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
-extends SequentProof("AllL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
+class AllL(val premise:SequentProof, val aux:E, val v:Var, val position:Position)
+extends SequentProof with Unary with SingleAuxFormula with InAnt
 with SingleMainFormula with Left with NoImplicitContraction {
-  override val mainFormula = All(aux,v,pl)
+  val mainFormula = All(aux, v, position)
 }
 
-class ExR(val premise:SequentProof, val aux:E, val v:Var, val pl:List[IntListPosition])
-extends SequentProof("ExR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
+class ExR(val premise:SequentProof, val aux:E, val v:Var, val position:Position)
+extends SequentProof with Unary with SingleAuxFormula with InSuc
 with SingleMainFormula with Right with NoImplicitContraction {
-  override val mainFormula = Ex(aux,v,pl)
+  val mainFormula = Ex(aux, v, position)
 }
 
 trait EigenvariableCondition extends SequentProof {
-  val eigenvar: Var
+  def eigenvar: Var
   require(!conclusionContext.ant.exists(e => (eigenvar occursIn e)) &&
           !conclusionContext.suc.exists(e => (eigenvar occursIn e)))
 }
 
 class AllR(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var)
-extends SequentProof("AllR", premise::Nil,Map(premise -> Sequent(Nil,aux)))
+extends SequentProof with Unary with SingleAuxFormula with InSuc
 with SingleMainFormula with Right with NoImplicitContraction
 with EigenvariableCondition {
-  override val mainFormula = All(aux,v,eigenvar)
+  val mainFormula = All(aux,v,eigenvar)
 }
 
 class ExL(val premise:SequentProof, val aux:E, val v:Var, val eigenvar:Var)
-extends SequentProof("ExL", premise::Nil,Map(premise -> Sequent(aux,Nil)))
+extends SequentProof with Unary with SingleAuxFormula with InAnt
 with SingleMainFormula with Left with NoImplicitContraction 
 with EigenvariableCondition {
-  override val mainFormula = Ex(aux,v,eigenvar)
+  val mainFormula = Ex(aux,v,eigenvar)
 }
 
 
-abstract class AbstractCut(val leftPremise:SequentProof, val rightPremise:SequentProof, 
-                            val auxL:E, val auxR:E)
-extends SequentProof("Cut",leftPremise::rightPremise::Nil,
-                      Map(leftPremise -> Sequent(Nil,auxL),
-                          rightPremise -> Sequent(auxR,Nil)))
+abstract class AbstractCut
+extends SequentProof with Binary with TwoAuxFormulas with LeftInSucRightInAnt 
 with NoMainFormula {
   require(auxL == auxR)
 }
 
-class Cut(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E)
-extends AbstractCut(leftPremise, rightPremise, auxL, auxR)
-with NoImplicitContraction 
+class Cut(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
+extends AbstractCut with NoImplicitContraction 
 
-class CutIC(leftPremise:SequentProof, rightPremise:SequentProof, auxL:E, auxR:E)
-extends AbstractCut(leftPremise, rightPremise, auxL, auxR)
-with ImplicitContraction 
+class CutIC(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
+extends AbstractCut with ImplicitContraction 
 
 
 
@@ -126,9 +119,9 @@ object AllR {
   }
 }
 object AllL {
-  def apply(premise:SequentProof, aux:E, v:Var, pl:List[IntListPosition]) = new AllL(premise,aux,v,pl)
+  def apply(premise:SequentProof, aux:E, v:Var, p:Position) = new AllL(premise,aux,v,p)
   def unapply(p: SequentProof) = p match {
-    case p: AllL => Some((p.premise,p.aux,p.v,p.pl))
+    case p: AllL => Some((p.premise,p.aux,p.v,p.position))
     case _ => None
   }
 }
@@ -215,7 +208,6 @@ object AndR {
     case _ => None
   }
 }
-//ToDo: Companion objects for ExL and ExR are missing. They are not needed yet.
 object Cut {
   def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new Cut(leftPremise,rightPremise,auxL,auxR)
   def unapply(p: SequentProof) = p match {

@@ -1,17 +1,16 @@
 package skeptik.expression
 
-import skeptik.expression._
 import skeptik.util.unicode._
 
 package object formula {
   val andS = unicodeOrElse("\u2227","&")
-  def andC = Var(andS, o -> (o -> o))
+  def andC = new Var(andS, o -> (o -> o)) with Infix
   
   val orS = unicodeOrElse("\u2228","&")
-  def orC = Var(orS, o -> (o -> o))
+  def orC = new Var(orS, o -> (o -> o)) with Infix
   
   val impS = unicodeOrElse("\u2192","->")
-  def impC = Var(impS, o -> (o -> o))
+  def impC = new Var(impS, o -> (o -> o)) with Infix
 
   val allS = unicodeOrElse("\u2200","A")
   def allC(t:T) = Var(allS, (t -> o ) -> o)
@@ -23,10 +22,8 @@ package object formula {
   def negC = Var(negS, o -> o)
   
   def isLogicalConnective(c:E) = c match {
-    case c: Var => {
-      val n = c.name 
-      if (n == andS || n == impS || n == allS || n == exS || n == negS) true else false
-    }
+    case Var(n,_) if (n == andS || n == orS || n == impS || 
+                      n == allS || n == exS || n == negS) => true
     case _ => false
   }
 }

@@ -1,7 +1,7 @@
 package skeptik.parser
 
 import scala.util.parsing.combinator._
-import scala.collection.mutable.{HashMap => MMap}
+import collection.mutable.{HashMap => MMap}
 import java.io.FileReader
 
 

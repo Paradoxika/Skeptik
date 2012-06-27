@@ -1,24 +1,24 @@
 package skeptik.experiment.compression
 
-import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.HashMap
-import scala.collection.immutable.List
-import scala.collection.immutable.Map
-import scala.collection.immutable.MapLike
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.Builder
+import collection.generic.CanBuildFrom
+import collection.immutable.HashMap
+import collection.immutable.List
+import collection.immutable.Map
+import collection.immutable.MapLike
+import collection.mutable.ArrayBuffer
+import collection.mutable.Builder
 
 
 class Report private (val m: HashMap[String,Double])
 extends Map[String,Double] with MapLike[String,Double,Report] {
   // useless
   def +[B >: Double](kv: (String, B)) = {
-    if (kv.isInstanceOf[(String,Double)])
+    if (kv._2.isInstanceOf[Double])
       new Report(m + kv.asInstanceOf[(String,Double)])
     else
       m + kv
   }
-  def +(kv: (String, Double)) = new Report(m + kv)
+  def +(kv: (String, Double)) = new Report(m + kv) // TODO: I think this method is now subsumed by the method above, and hence could be deleted.
   def -(key: String) = new Report(m - key)
   override def empty = new Report(HashMap())
   def iterator = m.iterator
