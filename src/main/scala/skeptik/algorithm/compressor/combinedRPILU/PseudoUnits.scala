@@ -102,7 +102,7 @@ class PseudoUnitsList {
 
 } // class PseudoUnitsList
 
-class PseudoUnitsAfter
+class PseudoUnitsAfter (minNumberOfChildren: Int)
 extends AbstractRPILUAlgorithm with EdgesCollectingUsingSafeLiterals with CombinedIntersection with LeftHeuristicC {
 
   private def fixProofAndLowerUnits(iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
@@ -112,7 +112,7 @@ extends AbstractRPILUAlgorithm with EdgesCollectingUsingSafeLiterals with Combin
     def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
       val children = iterator.childrenOf.getOrElse(oldProof,Nil) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
-      if (fakeSize(children) > 1 && pseudoUnitList.addIfPseudoUnit(newProof, oldProof, children).isDefined)
+      if (fakeSize(children) >= minNumberOfChildren && pseudoUnitList.addIfPseudoUnit(newProof, oldProof, children).isDefined)
         deleteFromChildren(oldProof, iterator, edgesToDelete)
       newProof
     }
