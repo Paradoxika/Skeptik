@@ -76,6 +76,8 @@ object WrappedAlgorithmFactory {
     lu(rpi(lu(p)))
   })
 
+  val lowPsUn = SimpleSequentAlgorithm("low PsUn", new PseudoUnits(2))
+
   val psunReg = SimpleSequentAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
   val psunOne = SimpleSequentAlgorithm("PsUn One", new PseudoUnitsAfter(1))
 //  val psunLow = SimpleSequentAlgorithm("PsUn Low", new PseudoUnitsBeforeAndAfter)
@@ -124,6 +126,7 @@ object WrappedAlgorithmFactory {
     "nLURPI"-> newLURPI,
     "nRPILU"-> newRPILU,
     "nLURPILU" -> nLURPILU,
+    "lowPsUn"  -> lowPsUn,
     "PsUnReg"  -> psunReg,
     "PsUnOne"  -> psunOne,
 //    "PsUnLow"  -> psunLow,
