@@ -9,7 +9,7 @@ import skeptik.proof.natural.Assumption
 import skeptik.proof.natural.{ImpElim => ImpE}
 import skeptik.proof.natural.ImpElimC
 import skeptik.proof.natural.{ImpIntro => ImpI}
-import skeptik.proof.natural.ImpIntroC
+import skeptik.proof.natural.{ImpIntroC,ImpIntroCK}
 import skeptik.judgment.{NaturalSequent, NamedE}
 import skeptik.prover.SimpleProver2
 
@@ -19,13 +19,21 @@ object ProverExperiment {
 
     val ndProver = new SimpleProver2(Seq(Assumption,ImpI,ImpE))
     val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))
+    val ndckProver = new SimpleProver2(Seq(Assumption,ImpIntroCK,ImpElimC))
     
     val context = Set[NamedE]()
     
     println()
     
-    val goals = (new FormulaGenerator).generate(3,3)
-    //val goals = Seq(Imp(Prop("A"),Prop("A")))
+    //val goals = (new FormulaGenerator).generate(3,3)
+    val goals = Seq(Imp(
+                        Imp(
+                            Imp(Prop("A"),Prop("B")),
+                            Prop("B")
+                            ),
+                        Prop("A")
+                        )
+                   )
     println(goals.length)
 
     
@@ -35,10 +43,14 @@ object ProverExperiment {
     var noCounter = 0
     var yesCCounter = 0
     var noCCounter = 0
+    var yesCKCounter = 0
+    var noCKCounter = 0
     var cumulativeSize = 0
     var size = 0
     var cumulativeCSize = 0
     var cSize = 0
+    var cumulativeCKSize = 0
+    var cKSize = 0
     for (goal <- goals) {
       println("shallow")
       System.gc()
@@ -65,8 +77,21 @@ object ProverExperiment {
             if (proof != None) cumulativeCSize += cSize
             "yes"}
       }
+      println("end ndc")
+      println("started ndck " + goal)
+      //val deepProof =  ndcProver.prove(goal,context)
+      val deepProofK =  ndckProver.prove(new NaturalSequent(Set(),goal))
+      println("finished proving " + goal + " ; " + deepProofK)
+      val deepKProvable = deepProofK match {
+        case None => {noCKCounter += 1; "no"} 
+        case Some(p) => {
+            yesCKCounter += 1; 
+            cKSize = ProofNodeCollection(p).size
+            if (proof != None) cumulativeCKSize += cKSize
+            "yes"}
+      }
       //println("ho")
-      if (true) println(yesCounter + " , " + noCounter + " , " + provable + " , " + size + " , " + cumulativeSize + " , " + deepProvable + " , " + cSize + " , " + cumulativeCSize + "  , goal:" + goal)
+      if (true) println(yesCounter + " , " + noCounter + " , " + yesCCounter + " , " + noCCounter + " , " + yesCKCounter + " , " + noCKCounter + " , " + provable + " , " + size + " , " + cumulativeSize + " , " + deepProvable + " , " + cSize + " , " + cumulativeCSize + "  , goal:" + goal)
     }
     
     println("yes: " + yesCounter)

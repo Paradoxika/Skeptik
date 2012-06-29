@@ -1,11 +1,7 @@
 package skeptik.judgment 
 
-import collection.TraversableOnce
-import collection.immutable.{HashSet => ISet}
-import collection.mutable.Stack
 import skeptik.expression._
 import skeptik.util.unicode._
-import skeptik.expression.formula._
   
 
 case class NamedE(name:String, expression:E) {
@@ -13,7 +9,7 @@ case class NamedE(name:String, expression:E) {
   override def toString = name + ": " + expression
 }
 
-class NaturalSequent(val context:Set[NamedE], val e:E) extends Judgment {
+class NaturalSequent(val context: Set[NamedE], val e:E) extends Judgment {
 	
   override def equals(v:Any) = v match {		
       case that:NaturalSequent => (that canEqual this) && (context == that.context) && (e == that.e)	

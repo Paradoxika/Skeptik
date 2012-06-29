@@ -1,10 +1,8 @@
 package skeptik.proof
 package natural
 
-import skeptik.expression._
-import skeptik.expression.formula._
+import skeptik.expression.formula.{Imp}
 import skeptik.prover.InferenceRule
-import collection.Set
 import skeptik.judgment.{NaturalSequent,NamedE}
 
 object nameFactory {
@@ -20,16 +18,16 @@ abstract class NaturalDeductionProof
 extends Proof[NaturalSequent, NaturalDeductionProof]
 
 
-class Assumption(val conclusion: NaturalSequent) 
+class Assumption(val context: Set[NamedE], val a: NamedE) 
 extends NaturalDeductionProof with Nullary {
-  require(conclusion.context.exists(_.expression == conclusion.e))
-  def namedE = conclusion.context.find(_.expression == conclusion.e).get
+  require(context contains a)
+  val conclusion = new NaturalSequent(context, a.expression)
 }
 
 class ImpIntro(val premise: NaturalDeductionProof, val assumption: NamedE)
 extends NaturalDeductionProof with Unary {
   require(premise.conclusion.context contains assumption)
-  override val conclusion = new NaturalSequent(premise.conclusion.context - assumption, Imp(assumption.expression, premise.conclusion.e))
+  val conclusion = new NaturalSequent(premise.conclusion.context - assumption, Imp(assumption.expression, premise.conclusion.e))
 }
 
 class ImpElim(val leftPremise:NaturalDeductionProof, val rightPremise:NaturalDeductionProof)
@@ -41,9 +39,9 @@ extends NaturalDeductionProof with Binary {
 }
 
 object Assumption extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
-//  def apply(conclusion: NaturalSequent) = new Assumption(conclusion)
+  def apply(context: Set[NamedE], a: NamedE) = new Assumption(context, a)
   def unapply(p: NaturalDeductionProof) = p match {
-    case p: Assumption => Some(p.conclusion)
+    case p: Assumption => Some(p.context, p.a)
     case _ => None
   }
   
@@ -51,7 +49,10 @@ object Assumption extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   def apply(j: NaturalSequent) = Seq(Seq())
   
   def apply(premises: Seq[NaturalDeductionProof], conclusion: NaturalSequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
-    if (premises.length == 0 && conclusion.context.exists(_.expression == conclusion.e)) Some(new Assumption(conclusion))
+    if (premises.length == 0) conclusion.context.find(_.expression == conclusion.e) match {
+      case Some(n) => Some(new Assumption(conclusion.context, n))
+      case None => None
+    }
     else None
   }
 }
