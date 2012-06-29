@@ -11,35 +11,31 @@ import scala.collection.Map
 class PseudoUnitsList {
 
   // Ordered list of (pseudo-)units
-  private var units = LList[(Either[E,E],SequentProof)]()
-  private var lastLL = units
-  // The maximum size (nb of literal in conclusion) for a proof to be added to units
-  private val literalsDeletedByUnits = (MSet[E](),MSet[E]())
+  var list = LList[SequentProof]()
+
+  val literalsDeletedByUnits = (MSet[E](),MSet[E]())
 
   private def append(proof: SequentProof, literal: Either[E,E]) = {
-//    println("+ " + proof.conclusion + " " + literal)
+    println("+ " + proof.conclusion + " " + literal)
     literal match {
       case Left(v)  => literalsDeletedByUnits._1.add(v)
       case Right(v) => literalsDeletedByUnits._2.add(v)
     }
-    val ret = lastLL
-    ret.elem = (literal, proof)
-    ret.next = LList[(Either[E,E],SequentProof)]()
-    lastLL = ret.next
-    Some(ret)
+    list = new LList(proof, list)
+    Some(list)
   }
 
-  def addIfPseudoUnit(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof]):Option[LList[(Either[E,E],SequentProof)]] = {
+  def addIfPseudoUnit(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof]):Option[LList[SequentProof]] = {
     val literals = literalsIntroducedByDeletion(newProof, oldProof, children)
 //      println("Remaining Literals " + literals)
     (literals._1.size, literals._2.size) match {
-      case (0,0) => Some(LList((Left(Var("fake",i)),oldProof))) // proof can be safely deleted
+      case (0,0) => println("- " + newProof.conclusion) ; Some(LList(newProof)) // proof can be safely deleted
       case (0,1) => checkLiteralsIntroducedByLowering(newProof, Left(literals._2.head))
       case (1,0) => checkLiteralsIntroducedByLowering(newProof, Right(literals._1.head))
       case _ => None
     }
   }
-  def addIfPseudoUnit(proof: SequentProof, children: List[SequentProof]):Option[LList[(Either[E,E],SequentProof)]] =
+  def addIfPseudoUnit(proof: SequentProof, children: List[SequentProof]):Option[LList[SequentProof]] =
       addIfPseudoUnit(proof, proof, children)
 
   private def literalsIntroducedByDeletion(newProof: SequentProof, oldProof: SequentProof, children: Seq[SequentProof]) = {
@@ -65,18 +61,32 @@ class PseudoUnitsList {
     }
   }
 
-  def unitList = units.foldLeft(List[SequentProof]()) { (lst,u) => (u._2)::lst }
-
 } // class PseudoUnitsList
 
+abstract class AbstractPseudoUnitsNotDuringFixing
+extends AbstractRPILUAlgorithm with LeftHeuristicC {
+  def fixProofAndUnits(iterator: ProofNodeCollection[SequentProof],
+                       edgesToDelete: MMap[SequentProof,DeletedSide],
+                       unitMap: Map[SequentProof,LList[SequentProof]]) = {
+    def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
+      val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
+      if (unitMap contains oldProof) {
+        unitMap(oldProof).elem = newProof
+        deleteFromChildren(oldProof, iterator, edgesToDelete)
+      }
+      newProof
+    }
+    iterator.foldDown(reconstructProof _)
+  }
+}
 
 class PseudoUnits (minNumberOfChildren: Int)
 // TODO: remove CombinedIntersection and made PseudoUnits a subclass of a class more general than AbstractRPILUAlgorithm
-extends AbstractRPILUAlgorithm with LeftHeuristicC with CombinedIntersection {
+extends AbstractPseudoUnitsNotDuringFixing with CombinedIntersection {
   def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
     val units   = new PseudoUnitsList()
-    val unitMap = MMap[SequentProof, LList[(Either[E,E],SequentProof)]]()
-    iterator.foldRight(Unit) { (p,_) =>
+    val unitMap = MMap[SequentProof, LList[SequentProof]]()
+    iterator.foreachDown { (p) =>
       val children = iterator.childrenOf.getOrElse(p, Nil)
       if (fakeSize(children) >= minNumberOfChildren) {
         units.addIfPseudoUnit(p, children) match {
@@ -84,32 +94,17 @@ extends AbstractRPILUAlgorithm with LeftHeuristicC with CombinedIntersection {
           case _ => Unit
         }
       }
-      Unit
     }
     (units, unitMap)
-  }
-
-  def fixProofAndUnits(iterator: ProofNodeCollection[SequentProof],
-                       edgesToDelete: MMap[SequentProof,DeletedSide],
-                       unitMap: Map[SequentProof,LList[(Either[E,E],SequentProof)]]) = {
-    def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
-      val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
-      if (unitMap contains oldProof) {
-        unitMap(oldProof).elem = (unitMap(oldProof).elem._1, newProof)
-        deleteFromChildren(oldProof, iterator, edgesToDelete)
-      }
-      newProof
-    }
-    iterator.foldDown(reconstructProof _)
   }
 
   def apply(proof: SequentProof) = {
     val iterator = ProofNodeCollection(proof)
     val (units, unitMap) = collectUnits(iterator)
     val pseudoRoot = fixProofAndUnits(iterator, MMap[SequentProof,DeletedSide](), unitMap)
-//    println("root " + pseudoRoot.conclusion)
-//    println("units " + units.unitList.map(_.conclusion))
-    units.unitList.foldLeft(pseudoRoot) { (left,right) =>
+    println("root " + pseudoRoot.conclusion)
+    println("units " + units.list.map(_.conclusion))
+    units.list.foldLeft(pseudoRoot) { (left,right) =>
       try {CutIC(left,right)} catch {case e:Exception => left}
     }
   }
@@ -132,7 +127,7 @@ extends AbstractRPILUAlgorithm with EdgesCollectingUsingSafeLiterals with Combin
 
     val pseudoRoot = iterator.foldDown(reconstructProof _)
 //    println("root " + pseudoRoot.conclusion)
-    (pseudoRoot, pseudoUnitList.unitList)
+    (pseudoRoot, pseudoUnitList.list)
   }
 
   def apply(proof: SequentProof): SequentProof = {
