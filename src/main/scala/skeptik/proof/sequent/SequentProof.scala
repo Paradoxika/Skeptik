@@ -103,7 +103,7 @@ trait NoImplicitContraction extends SequentProof {
 
 trait ImplicitContraction extends SequentProof {
   private val contextAndAncestryAux: (Sequent, MMap[(E,SequentProof),Sequent]) = {
-    // TODO: (Bruno) --* should be used instead of -- . 
+    // ToDo : (B) --* should be used instead of -- .
     // However, doing this makes the proof compression algorithms stop working.
     // The bug is actually in the proof fixing codes (e.g. in line 30 in UnitLowering.scala)
     // The bug shall be properly fixed once all proof fixing codes are refactored into a single
