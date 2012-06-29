@@ -77,6 +77,7 @@ object WrappedAlgorithmFactory {
   })
 
   val lowPsUn = SimpleSequentAlgorithm("low PsUn", new PseudoUnits(2))
+  val lowPsU1 = SimpleSequentAlgorithm("low PsU1", new PseudoUnits(1))
 
   val psunReg = SimpleSequentAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
   val psunOne = SimpleSequentAlgorithm("PsUn One", new PseudoUnitsAfter(1))
@@ -127,6 +128,7 @@ object WrappedAlgorithmFactory {
     "nRPILU"-> newRPILU,
     "nLURPILU" -> nLURPILU,
     "lowPsUn"  -> lowPsUn,
+    "lowPsU1"  -> lowPsU1,
     "PsUnReg"  -> psunReg,
     "PsUnOne"  -> psunOne,
 //    "PsUnLow"  -> psunLow,

@@ -12,30 +12,21 @@ class PseudoUnitsList {
 
   // Ordered list of (pseudo-)units
   private var units = LList[(Either[E,E],SequentProof)]()
+  private var lastLL = units
   // The maximum size (nb of literal in conclusion) for a proof to be added to units
-  private var unitsLimit = 1
   private val literalsDeletedByUnits = (MSet[E](),MSet[E]())
 
-  private def updateDataAfterAdding(literal: Either[E,E]) = {
-    unitsLimit += 1
+  private def append(proof: SequentProof, literal: Either[E,E]) = {
+//    println("+ " + proof.conclusion + " " + literal)
     literal match {
       case Left(v)  => literalsDeletedByUnits._1.add(v)
       case Right(v) => literalsDeletedByUnits._2.add(v)
     }
-  }
-
-  private def prependUnit(proof: SequentProof, literal: Either[E,E]) = {
-    println("- " + proof.conclusion)
-    units = new LList((literal, proof), units)
-    updateDataAfterAdding(literal)
-    Some(units)
-  }
-
-  private def insertUnitAfter(proof: SequentProof, literal: Either[E,E], node: LList[(Either[E,E],SequentProof)]) = {
-    println("+ " + proof.conclusion + " (" + literal + ")")
-    node.next = new LList((literal, proof), node.next)
-    updateDataAfterAdding(literal)
-    Some(node.next)
+    val ret = lastLL
+    ret.elem = (literal, proof)
+    ret.next = LList[(Either[E,E],SequentProof)]()
+    lastLL = ret.next
+    Some(ret)
   }
 
   def addIfPseudoUnit(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof]):Option[LList[(Either[E,E],SequentProof)]] = {
@@ -65,37 +56,13 @@ class PseudoUnitsList {
   }
 
   private def checkLiteralsIntroducedByLowering(proof: SequentProof, remainingLiteral: Either[E,E]) = {
-    val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet, proof.conclusion.suc.toSet)
-    (leftLiterals.size, rightLiterals.size) match {
-      case (1,0) => prependUnit(proof, Left(leftLiterals.head))
-      case (0,1) => prependUnit(proof, Right(rightLiterals.head))
-      case (l,r) if (l+r <= unitsLimit) => insertUnit(proof, (leftLiterals, rightLiterals), l+r, remainingLiteral)
+    val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet diff literalsDeletedByUnits._2,
+                                         proof.conclusion.suc.toSet diff literalsDeletedByUnits._1)
+    (leftLiterals.size, rightLiterals.size, remainingLiteral) match {
+      case (1,0,Left(literal))  if leftLiterals.head  == literal => append(proof, remainingLiteral)
+      case (0,1,Right(literal)) if rightLiterals.head == literal => append(proof, remainingLiteral)
       case _ => None
     }
-  }
-
-  private def insertUnit(proof: SequentProof, literals: (Set[E],Set[E]), size: Int, remainingLiteral: Either[E,E]) = {
-  // This function scans the units list for insertion, introducing quadratic complexity.
-
-    // invariant : size <= limit
-    def recursiveScan(oldLit: (Set[E],Set[E]),
-                      size: Int,
-                      node: LList[(Either[E,E],SequentProof)],
-                      limit: Int)                             :Option[LList[(Either[E,E],SequentProof)]] = {
-      val newLit = node.elem._1 match {
-        case Left(l)  => (oldLit._1, oldLit._2 - l)
-        case Right(r) => (oldLit._1 - r, oldLit._2)
-      }
-//        println("Scan " + oldLit + " node " + node.elem._1 + " size " + size + " limit " + limit)
-      (newLit._1.size, newLit._2.size, remainingLiteral) match {
-        case (1,0,Left(literal))  if literal == newLit._1.head => insertUnitAfter(proof, remainingLiteral, node)
-        case (0,1,Right(literal)) if literal == newLit._2.head => insertUnitAfter(proof, remainingLiteral, node)
-        case (l,r,_)             if (l+r > 1) && (l+r < limit) => recursiveScan(newLit, l+r, node.next, limit-1)
-        case _ => None
-      }
-    }
-
-    recursiveScan(literals, size, units, unitsLimit)
   }
 
   def unitList = units.foldLeft(List[SequentProof]()) { (lst,u) => (u._2)::lst }
@@ -109,7 +76,7 @@ extends AbstractRPILUAlgorithm with LeftHeuristicC with CombinedIntersection {
   def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
     val units   = new PseudoUnitsList()
     val unitMap = MMap[SequentProof, LList[(Either[E,E],SequentProof)]]()
-    iterator.foreach { (p) =>
+    iterator.foldRight(Unit) { (p,_) =>
       val children = iterator.childrenOf.getOrElse(p, Nil)
       if (fakeSize(children) >= minNumberOfChildren) {
         units.addIfPseudoUnit(p, children) match {
@@ -117,6 +84,7 @@ extends AbstractRPILUAlgorithm with LeftHeuristicC with CombinedIntersection {
           case _ => Unit
         }
       }
+      Unit
     }
     (units, unitMap)
   }
@@ -139,6 +107,8 @@ extends AbstractRPILUAlgorithm with LeftHeuristicC with CombinedIntersection {
     val iterator = ProofNodeCollection(proof)
     val (units, unitMap) = collectUnits(iterator)
     val pseudoRoot = fixProofAndUnits(iterator, MMap[SequentProof,DeletedSide](), unitMap)
+//    println("root " + pseudoRoot.conclusion)
+//    println("units " + units.unitList.map(_.conclusion))
     units.unitList.foldLeft(pseudoRoot) { (left,right) =>
       try {CutIC(left,right)} catch {case e:Exception => left}
     }
