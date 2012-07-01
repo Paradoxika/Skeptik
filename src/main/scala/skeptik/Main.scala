@@ -16,6 +16,8 @@ object Main {
     println(a)
     a += Right(Prop("f"))
     println(a)
+    println(a += Right(Prop("g")))
+    println(a += Prop("h"))
     
     skeptik.experiment.proving.ProverExperiment.main(Array());
   }

@@ -10,12 +10,12 @@ class SetSequent(val ant:MSet[E], val suc:MSet[E]) extends Judgment {
   
   def contains(f:E) = (ant contains f) || (suc contains f)
   
-  def +=(f:E) = suc += f
-  def =+:(f:E) = ant += f
-  def -=(f:E) =  suc -= f
-  def =-:(f:E) = ant -= f
+  def +=(f:E) = { suc += f ; this }
+  def =+:(f:E) = { ant += f ; this }
+  def -=(f:E) =  { suc -= f ; this }
+  def =-:(f:E) = { ant -= f ; this }
   
-  def +=(e: Either[E,E]):Unit = e match {
+  def +=(e: Either[E,E]): SetSequent = e match {
     case Left(f) => =+:(f)
     case Right(f) => +=(f)
   }
