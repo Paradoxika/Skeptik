@@ -9,6 +9,7 @@ import skeptik.expression.formula._
   
 // TODO: (B) Make Sequent a proper Scala collection
 
+
 class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
 	def contains(f:E) = (ant contains f) || (suc contains f)
 	def exists(p:E=>Boolean) = ant.exists(p) || suc.exists(p)
