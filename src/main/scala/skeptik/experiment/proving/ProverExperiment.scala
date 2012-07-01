@@ -44,7 +44,6 @@ object ProverExperiment {
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
     implicit def formulaToSequent(f: E) = Sequent(Nil, f)
     
-    
     val results = MMap[(E, String),Timed[Option[Proof[_,_]]]]()
     for (g <- goals) {
       println("Goal: " + g)
@@ -53,7 +52,7 @@ object ProverExperiment {
         val maxtime = 1000 * repetitions
         results((g, p._1)) = timeout(maxtime) { timed(repetitions) { p._2.prove(g) } } match {
           case Some(timedResult) => timedResult
-          case None => Timed(None, maxtime + 1)
+          case None => Timed(None, 10 * maxtime)
         }
         val r0 = "Prover " + p._1 + ": " 
         val r1 = if (results((g, p._1)).result != None) "proved in " + results((g, p._1)).time + "microseconds"
