@@ -45,6 +45,15 @@ extends Iterable[P]
     resultFrom(nodeArray(0))
   }
 
+  // a top down foreach
+  def foreachDown[U](f: (P) => U):Unit = {
+    def iterate(pos: Int):Unit = if (pos >= 0) {
+      f(nodeArray(pos))
+      iterate(pos - 1)
+    }
+    iterate(nodeArray.length - 1)
+  }
+
   def bottomUp[X](f:(P, List[X])=>X):Unit = {
     val resultsFromChildren : MMap[P, List[X]] = MMap()
     val lastPos = nodeArray.length
