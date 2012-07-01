@@ -10,15 +10,9 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList =>
 import scala.collection.Map
 
 class RegularizationInformation (val nodeSize: Float, val leftMap: Map[E,Float], val rightMap: Map[E,Float]) {
-  def +(that: RegularizationInformation) =
-    new RegularizationInformation(this.nodeSize + that.nodeSize, 
-                                  RegularizationInformation.addMap(this.leftMap, that.leftMap),
-                                  RegularizationInformation.addMap(this.rightMap, that.rightMap))
   def /(v: Float) = new RegularizationInformation(nodeSize / v, leftMap.mapValues(_/v), rightMap.mapValues(_/v))
 }     
 object RegularizationInformation {
-  def addMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
-    ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0..toFloat))) }
   def apply() =
     new RegularizationInformation(1, Map[E,Float](), Map[E,Float]())
   def apply(nodeSize: Float) =
@@ -108,30 +102,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 // Collectors
 
-trait SimpleCollector
-// The same information is calculated and stored in the map. Every derivation is evaluated.
-// This is both inefficient and error-prone.
-// Should be deleted.
-extends RegularizationEvaluation {
-  def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
-    var informationMap = MMap[SequentProof, RegularizationInformation]()
-    def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) =  {
-      val ret = p match {
-        case CutIC(left, right, aux, _) => evaluateDerivation(p, nodeCollection, aux, left, premisesInformation(0), right, premisesInformation(1))
-        case _ => RegularizationInformation()
-      }
-      if (isUnit(p, nodeCollection)) informationMap.update(p, ret)
-      ret
-    }
-    nodeCollection.foldDown(visit)
-    informationMap
-  }
-}
-
 trait DiscreteCollector
 // Assumes a derivation with more than one child won't be regularized (probability that other children will have same safe literals = 0).
 // Only evaluates units and derivation with one child.
-// Should be kept, best collector.
 extends RegularizationEvaluation {
   def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
@@ -156,7 +129,6 @@ extends RegularizationEvaluation {
 trait QuadraticCollector
 // Assumes probability that other children will have same safe literals = 1 / square of the number of children.
 // Slow and inneficient.
-// Should be kept anyway because it's an interessing idea.
 extends RegularizationEvaluation {
   def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
@@ -182,7 +154,8 @@ extends RegularizationEvaluation {
 
 trait AddEval extends RegularizationEvaluation {
 // Assumes all the possible regularizations will happend.
-// Ineficient but should be kept.
+  def addMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
+    ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0..toFloat))) }
   def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
@@ -190,54 +163,14 @@ trait AddEval extends RegularizationEvaluation {
       if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
     RegularizationInformation(
       evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1..toFloat,
-      RegularizationInformation.addMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
-      RegularizationInformation.addMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> evalRegularization(right,rightInfo))
-    )
-  }
-}
-
-trait MaxEval extends RegularizationEvaluation {
-// Assumes only the best regularization will happend.
-// Should be deleted because it's ineficient, theoretically wrong and because OptimizedEval does it better.
-  def maxMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
-    ma.keys.foldLeft(mb) { (acc,k) =>
-      acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
-    }
-  def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
-                         left:  SequentProof, leftInfo: RegularizationInformation,
-                         right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
-    def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
-    RegularizationInformation(
-      evalRegularization(left, leftInfo) + evalRegularization(right, rightInfo) - 1..toFloat,
-      maxMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
-      maxMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> evalRegularization(right,rightInfo))
-    )
-  }
-}
-
-trait OptimizedEval extends RegularizationEvaluation {
-// Same as MaxEval, but optimized to be used with DiscreteCollector.
-// May be deleted as it's theoretically wrong.
-  def maxMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
-    ma.keys.foldLeft(mb) { (acc,k) =>
-      acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
-    }
-  def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
-                         left:  SequentProof, leftInfo: RegularizationInformation,
-                         right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
-    RegularizationInformation(
-      leftInfo.nodeSize + rightInfo.nodeSize - 1..toFloat,
-      maxMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> leftInfo.nodeSize),
-      maxMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> rightInfo.nodeSize)
+      addMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
+      addMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> evalRegularization(right,rightInfo))
     )
   }
 }
 
 trait MinEval extends RegularizationEvaluation {
 // Assumes only the worst (non-null) regularization will happend.
-// Gives the same results as OptimizedEval but is more correct as it can really compute the bare minimum gain due to regularization.
-// Sould be kept.
   def minMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
     ma.keys.foldLeft(mb) { (acc,k) =>
       acc + (k -> (if ((mb contains k) && (mb(k) < ma(k))) mb(k) else ma(k)))
@@ -255,17 +188,8 @@ trait MinEval extends RegularizationEvaluation {
 
 // Choices
 
-trait AlwaysLowerI extends RegularizationEvaluation {
-// Should be deleted as it gives the same results as AlwaysLowerIrregularUnits but is much slower.
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])         ):Boolean = true
-}
-
-trait AlwaysRegularizeI extends RegularizationEvaluation {
+trait RegularizeIfPossible extends RegularizationEvaluation {
 // Don't lower any unit that can be regularized or whose (direct or indirect) premises can be.
-// Should be kept (but renamed).
   def lowerInsteadOfRegularize(proof: SequentProof,
                                notDeletedChildren: Int,
                                information: RegularizationInformation,
@@ -277,123 +201,11 @@ trait AlwaysRegularizeI extends RegularizationEvaluation {
   }
 }
 
-abstract class MaxChoice (deletionProbability: Double)
-// Assumes that only the best regularization will happend and that lowered units have deletionProbability to be deleted.
-// Experiments shows that deletionProbability (and then nodeSize) is useless.
-// Should be deleted because assumptions are wrong.
+abstract class MinRegularizationEvaluation
 extends RegularizationEvaluation {
-  def max(x: Float, y: Float) = if (x < y) y else x
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    val regularizeGain = max(
-      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  },
-      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) })
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
-  }
-}
-
-abstract class AddChoice (deletionProbability: Double)
-// Assumes that all possible regularizations will happend and that lowered unit has deletionProbability to be deleted.
-// Should be deleted because assumptions are wrong.
-extends RegularizationEvaluation {
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    val regularizeGain =
-      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => acc + information.leftMap.getOrElse(k,0..toFloat)  } +
-      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => acc + information.rightMap.getOrElse(k,0..toFloat) }
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
-  }
-}
-
-abstract class MixChoice (deletionProbability: Double)
-// Assumes that only the best regularization of each direct premise will happend and that lowered unit has deletionProbability to be deleted.
-// Should be deleted because assumptions are wrong. But may be kept if OptimizedEval is kept.
-extends RegularizationEvaluation {
-  def max(x: Float, y: Float) = if (x < y) y else x
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    val regularizeGain =
-      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  } +
-      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) }
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
-  }
-}
-
-abstract class MixMinChoice (deletionProbability: Double)
-// Assumes that only the worst regularization of each direct premise will happend and that lowered unit has deletionProbability to be deleted.
-// Should be deleted because deletionProbability (and then nodeSize) is useless.
-extends RegularizationEvaluation {
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    def foldFunction(info: Map[E,Float])(acc: Float, k: E) =
-      if (info contains k) {
-        val nval = info(k)
-        if (nval < acc || acc == 0) nval else acc
-      }
-      else acc
-    val regularizeGain =
-      safeLiterals._1.foldLeft(0..toFloat)(foldFunction(information.leftMap))  +
-      safeLiterals._2.foldLeft(0..toFloat)(foldFunction(information.rightMap))
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat + (information.nodeSize * deletionProbability) > regularizeGain
-  }
-}
-
-trait OptimizedLoweringChoice extends RegularizationEvaluation {
-// Assumes that only the best regularization of each direct premise will happend.
-// Choose to lower in case of equality.
-// Shoudl be kept (but renamed) if OptimizedEval is kept, deleted otherwise.
-  def max(x: Float, y: Float) = if (x < y) y else x
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    val regularizeGain =
-      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  } +
-      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) }
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat >= regularizeGain
-  }
-}
-
-trait OptimizedRegularizationChoice extends RegularizationEvaluation {
-// Assumes that only the best regularization of each direct premise will happend.
-// Choose to regularize in case of equality.
-// Shoudl be kept (but renamed) if OptimizedEval is kept, deleted otherwise.
-  def max(x: Float, y: Float) = if (x < y) y else x
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    val regularizeGain =
-      safeLiterals._1.foldLeft(0..toFloat) { (acc,k) => max(acc, information.leftMap.getOrElse(k,0..toFloat))  } +
-      safeLiterals._2.foldLeft(0..toFloat) { (acc,k) => max(acc, information.rightMap.getOrElse(k,0..toFloat)) }
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat > regularizeGain
-  }
-}
-
-trait OptimizedMinLoweringChoice extends RegularizationEvaluation {
 // Assumes that only the worst (non-null) regularization of each direct premise will happend.
-// Choose to lower in case of equality.
-// Shoudl be kept but refactored.
+  def lowerInsteadOfRegularizeChooseOnWeight(lowerWeight: Float, regularizationWeight: Float):Boolean
+
   def lowerInsteadOfRegularize(proof: SequentProof,
                                notDeletedChildren: Int,
                                information: RegularizationInformation,
@@ -409,30 +221,17 @@ trait OptimizedMinLoweringChoice extends RegularizationEvaluation {
       safeLiterals._2.foldLeft(0..toFloat)(foldFunction(information.rightMap))
 //    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
 //            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat >= regularizeGain
+    lowerInsteadOfRegularizeChooseOnWeight((notDeletedChildren - 1).toFloat, regularizeGain)
   }
 }
 
-trait OptimizedMinRegularizationChoice extends RegularizationEvaluation {
-// Assumes that only the worst (non-null) regularization of each direct premise will happend.
+trait MinLoweringChoice extends MinRegularizationEvaluation {
+// Choose to lower in case of equality.
+  def lowerInsteadOfRegularizeChooseOnWeight(lowerWeight: Float, regularizationWeight: Float) = lowerWeight >= regularizationWeight
+}
+
+trait MinRegularizationChoice extends MinRegularizationEvaluation {
 // Choose to regularize in case of equality.
-// Shoudl be kept but refactored.
-  def lowerInsteadOfRegularize(proof: SequentProof,
-                               notDeletedChildren: Int,
-                               information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    def foldFunction(info: Map[E,Float])(acc: Float, k: E) =
-      if (info contains k) {
-        val nval = info(k)
-        if (nval < acc || acc == 0) nval else acc
-      }
-      else acc
-    val regularizeGain =
-      safeLiterals._1.foldLeft(0..toFloat)(foldFunction(information.leftMap))  +
-      safeLiterals._2.foldLeft(0..toFloat)(foldFunction(information.rightMap))
-//    println("Clever " + proof.conclusion + " with " + notDeletedChildren + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
-    (notDeletedChildren - 1).toFloat > regularizeGain
-  }
+  def lowerInsteadOfRegularizeChooseOnWeight(lowerWeight: Float, regularizationWeight: Float) = lowerWeight > regularizationWeight
 }
 

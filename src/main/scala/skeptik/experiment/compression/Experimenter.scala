@@ -86,11 +86,10 @@ object WrappedAlgorithmFactory {
   val irunReg = SimpleSequentAlgorithm("IrUn Reg", new IrregularUnits with AlwaysRegularizeIrregularUnits)
   val irunLow = SimpleSequentAlgorithm("IrUn Low", new IrregularUnits with AlwaysLowerIrregularUnits     )
 
-  val reMaxReg = SimpleSequentAlgorithm("ReMaxReg", new RegularizationEvaluation with DiscreteCollector with OptimizedEval with OptimizedRegularizationChoice)
-  val reMaxLow = SimpleSequentAlgorithm("ReMaxLow", new RegularizationEvaluation with DiscreteCollector with OptimizedEval with OptimizedLoweringChoice)
-
-  val reMinReg = SimpleSequentAlgorithm("ReMinReg", new RegularizationEvaluation with DiscreteCollector with MinEval with OptimizedMinRegularizationChoice)
-  val reMinLow = SimpleSequentAlgorithm("ReMinLow", new RegularizationEvaluation with DiscreteCollector with MinEval with OptimizedMinLoweringChoice)
+  val reMinReg = SimpleSequentAlgorithm("ReMinReg", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinRegularizationChoice)
+  val reMinLow = SimpleSequentAlgorithm("ReMinLow", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinLoweringChoice)
+  val reRegula = SimpleSequentAlgorithm("reRegula", new RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible)
+  val reQuadra = SimpleSequentAlgorithm("reQuadra", new MinRegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice)
 
   val threeLow = SimpleSequentAlgorithm("3passLow", new ThreePassLower)
 
@@ -128,16 +127,16 @@ object WrappedAlgorithmFactory {
     "onePsU1"  -> onePsU1,
     "onePsUn"  -> onePsUn,
     "lowPsU1"  -> lowPsU1,
-    "PsUnReg"  -> psunReg,
-    "PsUnOne"  -> psunOne,
-    "PsUnLow"  -> psunLow,
-    "PsUnLo1"  -> psunLo1,
-    "IrUnReg"  -> irunReg,
-    "IrUnLow"  -> irunLow,
-    "ReMaxReg" -> reMaxReg,
-    "ReMaxLow" -> reMaxLow,
-    "ReMinReg" -> reMinReg,
-    "ReMinLow" -> reMinLow,
+    "psUnReg"  -> psunReg,
+    "psUnOne"  -> psunOne,
+    "psUnLow"  -> psunLow,
+    "psUnLo1"  -> psunLo1,
+    "irUnReg"  -> irunReg,
+    "irUnLow"  -> irunLow,
+    "reMinReg" -> reMinReg,
+    "reMinLow" -> reMinLow,
+    "reRegula" -> reRegula,
+    "reQuadra" -> reQuadra,
     "3passLow" -> threeLow
   )
 
