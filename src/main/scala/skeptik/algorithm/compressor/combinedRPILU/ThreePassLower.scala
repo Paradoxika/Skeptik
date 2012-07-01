@@ -12,11 +12,11 @@ import scala.collection.Map
 abstract class AbstractThreePassLower
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
-  def collectUnits(iterator: ProofNodeCollection[SequentProof]):((Set[E],Set[E]), Seq[SequentProof], Map[SequentProof,(Set[E],Set[E])])
+  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):((Set[E],Set[E]), Seq[SequentProof], Map[SequentProof,(Set[E],Set[E])])
 
-  private def collect(iterator: ProofNodeCollection[SequentProof]) = {
+  private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val (rootSafeLiterals, units, unitsMap) = collectUnits(iterator)
+    val (rootSafeLiterals, units, unitsMap) = collectUnits(nodeCollection)
 
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
       def makeTriple(safeLiterals: (Set[E],Set[E])) = (p, safeLiterals._1, safeLiterals._2)
@@ -27,7 +27,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
       if (unitsMap contains p) {
-        deleteFromChildren(p, iterator, edgesToDelete)
+        deleteFromChildren(p, nodeCollection, edgesToDelete)
 //        println("Unit " + p.conclusion + " " + unitsMap(p))
         makeTriple(unitsMap(p))
       }
@@ -43,16 +43,16 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
     }
 
-    iterator.bottomUp(visit)
-//    units.foreach (deleteFromChildren(_, iterator, edgesToDelete))
+    nodeCollection.bottomUp(visit)
+//    units.foreach (deleteFromChildren(_, nodeCollection, edgesToDelete))
     (units, edgesToDelete)
   }
 
   def apply(proof: SequentProof): SequentProof = {
-    val iterator = ProofNodeCollection(proof)
-    val (units, edgesToDelete) = collect(iterator)
+    val nodeCollection = ProofNodeCollection(proof)
+    val (units, edgesToDelete) = collect(nodeCollection)
     if (edgesToDelete.isEmpty) proof else {
-      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, iterator)
+      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, nodeCollection)
       units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
         try {CutIC(left,right)} catch {case e:Exception => left}
       }
@@ -62,11 +62,11 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 class ThreePassLower
 extends AbstractThreePassLower {
-  def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
+  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val map = MMap[SequentProof, (Set[E],Set[E])]()
     val units = scala.collection.mutable.Stack[SequentProof]()
-    val rootSafeLiterals = iterator.foldRight ((Set[E](), Set[E]())) { (p, set) =>
-      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(iterator.childrenOf.getOrElse(p,Nil))) match {
+    val rootSafeLiterals = nodeCollection.foldRight ((Set[E](), Set[E]())) { (p, set) =>
+      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(nodeCollection.childrenOf.getOrElse(p,Nil))) match {
         case (1,0,2) => units.push(p) ; map.update(p, (set._1 + p.conclusion.ant(0), set._2)) ; (set._1, set._2 + p.conclusion.ant(0))
         case (0,1,2) => units.push(p) ; map.update(p, (set._1, set._2 + p.conclusion.suc(0))) ; (set._1 + p.conclusion.suc(0), set._2)
         case _ => set

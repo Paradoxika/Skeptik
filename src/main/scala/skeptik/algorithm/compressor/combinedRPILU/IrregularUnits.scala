@@ -14,14 +14,14 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
   def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean
 
-  private def collect(iterator: ProofNodeCollection[SequentProof]) = {
+  private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     val units = scala.collection.mutable.Queue[SequentProof]()
 
     def isUnitAndSomething(something: (SequentProof, Int) => Boolean)
                           (p: SequentProof) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
-        val aliveChildren = iterator.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
+        val aliveChildren = nodeCollection.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
         }
         (aliveChildren > 1) && (something(p, aliveChildren))
@@ -45,7 +45,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         }
       def lower() = {
         units.enqueue(p)
-        deleteFromChildren(p, iterator, edgesToDelete)
+        deleteFromChildren(p, nodeCollection, edgesToDelete)
         if (fakeSize(p.conclusion.ant) == 1)
           (p, Set(p.conclusion.ant(0)), Set[E]())
         else
@@ -58,15 +58,15 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
     }
 
-    iterator.bottomUp(visit)
+    nodeCollection.bottomUp(visit)
     (units,edgesToDelete)
   }
 
   def apply(proof: SequentProof): SequentProof = {
-    val iterator = ProofNodeCollection(proof)
-    val (units,edgesToDelete) = collect(iterator)
+    val nodeCollection = ProofNodeCollection(proof)
+    val (units,edgesToDelete) = collect(nodeCollection)
     if (edgesToDelete.isEmpty) proof else {
-      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, iterator)
+      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, nodeCollection)
       units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
         try {CutIC(left,right)} catch {case e:Exception => left}
       }

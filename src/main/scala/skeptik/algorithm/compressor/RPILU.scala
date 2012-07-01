@@ -42,12 +42,12 @@ extends Function1[SequentProof,SequentProof] {
     case _::_ => 2
   }
 
-  def isUnit(proof: SequentProof, iterator: ProofNodeCollection[SequentProof]) =
+  def isUnit(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof]) =
     (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
-    (fakeSize(iterator.childrenOf.getOrElse(proof,Nil)) > 1)
+    (fakeSize(nodeCollection.childrenOf.getOrElse(proof,Nil)) > 1)
 
-  def deleteFromChildren(oldProof: SequentProof, iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) =
-    iterator.childrenOf(oldProof).foreach { child =>
+  def deleteFromChildren(oldProof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) =
+    nodeCollection.childrenOf(oldProof).foreach { child =>
       // Deleting both premises of a node being too complicated, regularization takes precedence over unit lowering.
       if (!(edgesToDelete contains child)) edgesToDelete.update(child, sideOf(oldProof, child))
     }
@@ -86,7 +86,7 @@ extends AbstractRPILUAlgorithm {
 
 trait CollectEdgesUsingSafeLiterals
 extends AbstractRPIAlgorithm {
-  def collectEdgesToDelete(iterator: ProofNodeCollection[SequentProof]) = {
+  def collectEdgesToDelete(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
       def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
@@ -103,7 +103,7 @@ extends AbstractRPIAlgorithm {
       }
       (p, safeL, safeR)
     }
-    iterator.bottomUp(visit)
+    nodeCollection.bottomUp(visit)
     edgesToDelete
   }
 }
@@ -112,7 +112,7 @@ trait UnitsCollectingBeforeFixing
 extends AbstractRPILUAlgorithm {
   def mapFixedProofs(proofsToMap: Set[SequentProof],
                      edgesToDelete: Map[SequentProof,DeletedSide],
-                     iterator: ProofNodeCollection[SequentProof]) = {
+                     nodeCollection: ProofNodeCollection[SequentProof]) = {
     val fixMap = MMap[SequentProof,SequentProof]()
     def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
       val result = fixProofs(edgesToDelete)(p, fixedPremises)
@@ -120,7 +120,7 @@ extends AbstractRPILUAlgorithm {
       if (proofsToMap contains p) fixMap.update(p, result)
       result
     }
-    iterator.foldDown(visit)
+    nodeCollection.foldDown(visit)
     fixMap
   }
 }

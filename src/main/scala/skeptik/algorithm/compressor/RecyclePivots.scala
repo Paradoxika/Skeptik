@@ -12,9 +12,9 @@ import collection.Map
 abstract class RecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
   def apply(proof: SequentProof): SequentProof = {
-    val iterator = ProofNodeCollection(proof)
-    val edgesToDelete = collectEdgesToDelete(iterator)
-    if (edgesToDelete.isEmpty) proof else iterator.foldDown(fixProofs(edgesToDelete))
+    val nodeCollection = ProofNodeCollection(proof)
+    val edgesToDelete = collectEdgesToDelete(nodeCollection)
+    if (edgesToDelete.isEmpty) proof else nodeCollection.foldDown(fixProofs(edgesToDelete))
   }
 }
 

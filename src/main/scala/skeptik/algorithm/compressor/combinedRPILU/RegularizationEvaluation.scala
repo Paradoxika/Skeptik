@@ -34,10 +34,10 @@ abstract class RegularizationEvaluation
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
   // Collector : compute information about each node (using Eval)
-  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation]
+  def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation]
 
   // Eval : compute information about CutIC nodes
-  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+  def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation
 
@@ -49,14 +49,14 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
   
   // Main functions
 
-  private def collect(iterator: ProofNodeCollection[SequentProof]) = {
+  private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     val units = scala.collection.mutable.Queue[SequentProof]()
-    val informationMap = collectInformationMap(iterator)
+    val informationMap = collectInformationMap(nodeCollection)
 
     def isTrueUnit(p: SequentProof, safeLiterals: (Set[E],Set[E])) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
-        val aliveChildren = iterator.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
+        val aliveChildren = nodeCollection.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
         }
         (aliveChildren > 1) && (lowerInsteadOfRegularize(p, aliveChildren, informationMap(p), safeLiterals))
@@ -76,7 +76,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
       def lower() = {
         units.enqueue(p)
-        deleteFromChildren(p, iterator, edgesToDelete)
+        deleteFromChildren(p, nodeCollection, edgesToDelete)
         if (fakeSize(p.conclusion.ant) == 1)
           (p, Set(p.conclusion.ant(0)), Set[E]())
         else
@@ -90,15 +90,15 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
     }
 
-    iterator.bottomUp(visit)
+    nodeCollection.bottomUp(visit)
     (units,edgesToDelete)
   }
 
   def apply(proof: SequentProof): SequentProof = {
-    val iterator = ProofNodeCollection(proof)
-    val (units,edgesToDelete) = collect(iterator)
+    val nodeCollection = ProofNodeCollection(proof)
+    val (units,edgesToDelete) = collect(nodeCollection)
     if (edgesToDelete.isEmpty) proof else {
-      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, iterator)
+      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, nodeCollection)
       units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
         try {CutIC(left,right)} catch {case e:Exception => left}
       }
@@ -113,17 +113,17 @@ trait SimpleCollector
 // This is both inefficient and error-prone.
 // Should be deleted.
 extends RegularizationEvaluation {
-  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
+  def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
     def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) =  {
       val ret = p match {
-        case CutIC(left, right, aux, _) => evaluateDerivation(p, iterator, aux, left, premisesInformation(0), right, premisesInformation(1))
+        case CutIC(left, right, aux, _) => evaluateDerivation(p, nodeCollection, aux, left, premisesInformation(0), right, premisesInformation(1))
         case _ => RegularizationInformation()
       }
-      if (isUnit(p, iterator)) informationMap.update(p, ret)
+      if (isUnit(p, nodeCollection)) informationMap.update(p, ret)
       ret
     }
-    iterator.foldDown(visit)
+    nodeCollection.foldDown(visit)
     informationMap
   }
 }
@@ -133,12 +133,12 @@ trait DiscreteCollector
 // Only evaluates units and derivation with one child.
 // Should be kept, best collector.
 extends RegularizationEvaluation {
-  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
+  def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
     def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
-      val nbChildren = iterator.childrenOf.getOrElse(p, Nil).length
+      val nbChildren = nodeCollection.childrenOf.getOrElse(p, Nil).length
       def evaluate = p match {
-        case CutIC(left, right, aux, _) => evaluateDerivation(p, iterator, aux, left, premisesInformation(0), right, premisesInformation(1))
+        case CutIC(left, right, aux, _) => evaluateDerivation(p, nodeCollection, aux, left, premisesInformation(0), right, premisesInformation(1))
         case Axiom(_) => RegularizationInformation()
       }
       (nbChildren, fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc)) match {
@@ -148,7 +148,7 @@ extends RegularizationEvaluation {
         case (_,_) => RegularizationInformation()
       }
     }
-    iterator.foldDown(visit)
+    nodeCollection.foldDown(visit)
     informationMap
   }
 }
@@ -158,12 +158,12 @@ trait QuadraticCollector
 // Slow and inneficient.
 // Should be kept anyway because it's an interessing idea.
 extends RegularizationEvaluation {
-  def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
+  def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
     def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
-      val nbChildren = iterator.childrenOf.getOrElse(p, Nil).length
+      val nbChildren = nodeCollection.childrenOf.getOrElse(p, Nil).length
       def evaluate = p match {
-        case CutIC(left, right, aux, _) => evaluateDerivation(p, iterator, aux, left, premisesInformation(0), right, premisesInformation(1))
+        case CutIC(left, right, aux, _) => evaluateDerivation(p, nodeCollection, aux, left, premisesInformation(0), right, premisesInformation(1))
         case Axiom(_) => RegularizationInformation()
       }
       (nbChildren, fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc)) match {
@@ -173,7 +173,7 @@ extends RegularizationEvaluation {
         case (_,_) => evaluate / (nbChildren * nbChildren).toFloat
       }
     }
-    iterator.foldDown(visit)
+    nodeCollection.foldDown(visit)
     informationMap
   }
 }
@@ -183,11 +183,11 @@ extends RegularizationEvaluation {
 trait AddEval extends RegularizationEvaluation {
 // Assumes all the possible regularizations will happend.
 // Ineficient but should be kept.
-  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+  def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
     def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(iterator.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+      if (fakeSize(nodeCollection.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
     RegularizationInformation(
       evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1..toFloat,
       RegularizationInformation.addMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
@@ -203,11 +203,11 @@ trait MaxEval extends RegularizationEvaluation {
     ma.keys.foldLeft(mb) { (acc,k) =>
       acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
     }
-  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+  def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
     def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(iterator.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+      if (fakeSize(nodeCollection.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
     RegularizationInformation(
       evalRegularization(left, leftInfo) + evalRegularization(right, rightInfo) - 1..toFloat,
       maxMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
@@ -223,7 +223,7 @@ trait OptimizedEval extends RegularizationEvaluation {
     ma.keys.foldLeft(mb) { (acc,k) =>
       acc + (k -> (if ((mb contains k) && (mb(k) > ma(k))) mb(k) else ma(k)))
     }
-  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+  def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
     RegularizationInformation(
@@ -242,7 +242,7 @@ trait MinEval extends RegularizationEvaluation {
     ma.keys.foldLeft(mb) { (acc,k) =>
       acc + (k -> (if ((mb contains k) && (mb(k) < ma(k))) mb(k) else ma(k)))
     }
-  def evaluateDerivation(proof: SequentProof, iterator: ProofNodeCollection[SequentProof], aux: E,
+  def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
     RegularizationInformation(

@@ -73,29 +73,29 @@ import pseudoUnits._
 
 trait PseudoUnitsNotDuringFixing
 extends AbstractRPILUAlgorithm with LeftHeuristic {
-  def fixProofAndUnits(iterator: ProofNodeCollection[SequentProof],
+  def fixProofAndUnits(nodeCollection: ProofNodeCollection[SequentProof],
                        edgesToDelete: MMap[SequentProof,DeletedSide],
                        unitMap: Map[SequentProof,LList[SequentProof]]) = {
     def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
       if (unitMap contains oldProof) {
         unitMap(oldProof).elem = newProof
-        deleteFromChildren(oldProof, iterator, edgesToDelete)
+        deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
       }
       newProof
     }
-    iterator.foldDown(reconstructProof _)
+    nodeCollection.foldDown(reconstructProof _)
   }
 }
 
 class PseudoUnits (minNumberOfChildren: Int)
 extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
-  def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
+  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val isPseudoUnit = new CheckIfPseudoUnit()
     var units   = LList[SequentProof]()
     val unitMap = MMap[SequentProof, LList[SequentProof]]()
-    iterator.foreachDown { (p) =>
-      val children = iterator.childrenOf.getOrElse(p, Nil)
+    nodeCollection.foreachDown { (p) =>
+      val children = nodeCollection.childrenOf.getOrElse(p, Nil)
       if (fakeSize(children) >= minNumberOfChildren) {
         isPseudoUnit(p, children) match {
           case IsPseudoUnit(_) =>
@@ -109,9 +109,9 @@ extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
   }
 
   def apply(proof: SequentProof) = {
-    val iterator = ProofNodeCollection(proof)
-    val (units, unitMap) = collectUnits(iterator)
-    val pseudoRoot = fixProofAndUnits(iterator, MMap[SequentProof,DeletedSide](), unitMap)
+    val nodeCollection = ProofNodeCollection(proof)
+    val (units, unitMap) = collectUnits(nodeCollection)
+    val pseudoRoot = fixProofAndUnits(nodeCollection, MMap[SequentProof,DeletedSide](), unitMap)
 //    println("root " + pseudoRoot.conclusion)
 //    println("units " + units.map(_.conclusion))
     units.foldLeft(pseudoRoot) { (left,right) =>
@@ -122,23 +122,23 @@ extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
 
 trait PseudoUnitsDuringFixing
 extends AbstractRPILUAlgorithm with LeftHeuristic {
-  def fixProofAndLowerUnits(minNumberOfChildren: Int, iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
+  def fixProofAndLowerUnits(minNumberOfChildren: Int, nodeCollection: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
 
     var units = List[SequentProof]()
     val isPseudoUnit = new CheckIfPseudoUnit()
 
     def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
-      val children = iterator.childrenOf.getOrElse(oldProof,Nil) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
+      val children = nodeCollection.childrenOf.getOrElse(oldProof,Nil) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
       if (fakeSize(children) >= minNumberOfChildren) isPseudoUnit(newProof, oldProof, children) match {
-        case IsPseudoUnit(_) => units ::= newProof ; deleteFromChildren(oldProof, iterator, edgesToDelete)
-        case CanBeDeleted => deleteFromChildren(oldProof, iterator, edgesToDelete)
+        case IsPseudoUnit(_) => units ::= newProof ; deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
+        case CanBeDeleted => deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
         case _ => Unit
       }
       newProof
     }
 
-    val pseudoRoot = iterator.foldDown(reconstructProof _)
+    val pseudoRoot = nodeCollection.foldDown(reconstructProof _)
 //    println("root " + pseudoRoot.conclusion)
 //    println("units " + units.map(_.conclusion))
     units.foldLeft(pseudoRoot) { (left,right) =>
@@ -156,20 +156,20 @@ extends AbstractRPILUAlgorithm with PseudoUnitsDuringFixing {
 class PseudoUnitsAfter (minNumberOfChildren: Int)
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with PseudoUnitsDuringFixing with Intersection {
   def apply(proof: SequentProof): SequentProof = {
-    val iterator = ProofNodeCollection(proof)
-    val edgesToDelete = collectEdgesToDelete(iterator)
-    fixProofAndLowerUnits(minNumberOfChildren, iterator, edgesToDelete)
+    val nodeCollection = ProofNodeCollection(proof)
+    val edgesToDelete = collectEdgesToDelete(nodeCollection)
+    fixProofAndLowerUnits(minNumberOfChildren, nodeCollection, edgesToDelete)
   }
 }
 
 class PseudoUnitsBefore (minNumberOfChildren: Int)
 extends AbstractThreePassLower {
-  def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
+  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val isPseudoUnit = new CheckIfPseudoUnit()
     var units = List[SequentProof]()
     val map = MMap[SequentProof, (Set[E],Set[E])]()
-    val rootSafeLiterals = iterator.foldRight ((Set[E](), Set[E]())) { (p, set) =>
-      val children = iterator.childrenOf.getOrElse(p,Nil)
+    val rootSafeLiterals = nodeCollection.foldRight ((Set[E](), Set[E]())) { (p, set) =>
+      val children = nodeCollection.childrenOf.getOrElse(p,Nil)
       if (fakeSize(children) < minNumberOfChildren) set else
         isPseudoUnit(p, children) match {
           case IsPseudoUnit(Left(l))  => println("+ " + p.conclusion + " L " + l) ; units ::= p ; map.update(p,set) ; (set._1, set._2 + l)
