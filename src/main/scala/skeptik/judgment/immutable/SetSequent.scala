@@ -2,7 +2,6 @@ package skeptik.judgment
 package immutable
 
 import skeptik.expression.E
-import skeptik.util.unicode._
   
 
 class SetSequent(val ant: Set[E], val suc: Set[E]) extends ASequent { 

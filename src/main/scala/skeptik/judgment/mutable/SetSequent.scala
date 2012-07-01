@@ -3,7 +3,6 @@ package mutable
 
 import collection.mutable.{Set => MSet}
 import skeptik.expression.E
-import skeptik.util.unicode._
   
 
 class SetSequent(val ant:MSet[E], val suc:MSet[E]) extends ASequent {

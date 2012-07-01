@@ -65,7 +65,9 @@ class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
   override def toString = ant.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + suc.mkString(", ")
   def toSet: ISet[E] = ISet() ++ ant.map(f => Neg(f)) ++ suc
 }
+// ToDo: (B) clean this companion object
 object Sequent {
+  def apply(ant:E*)(suc:E*) = new Sequent(ant.toList, suc.toList)
   def apply(ant:List[E], suc:List[E]) = new Sequent(ant,suc)
   def apply(ant:List[E], suc:E) = new Sequent(ant,suc::Nil)
   def apply(ant:E, suc:List[E]) = new Sequent(ant::Nil,suc)
