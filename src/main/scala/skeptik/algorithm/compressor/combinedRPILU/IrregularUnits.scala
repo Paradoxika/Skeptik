@@ -21,7 +21,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     def isUnitAndSomething(something: (SequentProof, Int) => Boolean)
                           (p: SequentProof) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
-        val aliveChildren = nodeCollection.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
+        val aliveChildren = nodeCollection.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
         }
         (aliveChildren > 1) && (something(p, aliveChildren))

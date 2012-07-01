@@ -66,7 +66,7 @@ extends AbstractThreePassLower {
     val map = MMap[SequentProof, (Set[E],Set[E])]()
     val units = scala.collection.mutable.Stack[SequentProof]()
     val rootSafeLiterals = nodeCollection.foldRight ((Set[E](), Set[E]())) { (p, set) =>
-      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(nodeCollection.childrenOf.getOrElse(p,Nil))) match {
+      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(nodeCollection.childrenOf(p))) match {
         case (1,0,2) => units.push(p) ; map.update(p, (set._1 + p.conclusion.ant(0), set._2)) ; (set._1, set._2 + p.conclusion.ant(0))
         case (0,1,2) => units.push(p) ; map.update(p, (set._1, set._2 + p.conclusion.suc(0))) ; (set._1 + p.conclusion.suc(0), set._2)
         case _ => set

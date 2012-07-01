@@ -56,7 +56,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
     def isTrueUnit(p: SequentProof, safeLiterals: (Set[E],Set[E])) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
-        val aliveChildren = nodeCollection.childrenOf.getOrElse(p,Nil).foldLeft(0) { (acc,child) =>
+        val aliveChildren = nodeCollection.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
         }
         (aliveChildren > 1) && (lowerInsteadOfRegularize(p, aliveChildren, informationMap(p), safeLiterals))
@@ -136,7 +136,7 @@ extends RegularizationEvaluation {
   def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
     def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
-      val nbChildren = nodeCollection.childrenOf.getOrElse(p, Nil).length
+      val nbChildren = nodeCollection.childrenOf(p).length
       def evaluate = p match {
         case CutIC(left, right, aux, _) => evaluateDerivation(p, nodeCollection, aux, left, premisesInformation(0), right, premisesInformation(1))
         case Axiom(_) => RegularizationInformation()
@@ -161,7 +161,7 @@ extends RegularizationEvaluation {
   def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
     var informationMap = MMap[SequentProof, RegularizationInformation]()
     def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
-      val nbChildren = nodeCollection.childrenOf.getOrElse(p, Nil).length
+      val nbChildren = nodeCollection.childrenOf(p).length
       def evaluate = p match {
         case CutIC(left, right, aux, _) => evaluateDerivation(p, nodeCollection, aux, left, premisesInformation(0), right, premisesInformation(1))
         case Axiom(_) => RegularizationInformation()
@@ -187,7 +187,7 @@ trait AddEval extends RegularizationEvaluation {
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
     def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(nodeCollection.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+      if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
     RegularizationInformation(
       evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1..toFloat,
       RegularizationInformation.addMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
@@ -207,7 +207,7 @@ trait MaxEval extends RegularizationEvaluation {
                          left:  SequentProof, leftInfo: RegularizationInformation,
                          right: SequentProof, rightInfo:RegularizationInformation):RegularizationInformation = {
     def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(nodeCollection.childrenOf.getOrElse(node,Nil)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+      if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
     RegularizationInformation(
       evalRegularization(left, leftInfo) + evalRegularization(right, rightInfo) - 1..toFloat,
       maxMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),

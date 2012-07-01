@@ -31,7 +31,7 @@ extends Iterable[P]
   // override def toArray[B >: P]:Array[B] = nodeArray.clone()
 
   def root = nodeArray(0)
-  def childrenOf = children
+  def childrenOf(p: P) = children.getOrElse(p,Nil)
 
   def foldDown[X](f: (P, List[X]) => X): X = {  // TODO:  List -> Seq
     val resultFrom = MMap[P,X]()

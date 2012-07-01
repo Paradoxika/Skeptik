@@ -95,7 +95,7 @@ extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
     var units   = LList[SequentProof]()
     val unitMap = MMap[SequentProof, LList[SequentProof]]()
     nodeCollection.foreachDown { (p) =>
-      val children = nodeCollection.childrenOf.getOrElse(p, Nil)
+      val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) >= minNumberOfChildren) {
         isPseudoUnit(p, children) match {
           case IsPseudoUnit(_) =>
@@ -129,7 +129,7 @@ extends AbstractRPILUAlgorithm with LeftHeuristic {
 
     def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
-      val children = nodeCollection.childrenOf.getOrElse(oldProof,Nil) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
+      val children = nodeCollection.childrenOf(oldProof) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
       if (fakeSize(children) >= minNumberOfChildren) isPseudoUnit(newProof, oldProof, children) match {
         case IsPseudoUnit(_) => units ::= newProof ; deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
         case CanBeDeleted => deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
@@ -169,7 +169,7 @@ extends AbstractThreePassLower {
     var units = List[SequentProof]()
     val map = MMap[SequentProof, (Set[E],Set[E])]()
     val rootSafeLiterals = nodeCollection.foldRight ((Set[E](), Set[E]())) { (p, set) =>
-      val children = nodeCollection.childrenOf.getOrElse(p,Nil)
+      val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) < minNumberOfChildren) set else
         isPseudoUnit(p, children) match {
           case IsPseudoUnit(Left(l))  => println("+ " + p.conclusion + " L " + l) ; units ::= p ; map.update(p,set) ; (set._1, set._2 + l)

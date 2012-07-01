@@ -44,7 +44,7 @@ extends Function1[SequentProof,SequentProof] {
 
   def isUnit(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof]) =
     (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
-    (fakeSize(nodeCollection.childrenOf.getOrElse(proof,Nil)) > 1)
+    (fakeSize(nodeCollection.childrenOf(proof)) > 1)
 
   def deleteFromChildren(oldProof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) =
     nodeCollection.childrenOf(oldProof).foreach { child =>
