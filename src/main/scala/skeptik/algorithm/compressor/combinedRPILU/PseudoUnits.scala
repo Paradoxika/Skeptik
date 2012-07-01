@@ -11,7 +11,7 @@ import scala.collection.Map
 object pseudoUnits {
 
   abstract class CheckResult
-  object IsPseudoUnit  extends CheckResult
+  case class IsPseudoUnit (val literal: Either[E,E])  extends CheckResult
   object NotPseudoUnit extends CheckResult
   object CanBeDeleted  extends CheckResult
 
@@ -26,7 +26,7 @@ object pseudoUnits {
         case Left(v)  => literalsDeletedByUnits._1.add(v)
         case Right(v) => literalsDeletedByUnits._2.add(v)
       }
-      IsPseudoUnit
+      IsPseudoUnit(literal)
     }
 
     def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof]):CheckResult = {
@@ -98,7 +98,7 @@ extends AbstractPseudoUnitsNotDuringFixing with CombinedIntersection {
       val children = iterator.childrenOf.getOrElse(p, Nil)
       if (fakeSize(children) >= minNumberOfChildren) {
         isPseudoUnit(p, children) match {
-          case IsPseudoUnit =>
+          case IsPseudoUnit(_) =>
             units = new LList(p, units)
             unitMap.update(p, units)
           case _ => Unit
@@ -120,44 +120,9 @@ extends AbstractPseudoUnitsNotDuringFixing with CombinedIntersection {
   }
 }
 
-class PseudoUnitsBefore (minNumberOfChildren: Int)
-extends AbstractPseudoUnitsNotDuringFixing with CombinedIntersection {
-  def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
-    val isPseudoUnit = new CheckIfPseudoUnit()
-    var units   = LList[SequentProof]()
-    val unitMap = MMap[SequentProof, LList[SequentProof]]()
-    iterator.foreachDown { (p) =>
-      val children = iterator.childrenOf.getOrElse(p, Nil)
-      if (fakeSize(children) >= minNumberOfChildren) {
-        isPseudoUnit(p, children) match {
-          case IsPseudoUnit =>
-            units = new LList(p, units)
-            unitMap.update(p, units)
-          case _ => Unit
-        }
-      }
-    }
-    (units, unitMap)
-  }
-
-  def apply(proof: SequentProof) = {
-    val iterator = ProofNodeCollection(proof)
-    val (units, unitMap) = collectUnits(iterator)
-    val edgesToDelete = collectEgesToDelete(iterator, unitMap)
-    val pseudoRoot = fixProofAndUnits(iterator, edgesToDelete, unitMap)
-//    println("root " + pseudoRoot.conclusion)
-//    println("units " + units.map(_.conclusion))
-    units.foldLeft(pseudoRoot) { (left,right) =>
-      try {CutIC(left,right)} catch {case e:Exception => left}
-    }
-  }
-}
-
-
-class PseudoUnitsAfter (minNumberOfChildren: Int)
-extends AbstractRPILUAlgorithm with EdgesCollectingUsingSafeLiterals with CombinedIntersection with LeftHeuristicC {
-
-  private def fixProofAndLowerUnits(iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
+abstract class AbstractPseudoUnitsDuringFixing (minNumberOfChildren: Int)
+extends AbstractRPILUAlgorithm with LeftHeuristicC {
+  def fixProofAndLowerUnits(iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
 
     var units = List[SequentProof]()
     val isPseudoUnit = new CheckIfPseudoUnit()
@@ -166,7 +131,7 @@ extends AbstractRPILUAlgorithm with EdgesCollectingUsingSafeLiterals with Combin
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
       val children = iterator.childrenOf.getOrElse(oldProof,Nil) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
       if (fakeSize(children) >= minNumberOfChildren) isPseudoUnit(newProof, oldProof, children) match {
-        case IsPseudoUnit => units ::= newProof ; deleteFromChildren(oldProof, iterator, edgesToDelete)
+        case IsPseudoUnit(_) => units ::= newProof ; deleteFromChildren(oldProof, iterator, edgesToDelete)
         case CanBeDeleted => deleteFromChildren(oldProof, iterator, edgesToDelete)
         case _ => Unit
       }
@@ -175,16 +140,94 @@ extends AbstractRPILUAlgorithm with EdgesCollectingUsingSafeLiterals with Combin
 
     val pseudoRoot = iterator.foldDown(reconstructProof _)
 //    println("root " + pseudoRoot.conclusion)
-    (pseudoRoot, units)
-  }
-
-  def apply(proof: SequentProof): SequentProof = {
-    val iterator = ProofNodeCollection(proof)
-    val edgesToDelete = collectEdgesToDelete(iterator)
-    val (pseudoRoot, units) = fixProofAndLowerUnits(iterator, edgesToDelete)
-//    println("Units : " + units.map{_.conclusion})
+//    println("units " + units.map(_.conclusion))
     units.foldLeft(pseudoRoot) { (left,right) =>
       try {CutIC(left,right)} catch {case e:Exception => left}
     }
   }
+}
+
+class OnePassPseudoUnits (minNumberOfChildren: Int)
+// TODO: remove CombinedIntersection
+extends AbstractPseudoUnitsDuringFixing(minNumberOfChildren) with CombinedIntersection {
+  def apply(proof: SequentProof): SequentProof =
+    fixProofAndLowerUnits(ProofNodeCollection(proof), MMap[SequentProof,DeletedSide]())
+}
+
+
+class PseudoUnitsAfter (minNumberOfChildren: Int)
+extends AbstractPseudoUnitsDuringFixing(minNumberOfChildren) with EdgesCollectingUsingSafeLiterals with CombinedIntersection {
+  def apply(proof: SequentProof): SequentProof = {
+    val iterator = ProofNodeCollection(proof)
+    val edgesToDelete = collectEdgesToDelete(iterator)
+    fixProofAndLowerUnits(iterator, edgesToDelete)
+  }
+}
+
+class PseudoUnitsBefore (minNumberOfChildren: Int)
+extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedIntersection with LeftHeuristicC {
+// TODO: share code with ThreePassUnit
+
+  private def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
+    val isPseudoUnit = new CheckIfPseudoUnit()
+    var units = List[SequentProof]()
+    val map = MMap[SequentProof, (Set[E],Set[E])]()
+    val rootSafeLiterals = iterator.foldRight ((Set[E](), Set[E]())) { (p, set) =>
+      val children = iterator.childrenOf.getOrElse(p,Nil)
+      if (fakeSize(children) < minNumberOfChildren) set else
+        isPseudoUnit(p, children) match {
+          case IsPseudoUnit(Left(l))  => println("+ " + p.conclusion + " L " + l) ; units ::= p ; map.update(p,set) ; (set._1, set._2 + l)
+          case IsPseudoUnit(Right(l)) => println("+ " + p.conclusion + " R " + l) ; units ::= p ; map.update(p,set) ; (set._1 + l, set._2)
+          case _ => set
+        }
+    }
+    (rootSafeLiterals, units, map)
+  } 
+
+  private def collect(iterator: ProofNodeCollection[SequentProof]) = {
+    val edgesToDelete = MMap[SequentProof,DeletedSide]()
+    val (rootSafeLiterals, units, unitsMap) = collectUnits(iterator)
+
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
+      def makeTriple(safeLiterals: (Set[E],Set[E])) = (p, safeLiterals._1, safeLiterals._2)
+      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
+        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
+        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
+        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+        case _ => throw new Exception("Unknown or impossible inference rule")
+      }
+      if (unitsMap contains p) {
+        deleteFromChildren(p, iterator, edgesToDelete)
+        println("Unit " + p.conclusion + " " + unitsMap(p))
+        makeTriple(unitsMap(p))
+      }
+      else if (childrensSafeLiterals == Nil) makeTriple(rootSafeLiterals)
+      else {
+        val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+        p match {
+            case CutIC(_,_,_,auxR) if safeL contains auxR => edgesToDelete.update(p, LeftDS)
+            case CutIC(_,_,auxL,_) if safeR contains auxL => edgesToDelete.update(p, RightDS)
+            case _ => Unit
+        }
+        (p, safeL, safeR)
+      }
+    }
+
+    iterator.bottomUp(visit)
+    (units, edgesToDelete)
+  }
+
+  def apply(proof: SequentProof): SequentProof = {
+    val iterator = ProofNodeCollection(proof)
+    val (units, edgesToDelete) = collect(iterator)
+    if (edgesToDelete.isEmpty) proof else {
+      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, iterator)
+      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
+        println("We have got   " + left.conclusion)
+        println("Reintroducing " + right.conclusion)
+        try {CutIC(left,right)} catch {case e:Exception => left}
+      }
+    }
+  }
+
 }
