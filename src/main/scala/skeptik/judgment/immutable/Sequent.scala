@@ -1,28 +1,27 @@
 package skeptik.judgment
-package mutable
+package immutable
 
-import collection.mutable.{Set => MSet}
 import skeptik.expression.E
 import skeptik.util.unicode._
   
 
-class SetSequent(val ant:MSet[E], val suc:MSet[E]) extends Judgment {
+class SetSequent(val ant: Set[E], val suc: Set[E]) extends Judgment {
   
   def contains(f:E) = (ant contains f) || (suc contains f)
-
+  
   def contains(e: Either[E,E]) = e match {
     case Left(f) => ant contains f
     case Right(f) => suc contains f
   }
   
-  def +=(f:E) = { suc += f ; this }
-  def =+:(f:E) = { ant += f ; this }
-  def -=(f:E) =  { suc -= f ; this }
-  def =-:(f:E) = { ant -= f ; this }
+  def +(f:E) = new SetSequent(ant, suc + f)
+  def +:(f:E) = new SetSequent(ant + f, suc)
+  def -=(f:E) =  new SetSequent(ant, suc - f)
+  def =-:(f:E) = new SetSequent(ant - f, suc)
   
-  def +=(e: Either[E,E]): SetSequent = e match {
-    case Left(f) => =+:(f)
-    case Right(f) => +=(f)
+  def +(e: Either[E,E]): SetSequent = e match {
+    case Left(f) => +:(f)
+    case Right(f) => this.+(f)
   }
   
   override def equals(v:Any) = v match {    
