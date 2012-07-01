@@ -1,4 +1,5 @@
-package skeptik.algorithm.compressor.combinedRPILU
+package skeptik.algorithm.compressor
+package combinedRPILU
 
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
@@ -9,7 +10,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList =>
 import scala.collection.Map
 
 abstract class IrregularUnits
-extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedIntersection with LeftHeuristicC {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
   def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean
 
@@ -76,6 +77,7 @@ extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedInt
 trait AlwaysLowerIrregularUnits extends IrregularUnits {
   def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = true
 }
+
 trait AlwaysRegularizeIrregularUnits extends IrregularUnits {
   def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = {
 //    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children")

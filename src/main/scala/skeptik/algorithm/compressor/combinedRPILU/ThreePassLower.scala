@@ -1,4 +1,5 @@
-package skeptik.algorithm.compressor.combinedRPILU
+package skeptik.algorithm.compressor
+package combinedRPILU
 
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
@@ -8,21 +9,10 @@ import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
 import scala.collection.Map
 
-class ThreePassLower
-extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedIntersection with LeftHeuristicC {
+abstract class AbstractThreePassLower
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
-  private def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
-    val map = MMap[SequentProof, (Set[E],Set[E])]()
-    val units = scala.collection.mutable.Stack[SequentProof]()
-    val rootSafeLiterals = iterator.foldRight ((Set[E](), Set[E]())) { (p, set) =>
-      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(iterator.childrenOf.getOrElse(p,Nil))) match {
-        case (1,0,2) => units.push(p) ; map.update(p, (set._1 + p.conclusion.ant(0), set._2)) ; (set._1, set._2 + p.conclusion.ant(0))
-        case (0,1,2) => units.push(p) ; map.update(p, (set._1, set._2 + p.conclusion.suc(0))) ; (set._1 + p.conclusion.suc(0), set._2)
-        case _ => set
-      }
-    }
-    (rootSafeLiterals, units, map)
-  } 
+  def collectUnits(iterator: ProofNodeCollection[SequentProof]):((Set[E],Set[E]), Seq[SequentProof], Map[SequentProof,(Set[E],Set[E])])
 
   private def collect(iterator: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
@@ -68,4 +58,20 @@ extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedInt
       }
     }
   }
+}
+
+class ThreePassLower
+extends AbstractThreePassLower {
+  def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
+    val map = MMap[SequentProof, (Set[E],Set[E])]()
+    val units = scala.collection.mutable.Stack[SequentProof]()
+    val rootSafeLiterals = iterator.foldRight ((Set[E](), Set[E]())) { (p, set) =>
+      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(iterator.childrenOf.getOrElse(p,Nil))) match {
+        case (1,0,2) => units.push(p) ; map.update(p, (set._1 + p.conclusion.ant(0), set._2)) ; (set._1, set._2 + p.conclusion.ant(0))
+        case (0,1,2) => units.push(p) ; map.update(p, (set._1, set._2 + p.conclusion.suc(0))) ; (set._1 + p.conclusion.suc(0), set._2)
+        case _ => set
+      }
+    }
+    (rootSafeLiterals, units, map)
+  } 
 }

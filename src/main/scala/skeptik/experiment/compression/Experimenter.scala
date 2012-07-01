@@ -54,25 +54,22 @@ object WrappedAlgorithmFactory {
         (p:OldProof) => UnitLowering.lowerUnits(ProofFixing.fix(Regularization.recyclePivotsWithIntersection(p))))
 
   val newRP   = SimpleSequentAlgorithm("new  RP ", new RecyclePivots with outIntersection with LeftHeuristic)
-  val newRPI  = SimpleSequentAlgorithm("new  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val optRPI  = SimpleSequentAlgorithm("opt  RPI", new RecyclePivots with OptimizedIntersection with LeftHeuristic)
-  val concRPI = SimpleSequentAlgorithm("conc RPI", new RecyclePivots with OptimizedIntersection with MinConclusionHeuristic)
-  val sizeRPI = SimpleSequentAlgorithm("size RPI", new RecyclePivots with OptimizedIntersection with MinProofHeuristic)
-  val nsRPI   = SimpleSequentAlgorithm("nsiz RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+  val newRPI  = SimpleSequentAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
+  val concRPI = SimpleSequentAlgorithm("conc RPI", new RecyclePivots with Intersection with MinConclusionHeuristic)
+  val sizeRPI = SimpleSequentAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
 
   val oldRPIr  = RepeatOldAlgorithm("old  RPI",
         (p:OldProof) => ProofFixing.fixTopDown(Regularization.recyclePivotsWithIntersection(p)))
-  val newRPIr  = RepeatSequentAlgorithm("new  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val optRPIr  = RepeatSequentAlgorithm("opt  RPI", new RecyclePivots with OptimizedIntersection with LeftHeuristic)
-  val sizeRPIr = RepeatSequentAlgorithm("size RPI", new RecyclePivots with OptimizedIntersection with MinProofHeuristic)
+  val newRPIr  = RepeatSequentAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
+  val sizeRPIr = RepeatSequentAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
 
   val newRPILU = SimpleSequentAlgorithm("new RPILU", { (p:SequentProof) =>
-    (new RecyclePivots with OptimizedIntersection with LeftHeuristic)(NewUnitLowering(p)) })
+    (new RecyclePivots with Intersection with LeftHeuristic)(NewUnitLowering(p)) })
   val newLURPI = SimpleSequentAlgorithm("new LURPI", { (p:SequentProof) =>
-    NewUnitLowering((new RecyclePivots with OptimizedIntersection with LeftHeuristic)(p)) })
+    NewUnitLowering((new RecyclePivots with Intersection with LeftHeuristic)(p)) })
   val nLURPILU = SimpleSequentAlgorithm("nLURPILU", { (p:SequentProof) =>
     val lu = NewUnitLowering
-    val rpi = new RecyclePivots with OptimizedIntersection with LeftHeuristic
+    val rpi = new RecyclePivots with Intersection with LeftHeuristic
     lu(rpi(lu(p)))
   })
 
@@ -119,13 +116,10 @@ object WrappedAlgorithmFactory {
     "RPILU" -> oldRPILU,
     "ULRPI" -> oldLURPI,
     "LURPI" -> oldLURPI,
-    "oRPI"  -> optRPI,
     "cRPI"  -> concRPI,
     "sRPI"  -> sizeRPI,
-    "nsRPI"  -> nsRPI,
     "RPIr"  -> oldRPIr,
     "nRPIr" -> newRPIr,
-    "oRPIr" -> optRPIr,
     "sRPIr" -> sizeRPIr,
     "nLURPI"-> newLURPI,
     "nRPILU"-> newRPILU,

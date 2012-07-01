@@ -1,4 +1,5 @@
-package skeptik.algorithm.compressor.combinedRPILU
+package skeptik.algorithm.compressor
+package combinedRPILU
 
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
@@ -30,7 +31,7 @@ object RegularizationInformation {
 // The others should probably be deleted.
 
 abstract class RegularizationEvaluation
-extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedIntersection with LeftHeuristicC {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
   // Collector : compute information about each node (using Eval)
   def collectInformationMap(iterator: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation]

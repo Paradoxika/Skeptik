@@ -1,4 +1,5 @@
-package skeptik.algorithm.compressor.combinedRPILU
+package skeptik.algorithm.compressor
+package combinedRPILU
 
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
@@ -70,8 +71,8 @@ object pseudoUnits {
 
 import pseudoUnits._
 
-abstract class AbstractPseudoUnitsNotDuringFixing
-extends AbstractRPILUAlgorithm with LeftHeuristicC {
+trait PseudoUnitsNotDuringFixing
+extends AbstractRPILUAlgorithm with LeftHeuristic {
   def fixProofAndUnits(iterator: ProofNodeCollection[SequentProof],
                        edgesToDelete: MMap[SequentProof,DeletedSide],
                        unitMap: Map[SequentProof,LList[SequentProof]]) = {
@@ -88,8 +89,7 @@ extends AbstractRPILUAlgorithm with LeftHeuristicC {
 }
 
 class PseudoUnits (minNumberOfChildren: Int)
-// TODO: remove CombinedIntersection and made PseudoUnits a subclass of a class more general than AbstractRPILUAlgorithm
-extends AbstractPseudoUnitsNotDuringFixing with CombinedIntersection {
+extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
   def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
     val isPseudoUnit = new CheckIfPseudoUnit()
     var units   = LList[SequentProof]()
@@ -120,9 +120,9 @@ extends AbstractPseudoUnitsNotDuringFixing with CombinedIntersection {
   }
 }
 
-abstract class AbstractPseudoUnitsDuringFixing (minNumberOfChildren: Int)
-extends AbstractRPILUAlgorithm with LeftHeuristicC {
-  def fixProofAndLowerUnits(iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
+trait PseudoUnitsDuringFixing
+extends AbstractRPILUAlgorithm with LeftHeuristic {
+  def fixProofAndLowerUnits(minNumberOfChildren: Int, iterator: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
 
     var units = List[SequentProof]()
     val isPseudoUnit = new CheckIfPseudoUnit()
@@ -148,27 +148,23 @@ extends AbstractRPILUAlgorithm with LeftHeuristicC {
 }
 
 class OnePassPseudoUnits (minNumberOfChildren: Int)
-// TODO: remove CombinedIntersection
-extends AbstractPseudoUnitsDuringFixing(minNumberOfChildren) with CombinedIntersection {
+extends AbstractRPILUAlgorithm with PseudoUnitsDuringFixing {
   def apply(proof: SequentProof): SequentProof =
-    fixProofAndLowerUnits(ProofNodeCollection(proof), MMap[SequentProof,DeletedSide]())
+    fixProofAndLowerUnits(minNumberOfChildren, ProofNodeCollection(proof), MMap[SequentProof,DeletedSide]())
 }
 
-
 class PseudoUnitsAfter (minNumberOfChildren: Int)
-extends AbstractPseudoUnitsDuringFixing(minNumberOfChildren) with EdgesCollectingUsingSafeLiterals with CombinedIntersection {
+extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with PseudoUnitsDuringFixing with Intersection {
   def apply(proof: SequentProof): SequentProof = {
     val iterator = ProofNodeCollection(proof)
     val edgesToDelete = collectEdgesToDelete(iterator)
-    fixProofAndLowerUnits(iterator, edgesToDelete)
+    fixProofAndLowerUnits(minNumberOfChildren, iterator, edgesToDelete)
   }
 }
 
 class PseudoUnitsBefore (minNumberOfChildren: Int)
-extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedIntersection with LeftHeuristicC {
-// TODO: share code with ThreePassUnit
-
-  private def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
+extends AbstractThreePassLower {
+  def collectUnits(iterator: ProofNodeCollection[SequentProof]) = {
     val isPseudoUnit = new CheckIfPseudoUnit()
     var units = List[SequentProof]()
     val map = MMap[SequentProof, (Set[E],Set[E])]()
@@ -183,51 +179,4 @@ extends AbstractRPILUAlgorithm with UnitsCollectingBeforeFixing with CombinedInt
     }
     (rootSafeLiterals, units, map)
   } 
-
-  private def collect(iterator: ProofNodeCollection[SequentProof]) = {
-    val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val (rootSafeLiterals, units, unitsMap) = collectUnits(iterator)
-
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
-      def makeTriple(safeLiterals: (Set[E],Set[E])) = (p, safeLiterals._1, safeLiterals._2)
-      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
-        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
-        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
-        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
-        case _ => throw new Exception("Unknown or impossible inference rule")
-      }
-      if (unitsMap contains p) {
-        deleteFromChildren(p, iterator, edgesToDelete)
-        println("Unit " + p.conclusion + " " + unitsMap(p))
-        makeTriple(unitsMap(p))
-      }
-      else if (childrensSafeLiterals == Nil) makeTriple(rootSafeLiterals)
-      else {
-        val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
-        p match {
-            case CutIC(_,_,_,auxR) if safeL contains auxR => edgesToDelete.update(p, LeftDS)
-            case CutIC(_,_,auxL,_) if safeR contains auxL => edgesToDelete.update(p, RightDS)
-            case _ => Unit
-        }
-        (p, safeL, safeR)
-      }
-    }
-
-    iterator.bottomUp(visit)
-    (units, edgesToDelete)
-  }
-
-  def apply(proof: SequentProof): SequentProof = {
-    val iterator = ProofNodeCollection(proof)
-    val (units, edgesToDelete) = collect(iterator)
-    if (edgesToDelete.isEmpty) proof else {
-      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, iterator)
-      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
-        println("We have got   " + left.conclusion)
-        println("Reintroducing " + right.conclusion)
-        try {CutIC(left,right)} catch {case e:Exception => left}
-      }
-    }
-  }
-
 }

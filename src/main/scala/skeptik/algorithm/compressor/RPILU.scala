@@ -1,4 +1,4 @@
-package skeptik.algorithm.compressor.combinedRPILU
+package skeptik.algorithm.compressor
 
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
@@ -8,8 +8,6 @@ import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
 import scala.collection.Map
 
-// Everything here is generic enough to be shared with RPI and LU.
-
 abstract class AbstractRPILUAlgorithm
 extends Function1[SequentProof,SequentProof] {
 
@@ -18,12 +16,6 @@ extends Function1[SequentProof,SequentProof] {
   protected object RightDS extends DeletedSide
 
   // Abtsract functions
-
-  def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
-                          edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, Set[E], Set[E])) => (Set[E],Set[E])
-                          ) : (Set[E],Set[E])
 
   def heuristicChoose(left: SequentProof, right: SequentProof):SequentProof
 
@@ -83,25 +75,17 @@ extends Function1[SequentProof,SequentProof] {
   }
 }
 
-trait UnitsCollectingBeforeFixing
+abstract class AbstractRPIAlgorithm
 extends AbstractRPILUAlgorithm {
-  def mapFixedProofs(proofsToMap: Set[SequentProof],
-                     edgesToDelete: Map[SequentProof,DeletedSide],
-                     iterator: ProofNodeCollection[SequentProof]) = {
-    val fixMap = MMap[SequentProof,SequentProof]()
-    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
-      val result = fixProofs(edgesToDelete)(p, fixedPremises)
-//      if (proofsToMap contains p) { fixMap.update(p, result) ; println(p.conclusion + " => " + result.conclusion) }
-      if (proofsToMap contains p) fixMap.update(p, result)
-      result
-    }
-    iterator.foldDown(visit)
-    fixMap
-  }
+  def computeSafeLiterals(proof: SequentProof,
+                          childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
+                          edgesToDelete: Map[SequentProof,DeletedSide],
+                          safeLiteralsFromChild: ((SequentProof, Set[E], Set[E])) => (Set[E],Set[E])
+                          ) : (Set[E],Set[E])
 }
 
-trait EdgesCollectingUsingSafeLiterals
-extends AbstractRPILUAlgorithm {
+trait CollectEdgesUsingSafeLiterals
+extends AbstractRPIAlgorithm {
   def collectEdgesToDelete(iterator: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
@@ -124,8 +108,25 @@ extends AbstractRPILUAlgorithm {
   }
 }
 
-trait CombinedIntersection
+trait UnitsCollectingBeforeFixing
 extends AbstractRPILUAlgorithm {
+  def mapFixedProofs(proofsToMap: Set[SequentProof],
+                     edgesToDelete: Map[SequentProof,DeletedSide],
+                     iterator: ProofNodeCollection[SequentProof]) = {
+    val fixMap = MMap[SequentProof,SequentProof]()
+    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
+      val result = fixProofs(edgesToDelete)(p, fixedPremises)
+//      if (proofsToMap contains p) { fixMap.update(p, result) ; println(p.conclusion + " => " + result.conclusion) }
+      if (proofsToMap contains p) fixMap.update(p, result)
+      result
+    }
+    iterator.foldDown(visit)
+    fixMap
+  }
+}
+
+trait Intersection
+extends AbstractRPIAlgorithm {
   def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
                           edgesToDelete: Map[SequentProof,DeletedSide],
@@ -141,7 +142,7 @@ extends AbstractRPILUAlgorithm {
   }
 }
 
-trait LeftHeuristicC
+trait LeftHeuristic
 extends AbstractRPILUAlgorithm {
   def heuristicChoose(left: SequentProof, right: SequentProof):SequentProof = left
 }
