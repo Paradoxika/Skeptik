@@ -1,81 +1,66 @@
 package skeptik.experiment.proving
 
 import skeptik.algorithm.generator.FormulaGenerator
-import skeptik.expression.Var
+import skeptik.expression.E
 import skeptik.expression.formula.{Prop,Imp}
 import skeptik.expression.o
+import skeptik.proof.Proof
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.natural.Assumption
 import skeptik.proof.natural.{ImpElim => ImpE}
 import skeptik.proof.natural.ImpElimC
 import skeptik.proof.natural.{ImpIntro => ImpI}
-import skeptik.proof.natural.ImpIntroC
-import skeptik.judgment.{NaturalSequent, NamedE}
+import skeptik.proof.natural.{ImpIntroC,ImpIntroCK}
+import skeptik.judgment.{Judgment, Sequent, NamedE, NaturalSequent}
 import skeptik.prover.SimpleProver2
+import collection.mutable.{Map => MMap}
+import skeptik.util.time._
 
 object ProverExperiment {
 
   def main(args: Array[String]): Unit = {
-
+    
     val ndProver = new SimpleProver2(Seq(Assumption,ImpI,ImpE))
     val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))
+    val ndckProver = new SimpleProver2(Seq(Assumption,ImpIntroCK,ImpElimC))
     
-    val context = Set[NamedE]()
+    val provers = Seq(("ND", ndProver), 
+                      ("NDc", ndcProver), 
+                      ("NDck", ndckProver))
     
     println()
     
     val goals = (new FormulaGenerator).generate(3,3)
-    //val goals = Seq(Imp(Prop("A"),Prop("A")))
+//    val goals = Seq(Imp(
+//                        Imp(
+//                            Imp(Prop("A"),Prop("B")),
+//                            Prop("B")
+//                            ),
+//                        Prop("A")
+//                        )
+//                   )
     println(goals.length)
 
+    implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
+    implicit def formulaToSequent(f: E) = Sequent(Nil, f)
     
-    println()
     
-    var yesCounter = 0
-    var noCounter = 0
-    var yesCCounter = 0
-    var noCCounter = 0
-    var cumulativeSize = 0
-    var size = 0
-    var cumulativeCSize = 0
-    var cSize = 0
-    for (goal <- goals) {
-      println("shallow")
-      System.gc()
-      //val proof = ndProver.prove(goal,context)
-      val proof = ndProver.prove(new NaturalSequent(Set(),goal))
-      println("goal" + goal + " ; shallow proof: " + proof)
-      val provable = proof match {
-        case None => {noCounter += 1; "no"} 
-        case Some(p) => {yesCounter += 1;
-                         size = ProofNodeCollection(p).size
-                         cumulativeSize += size
-                         "yes"}
+    val results = MMap[(E, String),Timed[Option[Proof[_,_]]]]()
+    for (g <- goals) {
+      println("Goal: " + g)
+      for (p <- provers) {
+        val repetitions = 3
+        val maxtime = 1000 * repetitions
+        results((g, p._1)) = timeout(maxtime) { timed(repetitions) { p._2.prove(g) } } match {
+          case Some(timedResult) => timedResult
+          case None => Timed(None, maxtime + 1)
+        }
+        val r0 = "Prover " + p._1 + ": " 
+        val r1 = if (results((g, p._1)).result != None) "proved in " + results((g, p._1)).time + "microseconds"
+                 else if (results((g, p._1)).time > maxtime*1000) "timed out"
+                 else "found no proof in " + results((g, p._1)).time + "microseconds" 
+        println(r0 + r1)
       }
-      println("end shallow")
-      println("started proving " + goal)
-      //val deepProof =  ndcProver.prove(goal,context)
-      val deepProof =  ndcProver.prove(new NaturalSequent(Set(),goal))
-      println("finished proving " + goal + " ; " + deepProof)
-      val deepProvable = deepProof match {
-        case None => {noCCounter += 1; "no"} 
-        case Some(p) => {
-            yesCCounter += 1; 
-            cSize = ProofNodeCollection(p).size
-            if (proof != None) cumulativeCSize += cSize
-            "yes"}
-      }
-      //println("ho")
-      if (true) println(yesCounter + " , " + noCounter + " , " + provable + " , " + size + " , " + cumulativeSize + " , " + deepProvable + " , " + cSize + " , " + cumulativeCSize + "  , goal:" + goal)
     }
-    
-    println("yes: " + yesCounter)
-    println("no:" + noCounter)
-    println("yesC: " + yesCCounter)
-    println("noC:" + noCCounter)
-    println("cumulativeSize: " + cumulativeSize)
-    println("cumulativeCSize: " + cumulativeCSize)
-    
   }
-
 }

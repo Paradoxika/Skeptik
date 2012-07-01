@@ -161,8 +161,6 @@ object AndL extends InferenceRule[Sequent, SequentProof] {
     }
     else None
   }
-
-//def apply(premises: Seq[P]) : Seq[P] 
 }
 
 object WeakeningL extends InferenceRule[Sequent, SequentProof] {
@@ -196,8 +194,6 @@ object WeakeningL extends InferenceRule[Sequent, SequentProof] {
     }
     else None
   }
-
-//def apply(premises: Seq[P]) : Seq[P] 
 }
 
 
@@ -215,8 +211,17 @@ object Cut {
     case _ => None
   }
 }
+
+class AuxiliaryFormulaNotFoundException extends Exception
+
 object CutIC {
   def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new CutIC(leftPremise,rightPremise,auxL,auxR)
+  
+  def apply(leftPremise: SequentProof, rightPremise: SequentProof, isPivot: E => Boolean) = (leftPremise.conclusion.suc.find(isPivot), rightPremise.conclusion.ant.find(isPivot)) match {
+    case (Some(auxL), Some(auxR)) => new CutIC(leftPremise, rightPremise, auxL, auxR)
+    case _ => throw new AuxiliaryFormulaNotFoundException
+  } 
+  
   def apply(premise1:SequentProof, premise2:SequentProof) = {
     def findPivots(p1:SequentProof, p2:SequentProof): Option[(E,E)] = {
       for (auxL <- p1.conclusion.suc; auxR <- p2.conclusion.ant) if (auxL == auxR) return Some(auxL,auxR)
