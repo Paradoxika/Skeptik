@@ -35,15 +35,13 @@ object ProverExperiment {
     
     println()
     
-    val goals = FormulaGenerator.generate(3,3)
-//    val goals = Seq(Imp(
-//                        Imp(
-//                            Imp(Prop("A"),Prop("B")),
-//                            Prop("B")
-//                            ),
-//                        Prop("A")
-//                        )
-//                   )
+//    val goals = FormulaGenerator.generateAll(3,2)
+    val i = 9; val j = 5
+    val goals = Seq(FormulaGenerator.generateOne(i,j),
+        FormulaGenerator.generateOne(i,j),
+        FormulaGenerator.generateOne(i,j),
+        FormulaGenerator.generateOne(i,j))
+
     println(goals.length)
     
     val now = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Calendar.getInstance().getTime())
