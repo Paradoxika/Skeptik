@@ -2,23 +2,19 @@ package skeptik
 
 object Main {
   def main(args: Array[String]): Unit = {
-    import skeptik.judgment.mutable._
-    import skeptik.expression.E
-    import skeptik.expression.formula.Prop
-    import collection.mutable.{Set => MSet}
-    val a = new SetSequent(MSet(Prop("a")), MSet(Prop("b")))
-    println(a)
-    a += Prop("c")
-    println(a)
-    Prop("d") =+: a
-    println(a)
-    a += Left(Prop("e"))
-    println(a)
-    a += Right(Prop("f"))
-    println(a)
-    println(a += Right(Prop("g")))
-    println(a += Prop("h"))
-    
-    skeptik.experiment.proving.ProverExperiment.main(Array());
+    if (args(0) == "-experiment") {
+      if (args(1) == "--NDc") {
+        skeptik.experiment.proving.ProverExperiment.run(Array());
+      }   
+      else if (args(1) == "--compression") {
+        skeptik.experiment.compression.Experimenter.run(args.drop(2));
+      } 
+    }
+    else if (args(0) == "-prove") {
+      
+    }
+    else if (args(0) == "-compress") {
+      
+    }
   }
 }
