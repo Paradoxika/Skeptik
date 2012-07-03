@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat
 
 object ProverExperiment {
 
-  def main(args: Array[String]): Unit = {
+  def run(args: Array[String]): Unit = {
     
     val ndProver = new SimpleProver2(Seq(Assumption,ImpI,ImpE))
     val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))
