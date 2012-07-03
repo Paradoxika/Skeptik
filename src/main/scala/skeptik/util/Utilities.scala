@@ -33,4 +33,15 @@ object time {
     Timed(r, averageTime.floor)
   }
 }
+
+object io {
+  import java.io.{File,PrintWriter}
+  
+  def printToFile(f: File)(op: PrintWriter => Unit) {
+    val p = new PrintWriter(f)
+    try { op(p) } finally { p.close() }
+  }
+  def printToFile(f: File, s: String):Unit = printToFile(f)(p => p.println(s))
+}
+
     
