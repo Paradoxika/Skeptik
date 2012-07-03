@@ -4,7 +4,7 @@ import skeptik.expression.E
 import skeptik.expression.formula.{Prop, Imp}
 
 
-class FormulaGenerator {
+object FormulaGenerator {
   private val atoms = Seq("A","B","C","D","E","F","G","H","I","J","K").map(Prop(_))
   
   def generate(maxLength: Int, maxSymbols: Int) = {
