@@ -16,6 +16,11 @@ import skeptik.prover.SimpleProver2
 import collection.mutable.{Map => MMap}
 import skeptik.util.time._
 
+import java.io.{File,PrintWriter}
+
+import java.util.Calendar
+import java.text.SimpleDateFormat
+
 object ProverExperiment {
 
   def main(args: Array[String]): Unit = {
@@ -40,26 +45,40 @@ object ProverExperiment {
 //                        )
 //                   )
     println(goals.length)
-
+    
+    val now = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Calendar.getInstance().getTime())
+    val file = new File("experiments/NDc/report-" + now + ".txt" )
+    val fp = new PrintWriter(file)
+    
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
     implicit def formulaToSequent(f: E) = Sequent(Nil, f)
     
     val results = MMap[(E, String),Timed[Option[Proof[_,_]]]]()
     for (g <- goals) {
       println("Goal: " + g)
+      fp.print(g)
       for (p <- provers) {
         val repetitions = 3
         val maxtime = 1000 * repetitions
-        results((g, p._1)) = timeout(maxtime) { timed(repetitions) { p._2.prove(g) } } match {
+        val result = timeout(maxtime) { timed(repetitions) { p._2.prove(g) } } match {
           case Some(timedResult) => timedResult
           case None => Timed(None, 10 * maxtime)
         }
-        val r0 = "Prover " + p._1 + ": " 
-        val r1 = if (results((g, p._1)).result != None) "proved in " + results((g, p._1)).time + "microseconds"
-                 else if (results((g, p._1)).time > maxtime*1000) "timed out"
-                 else "found no proof in " + results((g, p._1)).time + "microseconds" 
-        println(r0 + r1)
+        
+        println("Prover " + p._1 + ": " +
+                (if (result.result != None) "proved in " + result.time + "microseconds"
+                 else if (result.time > maxtime*1000) "timed out"
+                 else "found no proof in " + result.time + "microseconds" ))
+        fp.print(", " + result.time)
+        fp.print(", " + (result.result match {
+          case None => None
+          case Some(p) => ProofNodeCollection(p).size
+        }))
+        results((g, p._1)) = result
       }
+      fp.println
     }
+    
+    fp.close()
   }
 }
