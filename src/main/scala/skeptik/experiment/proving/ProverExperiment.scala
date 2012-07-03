@@ -35,7 +35,7 @@ object ProverExperiment {
     
     println()
     
-    val goals = FormulaGenerator.generate(4,4)
+    val goals = FormulaGenerator.generate(3,3)
 //    val goals = Seq(Imp(
 //                        Imp(
 //                            Imp(Prop("A"),Prop("B")),
