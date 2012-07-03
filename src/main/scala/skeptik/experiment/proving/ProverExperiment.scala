@@ -35,7 +35,7 @@ object ProverExperiment {
     
     println()
     
-    val goals = (new FormulaGenerator).generate(3,3)
+    val goals = (new FormulaGenerator).generate(4,4)
 //    val goals = Seq(Imp(
 //                        Imp(
 //                            Imp(Prop("A"),Prop("B")),
@@ -71,7 +71,7 @@ object ProverExperiment {
                  else "found no proof in " + result.time + "microseconds" ))
         fp.print(", " + result.time)
         fp.print(", " + (result.result match {
-          case None => None
+          case None => -1
           case Some(p) => ProofNodeCollection(p).size
         }))
         results((g, p._1)) = result
