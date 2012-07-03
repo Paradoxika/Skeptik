@@ -1,0 +1,312 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     11567,        303]
+NotebookOptionsPosition[     10672,        269]
+NotebookOutlinePosition[     11027,        285]
+CellTagsIndexPosition[     10984,        282]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "SetDirectory", "[", 
+   "\"\</Users/Bruno/Dropbox/Code/Paradoxika/experiments/NDc/\>\"", "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"R33", " ", "=", " ", 
+   RowBox[{"Import", "[", 
+    RowBox[{"\"\<report-33.txt\>\"", ",", " ", "\"\<CSV\>\""}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"R44", " ", "=", " ", 
+   RowBox[{"Import", "[", 
+    RowBox[{"\"\<report-44.txt\>\"", ",", " ", "\"\<CSV\>\""}], "]"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{
+  3.550303204707515*^9, {3.5503032958121367`*^9, 3.550303327933647*^9}, {
+   3.550303923286684*^9, 3.5503039256630087`*^9}, {3.550304184161283*^9, 
+   3.550304186184215*^9}, {3.550304730585297*^9, 3.550304739013509*^9}, 
+   3.550304849177484*^9, {3.550305218320641*^9, 3.5503052209111423`*^9}, {
+   3.550306604624042*^9, 3.5503066109834347`*^9}, {3.550306665772053*^9, 
+   3.550306678034935*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"ND", "[", "results_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"#", "[", 
+       RowBox[{"[", "2", "]"}], "]"}], ",", 
+      RowBox[{"#", "[", 
+       RowBox[{"[", "3", "]"}], "]"}]}], "}"}], "&"}], " ", "/@", " ", 
+   "results"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"NDc", "[", "results_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"#", "[", 
+       RowBox[{"[", "4", "]"}], "]"}], ",", 
+      RowBox[{"#", "[", 
+       RowBox[{"[", "5", "]"}], "]"}]}], "}"}], "&"}], " ", "/@", " ", 
+   "results"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"NDck", "[", "results_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"#", "[", 
+       RowBox[{"[", "6", "]"}], "]"}], ",", 
+      RowBox[{"#", "[", 
+       RowBox[{"[", "7", "]"}], "]"}]}], "}"}], "&"}], " ", "/@", " ", 
+   "results"}]}]}], "Input",
+ CellChangeTimes->{{3.550305619327177*^9, 3.5503057349040747`*^9}, {
+  3.550305782408865*^9, 3.550305804973143*^9}, {3.5503058854418716`*^9, 
+  3.5503059120381813`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"ProofLength", "[", "timedResult_", "]"}], ":=", 
+  RowBox[{"timedResult", "[", 
+   RowBox[{"[", "2", "]"}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ProofTime", "[", "timedResult_", "]"}], ":=", 
+  RowBox[{"timedResult", "[", 
+   RowBox[{"[", "1", "]"}], "]"}]}]}], "Input",
+ CellChangeTimes->{
+  3.550305933297249*^9, {3.550305963310502*^9, 3.550306019887137*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SelectProvable", "[", "list_", "]"}], ":=", " ", 
+  RowBox[{"Select", "[", 
+   RowBox[{"list", ",", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"ProofLength", "[", "#", "]"}], "\[NotEqual]", " ", 
+      RowBox[{"-", "1"}]}], " ", "&"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.550306280138871*^9, 3.550306310696217*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ProvableProportion", "[", "list_", "]"}], ":=", 
+  RowBox[{
+   FractionBox[
+    RowBox[{" ", 
+     RowBox[{"Length", "[", 
+      RowBox[{"SelectProvable", "[", "list", "]"}], "]"}]}], 
+    RowBox[{"Length", "[", "list", "]"}]], "*", "1.0"}]}]], "Input",
+ CellChangeTimes->{{3.550305481966708*^9, 3.55030558708462*^9}, {
+  3.5503060434664*^9, 3.550306049604278*^9}, {3.550306185129951*^9, 
+  3.5503061865636578`*^9}, {3.550306308144063*^9, 3.550306325229302*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"IntuitionisticRatio", "[", "results_", "]"}], ":=", 
+  FractionBox[
+   RowBox[{"Length", "[", 
+    RowBox[{"SelectProvable", "[", 
+     RowBox[{"NDc", "[", "results", "]"}], "]"}], "]"}], 
+   RowBox[{"Length", "[", 
+    RowBox[{"SelectProvable", "[", 
+     RowBox[{"NDck", "[", "results", "]"}], "]"}], "]"}]]}]], "Input",
+ CellChangeTimes->{{3.55030676692875*^9, 3.5503067740710697`*^9}, {
+  3.550306806525568*^9, 3.550306915500298*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"ND", "[", "R33", "]"}], "\[IndentingNewLine]", 
+ RowBox[{"ProvableProportion", "[", 
+  RowBox[{"ND", "[", "R33", "]"}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"ProvableProportion", "[", 
+  RowBox[{"ND", "[", "R44", "]"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.550306067635597*^9, 3.5503060807722473`*^9}, {
+  3.5503061526907787`*^9, 3.5503061628824368`*^9}, {3.5503066917327127`*^9, 
+  3.550306695417791*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"108595.`", ",", 
+     RowBox[{"-", "1"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"360667.`", ",", "3"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"726.`", ",", 
+     RowBox[{"-", "1"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"650.`", ",", "3"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"621.`", ",", 
+     RowBox[{"-", "1"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"807.`", ",", "3"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"605.`", ",", 
+     RowBox[{"-", "1"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"835.`", ",", 
+     RowBox[{"-", "1"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"644.`", ",", 
+     RowBox[{"-", "1"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"12871.`", ",", 
+     RowBox[{"-", "1"}]}], "}"}]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.550306084068387*^9, {3.5503061545819397`*^9, 3.550306190591559*^9}, 
+   3.550306374214308*^9, 3.550306699933981*^9}],
+
+Cell[BoxData["0.3`"], "Output",
+ CellChangeTimes->{
+  3.550306084068387*^9, {3.5503061545819397`*^9, 3.550306190591559*^9}, 
+   3.550306374214308*^9, 3.550306699937538*^9}],
+
+Cell[BoxData["0.28`"], "Output",
+ CellChangeTimes->{
+  3.550306084068387*^9, {3.5503061545819397`*^9, 3.550306190591559*^9}, 
+   3.550306374214308*^9, 3.550306699939427*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.550303722884839*^9, 3.550303726313447*^9}, {
+  3.550303862820992*^9, 3.5503039191183434`*^9}}],
+
+Cell[BoxData["\<\"/Users/Bruno/Dropbox/Code/Paradoxika/experiments/NDc\"\>"], \
+"Output",
+ CellChangeTimes->{3.5503037278106318`*^9, 3.550303906812334*^9}],
+
+Cell[BoxData["\<\"/Users/Bruno/Dropbox/Code/Paradoxika/experiments/NDc\"\>"], \
+"Output",
+ CellChangeTimes->{3.5503037278106318`*^9, 3.55030390681383*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{
+  3.550303860546627*^9, {3.5503040395525503`*^9, 3.550304058391058*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"3DS\"\>", ",", "\<\"ACO\"\>", ",", "\<\"Affymetrix\"\>", 
+   ",", "\<\"AIFF\"\>", ",", "\<\"ApacheLog\"\>", ",", "\<\"ArcGRID\"\>", 
+   ",", "\<\"AU\"\>", ",", "\<\"AVI\"\>", ",", "\<\"Base64\"\>", 
+   ",", "\<\"BDF\"\>", ",", "\<\"Binary\"\>", ",", "\<\"Bit\"\>", 
+   ",", "\<\"BMP\"\>", ",", "\<\"Byte\"\>", ",", "\<\"BYU\"\>", 
+   ",", "\<\"BZIP2\"\>", ",", "\<\"CDED\"\>", ",", "\<\"Character16\"\>", 
+   ",", "\<\"Character8\"\>", ",", "\<\"CIF\"\>", ",", "\<\"Complex128\"\>", 
+   ",", "\<\"Complex256\"\>", ",", "\<\"Complex64\"\>", ",", "\<\"CSV\"\>", 
+   ",", "\<\"CUR\"\>", ",", "\<\"DBF\"\>", ",", "\<\"DICOM\"\>", 
+   ",", "\<\"DIF\"\>", ",", "\<\"DIMACS\"\>", ",", "\<\"Directory\"\>", 
+   ",", "\<\"DOT\"\>", ",", "\<\"DXF\"\>", ",", "\<\"EDF\"\>", 
+   ",", "\<\"EPS\"\>", ",", "\<\"ExpressionML\"\>", ",", "\<\"FASTA\"\>", 
+   ",", "\<\"FITS\"\>", ",", "\<\"FLAC\"\>", ",", "\<\"GenBank\"\>", 
+   ",", "\<\"GeoTIFF\"\>", ",", "\<\"GIF\"\>", ",", "\<\"GPX\"\>", 
+   ",", "\<\"Graph6\"\>", ",", "\<\"Graphlet\"\>", ",", "\<\"GraphML\"\>", 
+   ",", "\<\"GRIB\"\>", ",", "\<\"GTOPO30\"\>", ",", "\<\"GXL\"\>", 
+   ",", "\<\"GZIP\"\>", ",", "\<\"HarwellBoeing\"\>", ",", "\<\"HDF\"\>", 
+   ",", "\<\"HDF5\"\>", ",", "\<\"HTML\"\>", ",", "\<\"ICO\"\>", 
+   ",", "\<\"ICS\"\>", ",", "\<\"Integer128\"\>", ",", "\<\"Integer16\"\>", 
+   ",", "\<\"Integer24\"\>", ",", "\<\"Integer32\"\>", 
+   ",", "\<\"Integer64\"\>", ",", "\<\"Integer8\"\>", ",", "\<\"JPEG\"\>", 
+   ",", "\<\"JPEG2000\"\>", ",", "\<\"JSON\"\>", ",", "\<\"JVX\"\>", 
+   ",", "\<\"KML\"\>", ",", "\<\"LaTeX\"\>", ",", "\<\"LEDA\"\>", 
+   ",", "\<\"List\"\>", ",", "\<\"LWO\"\>", ",", "\<\"MAT\"\>", 
+   ",", "\<\"MathML\"\>", ",", "\<\"MBOX\"\>", ",", "\<\"MDB\"\>", 
+   ",", "\<\"MGF\"\>", ",", "\<\"MKV\"\>", ",", "\<\"MMCIF\"\>", 
+   ",", "\<\"MOL\"\>", ",", "\<\"MOL2\"\>", ",", "\<\"MPS\"\>", 
+   ",", "\<\"MTP\"\>", ",", "\<\"MTX\"\>", ",", "\<\"MX\"\>", 
+   ",", "\<\"NASACDF\"\>", ",", "\<\"NB\"\>", ",", "\<\"NDK\"\>", 
+   ",", "\<\"NetCDF\"\>", ",", "\<\"NEXUS\"\>", ",", "\<\"NOFF\"\>", 
+   ",", "\<\"OBJ\"\>", ",", "\<\"ODS\"\>", ",", "\<\"OFF\"\>", 
+   ",", "\<\"Package\"\>", ",", "\<\"Pajek\"\>", ",", "\<\"PBM\"\>", 
+   ",", "\<\"PCX\"\>", ",", "\<\"PDB\"\>", ",", "\<\"PDF\"\>", 
+   ",", "\<\"PGM\"\>", ",", "\<\"PLY\"\>", ",", "\<\"PNG\"\>", 
+   ",", "\<\"PNM\"\>", ",", "\<\"PPM\"\>", ",", "\<\"PXR\"\>", 
+   ",", "\<\"QuickTime\"\>", ",", "\<\"RawBitmap\"\>", ",", "\<\"Real128\"\>",
+    ",", "\<\"Real32\"\>", ",", "\<\"Real64\"\>", ",", "\<\"RIB\"\>", 
+   ",", "\<\"RSS\"\>", ",", "\<\"RTF\"\>", ",", "\<\"SCT\"\>", 
+   ",", "\<\"SDF\"\>", ",", "\<\"SDTS\"\>", ",", "\<\"SDTSDEM\"\>", 
+   ",", "\<\"SHP\"\>", ",", "\<\"SMILES\"\>", ",", "\<\"SND\"\>", 
+   ",", "\<\"SP3\"\>", ",", "\<\"Sparse6\"\>", ",", "\<\"STL\"\>", 
+   ",", "\<\"String\"\>", ",", "\<\"SurferGrid\"\>", ",", "\<\"SXC\"\>", 
+   ",", "\<\"Table\"\>", ",", "\<\"TAR\"\>", ",", "\<\"TerminatedString\"\>", 
+   ",", "\<\"Text\"\>", ",", "\<\"TGA\"\>", ",", "\<\"TGF\"\>", 
+   ",", "\<\"TIFF\"\>", ",", "\<\"TIGER\"\>", ",", "\<\"TLE\"\>", 
+   ",", "\<\"TSV\"\>", ",", "\<\"UnsignedInteger128\"\>", 
+   ",", "\<\"UnsignedInteger16\"\>", ",", "\<\"UnsignedInteger24\"\>", 
+   ",", "\<\"UnsignedInteger32\"\>", ",", "\<\"UnsignedInteger64\"\>", 
+   ",", "\<\"UnsignedInteger8\"\>", ",", "\<\"USGSDEM\"\>", 
+   ",", "\<\"UUE\"\>", ",", "\<\"VCF\"\>", ",", "\<\"VCS\"\>", 
+   ",", "\<\"VTK\"\>", ",", "\<\"WAV\"\>", ",", "\<\"Wave64\"\>", 
+   ",", "\<\"WDX\"\>", ",", "\<\"XBM\"\>", ",", "\<\"XHTML\"\>", 
+   ",", "\<\"XHTMLMathML\"\>", ",", "\<\"XLS\"\>", ",", "\<\"XLSX\"\>", 
+   ",", "\<\"XML\"\>", ",", "\<\"XPORT\"\>", ",", "\<\"XYZ\"\>", 
+   ",", "\<\"ZIP\"\>"}], "}"}]], "Output",
+ CellChangeTimes->{3.5503040482149363`*^9}]
+}, Open  ]]
+},
+WindowSize->{740, 752},
+WindowMargins->{{22, Automatic}, {Automatic, 8}},
+FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 6, \
+2010)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 926, 22, 58, "Input"],
+Cell[1486, 44, 1137, 36, 58, "Input"],
+Cell[2626, 82, 414, 10, 43, "Input"],
+Cell[3043, 94, 356, 9, 27, "Input"],
+Cell[3402, 105, 497, 11, 49, "Input"],
+Cell[3902, 118, 473, 11, 49, "Input"],
+Cell[CellGroupData[{
+Cell[4400, 133, 437, 8, 58, "Input"],
+Cell[4840, 143, 979, 32, 43, "Output"],
+Cell[5822, 177, 172, 3, 27, "Output"],
+Cell[5997, 182, 173, 3, 27, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6207, 190, 143, 2, 27, "Input"],
+Cell[6353, 194, 155, 2, 27, "Output"],
+Cell[6511, 198, 154, 2, 27, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[6702, 205, 119, 2, 27, "Input"],
+Cell[6824, 209, 3832, 57, 223, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
