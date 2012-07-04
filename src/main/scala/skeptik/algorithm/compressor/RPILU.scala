@@ -99,7 +99,7 @@ extends AbstractRPIAlgorithm {
       p match {
         case CutIC(_,_,auxL,_) if safeR contains auxL => edgesToDelete.update(p, RightDS)
         case CutIC(_,_,_,auxR) if safeL contains auxR => edgesToDelete.update(p, LeftDS)
-        case _ => Unit
+        case _ =>
       }
       (p, safeL, safeR)
     }

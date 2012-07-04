@@ -9,38 +9,34 @@ import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
 import scala.collection.Map
 
-object pseudoUnits {
+package pseudoUnits {
 
-  abstract class CheckResult
-  case class IsPseudoUnit (val literal: Either[E,E])  extends CheckResult
-  object NotPseudoUnit extends CheckResult
-  object CanBeDeleted  extends CheckResult
+  abstract sealed class NodeKind
+  case class  PseudoUnit (val literal: Either[E,E])  extends NodeKind
+  case object DeletableNode extends NodeKind
+  case object OrdinaryNode  extends NodeKind
 
   class CheckIfPseudoUnit
   {
 
     val literalsDeletedByUnits = (MSet[E](),MSet[E]())
 
-    private def append(proof: SequentProof, literal: Either[E,E]) = {
-      // println("+ " + proof.conclusion + " " + literal)
-      literal match {
-        case Left(v)  => literalsDeletedByUnits._1.add(v)
-        case Right(v) => literalsDeletedByUnits._2.add(v)
-      }
-      IsPseudoUnit(literal)
+    private def append(literal: Either[E,E]) = literal match {
+      case Left(v)  => literalsDeletedByUnits._1.add(v)
+      case Right(v) => literalsDeletedByUnits._2.add(v)
     }
 
-    def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof]):CheckResult = {
+    def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof]):NodeKind = {
       val literals = literalsIntroducedByDeletion(newProof, oldProof, children)
   //      println("Remaining Literals " + literals)
       (literals._1.size, literals._2.size) match {
-        case (0,0) => CanBeDeleted
+        case (0,0) => DeletableNode
         case (0,1) => checkLiteralsIntroducedByLowering(newProof, Left(literals._2.head))
         case (1,0) => checkLiteralsIntroducedByLowering(newProof, Right(literals._1.head))
-        case _ => NotPseudoUnit
+        case _ => OrdinaryNode
       }
     }
-    def apply(proof: SequentProof, children: List[SequentProof]):CheckResult =
+    def apply(proof: SequentProof, children: List[SequentProof]):NodeKind =
         apply(proof, proof, children)
 
     private def literalsIntroducedByDeletion(newProof: SequentProof, oldProof: SequentProof, children: Seq[SequentProof]) = {
@@ -52,17 +48,17 @@ object pseudoUnits {
             case _ => setPair
           }
         }
-        (literalsIntroducedByDeletion._1 diff literalsDeletedByUnits._2,
-          literalsIntroducedByDeletion._2 diff literalsDeletedByUnits._1)
+        (literalsIntroducedByDeletion._1 -- literalsDeletedByUnits._2,
+          literalsIntroducedByDeletion._2 -- literalsDeletedByUnits._1)
     }
 
     private def checkLiteralsIntroducedByLowering(proof: SequentProof, remainingLiteral: Either[E,E]) = {
-      val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet diff literalsDeletedByUnits._2,
-                                          proof.conclusion.suc.toSet diff literalsDeletedByUnits._1)
+      val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet -- literalsDeletedByUnits._2,
+                                          proof.conclusion.suc.toSet -- literalsDeletedByUnits._1)
       (leftLiterals.size, rightLiterals.size, remainingLiteral) match {
-        case (1,0,Left(literal))  if leftLiterals.head  == literal => append(proof, remainingLiteral)
-        case (0,1,Right(literal)) if rightLiterals.head == literal => append(proof, remainingLiteral)
-        case _ => NotPseudoUnit
+        case (1,0,Left(literal))  if leftLiterals.head  == literal => append(remainingLiteral) ; PseudoUnit(remainingLiteral)
+        case (0,1,Right(literal)) if rightLiterals.head == literal => append(remainingLiteral) ; PseudoUnit(remainingLiteral)
+        case _ => OrdinaryNode
       }
     }
 
@@ -98,10 +94,10 @@ extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
       val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) >= minNumberOfChildren) {
         isPseudoUnit(p, children) match {
-          case IsPseudoUnit(_) =>
+          case PseudoUnit(_) =>
             units = new LList(p, units)
             unitMap.update(p, units)
-          case _ => Unit
+          case _ =>
         }
       }
     }
@@ -131,9 +127,9 @@ extends AbstractRPILUAlgorithm with LeftHeuristic {
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
       val children = nodeCollection.childrenOf(oldProof) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
       if (fakeSize(children) >= minNumberOfChildren) isPseudoUnit(newProof, oldProof, children) match {
-        case IsPseudoUnit(_) => units ::= newProof ; deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
-        case CanBeDeleted => deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
-        case _ => Unit
+        case PseudoUnit(_) => units ::= newProof ; deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
+        case DeletableNode => deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
+        case _ =>
       }
       newProof
     }
@@ -172,8 +168,8 @@ extends AbstractThreePassLower {
       val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) < minNumberOfChildren) set else
         isPseudoUnit(p, children) match {
-          case IsPseudoUnit(Left(l))  => println("+ " + p.conclusion + " L " + l) ; units ::= p ; map.update(p,set) ; (set._1, set._2 + l)
-          case IsPseudoUnit(Right(l)) => println("+ " + p.conclusion + " R " + l) ; units ::= p ; map.update(p,set) ; (set._1 + l, set._2)
+          case PseudoUnit(Left(l))  => units ::= p ; map.update(p,set) ; (set._1, set._2 + l)
+          case PseudoUnit(Right(l)) => units ::= p ; map.update(p,set) ; (set._1 + l, set._2)
           case _ => set
         }
     }

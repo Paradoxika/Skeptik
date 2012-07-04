@@ -37,7 +37,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         p match {
             case CutIC(_,_,_,auxR) if safeL contains auxR => edgesToDelete.update(p, LeftDS)
             case CutIC(_,_,auxL,_) if safeR contains auxL => edgesToDelete.update(p, RightDS)
-            case _ => Unit
+            case _ =>
         }
         (p, safeL, safeR)
       }
