@@ -12,7 +12,7 @@ import scala.collection.Map
 abstract class IrregularUnits
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
-  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean
+  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
@@ -21,10 +21,10 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     def isUnitAndSomething(something: (SequentProof, Int) => Boolean)
                           (p: SequentProof) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
-        val aliveChildren = nodeCollection.childrenOf(p).foldLeft(0) { (acc,child) =>
+        val currentChildrenNumber = nodeCollection.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
         }
-        (aliveChildren > 1) && (something(p, aliveChildren))
+        (currentChildrenNumber > 1) && (something(p, currentChildrenNumber))
       }
     val isUnitToLower = isUnitAndSomething(lowerInsteadOfRegularize _) _
     val isTrueUnit = isUnitAndSomething { (_,_) => true } _
@@ -75,12 +75,12 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 }
 
 trait AlwaysLowerIrregularUnits extends IrregularUnits {
-  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = true
+  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = true
 }
 
 trait AlwaysRegularizeIrregularUnits extends IrregularUnits {
-  def lowerInsteadOfRegularize(proof: SequentProof, notDeletedChildren: Int):Boolean = {
-//    println("Irregular unit " + proof.conclusion + " with " + notDeletedChildren + " children")
+  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = {
+//    println("Irregular unit " + proof.conclusion + " with " + currentChildrenNumber + " children")
     false
   }
 }
