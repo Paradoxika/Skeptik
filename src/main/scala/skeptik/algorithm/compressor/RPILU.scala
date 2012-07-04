@@ -66,7 +66,7 @@ extends Function1[SequentProof,SequentProof] {
       }
       case CutIC(left,right,auxL,auxR) => ((fixedLeft.conclusion.suc  contains auxL),
                                            (fixedRight.conclusion.ant contains auxR)) match {
-        case (true,true) => CutIC(fixedLeft, fixedRight, auxL, auxR)
+        case (true,true) => CutIC(fixedLeft, fixedRight, _ == auxL)
         case (true,false) => fixedRight
         case (false,true) => fixedLeft
         case (false,false) => heuristicChoose(fixedLeft, fixedRight)
