@@ -2,7 +2,7 @@ package skeptik.experiment.proving
 
 import skeptik.algorithm.generator.FormulaGenerator
 import skeptik.expression.E
-import skeptik.expression.formula.{Prop,Imp}
+import skeptik.expression.formula.Imp
 import skeptik.expression.o
 import skeptik.proof.Proof
 import skeptik.proof.ProofNodeCollection

@@ -53,14 +53,6 @@ object Ex extends QuantifierFormula(exC)
 
 
 
-object Prop extends Formula {
-  def apply(name: String) = Var(name, o)
-  def unapply(e: E) = e match {
-    case Var(name,t) if t == o => Some(name)
-    case _ => None
-  }
-}
-
 object Atom extends Formula {
   def apply(p: E, args: List[E]) = {
     val atom = (p /: args)((p,a) => App(p,a))
