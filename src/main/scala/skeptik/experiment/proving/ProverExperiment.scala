@@ -31,7 +31,8 @@ object ProverExperiment {
     
     val provers = Seq(("ND", ndProver), 
                       ("NDc", ndcProver), 
-                      ("NDck", ndckProver))
+                      ("NDck", ndckProver)
+                      )
     
     println()
     
@@ -42,10 +43,12 @@ object ProverExperiment {
 //        FormulaGenerator.generateOne(i,j),
 //        FormulaGenerator.generateOne(i,j))
         
-    val goals = Seq(FormulaGenerator.generateExample(0),
+    val goals = Seq(
+                    FormulaGenerator.generateExample(0),
                     FormulaGenerator.generateExample(1),
                     FormulaGenerator.generateExample(2),
-                    FormulaGenerator.generateExample(3))
+                    FormulaGenerator.generateExample(3)
+                    )
 
     println(goals.length)
     
@@ -62,16 +65,12 @@ object ProverExperiment {
       fp.print(g)
       for (p <- provers) {
         val repetitions = 1
-        val maxtime = 1000 * repetitions //milliseconds
-        val result = timeout(maxtime) { timed(repetitions) { p._2.prove(g) } } match {
-          case Some(timedResult) => timedResult
-          case None => Timed(None, 10 * maxtime)
-        }
+        val maxtime = 20000 //milliseconds
+        val result = timed(repetitions) { p._2.prove(g, timeout = maxtime) }
         
         val resultTimeMS = (result.time * 1000).toInt // microseconds
         println("Prover " + p._1 + ": " +
                 (if (result.result != None) "proved in " + resultTimeMS + " microseconds"
-                 else if (result.time > maxtime) "timed out"
                  else "found no proof in " + resultTimeMS + " microseconds" ))
         fp.print(", " + resultTimeMS)
         fp.print(", " + (result.result match {
