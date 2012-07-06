@@ -8,6 +8,50 @@ abstract class FormulaConstructorExtractor {
   def ?:(f: E) = unapply(f).isInstanceOf[Some[_]]
 }
 
+abstract class Binary(connective: Var) extends FormulaConstructorExtractor {
+  def apply(f1: E, f2: E) = App(App(connective,f1),f2)
+  def unapply(e:E) = e match {
+    case App(App(c,f1),f2) if c == connective => Some((f1,f2))
+    case _ => None
+  }  
+}
+
+abstract class Unary(connective: Var) extends FormulaConstructorExtractor {
+  def apply(f: E) = App(connective,f)
+  def unapply(e:E) = e match {
+    case App(c,f) if c == connective => Some(f)
+    case _ => None
+  }  
+}
+
+abstract class Q(quantifierC:T=>E) extends FormulaConstructorExtractor {
+  def apply(v:Var, f:E) = App(quantifierC(v.t), Abs(v,f))
+  def apply(f:E, v:Var, p:Position) = {
+    val h = (( (_:E) => v.copy) @: p)(f)
+    App(quantifierC(v.t), Abs(v,h))
+  }
+  def apply(f:E, v:Var, t:E): E = apply(f, v, new PredicatePosition(_ == t)) 
+    
+  def unapply(e:E) = e match {
+    case App(q, Abs(v,f)) if q == quantifierC(v.t) => Some((v,f))
+    case _ => None
+  }  
+}
+
+
+object Neg extends Unary(negC)
+
+object And extends Binary(andC)
+
+object Or extends Binary(andC)
+
+object Imp extends Binary(impC)
+  
+object All extends Q(allC)  
+
+object Ex extends Q(exC)
+
+
 
 object Prop {
   def apply(name: String) = Var(name, o)
@@ -41,48 +85,3 @@ object Atom {
   } 
 }
 
-
-object And extends FormulaConstructorExtractor {
-  def apply(f1: E, f2: E) = App(App(andC,f1),f2)
-  def unapply(e:E) = e match {
-    case App(App(c,f1),f2) if c == andC => Some((f1,f2))
-    case _ => None
-  }  
-}
-
-object Imp extends FormulaConstructorExtractor {
-  def apply(f1: E, f2: E) = App(App(impC,f1),f2)
-  def unapply(e:E) = e match {
-    case App(App(c,f1),f2) if c == impC => Some((f1,f2))
-    case _ => None
-  }  
-}
-  
-
-object Neg {
-  def apply(f: E) = App(negC,f)
-  def unapply(e:E) = e match {
-    case App(c,f) if c == negC => Some(f)
-    case _ => None
-  }  
-}
-
-
-
-
-abstract class Q(quantifierC:T=>E) {
-  def apply(v:Var, f:E) = App(quantifierC(v.t), Abs(v,f))
-  def apply(f:E, v:Var, p:Position) = {
-    val h = (( (_:E) => v.copy) @: p)(f)
-    App(quantifierC(v.t), Abs(v,h))
-  }
-  def apply(f:E, v:Var, t:E): E = apply(f, v, new PredicatePosition(_ == t)) 
-    
-  def unapply(e:E) = e match {
-    case App(q, Abs(v,f)) if q == quantifierC(v.t) => Some((v,f))
-    case _ => None
-  }  
-}
-
-object All extends Q(allC)  
-object Ex extends Q(exC)
