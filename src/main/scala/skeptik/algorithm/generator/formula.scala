@@ -7,6 +7,18 @@ import util.Random
 object FormulaGenerator {
   private val atoms = Seq("A","B","C","D","E","F","G","H","I","J","K").map(Prop(_))
  
+  
+  def generateExample(n: Int): E = {
+    val a = Prop("A")
+    val b = Prop("B")
+    def t(k: Int)(e: E): E = 
+      if (k == 0) e
+      else Imp(Imp(t(k-1)(e), Prop("C"+k)), Prop("D"+k))  
+    val tn = t(n) _
+    
+    Imp( Imp(a,b), Imp(tn(a), tn(b)) )
+  }
+  
   def generateOne(length: Int, numOfSymbols: Int):E = {
     val r = new Random()
     
