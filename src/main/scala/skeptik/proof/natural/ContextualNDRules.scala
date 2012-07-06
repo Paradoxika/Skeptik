@@ -156,7 +156,7 @@ object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
                 
                 if (!bOccursPositivelyInA) {
                   val auxL = (((_:E) => a) @: leftP)(auxLBase)
-                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(j.context,auxR))
+                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
                 }
               }
               case _ => 

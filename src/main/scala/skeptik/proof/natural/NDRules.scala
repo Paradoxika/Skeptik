@@ -96,8 +96,8 @@ object ImpElim extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: NaturalSequent) = (for (h <- j.context) yield h match {
-    case NamedE(n,Imp(a,b)) if b == j => {
-      Some(Seq(new NaturalSequent(j.context,a), new NaturalSequent(j.context,Imp(a,b))))
+    case NamedE(n,Imp(a,b)) if b == j.e => {
+      Some(Seq(new NaturalSequent(j.context,a), new NaturalSequent(Set(h),Imp(a,b))))
     }
     case _ => None
   }).filter(_ != None).map(_.get).toSeq 
