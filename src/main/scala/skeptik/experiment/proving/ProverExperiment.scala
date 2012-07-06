@@ -36,11 +36,16 @@ object ProverExperiment {
     println()
     
 //    val goals = FormulaGenerator.generateAll(3,2)
-    val i = 9; val j = 5
-    val goals = Seq(FormulaGenerator.generateOne(i,j),
-        FormulaGenerator.generateOne(i,j),
-        FormulaGenerator.generateOne(i,j),
-        FormulaGenerator.generateOne(i,j))
+//    val i = 22; val j = 4
+//    val goals = Seq(FormulaGenerator.generateOne(i,j),
+//        FormulaGenerator.generateOne(i,j),
+//        FormulaGenerator.generateOne(i,j),
+//        FormulaGenerator.generateOne(i,j))
+        
+    val goals = Seq(FormulaGenerator.generateExample(0),
+                    FormulaGenerator.generateExample(1),
+                    FormulaGenerator.generateExample(2),
+                    FormulaGenerator.generateExample(3))
 
     println(goals.length)
     
@@ -56,18 +61,19 @@ object ProverExperiment {
       println("Goal: " + g)
       fp.print(g)
       for (p <- provers) {
-        val repetitions = 3
-        val maxtime = 1000 * repetitions
+        val repetitions = 1
+        val maxtime = 1000 * repetitions //milliseconds
         val result = timeout(maxtime) { timed(repetitions) { p._2.prove(g) } } match {
           case Some(timedResult) => timedResult
           case None => Timed(None, 10 * maxtime)
         }
         
+        val resultTimeMS = (result.time * 1000).toInt // microseconds
         println("Prover " + p._1 + ": " +
-                (if (result.result != None) "proved in " + result.time + "microseconds"
-                 else if (result.time > maxtime*1000) "timed out"
-                 else "found no proof in " + result.time + "microseconds" ))
-        fp.print(", " + result.time)
+                (if (result.result != None) "proved in " + resultTimeMS + " microseconds"
+                 else if (result.time > maxtime) "timed out"
+                 else "found no proof in " + resultTimeMS + " microseconds" ))
+        fp.print(", " + resultTimeMS)
         fp.print(", " + (result.result match {
           case None => -1
           case Some(p) => ProofNodeCollection(p).size
