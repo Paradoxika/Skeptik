@@ -1,7 +1,7 @@
 package skeptik.algorithm.generator
 
 import skeptik.expression.E
-import skeptik.expression.formula.{Prop, Imp}
+import skeptik.expression.formula.{Prop, Imp, enrichFormula}
 import util.Random
 
 object FormulaGenerator {
@@ -16,7 +16,7 @@ object FormulaGenerator {
       else Imp(Imp(t(k-1)(e), Prop("C"+k)), Prop("D"+k))  
     val tn = t(n) _
     
-    Imp( Imp(a,b), Imp(tn(a), tn(b)) )
+    (a → b) → (tn(a) → tn(b))
   }
   
   def generateOne(length: Int, numOfSymbols: Int):E = {

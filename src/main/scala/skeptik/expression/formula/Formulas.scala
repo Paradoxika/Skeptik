@@ -9,7 +9,6 @@ abstract class FormulaConstructorExtractor {
 }
 
 
-
 object Prop {
   def apply(name: String) = Var(name, o)
   def unapply(e: E) = e match {
