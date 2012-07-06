@@ -50,7 +50,7 @@ class SimpleProver2[J <: Judgment, P <: Proof[J,P]: ClassManifest](calculus: Cal
       else {
         // TODO: (B) the prover doesn't terminate if "calculus.par" is used.
         for (rule <- calculus; subGoals <- rule(j)) yield {         
-          debug(j); debug("seen subgoals below"); seen.map(debug _); debug(rule); subGoals.map(debug _); debug("")
+          debug(j); debug("subgoals below"); seen.toList.reverse.map(debug _); debug(rule); subGoals.map(debug _); debug("")
           val premises = subGoals.map({subGoal => proveRec(subGoal, seen + j)(d+1)})
           debug("")
           if (!premises.contains(None)) {
