@@ -26,12 +26,13 @@ object ProverExperiment {
   def run(args: Array[String]): Unit = {
     
     val ndProver = new SimpleProver2(Seq(Assumption,ImpI,ImpE))
-    val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))
+    //val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))
+    val ndcProver = new SimpleProver2(Seq(Assumption,ImpI,ImpElimC))
     val ndckProver = new SimpleProver2(Seq(Assumption,ImpIntroCK,ImpElimC))
     
-    val provers = Seq(("ND", ndProver), 
-                      ("NDc", ndcProver), 
-                      ("NDck", ndckProver)
+    val provers = Seq(//("ND", ndProver), 
+                      ("NDc", ndcProver)//, 
+                      //("NDck", ndckProver)
                       )
     
     println()
@@ -44,10 +45,10 @@ object ProverExperiment {
 //        FormulaGenerator.generateOne(i,j))
         
     val goals = Seq(
-                    FormulaGenerator.generateExample(0),
-                    FormulaGenerator.generateExample(1),
-                    FormulaGenerator.generateExample(2),
-                    FormulaGenerator.generateExample(3)
+                    //FormulaGenerator.generateExample(0),
+                    //FormulaGenerator.generateExample(1),
+                    FormulaGenerator.generateExample(2)//,
+                    //FormulaGenerator.generateExample(3)
                     )
 
     println(goals.length)
@@ -65,7 +66,7 @@ object ProverExperiment {
       fp.print(g)
       for (p <- provers) {
         val repetitions = 1
-        val maxtime = 20000 //milliseconds
+        val maxtime = 60000 //milliseconds
         val result = timed(repetitions) { p._2.prove(g, timeout = maxtime) }
         
         val resultTimeMS = (result.time * 1000).toInt // microseconds

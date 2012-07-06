@@ -18,10 +18,6 @@ abstract class InferenceRule[J <: Judgment, P <: Proof[J,P]] {
   def apply(j: J): Seq[Seq[J]] // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.  
 }
 
-abstract class InferenceRuleWithSideEffects[J <: Judgment, P <: Proof[J,P], S] {
-  def apply(premises: Seq[P], conclusion: J)(implicit c: S): Option[P] // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
-  def apply(j: J)(implicit c: S): Seq[Seq[(S,J)]] // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-}
 
 class SimpleProver[J <: Judgment, P <: Proof[J,P]](calculus: Calculus[J,P]) {
   def prove(goal:J) : Option[P] = {
@@ -48,7 +44,7 @@ class SimpleProver2[J <: Judgment, P <: Proof[J,P]: ClassManifest](calculus: Cal
         return None
       } 
       else {
-        val proofs = for (rule <- calculus.par; subGoals <- rule(j).par) yield {         
+        val proofs = for (rule <- calculus; subGoals <- rule(j)) yield {         
           debug(j); debug("subgoals below"); seen.toList.reverse.map(debug _); debug(rule); subGoals.map(debug _); debug("")
           val premises = subGoals.map({subGoal => proveRec(subGoal, seen + j)(d+1)})
           debug("")
@@ -67,32 +63,3 @@ class SimpleProver2[J <: Judgment, P <: Proof[J,P]: ClassManifest](calculus: Cal
     proveRec(goal, Set())(0)
   }
 }
-
-
-class SimpleProver3[J <: Judgment, P <: Proof[J,P]: ClassManifest](calculus: Calculus[J,P]) {
-  def prove(goal:J) : Option[P] = {
-    
-    def proveRec(j: J, seen: Set[J])(implicit d:Int): Option[P] = {
-      if (seen contains j) { // avoids cycles
-        debug(j); debug("seen subgoals below"); seen.map(debug _); debug("seen goal!"); debug("")
-        return None
-      } 
-      else {
-        // TODO: (B) the prover doesn't terminate if "calculus.par" is used.
-        for (rule <- calculus; subGoals <- rule(j).par) yield {         
-          debug(j); debug("subgoals below"); seen.toList.reverse.map(debug _); debug(rule); subGoals.map(debug _); debug("")
-          val premises = subGoals.map({subGoal => proveRec(subGoal, seen + j)(d+1)})
-          debug("")
-          if (!premises.contains(None)) {
-            val proof = rule(premises.map(_.get).seq, j)
-            debug(proof); debug("")
-            if (proof.isInstanceOf[Some[_]]) return proof 
-          }
-        }
-        return None
-      }
-    }
-    proveRec(goal, Set())(0)
-  }
-}
-
