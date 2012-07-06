@@ -12,7 +12,7 @@ import skeptik.proof.natural.ImpElimC
 import skeptik.proof.natural.{ImpIntro => ImpI}
 import skeptik.proof.natural.{ImpIntroC,ImpIntroCK}
 import skeptik.judgment.{Judgment, Sequent, NamedE, NaturalSequent}
-import skeptik.prover.SimpleProver2
+import skeptik.prover.SimpleProver
 import collection.mutable.{Map => MMap}
 import skeptik.util.time._
 
@@ -25,10 +25,10 @@ object ProverExperiment {
 
   def run(args: Array[String]): Unit = {
     
-    val ndProver = new SimpleProver2(Seq(Assumption,ImpI,ImpE))
+    val ndProver = new SimpleProver(Seq(Assumption,ImpI,ImpE))
     //val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))
-    val ndcProver = new SimpleProver2(Seq(Assumption,ImpI,ImpElimC))
-    val ndckProver = new SimpleProver2(Seq(Assumption,ImpIntroCK,ImpElimC))
+    val ndcProver = new SimpleProver(Seq(Assumption,ImpI,ImpElimC))
+    val ndckProver = new SimpleProver(Seq(Assumption,ImpIntroCK,ImpElimC))
     
     val provers = Seq(//("ND", ndProver), 
                       ("NDc", ndcProver)//, 
