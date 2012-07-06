@@ -28,13 +28,13 @@ with SingleMainFormula with Left with NoImplicitContraction
 class AndL(val premise:SequentProof, val auxL:E, val auxR:E)
 extends SequentProof with Unary with TwoAuxFormulas with BothInAnt
 with SingleMainFormula with Left with NoImplicitContraction {
-  val mainFormula = And(auxL,auxR)
+  val mainFormula = auxL ∧ auxR
 }
 
 class AndR(val leftPremise:SequentProof, val rightPremise:SequentProof, val auxL:E, val auxR:E)
 extends SequentProof with Binary with TwoAuxFormulas with OnePerSuccedent
 with NoImplicitContraction with SingleMainFormula with Right  {
-  val mainFormula = And(auxL,auxR)
+  val mainFormula = auxL ∧ auxR
 }
 
 class AllL(val premise:SequentProof, val aux:E, val v:Var, val position:Position)

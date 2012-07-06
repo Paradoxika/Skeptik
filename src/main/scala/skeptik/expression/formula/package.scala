@@ -31,4 +31,12 @@ package object formula {
   
   implicit def enrichFormula(e: E) = new RichFormula(e)
 
+  def neg(f: E) = Neg(f) 
+  def ¬(f: E) = neg(f)
+  
+  def all(v:Var) = (f:E) => All(v,f)
+  def ∀(v:Var) = all(v)
+  
+  def ex(v:Var) = (f:E) => Ex(v,f)
+  def ∃(v:Var) = all(v)
 }
