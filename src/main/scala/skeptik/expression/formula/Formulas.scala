@@ -3,12 +3,12 @@ package formula
 
 import skeptik.expression.position.{Position,PredicatePosition}
 
-abstract class FormulaConstructorExtractor {
+abstract class Formula {
   def unapply(f:E):Option[_]
   def ?:(f: E) = unapply(f).isInstanceOf[Some[_]]
 }
 
-abstract class Binary(connective: Var) extends FormulaConstructorExtractor {
+abstract class BinaryFormula(connective: Var) extends Formula {
   def apply(f1: E, f2: E) = App(App(connective,f1),f2)
   def unapply(e:E) = e match {
     case App(App(c,f1),f2) if c == connective => Some((f1,f2))
@@ -16,7 +16,7 @@ abstract class Binary(connective: Var) extends FormulaConstructorExtractor {
   }  
 }
 
-abstract class Unary(connective: Var) extends FormulaConstructorExtractor {
+abstract class UnaryFormula(connective: Var) extends Formula {
   def apply(f: E) = App(connective,f)
   def unapply(e:E) = e match {
     case App(c,f) if c == connective => Some(f)
@@ -24,7 +24,7 @@ abstract class Unary(connective: Var) extends FormulaConstructorExtractor {
   }  
 }
 
-abstract class Q(quantifierC:T=>E) extends FormulaConstructorExtractor {
+abstract class QuantifierFormula(quantifierC:T=>E) extends Formula {
   def apply(v:Var, f:E) = App(quantifierC(v.t), Abs(v,f))
   def apply(f:E, v:Var, p:Position) = {
     val h = (( (_:E) => v.copy) @: p)(f)
@@ -39,17 +39,17 @@ abstract class Q(quantifierC:T=>E) extends FormulaConstructorExtractor {
 }
 
 
-object Neg extends Unary(negC)
+object Neg extends UnaryFormula(negC)
 
-object And extends Binary(andC)
+object And extends BinaryFormula(andC)
 
-object Or extends Binary(andC)
+object Or extends BinaryFormula(andC)
 
-object Imp extends Binary(impC)
+object Imp extends BinaryFormula(impC)
   
-object All extends Q(allC)  
+object All extends QuantifierFormula(allC)  
 
-object Ex extends Q(exC)
+object Ex extends QuantifierFormula(exC)
 
 
 
