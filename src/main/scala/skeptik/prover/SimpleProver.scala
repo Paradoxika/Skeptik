@@ -6,7 +6,7 @@ import skeptik.proof.ProofNodeCollection
 import skeptik.util.debug._
 import skeptik.util.argMin
 
-
+// ToDo: (B) Use futures and Map from (goal, inference) to future to create DAG-proof!
 class SimpleProver[J <: Judgment, P <: Proof[J,P]: ClassManifest](calculus: Calculus[J,P]) {
   def prove(goal:J, timeout: Long = Long.MaxValue) : Option[P] = {
     val deadline = System.nanoTime + timeout * 1000000 
