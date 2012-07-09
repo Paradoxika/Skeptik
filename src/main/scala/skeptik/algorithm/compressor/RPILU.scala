@@ -4,8 +4,9 @@ import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
+import skeptik.judgment.immutable.{SetSequent => IClause}
 import skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
+import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractRPILUAlgorithm
@@ -78,30 +79,30 @@ extends Function1[SequentProof,SequentProof] {
 abstract class AbstractRPIAlgorithm
 extends AbstractRPILUAlgorithm {
   def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
+                          childrensSafeLiterals: List[(SequentProof, IClause)],
                           edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, Set[E], Set[E])) => (Set[E],Set[E])
-                          ) : (Set[E],Set[E])
+                          safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
+                          ) : IClause
 }
 
 trait CollectEdgesUsingSafeLiterals
 extends AbstractRPIAlgorithm {
   def collectEdgesToDelete(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
-      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
-        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
-        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
-        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
+        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
+        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
+        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
-      val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
       p match {
-        case CutIC(_,_,auxL,_) if safeR contains auxL => edgesToDelete.update(p, RightDS)
-        case CutIC(_,_,_,auxR) if safeL contains auxR => edgesToDelete.update(p, LeftDS)
+        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.update(p, RightDS)
+        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.update(p, LeftDS)
         case _ =>
       }
-      (p, safeL, safeR)
+      (p, safeLiterals)
     }
     nodeCollection.bottomUp(visit)
     edgesToDelete
@@ -128,16 +129,13 @@ extends AbstractRPILUAlgorithm {
 trait Intersection
 extends AbstractRPIAlgorithm {
   def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
+                          childrensSafeLiterals: List[(SequentProof, IClause)],
                           edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, Set[E], Set[E])) => (Set[E],Set[E])
-                          ) : (Set[E],Set[E]) = {
+                          safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
+                          ) : IClause = {
     childrensSafeLiterals.filter { x => !childIsMarkedToDeleteParent(x._1, proof, edgesToDelete)} match {
-      case Nil  => (Set[E](proof.conclusion.ant:_*), Set[E](proof.conclusion.suc:_*))
-      case h::t => t.foldLeft(safeLiteralsFromChild(h)) { (acc, v) =>
-        val (safeL, safeR) = safeLiteralsFromChild(v)
-        (acc._1 intersect safeL, acc._2 intersect safeR)
-      }
+      case Nil  => IClause(proof.conclusion)
+      case h::t => t.foldLeft(safeLiteralsFromChild(h)) { (acc, v) => acc intersect safeLiteralsFromChild(v) }
     }
   }
 }

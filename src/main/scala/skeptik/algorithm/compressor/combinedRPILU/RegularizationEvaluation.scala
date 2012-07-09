@@ -5,8 +5,9 @@ import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
+import skeptik.judgment.immutable.{SetSequent => IClause}
 import skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
+import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 class RegularizationInformation (val nodeSize: Float, val leftMap: Map[E,Float], val rightMap: Map[E,Float]) {
@@ -38,7 +39,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
   def lowerInsteadOfRegularize(proof: SequentProof,
                                currentChildrenNumber: Int,
                                information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])         ):Boolean
+                               safeLiterals: IClause                 ):Boolean
   
   // Main functions
 
@@ -47,7 +48,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     val units = scala.collection.mutable.Queue[SequentProof]()
     val informationMap = collectInformationMap(nodeCollection)
 
-    def isTrueUnit(p: SequentProof, safeLiterals: (Set[E],Set[E])) =
+    def isTrueUnit(p: SequentProof, safeLiterals: IClause) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
         val currentChildrenNumber = nodeCollection.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
@@ -55,31 +56,31 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         (currentChildrenNumber > 1) && (lowerInsteadOfRegularize(p, currentChildrenNumber, informationMap(p), safeLiterals))
       }
 
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
-      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
-        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
-        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
-        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
+        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
+        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
+        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
-      val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
       def regularize(position: DeletedSide) = {
         edgesToDelete.update(p, position)
-        (p, safeL, safeR)
+        (p, safeLiterals)
       }
       def lower() = {
         units.enqueue(p)
         deleteFromChildren(p, nodeCollection, edgesToDelete)
         if (fakeSize(p.conclusion.ant) == 1)
-          (p, Set(p.conclusion.ant(0)), Set[E]())
+          (p, new IClause(Set(p.conclusion.ant(0)), Set[E]()))
         else
-          (p, Set[E](), Set(p.conclusion.suc(0)))
+          (p, new IClause(Set[E](), Set(p.conclusion.suc(0))))
       }
       p match {
-        case p if isTrueUnit(p, (safeL,safeR)) => lower()
-        case CutIC(_,_,_,auxR) if safeL contains auxR => regularize(LeftDS)
-        case CutIC(_,_,auxL,_) if safeR contains auxL => regularize(RightDS)
-        case p => (p, safeL, safeR)
+        case p if isTrueUnit(p, safeLiterals) => lower()
+        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => regularize(LeftDS)
+        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => regularize(RightDS)
+        case p => (p, safeLiterals)
       }
     }
 
@@ -191,9 +192,9 @@ trait RegularizeIfPossible extends RegularizationEvaluation {
   def lowerInsteadOfRegularize(proof: SequentProof,
                                currentChildrenNumber: Int,
                                information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
-    val ret = !(safeLiterals._1.exists(information.leftMap  contains _) ||
-      safeLiterals._2.exists(information.rightMap contains _)   )
+                               safeLiterals: IClause                  ):Boolean = {
+    val ret = !(safeLiterals.ant.exists(information.leftMap  contains _) ||
+                safeLiterals.suc.exists(information.rightMap contains _)   )
 //    println("Irregular unit " + proof.conclusion + " with " + currentChildrenNumber + " children: " + ret)
     ret
   }
@@ -207,7 +208,7 @@ extends RegularizationEvaluation {
   def lowerInsteadOfRegularize(proof: SequentProof,
                                currentChildrenNumber: Int,
                                information: RegularizationInformation,
-                               safeLiterals: (Set[E],Set[E])          ):Boolean = {
+                               safeLiterals: IClause                  ):Boolean = {
     def foldFunction(info: Map[E,Float])(acc: Float, k: E) =
       if (info contains k) {
         val nval = info(k)
@@ -215,8 +216,8 @@ extends RegularizationEvaluation {
       }
       else acc
     val regularizeGain =
-      safeLiterals._1.foldLeft(0..toFloat)(foldFunction(information.leftMap))  +
-      safeLiterals._2.foldLeft(0..toFloat)(foldFunction(information.rightMap))
+      safeLiterals.ant.foldLeft(0..toFloat)(foldFunction(information.leftMap))  +
+      safeLiterals.suc.foldLeft(0..toFloat)(foldFunction(information.rightMap))
 //    println("Clever " + proof.conclusion + " with " + currentChildrenNumber + " children, size " +
 //            information.nodeSize + " reg " + regularizeGain)
     lowerInsteadOfRegularizeChooseOnWeight((currentChildrenNumber - 1).toFloat, regularizeGain)

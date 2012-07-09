@@ -5,41 +5,41 @@ import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
+import skeptik.judgment.immutable.{SetSequent => IClause}
 import skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
+import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractThreePassLower
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):((Set[E],Set[E]), Seq[SequentProof], Map[SequentProof,(Set[E],Set[E])])
+  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,IClause])
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     val (rootSafeLiterals, units, unitsMap) = collectUnits(nodeCollection)
 
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
-      def makeTriple(safeLiterals: (Set[E],Set[E])) = (p, safeLiterals._1, safeLiterals._2)
-      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
-        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
-        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
-        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
+        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
+        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
+        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
       if (unitsMap contains p) {
         deleteFromChildren(p, nodeCollection, edgesToDelete)
 //        println("Unit " + p.conclusion + " " + unitsMap(p))
-        makeTriple(unitsMap(p))
+        (p, unitsMap(p))
       }
-      else if (childrensSafeLiterals == Nil) makeTriple(rootSafeLiterals)
+      else if (childrensSafeLiterals == Nil) (p, rootSafeLiterals)
       else {
-        val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+        val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
         p match {
-            case CutIC(_,_,_,auxR) if safeL contains auxR => edgesToDelete.update(p, LeftDS)
-            case CutIC(_,_,auxL,_) if safeR contains auxL => edgesToDelete.update(p, RightDS)
+            case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.update(p, LeftDS)
+            case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.update(p, RightDS)
             case _ =>
         }
-        (p, safeL, safeR)
+        (p, safeLiterals)
       }
     }
 
@@ -63,13 +63,14 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 class ThreePassLower
 extends AbstractThreePassLower {
   def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val map = MMap[SequentProof, (Set[E],Set[E])]()
+    val map = MMap[SequentProof, IClause]()
     val units = scala.collection.mutable.Stack[SequentProof]()
-    val rootSafeLiterals = nodeCollection.foldRight ((Set[E](), Set[E]())) { (p, set) =>
+    val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
       (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(nodeCollection.childrenOf(p))) match {
-        case (1,0,2) => units.push(p) ; map.update(p, (set._1 + p.conclusion.ant(0), set._2)) ; (set._1, set._2 + p.conclusion.ant(0))
-        case (0,1,2) => units.push(p) ; map.update(p, (set._1, set._2 + p.conclusion.suc(0))) ; (set._1 + p.conclusion.suc(0), set._2)
-        case _ => set
+        // TODO : should I add the unit's literal to safeLiterals to be transmited to unit's premises ?
+        case (1,0,2) => units.push(p) ; map.update(p, safeLiterals) ; safeLiterals + p.conclusion.ant(0)
+        case (0,1,2) => units.push(p) ; map.update(p, safeLiterals) ; p.conclusion.suc(0) +: safeLiterals
+        case _ => safeLiterals
       }
     }
     (rootSafeLiterals, units, map)

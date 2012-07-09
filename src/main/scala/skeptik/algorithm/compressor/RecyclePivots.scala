@@ -4,6 +4,7 @@ import skeptik.proof.sequent._
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
+import skeptik.judgment.immutable.{SetSequent => IClause}
 import skeptik.expression._
 import collection.mutable.{HashMap => MMap}
 import collection.Map
@@ -21,14 +22,14 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
 trait outIntersection
 extends AbstractRPIAlgorithm {
   def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])],
+                          childrensSafeLiterals: List[(SequentProof, IClause)],
                           edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, Set[E], Set[E])) => (Set[E],Set[E])
-                          ) : (Set[E],Set[E]) =
+                          safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
+                          ) : IClause =
     if (childrensSafeLiterals.length == 1)
       safeLiteralsFromChild(childrensSafeLiterals.head)
     else
-      (Set[E](), Set[E]())
+      IClause()
 }
 
 trait MinConclusionHeuristic

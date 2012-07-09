@@ -5,6 +5,7 @@ import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
+import skeptik.judgment.immutable.{SetSequent => IClause}
 import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
 import scala.collection.Map
@@ -30,31 +31,31 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     val isTrueUnit = isUnitAndSomething { (_,_) => true } _
 
 
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, Set[E], Set[E])]) = {
-      def safeLiteralsFromChild(v:(SequentProof, Set[E], Set[E])) = v match {
-        case (p, safeL, safeR) if edgesToDelete contains p => (safeL, safeR)
-        case (CutIC(left,_,_,auxR),  safeL, safeR) if left  == p => (safeL, safeR + auxR)
-        case (CutIC(_,right,auxL,_), safeL, safeR) if right == p => (safeL + auxL, safeR)
+    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
+        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
+        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
+        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
-      val (safeL,safeR) = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
       def regularize(position: DeletedSide) = 
         if (isUnitToLower(p)) lower() else {
           edgesToDelete.update(p, position)
-          (p, safeL, safeR)
+          (p, safeLiterals)
         }
       def lower() = {
         units.enqueue(p)
         deleteFromChildren(p, nodeCollection, edgesToDelete)
         if (fakeSize(p.conclusion.ant) == 1)
-          (p, Set(p.conclusion.ant(0)), Set[E]())
+          (p, new IClause(Set(p.conclusion.ant(0)), Set[E]()))
         else
-          (p, Set[E](), Set(p.conclusion.suc(0)))
+          (p, new IClause(Set[E](), Set(p.conclusion.suc(0))))
       }
       p match {
-        case CutIC(_,_,_,auxR) if safeL contains auxR => regularize(LeftDS)
-        case CutIC(_,_,auxL,_) if safeR contains auxL => regularize(RightDS)
-        case p => if (isTrueUnit(p)) lower() else (p, safeL, safeR)
+        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => regularize(LeftDS)
+        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => regularize(RightDS)
+        case p => if (isTrueUnit(p)) lower() else (p, safeLiterals)
       }
     }
 
