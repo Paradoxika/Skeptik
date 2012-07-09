@@ -61,7 +61,7 @@ object FormulaGenerator {
   
   def generateAll(length: Int, numOfSymbols: Int) = {
     
-    def growLists(lists: Seq[List[E]]) = (for (l <- lists.view) yield {
+    def growLists(lists: Seq[List[E]]) = (for (l <- lists) yield {
       val numOfSymbolsInList = l.distinct.length
       val numOfSymbolsToTake = if (numOfSymbolsInList < numOfSymbols) numOfSymbolsInList + 1 else numOfSymbols
       for (a <- atoms.take(numOfSymbolsToTake).view) yield a::l        
