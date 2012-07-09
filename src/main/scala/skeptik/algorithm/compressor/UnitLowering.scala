@@ -27,7 +27,7 @@ object NewUnitLowering extends Function1[SequentProof,SequentProof] {
         case Axiom(conclusion) => Axiom(conclusion)
         case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
         case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
-        case CutIC(left,right,auxL,auxR) => CutIC(fixedLeft, fixedRight, auxL, auxR)
+        case CutIC(left,right,aux,_) => CutIC(fixedLeft, fixedRight, _ == aux)
       }
       if (p == proofs.root || unitsSet.contains(p)) fixMap.update(p, fixedP)
       fixedP

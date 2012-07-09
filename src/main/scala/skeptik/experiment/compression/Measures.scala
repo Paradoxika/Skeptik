@@ -39,7 +39,7 @@ extends Map[String,Double] with MapLike[String,Double,Report] {
     ( for ((k,v) <- m ; if (k != "num"))
       yield {
         val dotPos = k.indexOf('.')
-        val valStr = String.format("%.2f", double2Double(v/m("num")))
+        val valStr = String.format("%.3f", double2Double(v/m("num")))
         if (dotPos >= 0)
             k.substring(0, dotPos) + " " + valStr + " " + k.substring(dotPos+1)
         else
