@@ -6,9 +6,38 @@ import collection.mutable.Stack
 import skeptik.expression._
 import skeptik.util.unicode._
 import skeptik.expression.formula._
-  
-// TODO: (B) Make Sequent a proper Scala collection
 
+
+abstract class ASequent extends Judgment {
+  type Cedent = {
+    def contains(e: E): Boolean
+    def size: Int
+    def mkString(sep: String): String
+  }
+  def ant: Cedent
+  def suc: Cedent
+ 
+  def contains(f:E) = (ant contains f) || (suc contains f)
+  
+  def contains(e: Either[E,E]) = e match {
+    case Left(f) => ant contains f
+    case Right(f) => suc contains f
+  }
+  
+  def size = ant.size + suc.size + 1
+ 
+  override def equals(v:Any) = v match {    
+      case that: ASequent => (that canEqual this) && (ant == that.ant) && (suc == that.suc) 
+      case _ => false   
+  }   
+  def canEqual(other: Any) = other.isInstanceOf[ASequent]
+  
+  override def hashCode = 42*ant.hashCode + suc.hashCode
+  override def toString = ant.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + suc.mkString(", ")
+}
+
+// TODO: (B) Move this class to the immutable package
+// TODO: (B) change the type of ant and suc to Seq[E]
 class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
 	def contains(f:E) = (ant contains f) || (suc contains f)
 	def exists(p:E=>Boolean) = ant.exists(p) || suc.exists(p)
@@ -36,7 +65,9 @@ class Sequent(val ant:List[E], val suc:List[E]) extends Judgment {
   override def toString = ant.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + suc.mkString(", ")
   def toSet: ISet[E] = ISet() ++ ant.map(f => Neg(f)) ++ suc
 }
+// ToDo: (B) clean this companion object
 object Sequent {
+  def apply(ant:E*)(suc:E*) = new Sequent(ant.toList, suc.toList)
   def apply(ant:List[E], suc:List[E]) = new Sequent(ant,suc)
   def apply(ant:List[E], suc:E) = new Sequent(ant,suc::Nil)
   def apply(ant:E, suc:List[E]) = new Sequent(ant::Nil,suc)

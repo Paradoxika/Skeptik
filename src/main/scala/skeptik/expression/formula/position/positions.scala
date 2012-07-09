@@ -18,7 +18,7 @@ class IntListPosition(list: List[Int]) extends Position {
   
   override def getSubpositions(formula: E) : Seq[IntListPosition] = {  
     def rec(e: E):Seq[List[Int]] = e match {
-      case v @ Prop(name) => Seq(Nil)
+      case v @ Var(name,t) => Seq(Nil)
       case i @ Imp(a,b) => Seq(Nil) ++ rec(a).map(1::_) ++ rec(b).map(0::_)
     }
     rec(formula).map(l => new IntListPosition(this.list ::: l))

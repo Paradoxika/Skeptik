@@ -1,0 +1,6 @@
+Strange Behaviours
+
+Goal: (((((B → D) → D) → D) → (B → B)) → ((((B → A) → (C → ((B → A) → (A → B)))) → D) → ((C → D) → ((B → (D → A)) → (C → (B → A))))))
+Prover ND: found no proof in 545 microseconds
+Prover NDc: proved in 45483 microseconds
+Prover NDck: proved in 2297 microseconds

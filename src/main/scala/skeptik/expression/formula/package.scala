@@ -1,12 +1,13 @@
 package skeptik.expression
-
-import skeptik.util.unicode._
-
 package object formula {
-  val andS = unicodeOrElse("\u2227","&")
+  import skeptik.util.unicode._
+
+  // Logical Symbols and Connectives
+  
+  val andS = unicodeOrElse("\u2227","&") // "∧"
   def andC = new Var(andS, o -> (o -> o)) with Infix
   
-  val orS = unicodeOrElse("\u2228","&")
+  val orS = unicodeOrElse("\u2228","|")
   def orC = new Var(orS, o -> (o -> o)) with Infix
   
   val impS = unicodeOrElse("\u2192","->")
@@ -26,4 +27,16 @@ package object formula {
                       n == allS || n == exS || n == negS) => true
     case _ => false
   }
+  
+  
+  implicit def enrichFormula(e: E) = new RichFormula(e)
+
+  def neg(f: E) = Neg(f) 
+  def ¬(f: E) = neg(f)
+  
+  def all(v:Var) = (f:E) => All(v,f)
+  def ∀(v:Var) = all(v)
+  
+  def ex(v:Var) = (f:E) => Ex(v,f)
+  def ∃(v:Var) = all(v)
 }

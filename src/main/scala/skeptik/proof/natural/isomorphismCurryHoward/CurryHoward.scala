@@ -2,17 +2,17 @@ package skeptik.proof.natural
 package isomorphismCurryHoward
 
 import skeptik.expression._
-import skeptik.expression.formula.{Prop, Imp}
+import skeptik.expression.formula.Imp
 import skeptik.judgment.{NamedE, NaturalSequent}
 
 object CurryHoward {
   def formulaToType(formula: E): T = formula match {
-    case Prop(n) => AtomicType(n)
+    case Var(n,t) => AtomicType(n)
     case Imp(a,b) => Arrow(formulaToType(a),formulaToType(b))
   }
 
   def typeToFormula(t: T): E = t match {
-    case AtomicType(n) => Prop(n) 
+    case AtomicType(n) => n^o 
     case Arrow(a,b) => Imp(typeToFormula(a),typeToFormula(b))
   }
   

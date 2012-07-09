@@ -210,7 +210,7 @@ object Experimenter {
     println("------------------------------------------------------------")
   }
 
-  def main(args: Array[String]): Unit =
+  def run(args: Array[String]): Unit =
   {
     val mapOptions = Map(
       "a" -> "algos"

@@ -65,6 +65,8 @@ extends NaturalDeductionProof with Binary {
 abstract class ImpIntroCRule extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
   def apply(premise: NaturalDeductionProof, assumption: NamedE, position: Position): NaturalDeductionProof
   
+  // ToDo: (B) A much more efficient implementation is possible in the intuitionistic case,
+  // because positivePositions contains many positions that do not satisfy the soundness condition
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: NaturalSequent): Seq[Seq[NaturalSequent]] = {
     val positivePositions = EmptyP.getSubpositions(j.e).filter(_.isPositiveIn(j.e))
@@ -156,7 +158,7 @@ object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
                 
                 if (!bOccursPositivelyInA) {
                   val auxL = (((_:E) => a) @: leftP)(auxLBase)
-                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(j.context,auxR))
+                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
                 }
               }
               case _ => 

@@ -1,6 +1,7 @@
 package skeptik.expression
 package substitution
 
+//ToDo: (B) Take care of bound variable renaming, in order to avoid variable capture. 
 abstract class AbstractSubstitution {
   protected def m: Map[Var,E]
   def apply(e: E) = {
