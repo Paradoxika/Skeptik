@@ -5,6 +5,7 @@ import skeptik.proof.ProofNodeCollection
 import skeptik.proof.sequent._
 import skeptik.proof.sequent.lk._
 import skeptik.judgment._
+import skeptik.judgment.mutable._
 import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
 import scala.collection.Map
@@ -16,54 +17,52 @@ package pseudoUnits {
   case object DeletableNode extends NodeKind
   case object OrdinaryNode  extends NodeKind
 
-  class CheckIfPseudoUnit
+  object isPseudoUnit
   {
-
-    val literalsDeletedByUnits = (MSet[E](),MSet[E]())
-
-    private def append(literal: Either[E,E]) = literal match {
-      case Left(v)  => literalsDeletedByUnits._1.add(v)
-      case Right(v) => literalsDeletedByUnits._2.add(v)
-    }
-
-    def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof]):NodeKind = {
-      val literals = literalsIntroducedByDeletion(newProof, oldProof, children)
+    def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof], principalLiterals: SetSequent):NodeKind = {
+      val literals = literalsIntroducedByDeletion(newProof, oldProof, children, principalLiterals)
   //      println("Remaining Literals " + literals)
-      (literals._1.size, literals._2.size) match {
+      (literals.ant.size, literals.suc.size) match {
         case (0,0) => DeletableNode
-        case (0,1) => checkLiteralsIntroducedByLowering(newProof, Left(literals._2.head))
-        case (1,0) => checkLiteralsIntroducedByLowering(newProof, Right(literals._1.head))
+        case (1,0) => checkLiteralsIntroducedByLowering(newProof, Left(literals.ant.head),  principalLiterals)
+        case (0,1) => checkLiteralsIntroducedByLowering(newProof, Right(literals.suc.head), principalLiterals)
         case _ => OrdinaryNode
       }
     }
-    def apply(proof: SequentProof, children: List[SequentProof]):NodeKind =
-        apply(proof, proof, children)
+    def apply(proof: SequentProof, children: List[SequentProof], principalLiterals: SetSequent):NodeKind =
+        apply(proof, proof, children, principalLiterals)
 
-    private def literalsIntroducedByDeletion(newProof: SequentProof, oldProof: SequentProof, children: Seq[SequentProof]) = {
-      val literalsIntroducedByDeletion =
-        children.foldLeft((Set[E](),Set[E]())) { (setPair, child) =>
+    private def literalsIntroducedByDeletion(newProof: SequentProof, oldProof: SequentProof,
+                                             children: Seq[SequentProof], principalLiterals: SetSequent) = {
+      val result = SetSequent()
+      children.foreach { (child) =>
           child match {
-            case CutIC(left, right, aux, _) if left  == oldProof => (setPair._1 + aux, setPair._2)
-            case CutIC(left, right, aux, _) if right == oldProof => (setPair._1, setPair._2 + aux)
-            case _ => setPair
+          case CutIC(left, right, aux, _) if left  == oldProof =>
+//            if (!(principalLiterals.suc contains aux) && (newProof.conclusion.suc contains aux)) result += aux
+//            if (!(newProof.conclusion.suc contains aux)) println(aux + " in " + oldProof.conclusion + " but not in " + newProof.conclusion)
+            if (!(principalLiterals.suc contains aux)) result += aux
+          case CutIC(left, right, aux, _) if right == oldProof =>
+//            if (!(principalLiterals.ant contains aux) && (newProof.conclusion.ant contains aux)) aux =+: result
+//            if (!(newProof.conclusion.ant contains aux)) println(aux + " in " + oldProof.conclusion + " but not in " + newProof.conclusion)
+            if (!(principalLiterals.ant contains aux)) aux =+: result
+          case _ =>
           }
-        }
-        (literalsIntroducedByDeletion._1 -- literalsDeletedByUnits._2,
-          literalsIntroducedByDeletion._2 -- literalsDeletedByUnits._1)
+      }
+      result
     }
 
-    private def checkLiteralsIntroducedByLowering(proof: SequentProof, remainingLiteral: Either[E,E]) = {
-      val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet -- literalsDeletedByUnits._2,
-                                          proof.conclusion.suc.toSet -- literalsDeletedByUnits._1)
+    private def checkLiteralsIntroducedByLowering(proof: SequentProof, remainingLiteral: Either[E,E], principalLiterals: SetSequent) = {
+      val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet -- principalLiterals.suc,
+                                           proof.conclusion.suc.toSet -- principalLiterals.ant)
       (leftLiterals.size, rightLiterals.size, remainingLiteral) match {
-        case (1,0,Left(literal))  if leftLiterals.head  == literal => append(remainingLiteral) ; PseudoUnit(remainingLiteral)
-        case (0,1,Right(literal)) if rightLiterals.head == literal => append(remainingLiteral) ; PseudoUnit(remainingLiteral)
+        case (1,0,Left(literal))  if leftLiterals.head  == literal => principalLiterals += remainingLiteral ; PseudoUnit(remainingLiteral)
+        case (0,1,Right(literal)) if rightLiterals.head == literal => principalLiterals += remainingLiteral ; PseudoUnit(remainingLiteral)
         case _ => OrdinaryNode
       }
     }
 
-  } // class CheckIfPseudoUnit
-} // object pseudoUnits
+  } // object isPseudoUnit
+} // package pseudoUnits
 
 import pseudoUnits._
 
@@ -87,13 +86,13 @@ extends AbstractRPILUAlgorithm with LeftHeuristic {
 class PseudoUnits (minNumberOfChildren: Int)
 extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
   def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val isPseudoUnit = new CheckIfPseudoUnit()
+    val principalLiterals = SetSequent()
     var units   = LList[SequentProof]()
     val unitMap = MMap[SequentProof, LList[SequentProof]]()
     nodeCollection.foreachDown { (p) =>
       val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) >= minNumberOfChildren) {
-        isPseudoUnit(p, children) match {
+        isPseudoUnit(p, children, principalLiterals) match {
           case PseudoUnit(_) =>
             units = new LList(p, units)
             unitMap.update(p, units)
@@ -121,12 +120,12 @@ extends AbstractRPILUAlgorithm with LeftHeuristic {
   def fixProofAndLowerUnits(minNumberOfChildren: Int, nodeCollection: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
 
     var units = List[SequentProof]()
-    val isPseudoUnit = new CheckIfPseudoUnit()
+    val principalLiterals = SetSequent()
 
     def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
       val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
       val children = nodeCollection.childrenOf(oldProof) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
-      if (fakeSize(children) >= minNumberOfChildren) isPseudoUnit(newProof, oldProof, children) match {
+      if (fakeSize(children) >= minNumberOfChildren) isPseudoUnit(newProof, oldProof, children, principalLiterals) match {
         case PseudoUnit(_) => units ::= newProof ; deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
         case DeletableNode => deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
         case _ =>
@@ -161,13 +160,13 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with PseudoUnits
 class PseudoUnitsBefore (minNumberOfChildren: Int)
 extends AbstractThreePassLower {
   def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val isPseudoUnit = new CheckIfPseudoUnit()
+    val principalLiterals = SetSequent()
     var units = List[SequentProof]()
     val map = MMap[SequentProof, (Set[E],Set[E])]()
     val rootSafeLiterals = nodeCollection.foldRight ((Set[E](), Set[E]())) { (p, set) =>
       val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) < minNumberOfChildren) set else
-        isPseudoUnit(p, children) match {
+        isPseudoUnit(p, children, principalLiterals) match {
           case PseudoUnit(Left(l))  => units ::= p ; map.update(p,set) ; (set._1, set._2 + l)
           case PseudoUnit(Right(l)) => units ::= p ; map.update(p,set) ; (set._1 + l, set._2)
           case _ => set
