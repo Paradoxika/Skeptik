@@ -2,6 +2,7 @@ package skeptik.experiment.compression
 
 import scala.Array.canBuildFrom
 import skeptik.algorithm.compressor._
+import skeptik.algorithm.compressor.combinedRPILU._
 import skeptik.proof.ProofNodeCollection
 import skeptik.proof.oldResolution.{Proof => OldProof}
 import skeptik.proof.sequent.SequentProof
@@ -53,29 +54,44 @@ object WrappedAlgorithmFactory {
         (p:OldProof) => UnitLowering.lowerUnits(ProofFixing.fix(Regularization.recyclePivotsWithIntersection(p))))
 
   val newRP   = SimpleSequentAlgorithm("new  RP ", new RecyclePivots with outIntersection with LeftHeuristic)
-  val newRPI  = SimpleSequentAlgorithm("new  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val optRPI  = SimpleSequentAlgorithm("opt  RPI", new RecyclePivots with OptimizedIntersection with LeftHeuristic)
-  val concRPI = SimpleSequentAlgorithm("conc RPI", new RecyclePivots with OptimizedIntersection with MinConclusionHeuristic)
-  val sizeRPI = SimpleSequentAlgorithm("size RPI", new RecyclePivots with OptimizedIntersection with MinProofHeuristic)
-  val nsRPI   = SimpleSequentAlgorithm("nsiz RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+  val newRPI  = SimpleSequentAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
+  val concRPI = SimpleSequentAlgorithm("conc RPI", new RecyclePivots with Intersection with MinConclusionHeuristic)
+  val sizeRPI = SimpleSequentAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
 
   val oldRPIr  = RepeatOldAlgorithm("old  RPI",
         (p:OldProof) => ProofFixing.fixTopDown(Regularization.recyclePivotsWithIntersection(p)))
-  val newRPIr  = RepeatSequentAlgorithm("new  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val optRPIr  = RepeatSequentAlgorithm("opt  RPI", new RecyclePivots with OptimizedIntersection with LeftHeuristic)
-  val sizeRPIr = RepeatSequentAlgorithm("size RPI", new RecyclePivots with OptimizedIntersection with MinProofHeuristic)
-  val combinedr= RepeatSequentAlgorithm("comb RPI", new CombinedRPILU with CombinedIntersection with LeftHeuristicC)
+  val newRPIr  = RepeatSequentAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
+  val sizeRPIr = RepeatSequentAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
 
   val newRPILU = SimpleSequentAlgorithm("new RPILU", { (p:SequentProof) =>
-    (new RecyclePivots with OptimizedIntersection with LeftHeuristic)(NewUnitLowering(p)) })
+    (new RecyclePivots with Intersection with LeftHeuristic)(NewUnitLowering(p)) })
   val newLURPI = SimpleSequentAlgorithm("new LURPI", { (p:SequentProof) =>
-    NewUnitLowering((new RecyclePivots with OptimizedIntersection with LeftHeuristic)(p)) })
+    NewUnitLowering((new RecyclePivots with Intersection with LeftHeuristic)(p)) })
+  val nLURPILU = SimpleSequentAlgorithm("nLURPILU", { (p:SequentProof) =>
+    val lu = NewUnitLowering
+    val rpi = new RecyclePivots with Intersection with LeftHeuristic
+    lu(rpi(lu(p)))
+  })
 
-  val combined = SimpleSequentAlgorithm("comb Reg", new CombinedRPILU with CombinedIntersection with LeftHeuristicC)
-  val combLower= SimpleSequentAlgorithm("comb Low", new AlwaysLowerInitialUnits with LeftHeuristicC)
+  val lowPsUn = SimpleSequentAlgorithm("low PsUn", new PseudoUnits(2))
+  val lowPsU1 = SimpleSequentAlgorithm("low PsU1", new PseudoUnits(1))
+  val onePsUn = SimpleSequentAlgorithm("one PsUn", new OnePassPseudoUnits(2))
+  val onePsU1 = SimpleSequentAlgorithm("one PsU1", new OnePassPseudoUnits(1))
 
-  val weakReg = SimpleSequentAlgorithm("Weak Reg", new WeakCombined with AlwaysRegularize with CombinedIntersection with LeftHeuristicC)
-  val weakLow = SimpleSequentAlgorithm("Weak Low", new WeakCombined with AlwaysLower      with CombinedIntersection with LeftHeuristicC)
+  val psunReg = SimpleSequentAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
+  val psunOne = SimpleSequentAlgorithm("PsUn One", new PseudoUnitsAfter(1))
+  val psunLow = SimpleSequentAlgorithm("PsUn Low", new PseudoUnitsBefore(2))
+  val psunLo1 = SimpleSequentAlgorithm("PsUn Lo1", new PseudoUnitsBefore(1))
+
+  val irunReg = SimpleSequentAlgorithm("IrUn Reg", new IrregularUnits with AlwaysRegularizeIrregularUnits)
+  val irunLow = SimpleSequentAlgorithm("IrUn Low", new IrregularUnits with AlwaysLowerIrregularUnits     )
+
+  val reMinReg = SimpleSequentAlgorithm("ReMinReg", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinRegularizationChoice)
+  val reMinLow = SimpleSequentAlgorithm("ReMinLow", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinLoweringChoice)
+  val reRegula = SimpleSequentAlgorithm("reRegula", new RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible)
+  val reQuadra = SimpleSequentAlgorithm("reQuadra", new MinRegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice)
+
+  val threeLow = SimpleSequentAlgorithm("3passLow", new ThreePassLower)
 
   val allAlgos = List(
     oldUnitLowering,
@@ -99,21 +115,29 @@ object WrappedAlgorithmFactory {
     "RPILU" -> oldRPILU,
     "ULRPI" -> oldLURPI,
     "LURPI" -> oldLURPI,
-    "oRPI"  -> optRPI,
     "cRPI"  -> concRPI,
     "sRPI"  -> sizeRPI,
-    "nsRPI"  -> nsRPI,
     "RPIr"  -> oldRPIr,
     "nRPIr" -> newRPIr,
-    "oRPIr" -> optRPIr,
     "sRPIr" -> sizeRPIr,
-    "comb"  -> combined,
-    "combL" -> combLower,
-    "combr" -> combinedr,
     "nLURPI"-> newLURPI,
     "nRPILU"-> newRPILU,
-    "wReg"  -> weakReg,
-    "wLow"  -> weakLow
+    "nLURPILU" -> nLURPILU,
+    "lowPsUn"  -> lowPsUn,
+    "onePsU1"  -> onePsU1,
+    "onePsUn"  -> onePsUn,
+    "lowPsU1"  -> lowPsU1,
+    "psUnReg"  -> psunReg,
+    "psUnOne"  -> psunOne,
+    "psUnLow"  -> psunLow,
+    "psUnLo1"  -> psunLo1,
+    "irUnReg"  -> irunReg,
+    "irUnLow"  -> irunLow,
+    "reMinReg" -> reMinReg,
+    "reMinLow" -> reMinLow,
+    "reRegula" -> reRegula,
+    "reQuadra" -> reQuadra,
+    "3passLow" -> threeLow
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =

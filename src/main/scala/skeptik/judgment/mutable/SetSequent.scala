@@ -17,5 +17,7 @@ class SetSequent(val ant:MSet[E], val suc:MSet[E]) extends ASequent {
   }
 }
 
-
+object SetSequent {
+  def apply() = new SetSequent(MSet(), MSet())
+}
 
