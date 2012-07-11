@@ -10,15 +10,15 @@ By providing smaller resolution proofs that are easier and faster to check, Skep
 
 ##Usage Instructions##
 
-You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) installed.
+You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) installed. 
+Then go to Skeptik's root directory using the terminal and simply execute:
 
-Then, in Skeptik's root directory, simply type:
-
-```bash
+```
   sbt run
 ```
 
-Further instructions will be shown to you.
+Further instructions, such as necessary command-line arguments, will be shown to you.
+If you face any difficulty, do not hesitate to contact us.
 
 
 ##Stats##
