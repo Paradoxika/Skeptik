@@ -14,7 +14,7 @@ You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) i
 
 Then, in Skeptik's root directory, simply type:
 
-```
+```bash
   sbt run
 ```
 
