@@ -93,6 +93,9 @@ object WrappedAlgorithmFactory {
 
   val threeLow = SimpleSequentAlgorithm("3passLow", new ThreePassLower)
 
+  val rednrec  = SimpleSequentAlgorithm("rednrec ", new ReduceAndReconstruct)
+  val rednrecr = RepeatSequentAlgorithm("rednrecr", new ReduceAndReconstruct)
+
   val allAlgos = List(
     oldUnitLowering,
     newUnitLowering,
@@ -137,7 +140,9 @@ object WrappedAlgorithmFactory {
     "reMinLow" -> reMinLow,
     "reRegula" -> reRegula,
     "reQuadra" -> reQuadra,
-    "3passLow" -> threeLow
+    "3passLow" -> threeLow,
+    "rednrec"  -> rednrec,
+    "rednrecr" -> rednrecr
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =
