@@ -94,7 +94,13 @@ object WrappedAlgorithmFactory {
   val threeLow = SimpleSequentAlgorithm("3passLow", new ThreePassLower)
 
   val rednrec  = SimpleSequentAlgorithm("rednrec ", new ReduceAndReconstruct)
+  val rednrec2 = SimpleSequentAlgorithm("rednrec2", new RRGrandPa)
+  val rrnoa2   = SimpleSequentAlgorithm("rr no a2", new RRWithoutA2)
+
+  // TODO: this Repeat isn't adapted to rednrec which can modify the proof without changing its size.
   val rednrecr = RepeatSequentAlgorithm("rednrecr", new ReduceAndReconstruct)
+  val rednre2r = RepeatSequentAlgorithm("rednre2r", new RRGrandPa)
+  val rrnoa2r  = RepeatSequentAlgorithm("rr noa2r", new RRWithoutA2)
 
   val allAlgos = List(
     oldUnitLowering,
@@ -142,7 +148,11 @@ object WrappedAlgorithmFactory {
     "reQuadra" -> reQuadra,
     "3passLow" -> threeLow,
     "rednrec"  -> rednrec,
-    "rednrecr" -> rednrecr
+    "rednrecr" -> rednrecr,
+    "rednrec2" -> rednrec2,
+    "rednre2r" -> rednre2r,
+    "rrnoa2"   -> rrnoa2,
+    "rrnoa2r"  -> rrnoa2r
   )
 
   def apply(env: Map[String,String]):List[WrappedAlgorithm] =
