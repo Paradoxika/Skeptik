@@ -13,17 +13,17 @@ import scala.collection.Map
 class ReduceAndReconstruct
 extends Function1[SequentProof,SequentProof] {
 
-  def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProof = node match {
+  def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean, firstPass: Boolean):SequentProof = node match {
     case Axiom(_) => node
 
     // B2
-    case CutIC(CutIC(beta,gamma,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
+    case CutIC(CutIC(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
          CutIC(CutIC(beta, alpha, _ == t), gamma, _ == s)
-    case CutIC(CutIC(gamma,beta,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
+    case CutIC(CutIC(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
          CutIC(gamma, CutIC(beta, alpha, _ == t), _ == s)
-    case CutIC(alpha,CutIC(beta,gamma,s,_),t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
+    case CutIC(alpha,CutIC(beta,gamma,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
          CutIC(CutIC(alpha, beta, _ == t), gamma, _ == s)
-    case CutIC(alpha,CutIC(gamma,beta,s,_),t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
+    case CutIC(alpha,CutIC(gamma,beta,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
          CutIC(gamma, CutIC(alpha, beta, _ == t), _ == s)
 
     // B3
@@ -53,18 +53,22 @@ extends Function1[SequentProof,SequentProof] {
          CutIC(CutIC(beta1,gamma2, _ == s), gamma1, _ == t1)
 
     // A2 (recursive)
-    case CutIC(left,right,r,_) =>
+    case CutIC(left,right,r,_) if firstPass =>
       val nLeft  = if (leftPremiseHasOneChild)  a2(left)  else left
       val nRight = if (rightPremiseHasOneChild) a2(right) else right
-      if ((nLeft ne left) || (nRight ne right)) {
+      val cLeft  = nLeft  ne left
+      val cRight = nRight ne right
+      if (cLeft || cRight) {
         val nNode = CutIC(nLeft, nRight, _ == r)
-        val reduced = reduce(nNode, false, false)
+        val reduced = reduce(nNode, cLeft || leftPremiseHasOneChild, cRight || rightPremiseHasOneChild, false)
         if (nNode ne reduced) reduced else node
       }
       else node
 
     case _ => node
   }
+  def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProof =
+      reduce(node, leftPremiseHasOneChild, rightPremiseHasOneChild, true)
 
   def a2(proof: SequentProof) = proof match {
     case CutIC(CutIC(beta,gamma,s,_),alpha,t,_) if !(alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
