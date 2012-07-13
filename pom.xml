@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>skeptik</groupId>
-	<artifactId>proof-compression</artifactId>
+	<groupId>at.logic</groupId>
+	<artifactId>skeptik</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<inceptionYear>2008</inceptionYear>
-	<name>skeptik</name>
+	<inceptionYear>2010</inceptionYear>
+	<name>Skeptik</name>
 
 	<licenses>
 		<license>
@@ -13,14 +13,6 @@
 			<url>http://www.gnu.org/licenses/gpl.html</url>
 		</license>
 	</licenses>
-
-	<repositories>
-		<repository>
-			<id>gridgain-site</id>
-			<name>GridGain</name>
-			<url>http://www.gridgainsystems.com/maven2</url>
-		</repository>
-	</repositories>
 
 	<properties>
 		<maven.compiler.source>1.6</maven.compiler.source>
@@ -32,7 +24,6 @@
 		<specs2.version>1.10</specs2.version>
 		<scalatest.version>1.7.2</scalatest.version>
 		<scalacheck.version>1.9</scalacheck.version>
-		<gridgain.version>4.0.2c</gridgain.version>
 
 		<maven-compiler-plugin.version>2.4</maven-compiler-plugin.version>
 		<maven-assembly-plugin.version>2.3</maven-assembly-plugin.version>
@@ -53,11 +44,6 @@
 			<groupId>org.scala-lang</groupId>
 			<artifactId>scala-compiler</artifactId>
 			<version>${scala.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.gridgain</groupId>
-			<artifactId>gridgain</artifactId>
-			<version>${gridgain.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -161,4 +147,5 @@
 			</plugin>
 		</plugins>
 	</reporting>
+	<url>https://github.com/Paradoxika/Skeptik/</url>
 </project>
