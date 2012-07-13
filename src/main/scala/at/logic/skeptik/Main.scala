@@ -35,8 +35,10 @@ object Main {
       --compression  : proof compression experiment
   
     -prove         : proves theorem
+      [not implemented yet]
   
     -compress      : compress proof
+      [not implemented yet]
     
   """   
 }
