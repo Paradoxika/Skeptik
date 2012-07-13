@@ -1,137 +1,110 @@
 package at.logic.skeptik.experiment.compression
 
-import scala.Array.canBuildFrom
+import scala.collection.mutable.{HashMap => MMap}
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.compressor.combinedRPILU._
 import at.logic.skeptik.proof.ProofNodeCollection
-import at.logic.skeptik.proof.oldResolution.{Proof => OldProof}
 import at.logic.skeptik.proof.sequent.SequentProof
 import at.logic.skeptik.parser._
+import at.logic.skeptik.util.time._
 
+object environment
+extends MMap[String,String]
 
-// I don't know if this factory should be in that file. Measure.scala is really generic...
-class MeasurerFactory private (oldM: Measure[OldProof],
-                               seqM: Measure[SequentProof])
-{
-  def oldMeasurer(p: OldProof)     = Measurer(oldM, p)
-  def seqMeasurer(p: SequentProof) = Measurer(seqM, p)
-}
+object Experimenter {
 
-object MeasurerFactory {
-  def apply(measures: List[String], environment: Map[String,String]) =
-    // Todo
-    new MeasurerFactory(
-      PercentMeasure("ratio", (p: OldProof) =>
-        at.logic.skeptik.proof.oldResolution.defs.length(p).toDouble),
-      PercentMeasure("ratio", (p: SequentProof) =>
-        ProofNodeCollection(p).size.toDouble)
-      )
-}
+  // Measures
 
-object WrappedAlgorithmFactory {
-    
-  def SimpleOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
-      WrappedOldAlgorithm(name, fct)
-  def SimpleSequentAlgorithm(name: String, fct: SequentProof => SequentProof)= (env: Map[String,String]) =>
-//      WrappedSequentAlgorithm(name, fct)
-      WrappedSequentAlgorithm(name, { (p:SequentProof) => val r = fct(p) ; println(r.conclusion) ; r})
+  object timeMeasure
+  extends DoubleMeasure[Result]("%7.1f ms", _.time)
 
-  def RepeatOldAlgorithm(name: String, fct: (OldProof) => OldProof) = (env: Map[String,String]) =>
-      RepeatingOldAlgorithm(name, fct)
-  def RepeatSequentAlgorithm(name: String, fct: (SequentProof) => SequentProof)= (env: Map[String,String]) =>
-      RepeatingSequentAlgorithm(name, fct)
+  object countMeasure
+  extends Measure[Result] {
+    var nb = 0
+    var sum = MMap[String,Int]()
 
-  val oldUnitLowering = SimpleOldAlgorithm ("old UL", UnitLowering.lowerUnits _)
-  val newUnitLowering = SimpleSequentAlgorithm ("new UL", NewUnitLowering)
+    def before(proof: Result) = ""
 
-  val oldRecyclePivot = SimpleOldAlgorithm ("old RP",
-        (p:OldProof) => ProofFixing.fixTopDown(Regularization.recyclePivots(p)))
-  val oldRPWithInters = SimpleOldAlgorithm ("old  RPI",
-        (p:OldProof) => ProofFixing.fixTopDown(Regularization.recyclePivotsWithIntersection(p)))
-  val oldRPILU        = SimpleOldAlgorithm ("old RPILU",
-        (p:OldProof) => ProofFixing.fix(Regularization.recyclePivotsWithIntersection(UnitLowering.lowerUnits(p))))
-  val oldLURPI        = SimpleOldAlgorithm ("old LURPI",
-        (p:OldProof) => UnitLowering.lowerUnits(ProofFixing.fix(Regularization.recyclePivotsWithIntersection(p))))
+    def after(algorithm: String, proof: Result) = proof match {
+      case c:CountedResult => 
+        nb += 1
+        val value = c.count
+        sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
+        value.toString + " times"
+      case _ => ""
+    }
 
-  val newRP   = SimpleSequentAlgorithm("new  RP ", new RecyclePivots with outIntersection with LeftHeuristic)
-  val newRPI  = SimpleSequentAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val concRPI = SimpleSequentAlgorithm("conc RPI", new RecyclePivots with Intersection with MinConclusionHeuristic)
-  val sizeRPI = SimpleSequentAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+    def average(algorithm: String) =
+      if (nb > 0) String.format("%.1f times", double2Double(sum(algorithm).toDouble / nb.toDouble)) else ""
+  }
 
-  val oldRPIr  = RepeatOldAlgorithm("old  RPI",
-        (p:OldProof) => ProofFixing.fixTopDown(Regularization.recyclePivotsWithIntersection(p)))
-  val newRPIr  = RepeatSequentAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val sizeRPIr = RepeatSequentAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+  object compressionRatioMeasure
+  extends IntPercentMeasure[Result](_.nodeCollection.size)
 
-  val newRPILU = SimpleSequentAlgorithm("new RPILU", { (p:SequentProof) =>
+  val measures = List(timeMeasure, countMeasure, compressionRatioMeasure)
+
+  // Algorithms
+
+  val newUnitLowering = new SimpleAlgorithm ("new UL", NewUnitLowering)
+
+  val newRP   = new SimpleAlgorithm("new  RP ", new RecyclePivots with outIntersection with LeftHeuristic)
+  val newRPI  = new SimpleAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
+  val concRPI = new SimpleAlgorithm("conc RPI", new RecyclePivots with Intersection with MinConclusionHeuristic)
+  val sizeRPI = new SimpleAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+
+  val newRPIr  = new RepeatAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
+  val sizeRPIr = new RepeatAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+
+  val newRPILU = new SimpleAlgorithm("new RPILU", { (p:SequentProof) =>
     (new RecyclePivots with Intersection with LeftHeuristic)(NewUnitLowering(p)) })
-  val newLURPI = SimpleSequentAlgorithm("new LURPI", { (p:SequentProof) =>
+  val newLURPI = new SimpleAlgorithm("new LURPI", { (p:SequentProof) =>
     NewUnitLowering((new RecyclePivots with Intersection with LeftHeuristic)(p)) })
-  val nLURPILU = SimpleSequentAlgorithm("nLURPILU", { (p:SequentProof) =>
+  val nLURPILU = new SimpleAlgorithm("nLURPILU", { (p:SequentProof) =>
     val lu = NewUnitLowering
     val rpi = new RecyclePivots with Intersection with LeftHeuristic
     lu(rpi(lu(p)))
   })
 
-  val lowPsUn = SimpleSequentAlgorithm("low PsUn", new PseudoUnits(2))
-  val lowPsU1 = SimpleSequentAlgorithm("low PsU1", new PseudoUnits(1))
-  val onePsUn = SimpleSequentAlgorithm("one PsUn", new OnePassPseudoUnits(2))
-  val onePsU1 = SimpleSequentAlgorithm("one PsU1", new OnePassPseudoUnits(1))
+  val lowPsUn = new SimpleAlgorithm("low PsUn", new PseudoUnits(2))
+  val lowPsU1 = new SimpleAlgorithm("low PsU1", new PseudoUnits(1))
+  val onePsUn = new SimpleAlgorithm("one PsUn", new OnePassPseudoUnits(2))
+  val onePsU1 = new SimpleAlgorithm("one PsU1", new OnePassPseudoUnits(1))
 
-  val psunReg = SimpleSequentAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
-  val psunOne = SimpleSequentAlgorithm("PsUn One", new PseudoUnitsAfter(1))
-  val psunLow = SimpleSequentAlgorithm("PsUn Low", new PseudoUnitsBefore(2))
-  val psunLo1 = SimpleSequentAlgorithm("PsUn Lo1", new PseudoUnitsBefore(1))
+  val psunReg = new SimpleAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
+  val psunOne = new SimpleAlgorithm("PsUn One", new PseudoUnitsAfter(1))
+  val psunLow = new SimpleAlgorithm("PsUn Low", new PseudoUnitsBefore(2))
+  val psunLo1 = new SimpleAlgorithm("PsUn Lo1", new PseudoUnitsBefore(1))
 
-  val irunReg = SimpleSequentAlgorithm("IrUn Reg", new IrregularUnits with AlwaysRegularizeIrregularUnits)
-  val irunLow = SimpleSequentAlgorithm("IrUn Low", new IrregularUnits with AlwaysLowerIrregularUnits     )
+  val irunReg = new SimpleAlgorithm("IrUn Reg", new IrregularUnits with AlwaysRegularizeIrregularUnits)
+  val irunLow = new SimpleAlgorithm("IrUn Low", new IrregularUnits with AlwaysLowerIrregularUnits     )
 
-  val reMinReg = SimpleSequentAlgorithm("ReMinReg", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinRegularizationChoice)
-  val reMinLow = SimpleSequentAlgorithm("ReMinLow", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinLoweringChoice)
-  val reRegula = SimpleSequentAlgorithm("reRegula", new RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible)
-  val reQuadra = SimpleSequentAlgorithm("reQuadra", new MinRegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice)
+  val reMinReg = new SimpleAlgorithm("ReMinReg", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinRegularizationChoice)
+  val reMinLow = new SimpleAlgorithm("ReMinLow", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinLoweringChoice)
+  val reRegula = new SimpleAlgorithm("reRegula", new RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible)
+  val reQuadra = new SimpleAlgorithm("reQuadra", new MinRegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice)
 
-  val threeLow = SimpleSequentAlgorithm("3passLow", new ThreePassLower)
+  val threeLow = new SimpleAlgorithm("3passLow", new ThreePassLower)
 
-  val rednrec  = SimpleSequentAlgorithm("rednrec ", new ReduceAndReconstruct)
-  val rednrec2 = SimpleSequentAlgorithm("rednrec2", new RRGrandPa)
-  val rrnoa2   = SimpleSequentAlgorithm("rr no a2", new RRWithoutA2)
+  val rednrec  = new SimpleAlgorithm("rednrec ", new ReduceAndReconstruct)
+  val rednrec2 = new SimpleAlgorithm("rednrec2", new RRGrandPa)
+  val rrnoa2   = new SimpleAlgorithm("rr no a2", new RRWithoutA2)
 
-  // TODO: this Repeat isn't adapted to rednrec which can modify the proof without changing its size.
-  val rednrecr = RepeatSequentAlgorithm("rednrecr", new ReduceAndReconstruct)
-  val rednre2r = RepeatSequentAlgorithm("rednre2r", new RRGrandPa)
-  val rrnoa2r  = RepeatSequentAlgorithm("rr noa2r", new RRWithoutA2)
+  val rednrecr = new TimeOutAlgorithm("rednrecr", new ReduceAndReconstruct)
+  val rednre2r = new TimeOutAlgorithm("rednre2r", new RRGrandPa)
+  val rrnoa2r  = new TimeOutAlgorithm("rr noa2r", new RRWithoutA2)
 
-  val allAlgos = List(
-    oldUnitLowering,
-    newUnitLowering,
-    oldRecyclePivot,
-    oldRPWithInters,
-    oldRPILU,
-    oldLURPI
-  )
-
-  val algosMap = Map(
-    "UL"    -> oldUnitLowering,
-    "LU"    -> oldUnitLowering,
-    "nUL"   -> newUnitLowering,
-    "nLU"   -> newUnitLowering,
-    "RP"    -> oldRecyclePivot,
-    "nRP"   -> newRP,
-    "RPI"   -> oldRPWithInters,
-    "nRPI"  -> newRPI,
-    "RPIUL" -> oldRPILU,
-    "RPILU" -> oldRPILU,
-    "ULRPI" -> oldLURPI,
-    "LURPI" -> oldLURPI,
+  val algorithms = Map(
+    "UL"   -> newUnitLowering,
+    "LU"   -> newUnitLowering,
+    "RP"   -> newRP,
+    "RPI"  -> newRPI,
     "cRPI"  -> concRPI,
     "sRPI"  -> sizeRPI,
-    "RPIr"  -> oldRPIr,
-    "nRPIr" -> newRPIr,
+    "RPIr" -> newRPIr,
     "sRPIr" -> sizeRPIr,
-    "nLURPI"-> newLURPI,
-    "nRPILU"-> newRPILU,
-    "nLURPILU" -> nLURPILU,
+    "LURPI"-> newLURPI,
+    "RPILU"-> newRPILU,
+    "LURPILU" -> nLURPILU,
     "lowPsUn"  -> lowPsUn,
     "onePsU1"  -> onePsU1,
     "onePsUn"  -> onePsUn,
@@ -155,93 +128,59 @@ object WrappedAlgorithmFactory {
     "rrnoa2r"  -> rrnoa2r
   )
 
-  def apply(env: Map[String,String]):List[WrappedAlgorithm] =
-      env.getOrElse("algos","").split(",").map(name => algosMap(name)(env)).toList
-}
-
-object Experimenter {
-
-  def experiment(algos : List[WrappedAlgorithm],
-                 proofs : List[String],
-                 environment : Map[String,Any],
-                 measurerFactory : MeasurerFactory
-                 ) =
+  def experiment(algos : Seq[WrappedAlgorithm], proofs : Seq[String]) =
   {
-    var oldProof : OldProof = null
-    var oldMeasurer : Measurer[OldProof] = DumbMeasurer
-    var sequentProof : SequentProof = null
-    var sequentMeasurer : Measurer[SequentProof] = DumbMeasurer
-
-    // Initialisation
-    def proofsKind(acc: (Boolean, Boolean), lst: List[WrappedAlgorithm]) : (Boolean, Boolean) =
-      acc match {
-        case (true, true) => acc
-        case (prop, seq) =>
-          lst match {
-            case Nil => acc
-            case (_:WrappedOldAlgorithm)::q => proofsKind((true, seq), q)
-            case (_:WrappedSequentAlgorithm)::q => proofsKind((prop, true), q)
-          }
-        }
-    val (hasPropositional, hasSequent) = proofsKind((false, false), algos)
-
     // Algorithms
     for (proofFilename <- proofs) {
+      // Read
       println("------------------------------------------------------------")
       print("* " + proofFilename)
-      val beginParsing = java.lang.System.currentTimeMillis
-      if (hasPropositional) {
-        // TODO: add timer and output
-        oldProof =
-          ProofParser.getProofFromFile(proofFilename)
-        oldMeasurer = measurerFactory.oldMeasurer(oldProof)
-      }
-      if (hasSequent) {
-        // TODO: add timer and output
-        sequentProof = 
-          (new SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof
-        sequentMeasurer = measurerFactory.seqMeasurer(sequentProof)
-      }
-      println(String.format(" (%.2f s)", double2Double((java.lang.System.currentTimeMillis - beginParsing)/1000.)))
+      val proof = new Result ( timed { (new SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof } )
+      for (measure <- measures) { print(" " + measure.before(proof)) }
+      println()
 
-      algos.foreach( _ match {
-        case a: WrappedOldAlgorithm     => a.experiment(oldProof,     oldMeasurer)
-        case a: WrappedSequentAlgorithm => a.experiment(sequentProof, sequentMeasurer)
-      })
+      // Compress
+      for (algo <- algos) {
+        val compressed = algo(proof)
+        print(algo.name + ": ")
+        for (measure <- measures) { print(" " + measure.after(algo.name, compressed)) }
+        println()
+      }
     }
 
     // Report
     println("------------------------------------------------------------")
     println()
     println("------------------------------------------------------------")
-    algos.foreach(println(_))
+    for (algo <- algos) {
+      print(algo.name + ": ")
+      for (measure <- measures) { print(" " + measure.average(algo.name)) }
+      println()
+    }
     println("------------------------------------------------------------")
   }
 
   def run(args: Array[String]): Unit =
   {
     val mapOptions = Map(
-      "a" -> "algos"
+      "a" -> "algos",
+      "t" -> "timeout"
     )
 
-    def parseArgs(pos: Int, env: Map[String,String], proofs: List[String])
-    : (Map[String,String], List[String]) = {
-      if (pos >= args.length)
-        (env, proofs)
-      else args(pos)(0) match {
+    var proofs = List[String]()
+    var pos = 0
+    while (pos < args.length)
+      args(pos)(0) match {
         case '-' =>
           val key = args(pos).substring(1)
-          parseArgs(pos+2, env + (mapOptions.getOrElse(key,key) -> args(pos+1)), proofs)
+          environment.update(mapOptions.getOrElse(key,key), args(pos+1))
+          pos += 2
         case _ =>
-          parseArgs(pos+1, env, args(pos)::proofs)
+          proofs ::= args(pos)
+          pos += 1
       }
-    }
 
-    val (env, proofs) = parseArgs(0, Map[String,String]("algos" -> "UL,RPI"), Nil)
-
-    val measurerFactory = MeasurerFactory(List(), env)
-    val algos = WrappedAlgorithmFactory(env)
-
-    experiment(algos, proofs, env, measurerFactory)
+    val algos = environment.getOrElse("algos","LU,RPI").split(",").map { algorithms(_) }
+    experiment(algos, proofs)
   }
 }

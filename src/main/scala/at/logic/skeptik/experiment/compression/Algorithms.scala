@@ -1,89 +1,53 @@
 package at.logic.skeptik.experiment.compression
 
-
-import at.logic.skeptik.proof.oldResolution.{Proof => OldProof}
 import at.logic.skeptik.proof.sequent.SequentProof
+import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.util.time._
 
+// Results
 
-abstract class WrappedAlgorithm (name: String) {
-  protected var report : Report = Report.empty
-  override def toString() = name + " average: " + report
+class Result (t: Timed[SequentProof])
+extends Timed[SequentProof](t.result, t.time) {
+  lazy val nodeCollection = ProofNodeCollection(this.result)
+}
+
+class CountedResult (val count: Int, t: Timed[SequentProof])
+extends Result(t) {
+  def +(other: Timed[SequentProof]) = new CountedResult(count + 1, Timed(other.result, time + other.time))
 }
 
 
-// WrappedAlgorithm can be neither covariant nor contravariant on P (see experiment function)
-abstract class AbstractWrappedAlgorithm[P](val name: String, val algorithm: ((P) => P) with Duration)
-extends WrappedAlgorithm(name)
-{
-  // P is in contravariant position for p and in covariant position for eval
-  def experiment(p: P, eval: P => Report): Unit = {
-    System.gc()
-    val outProof = algorithm(p)
-    val curEval = eval(outProof) + ("duration.s" -> algorithm.duration.toDouble / 1000.)
-    println(name + ": " + curEval)
-    report = report add curEval
+// Algorithms
+
+abstract class WrappedAlgorithm (val name: String)
+extends Function1[Result,Result]
+
+class SimpleAlgorithm (name: String, fct: SequentProof => SequentProof)
+extends WrappedAlgorithm(name) {
+  def apply(result: Result) = new Result(timed { fct(result.result) })
+}
+
+class RepeatAlgorithm (name: String, fct: SequentProof => SequentProof)
+extends WrappedAlgorithm(name) {
+  def apply(result: Result) = {
+    def repeat(preceding: CountedResult):CountedResult = {
+      val next = preceding + timed { fct(result.result) }
+      if (next.nodeCollection.size < preceding.nodeCollection.size) repeat(next) else next
+    }
+    repeat(new CountedResult(1, result))
   }
 }
 
-class WrappedOldAlgorithm (name: String, algorithm: ((OldProof) => OldProof) with Duration)
-extends AbstractWrappedAlgorithm[OldProof](name, algorithm)
-object WrappedOldAlgorithm {
-  def apply(name: String, algorithm: ((OldProof) => OldProof)): WrappedOldAlgorithm =
-    algorithm match {
-      case a:Duration =>
-        new WrappedOldAlgorithm(name, a)
-      case _ =>
-        new WrappedOldAlgorithm(name, DurationMeasuredFunction1(p => algorithm(p.duplicate)))
+class TimeOutAlgorithm (name: String, fct: SequentProof => SequentProof)
+extends WrappedAlgorithm(name) {
+  lazy val factor = environment.getOrElse("timeout","1.").toDouble
+  def apply(result: Result) = {
+    var timeout = result.time * factor
+    def repeat(preceding: CountedResult):CountedResult = {
+      val next = preceding + timed { fct(result.result) }
+      if (next.time < timeout) repeat(next) else next
     }
-}
-        
-
-class WrappedSequentAlgorithm (name: String, algorithm: ((SequentProof) => SequentProof) with Duration)
-extends AbstractWrappedAlgorithm[SequentProof](name, algorithm)
-object WrappedSequentAlgorithm {
-  def apply(name: String, algorithm: ((SequentProof) => SequentProof)): WrappedSequentAlgorithm =
-    algorithm match {
-      case a:Duration =>
-        new WrappedSequentAlgorithm(name, a)
-      case _ =>
-        new WrappedSequentAlgorithm(name, DurationMeasuredFunction1(algorithm))
-    }
-}
-
-// Ugly hack proving this architecture is wrong
-trait Repeating[P] extends AbstractWrappedAlgorithm[P] {
-  override def experiment(p: P, eval: P => Report): Unit = {
-    System.gc()
-    def rec(duration:Long, run:Int, ratio:Double, proof:P):Unit = {
-      val newProof = algorithm(proof)
-      val newDuration = duration + algorithm.duration
-      val curEval = eval(newProof) + ("duration.s" -> newDuration.toDouble / 1000.) + ("run" -> run.toDouble)
-      if (curEval("ratio.%") < ratio) rec(newDuration, run+1, curEval("ratio.%"), newProof)
-      else {
-        println(name + ": " + curEval)
-        report = report add curEval
-      }
-    }
-    rec(0, 1, 100., p)
+    repeat(new CountedResult(1, result))
   }
 }
 
-object RepeatingOldAlgorithm {
-  def apply(name: String, algorithm: ((OldProof) => OldProof)): WrappedOldAlgorithm =
-    algorithm match {
-      case a:Duration =>
-        new WrappedOldAlgorithm(name, a) with Repeating[OldProof]
-      case _ =>
-        new WrappedOldAlgorithm(name, DurationMeasuredFunction1(p => algorithm(p.duplicate))) with Repeating[OldProof]
-    }
-}
-
-object RepeatingSequentAlgorithm {
-  def apply(name: String, algorithm: ((SequentProof) => SequentProof)): WrappedSequentAlgorithm =
-    algorithm match {
-      case a:Duration =>
-        new WrappedSequentAlgorithm(name, a) with Repeating[SequentProof]
-      case _ =>
-        new WrappedSequentAlgorithm(name, DurationMeasuredFunction1(algorithm)) with Repeating[SequentProof]
-    }
-}
