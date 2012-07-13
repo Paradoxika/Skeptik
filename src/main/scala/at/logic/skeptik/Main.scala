@@ -37,7 +37,7 @@ object Main {
     -prove         : proves theorem
       [not implemented yet]
   
-    -compress      : compress proof
+    -compress      : compresses proof
       [not implemented yet]
     
   """   
