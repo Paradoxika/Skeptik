@@ -16,18 +16,17 @@ object Experimenter {
   // Measures
 
   object timeMeasure
-  extends DoubleMeasure[Result]("%7.1f ms", _.time)
+  extends DoubleMeasure[Timed[_]]("%7.1f ms", _.time)
 
   object countMeasure
   extends Measure[Result] {
     var nb = 0
     var sum = MMap[String,Int]()
 
-    def before(proof: Result) = ""
+    def before(proof: Result) = { nb += 1 ; "" }
 
     def after(algorithm: String, proof: Result) = proof match {
       case c:CountedResult => 
-        nb += 1
         val value = c.count
         sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
         value.toString + " times"
@@ -35,7 +34,7 @@ object Experimenter {
     }
 
     def average(algorithm: String) =
-      if (nb > 0) String.format("%.1f times", double2Double(sum(algorithm).toDouble / nb.toDouble)) else ""
+      if (sum(algorithm) != 0) String.format("%.1f times", double2Double(sum(algorithm).toDouble / nb.toDouble)) else ""
   }
 
   object compressionRatioMeasure
