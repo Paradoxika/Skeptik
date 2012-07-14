@@ -3,7 +3,7 @@ package at.logic.skeptik
 object Main {
   def main(args: Array[String]): Unit = {
     def help() = print(usageInstructions)
-
+    
     if (args.length == 0) help()
     else if (args(0) == "-experiment") {
       if (args.length == 1) help()
