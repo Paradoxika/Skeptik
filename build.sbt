@@ -49,48 +49,10 @@ pomExtra := (
   <contributors>
   </contributors>
   	<properties>
-		<maven.compiler.source>1.6</maven.compiler.source>
-		<maven.compiler.target>1.6</maven.compiler.target>
 		<encoding>UTF-8</encoding>
-		<scala.version>2.9.1</scala.version>
-		<slf4j.version>1.6.4</slf4j.version>
-		<junit.version>4.10</junit.version>
-		<specs2.version>1.10</specs2.version>
-		<scalatest.version>1.7.2</scalatest.version>
-		<scalacheck.version>1.9</scalacheck.version>
-		<maven-compiler-plugin.version>2.4</maven-compiler-plugin.version>
-		<maven-assembly-plugin.version>2.3</maven-assembly-plugin.version>
-		<maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-		<scala-maven-plugin.version>3.0.2</scala-maven-plugin.version>
-		<maven-release-plugin.version>2.3</maven-release-plugin.version>
 	</properties>
   	<build>
-		<plugins>
-		  <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.4</version>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.3</version>
-			</plugin>
-			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
-			</plugin>
+    <plugins>
 			<plugin>
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
@@ -110,13 +72,6 @@ pomExtra := (
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>2.3</version>
-				<configuration>
-					<autoVersionSubmodules>true</autoVersionSubmodules>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>	
 	<reporting>
@@ -130,4 +85,5 @@ pomExtra := (
 				</configuration>
 			</plugin>
 		</plugins>
-	</reporting>)
+	</reporting>
+)
