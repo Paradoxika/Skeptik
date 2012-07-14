@@ -48,15 +48,10 @@ class TimeOutAlgorithm (name: String, fct: SequentProof => SequentProof)
 extends WrappedAlgorithm(name) {
   lazy val factor = environment.getOrElse("timeout","1.").toDouble
   def apply(result: Result) = {
-    var maxTime = result.time * factor
+    var timeout = result.time * factor
     def repeat(preceding: CountedResult):CountedResult = {
-      val timeLeft = maxTime - preceding.time
-      println(timeLeft + " time left")
-      if (timeLeft <= 0.) preceding else
-        timeout(timeLeft.toLong) { timed { fct(result.result) } } match {
-          case None => preceding
-          case Some(t) => repeat(preceding + t)
-        }
+      val next = preceding + timed { fct(result.result) }
+      if (next.time < timeout) repeat(next) else next
     }
     repeat(CountedResult.reset(result))
   }
