@@ -92,6 +92,9 @@ object Experimenter {
   val rednre2r = new TimeOutAlgorithm("rednre2r", new RRGrandPa)
   val rrnoa2r  = new TimeOutAlgorithm("rr noa2r", new RRWithoutA2)
 
+  val splitr   = new TimeOutAlgorithm("split R ", new Split with RandomChoice)
+  val splitd   = new TimeOutAlgorithm("split D ", new Split with DeterministicChoice)
+
   val algorithms = Map(
     "UL"   -> newUnitLowering,
     "LU"   -> newUnitLowering,
@@ -124,7 +127,9 @@ object Experimenter {
     "rednrec2" -> rednrec2,
     "rednre2r" -> rednre2r,
     "rrnoa2"   -> rrnoa2,
-    "rrnoa2r"  -> rrnoa2r
+    "rrnoa2r"  -> rrnoa2r,
+    "splitr"   -> splitr,
+    "splitd"   -> splitd
   )
 
   def experiment(algos : Seq[WrappedAlgorithm], proofs : Seq[String]) =
@@ -134,7 +139,7 @@ object Experimenter {
       // Read
       println("------------------------------------------------------------")
       print("* " + proofFilename)
-      val proof = new Result ( timed { (new SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof } )
+      val proof = Result ( timed { (new SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof } )
       for (measure <- measures) { print(" " + measure.before(proof)) }
       println()
 
