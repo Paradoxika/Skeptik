@@ -34,7 +34,7 @@ object Experimenter {
     }
 
     def average(algorithm: String) =
-      if (sum(algorithm) != 0) String.format("%.1f times", double2Double(sum(algorithm).toDouble / nb.toDouble)) else ""
+      if ((sum contains algorithm) && sum(algorithm) != 0) String.format("%.1f times", double2Double(sum(algorithm).toDouble / nb.toDouble)) else ""
   }
 
   object compressionRatioMeasure
@@ -92,8 +92,8 @@ object Experimenter {
   val rednre2r = new TimeOutAlgorithm("rednre2r", new RRGrandPa)
   val rrnoa2r  = new TimeOutAlgorithm("rr noa2r", new RRWithoutA2)
 
-  val splitr   = new TimeOutAlgorithm("split R ", new Split with RandomChoice)
-  val splitd   = new TimeOutAlgorithm("split D ", new Split with DeterministicChoice)
+  val splitr   = new TimeOutAlgorithm("split R ", new Split(true) with RandomChoice)
+  val splitd   = new TimeOutAlgorithm("split D ", new Split(true) with DeterministicChoice)
 
   val algorithms = Map(
     "UL"   -> newUnitLowering,
@@ -130,7 +130,9 @@ object Experimenter {
     "rrnoa2r"  -> rrnoa2r,
     "splitr"   -> splitr,
     "splitd"   -> splitd
-  )
+  ) ++
+  (1 to 8).map { n => val name = "msplitd"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n,true) with DeterministicChoice) } ++
+  (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n,true) with RandomChoice) }
 
   def experiment(algos : Seq[WrappedAlgorithm], proofs : Seq[String]) =
   {

@@ -7,7 +7,11 @@ import skeptik.judgment._
 import skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
-abstract class Split
+// There is a lot of code duplication and other ugly things.
+// Class Split should be deleted and replaced by MultiSplit.
+// Then this file'll be cleaned.
+
+abstract class Split (oneRun: Boolean)
 extends Function1[SequentProof,SequentProof] {
   
   def heuristic(node: SequentProof):Long = 
@@ -59,7 +63,7 @@ extends Function1[SequentProof,SequentProof] {
       if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
       else {
         val newSum = sum - heuristicMap(selectedVariable)
-        if (newSum < 1) proof else {
+        if (oneRun || newSum < 1) proof else {
           heuristicMap.remove(selectedVariable)
           repeat(newSum)
         }
@@ -101,4 +105,96 @@ extends Split {
   def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) =
     heuristicMap.max(Ordering.by[(E,Long),Long](_._2))._1
 }
+
+abstract sealed class Splitter {
+  def merge(variableList: List[E]):SequentProof
+}
+case class SplitterNode (left: Splitter, right: Splitter)
+extends Splitter {
+  def merge(variableList: List[E]) = variableList match {
+//    case t::q => println("merging on " + t) ; Splitter.fix(t, left.merge(q), right.merge(q))
+    case t::q => Splitter.fix(t, left.merge(q), right.merge(q))
+    case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
+  }
+  override def toString = "(" + left.toString + " : " + right.toString + ")"
+}
+case class SplitterLeaf (proof: SequentProof)
+extends Splitter {
+//  def merge(variableList: List[E]) = { println("merging " + proof.conclusion) ; proof }
+  def merge(variableList: List[E]) = proof
+  override def toString = proof.conclusion.toString
+}
+
+object Splitter {
+
+  // TODO: Move ? Share ?
+    def fix(pivot: E, left: SequentProof, right: SequentProof) =
+      (left.conclusion.suc contains pivot, right.conclusion.ant contains pivot) match {
+        case (true, true)  => CutIC(left, right, _ == pivot)
+        case (true, false) => right
+        case (false,true)  => left
+        case (false,false) => left
+      }
+
+  def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
+    lazy val variable = variableList.head // might throw an exception
+    lazy val variableTail = variableList.tail
+    val ret = (left, right) match {
+      case (l:SplitterNode, r:SplitterNode) if pivot == variable =>
+        new SplitterNode(l.left, r.right)
+      case (l:SplitterNode, r:SplitterNode) =>
+        new SplitterNode(Splitter(pivot, l.left, r.left, variableTail), Splitter(pivot, l.right, r.right, variableTail))
+      case (l:SplitterLeaf, r:SplitterLeaf) =>
+        new SplitterLeaf(fix(pivot, l.proof, r.proof))
+      case _ => throw new Exception("Splitters with different structures")
+    }
+//    println("Splitting " + left + " and " + right + " on " + pivot + " result in " + ret)
+    ret
+  }
+
+  def apply(axiom: SequentProof, variableList: List[E]):Splitter = {
+    def repeat(splitter: Splitter, list: List[E]):Splitter = list match {
+      case Nil => splitter
+      case _::q => repeat(new SplitterNode(splitter, splitter), q)
+    }
+    repeat(new SplitterLeaf(axiom), variableList)
+  }
+
+}
+
+abstract class MultiSplit (nbVariables: Int, oneRun: Boolean)
+extends Split(oneRun) {
+
+  def split(nodeCollection: ProofNodeCollection[SequentProof], variableList: List[E]) = {
+    def visit(node: SequentProof, premises: List[Splitter]) =
+      node match {
+        case Axiom(_) => Splitter(node, variableList)
+        case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
+      }
+    val result = nodeCollection.foldDown(visit)
+//    println("V " + variableList)
+//    println("R " + result)
+    result.merge(variableList)
+  }
+
+  override def apply(proof: SequentProof) = {
+    val nodeCollection = ProofNodeCollection(proof)
+    val (heuristicMap, heuristicSum) = collectHeuristic(nodeCollection)
+    var sum = heuristicSum
+    def selectVariables(variableList: List[E], left: Int):List[E] = if (left < 1 || sum < 1) variableList else {
+      val selected = chooseAVariable(heuristicMap, sum)
+      sum -= heuristicMap(selected)
+      heuristicMap.remove(selected)
+      selectVariables(selected::variableList, left - 1)
+    }
+    def repeat():SequentProof = {
+//      println("Choose " + heuristicMap.keys + " sum " + sum)
+      val variableList = selectVariables(List(), nbVariables)
+      val compressed = split(nodeCollection, variableList)
+      if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
+      else if (oneRun || sum < 1) proof else repeat()
+    }
+    repeat()
+  }
+} 
 
