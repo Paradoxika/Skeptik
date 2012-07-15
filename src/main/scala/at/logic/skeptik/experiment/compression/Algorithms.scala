@@ -44,6 +44,18 @@ extends WrappedAlgorithm(name) {
   }
 }
 
+class RepeatAndAfter (name: String, fct: SequentProof => SequentProof, after: SequentProof => SequentProof)
+extends WrappedAlgorithm(name) {
+  def apply(result: Result) = {
+    def repeat(preceding: CountedResult):CountedResult = {
+      val next = preceding + timed { fct(result.result) }
+      if (next.nodeCollection.size < preceding.nodeCollection.size) repeat(next) else next
+    }
+    val lastRepeat = repeat(CountedResult.reset(result))
+    lastRepeat + timed { after(lastRepeat.result) }
+  }
+}
+
 class TimeOutAlgorithm (name: String, fct: SequentProof => SequentProof)
 extends WrappedAlgorithm(name) {
   lazy val factor = environment.getOrElse("timeout","1.").toDouble

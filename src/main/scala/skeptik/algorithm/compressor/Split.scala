@@ -198,3 +198,8 @@ extends Split(oneRun) {
   }
 } 
 
+abstract class MultiSplitWithDAG (nbVariables: Int)
+extends MultiSplit (nbVariables, true) {
+  override def split(nodeCollection: ProofNodeCollection[SequentProof], variableList: List[E]) = DAGification(super.split(nodeCollection,variableList))
+}
+

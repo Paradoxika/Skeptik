@@ -129,7 +129,11 @@ object Experimenter {
     "rrnoa2"   -> rrnoa2,
     "rrnoa2r"  -> rrnoa2r,
     "splitr"   -> splitr,
-    "splitd"   -> splitd
+    "splitd"   -> splitd,
+    "DAG"      -> new SimpleAlgorithm("DAG     ", DAGification),
+    "splitDAG" -> new TimeOutAlgorithm("SplitDAG", new MultiSplitWithDAG(3) with DeterministicChoice),
+    "DAGps"    -> new SimpleAlgorithm("DAGps   ", { p => DAGification((new PseudoUnitsAfter(1))(p)) }),
+    "psDAG"    -> new SimpleAlgorithm("psDAG   ", { p => (new PseudoUnitsAfter(1))(DAGification(p)) })
   ) ++
   (1 to 8).map { n => val name = "msplitd"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n,true) with DeterministicChoice) } ++
   (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n,true) with RandomChoice) }
