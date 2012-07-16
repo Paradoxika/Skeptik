@@ -4,7 +4,7 @@ organization := "at.logic"
 
 version := "0.2-SNAPSHOT"
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.9.2"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation")
 
