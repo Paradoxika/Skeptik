@@ -9,7 +9,7 @@ import at.logic.skeptik.expression.formula._
 
 
 abstract class ASequent extends Judgment {
-  type Cedent = {
+  private type Cedent = {
     def contains(e: E): Boolean
     def size: Int
     def mkString(sep: String): String
