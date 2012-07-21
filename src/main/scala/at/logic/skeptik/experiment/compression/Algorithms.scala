@@ -19,7 +19,7 @@ extends WrappedAlgorithm(name)
   def experiment(p: P, eval: P => Report): Unit = {
     System.gc()
     val outProof = algorithm(p)
-    val curEval = eval(outProof) + ("duration.s" -> algorithm.duration.toDouble / 1000.)
+    val curEval = eval(outProof) + ("duration.s" -> algorithm.duration.toDouble / 1000.0)
     println(name + ": " + curEval)
     report = report add curEval
   }
@@ -57,14 +57,14 @@ trait Repeating[P] extends AbstractWrappedAlgorithm[P] {
     def rec(duration:Long, run:Int, ratio:Double, proof:P):Unit = {
       val newProof = algorithm(proof)
       val newDuration = duration + algorithm.duration
-      val curEval = eval(newProof) + ("duration.s" -> newDuration.toDouble / 1000.) + ("run" -> run.toDouble)
+      val curEval = eval(newProof) + ("duration.s" -> newDuration.toDouble / 1000.0) + ("run" -> run.toDouble)
       if (curEval("ratio.%") < ratio) rec(newDuration, run+1, curEval("ratio.%"), newProof)
       else {
         println(name + ": " + curEval)
         report = report add curEval
       }
     }
-    rec(0, 1, 100., p)
+    rec(0, 1, 100.0, p)
   }
 }
 

@@ -1,6 +1,7 @@
 package at.logic.skeptik.proof
 
 import collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
+import scala.reflect.ClassTag
 
 
 // TODO: ProofNodeCollection is not really conforming to the standards of 
@@ -88,7 +89,7 @@ extends Iterable[P]
 }
 
 object ProofNodeCollection {
-  def apply[P <: Proof[_,P] : ClassManifest](root: P) = {
+  def apply[P <: Proof[_,P] : ClassTag](root: P) = {
     val nodes = Stack[P]()
     val children = MMap[P,List[P]]()
     val visited = MSet[P]()
