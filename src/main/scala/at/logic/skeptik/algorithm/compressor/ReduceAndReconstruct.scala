@@ -1,11 +1,11 @@
-package skeptik.algorithm.compressor
+package at.logic.skeptik.algorithm.compressor
 
-import skeptik.proof.ProofNodeCollection
-import skeptik.proof.sequent._
-import skeptik.proof.sequent.lk._
-import skeptik.judgment._
-import skeptik.judgment.immutable.{SetSequent => IClause}
-import skeptik.expression._
+import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.sequent._
+import at.logic.skeptik.proof.sequent.lk._
+import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
+import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 

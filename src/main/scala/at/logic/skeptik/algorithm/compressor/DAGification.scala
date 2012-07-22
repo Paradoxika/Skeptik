@@ -1,10 +1,10 @@
-package skeptik.algorithm.compressor
+package at.logic.skeptik.algorithm.compressor
 
-import skeptik.proof.ProofNodeCollection
-import skeptik.proof.sequent._
-import skeptik.proof.sequent.lk._
-import skeptik.judgment._
-import skeptik.expression._
+import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.sequent._
+import at.logic.skeptik.proof.sequent.lk._
+import at.logic.skeptik.judgment._
+import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 object DAGification
