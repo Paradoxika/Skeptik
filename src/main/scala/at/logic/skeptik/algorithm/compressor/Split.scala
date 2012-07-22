@@ -118,22 +118,26 @@ extends Split {
 
 // Binary tree to store partial proofs
 abstract sealed class Splitter {
+  def pos:Splitter
+  def neg:Splitter
   def merge(variableList: List[E]):SequentProof
 }
 
-case class SplitterNode (left: Splitter, right: Splitter)
+case class SplitterNode (pos: Splitter, neg: Splitter)
 extends Splitter {
   def merge(variableList: List[E]) = variableList match {
-//    case t::q => println("merging on " + t) ; Splitter.fix(t, left.merge(q), right.merge(q))
-    case t::q => Splitter.fix(t, left.merge(q), right.merge(q))
+//    case t::q => println("merging on " + t) ; Splitter.fix(t, pos.merge(q), neg.merge(q))
+    case t::q => Splitter.fix(t, pos.merge(q), neg.merge(q))
     case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
   }
-  override def toString = "(" + left.toString + " : " + right.toString + ")"
+  override def toString = "(" + pos.toString + " : " + neg.toString + ")"
 }
 
 // TODO: Add a depth to minimize nodes duplications.
-case class SplitterLeaf (proof: SequentProof)
+case class SplitterLeaf (proof: SequentProof, depth: Int = 0)
 extends Splitter {
+  lazy val pos = if (depth > 0) SplitterLeaf(proof, depth - 1) else throw new Exception("Traversing beyond leaves")
+  def neg = pos
 //  def merge(variableList: List[E]) = { println("merging " + proof.conclusion) ; proof }
   def merge(variableList: List[E]) = proof
   override def toString = proof.conclusion.toString
@@ -142,37 +146,36 @@ extends Splitter {
 object Splitter {
 
   // TODO: Move ? Share ?
-    def fix(pivot: E, left: SequentProof, right: SequentProof) =
-      (left.conclusion.suc contains pivot, right.conclusion.ant contains pivot) match {
-        case (true, true)  => CutIC(left, right, _ == pivot)
-        case (true, false) => right
-        case (false,true)  => left
-        case (false,false) => left
-      }
+  def fix(pivot: E, left: SequentProof, right: SequentProof) =
+    (left.conclusion.suc contains pivot, right.conclusion.ant contains pivot) match {
+      case (true, true)  => CutIC(left, right, _ == pivot)
+      case (true, false) => right
+      case (false,true)  => left
+      case (false,false) => left
+    }
+
+  def apply(pos: Splitter, neg: Splitter):Splitter = (pos,neg) match {
+    case (SplitterLeaf(proofPos, depthPos), SplitterLeaf(proofNeg, depthNeg)) if (depthPos == depthNeg) && (proofPos.conclusion == proofNeg.conclusion) =>
+      SplitterLeaf(proofPos, depthPos + 1)
+    case _ => SplitterNode(pos, neg)
+  }
 
   def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
     lazy val variable = variableList.head // might throw an exception
     lazy val variableTail = variableList.tail
     val ret = (left, right) match {
-      case (l:SplitterNode, r:SplitterNode) if pivot == variable =>
-        new SplitterNode(l.left, r.right)
-      case (l:SplitterNode, r:SplitterNode) =>
-        new SplitterNode(Splitter(pivot, l.left, r.left, variableTail), Splitter(pivot, l.right, r.right, variableTail))
-      case (l:SplitterLeaf, r:SplitterLeaf) =>
-        new SplitterLeaf(fix(pivot, l.proof, r.proof))
-      case _ => throw new Exception("Splitters with different structures")
+      case (SplitterLeaf(proofLeft,0), SplitterLeaf(proofRight,0)) =>
+        SplitterLeaf(fix(pivot, proofLeft, proofRight))
+      case (l, r) if pivot == variable =>
+        Splitter(l.pos, r.neg)
+      case (l, r) =>
+        Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
     }
 //    println("Splitting " + left + " and " + right + " on " + pivot + " result in " + ret)
     ret
   }
 
-  def apply(axiom: SequentProof, variableList: List[E]):Splitter = {
-    def repeat(splitter: Splitter, list: List[E]):Splitter = list match {
-      case Nil => splitter
-      case _::q => repeat(new SplitterNode(splitter, splitter), q)
-    }
-    repeat(new SplitterLeaf(axiom), variableList)
-  }
+  def apply(axiom: SequentProof, variableList: List[E]):Splitter = new SplitterLeaf(axiom, variableList.length)
 
 }
 
