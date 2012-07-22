@@ -47,7 +47,16 @@ extends Function1[SequentProof,SequentProof] {
       node match {
         case Axiom(conclusion) => (node,node)
         case CutIC(_,_,aux,_) if aux == selectedVariable => (fixedLeftPos, fixedRightNeg)
-        case CutIC(_,_,aux,_) => (fix(aux, fixedLeftPos, fixedRightPos), fix(aux, fixedLeftNeg, fixedRightNeg))
+
+        case CutIC(left,right,aux,_) if (fixedLeftPos eq fixedLeftNeg) && (fixedRightPos eq fixedRightNeg) =>
+          // I think this case is redondant with the following one and then useless :
+          // Neg and Pos being equals implies they're equals to node's premises.
+          val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else {println("yooups") ; fix(aux, fixedLeftPos, fixedRightPos)}
+          (newNode, newNode)
+
+        case CutIC(left,right,aux,_) =>
+          ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else fix(aux, fixedLeftPos, fixedRightPos),
+            if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else fix(aux, fixedLeftNeg, fixedRightNeg) )
       }
     }
     val (pos,neg) = nodeCollection.foldDown(visit)
@@ -106,9 +115,12 @@ extends Split {
     heuristicMap.max(Ordering.by[(E,Long),Long](_._2))._1
 }
 
+
+// Binary tree to store partial proofs
 abstract sealed class Splitter {
   def merge(variableList: List[E]):SequentProof
 }
+
 case class SplitterNode (left: Splitter, right: Splitter)
 extends Splitter {
   def merge(variableList: List[E]) = variableList match {
@@ -118,6 +130,8 @@ extends Splitter {
   }
   override def toString = "(" + left.toString + " : " + right.toString + ")"
 }
+
+// TODO: Add a depth to minimize nodes duplications.
 case class SplitterLeaf (proof: SequentProof)
 extends Splitter {
 //  def merge(variableList: List[E]) = { println("merging " + proof.conclusion) ; proof }
@@ -161,6 +175,8 @@ object Splitter {
   }
 
 }
+
+
 
 abstract class MultiSplit (nbVariables: Int, oneRun: Boolean)
 extends Split(oneRun) {
