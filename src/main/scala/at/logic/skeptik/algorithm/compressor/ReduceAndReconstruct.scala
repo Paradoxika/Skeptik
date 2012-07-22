@@ -9,7 +9,6 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
-// TODO: share code
 abstract class AbstractReduceAndReconstruct
 extends Function1[SequentProof,SequentProof] {
 
@@ -73,6 +72,7 @@ extends Function1[SequentProof,SequentProof] {
     case _ => node
   }
 
+  // TODO: share code ?
   def reconstruct(node: SequentProof, fixedLeft: SequentProof, fixedRight: SequentProof) = node match {
     case Axiom(conclusion) => Axiom(conclusion)
     case CutIC(left,right,aux,_) => ((fixedLeft.conclusion.suc  contains aux),
@@ -112,8 +112,7 @@ extends AbstractReduceAndReconstruct {
   }
 }
 
-// TODO: Find a name for this class
-class RRGrandPa
+class RRWithA2OnChild
 extends AbstractReduceAndReconstruct {
   def a2recursive(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
     // A2 (recursive)

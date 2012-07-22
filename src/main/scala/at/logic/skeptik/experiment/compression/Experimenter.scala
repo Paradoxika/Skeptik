@@ -85,11 +85,11 @@ object Experimenter {
   val threeLow = new SimpleAlgorithm("3passLow", new ThreePassLower)
 
   val rednrec  = new SimpleAlgorithm("rednrec ", new ReduceAndReconstruct)
-  val rednrec2 = new SimpleAlgorithm("rednrec2", new RRGrandPa)
+  val rednrec2 = new SimpleAlgorithm("rednrec2", new RRWithA2OnChild)
   val rrnoa2   = new SimpleAlgorithm("rr no a2", new RRWithoutA2)
 
   val rednrecr = new TimeOutAlgorithm("rednrecr", new ReduceAndReconstruct)
-  val rednre2r = new TimeOutAlgorithm("rednre2r", new RRGrandPa)
+  val rednre2r = new TimeOutAlgorithm("rednre2r", new RRWithA2OnChild)
   val rrnoa2r  = new TimeOutAlgorithm("rr noa2r", new RRWithoutA2)
 
   val splitr   = new TimeOutAlgorithm("split R ", new Split(true) with RandomChoice)
@@ -131,12 +131,14 @@ object Experimenter {
     "splitr"   -> splitr,
     "splitd"   -> splitd,
     "DAG"      -> new SimpleAlgorithm("DAG     ", DAGification),
-    "splitDAG" -> new TimeOutAlgorithm("SplitDAG", new MultiSplitWithDAG(3) with DeterministicChoice),
+    "splitDAG" -> new TimeOutAlgorithm("SplitDAG", { p => DAGification((new MultiSplit(1) with DeterministicChoice)(p)) }),
     "DAGps"    -> new SimpleAlgorithm("DAGps   ", { p => DAGification((new PseudoUnitsAfter(1))(p)) }),
-    "psDAG"    -> new SimpleAlgorithm("psDAG   ", { p => (new PseudoUnitsAfter(1))(DAGification(p)) })
+    "psDAG"    -> new SimpleAlgorithm("psDAG   ", { p => (new PseudoUnitsAfter(1))(DAGification(p)) }),
+    "dsplit"   -> new SimpleAlgorithm("D  split", { p => (new Split(true) with DeterministicChoice)(DAGification(p)) }),
+    "dmsplit"  -> new SimpleAlgorithm("D msplit", { p => (new MultiSplit(3) with RandomChoice)(DAGification(p)) })
   ) ++
-  (1 to 8).map { n => val name = "msplitd"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n,true) with DeterministicChoice) } ++
-  (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n,true) with RandomChoice) }
+  (1 to 8).map { n => val name = "msplitd"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with DeterministicChoice) } ++
+  (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with RandomChoice) }
 
   def experiment(algos : Seq[WrappedAlgorithm], proofs : Seq[String]) =
   {

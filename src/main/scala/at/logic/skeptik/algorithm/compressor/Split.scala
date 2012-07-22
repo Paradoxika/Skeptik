@@ -7,11 +7,7 @@ import at.logic.skeptik.judgment._
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
-// There is a lot of code duplication and other ugly things.
-// Class Split should be deleted and replaced by MultiSplit.
-// Then this file'll be cleaned.
-
-abstract class Split (oneRun: Boolean)
+abstract class AbstractSplit
 extends Function1[SequentProof,SequentProof] {
   
   def heuristic(node: SequentProof):Long = 
@@ -32,7 +28,48 @@ extends Function1[SequentProof,SequentProof] {
   }
 
   def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long):E
+}
 
+trait RandomChoice
+extends AbstractSplit {
+  private val rand = new scala.util.Random()
+
+  def randomLong(max: Long):Long =
+    if (max < Int.MaxValue.toLong) {
+      if (max < 1) 0 else rand.nextInt(max.toInt)
+    }
+    else {
+      def recursive():Long = {
+        var ret = rand.nextLong()
+        if (ret < 0) ret = -ret
+        if (ret < max) ret else recursive()
+      }
+      recursive()
+    }
+
+  def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
+    val iterator = heuristicMap.toIterator
+    def searchPos(left: Long):E = {
+      val next = iterator.next
+      if (next._2 < left && iterator.hasNext) searchPos(left - next._2) else next._1
+    }
+    searchPos(randomLong(heuristicSum) + 1)
+  }
+}
+
+trait DeterministicChoice
+extends AbstractSplit {
+  def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) =
+    heuristicMap.max(Ordering.by[(E,Long),Long](_._2))._1
+}
+
+
+/** Cotton Split compression algorithm
+ *
+ * It's still 30% faster than MultiSplit(1).
+ */
+abstract class Split (oneRun: Boolean)
+extends AbstractSplit {
   def split(nodeCollection: ProofNodeCollection[SequentProof], selectedVariable: E):SequentProof = {
     def fix(pivot: E, left: SequentProof, right: SequentProof) =
       (left.conclusion.suc contains pivot, right.conclusion.ant contains pivot) match {
@@ -51,6 +88,7 @@ extends Function1[SequentProof,SequentProof] {
         case CutIC(left,right,aux,_) if (fixedLeftPos eq fixedLeftNeg) && (fixedRightPos eq fixedRightNeg) =>
           // I think this case is redondant with the following one and then useless :
           // Neg and Pos being equals implies they're equals to node's premises.
+          // Keep the println until it shows something.
           val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else {println("yooups") ; fix(aux, fixedLeftPos, fixedRightPos)}
           (newNode, newNode)
 
@@ -82,63 +120,32 @@ extends Function1[SequentProof,SequentProof] {
   }
 }
 
-trait RandomChoice
-extends Split {
-  private val rand = new scala.util.Random()
 
-  def randomLong(max: Long):Long =
-    if (max < Int.MaxValue.toLong) {
-      if (max < 1) 0 else rand.nextInt(max.toInt)
-    }
-    else {
-      def recursive():Long = {
-        var ret = rand.nextLong()
-        if (ret < 0) ret = -ret
-        if (ret < max) ret else recursive()
-      }
-      recursive()
-    }
-
-  def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
-    val iterator = heuristicMap.toIterator
-    def searchPos(left: Long):E = {
-      val next = iterator.next
-      if (next._2 < left && iterator.hasNext) searchPos(left - next._2) else next._1
-    }
-    searchPos(randomLong(heuristicSum) + 1)
-  }
-}
-
-trait DeterministicChoice
-extends Split {
-  def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) =
-    heuristicMap.max(Ordering.by[(E,Long),Long](_._2))._1
-}
-
-
-// Binary tree to store partial proofs
+/** Binary tree to store partial proofs.
+ *
+ * Each level of the tree correspond to a selected variable.
+ */
 abstract sealed class Splitter {
   def pos:Splitter
   def neg:Splitter
   def merge(variableList: List[E]):SequentProof
 }
 
+// TODO: add a depth
 case class SplitterNode (pos: Splitter, neg: Splitter)
 extends Splitter {
   def merge(variableList: List[E]) = variableList match {
-//    case t::q => println("merging on " + t) ; Splitter.fix(t, pos.merge(q), neg.merge(q))
     case t::q => Splitter.fix(t, pos.merge(q), neg.merge(q))
     case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
   }
   override def toString = "(" + pos.toString + " : " + neg.toString + ")"
 }
 
-// TODO: Add a depth to minimize nodes duplications.
+// A true leaf if depth == 0. A subtree with 2^depth identical leaves otherwise.
 case class SplitterLeaf (proof: SequentProof, depth: Int = 0)
 extends Splitter {
   lazy val pos = if (depth > 0) SplitterLeaf(proof, depth - 1) else throw new Exception("Traversing beyond leaves")
   def neg = pos
-//  def merge(variableList: List[E]) = { println("merging " + proof.conclusion) ; proof }
   def merge(variableList: List[E]) = proof
   override def toString = proof.conclusion.toString
 }
@@ -171,7 +178,6 @@ object Splitter {
       case (l, r) =>
         Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
     }
-//    println("Splitting " + left + " and " + right + " on " + pivot + " result in " + ret)
     ret
   }
 
@@ -179,10 +185,12 @@ object Splitter {
 
 }
 
-
-
-abstract class MultiSplit (nbVariables: Int, oneRun: Boolean)
-extends Split(oneRun) {
+/** Extended Split compression algorithm
+ *
+ * A arbitrary number of variables are selected and the proof is split in 2^n subproofs.
+ */
+abstract class MultiSplit (nbVariables: Int)
+extends AbstractSplit {
 
   def split(nodeCollection: ProofNodeCollection[SequentProof], variableList: List[E]) = {
     def visit(node: SequentProof, premises: List[Splitter]) =
@@ -191,8 +199,6 @@ extends Split(oneRun) {
         case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
       }
     val result = nodeCollection.foldDown(visit)
-//    println("V " + variableList)
-//    println("R " + result)
     result.merge(variableList)
   }
 
@@ -206,19 +212,9 @@ extends Split(oneRun) {
       heuristicMap.remove(selected)
       selectVariables(selected::variableList, left - 1)
     }
-    def repeat():SequentProof = {
-//      println("Choose " + heuristicMap.keys + " sum " + sum)
-      val variableList = selectVariables(List(), nbVariables)
-      val compressed = split(nodeCollection, variableList)
-      if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
-      else if (oneRun || sum < 1) proof else repeat()
-    }
-    repeat()
+    val variableList = selectVariables(List(), nbVariables)
+    val compressed = split(nodeCollection, variableList)
+    if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
   }
 } 
-
-abstract class MultiSplitWithDAG (nbVariables: Int)
-extends MultiSplit (nbVariables, true) {
-  override def split(nodeCollection: ProofNodeCollection[SequentProof], variableList: List[E]) = DAGification(super.split(nodeCollection,variableList))
-}
 
