@@ -134,8 +134,12 @@ object Experimenter {
     "splitDAG" -> new TimeOutAlgorithm("SplitDAG", { p => DAGification((new MultiSplit(1) with DeterministicChoice)(p)) }),
     "DAGps"    -> new SimpleAlgorithm("DAGps   ", { p => DAGification((new PseudoUnitsAfter(1))(p)) }),
     "psDAG"    -> new SimpleAlgorithm("psDAG   ", { p => (new PseudoUnitsAfter(1))(DAGification(p)) }),
-    "dsplit"   -> new SimpleAlgorithm("D  split", { p => (new Split(true) with DeterministicChoice)(DAGification(p)) }),
-    "dmsplit"  -> new SimpleAlgorithm("D msplit", { p => (new MultiSplit(3) with RandomChoice)(DAGification(p)) })
+    "tstspl"   -> new SimpleAlgorithm("tst spl ", { p => (new Split(true) with DeterministicChoice)(DAGification(p)) }),
+    "tstms1"   -> new SimpleAlgorithm("tst ms1 ", { p => (new MultiSplit(1) with DeterministicChoice)(DAGification(p)) }),
+    "tstms3"   -> new SimpleAlgorithm("tst ms3 ", { p => (new MultiSplit(3) with DeterministicChoice)(DAGification(p)) }),
+    "tstspld"  -> new SimpleAlgorithm("tst spld", { p => DAGification((new Split(true) with DeterministicChoice)(DAGification(p))) }),
+    "tstms1d"  -> new SimpleAlgorithm("tst ms1d", { p => DAGification((new MultiSplit(1) with DeterministicChoice)(DAGification(p))) }),
+    "tstms3d"  -> new SimpleAlgorithm("tst ms3d", { p => DAGification((new MultiSplit(3) with DeterministicChoice)(DAGification(p))) })
   ) ++
   (1 to 8).map { n => val name = "msplitd"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with DeterministicChoice) } ++
   (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with RandomChoice) }

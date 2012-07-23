@@ -107,7 +107,7 @@ extends AbstractSplit {
     def repeat(sum: Long):SequentProof = {
       val selectedVariable = chooseAVariable(heuristicMap, sum)
       val compressed = split(nodeCollection, selectedVariable)
-      if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
+      if (true || ProofNodeCollection(compressed).size < nodeCollection.size) compressed
       else {
         val newSum = sum - heuristicMap(selectedVariable)
         if (oneRun || newSum < 1) proof else {
@@ -129,15 +129,19 @@ abstract sealed class Splitter {
   def pos:Splitter
   def neg:Splitter
   def merge(variableList: List[E]):SequentProof
+  def extend:Splitter
 }
 
 // TODO: add a depth
-case class SplitterNode (pos: Splitter, neg: Splitter)
+case class SplitterNode (deepPos: Splitter, deepNeg: Splitter, depth: Int = 0)
 extends Splitter {
+  def pos = if (depth > 0) SplitterNode(deepPos, deepNeg, depth - 1) else deepPos
+  def neg = if (depth > 0) SplitterNode(deepPos, deepNeg, depth - 1) else deepNeg
   def merge(variableList: List[E]) = variableList match {
     case t::q => Splitter.fix(t, pos.merge(q), neg.merge(q))
     case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
   }
+  def extend = SplitterNode(deepPos, deepNeg, depth + 1)
   override def toString = "(" + pos.toString + " : " + neg.toString + ")"
 }
 
@@ -147,6 +151,11 @@ extends Splitter {
   lazy val pos = if (depth > 0) SplitterLeaf(proof, depth - 1) else throw new Exception("Traversing beyond leaves")
   def neg = pos
   def merge(variableList: List[E]) = proof
+  def extend = SplitterLeaf(proof, depth + 1)
+  override def equals(other: Any):Boolean = other match {
+    case SplitterLeaf(op, od) => (od == depth) && (op.conclusion == proof.conclusion)
+    case _ => false
+  }
   override def toString = proof.conclusion.toString
 }
 
@@ -161,11 +170,8 @@ object Splitter {
       case (false,false) => left
     }
 
-  def apply(pos: Splitter, neg: Splitter):Splitter = (pos,neg) match {
-    case (SplitterLeaf(proofPos, depthPos), SplitterLeaf(proofNeg, depthNeg)) if (depthPos == depthNeg) && (proofPos.conclusion == proofNeg.conclusion) =>
-      SplitterLeaf(proofPos, depthPos + 1)
-    case _ => SplitterNode(pos, neg)
-  }
+  def apply(pos: Splitter, neg: Splitter):Splitter =
+    if (pos == neg) pos.extend else SplitterNode(pos, neg)
 
   def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
     lazy val variable = variableList.head // might throw an exception
@@ -214,7 +220,7 @@ extends AbstractSplit {
     }
     val variableList = selectVariables(List(), nbVariables)
     val compressed = split(nodeCollection, variableList)
-    if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
+    if (true || ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
   }
 } 
 
