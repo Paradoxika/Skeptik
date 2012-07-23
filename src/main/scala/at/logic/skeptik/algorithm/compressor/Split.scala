@@ -128,35 +128,36 @@ extends AbstractSplit {
 abstract sealed class Splitter {
   def pos:Splitter
   def neg:Splitter
+  def depth:Int
   def merge(variableList: List[E]):SequentProof
-  def extend:Splitter
+  def deepen(amount: Int = 1):Splitter
 }
 
 // TODO: add a depth
 case class SplitterNode (deepPos: Splitter, deepNeg: Splitter, depth: Int = 0)
 extends Splitter {
-  def pos = if (depth > 0) SplitterNode(deepPos, deepNeg, depth - 1) else deepPos
-  def neg = if (depth > 0) SplitterNode(deepPos, deepNeg, depth - 1) else deepNeg
+  def pos = if (depth > 0) deepen(-1) else deepPos
+  def neg = if (depth > 0) deepen(-1) else deepNeg
   def merge(variableList: List[E]) = variableList match {
     case t::q => Splitter.fix(t, pos.merge(q), neg.merge(q))
     case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
   }
-  def extend = SplitterNode(deepPos, deepNeg, depth + 1)
-  override def toString = "(" + pos.toString + " : " + neg.toString + ")"
+  def deepen(amount: Int = 1) = SplitterNode(deepPos, deepNeg, depth + amount)
+  override def toString = "(" + pos.toString + " : " + neg.toString + " :" + depth + ")"
 }
 
 // A true leaf if depth == 0. A subtree with 2^depth identical leaves otherwise.
 case class SplitterLeaf (proof: SequentProof, depth: Int = 0)
 extends Splitter {
-  lazy val pos = if (depth > 0) SplitterLeaf(proof, depth - 1) else throw new Exception("Traversing beyond leaves")
+  lazy val pos = if (depth > 0) deepen(-1) else throw new Exception("Traversing beyond leaves")
   def neg = pos
   def merge(variableList: List[E]) = proof
-  def extend = SplitterLeaf(proof, depth + 1)
+  def deepen(amount: Int = 1) = SplitterLeaf(proof, depth + amount)
   override def equals(other: Any):Boolean = other match {
     case SplitterLeaf(op, od) => (od == depth) && (op.conclusion == proof.conclusion)
     case _ => false
   }
-  override def toString = proof.conclusion.toString
+  override def toString = "{" + proof.conclusion.toString + " :" + depth + "}"
 }
 
 object Splitter {
@@ -171,7 +172,7 @@ object Splitter {
     }
 
   def apply(pos: Splitter, neg: Splitter):Splitter =
-    if (pos == neg) pos.extend else SplitterNode(pos, neg)
+    if (pos == neg) pos.deepen() else SplitterNode(pos, neg)
 
   def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
     lazy val variable = variableList.head // might throw an exception
@@ -181,9 +182,16 @@ object Splitter {
         SplitterLeaf(fix(pivot, proofLeft, proofRight))
       case (l, r) if pivot == variable =>
         Splitter(l.pos, r.neg)
+      case (l, r) if (l.depth > 0) && (r.depth > 0) =>
+        val depthMax = l.depth min r.depth
+        def dive(depth: Int, variables: List[E]):(Int,List[E]) =
+          if ((depth == depthMax) || (variables.head == pivot)) (depth, variables) else dive(depth + 1, variables.tail)
+        val (depthDiff, variables) = dive(1, variableTail)
+        Splitter(pivot, l.deepen(-depthDiff), r.deepen(-depthDiff), variables).deepen(depthDiff)
       case (l, r) =>
         Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
     }
+//    println("split " + left + " and " + right + " on " + pivot + " with " + variableList + " gives " + ret)
     ret
   }
 
