@@ -66,8 +66,6 @@ object Experimenter {
 
   val lowPsUn = new SimpleAlgorithm("low PsUn", new PseudoUnits(2))
   val lowPsU1 = new SimpleAlgorithm("low PsU1", new PseudoUnits(1))
-  val onePsUn = new SimpleAlgorithm("one PsUn", new OnePassPseudoUnits(2))
-  val onePsU1 = new SimpleAlgorithm("one PsU1", new OnePassPseudoUnits(1))
 
   val psunReg = new SimpleAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
   val psunOne = new SimpleAlgorithm("PsUn One", new PseudoUnitsAfter(1))
@@ -108,8 +106,6 @@ object Experimenter {
     "RPILU"-> newRPILU,
     "LURPILU" -> nLURPILU,
     "lowPsUn"  -> lowPsUn,
-    "onePsU1"  -> onePsU1,
-    "onePsUn"  -> onePsUn,
     "lowPsU1"  -> lowPsU1,
     "psUnReg"  -> psunReg,
     "psUnOne"  -> psunOne,

@@ -67,55 +67,6 @@ package pseudoUnits {
 
 import pseudoUnits._
 
-trait PseudoUnitsNotDuringFixing
-extends AbstractRPILUAlgorithm with LeftHeuristic {
-  def fixProofAndUnits(nodeCollection: ProofNodeCollection[SequentProof],
-                       edgesToDelete: MMap[SequentProof,DeletedSide],
-                       unitMap: Map[SequentProof,LList[SequentProof]]) = {
-    def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
-      val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
-      if (unitMap contains oldProof) {
-        unitMap(oldProof).elem = newProof
-        deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
-      }
-      newProof
-    }
-    nodeCollection.foldDown(reconstructProof _)
-  }
-}
-
-class PseudoUnits (minNumberOfChildren: Int)
-extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val principalLiterals = MClause()
-    var units   = LList[SequentProof]()
-    val unitMap = MMap[SequentProof, LList[SequentProof]]()
-    nodeCollection.foreachDown { (p) =>
-      val children = nodeCollection.childrenOf(p)
-      if (fakeSize(children) >= minNumberOfChildren) {
-        isPseudoUnit(p, children, principalLiterals) match {
-          case PseudoUnit(_) =>
-            units = new LList(p, units)
-            unitMap.update(p, units)
-          case _ =>
-        }
-      }
-    }
-    (units, unitMap)
-  }
-
-  def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val (units, unitMap) = collectUnits(nodeCollection)
-    val pseudoRoot = fixProofAndUnits(nodeCollection, MMap[SequentProof,DeletedSide](), unitMap)
-//    println("root " + pseudoRoot.conclusion)
-//    println("units " + units.map(_.conclusion))
-    units.foldLeft(pseudoRoot) { (left,right) =>
-      try {CutIC(left,right)} catch {case e:Exception => left}
-    }
-  }
-}
-
 trait PseudoUnitsDuringFixing
 extends AbstractRPILUAlgorithm with LeftHeuristic {
   def fixProofAndLowerUnits(minNumberOfChildren: Int, nodeCollection: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
@@ -135,15 +86,13 @@ extends AbstractRPILUAlgorithm with LeftHeuristic {
     }
 
     val pseudoRoot = nodeCollection.foldDown(reconstructProof _)
-//    println("root " + pseudoRoot.conclusion)
-//    println("units " + units.map(_.conclusion))
     units.foldLeft(pseudoRoot) { (left,right) =>
       try {CutIC(left,right)} catch {case e:Exception => left}
     }
   }
 }
 
-class OnePassPseudoUnits (minNumberOfChildren: Int)
+class PseudoUnits (minNumberOfChildren: Int)
 extends AbstractRPILUAlgorithm with PseudoUnitsDuringFixing {
   def apply(proof: SequentProof): SequentProof =
     fixProofAndLowerUnits(minNumberOfChildren, ProofNodeCollection(proof), MMap[SequentProof,DeletedSide]())
