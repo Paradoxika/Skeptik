@@ -13,11 +13,19 @@ import scala.collection.Map
 abstract class AbstractThreePassLower
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,IClause])
+  def collectUnits(nodeCollection:
+  ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,(IClause,IClause)])
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     val (rootSafeLiterals, units, unitsMap) = collectUnits(nodeCollection)
+
+    // Protected literals transmited by children aren't the same for the both premises.
+    // Hence we need to store them ourself.
+    val protectedLiteralMap = MMap[SequentProof,IClause]()
+    def addProtectedLiteralFor(proof: SequentProof, literals: IClause) =
+      if (!literals.isFalse)
+        protectedLiteralMap.update(proof, if (protectedLiteralMap contains proof) protectedLiteralMap(proof) ++ literals else literals)
 
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
       def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
@@ -28,15 +36,43 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
       if (unitsMap contains p) {
         deleteFromChildren(p, nodeCollection, edgesToDelete)
+        val (efficientLiteral, safeLiterals) = unitsMap(p)
+        p.premises.foreach (addProtectedLiteralFor(_, efficientLiteral))
 //        println("Unit " + p.conclusion + " " + unitsMap(p))
-        (p, unitsMap(p))
+        (p, safeLiterals)
       }
       else if (childrensSafeLiterals == Nil) (p, rootSafeLiterals)
       else {
         val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+        val protectedLiterals = protectedLiteralMap.getOrElse(p, IClause()) ; protectedLiteralMap.remove(p)
+        lazy val leftLiterals  = IClause(p.premises.head.conclusion)
+        lazy val rightLiterals = IClause(p.premises.last.conclusion)
         p match {
-            case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.update(p, LeftDS)
-            case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.update(p, RightDS)
+            case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) && (protectedLiterals -- rightLiterals).isFalse =>
+              edgesToDelete.update(p, LeftDS)
+              addProtectedLiteralFor(right, protectedLiterals)
+            case CutIC(left ,_,auxL,_) if (safeLiterals.suc contains auxL) && (protectedLiterals --  leftLiterals).isFalse =>
+              edgesToDelete.update(p, RightDS)
+              addProtectedLiteralFor(left, protectedLiterals)
+            case CutIC(left,right,pivot,_) =>
+              val remainingProtectedLiterals =
+                (protectedLiterals -- protectedLiteralMap.getOrElse(left, IClause())) -- protectedLiteralMap.getOrElse(right, IClause())
+              if (left.isInstanceOf[Axiom]) {
+                var protectedLeft  = remainingProtectedLiterals intersect leftLiterals
+                var protectedRight = remainingProtectedLiterals    --     leftLiterals
+                if (!protectedLeft.isFalse)  protectedRight = pivot +: protectedRight
+                if (!protectedRight.isFalse) protectedLeft  = protectedLeft  +  pivot
+                addProtectedLiteralFor(left,  protectedLeft)
+                addProtectedLiteralFor(right, protectedRight)
+              }
+              else {
+                var protectedLeft  = remainingProtectedLiterals    --     rightLiterals
+                var protectedRight = remainingProtectedLiterals intersect rightLiterals
+                if (!protectedLeft.isFalse)  protectedRight = pivot +: protectedRight
+                if (!protectedRight.isFalse) protectedLeft  = protectedLeft  +  pivot
+                addProtectedLiteralFor(left,  protectedLeft)
+                addProtectedLiteralFor(right, protectedRight)
+              }
             case _ =>
         }
         (p, safeLiterals)
@@ -44,7 +80,6 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     }
 
     nodeCollection.bottomUp(visit)
-//    units.foreach (deleteFromChildren(_, nodeCollection, edgesToDelete))
     (units, edgesToDelete)
   }
 
@@ -63,13 +98,21 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 class ThreePassLower
 extends AbstractThreePassLower {
   def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val map = MMap[SequentProof, IClause]()
+    val map = MMap[SequentProof, (IClause,IClause)]()
     val units = scala.collection.mutable.Stack[SequentProof]()
     val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
       (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(nodeCollection.childrenOf(p))) match {
         // TODO : should I add the unit's literal to safeLiterals to be transmited to unit's premises ?
-        case (1,0,2) => units.push(p) ; map.update(p, safeLiterals) ; safeLiterals + p.conclusion.ant(0)
-        case (0,1,2) => units.push(p) ; map.update(p, safeLiterals) ; p.conclusion.suc(0) +: safeLiterals
+        case (1,0,2) =>
+          val literal = p.conclusion.ant(0)
+          units.push(p)
+          map.update(p, (new IClause(Set[E](literal),Set[E]()), safeLiterals))
+          safeLiterals + literal
+        case (0,1,2) =>
+          val literal = p.conclusion.suc(0)
+          units.push(p)
+          map.update(p, (new IClause(Set[E](),Set[E](literal)), safeLiterals))
+          literal +: safeLiterals
         case _ => safeLiterals
       }
     }

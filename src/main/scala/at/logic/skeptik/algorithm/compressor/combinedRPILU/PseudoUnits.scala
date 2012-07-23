@@ -112,14 +112,20 @@ extends AbstractThreePassLower {
   def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val principalLiterals = MClause()
     var units = List[SequentProof]()
-    val map = MMap[SequentProof, IClause]()
+    val map = MMap[SequentProof, (IClause,IClause)]()
     val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
       val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) < minNumberOfChildren) safeLiterals else
         isPseudoUnit(p, children, principalLiterals) match {
           // TODO : should I add the unit's literal to safeLiterals to be transmited to unit's premises ?
-          case PseudoUnit(Left(l))  => units ::= p ; map.update(p,safeLiterals) ; safeLiterals + l
-          case PseudoUnit(Right(l)) => units ::= p ; map.update(p,safeLiterals) ; l +: safeLiterals
+          case PseudoUnit(Left(l))  =>
+            units ::= p
+            map.update(p, (new IClause(Set[E](l),Set[E]()), safeLiterals))
+            safeLiterals + l
+          case PseudoUnit(Right(l)) =>
+            units ::= p
+            map.update(p, (new IClause(Set[E](),Set[E](l)), safeLiterals))
+            l +: safeLiterals
           case _ => safeLiterals
         }
     }

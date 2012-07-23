@@ -23,6 +23,8 @@ abstract class ASequent extends Judgment {
     case Left(f) => ant contains f
     case Right(f) => suc contains f
   }
+
+  def isFalse = (ant.size == 0) && (suc.size == 0)
   
   def size = ant.size + suc.size + 1
  
