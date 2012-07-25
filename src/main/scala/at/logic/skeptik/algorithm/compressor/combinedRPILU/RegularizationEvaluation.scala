@@ -10,16 +10,16 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
-class RegularizationInformation (val nodeSize: Float, val leftMap: Map[E,Float], val rightMap: Map[E,Float]) {
-  def /(v: Float) = new RegularizationInformation(nodeSize / v, leftMap.mapValues(_/v), rightMap.mapValues(_/v))
+class RegularizationInformation (val estimatedSize: Float, val estimatedGainForLeftSafeLiteral: Map[E,Float], val estimatedGainForRightSafeLiteral: Map[E,Float]) {
+  def /(v: Float) = new RegularizationInformation(estimatedSize / v, estimatedGainForLeftSafeLiteral.mapValues(_/v), estimatedGainForRightSafeLiteral.mapValues(_/v))
 }     
 object RegularizationInformation {
   def apply() =
     new RegularizationInformation(1, Map[E,Float](), Map[E,Float]())
-  def apply(nodeSize: Float) =
-    new RegularizationInformation(nodeSize, Map[E,Float](), Map[E,Float]())
-  def apply(nodeSize: Float, leftMap: Map[E,Float], rightMap: Map[E,Float]) =
-    new RegularizationInformation(nodeSize, leftMap, rightMap)
+  def apply(estimatedSize: Float) =
+    new RegularizationInformation(estimatedSize, Map[E,Float](), Map[E,Float]())
+  def apply(estimatedSize: Float, estimatedGainForLeftSafeLiteral: Map[E,Float], estimatedGainForRightSafeLiteral: Map[E,Float]) =
+    new RegularizationInformation(estimatedSize, estimatedGainForLeftSafeLiteral, estimatedGainForRightSafeLiteral)
 }
 
 // There are many variant of this algorithm. Only some of them are instanciated in Experimenter.
@@ -48,7 +48,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     val units = scala.collection.mutable.Queue[SequentProof]()
     val informationMap = collectInformationMap(nodeCollection)
 
-    def isTrueUnit(p: SequentProof, safeLiterals: IClause) =
+    def isStillUnit(p: SequentProof, safeLiterals: IClause) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
         val currentChildrenNumber = nodeCollection.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
@@ -77,7 +77,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
           (p, new IClause(Set[E](), Set(p.conclusion.suc(0))))
       }
       p match {
-        case p if isTrueUnit(p, safeLiterals) => lower()
+        case p if isStillUnit(p, safeLiterals) => lower()
         case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => regularize(LeftDS)
         case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => regularize(RightDS)
         case p => (p, safeLiterals)
@@ -153,24 +153,24 @@ extends RegularizationEvaluation {
 // Evals
 
 trait AddEval extends RegularizationEvaluation {
-// Assumes all the possible regularizations will happend.
+// Assumes all the possible regularizations will happen.
   def addMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
     ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0..toFloat))) }
   def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          leftInfo: RegularizationInformation, rightInfo:RegularizationInformation):RegularizationInformation = {
     val (left,right) = (proof.premises(0), proof.premises(1))
     def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+      if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.estimatedSize + 1..toFloat else 1..toFloat
     RegularizationInformation(
       evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1..toFloat,
-      addMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
-      addMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> evalRegularization(right,rightInfo))
+      addMap(leftInfo.estimatedGainForLeftSafeLiteral,  rightInfo.estimatedGainForLeftSafeLiteral)  + (aux -> evalRegularization(left, leftInfo)),
+      addMap(leftInfo.estimatedGainForRightSafeLiteral, rightInfo.estimatedGainForRightSafeLiteral) + (aux -> evalRegularization(right,rightInfo))
     )
   }
 }
 
 trait MinEval extends RegularizationEvaluation {
-// Assumes only the worst (non-null) regularization will happend.
+// Assumes only the worst (non-null) regularization will happen.
   def minMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
     ma.keys.foldLeft(mb) { (acc,k) =>
       acc + (k -> (if ((mb contains k) && (mb(k) < ma(k))) mb(k) else ma(k)))
@@ -178,9 +178,9 @@ trait MinEval extends RegularizationEvaluation {
   def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          leftInfo: RegularizationInformation, rightInfo:RegularizationInformation):RegularizationInformation = {
     RegularizationInformation(
-      leftInfo.nodeSize + rightInfo.nodeSize - 1..toFloat,
-      minMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> leftInfo.nodeSize),
-      minMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> rightInfo.nodeSize)
+      leftInfo.estimatedSize + rightInfo.estimatedSize - 1..toFloat,
+      minMap(leftInfo.estimatedGainForLeftSafeLiteral,  rightInfo.estimatedGainForLeftSafeLiteral)  + (aux -> leftInfo.estimatedSize),
+      minMap(leftInfo.estimatedGainForRightSafeLiteral, rightInfo.estimatedGainForRightSafeLiteral) + (aux -> rightInfo.estimatedSize)
     )
   }
 }
@@ -193,8 +193,8 @@ trait RegularizeIfPossible extends RegularizationEvaluation {
                                currentChildrenNumber: Int,
                                information: RegularizationInformation,
                                safeLiterals: IClause                  ):Boolean = {
-    val ret = !(safeLiterals.ant.exists(information.leftMap  contains _) ||
-                safeLiterals.suc.exists(information.rightMap contains _)   )
+    val ret = !(safeLiterals.ant.exists(information.estimatedGainForLeftSafeLiteral  contains _) ||
+                safeLiterals.suc.exists(information.estimatedGainForRightSafeLiteral contains _)   )
 //    println("Irregular unit " + proof.conclusion + " with " + currentChildrenNumber + " children: " + ret)
     ret
   }
@@ -202,7 +202,7 @@ trait RegularizeIfPossible extends RegularizationEvaluation {
 
 abstract class MinRegularizationEvaluation
 extends RegularizationEvaluation {
-// Assumes that only the worst (non-null) regularization of each direct premise will happend.
+// Assumes that only the worst (non-null) regularization of each direct premise will happen.
   def lowerInsteadOfRegularizeChooseOnWeight(lowerWeight: Float, regularizationWeight: Float):Boolean
 
   def lowerInsteadOfRegularize(proof: SequentProof,
@@ -216,10 +216,10 @@ extends RegularizationEvaluation {
       }
       else acc
     val regularizeGain =
-      safeLiterals.ant.foldLeft(0..toFloat)(foldFunction(information.leftMap))  +
-      safeLiterals.suc.foldLeft(0..toFloat)(foldFunction(information.rightMap))
+      safeLiterals.ant.foldLeft(0..toFloat)(foldFunction(information.estimatedGainForLeftSafeLiteral))  +
+      safeLiterals.suc.foldLeft(0..toFloat)(foldFunction(information.estimatedGainForRightSafeLiteral))
 //    println("Clever " + proof.conclusion + " with " + currentChildrenNumber + " children, size " +
-//            information.nodeSize + " reg " + regularizeGain)
+//            information.estimatedSize + " reg " + regularizeGain)
     lowerInsteadOfRegularizeChooseOnWeight((currentChildrenNumber - 1).toFloat, regularizeGain)
   }
 }

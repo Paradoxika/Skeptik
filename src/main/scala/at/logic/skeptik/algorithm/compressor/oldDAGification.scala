@@ -4,7 +4,7 @@ import at.logic.skeptik.proof.oldResolution._
 import at.logic.skeptik.proof.oldResolution.typeAliases._
 import collection._
 
-object DAGification {
+object oldDAGification {
   def DAGify(proof: Proof, measure: Proof => Int): Proof = {
     val visitedProofs = new mutable.HashSet[Proof]
     val map = new mutable.HashMap[Clause,Proof]

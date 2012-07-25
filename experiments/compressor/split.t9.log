@@ -1,0 +1,407 @@
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ017_size5.smt2  8751,5 ms  368
+split R :  78767,7 ms 14297 times 100,000 %
+msplitr2:  78767,6 ms 5657 times 99,457 %
+msplitr3:  78765,7 ms 5135 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ009_size8.smt2  1821,0 ms  323
+split R :  16393,4 ms 3708 times 99,690 %
+msplitr2:  16389,8 ms 1674 times 99,381 %
+msplitr3:  16392,9 ms 1544 times 95,356 %
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ009_size9.smt2  1146,7 ms  307
+split R :  10323,2 ms 2642 times 97,720 %
+msplitr2:  10320,2 ms 1339 times 98,697 %
+msplitr3:  10321,4 ms 1403 times 97,394 %
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ019_size4.smt2   961,7 ms  747
+split R :   8662,1 ms 658 times 99,866 %
+msplitr2:   8661,5 ms 241 times 97,724 %
+msplitr3:   8656,3 ms 221 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ019_size5.smt2  1624,7 ms  941
+split R :  14630,1 ms 898 times 94,368 %
+msplitr2:  14663,3 ms 319 times 100,000 %
+msplitr3:  14641,5 ms 297 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ020_size2.smt2   562,9 ms  103
+split R :   5067,3 ms 2563 times 100,000 %
+msplitr2:   5067,3 ms 1331 times 100,000 %
+msplitr3:   5074,3 ms 1054 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ009_size10.smt2  1398,6 ms  376
+split R :  12587,8 ms 3058 times 100,000 %
+msplitr2:  12588,7 ms 1599 times 100,000 %
+msplitr3:  12591,1 ms 1473 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SEQ/SEQ015_size2.smt2   530,5 ms  791
+split R :   4783,1 ms 295 times 99,368 %
+msplitr2:   4784,7 ms 114 times 100,000 %
+msplitr3:   4793,9 ms 104 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl407.smt2   917,3 ms  896
+split R :   8263,1 ms 151 times 98,996 %
+msplitr2:   8270,9 ms 102 times 100,000 %
+msplitr3:   8260,8 ms 95 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl790.smt2   776,1 ms  796
+split R :   7000,9 ms 313 times 100,000 %
+msplitr2:   7018,3 ms 135 times 100,000 %
+msplitr3:   6989,0 ms 121 times 97,739 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl034.smt2   890,2 ms  761
+split R :   8036,2 ms 157 times 100,000 %
+msplitr2:   8085,9 ms 90 times 100,000 %
+msplitr3:   8045,8 ms 73 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl036.smt2   837,8 ms  922
+split R :   7543,9 ms 169 times 100,000 %
+msplitr2:   7554,2 ms 84 times 100,000 %
+msplitr3:   7583,0 ms 74 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn054.smt2   730,1 ms  625
+split R :   6583,7 ms 354 times 100,000 %
+msplitr2:   6599,3 ms 192 times 99,040 %
+msplitr3:   6572,9 ms 168 times 99,840 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn055.smt2   725,6 ms  533
+split R :   6542,5 ms 343 times 99,625 %
+msplitr2:   6550,6 ms 177 times 99,812 %
+msplitr3:   6565,2 ms 167 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl1242.smt2   832,1 ms  996
+split R :   7519,3 ms 111 times 99,498 %
+msplitr2:   7519,0 ms 55 times 100,000 %
+msplitr3:   7719,2 ms 44 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl414.smt2  1236,8 ms  917
+split R :  11137,0 ms 257 times 100,000 %
+msplitr2:  11180,1 ms 127 times 100,000 %
+msplitr3:  11199,9 ms 100 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn056.smt2   715,0 ms  532
+split R :   6443,6 ms 436 times 100,000 %
+msplitr2:   6450,9 ms 209 times 100,000 %
+msplitr3:   6461,2 ms 191 times 97,180 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl356.smt2   836,7 ms  993
+split R :   7562,6 ms 199 times 97,382 %
+msplitr2:   7555,4 ms 94 times 94,562 %
+msplitr3:   7532,0 ms 77 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn057.smt2   730,2 ms  627
+split R :   6573,4 ms 331 times 100,000 %
+msplitr2:   6587,7 ms 157 times 92,026 %
+msplitr3:   6595,4 ms 143 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl357.smt2   835,5 ms  934
+split R :   7536,9 ms 215 times 100,000 %
+msplitr2:   7539,5 ms 114 times 100,000 %
+msplitr3:   7605,2 ms 97 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl1246.smt2  1144,9 ms  891
+split R :  10360,0 ms 198 times 100,000 %
+msplitr2:  10356,4 ms 80 times 98,092 %
+msplitr3:  10325,3 ms 75 times 99,102 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl418.smt2   844,2 ms  645
+split R :   7614,8 ms 438 times 96,744 %
+msplitr2:   7605,1 ms 208 times 97,984 %
+msplitr3:   7623,8 ms 199 times 98,450 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl104.smt2  1096,3 ms  734
+split R :   9871,8 ms 229 times 100,000 %
+msplitr2:   9867,0 ms 109 times 99,046 %
+msplitr3:   9907,2 ms 96 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl419.smt2   743,7 ms  505
+split R :   6700,8 ms 616 times 97,426 %
+msplitr2:   6693,2 ms 315 times 96,436 %
+msplitr3:   6701,2 ms 295 times 99,208 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn060.smt2   779,5 ms  797
+split R :   7023,7 ms 297 times 100,000 %
+msplitr2:   7051,4 ms 145 times 100,000 %
+msplitr3:   7058,9 ms 130 times 94,479 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn808.smt2  1128,4 ms  967
+split R :  10191,6 ms 179 times 100,000 %
+msplitr2:  10175,1 ms 104 times 100,000 %
+msplitr3:  10217,7 ms 82 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn061.smt2   734,9 ms  605
+split R :   6614,1 ms 184 times 100,000 %
+msplitr2:   6637,7 ms 88 times 100,000 %
+msplitr3:   6620,0 ms 80 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn063.smt2   789,9 ms  748
+split R :   7123,1 ms 177 times 100,000 %
+msplitr2:   7175,7 ms 82 times 100,000 %
+msplitr3:   7141,4 ms 65 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl738.smt2  1403,2 ms  923
+split R :  12654,4 ms 122 times 100,000 %
+msplitr2:  12639,6 ms 48 times 97,941 %
+msplitr3:  12678,7 ms 43 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl237.smt2  1387,5 ms  974
+split R :  12491,0 ms 176 times 100,000 %
+msplitr2:  12565,2 ms 90 times 100,000 %
+msplitr3:  12763,6 ms 88 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/gensys_icl055.smt2   647,5 ms  921
+split R :   5836,6 ms 256 times 100,000 %
+msplitr2:   5828,7 ms 116 times 100,000 %
+msplitr3:   5852,6 ms 88 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn066.smt2   721,7 ms  600
+split R :   6536,1 ms 170 times 100,000 %
+msplitr2:   6546,4 ms 87 times 100,000 %
+msplitr3:   6497,7 ms 75 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/gensys_icl057.smt2   564,1 ms  200
+split R :   5078,4 ms 1278 times 100,000 %
+msplitr2:   5078,1 ms 717 times 100,000 %
+msplitr3:   5078,1 ms 604 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl055.smt2   620,3 ms  356
+split R :   5596,0 ms 747 times 100,000 %
+msplitr2:   5593,7 ms 331 times 100,000 %
+msplitr3:   5587,3 ms 304 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl056.smt2   683,6 ms  416
+split R :   6154,1 ms 550 times 98,798 %
+msplitr2:   6155,1 ms 270 times 98,558 %
+msplitr3:   6153,3 ms 258 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/gensys_icl060.smt2   584,2 ms  331
+split R :   5263,5 ms 742 times 99,396 %
+msplitr2:   5271,7 ms 375 times 100,000 %
+msplitr3:   5271,8 ms 310 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl057.smt2   636,1 ms  504
+split R :   5733,5 ms 455 times 99,603 %
+msplitr2:   5737,3 ms 228 times 100,000 %
+msplitr3:   5736,9 ms 211 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl058.smt2   671,4 ms  492
+split R :   6062,7 ms 298 times 97,764 %
+msplitr2:   6048,5 ms 151 times 100,000 %
+msplitr3:   6048,3 ms 137 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/gensys_icl062.smt2   670,4 ms  627
+split R :   6033,9 ms 405 times 99,522 %
+msplitr2:   6036,0 ms 199 times 100,000 %
+msplitr3:   6042,9 ms 177 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl059.smt2   787,2 ms  777
+split R :   7118,8 ms 218 times 98,327 %
+msplitr2:   7118,9 ms 115 times 100,000 %
+msplitr3:   7106,9 ms 111 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn005.smt2   706,9 ms  708
+split R :   6368,2 ms 266 times 100,000 %
+msplitr2:   6381,0 ms 126 times 100,000 %
+msplitr3:   6365,8 ms 109 times 99,435 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn006.smt2   740,2 ms  805
+split R :   6694,8 ms 221 times 99,876 %
+msplitr2:   6690,5 ms 116 times 100,000 %
+msplitr3:   6694,9 ms 104 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl1262.smt2   806,5 ms  819
+split R :   7265,5 ms 214 times 100,000 %
+msplitr2:   7320,6 ms 97 times 100,000 %
+msplitr3:   7265,9 ms 86 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl060.smt2   689,9 ms  630
+split R :   6250,0 ms 344 times 99,683 %
+msplitr2:   6227,9 ms 169 times 100,000 %
+msplitr3:   6252,7 ms 149 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl061.smt2   707,7 ms  673
+split R :   6370,7 ms 378 times 100,000 %
+msplitr2:   6397,3 ms 166 times 100,000 %
+msplitr3:   6369,7 ms 153 times 98,811 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl063.smt2   761,5 ms  781
+split R :   6868,2 ms 137 times 100,000 %
+msplitr2:   6909,5 ms 76 times 100,000 %
+msplitr3:   6940,5 ms 71 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/gensys_icl069.smt2   737,9 ms  704
+split R :   6662,3 ms 239 times 100,000 %
+msplitr2:   6647,3 ms 109 times 100,000 %
+msplitr3:   6649,5 ms 95 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl065.smt2   774,3 ms  753
+split R :   7005,8 ms 175 times 96,149 %
+msplitr2:   6974,8 ms 97 times 97,875 %
+msplitr3:   6976,9 ms 86 times 98,672 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl066.smt2   829,5 ms  931
+split R :   7486,8 ms 145 times 100,000 %
+msplitr2:   7554,6 ms 69 times 100,000 %
+msplitr3:   7581,0 ms 65 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_brn1225.smt2  1281,6 ms  978
+split R :  11571,4 ms 49 times 100,000 %
+msplitr2:  11631,0 ms 29 times 100,000 %
+msplitr3:  12575,7 ms 30 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl067.smt2   728,3 ms  672
+split R :   6564,6 ms 262 times 100,000 %
+msplitr2:   6588,1 ms 154 times 99,702 %
+msplitr3:   6555,2 ms 130 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl068.smt2   689,0 ms  543
+split R :   6203,4 ms 580 times 99,079 %
+msplitr2:   6217,8 ms 266 times 100,000 %
+msplitr3:   6202,2 ms 253 times 99,816 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl1015.smt2  1135,4 ms  995
+split R :  10314,3 ms 135 times 100,000 %
+msplitr2:  10219,3 ms 66 times 100,000 %
+msplitr3:  10232,4 ms 59 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl069.smt2   847,1 ms  924
+split R :   7668,4 ms 117 times 100,000 %
+msplitr2:   7676,9 ms 65 times 100,000 %
+msplitr3:   7692,2 ms 50 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl002.smt2   721,9 ms  496
+split R :   6499,3 ms 668 times 100,000 %
+msplitr2:   6509,9 ms 355 times 99,395 %
+msplitr3:   6514,4 ms 332 times 97,782 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl003.smt2   773,4 ms  596
+split R :   6962,3 ms 322 times 99,161 %
+msplitr2:   6967,6 ms 155 times 100,000 %
+msplitr3:   6991,4 ms 144 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl004.smt2   750,9 ms  736
+split R :   6778,6 ms 147 times 100,000 %
+msplitr2:   6791,5 ms 95 times 100,000 %
+msplitr3:   6794,3 ms 78 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl005.smt2   668,6 ms  512
+split R :   6026,4 ms 433 times 98,242 %
+msplitr2:   6018,4 ms 272 times 98,828 %
+msplitr3:   6039,0 ms 240 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl006.smt2   674,8 ms  497
+split R :   6076,8 ms 326 times 97,787 %
+msplitr2:   6076,2 ms 184 times 100,000 %
+msplitr3:   6095,5 ms 168 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl007.smt2   664,6 ms  465
+split R :   5988,1 ms 638 times 99,570 %
+msplitr2:   5995,4 ms 338 times 100,000 %
+msplitr3:   5998,2 ms 320 times 98,495 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl268.smt2  1329,5 ms  923
+split R :  12029,7 ms 125 times 100,000 %
+msplitr2:  12185,3 ms 70 times 100,000 %
+msplitr3:  12084,6 ms 61 times 98,375 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl396.smt2   845,0 ms  870
+split R :   7622,8 ms 230 times 100,000 %
+msplitr2:   7633,2 ms 99 times 100,000 %
+msplitr3:   7621,8 ms 88 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl274.smt2   869,4 ms  790
+split R :   7848,4 ms 248 times 98,987 %
+msplitr2:   7843,3 ms 128 times 100,000 %
+msplitr3:   7859,3 ms 113 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl1038.smt2  1048,3 ms  972
+split R :   9475,3 ms 173 times 99,794 %
+msplitr2:   9580,3 ms 63 times 100,000 %
+msplitr3:   9501,8 ms 55 times 96,811 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl1041.smt2   764,9 ms  617
+split R :   6885,1 ms 487 times 99,676 %
+msplitr2:   6892,2 ms 259 times 99,676 %
+msplitr3:   6910,7 ms 238 times 98,379 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl1044.smt2  1096,2 ms  857
+split R :   9877,0 ms 416 times 99,067 %
+msplitr2:   9878,8 ms 214 times 100,000 %
+msplitr3:   9884,2 ms 194 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl216.smt2   687,4 ms  630
+split R :   6192,8 ms 404 times 99,683 %
+msplitr2:   6186,9 ms 235 times 96,508 %
+msplitr3:   6205,5 ms 213 times 97,937 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl285.smt2  1058,6 ms  857
+split R :   9546,3 ms 240 times 99,767 %
+msplitr2:   9582,8 ms 107 times 100,000 %
+msplitr3:   9570,4 ms 89 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/qg5/iso_icl789.smt2  1020,8 ms  892
+split R :   9263,3 ms 160 times 100,000 %
+msplitr2:   9280,4 ms 60 times 100,000 %
+msplitr3:   9405,8 ms 33 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/loops6/dead_dnd007.smt2   857,1 ms  659
+split R :   7718,7 ms 675 times 99,090 %
+msplitr2:   7714,4 ms 315 times 100,000 %
+msplitr3:   7725,9 ms 306 times 97,117 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/loops6/dead_dnd009.smt2   862,8 ms  651
+split R :   7765,5 ms 620 times 100,000 %
+msplitr2:   7794,0 ms 310 times 98,925 %
+msplitr3:   7765,2 ms 287 times 92,780 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/loops6/iso_brn006.smt2  1272,0 ms  997
+split R :  11450,9 ms 457 times 100,000 %
+msplitr2:  11471,4 ms 215 times 99,900 %
+msplitr3:  11487,1 ms 202 times 95,888 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/loops6/iso_icl016.smt2  1231,7 ms  975
+split R :  11086,8 ms 547 times 100,000 %
+msplitr2:  11113,4 ms 270 times 99,282 %
+msplitr3:  11095,1 ms 252 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/QG-classification/loops6/iso_icl017.smt2  1206,5 ms  787
+split R :  10859,1 ms 236 times 100,000 %
+msplitr2:  10878,2 ms 142 times 98,983 %
+msplitr3:  10871,7 ms 136 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SmallProofs/bf1355-638.proof  3496,3 ms  460
+split R :  31473,8 ms 3281 times 100,000 %
+msplitr2:  31471,8 ms 1700 times 100,000 %
+msplitr3:  31482,4 ms 1356 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SmallProofs/pret60_40.proof  2326,3 ms  720
+split R :  20938,5 ms 1328 times 100,000 %
+msplitr2:  20938,1 ms 558 times 100,000 %
+msplitr3:  20969,0 ms 390 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SmallProofs/pret60_60.proof  1821,0 ms  720
+split R :  16398,4 ms 1066 times 100,000 %
+msplitr2:  16393,1 ms 437 times 100,000 %
+msplitr3:  16410,0 ms 303 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SmallProofs/bf1355-075.proof   833,9 ms  657
+split R :   7511,0 ms 482 times 100,000 %
+msplitr2:   7518,4 ms 262 times 100,000 %
+msplitr3:   7521,3 ms 218 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SmallProofs/pret60_75.proof  1777,5 ms  720
+split R :  16008,1 ms 1039 times 100,000 %
+msplitr2:  16021,4 ms 431 times 100,000 %
+msplitr3:  16015,3 ms 291 times 100,000 %
+------------------------------------------------------------
+* /data/proofs/SmallProofs/pret60_25.proof  1776,0 ms  720
+split R :  15987,6 ms 1029 times 100,000 %
+msplitr2:  16017,1 ms 427 times 100,000 %
+msplitr3:  16024,0 ms 297 times 100,000 %
+------------------------------------------------------------
+
+------------------------------------------------------------
+split R :   3206,6 ms 724,1 times 99,514 %
+msplitr2:   3210,5 ms 337,2 times 99,484 %
+msplitr3:   3216,6 ms 298,2 times 99,395 %
+------------------------------------------------------------

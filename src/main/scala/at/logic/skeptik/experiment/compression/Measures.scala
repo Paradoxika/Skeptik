@@ -1,130 +1,71 @@
 package at.logic.skeptik.experiment.compression
 
-import collection.generic.CanBuildFrom
-import collection.immutable.HashMap
-import collection.immutable.List
-import collection.immutable.Map
-import collection.immutable.MapLike
-import collection.mutable.ArrayBuffer
-import collection.mutable.Builder
+import collection.mutable.{HashMap => MMap}
 
+abstract class Measure[-P] {
+  def before(proof: P):String
+  def after(algorithm: String, proof: P):String
+  def average(algorithm: String):String
+}
 
-class Report private (val m: HashMap[String,Double])
-extends Map[String,Double] with MapLike[String,Double,Report] {
-  // useless
-  def +[B >: Double](kv: (String, B)) = {
-    if (kv._2.isInstanceOf[Double])
-      new Report(m + kv.asInstanceOf[(String,Double)])
-    else
-      m + kv
-  }
-  def +(kv: (String, Double)) = new Report(m + kv) // TODO: I think this method is now subsumed by the method above, and hence could be deleted.
-  def -(key: String) = new Report(m - key)
-  override def empty = new Report(HashMap())
-  def iterator = m.iterator
-  def get(key: String) = m.get(key)
+class IntMeasure[-P] (unit: String, op: P => Int)
+extends Measure[P] {
 
-  def add(other: Report) = {
-    def op (acc: HashMap[String,Double], kv: (String, Double)) = {
-      if (acc.contains(kv._1))
-        acc + (kv._1 -> (acc(kv._1) + kv._2))
-      else
-        acc + kv
-    }
-    val nmap = m.foldLeft(other.m)(op _)
-    new Report(nmap)
+  var nb = 0
+  var sum = MMap[String,Int]()
+
+  def before(proof: P) = op(proof).toString + unit
+
+  def after(algorithm: String, proof: P) = {
+    nb += 1
+    val value = op(proof)
+    sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
+    value.toString + unit
   }
 
-  override def toString(): String = {
-    ( for ((k,v) <- m ; if (k != "num"))
-      yield {
-        val dotPos = k.indexOf('.')
-        val valStr = String.format("%.3f", double2Double(v/m("num")))
-        if (dotPos >= 0)
-            k.substring(0, dotPos) + " " + valStr + " " + k.substring(dotPos+1)
-        else
-            k + " " + valStr
-      }
-    ) mkString (", ")
+  def average(algorithm: String) = String.format("%.1f%s", double2Double(sum(algorithm).toDouble / nb.toDouble), unit)
+
+}
+
+class DoubleMeasure[-P] (format: String, op: P => Double)
+extends Measure[P] {
+
+  var nb = 0
+  var sum = MMap[String,Double]()
+
+  def before(proof: P) = String.format(format, double2Double(op(proof)))
+
+  def after(algorithm: String, proof: P) = {
+    nb += 1
+    val value = op(proof)
+    sum.update(algorithm, sum.getOrElse(algorithm,0.) + value)
+    String.format(format, double2Double(value))
   }
+
+  def average(algorithm: String) = String.format(format, double2Double(sum(algorithm) / nb.toDouble))
+
 }
-object Report {
-  def apply(args: (String,Double)*) = {
-    val nargs = args ++ Array("num" -> 1.)
-    new Report(HashMap(nargs: _*))
+
+class IntPercentMeasure[-P] (op: P => Int)
+extends Measure[P] {
+
+  var beforeVal = 0
+  var beforeSum:Long = 0
+  val afterSum = MMap[String,Long]()
+
+  def before(proof: P) = {
+    beforeVal = op(proof)
+    beforeSum += beforeVal
+    beforeVal.toString
   }
 
-  val empty = new Report(HashMap())
-  
-  // useless
-  def newBuilder: Builder[(String,Double), Report] =
-    new ArrayBuffer mapResult ((a: ArrayBuffer[(String,Double)]) => Report(a.toArray: _*))
-
-  // useless
-  implicit def canBuildFrom: CanBuildFrom[Report, (String,Double), Report] =
-    new CanBuildFrom[Report, (String,Double), Report] {
-      def apply(): Builder[(String,Double), Report] = newBuilder
-      def apply(from: Report): Builder[(String,Double), Report] = newBuilder
-    }
-}
-
-
-
-abstract class Measure[-P]
-extends Function2[P, Report, Report]
-{
-  def init(p:P, r:Report): Report
-}
-
-object DumbMeasure extends Measure[Any] {
-  def init (p: Any, report: Report) = report
-  def apply(p: Any, report: Report) = report
-}
-
-class NoStateMeasure[P] private (name: String, fct: (P) => Double)
-extends Measure[P]
-{
-  def init(p: P, report: Report) = report
-  def apply(p:P, report: Report) = report + (name -> fct(p))
-}
-object NoStateMeasure
-{
-  def apply[P](name: String, fct: P => Double) = new NoStateMeasure(name, fct)
-  def apply[P](name: String, fct: P => Double, unit: String) =
-    new NoStateMeasure(name + "." + unit, fct)
-}
-
-class PercentMeasure[P] private (name: String, fct: (P) => Double)
-extends Measure[P]
-{
-  def init( p:P, report:Report) = report + (name -> fct(p))
-  def apply(p:P, report:Report) = report + (name -> (100. * fct(p) / report(name)))
-}
-object PercentMeasure {
-  def apply[P](name: String, fct: P => Double) = new PercentMeasure(name + ".%", fct)
-}
-
-class CompositeMeasure[P] private (childs: List[Measure[P]])
-extends Measure[P]
-{
-  def init(p:P, report:Report): Report = {
-    def aux(acc: Report, child: Measure[P]) = child.init(p, acc)
-    childs.foldLeft(report)(aux _)
+  def after(algorithm: String, proof: P) = {
+    val afterVal = op(proof)
+    afterSum.update(algorithm, afterSum.getOrElse(algorithm, 0.toLong) + afterVal.toLong)
+    String.format("%.3f %%", double2Double(100. * afterVal.toDouble / beforeVal.toDouble))
   }
-  def apply(p:P, report:Report): Report = {
-    def aux(acc: Report, child: Measure[P]) = child(p, acc)
-    childs.foldLeft(report)(aux _)
-  }
+
+  def average(algorithm: String) = String.format("%.3f %%", double2Double(100. * afterSum(algorithm).toDouble / beforeSum.toDouble))
+
 }
 
-class Measurer[-P] protected (m: Measure[P], baseReport: Report)
-extends Function1[P,Report]
-{
-  def apply(p:P) = m(p, baseReport)
-}
-
-object Measurer {
-  def apply[P](m: Measure[P], p:P) = new Measurer(m, m.init(p, Report()))
-}
-
-object DumbMeasurer extends Measurer[Any] (DumbMeasure, Report()) {}
