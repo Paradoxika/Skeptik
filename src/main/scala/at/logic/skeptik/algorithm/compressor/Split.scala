@@ -107,7 +107,7 @@ extends AbstractSplit {
     def repeat(sum: Long):SequentProof = {
       val selectedVariable = chooseAVariable(heuristicMap, sum)
       val compressed = split(nodeCollection, selectedVariable)
-      if (true || ProofNodeCollection(compressed).size < nodeCollection.size) compressed
+      if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
       else {
         val newSum = sum - heuristicMap(selectedVariable)
         if (oneRun || newSum < 1) proof else {
@@ -228,7 +228,7 @@ extends AbstractSplit {
     }
     val variableList = selectVariables(List(), nbVariables)
     val compressed = split(nodeCollection, variableList)
-    if (true || ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
+    if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
   }
 } 
 
