@@ -220,13 +220,13 @@ object CutIC {
   def apply(leftPremise: SequentProof, 
             rightPremise: SequentProof, 
             isPivot: E => Boolean,
-            failureHandling: Boolean = false,
+            returnPremiseOnfailure: Boolean = false,
             choosePremise: ((SequentProof, SequentProof) => SequentProof) = (l,r) => l) = 
     (leftPremise.conclusion.suc.find(isPivot), rightPremise.conclusion.ant.find(isPivot)) match {
       case (Some(auxL), Some(auxR)) => new CutIC(leftPremise, rightPremise, auxL, auxR)
-      case (None, Some(auxR)) if failureHandling => leftPremise
-      case (Some(auxL), None) if failureHandling => rightPremise
-      case (None, None) if failureHandling => choosePremise(leftPremise, rightPremise)
+      case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
+      case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
+      case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
       case _ => throw new AuxiliaryFormulaNotFoundException
     } 
   
