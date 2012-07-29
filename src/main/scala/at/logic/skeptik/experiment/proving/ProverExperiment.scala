@@ -15,6 +15,7 @@ import at.logic.skeptik.judgment.{Judgment, Sequent, NamedE, NaturalSequent}
 import at.logic.skeptik.prover.SimpleProver
 import collection.mutable.{Map => MMap}
 import at.logic.skeptik.util.time._
+import language.implicitConversions
 
 import java.io.{File,PrintWriter}
 

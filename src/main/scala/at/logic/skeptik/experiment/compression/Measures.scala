@@ -50,7 +50,7 @@ extends Map[String,Double] with MapLike[String,Double,Report] {
 }
 object Report {
   def apply(args: (String,Double)*) = {
-    val nargs = args ++ Array("num" -> 1.)
+    val nargs = args ++ Array("num" -> 1.0)
     new Report(HashMap(nargs: _*))
   }
 
@@ -98,7 +98,7 @@ class PercentMeasure[P] private (name: String, fct: (P) => Double)
 extends Measure[P]
 {
   def init( p:P, report:Report) = report + (name -> fct(p))
-  def apply(p:P, report:Report) = report + (name -> (100. * fct(p) / report(name)))
+  def apply(p:P, report:Report) = report + (name -> (100.0 * fct(p) / report(name)))
 }
 object PercentMeasure {
   def apply[P](name: String, fct: P => Double) = new PercentMeasure(name + ".%", fct)

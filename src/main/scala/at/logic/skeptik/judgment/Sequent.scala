@@ -6,6 +6,7 @@ import collection.mutable.Stack
 import at.logic.skeptik.expression._
 import at.logic.skeptik.util.unicode._
 import at.logic.skeptik.expression.formula._
+import language.reflectiveCalls
 
 
 abstract class ASequent extends Judgment {

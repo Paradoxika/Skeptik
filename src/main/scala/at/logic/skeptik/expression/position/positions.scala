@@ -37,7 +37,7 @@ abstract class SinglePosition extends Position {
 }
 
 class IndexedPosition(p: Position, index: Int) extends SinglePosition {
-  def !:(e:E) = try { Some((e !!: p)(index)) } catch { case _ => None }
+  def !:(e:E) = try { Some((e !!: p)(index)) } catch { case _: Throwable => None }
   
   def @:(f: E => E)(e: E) = !:(e) match {
     case Some(sub) => (f @: new PredicatePosition(_ eq sub))(e)

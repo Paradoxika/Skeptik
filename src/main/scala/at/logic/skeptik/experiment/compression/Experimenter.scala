@@ -187,7 +187,7 @@ object Experimenter {
           (new SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof
         sequentMeasurer = measurerFactory.seqMeasurer(sequentProof)
       }
-      println(String.format(" (%.2f s)", double2Double((java.lang.System.currentTimeMillis - beginParsing)/1000.)))
+      println(String.format(" (%.2f s)", double2Double((java.lang.System.currentTimeMillis - beginParsing)/1000.0)))
 
       algos.foreach( _ match {
         case a: WrappedOldAlgorithm     => a.experiment(oldProof,     oldMeasurer)

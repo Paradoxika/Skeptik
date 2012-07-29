@@ -2,7 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>at.logic</groupId>
-    <artifactId>skeptik_2.9.1</artifactId>
+    <artifactId>skeptik_2.10.0-M5</artifactId>
     <packaging>jar</packaging>
     <description>Skeptik</description>
     <url>http://github.com/Paradoxika/Skeptik</url>
@@ -40,18 +40,18 @@
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.0.2</version>
+                <configuration>
+                    <args>
+                        <arg>-diagrams</arg>
+                        <arg>-implicits</arg>
+                    </args>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>compile</goal>
                             <goal>testCompile</goal>
                         </goals>
-                        <configuration>
-                            <args>
-                                <arg>-make:transitive</arg>
-                                <arg>-dependencyfile</arg>
-                            </args>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -63,9 +63,6 @@
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.0.2</version>
-                <configuration>
-                    <scalaVersion>2.9.1</scalaVersion>
-                </configuration>
             </plugin>
         </plugins>
     </reporting>
@@ -73,25 +70,25 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.9.1</version>
+            <version>2.10.0-M5</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.9.1</artifactId>
-            <version>1.7.2</version>
+            <artifactId>scalatest_2.10.0-M5</artifactId>
+            <version>1.9-2.10.0-M5-B2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.9.1</artifactId>
-            <version>1.10</version>
+            <artifactId>specs2_2.10.0-M5</artifactId>
+            <version>1.11</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_2.9.1</artifactId>
-            <version>1.9</version>
+            <artifactId>scalacheck_2.10.0-M5</artifactId>
+            <version>1.10.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
