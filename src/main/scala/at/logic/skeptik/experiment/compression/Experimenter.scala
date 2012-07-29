@@ -87,8 +87,8 @@ object Experimenter {
   val rednre2r = new TimeOutAlgorithm("rednre2r", new RRWithA2OnChild)
   val rrnoa2r  = new TimeOutAlgorithm("rr noa2r", new RRWithoutA2)
 
-  val splitr   = new TimeOutAlgorithm("split R ", new Split(true) with RandomChoice)
-  val splitd   = new TimeOutAlgorithm("split D ", new Split(true) with DeterministicChoice)
+  val splitr   = new TimeOutAlgorithm("split R ", new Split(false) with RandomChoice)
+  val splitd   = new TimeOutAlgorithm("split D ", new Split(false) with DeterministicChoice)
 
   val algorithms = Map(
     "UL"   -> newUnitLowering,
@@ -120,18 +120,18 @@ object Experimenter {
     "rrnoa2r"  -> rrnoa2r,
     "splitr"   -> splitr,
     "splitd"   -> splitd,
-    "splitr1"  -> new TimeOutAlgorithm("split R1", new Split(false) with RandomChoice),
-    "splitd1"  -> new TimeOutAlgorithm("split D1", new Split(false) with DeterministicChoice),
-    "splitr1f" -> new RepeatAlgorithm("split R1", new Split(false) with RandomChoice),
-    "splitd1f" -> new RepeatAlgorithm("split D1", new Split(false) with DeterministicChoice),
+    "splitr1"  -> new TimeOutAlgorithm("split R1", new Split(true) with RandomChoice),
+    "splitd1"  -> new TimeOutAlgorithm("split D1", new Split(true) with DeterministicChoice),
+    "splitr1f" -> new RepeatAlgorithm("split R1", new Split(true) with RandomChoice),
+    "splitd1f" -> new RepeatAlgorithm("split D1", new Split(true) with DeterministicChoice),
     "DAG"      -> new SimpleAlgorithm("DAG     ", DAGification),
     "splitDAG" -> new TimeOutAlgorithm("SplitDAG", { p => DAGification((new MultiSplit(1) with DeterministicChoice)(p)) }),
     "DAGps"    -> new SimpleAlgorithm("DAGps   ", { p => DAGification((new PseudoUnitsAfter(1))(p)) }),
     "psDAG"    -> new SimpleAlgorithm("psDAG   ", { p => (new PseudoUnitsAfter(1))(DAGification(p)) }),
-    "tstspl"   -> new SimpleAlgorithm("tst spl ", { p => (new Split(true) with DeterministicChoice)(DAGification(p)) }),
+    "tstspl"   -> new SimpleAlgorithm("tst spl ", { p => (new Split(false) with DeterministicChoice)(DAGification(p)) }),
     "tstms1"   -> new SimpleAlgorithm("tst ms1 ", { p => (new MultiSplit(1) with DeterministicChoice)(DAGification(p)) }),
     "tstms3"   -> new SimpleAlgorithm("tst ms3 ", { p => (new MultiSplit(3) with DeterministicChoice)(DAGification(p)) }),
-    "tstspld"  -> new SimpleAlgorithm("tst spld", { p => DAGification((new Split(true) with DeterministicChoice)(DAGification(p))) }),
+    "tstspld"  -> new SimpleAlgorithm("tst spld", { p => DAGification((new Split(false) with DeterministicChoice)(DAGification(p))) }),
     "tstms1d"  -> new SimpleAlgorithm("tst ms1d", { p => DAGification((new MultiSplit(1) with DeterministicChoice)(DAGification(p))) }),
     "tstms3d"  -> new SimpleAlgorithm("tst ms3d", { p => DAGification((new MultiSplit(3) with DeterministicChoice)(DAGification(p))) })
   ) ++

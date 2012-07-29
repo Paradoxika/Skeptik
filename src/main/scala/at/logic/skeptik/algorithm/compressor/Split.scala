@@ -73,7 +73,7 @@ extends AbstractSplit {
  *
  * It's still 30% faster than MultiSplit(1).
  */
-abstract class Split (oneRun: Boolean)
+abstract class Split (continueUntilCompression: Boolean)
 extends AbstractSplit {
   private def split(nodeCollection: ProofNodeCollection[SequentProof], selectedVariable: E):SequentProof = {
     def visit(node: SequentProof, fixedPremises: List[(SequentProof,SequentProof)]) = {
@@ -109,7 +109,7 @@ extends AbstractSplit {
       if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
       else {
         val newSum = sum - literalAdditivity(selectedVariable)
-        if (oneRun || newSum < 1) proof else {
+        if (!continueUntilCompression || newSum < 1) proof else {
           literalAdditivity.remove(selectedVariable)
           repeat(newSum)
         }
@@ -208,13 +208,15 @@ extends AbstractSplit {
     val nodeCollection = ProofNodeCollection(proof)
     val (literalAdditivity, totalAdditivity) = computeAdditivities(nodeCollection)
     var sum = totalAdditivity
-    def selectVariables(variableList: List[E], left: Int):List[E] = if (left < 1 || sum < 1) variableList else {
-      val selected = chooseAVariable(literalAdditivity, sum)
-      sum -= literalAdditivity(selected)
-      literalAdditivity.remove(selected)
-      selectVariables(selected::variableList, left - 1)
+    val variableList = {
+      def selectVariables(variableList: List[E], left: Int):List[E] = if (left < 1 || sum < 1) variableList else {
+        val selected = chooseAVariable(literalAdditivity, sum)
+        sum -= literalAdditivity(selected)
+        literalAdditivity.remove(selected)
+        selectVariables(selected::variableList, left - 1)
+      }
+      selectVariables(List(), nbVariables)
     }
-    val variableList = selectVariables(List(), nbVariables)
     val compressed = split(nodeCollection, variableList)
     if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
   }
