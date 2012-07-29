@@ -21,7 +21,7 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
 
 trait outIntersection
 extends AbstractRPIAlgorithm {
-  def computeSafeLiterals(proof: SequentProof,
+  protected def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, IClause)],
                           edgesToDelete: Map[SequentProof,DeletedSide],
                           safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
@@ -30,19 +30,4 @@ extends AbstractRPIAlgorithm {
       safeLiteralsFromChild(childrensSafeLiterals.head)
     else
       IClause()
-}
-
-trait MinConclusionHeuristic
-extends AbstractRPILUAlgorithm {
-  def heuristicChoose(left: SequentProof, right: SequentProof):SequentProof = {
-    def sequentSize(s: Sequent) = s.ant.length + s.suc.length
-    if (sequentSize(left.conclusion) < sequentSize(right.conclusion)) left else right
-  }
-}
-
-trait MinProofHeuristic
-extends AbstractRPILUAlgorithm {
-  def heuristicChoose(left: SequentProof, right: SequentProof):SequentProof = {
-    if (ProofNodeCollection(left).size < ProofNodeCollection(right).size) left else right
-  }
 }

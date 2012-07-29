@@ -8,17 +8,14 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 abstract class AbstractSplit
-extends Function1[SequentProof,SequentProof] {
+extends FixingAlgorithm with LeftHeuristic {
   
-  def heuristic(node: SequentProof):Long = 
-    ((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1
-
-  def collectHeuristic(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collectHeuristic(nodeCollection: ProofNodeCollection[SequentProof]) = {
     var heuristicSum = 0.toLong
     val heuristicMap = MMap[E,Long]()
     def visit(node: SequentProof) = node match {
       case CutIC(_,_,aux,_) =>
-        val heuristicEval = heuristic(node)
+        val heuristicEval = ((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1
         heuristicSum += heuristicEval
         heuristicMap.update(aux, heuristicMap.getOrElse(aux,0.toLong) + heuristicEval)
       case _ =>
@@ -27,14 +24,14 @@ extends Function1[SequentProof,SequentProof] {
     (heuristicMap, heuristicSum)
   }
 
-  def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long):E
+  protected def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long):E
 }
 
 trait RandomChoice
 extends AbstractSplit {
   private val rand = new scala.util.Random()
 
-  def randomLong(max: Long):Long =
+  private def randomLong(max: Long):Long =
     if (max <= Int.MaxValue.toLong)
       rand.nextInt(max.toInt)
     else {
@@ -43,7 +40,7 @@ extends AbstractSplit {
       if (draw < max) draw else ((draw - max).toDouble * max.toDouble / (Long.MaxValue - max).toDouble).toLong
     }
 
-  def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
+  protected def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
     val iterator = heuristicMap.toIterator
     def searchPos(left: Long):E = {
       val next = iterator.next
@@ -55,8 +52,20 @@ extends AbstractSplit {
 
 trait DeterministicChoice
 extends AbstractSplit {
-  def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) =
-    heuristicMap.max(Ordering.by[(E,Long),Long](_._2))._1
+  protected def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
+    val iterator = heuristicMap.toIterator
+    var (result, max) = iterator.next
+    var left = heuristicSum - max
+    while (max < left) {
+      val next = iterator.next
+      if (next._2 > max) {
+        result = next._1
+        max = next._2
+      }
+      left -= next._2
+    }
+    result
+  }
 }
 
 
@@ -66,14 +75,7 @@ extends AbstractSplit {
  */
 abstract class Split (oneRun: Boolean)
 extends AbstractSplit {
-  def split(nodeCollection: ProofNodeCollection[SequentProof], selectedVariable: E):SequentProof = {
-    def fix(pivot: E, left: SequentProof, right: SequentProof) =
-      (left.conclusion.suc contains pivot, right.conclusion.ant contains pivot) match {
-        case (true, true)  => CutIC(left, right, _ == pivot)
-        case (true, false) => right
-        case (false,true)  => left
-        case (false,false) => left
-      }
+  private def split(nodeCollection: ProofNodeCollection[SequentProof], selectedVariable: E):SequentProof = {
     def visit(node: SequentProof, fixedPremises: List[(SequentProof,SequentProof)]) = {
       lazy val (fixedLeftPos,  fixedLeftNeg)  = fixedPremises.head;
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last;
@@ -85,12 +87,12 @@ extends AbstractSplit {
           // I think this case is redondant with the following one and then useless :
           // Neg and Pos being equals implies they're equals to node's premises.
           // Keep the println until it shows something.
-          val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else {println("yooups") ; fix(aux, fixedLeftPos, fixedRightPos)}
+          val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else {println("yooups") ; fixNode(aux, fixedLeftPos, fixedRightPos)}
           (newNode, newNode)
 
         case CutIC(left,right,aux,_) =>
-          ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else fix(aux, fixedLeftPos, fixedRightPos),
-            if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else fix(aux, fixedLeftNeg, fixedRightNeg) )
+          ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else fixNode(aux, fixedLeftPos, fixedRightPos),
+            if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else fixNode(aux, fixedLeftNeg, fixedRightNeg) )
       }
     }
     val (pos,neg) = nodeCollection.foldDown(visit)
@@ -116,84 +118,6 @@ extends AbstractSplit {
   }
 }
 
-
-/** Binary tree to store partial proofs.
- *
- * Each level of the tree correspond to a selected variable.
- */
-abstract sealed class Splitter {
-  def pos:Splitter
-  def neg:Splitter
-  def depth:Int
-  def merge(variableList: List[E]):SequentProof
-  def deepen(amount: Int = 1):Splitter
-}
-
-case class SplitterNode (deepPos: Splitter, deepNeg: Splitter, depth: Int = 0)
-extends Splitter {
-  def pos = if (depth > 0) deepen(-1) else deepPos
-  def neg = if (depth > 0) deepen(-1) else deepNeg
-  def merge(variableList: List[E]) = variableList match {
-    case t::q => Splitter.fix(t, pos.merge(q), neg.merge(q))
-    case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
-  }
-  def deepen(amount: Int = 1) = SplitterNode(deepPos, deepNeg, depth + amount)
-  override def toString = "(" + pos.toString + " : " + neg.toString + " :" + depth + ")"
-}
-
-// A true leaf if depth == 0. A subtree with 2^depth identical leaves otherwise.
-case class SplitterLeaf (proof: SequentProof, depth: Int = 0)
-extends Splitter {
-  lazy val pos = if (depth > 0) deepen(-1) else throw new Exception("Traversing beyond leaves")
-  def neg = pos
-  def merge(variableList: List[E]) = proof
-  def deepen(amount: Int = 1) = SplitterLeaf(proof, depth + amount)
-  override def equals(other: Any):Boolean = other match {
-    case SplitterLeaf(op, od) => (od == depth) && (op.conclusion == proof.conclusion)
-    case _ => false
-  }
-  override def toString = "{" + proof.conclusion.toString + " :" + depth + "}"
-}
-
-object Splitter {
-
-  // TODO: Move ? Share ?
-  def fix(pivot: E, left: SequentProof, right: SequentProof) =
-    (left.conclusion.suc contains pivot, right.conclusion.ant contains pivot) match {
-      case (true, true)  => CutIC(left, right, _ == pivot)
-      case (true, false) => right
-      case (false,true)  => left
-      case (false,false) => left
-    }
-
-  def apply(pos: Splitter, neg: Splitter):Splitter =
-    if (pos == neg) pos.deepen() else SplitterNode(pos, neg)
-
-  def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
-    lazy val variable = variableList.head // might throw an exception
-    lazy val variableTail = variableList.tail
-    val ret = (left, right) match {
-      case (SplitterLeaf(proofLeft,0), SplitterLeaf(proofRight,0)) =>
-        SplitterLeaf(fix(pivot, proofLeft, proofRight))
-      case (l, r) if pivot == variable =>
-        Splitter(l.pos, r.neg)
-      case (l, r) if (l.depth > 0) && (r.depth > 0) =>
-        val depthMax = l.depth min r.depth
-        def dive(depth: Int, variables: List[E]):(Int,List[E]) =
-          if ((depth == depthMax) || (variables.head == pivot)) (depth, variables) else dive(depth + 1, variables.tail)
-        val (depthDiff, variables) = dive(1, variableTail)
-        Splitter(pivot, l.deepen(-depthDiff), r.deepen(-depthDiff), variables).deepen(depthDiff)
-      case (l, r) =>
-        Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
-    }
-//    println("split " + left + " and " + right + " on " + pivot + " with " + variableList + " gives " + ret)
-    ret
-  }
-
-  def apply(axiom: SequentProof, variableList: List[E]):Splitter = new SplitterLeaf(axiom, variableList.length)
-
-}
-
 /** Extended Split compression algorithm
  *
  * A arbitrary number of variables are selected and the proof is split in 2^n subproofs.
@@ -201,7 +125,75 @@ object Splitter {
 abstract class MultiSplit (nbVariables: Int)
 extends AbstractSplit {
 
-  def split(nodeCollection: ProofNodeCollection[SequentProof], variableList: List[E]) = {
+  /** Binary tree to store partial proofs.
+  *
+  * Each level of the tree correspond to a selected variable.
+  */
+  private abstract sealed class Splitter {
+    def pos:Splitter
+    def neg:Splitter
+    def depth:Int
+    def merge(variableList: List[E]):SequentProof
+    def deepen(amount: Int = 1):Splitter
+  }
+
+  private case class SplitterNode (deepPos: Splitter, deepNeg: Splitter, depth: Int = 0)
+  extends Splitter {
+    def pos = if (depth > 0) deepen(-1) else deepPos
+    def neg = if (depth > 0) deepen(-1) else deepNeg
+    def merge(variableList: List[E]) = variableList match {
+      case t::q => fixNode(t, pos.merge(q), neg.merge(q))
+      case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
+    }
+    def deepen(amount: Int = 1) = SplitterNode(deepPos, deepNeg, depth + amount)
+    override def toString = "(" + pos.toString + " : " + neg.toString + " :" + depth + ")"
+  }
+
+  // A true leaf if depth == 0. A subtree with 2^depth identical leaves otherwise.
+  private case class SplitterLeaf (proof: SequentProof, depth: Int = 0)
+  extends Splitter {
+    lazy val pos = if (depth > 0) deepen(-1) else throw new Exception("Traversing beyond leaves")
+    def neg = pos
+    def merge(variableList: List[E]) = proof
+    def deepen(amount: Int = 1) = SplitterLeaf(proof, depth + amount)
+    override def equals(other: Any):Boolean = other match {
+      case SplitterLeaf(op, od) => (od == depth) && (op.conclusion == proof.conclusion)
+      case _ => false
+    }
+    override def toString = "{" + proof.conclusion.toString + " :" + depth + "}"
+  }
+
+  private object Splitter {
+
+    def apply(pos: Splitter, neg: Splitter):Splitter =
+      if (pos == neg) pos.deepen() else SplitterNode(pos, neg)
+
+    def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
+      lazy val variable = variableList.head // might throw an exception
+      lazy val variableTail = variableList.tail
+      val ret = (left, right) match {
+        case (SplitterLeaf(proofLeft,0), SplitterLeaf(proofRight,0)) =>
+          SplitterLeaf(fixNode(pivot, proofLeft, proofRight))
+        case (l, r) if pivot == variable =>
+          Splitter(l.pos, r.neg)
+        case (l, r) if (l.depth > 0) && (r.depth > 0) =>
+          val depthMax = l.depth min r.depth
+          def dive(depth: Int, variables: List[E]):(Int,List[E]) =
+            if ((depth == depthMax) || (variables.head == pivot)) (depth, variables) else dive(depth + 1, variables.tail)
+          val (depthDiff, variables) = dive(1, variableTail)
+          Splitter(pivot, l.deepen(-depthDiff), r.deepen(-depthDiff), variables).deepen(depthDiff)
+        case (l, r) =>
+          Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
+      }
+  //    println("split " + left + " and " + right + " on " + pivot + " with " + variableList + " gives " + ret)
+      ret
+    }
+
+    def apply(axiom: SequentProof, variableList: List[E]):Splitter = new SplitterLeaf(axiom, variableList.length)
+  }
+
+
+  private def split(nodeCollection: ProofNodeCollection[SequentProof], variableList: List[E]) = {
     def visit(node: SequentProof, premises: List[Splitter]) =
       node match {
         case Axiom(_) => Splitter(node, variableList)
@@ -225,5 +217,4 @@ extends AbstractSplit {
     val compressed = split(nodeCollection, variableList)
     if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
   }
-} 
-
+}

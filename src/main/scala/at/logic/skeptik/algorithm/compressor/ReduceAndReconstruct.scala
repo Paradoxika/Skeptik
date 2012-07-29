@@ -10,9 +10,9 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractReduceAndReconstruct
-extends Function1[SequentProof,SequentProof] {
+extends FixingAlgorithm with LeftHeuristic {
 
-  def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
+  protected def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
       (fallback: (SequentProof,Boolean,Boolean) => SequentProof):SequentProof =
   node match {
 
@@ -72,19 +72,12 @@ extends Function1[SequentProof,SequentProof] {
     case _ => node
   }
 
-  // TODO: share code ?
-  def reconstruct(node: SequentProof, fixedLeft: SequentProof, fixedRight: SequentProof) = node match {
+  protected def reconstruct(node: SequentProof, fixedLeft: SequentProof, fixedRight: SequentProof) = node match {
     case Axiom(conclusion) => Axiom(conclusion)
-    case CutIC(left,right,aux,_) => ((fixedLeft.conclusion.suc  contains aux),
-                                     (fixedRight.conclusion.ant contains aux)) match {
-      case (true,true) => CutIC(fixedLeft, fixedRight, _ == aux)
-      case (true,false) => fixedRight
-      case (false,true) => fixedLeft
-      case (false,false) => fixedLeft
-    }
+    case CutIC(left,right,pivot,_) => fixNode(pivot, fixedLeft, fixedRight)
   }
 
-  def reduceAndReconstruct(nodeCollection: ProofNodeCollection[SequentProof], fallback: (SequentProof,Boolean,Boolean) => SequentProof) = {
+  protected def reduceAndReconstruct(nodeCollection: ProofNodeCollection[SequentProof], fallback: (SequentProof,Boolean,Boolean) => SequentProof) = {
     def hasOnlyOneChild(p: SequentProof) = nodeCollection.childrenOf(p) match {
         case _::Nil => true
         case _ => false
@@ -114,7 +107,7 @@ extends AbstractReduceAndReconstruct {
 
 class RRWithA2OnChild
 extends AbstractReduceAndReconstruct {
-  def a2recursive(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
+  private def a2recursive(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
     // A2 (recursive)
     case CutIC(left,right,r,_) =>
       val nLeft  = if (leftPremiseHasOneChild)  a2(left,true,true)  else left

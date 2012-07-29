@@ -13,7 +13,7 @@ import scala.collection.Map
 abstract class IrregularUnits
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
-  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean
+  protected def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
@@ -76,11 +76,11 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 }
 
 trait AlwaysLowerIrregularUnits extends IrregularUnits {
-  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = true
+  protected def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = true
 }
 
 trait AlwaysRegularizeIrregularUnits extends IrregularUnits {
-  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = {
+  protected def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = {
 //    println("Irregular unit " + proof.conclusion + " with " + currentChildrenNumber + " children")
     false
   }

@@ -69,7 +69,9 @@ import pseudoUnits._
 
 trait PseudoUnitsDuringFixing
 extends AbstractRPILUAlgorithm with LeftHeuristic {
-  def fixProofAndLowerUnits(minNumberOfChildren: Int, nodeCollection: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
+  protected def fixProofAndLowerUnits(minNumberOfChildren: Int,
+                                      nodeCollection: ProofNodeCollection[SequentProof],
+                                      edgesToDelete: MMap[SequentProof,DeletedSide]) = {
 
     var units = List[SequentProof]()
     val principalLiterals = MClause()
@@ -109,7 +111,7 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with PseudoUnits
 
 class PseudoUnitsBefore (minNumberOfChildren: Int)
 extends AbstractThreePassLower {
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val principalLiterals = MClause()
     var units = List[SequentProof]()
     val map = MMap[SequentProof, (IClause,IClause)]()

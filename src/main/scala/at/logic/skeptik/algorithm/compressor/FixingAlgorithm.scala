@@ -8,7 +8,7 @@ import at.logic.skeptik.expression._
 
 abstract class FixingAlgorithm
 extends (SequentProof => SequentProof) {
-  def heuristicChoosePremise(left: SequentProof, right: SequentProof):SequentProof
+  protected def heuristicChoosePremise(left: SequentProof, right: SequentProof):SequentProof
 
   def fixNode(pivot: E, left: SequentProof, right: SequentProof) =
     (left.conclusion.suc contains pivot, right.conclusion.ant contains pivot) match {
@@ -21,12 +21,12 @@ extends (SequentProof => SequentProof) {
 
 trait LeftHeuristic 
 extends FixingAlgorithm {
-  def heuristicChoosePremise (left: SequentProof, right: SequentProof):SequentProof = left
+  protected def heuristicChoosePremise (left: SequentProof, right: SequentProof):SequentProof = left
 }
 
 trait MinConclusionHeuristic
 extends FixingAlgorithm {
-  def heuristicChoosePremise(left: SequentProof, right: SequentProof):SequentProof = {
+  protected def heuristicChoosePremise(left: SequentProof, right: SequentProof):SequentProof = {
     def sequentSize(s: Sequent) = s.ant.length + s.suc.length
     if (sequentSize(left.conclusion) < sequentSize(right.conclusion)) left else right
   }
@@ -34,7 +34,7 @@ extends FixingAlgorithm {
 
 trait MinProofHeuristic
 extends FixingAlgorithm {
-  def heuristicChoosePremise(left: SequentProof, right: SequentProof):SequentProof = {
+  protected def heuristicChoosePremise(left: SequentProof, right: SequentProof):SequentProof = {
     if (ProofNodeCollection(left).size < ProofNodeCollection(right).size) left else right
   }
 }

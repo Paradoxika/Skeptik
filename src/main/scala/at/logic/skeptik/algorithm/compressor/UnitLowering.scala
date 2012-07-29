@@ -9,7 +9,7 @@ import at.logic.skeptik.proof.ProofNodeCollection
 object NewUnitLowering extends Function1[SequentProof,SequentProof] {
 
   // made public for debug. TODO: private
-  def collectUnits(proofs: ProofNodeCollection[SequentProof]) = {
+  private def collectUnits(proofs: ProofNodeCollection[SequentProof]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
     proofs.foldRight(Nil:List[SequentProof])((p, acc) =>
       if (isUnitClause(p.conclusion) && proofs.childrenOf(p).length > 1) p::acc else acc
@@ -17,7 +17,7 @@ object NewUnitLowering extends Function1[SequentProof,SequentProof] {
   }
 
   // made public for debug. TODO: private
-  def fixProofs(unitsSet: Set[SequentProof], proofs: ProofNodeCollection[SequentProof]) = {
+  private def fixProofs(unitsSet: Set[SequentProof], proofs: ProofNodeCollection[SequentProof]) = {
     val fixMap = MMap[SequentProof,SequentProof]()
 
     def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {

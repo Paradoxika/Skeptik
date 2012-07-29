@@ -13,8 +13,7 @@ import scala.collection.Map
 abstract class AbstractThreePassLower
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
 
-  def collectUnits(nodeCollection:
-  ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,(IClause,IClause)])
+  protected def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,(IClause,IClause)])
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
@@ -97,7 +96,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 class ThreePassLower
 extends AbstractThreePassLower {
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val map = MMap[SequentProof, (IClause,IClause)]()
     val units = scala.collection.mutable.Stack[SequentProof]()
     val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
