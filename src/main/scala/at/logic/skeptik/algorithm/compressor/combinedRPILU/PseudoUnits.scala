@@ -56,8 +56,8 @@ package pseudoUnits {
       val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet -- principalLiterals.suc,
                                            proof.conclusion.suc.toSet -- principalLiterals.ant)
       (leftLiterals.size, rightLiterals.size, remainingLiteral) match {
-        case (1,0,Left(literal))  if leftLiterals.head  == literal => principalLiterals += remainingLiteral ; PseudoUnit(remainingLiteral)
-        case (0,1,Right(literal)) if rightLiterals.head == literal => principalLiterals += remainingLiteral ; PseudoUnit(remainingLiteral)
+        case (1,0,Left(literal))  if leftLiterals.head  == literal => literal =+: principalLiterals ; PseudoUnit(remainingLiteral)
+        case (0,1,Right(literal)) if rightLiterals.head == literal => principalLiterals += literal  ; PseudoUnit(remainingLiteral)
         case _ => OrdinaryNode
       }
     }
@@ -66,55 +66,6 @@ package pseudoUnits {
 } // package pseudoUnits
 
 import pseudoUnits._
-
-trait PseudoUnitsNotDuringFixing
-extends AbstractRPILUAlgorithm with LeftHeuristic {
-  def fixProofAndUnits(nodeCollection: ProofNodeCollection[SequentProof],
-                       edgesToDelete: MMap[SequentProof,DeletedSide],
-                       unitMap: Map[SequentProof,LList[SequentProof]]) = {
-    def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
-      val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
-      if (unitMap contains oldProof) {
-        unitMap(oldProof).elem = newProof
-        deleteFromChildren(oldProof, nodeCollection, edgesToDelete)
-      }
-      newProof
-    }
-    nodeCollection.foldDown(reconstructProof _)
-  }
-}
-
-class PseudoUnits (minNumberOfChildren: Int)
-extends AbstractRPILUAlgorithm with PseudoUnitsNotDuringFixing {
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val principalLiterals = MClause()
-    var units   = LList[SequentProof]()
-    val unitMap = MMap[SequentProof, LList[SequentProof]]()
-    nodeCollection.foreachDown { (p) =>
-      val children = nodeCollection.childrenOf(p)
-      if (fakeSize(children) >= minNumberOfChildren) {
-        isPseudoUnit(p, children, principalLiterals) match {
-          case PseudoUnit(_) =>
-            units = new LList(p, units)
-            unitMap.update(p, units)
-          case _ =>
-        }
-      }
-    }
-    (units, unitMap)
-  }
-
-  def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val (units, unitMap) = collectUnits(nodeCollection)
-    val pseudoRoot = fixProofAndUnits(nodeCollection, MMap[SequentProof,DeletedSide](), unitMap)
-//    println("root " + pseudoRoot.conclusion)
-//    println("units " + units.map(_.conclusion))
-    units.foldLeft(pseudoRoot) { (left,right) =>
-      try {CutIC(left,right)} catch {case e:Exception => left}
-    }
-  }
-}
 
 trait PseudoUnitsDuringFixing
 extends AbstractRPILUAlgorithm with LeftHeuristic {
@@ -135,15 +86,13 @@ extends AbstractRPILUAlgorithm with LeftHeuristic {
     }
 
     val pseudoRoot = nodeCollection.foldDown(reconstructProof _)
-//    println("root " + pseudoRoot.conclusion)
-//    println("units " + units.map(_.conclusion))
     units.foldLeft(pseudoRoot) { (left,right) =>
       try {CutIC(left,right)} catch {case e:Exception => left}
     }
   }
 }
 
-class OnePassPseudoUnits (minNumberOfChildren: Int)
+class PseudoUnits (minNumberOfChildren: Int)
 extends AbstractRPILUAlgorithm with PseudoUnitsDuringFixing {
   def apply(proof: SequentProof): SequentProof =
     fixProofAndLowerUnits(minNumberOfChildren, ProofNodeCollection(proof), MMap[SequentProof,DeletedSide]())
@@ -163,14 +112,20 @@ extends AbstractThreePassLower {
   def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val principalLiterals = MClause()
     var units = List[SequentProof]()
-    val map = MMap[SequentProof, IClause]()
+    val map = MMap[SequentProof, (IClause,IClause)]()
     val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
       val children = nodeCollection.childrenOf(p)
       if (fakeSize(children) < minNumberOfChildren) safeLiterals else
         isPseudoUnit(p, children, principalLiterals) match {
           // TODO : should I add the unit's literal to safeLiterals to be transmited to unit's premises ?
-          case PseudoUnit(Left(l))  => units ::= p ; map.update(p,safeLiterals) ; safeLiterals + l
-          case PseudoUnit(Right(l)) => units ::= p ; map.update(p,safeLiterals) ; l +: safeLiterals
+          case PseudoUnit(Left(l))  =>
+            units ::= p
+            map.update(p, (new IClause(Set[E](l),Set[E]()), safeLiterals))
+            safeLiterals + l
+          case PseudoUnit(Right(l)) =>
+            units ::= p
+            map.update(p, (new IClause(Set[E](),Set[E](l)), safeLiterals))
+            l +: safeLiterals
           case _ => safeLiterals
         }
     }

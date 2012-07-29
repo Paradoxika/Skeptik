@@ -35,16 +35,12 @@ extends AbstractSplit {
   private val rand = new scala.util.Random()
 
   def randomLong(max: Long):Long =
-    if (max < Int.MaxValue.toLong) {
-      if (max < 1) 0 else rand.nextInt(max.toInt)
-    }
+    if (max <= Int.MaxValue.toLong)
+      rand.nextInt(max.toInt)
     else {
-      def recursive():Long = {
-        var ret = rand.nextLong()
-        if (ret < 0) ret = -ret
-        if (ret < max) ret else recursive()
-      }
-      recursive()
+      var draw = rand.nextLong()
+      if (draw < 0) draw = -draw
+      if (draw < max) draw else ((draw - max).toDouble * max.toDouble / (Long.MaxValue - max).toDouble).toLong
     }
 
   def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
@@ -133,7 +129,6 @@ abstract sealed class Splitter {
   def deepen(amount: Int = 1):Splitter
 }
 
-// TODO: add a depth
 case class SplitterNode (deepPos: Splitter, deepNeg: Splitter, depth: Int = 0)
 extends Splitter {
   def pos = if (depth > 0) deepen(-1) else deepPos

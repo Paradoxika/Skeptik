@@ -44,7 +44,7 @@ object Experimenter {
 
   // Algorithms
 
-  val newUnitLowering = new SimpleAlgorithm ("new UL", NewUnitLowering)
+  val newUnitLowering = new SimpleAlgorithm ("UnitLowr", NewUnitLowering)
 
   val newRP   = new SimpleAlgorithm("new  RP ", new RecyclePivots with outIntersection with LeftHeuristic)
   val newRPI  = new SimpleAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
@@ -66,8 +66,6 @@ object Experimenter {
 
   val lowPsUn = new SimpleAlgorithm("low PsUn", new PseudoUnits(2))
   val lowPsU1 = new SimpleAlgorithm("low PsU1", new PseudoUnits(1))
-  val onePsUn = new SimpleAlgorithm("one PsUn", new OnePassPseudoUnits(2))
-  val onePsU1 = new SimpleAlgorithm("one PsU1", new OnePassPseudoUnits(1))
 
   val psunReg = new SimpleAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
   val psunOne = new SimpleAlgorithm("PsUn One", new PseudoUnitsAfter(1))
@@ -108,8 +106,6 @@ object Experimenter {
     "RPILU"-> newRPILU,
     "LURPILU" -> nLURPILU,
     "lowPsUn"  -> lowPsUn,
-    "onePsU1"  -> onePsU1,
-    "onePsUn"  -> onePsUn,
     "lowPsU1"  -> lowPsU1,
     "psUnReg"  -> psunReg,
     "psUnOne"  -> psunOne,
@@ -144,6 +140,12 @@ object Experimenter {
   (1 to 8).map { n => val name = "msplitd"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with DeterministicChoice) } ++
   (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with RandomChoice) }
 
+  def getProofFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
+    case Some(".proof") => Result ( timed { (new SimplePropositionalResolutionProofFormatParser(filename)).getProof } )
+    case Some(".smt2")  => Result ( timed { (new SMT2Parser(filename)).getProof } )
+    case _ => throw new Exception("Unknown format for " + filename)
+  }  
+
   def experiment(algos : Seq[WrappedAlgorithm], proofs : Seq[String]) =
   {
     // Algorithms
@@ -151,7 +153,7 @@ object Experimenter {
       // Read
       println("------------------------------------------------------------")
       print("* " + proofFilename)
-      val proof = Result ( timed { (new SimplePropositionalResolutionProofFormatParser(proofFilename)).getProof } )
+      val proof = getProofFromFile(proofFilename)
       for (measure <- measures) { print(" " + measure.before(proof)) }
       println()
 

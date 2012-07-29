@@ -15,6 +15,8 @@ class SetSequent(val ant: Set[E], val suc: Set[E]) extends ASequent {
     case Right(f) => this.+(f)
   }  
 
+  def ++(other:SetSequent) = new SetSequent(ant ++ other.ant, suc ++ other.suc)
+  def --(other:SetSequent) = new SetSequent(ant -- other.ant, suc -- other.suc)
   def intersect(other:SetSequent) = new SetSequent(ant intersect other.ant, suc intersect other.suc)
 }
 
