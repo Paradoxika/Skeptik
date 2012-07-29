@@ -8,7 +8,7 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 abstract class AbstractSplit
-extends FixingAlgorithm with LeftHeuristic {
+extends (SequentProof => SequentProof) {
   
   protected def collectHeuristic(nodeCollection: ProofNodeCollection[SequentProof]) = {
     var heuristicSum = 0.toLong
@@ -87,12 +87,13 @@ extends AbstractSplit {
           // I think this case is redondant with the following one and then useless :
           // Neg and Pos being equals implies they're equals to node's premises.
           // Keep the println until it shows something.
-          val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else {println("yooups") ; fixNode(aux, fixedLeftPos, fixedRightPos)}
+          val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node
+                        else { println("yooups") ; CutIC(fixedLeftPos, fixedRightPos, _ == aux, true) }
           (newNode, newNode)
 
         case CutIC(left,right,aux,_) =>
-          ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else fixNode(aux, fixedLeftPos, fixedRightPos),
-            if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else fixNode(aux, fixedLeftNeg, fixedRightNeg) )
+          ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else CutIC(fixedLeftPos, fixedRightPos, _ == aux, true),
+            if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else CutIC(fixedLeftNeg, fixedRightNeg, _ == aux, true) )
       }
     }
     val (pos,neg) = nodeCollection.foldDown(visit)
@@ -142,7 +143,7 @@ extends AbstractSplit {
     def pos = if (depth > 0) deepen(-1) else deepPos
     def neg = if (depth > 0) deepen(-1) else deepNeg
     def merge(variableList: List[E]) = variableList match {
-      case t::q => fixNode(t, pos.merge(q), neg.merge(q))
+      case t::q => CutIC(pos.merge(q), neg.merge(q), _ == t, true)
       case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
     }
     def deepen(amount: Int = 1) = SplitterNode(deepPos, deepNeg, depth + amount)
@@ -173,7 +174,7 @@ extends AbstractSplit {
       lazy val variableTail = variableList.tail
       val ret = (left, right) match {
         case (SplitterLeaf(proofLeft,0), SplitterLeaf(proofRight,0)) =>
-          SplitterLeaf(fixNode(pivot, proofLeft, proofRight))
+          SplitterLeaf(CutIC(proofLeft, proofRight, _ == pivot, true))
         case (l, r) if pivot == variable =>
           Splitter(l.pos, r.neg)
         case (l, r) if (l.depth > 0) && (r.depth > 0) =>

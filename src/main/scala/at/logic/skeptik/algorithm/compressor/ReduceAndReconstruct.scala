@@ -10,7 +10,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractReduceAndReconstruct
-extends FixingAlgorithm with LeftHeuristic {
+extends (SequentProof => SequentProof) {
 
   protected def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
       (fallback: (SequentProof,Boolean,Boolean) => SequentProof):SequentProof =
@@ -74,7 +74,7 @@ extends FixingAlgorithm with LeftHeuristic {
 
   protected def reconstruct(node: SequentProof, fixedLeft: SequentProof, fixedRight: SequentProof) = node match {
     case Axiom(conclusion) => Axiom(conclusion)
-    case CutIC(left,right,pivot,_) => fixNode(pivot, fixedLeft, fixedRight)
+    case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
   }
 
   protected def reduceAndReconstruct(nodeCollection: ProofNodeCollection[SequentProof], fallback: (SequentProof,Boolean,Boolean) => SequentProof) = {

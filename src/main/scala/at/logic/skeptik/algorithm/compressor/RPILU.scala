@@ -10,7 +10,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractRPILUAlgorithm
-extends FixingAlgorithm {
+extends (SequentProof => SequentProof) {
 
   protected sealed abstract  class DeletedSide
   protected object LeftDS  extends DeletedSide
@@ -61,7 +61,7 @@ extends FixingAlgorithm {
         case LeftDS  => fixedRight
         case RightDS => fixedLeft
       }
-      case CutIC(left,right,pivot,_) => fixNode(pivot, fixedLeft, fixedRight)
+      case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
     }
   }
 }

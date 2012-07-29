@@ -11,7 +11,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractThreePassLower
-extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
   protected def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,(IClause,IClause)])
 

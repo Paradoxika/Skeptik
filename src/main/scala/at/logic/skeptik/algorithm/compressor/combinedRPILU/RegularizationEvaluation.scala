@@ -25,7 +25,7 @@ object RegularizationInformation {
 }
 
 abstract class RegularizationEvaluation
-extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
   // Collector : compute information about each node (using Eval)
   protected def collectInformationMap(nodeCollection: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation]

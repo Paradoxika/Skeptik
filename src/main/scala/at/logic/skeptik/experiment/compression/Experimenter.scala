@@ -46,21 +46,18 @@ object Experimenter {
 
   val newUnitLowering = new SimpleAlgorithm ("UnitLowr", NewUnitLowering)
 
-  val newRP   = new SimpleAlgorithm("new  RP ", new RecyclePivots with outIntersection with LeftHeuristic)
-  val newRPI  = new SimpleAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val concRPI = new SimpleAlgorithm("conc RPI", new RecyclePivots with Intersection with MinConclusionHeuristic)
-  val sizeRPI = new SimpleAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+  val newRP   = new SimpleAlgorithm("new  RP ", new RecyclePivots with outIntersection)
+  val newRPI  = new SimpleAlgorithm("opt  RPI", new RecyclePivots with Intersection)
 
-  val newRPIr  = new RepeatAlgorithm("opt  RPI", new RecyclePivots with Intersection with LeftHeuristic)
-  val sizeRPIr = new RepeatAlgorithm("size RPI", new RecyclePivots with Intersection with MinProofHeuristic)
+  val newRPIr  = new RepeatAlgorithm("opt  RPI", new RecyclePivots with Intersection)
 
   val newRPILU = new SimpleAlgorithm("new RPILU", { (p:SequentProof) =>
-    (new RecyclePivots with Intersection with LeftHeuristic)(NewUnitLowering(p)) })
+    (new RecyclePivots with Intersection)(NewUnitLowering(p)) })
   val newLURPI = new SimpleAlgorithm("new LURPI", { (p:SequentProof) =>
-    NewUnitLowering((new RecyclePivots with Intersection with LeftHeuristic)(p)) })
+    NewUnitLowering((new RecyclePivots with Intersection)(p)) })
   val nLURPILU = new SimpleAlgorithm("nLURPILU", { (p:SequentProof) =>
     val lu = NewUnitLowering
-    val rpi = new RecyclePivots with Intersection with LeftHeuristic
+    val rpi = new RecyclePivots with Intersection
     lu(rpi(lu(p)))
   })
 
@@ -98,10 +95,7 @@ object Experimenter {
     "LU"   -> newUnitLowering,
     "RP"   -> newRP,
     "RPI"  -> newRPI,
-    "cRPI"  -> concRPI,
-    "sRPI"  -> sizeRPI,
     "RPIr" -> newRPIr,
-    "sRPIr" -> sizeRPIr,
     "LURPI"-> newLURPI,
     "RPILU"-> newRPILU,
     "LURPILU" -> nLURPILU,

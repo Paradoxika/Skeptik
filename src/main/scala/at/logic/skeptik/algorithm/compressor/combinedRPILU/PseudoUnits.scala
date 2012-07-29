@@ -68,7 +68,7 @@ package pseudoUnits {
 import pseudoUnits._
 
 trait PseudoUnitsDuringFixing
-extends AbstractRPILUAlgorithm with LeftHeuristic {
+extends AbstractRPILUAlgorithm {
   protected def fixProofAndLowerUnits(minNumberOfChildren: Int,
                                       nodeCollection: ProofNodeCollection[SequentProof],
                                       edgesToDelete: MMap[SequentProof,DeletedSide]) = {
