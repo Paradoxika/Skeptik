@@ -217,10 +217,18 @@ class AuxiliaryFormulaNotFoundException extends Exception
 object CutIC {
   def apply(leftPremise: SequentProof, rightPremise: SequentProof, auxL:E, auxR:E) = new CutIC(leftPremise,rightPremise,auxL,auxR)
   
-  def apply(leftPremise: SequentProof, rightPremise: SequentProof, isPivot: E => Boolean) = (leftPremise.conclusion.suc.find(isPivot), rightPremise.conclusion.ant.find(isPivot)) match {
-    case (Some(auxL), Some(auxR)) => new CutIC(leftPremise, rightPremise, auxL, auxR)
-    case _ => throw new AuxiliaryFormulaNotFoundException
-  } 
+  def apply(leftPremise: SequentProof, 
+            rightPremise: SequentProof, 
+            isPivot: E => Boolean,
+            defaultFailureHandling: Boolean = false,
+            choosePremise: ((SequentProof, SequentProof) => SequentProof) = (l,r) => l) = 
+    (leftPremise.conclusion.suc.find(isPivot), rightPremise.conclusion.ant.find(isPivot)) match {
+      case (Some(auxL), Some(auxR)) => new CutIC(leftPremise, rightPremise, auxL, auxR)
+      case (None, Some(auxR)) if defaultFailureHandling => leftPremise
+      case (Some(auxL), None) if defaultFailureHandling => rightPremise
+      case (None, None) if defaultFailureHandling => choosePremise(leftPremise, rightPremise)
+      case _ => throw new AuxiliaryFormulaNotFoundException
+    } 
   
   def apply(premise1:SequentProof, premise2:SequentProof) = {
     def findPivots(p1:SequentProof, p2:SequentProof): Option[(E,E)] = {
