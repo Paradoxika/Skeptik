@@ -10,21 +10,21 @@ import scala.collection.mutable.{HashMap => MMap}
 abstract class AbstractSplit
 extends (SequentProof => SequentProof) {
   
-  protected def collectHeuristic(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    var heuristicSum = 0.toLong
-    val heuristicMap = MMap[E,Long]()
+  protected def computeAdditivities(nodeCollection: ProofNodeCollection[SequentProof]) = {
+    var totalAdditivity = 0.toLong
+    val literalAdditivity = MMap[E,Long]()
     def visit(node: SequentProof) = node match {
       case CutIC(_,_,aux,_) =>
-        val heuristicEval = ((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1
-        heuristicSum += heuristicEval
-        heuristicMap.update(aux, heuristicMap.getOrElse(aux,0.toLong) + heuristicEval)
+        val nodeAdditivity = ((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1
+        totalAdditivity += nodeAdditivity
+        literalAdditivity.update(aux, literalAdditivity.getOrElse(aux,0.toLong) + nodeAdditivity)
       case _ =>
     }
     nodeCollection.foreach(visit)
-    (heuristicMap, heuristicSum)
+    (literalAdditivity, totalAdditivity)
   }
 
-  protected def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long):E
+  protected def chooseAVariable(literalAdditivity: scala.collection.Map[E,Long], totalAdditivity: Long):E
 }
 
 trait RandomChoice
@@ -40,22 +40,22 @@ extends AbstractSplit {
       if (draw < max) draw else ((draw - max).toDouble * max.toDouble / (Long.MaxValue - max).toDouble).toLong
     }
 
-  protected def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
-    val iterator = heuristicMap.toIterator
+  protected def chooseAVariable(literalAdditivity: scala.collection.Map[E,Long], totalAdditivity: Long) = {
+    val iterator = literalAdditivity.toIterator
     def searchPos(left: Long):E = {
       val next = iterator.next
       if (next._2 < left && iterator.hasNext) searchPos(left - next._2) else next._1
     }
-    searchPos(randomLong(heuristicSum) + 1)
+    searchPos(randomLong(totalAdditivity) + 1)
   }
 }
 
 trait DeterministicChoice
 extends AbstractSplit {
-  protected def chooseAVariable(heuristicMap: scala.collection.Map[E,Long], heuristicSum: Long) = {
-    val iterator = heuristicMap.toIterator
+  protected def chooseAVariable(literalAdditivity: scala.collection.Map[E,Long], totalAdditivity: Long) = {
+    val iterator = literalAdditivity.toIterator
     var (result, max) = iterator.next
-    var left = heuristicSum - max
+    var left = totalAdditivity - max
     while (max < left) {
       val next = iterator.next
       if (next._2 > max) {
@@ -102,20 +102,20 @@ extends AbstractSplit {
 
   def apply(proof: SequentProof) = {
     val nodeCollection = ProofNodeCollection(proof)
-    val (heuristicMap, heuristicSum) = collectHeuristic(nodeCollection)
+    val (literalAdditivity, totalAdditivity) = computeAdditivities(nodeCollection)
     def repeat(sum: Long):SequentProof = {
-      val selectedVariable = chooseAVariable(heuristicMap, sum)
+      val selectedVariable = chooseAVariable(literalAdditivity, sum)
       val compressed = split(nodeCollection, selectedVariable)
       if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
       else {
-        val newSum = sum - heuristicMap(selectedVariable)
+        val newSum = sum - literalAdditivity(selectedVariable)
         if (oneRun || newSum < 1) proof else {
-          heuristicMap.remove(selectedVariable)
+          literalAdditivity.remove(selectedVariable)
           repeat(newSum)
         }
       }
     }
-    repeat(heuristicSum)
+    repeat(totalAdditivity)
   }
 }
 
@@ -206,12 +206,12 @@ extends AbstractSplit {
 
   override def apply(proof: SequentProof) = {
     val nodeCollection = ProofNodeCollection(proof)
-    val (heuristicMap, heuristicSum) = collectHeuristic(nodeCollection)
-    var sum = heuristicSum
+    val (literalAdditivity, totalAdditivity) = computeAdditivities(nodeCollection)
+    var sum = totalAdditivity
     def selectVariables(variableList: List[E], left: Int):List[E] = if (left < 1 || sum < 1) variableList else {
-      val selected = chooseAVariable(heuristicMap, sum)
-      sum -= heuristicMap(selected)
-      heuristicMap.remove(selected)
+      val selected = chooseAVariable(literalAdditivity, sum)
+      sum -= literalAdditivity(selected)
+      literalAdditivity.remove(selected)
       selectVariables(selected::variableList, left - 1)
     }
     val variableList = selectVariables(List(), nbVariables)
