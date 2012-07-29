@@ -14,10 +14,12 @@ extends Measure[P] {
   var nb = 0
   var sum = MMap[String,Int]()
 
-  def before(proof: P) = op(proof).toString + unit
+  def before(proof: P) = {
+    nb += 1
+    op(proof).toString + unit
+  }
 
   def after(algorithm: String, proof: P) = {
-    nb += 1
     val value = op(proof)
     sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
     value.toString + unit
@@ -33,10 +35,12 @@ extends Measure[P] {
   var nb = 0
   var sum = MMap[String,Double]()
 
-  def before(proof: P) = String.format(format, double2Double(op(proof)))
+  def before(proof: P) = {
+    nb += 1
+    String.format(format, double2Double(op(proof)))
+  }
 
   def after(algorithm: String, proof: P) = {
-    nb += 1
     val value = op(proof)
     sum.update(algorithm, sum.getOrElse(algorithm,0.) + value)
     String.format(format, double2Double(value))
