@@ -56,8 +56,8 @@ package pseudoUnits {
       val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet -- principalLiterals.suc,
                                            proof.conclusion.suc.toSet -- principalLiterals.ant)
       (leftLiterals.size, rightLiterals.size, remainingLiteral) match {
-        case (1,0,Left(literal))  if leftLiterals.head  == literal => principalLiterals += remainingLiteral ; PseudoUnit(remainingLiteral)
-        case (0,1,Right(literal)) if rightLiterals.head == literal => principalLiterals += remainingLiteral ; PseudoUnit(remainingLiteral)
+        case (1,0,Left(literal))  if leftLiterals.head  == literal => literal =+: principalLiterals ; PseudoUnit(remainingLiteral)
+        case (0,1,Right(literal)) if rightLiterals.head == literal => principalLiterals += literal  ; PseudoUnit(remainingLiteral)
         case _ => OrdinaryNode
       }
     }
