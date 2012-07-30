@@ -46,38 +46,30 @@ object Experimenter {
 
   val newUnitLowering = new SimpleAlgorithm ("UnitLowr", NewUnitLowering)
 
-  val newRP   = new SimpleAlgorithm("new  RP ", new RecyclePivots with outIntersection)
-  val newRPI  = new SimpleAlgorithm("opt  RPI", new RecyclePivots with Intersection)
+  val newRP    = new SimpleAlgorithm("RP      ", new RecyclePivots with outIntersection)
+  val newRPI   = new SimpleAlgorithm("RPI     ", new RecyclePivots with Intersection)
 
-  val newRPIr  = new RepeatAlgorithm("opt  RPI", new RecyclePivots with Intersection)
+  val newRPIr  = new RepeatAlgorithm("RPI rec ", new RecyclePivots with Intersection)
 
-  val newRPILU = new SimpleAlgorithm("new RPILU", { (p:SequentProof) =>
+  val newRPILU = new SimpleAlgorithm("RPILU   ", { (p:SequentProof) =>
     (new RecyclePivots with Intersection)(NewUnitLowering(p)) })
-  val newLURPI = new SimpleAlgorithm("new LURPI", { (p:SequentProof) =>
+  val newLURPI = new SimpleAlgorithm("LURPI   ", { (p:SequentProof) =>
     NewUnitLowering((new RecyclePivots with Intersection)(p)) })
-  val nLURPILU = new SimpleAlgorithm("nLURPILU", { (p:SequentProof) =>
+  val nLURPILU = new SimpleAlgorithm("LURPILU ", { (p:SequentProof) =>
     val lu = NewUnitLowering
     val rpi = new RecyclePivots with Intersection
     lu(rpi(lu(p)))
   })
 
-  val lowPsUn = new SimpleAlgorithm("low PsUn", new PseudoUnits(2))
-  val lowPsU1 = new SimpleAlgorithm("low PsU1", new PseudoUnits(1))
-
-  val psunReg = new SimpleAlgorithm("PsUn Reg", new PseudoUnitsAfter(2))
-  val psunOne = new SimpleAlgorithm("PsUn One", new PseudoUnitsAfter(1))
-  val psunLow = new SimpleAlgorithm("PsUn Low", new PseudoUnitsBefore(2))
-  val psunLo1 = new SimpleAlgorithm("PsUn Lo1", new PseudoUnitsBefore(1))
-
   val irunReg = new SimpleAlgorithm("IrUn Reg", new IrregularUnits with AlwaysRegularizeIrregularUnits)
   val irunLow = new SimpleAlgorithm("IrUn Low", new IrregularUnits with AlwaysLowerIrregularUnits     )
+
+  val threeLow = new SimpleAlgorithm("3passLow", new ThreePassLower)
 
   val reMinReg = new SimpleAlgorithm("ReMinReg", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinRegularizationChoice)
   val reMinLow = new SimpleAlgorithm("ReMinLow", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinLoweringChoice)
   val reRegula = new SimpleAlgorithm("reRegula", new RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible)
   val reQuadra = new SimpleAlgorithm("reQuadra", new MinRegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice)
-
-  val threeLow = new SimpleAlgorithm("3passLow", new ThreePassLower)
 
   val rednrec  = new SimpleAlgorithm("rednrec ", new ReduceAndReconstruct)
   val rednrec2 = new SimpleAlgorithm("rednrec2", new RRWithA2OnChild)
@@ -99,19 +91,16 @@ object Experimenter {
     "LURPI"-> newLURPI,
     "RPILU"-> newRPILU,
     "LURPILU" -> nLURPILU,
-    "lowPsUn"  -> lowPsUn,
-    "lowPsU1"  -> lowPsU1,
-    "psUnReg"  -> psunReg,
-    "psUnOne"  -> psunOne,
-    "psUnLow"  -> psunLow,
-    "psUnLo1"  -> psunLo1,
     "irUnReg"  -> irunReg,
     "irUnLow"  -> irunLow,
+    "3passLow" -> threeLow,
     "reMinReg" -> reMinReg,
     "reMinLow" -> reMinLow,
     "reRegula" -> reRegula,
     "reQuadra" -> reQuadra,
-    "3passLow" -> threeLow,
+    "LUniv"    -> new SimpleAlgorithm("LUniv   ", new LowerUnivalents),
+    "LUnivRPI" -> new SimpleAlgorithm("LUnivRPI", new LowerUnivalentsAfterRecyclePivots),
+    "RPILUniv" -> new SimpleAlgorithm("RPILUniv", new LowerUnivalentsBeforeRecyclePivots),
     "rednrec"  -> rednrec,
     "rednrecr" -> rednrecr,
     "rednrec2" -> rednrec2,
@@ -124,16 +113,7 @@ object Experimenter {
     "splitd1"  -> new TimeOutAlgorithm("split D1", new Split(true) with DeterministicChoice),
     "splitr1f" -> new RepeatAlgorithm("split R1", new Split(true) with RandomChoice),
     "splitd1f" -> new RepeatAlgorithm("split D1", new Split(true) with DeterministicChoice),
-    "DAG"      -> new SimpleAlgorithm("DAG     ", DAGification),
-    "splitDAG" -> new TimeOutAlgorithm("SplitDAG", { p => DAGification((new MultiSplit(1) with DeterministicChoice)(p)) }),
-    "DAGps"    -> new SimpleAlgorithm("DAGps   ", { p => DAGification((new PseudoUnitsAfter(1))(p)) }),
-    "psDAG"    -> new SimpleAlgorithm("psDAG   ", { p => (new PseudoUnitsAfter(1))(DAGification(p)) }),
-    "tstspl"   -> new SimpleAlgorithm("tst spl ", { p => (new Split(false) with DeterministicChoice)(DAGification(p)) }),
-    "tstms1"   -> new SimpleAlgorithm("tst ms1 ", { p => (new MultiSplit(1) with DeterministicChoice)(DAGification(p)) }),
-    "tstms3"   -> new SimpleAlgorithm("tst ms3 ", { p => (new MultiSplit(3) with DeterministicChoice)(DAGification(p)) }),
-    "tstspld"  -> new SimpleAlgorithm("tst spld", { p => DAGification((new Split(false) with DeterministicChoice)(DAGification(p))) }),
-    "tstms1d"  -> new SimpleAlgorithm("tst ms1d", { p => DAGification((new MultiSplit(1) with DeterministicChoice)(DAGification(p))) }),
-    "tstms3d"  -> new SimpleAlgorithm("tst ms3d", { p => DAGification((new MultiSplit(3) with DeterministicChoice)(DAGification(p))) })
+    "DAG"      -> new SimpleAlgorithm("DAG     ", DAGification)
   ) ++
   (1 to 8).map { n => val name = "msplitd"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with DeterministicChoice) } ++
   (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with RandomChoice) }

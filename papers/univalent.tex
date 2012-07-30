@@ -14,11 +14,11 @@
 
 \begin{document}
 
-\section{Presentation}
+\section{Introduction}
 
 We would like to extend the unit concept for lowering more nodes. Intuitively,
-if a node with clause $a$ is already marked to be lowered, another node with
-clause $\bar{a},b$ might be lowered too.
+if a node with a clause $a$ is already marked to be lowered, another node with
+a clause $\bar{a},b$ might be lowered too.
 
 \begin{nota}[Resolution]
 Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a
@@ -30,36 +30,27 @@ Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a
 
 The problem of lowering a node $\eta$ in a proof of the form $\psi[\eta]
 \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is to decide
-whether there exists a literal $a$ such that the proof $\psi[] \odot_a \eta
+whether a literal $a$ such that the proof $\psi[] \odot_a \eta
 \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is equivalent to
-the original proof.
+the original proof exists.
 
 This problem doesn't depend on the sequence $\eta_{i \in 0..n}$ but only on
-$\psi[\eta]$ and on the sequence $a_{i \in 0..n}$. This last sequence might
-be seen as a clause. We call it the clause of lowered pivots.
+$\psi[\eta]$ and $a_{i \in 0..n}$. This last sequence might be seen as a
+clause. We call it the clause of lowered pivots.
 
 \section{Univalent clause}
 
-For convenience, we introduce a definition for the elimination of a literal by a
-clause.
+The extended unit concept intuitively presented above can be formely defined as
+univalent clause.
 
-\begin{defn}[Elimination]
-A literal $a$ is said to be eliminated by a clause $\Gamma$ iff the dual of that
-literal belongs to the clause, ie $\bar{a} \in \Gamma$.
+\begin{defn}[Valent literal]
+A literal $a$ is said to be valent w.r.t. a clause $\Delta$ iff $\bar{a}$ does
+not occur in $\Delta$.
 \end{defn}
-
-The extended unit concept intuitively presented above can now be formerly
-defined as univalent clause.
 
 \begin{defn}[Univalent clause]
 A clause $\Gamma$ is said to be univalent w.r.t. another clause $\Delta$ iff
-there is only one $\Gamma$'s literal $a$ not eliminated by $\Delta$.
-\end{defn}
-
-\begin{defn}[Efficient literal]
-The only literal $a$ from an univalent clause $\Gamma$ w.r.t. a clause $\Delta$
-not eliminated by $\Delta$ is called the efficient literal of $\Gamma$
-w.r.t. to $\Delta$.
+there is exactely one literal $a$ in $\Gamma$ which is valent w.r.t. $\Delta$.
 \end{defn}
 
 Units have univalent clause w.r.t. a clause $\Delta$ unless their sole literal
@@ -69,27 +60,26 @@ strict extension of units.
 
 \section{Lowering nodes with univalent clause}
 
-The question now is whether nodes with univalent clause w.r.t. the clause of
+The question now is whether nodes with a univalent clause w.r.t. the clause of
 lowered pivots can be lowered.
 
 Actually this isn't always the case. For example let's consider a node
 $\eta$ with clause $a,b$, the clause $\Delta$ of lowered pivots being
 $\bar{a}$. Obviously, $\eta$'s clause is univalent. But if an $\eta$'s
 direct child has $a$ as pivot, removing $\eta$ from $\psi$ will introduce
-the literal $\bar{a}$ which will progate down the proof.
+the literal $\bar{a}$ which will propagate down the proof.
 
 Hence we need a condition on the children of the node we want to lower.
 
 \begin{defn}[Active literal]
 Let's consider a node $\eta$ with clause $\Gamma$. A literal $a$ from
 $\Gamma$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
-one of $\eta$'s child. Literals of $\Gamma$ which aren't active literals of
-$\eta$ are passive literals of $\eta$.
+one of $\eta$'s child.
 \end{defn}
 
 \begin{thm}
 If all the active literals of a node $\eta$ with clause $\Gamma$ univalent
-w.r.t. the clause $\Delta$ of lowered literals either are the efficient
+w.r.t. the clause $\Delta$ of lowered literals either are the valent
 literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
 \end{thm}
 
