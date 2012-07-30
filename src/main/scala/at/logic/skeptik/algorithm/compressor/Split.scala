@@ -121,7 +121,8 @@ extends AbstractSplit {
 
 /** Extended Split compression algorithm
  *
- * A arbitrary number of variables are selected and the proof is split in 2^n subproofs.
+ * A arbitrary number of variables are selected and the proof is split in 2^n
+ * subproofs.
  */
 abstract class MultiSplit (nbVariables: Int)
 extends AbstractSplit {
@@ -129,6 +130,20 @@ extends AbstractSplit {
   /** Binary tree to store partial proofs.
   *
   * Each level of the tree correspond to a selected variable.
+  *
+  * I've choose to not include those variables in the structure.  At first I
+  * thought that including them would increase memory consumption. But later I
+  * added a depth which would have been useless with a variable list. A better
+  * reason is the symetry between leaves' depth and nodes' depth. If depth is
+  * replaced by a variable list, an empty list would be allowed for leaves but
+  * not for nodes. It would introduce complication for the optimization case of
+  * Split.apply. Another reason to not include variables in Splitter is what
+  * I've understand about "referencial transparency". The variable list doesn't
+  * have to be handled by Splitter but by the code which use it.
+  *
+  * An alternative implementation would be to add a
+  *    case class Trunk(branch: Split, depth: Int)
+  *
   */
   private abstract sealed class Splitter {
     def pos:Splitter
@@ -142,9 +157,13 @@ extends AbstractSplit {
   extends Splitter {
     def pos = if (depth > 0) deepen(-1) else deepPos
     def neg = if (depth > 0) deepen(-1) else deepNeg
-    def merge(variableList: List[E]) = variableList match {
-      case t::q => CutIC(pos.merge(q), neg.merge(q), _ == t, true)
-      case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
+    def merge(variableList: List[E]) =
+      try {
+        val tail = variableList.drop(depth + 1)
+        CutIC(deepPos.merge(tail), deepNeg.merge(tail), _ == variableList(depth), true)
+      }
+      catch {
+        case _: IndexOutOfBoundsException => throw new Exception("Variable list doen't correspond to Splitter structure")
     }
     def deepen(amount: Int = 1) = SplitterNode(deepPos, deepNeg, depth + amount)
     override def toString = "(" + pos.toString + " : " + neg.toString + " :" + depth + ")"
@@ -173,16 +192,24 @@ extends AbstractSplit {
       lazy val variable = variableList.head // might throw an exception
       lazy val variableTail = variableList.tail
       val ret = (left, right) match {
+
+        // Real leaf case : simple resolution
         case (SplitterLeaf(proofLeft,0), SplitterLeaf(proofRight,0)) =>
           SplitterLeaf(CutIC(proofLeft, proofRight, _ == pivot, true))
+
+        // Split case : the pivot matches the variable
         case (l, r) if pivot == variable =>
           Splitter(l.pos, r.neg)
+
+        // Optimization case : if both premises have non-nul depth we can remove some variables from the list
         case (l, r) if (l.depth > 0) && (r.depth > 0) =>
           val depthMax = l.depth min r.depth
           def dive(depth: Int, variables: List[E]):(Int,List[E]) =
             if ((depth == depthMax) || (variables.head == pivot)) (depth, variables) else dive(depth + 1, variables.tail)
           val (depthDiff, variables) = dive(1, variableTail)
           Splitter(pivot, l.deepen(-depthDiff), r.deepen(-depthDiff), variables).deepen(depthDiff)
+
+        // Default recursive case
         case (l, r) =>
           Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
       }
