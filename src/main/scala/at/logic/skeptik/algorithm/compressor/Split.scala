@@ -148,39 +148,48 @@ extends AbstractSplit {
   private abstract sealed class Splitter {
     def pos:Splitter
     def neg:Splitter
-    def depth:Int
     def merge(variableList: List[E]):SequentProof
-    def deepen(amount: Int = 1):Splitter
+
+    def deepen(amount: Int = 1) = if (amount == 0) this else SplitterTrunk(this, amount)
+
+    // to debug only
+//    def debugDepth:Int
   }
 
-  private case class SplitterNode (deepPos: Splitter, deepNeg: Splitter, depth: Int = 0)
+  private case class SplitterTrunk (branch: Splitter, depth: Int = 1)
   extends Splitter {
-    def pos = if (depth > 0) deepen(-1) else deepPos
-    def neg = if (depth > 0) deepen(-1) else deepNeg
-    def merge(variableList: List[E]) =
-      try {
-        val tail = variableList.drop(depth + 1)
-        CutIC(deepPos.merge(tail), deepNeg.merge(tail), _ == variableList(depth), true)
-      }
-      catch {
-        case _: IndexOutOfBoundsException => throw new Exception("Variable list doen't correspond to Splitter structure")
+    require(depth > 0)
+    def pos = if (depth > 1) SplitterTrunk(branch, depth - 1) else branch
+    def neg = pos
+    def merge(variableList: List[E]) = branch.merge(variableList.drop(depth))
+
+    override def deepen(amount: Int = 1) = {
+      val newDepth = depth + amount
+      if (newDepth > 0) SplitterTrunk(branch, newDepth) else branch.deepen(newDepth)
     }
-    def deepen(amount: Int = 1) = SplitterNode(deepPos, deepNeg, depth + amount)
-    override def toString = "(" + pos.toString + " : " + neg.toString + " :" + depth + ")"
+
+//    def debugDepth = depth + branch.debugDepth
   }
 
-  // A true leaf if depth == 0. A subtree with 2^depth identical leaves otherwise.
-  private case class SplitterLeaf (proof: SequentProof, depth: Int = 0)
+  private case class SplitterNode (pos: Splitter, neg: Splitter)
   extends Splitter {
-    lazy val pos = if (depth > 0) deepen(-1) else throw new Exception("Traversing beyond leaves")
+    def merge(variableList: List[E]) = variableList match {
+      case t::q => CutIC(pos.merge(q), neg.merge(q), _ == t, true)
+      case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
+    }
+
+//    override def toString = "(" + pos.toString + " : " + neg.toString + ")"
+//    def debugDepth = 1 + pos.debugDepth
+  }
+
+  private case class SplitterLeaf (proof: SequentProof)
+  extends Splitter {
+    def pos = throw new Exception("Traversing beyond leaves")
     def neg = pos
     def merge(variableList: List[E]) = proof
-    def deepen(amount: Int = 1) = SplitterLeaf(proof, depth + amount)
-    override def equals(other: Any):Boolean = other match {
-      case SplitterLeaf(op, od) => (od == depth) && (op.conclusion == proof.conclusion)
-      case _ => false
-    }
-    override def toString = "{" + proof.conclusion.toString + " :" + depth + "}"
+
+//    override def toString = "{" + proof.conclusion.toString + "}"
+//    def debugDepth = 0
   }
 
   private object Splitter {
@@ -189,12 +198,14 @@ extends AbstractSplit {
       if (pos == neg) pos.deepen() else SplitterNode(pos, neg)
 
     def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
+//      println("split " + left + " and " + right + " on " + pivot + " with " + variableList)
+//      if (left.debugDepth != right.debugDepth) throw new Exception(left + " and " + right + " don't have same depth")
       lazy val variable = variableList.head // might throw an exception
       lazy val variableTail = variableList.tail
       val ret = (left, right) match {
 
         // Real leaf case : simple resolution
-        case (SplitterLeaf(proofLeft,0), SplitterLeaf(proofRight,0)) =>
+        case (SplitterLeaf(proofLeft), SplitterLeaf(proofRight)) =>
           SplitterLeaf(CutIC(proofLeft, proofRight, _ == pivot, true))
 
         // Split case : the pivot matches the variable
@@ -202,22 +213,25 @@ extends AbstractSplit {
           Splitter(l.pos, r.neg)
 
         // Optimization case : if both premises have non-nul depth we can remove some variables from the list
-        case (l, r) if (l.depth > 0) && (r.depth > 0) =>
-          val depthMax = l.depth min r.depth
-          def dive(depth: Int, variables: List[E]):(Int,List[E]) =
-            if ((depth == depthMax) || (variables.head == pivot)) (depth, variables) else dive(depth + 1, variables.tail)
-          val (depthDiff, variables) = dive(1, variableTail)
-          Splitter(pivot, l.deepen(-depthDiff), r.deepen(-depthDiff), variables).deepen(depthDiff)
+        case (left @ SplitterTrunk(_, depthLeft), right @ SplitterTrunk(_, depthRight)) =>
+          val depthMax = depthLeft min depthRight
+          val (depthDiff, variables) = {
+            def dive(depth: Int, variables: List[E]):(Int,List[E]) =
+              if ((depth == depthMax) || (variables.head == pivot)) (depth, variables) else dive(depth + 1, variables.tail)
+            dive(1, variableTail)
+          }
+          Splitter(pivot, left.deepen(-depthDiff), right.deepen(-depthDiff), variables).deepen(depthDiff)
 
         // Default recursive case
         case (l, r) =>
           Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
       }
-  //    println("split " + left + " and " + right + " on " + pivot + " with " + variableList + " gives " + ret)
+//      println("split " + left + " and " + right + " on " + pivot + " with " + variableList + " gives " + ret)
+//      if (ret.debugDepth != left.debugDepth) throw new Exception("Bug on split")
       ret
     }
 
-    def apply(axiom: SequentProof, variableList: List[E]):Splitter = new SplitterLeaf(axiom, variableList.length)
+    def apply(axiom: SequentProof, variableList: List[E]):Splitter = SplitterTrunk(SplitterLeaf(axiom), variableList.length)
   }
 
 
