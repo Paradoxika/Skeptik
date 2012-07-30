@@ -7,8 +7,8 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.Map
 
 class RegularizationInformation (val nodeSize: Float, val leftMap: Map[E,Float], val rightMap: Map[E,Float]) {
   def /(v: Float) = new RegularizationInformation(nodeSize / v, leftMap.mapValues(_/v), rightMap.mapValues(_/v))
@@ -45,7 +45,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val units = scala.collection.mutable.Queue[SequentProof]()
+    val units = collection.mutable.Queue[SequentProof]()
     val informationMap = collectInformationMap(nodeCollection)
 
     def isTrueUnit(p: SequentProof, safeLiterals: IClause) =

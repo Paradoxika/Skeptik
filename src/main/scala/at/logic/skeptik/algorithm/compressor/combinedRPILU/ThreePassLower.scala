@@ -7,8 +7,8 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.Map
 
 abstract class AbstractThreePassLower
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
@@ -64,7 +64,7 @@ class ThreePassLower
 extends AbstractThreePassLower {
   def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val map = MMap[SequentProof, IClause]()
-    val units = scala.collection.mutable.Stack[SequentProof]()
+    val units = collection.mutable.Stack[SequentProof]()
     val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
       (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(nodeCollection.childrenOf(p))) match {
         // TODO : should I add the unit's literal to safeLiterals to be transmited to unit's premises ?

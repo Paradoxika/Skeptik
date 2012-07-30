@@ -1,7 +1,7 @@
 package at.logic.skeptik.proof
 
 import collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
-import scala.reflect.ClassTag
+import reflect.ClassTag
 
 
 // TODO: ProofNodeCollection is not really conforming to the standards of 

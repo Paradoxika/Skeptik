@@ -6,8 +6,8 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.Map
 
 abstract class AbstractRPILUAlgorithm
 extends Function1[SequentProof,SequentProof] {

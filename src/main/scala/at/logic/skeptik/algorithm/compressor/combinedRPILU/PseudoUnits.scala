@@ -8,8 +8,8 @@ import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.mutable.{SetSequent => MClause}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
+import collection.Map
 
 package pseudoUnits {
 

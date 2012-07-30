@@ -1,6 +1,6 @@
 package at.logic.skeptik.experiment.compression
 
-import scala.Array.canBuildFrom
+import Array.canBuildFrom
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.compressor.combinedRPILU._
 import at.logic.skeptik.proof.ProofNodeCollection

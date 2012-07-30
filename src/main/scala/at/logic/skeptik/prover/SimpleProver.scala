@@ -5,7 +5,7 @@ import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.util.debug._
 import at.logic.skeptik.util.argMin
-import scala.reflect.ClassTag
+import reflect.ClassTag
 
 // ToDo: (B) Use futures and Map from (goal, inference) to future to create DAG-proof!
 class SimpleProver[J <: Judgment, P <: Proof[J,P]: ClassTag](calculus: Calculus[J,P]) {

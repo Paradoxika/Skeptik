@@ -7,8 +7,8 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList}
+import collection.Map
 
 abstract class IrregularUnits
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
@@ -17,7 +17,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val units = scala.collection.mutable.Queue[SequentProof]()
+    val units = collection.mutable.Queue[SequentProof]()
 
     def isUnitAndSomething(something: (SequentProof, Int) => Boolean)
                           (p: SequentProof) =

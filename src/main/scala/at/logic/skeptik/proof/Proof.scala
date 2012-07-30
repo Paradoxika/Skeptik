@@ -1,7 +1,7 @@
 package at.logic.skeptik.proof
 
 import at.logic.skeptik.judgment.Judgment
-import scala.reflect.ClassTag
+import reflect.ClassTag
 
 abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassTag] 
 {
