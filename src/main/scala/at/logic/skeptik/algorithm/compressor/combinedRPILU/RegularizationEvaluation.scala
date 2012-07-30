@@ -93,6 +93,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     if (edgesToDelete.isEmpty) proof else {
       val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, nodeCollection)
       units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
+        // Right is a unit. No choice for a pivot.
         try {CutIC(left,right)} catch {case e:Exception => left}
       }
     }

@@ -13,11 +13,22 @@ import scala.collection.Map
 abstract class AbstractThreePassLower
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
-  protected def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,(IClause,IClause)])
+  /** Collect nodes to be lowered
+   *
+   * This is the fist pass of the algorithm.
+   *
+   * Nodes collected by this function should have at most one pivot candidate
+   * when reintroduced.
+   *
+   * @return The lowered literals clause, the ordered sequence of lowered
+   * nodes, a map from lowered node to its efficient literal and the safe
+   * literals.
+   */
+  protected def collectLowerables(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,(IClause,IClause)])
 
   private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val (rootSafeLiterals, units, unitsMap) = collectUnits(nodeCollection)
+    val (rootSafeLiterals, units, unitsMap) = collectLowerables(nodeCollection)
 
     // Protected literals transmited by children aren't the same for the both premises.
     // Hence we need to store them ourself.
@@ -96,7 +107,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 class ThreePassLower
 extends AbstractThreePassLower {
-  protected def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collectLowerables(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val map = MMap[SequentProof, (IClause,IClause)]()
     val units = scala.collection.mutable.Stack[SequentProof]()
     val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>

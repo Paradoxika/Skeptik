@@ -87,9 +87,13 @@ extends AbstractRPILUAlgorithm {
       newProof
     }
 
+    /* The pivot literal needed to reintroduce univalent clause's nodes can be
+     * safely forgotten. The algorithm ensures the lowered pivots clause isn't
+     * tautological and that all non-efficient literal of a lowered node have
+     * theyr dual in the lowered pivots clause.                              */
     val pseudoRoot = nodeCollection.foldDown(reconstructProof _)
     units.foldLeft(pseudoRoot) { (left,right) =>
-      try {CutIC(left,right)} catch {case e:Exception => left}
+      try {CutIC(left, right)} catch {case e:Exception => left}
     }
   }
 }
@@ -111,7 +115,7 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with PseudoUnits
 
 class PseudoUnitsBefore (minNumberOfChildren: Int)
 extends AbstractThreePassLower {
-  protected def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collectLowerables(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val principalLiterals = MClause()
     var units = List[SequentProof]()
     val map = MMap[SequentProof, (IClause,IClause)]()
