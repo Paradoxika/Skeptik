@@ -3,6 +3,7 @@ import at.logic.skeptik.proof.oldResolution._
 import at.logic.skeptik.proof.oldResolution.defs._
 import at.logic.skeptik.algorithm.compressor.ProofFixing._
 import collection._
+import language.postfixOps
 
 object UnitLowering {
 
@@ -54,7 +55,7 @@ object UnitLowering {
         p.pivot
         p
       } catch {
-        case _ => {println(u.clause + " failed to resolve"); proof}
+        case _: Throwable => {println(u.clause + " failed to resolve"); proof}
       }
       reinsertUnits(newRootProof, units)
     }

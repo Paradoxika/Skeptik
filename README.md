@@ -8,7 +8,7 @@ By providing smaller resolution proofs that are easier and faster to check, Skep
 
 ###Usage Instructions###
 
-You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) installed. 
+You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) (version >= 0.13) installed. 
 Then go to Skeptik's root directory using the terminal and simply execute:
 
 ```

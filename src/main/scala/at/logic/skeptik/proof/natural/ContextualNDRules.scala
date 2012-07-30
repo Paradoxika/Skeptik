@@ -97,7 +97,7 @@ abstract class ImpIntroCRule extends InferenceRule[NaturalSequent, NaturalDeduct
           case i @ Imp(a,b) => {
             val deepAux = (premises(0).conclusion.e !: p).get
             if (b == deepAux) premises(0).conclusion.context.find(_.expression == a) match {
-              case Some(assumption) => try { Some(apply(premises(0), assumption, p)) } catch {case _ => None}
+              case Some(assumption) => try { Some(apply(premises(0), assumption, p)) } catch {case _: Throwable => None}
               case None => None
             }
             else None   

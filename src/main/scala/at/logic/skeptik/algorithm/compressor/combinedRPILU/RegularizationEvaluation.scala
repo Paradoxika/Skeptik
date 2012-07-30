@@ -155,14 +155,14 @@ extends RegularizationEvaluation {
 trait AddEval extends RegularizationEvaluation {
 // Assumes all the possible regularizations will happend.
   def addMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
-    ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0..toFloat))) }
+    ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0.0.toFloat))) }
   def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          leftInfo: RegularizationInformation, rightInfo:RegularizationInformation):RegularizationInformation = {
     val (left,right) = (proof.premises(0), proof.premises(1))
     def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.nodeSize + 1..toFloat else 1..toFloat
+      if (fakeSize(nodeCollection.childrenOf(node)) == 1) information.nodeSize + 1.0.toFloat else 1.0.toFloat
     RegularizationInformation(
-      evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1..toFloat,
+      evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1.0.toFloat,
       addMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> evalRegularization(left, leftInfo)),
       addMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> evalRegularization(right,rightInfo))
     )
@@ -178,7 +178,7 @@ trait MinEval extends RegularizationEvaluation {
   def evaluateDerivation(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof], aux: E,
                          leftInfo: RegularizationInformation, rightInfo:RegularizationInformation):RegularizationInformation = {
     RegularizationInformation(
-      leftInfo.nodeSize + rightInfo.nodeSize - 1..toFloat,
+      leftInfo.nodeSize + rightInfo.nodeSize - 1.0.toFloat,
       minMap(leftInfo.leftMap,  rightInfo.leftMap)  + (aux -> leftInfo.nodeSize),
       minMap(leftInfo.rightMap, rightInfo.rightMap) + (aux -> rightInfo.nodeSize)
     )
@@ -216,8 +216,8 @@ extends RegularizationEvaluation {
       }
       else acc
     val regularizeGain =
-      safeLiterals.ant.foldLeft(0..toFloat)(foldFunction(information.leftMap))  +
-      safeLiterals.suc.foldLeft(0..toFloat)(foldFunction(information.rightMap))
+      safeLiterals.ant.foldLeft(0.0.toFloat)(foldFunction(information.leftMap))  +
+      safeLiterals.suc.foldLeft(0.0.toFloat)(foldFunction(information.rightMap))
 //    println("Clever " + proof.conclusion + " with " + currentChildrenNumber + " children, size " +
 //            information.nodeSize + " reg " + regularizeGain)
     lowerInsteadOfRegularizeChooseOnWeight((currentChildrenNumber - 1).toFloat, regularizeGain)

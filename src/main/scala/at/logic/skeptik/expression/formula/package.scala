@@ -1,6 +1,7 @@
 package at.logic.skeptik.expression
 package object formula {
   import at.logic.skeptik.util.unicode._
+  import language.implicitConversions
 
   // Logical Symbols and Connectives
   
