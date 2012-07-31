@@ -8,7 +8,8 @@ scalaVersion := "2.10.0-M5"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 
-scalacOptions in doc ++= Seq("diagrams","on")
+scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
+
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "1.9-2.10.0-M5-B2",
