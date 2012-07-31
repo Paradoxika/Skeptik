@@ -113,6 +113,13 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUniv
 
 }
 
+/* Still bogus :
+ * QG-classification/qg5/iso_brn038.smt2
+ * QG-classification/qg5/iso_brn457.smt2
+ * QG-classification/qg5/iso_brn1281.smt2
+ * QG-classification/qg5/iso_icl1118.smt2
+ * QG-classification/qg5/iso_icl1118.smt2
+ */
 class LowerUnivalentsBeforeRecyclePivots
 extends AbstractThreePassLower {
 
@@ -122,8 +129,7 @@ extends AbstractThreePassLower {
     val map = MMap[SequentProof, (IClause,IClause)]()
 
     val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
-      val children = nodeCollection.childrenOf(p)
-      isLowerableUnivalent(p, children, loweredPivots) match {
+      isLowerableUnivalent(p, nodeCollection.childrenOf(p), loweredPivots) match {
         // TODO : should I add the valent literal to safeLiterals to be transmited to premises ?
         case LowerableUnivalent(Left(l))  =>
           univalents ::= p

@@ -44,26 +44,33 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
         case _ => throw new Exception("Unknown or impossible inference rule")
       }
+
+      // Node is lowerable
       if (unitsMap contains p) {
         deleteFromChildren(p, nodeCollection, edgesToDelete)
         val (efficientLiteral, safeLiterals) = unitsMap(p)
         p.premises.foreach (addProtectedLiteralFor(_, efficientLiteral))
-//        println("Unit " + p.conclusion + " " + unitsMap(p))
+        println("Unit " + p.conclusion + " " + unitsMap(p))
         (p, safeLiterals)
       }
+
+      // Root node
       else if (childrensSafeLiterals == Nil) (p, rootSafeLiterals)
+
       else {
         val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
         val protectedLiterals = protectedLiteralMap.getOrElse(p, IClause()) ; protectedLiteralMap.remove(p)
         lazy val leftLiterals  = IClause(p.premises.head.conclusion)
         lazy val rightLiterals = IClause(p.premises.last.conclusion)
         p match {
+
             case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) && (protectedLiterals -- rightLiterals).isFalse =>
               edgesToDelete.update(p, LeftDS)
               addProtectedLiteralFor(right, protectedLiterals)
             case CutIC(left ,_,auxL,_) if (safeLiterals.suc contains auxL) && (protectedLiterals --  leftLiterals).isFalse =>
               edgesToDelete.update(p, RightDS)
               addProtectedLiteralFor(left, protectedLiterals)
+
             case CutIC(left,right,pivot,_) =>
               val remainingProtectedLiterals =
                 (protectedLiterals -- protectedLiteralMap.getOrElse(left, IClause())) -- protectedLiteralMap.getOrElse(right, IClause())
@@ -83,6 +90,8 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
                 addProtectedLiteralFor(left,  protectedLeft)
                 addProtectedLiteralFor(right, protectedRight)
               }
+
+            // Non-resolution step are ignored
             case _ =>
         }
         (p, safeLiterals)
