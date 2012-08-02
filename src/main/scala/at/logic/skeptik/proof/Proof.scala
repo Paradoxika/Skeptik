@@ -2,7 +2,7 @@ package at.logic.skeptik.proof
 
 import at.logic.skeptik.judgment.Judgment
 
-abstract class Proof[+J <: Judgment, +P <: Proof[J,P] : ClassManifest] 
+abstract class Proof[+J <: Judgment, +P <: Proof[J,P]] 
 {
   def name = {val fullName = getClass.getName; fullName.substring(fullName.lastIndexOf('.' : Int))}
   private val self = asInstanceOf[P]
