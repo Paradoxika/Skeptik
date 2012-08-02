@@ -20,21 +20,22 @@ package lowerableUnivalent {
 
   object isLowerableUnivalent
   {
-    def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof], loweredPivots: MClause):NodeKind = {
-      val literals = activeLiteralsNotInLoweredPivots(newProof, oldProof, children, loweredPivots)
+    def apply(clause: IClause, oldProof: SequentProof, children: List[SequentProof], loweredPivots: MClause):NodeKind = {
+      val literals = activeLiteralsNotInLoweredPivots(oldProof, children, loweredPivots)
   //      println("Remaining Literals " + literals)
       (literals.ant.size, literals.suc.size) match {
         case (0,0) => DeletableNode
-        case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newProof, loweredPivots)
-        case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newProof, loweredPivots)
+        case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  clause, loweredPivots)
+        case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), clause, loweredPivots)
         case _ => OrdinaryNode
       }
     }
+    def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof], loweredPivots: MClause):NodeKind =
+      apply(IClause(newProof.conclusion), oldProof, children, loweredPivots)
     def apply(proof: SequentProof, children: List[SequentProof], loweredPivots: MClause):NodeKind =
-        apply(proof, proof, children, loweredPivots)
+      apply(IClause(proof.conclusion), proof, children, loweredPivots)
 
-    private def activeLiteralsNotInLoweredPivots(newProof: SequentProof, oldProof: SequentProof,
-                                             children: Seq[SequentProof], loweredPivots: MClause) = {
+    private def activeLiteralsNotInLoweredPivots(oldProof: SequentProof, children: Seq[SequentProof], loweredPivots: MClause) = {
       val result = MClause()
       children.foreach { (child) =>
           child match {
@@ -48,9 +49,9 @@ package lowerableUnivalent {
       result
     }
 
-    private def isTheOnlyValentLiteral(remainingLiteral: Either[E,E], proof: SequentProof, loweredPivots: MClause) = {
-      val (leftLiterals, rightLiterals) = (proof.conclusion.ant.toSet -- loweredPivots.suc,
-                                           proof.conclusion.suc.toSet -- loweredPivots.ant)
+    private def isTheOnlyValentLiteral(remainingLiteral: Either[E,E], clause: IClause, loweredPivots: MClause) = {
+      val (leftLiterals, rightLiterals) = (clause.ant -- loweredPivots.suc,
+                                           clause.suc -- loweredPivots.ant)
       (leftLiterals.size, rightLiterals.size, remainingLiteral) match {
         case (1,0,Left(literal))  if leftLiterals.head  == literal => literal =+: loweredPivots ; LowerableUnivalent(remainingLiteral)
         case (0,1,Right(literal)) if rightLiterals.head == literal => loweredPivots += literal  ; LowerableUnivalent(remainingLiteral)
@@ -113,12 +114,16 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUniv
 
 }
 
-/* Still bogus :
- * QG-classification/qg5/iso_brn038.smt2
- * QG-classification/qg5/iso_brn457.smt2
+/* Still bogus (2012/08/02) :
  * QG-classification/qg5/iso_brn1281.smt2
  * QG-classification/qg5/iso_icl1118.smt2
- * QG-classification/qg5/iso_icl1118.smt2
+ *
+ * QG-classification/loops6/iso_icl092.smt2
+ * QG-classification/loops6/iso_icl042.smt2
+ * QG-classification/qg5/iso_icl219.smt2
+ * QG-classification/qg5/iso_icl218.smt2
+ *
+ * QG-classification/qg5/iso_icl055.smt2
  */
 class LowerUnivalentsBeforeRecyclePivots
 extends AbstractThreePassLower {
@@ -127,21 +132,50 @@ extends AbstractThreePassLower {
     val loweredPivots = MClause()
     var univalents = List[SequentProof]()
     val map = MMap[SequentProof, (IClause,IClause)]()
+    var rootSafeLiterals = IClause()
 
-    val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
-      isLowerableUnivalent(p, nodeCollection.childrenOf(p), loweredPivots) match {
+    def visit(node: SequentProof, premiseDeletedLiterals: List[IClause]) = {
+      val deletedLiterals = node match {
+        // It is assumed here that in case when no premises contain the pivot, the left one will be kept during fixing.
+
+        case CutIC(left, right, pivot,_) if (map contains right) || ((premiseDeletedLiterals(0).suc contains pivot) && !(map contains left)) =>
+          println("Del right " + right.conclusion + " pivot " + pivot + " left " + left.conclusion + " deleted " + premiseDeletedLiterals(0))
+          premiseDeletedLiterals(0) ++ IClause(right.conclusion) -- new IClause(Set(pivot),Set(pivot))
+
+        case CutIC(left, right, pivot,_) if (map contains left) || (premiseDeletedLiterals(1).ant contains pivot) =>
+          println("Del left " + left.conclusion + " pivot " + pivot + " right " + right.conclusion + " deleted " + premiseDeletedLiterals(1))
+          premiseDeletedLiterals(1) ++ IClause(left.conclusion) -- new IClause(Set(pivot),Set(pivot))
+
+        case CutIC(left,right,_,_) =>
+          (premiseDeletedLiterals(0) -- IClause(right.conclusion)) ++
+          (premiseDeletedLiterals(1) -- IClause(left.conclusion))  ++
+          (premiseDeletedLiterals(0) intersect premiseDeletedLiterals(1))
+
+        case Axiom(_) =>
+          IClause()
+      }
+      if (node.isInstanceOf[CutIC] && !deletedLiterals.isFalse) println("Deleted " + deletedLiterals)
+      val conclusion = IClause(node.conclusion) -- deletedLiterals
+
+      isLowerableUnivalent(conclusion, node, nodeCollection.childrenOf(node), loweredPivots) match {
         // TODO : should I add the valent literal to safeLiterals to be transmited to premises ?
         case LowerableUnivalent(Left(l))  =>
-          univalents ::= p
-          map.update(p, (new IClause(Set[E](l),Set[E]()), safeLiterals))
-          safeLiterals + l
+          println("Uni " + node.conclusion + " as " + conclusion)
+          univalents ::= node
+          map.update(node, (new IClause(Set[E](l),Set[E]()), rootSafeLiterals))
+          rootSafeLiterals = rootSafeLiterals + l
         case LowerableUnivalent(Right(l)) =>
-          univalents ::= p
-          map.update(p, (new IClause(Set[E](),Set[E](l)), safeLiterals))
-          l +: safeLiterals
-        case _ => safeLiterals
+          println("Uni " + node.conclusion + " as " + conclusion)
+          univalents ::= node
+          map.update(node, (new IClause(Set[E](),Set[E](l)), rootSafeLiterals))
+          rootSafeLiterals = l +: rootSafeLiterals
+        case _ =>
       }
+
+      deletedLiterals
     }
+
+    nodeCollection.foldDown(visit)
     (rootSafeLiterals, univalents, map)
   }
 

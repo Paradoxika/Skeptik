@@ -26,7 +26,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
    */
   protected def collectLowerables(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,(IClause,IClause)])
 
-  private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     val (rootSafeLiterals, units, unitsMap) = collectLowerables(nodeCollection)
 
@@ -50,7 +50,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         deleteFromChildren(p, nodeCollection, edgesToDelete)
         val (efficientLiteral, safeLiterals) = unitsMap(p)
         p.premises.foreach (addProtectedLiteralFor(_, efficientLiteral))
-        println("Unit " + p.conclusion + " " + unitsMap(p))
+//        println("Unit " + p.conclusion + " " + unitsMap(p))
         (p, safeLiterals)
       }
 
