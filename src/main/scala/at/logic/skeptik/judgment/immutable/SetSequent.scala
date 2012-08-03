@@ -18,6 +18,7 @@ class SetSequent(val ant: Set[E], val suc: Set[E]) extends ASequent {
   def ++(other:SetSequent) = new SetSequent(ant ++ other.ant, suc ++ other.suc)
   def --(other:SetSequent) = new SetSequent(ant -- other.ant, suc -- other.suc)
   def intersect(other:SetSequent) = new SetSequent(ant intersect other.ant, suc intersect other.suc)
+  def subsume(other: SetSequent) = (ant subsetOf other.ant) && (suc subsetOf other.suc)
 }
 
 object SetSequent {
