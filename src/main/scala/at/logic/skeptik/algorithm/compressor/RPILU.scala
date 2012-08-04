@@ -56,11 +56,12 @@ extends (SequentProof => SequentProof) {
     lazy val fixedLeft  = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
     p match {
-      case Axiom(conclusion) => Axiom(conclusion)
+      case Axiom(conclusion) => p
       case CutIC(left,right,_,_) if edgesToDelete contains p => edgesToDelete(p) match {
         case LeftDS  => fixedRight
         case RightDS => fixedLeft
       }
+      case CutIC(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
       case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
     }
   }
