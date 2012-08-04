@@ -69,25 +69,30 @@ extends (SequentProof => SequentProof) {
 
 abstract class AbstractRPIAlgorithm
 extends AbstractRPILUAlgorithm {
+
+  protected def safeLiteralsFromChild (childWithSafeLiterals: (SequentProof, IClause),
+                                       parent: SequentProof, edgesToDelete: Map[SequentProof,DeletedSide]) =
+    childWithSafeLiterals match {
+      case (parent, safeLiterals) if edgesToDelete contains parent => safeLiterals
+      case (CutIC(left,_,_,auxR),  safeLiterals) if left  == parent => safeLiterals + auxR
+      case (CutIC(_,right,auxL,_), safeLiterals) if right == parent => auxL +: safeLiterals
+      case _ => throw new Exception("Unknown or impossible inference rule")
+    }
+
   protected def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, IClause)],
-                          edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
+                          edgesToDelete: Map[SequentProof,DeletedSide]
                           ) : IClause
+
 }
 
 trait CollectEdgesUsingSafeLiterals
 extends AbstractRPIAlgorithm {
+  
   protected def collectEdgesToDelete(nodeCollection: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
-      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
-        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
-        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
-        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
-        case _ => throw new Exception("Unknown or impossible inference rule")
-      }
-      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
         case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.update(p, RightDS)
         case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.update(p, LeftDS)
@@ -121,12 +126,12 @@ trait Intersection
 extends AbstractRPIAlgorithm {
   protected def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, IClause)],
-                          edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
+                          edgesToDelete: Map[SequentProof,DeletedSide]
                           ) : IClause = {
     childrensSafeLiterals.filter { x => !childIsMarkedToDeleteParent(x._1, proof, edgesToDelete)} match {
       case Nil  => IClause(proof.conclusion)
-      case h::t => t.foldLeft(safeLiteralsFromChild(h)) { (acc, v) => acc intersect safeLiteralsFromChild(v) }
+      case h::t =>
+        t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) => acc intersect safeLiteralsFromChild(v, proof, edgesToDelete) }
     }
   }
 }

@@ -23,11 +23,10 @@ trait outIntersection
 extends AbstractRPIAlgorithm {
   protected def computeSafeLiterals(proof: SequentProof,
                           childrensSafeLiterals: List[(SequentProof, IClause)],
-                          edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
+                          edgesToDelete: Map[SequentProof,DeletedSide]
                           ) : IClause =
     if (childrensSafeLiterals.length == 1)
-      safeLiteralsFromChild(childrensSafeLiterals.head)
+      safeLiteralsFromChild(childrensSafeLiterals.head, proof, edgesToDelete)
     else
       IClause()
 }

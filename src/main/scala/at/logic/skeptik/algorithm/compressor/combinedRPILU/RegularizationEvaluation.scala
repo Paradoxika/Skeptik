@@ -56,13 +56,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
 
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
-      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
-        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
-        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
-        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
-        case _ => throw new Exception("Unknown or impossible inference rule")
-      }
-      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       def regularize(position: DeletedSide) = {
         edgesToDelete.update(p, position)
         (p, safeLiterals)

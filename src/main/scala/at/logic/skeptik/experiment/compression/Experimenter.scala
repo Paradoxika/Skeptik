@@ -138,7 +138,7 @@ object Experimenter {
       // Compress
       for (algo <- algos) {
         val compressed = algo(proof)
-        println(compressed)
+//        println(compressed)
         print(algo.name + ": ")
         if (compressed.result.conclusion == proof.result.conclusion) {
           for (measure <- measures) { print(" " + measure.after(algo.name, compressed)) }

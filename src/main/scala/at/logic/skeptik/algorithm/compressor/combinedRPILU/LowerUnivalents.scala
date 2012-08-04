@@ -145,4 +145,44 @@ extends AbstractThreePassLower {
     (rootSafeLiterals, univalents, map)
   }
 
+  override protected def collectEdgesToDelete(nodeCollection: ProofNodeCollection[SequentProof],
+                                              rootSafeLiterals: IClause,
+                                              unitsMap: Map[SequentProof,(IClause,IClause)]) = {
+    val edgesToDelete = MMap[SequentProof,DeletedSide]()
+    val protectedLiteralMap = MMap[SequentProof,IClause]()
+
+    // Scala doesn't want the following inner function to be called visit like in the overriden method :
+    // "java.lang.VerifyError: class LowerUnivalentsBeforeRecyclePivots overrides final method visit$1"
+    def visitW(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+
+      // Node is lowerable
+      if (unitsMap contains p) {
+  //        println("Unit " + p.conclusion + " " + unitsMap(p))
+        val (efficientLiteral, safeLiteralsForUnit) = unitsMap(p)
+        if (protectedLiteralMap contains p) {
+          val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete) intersect safeLiteralsForUnit
+          computeEdgesToDeleteAndProtectedLiterals(p, safeLiterals, edgesToDelete, protectedLiteralMap)
+          (p, safeLiterals)
+        }
+        else {
+          deleteFromChildren(p, nodeCollection, edgesToDelete)
+          p.premises.foreach (addProtectedLiterals(efficientLiteral, _, protectedLiteralMap))
+          (p, safeLiteralsForUnit)
+        }
+      }
+
+      // Root node
+      else if (childrensSafeLiterals == Nil) (p, rootSafeLiterals)
+
+      else {
+        val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
+        computeEdgesToDeleteAndProtectedLiterals(p, safeLiterals, edgesToDelete, protectedLiteralMap)
+        (p, safeLiterals)
+      }
+    }
+
+    nodeCollection.bottomUp(visitW)
+    edgesToDelete
+  }
+
 }
