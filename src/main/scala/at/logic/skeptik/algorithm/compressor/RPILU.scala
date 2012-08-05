@@ -57,11 +57,19 @@ extends (SequentProof => SequentProof) {
     lazy val fixedRight = fixedPremises.last;
     p match {
       case Axiom(conclusion) => p
+
+      // If we've got a proof of false, we progate it down the proof
+      case CutIC(_,_,_,_) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) => fixedLeft
+      case CutIC(_,_,_,_) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) => fixedRight
+
       case CutIC(left,right,_,_) if edgesToDelete contains p => edgesToDelete(p) match {
         case LeftDS  => fixedRight
         case RightDS => fixedLeft
       }
+
+      // If premises haven't been changed, we keep the proof as is (memory optimisation)
       case CutIC(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
+
       case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
     }
   }
@@ -73,7 +81,7 @@ extends AbstractRPILUAlgorithm {
   protected def safeLiteralsFromChild (childWithSafeLiterals: (SequentProof, IClause),
                                        parent: SequentProof, edgesToDelete: Map[SequentProof,DeletedSide]) =
     childWithSafeLiterals match {
-      case (parent, safeLiterals) if edgesToDelete contains parent => safeLiterals
+      case (node, safeLiterals) if edgesToDelete contains node => safeLiterals
       case (CutIC(left,_,_,auxR),  safeLiterals) if left  == parent => safeLiterals + auxR
       case (CutIC(_,right,auxL,_), safeLiterals) if right == parent => auxL +: safeLiterals
       case _ => throw new Exception("Unknown or impossible inference rule")

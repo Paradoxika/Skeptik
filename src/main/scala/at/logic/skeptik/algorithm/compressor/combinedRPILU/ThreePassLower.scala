@@ -82,24 +82,31 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     val protectedLiteralMap = MMap[SequentProof,IClause]()
 
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
-
-      // Node is lowerable
-      if (unitsMap contains p) {
+      val safeLiterals = if (unitsMap contains p) {
         deleteFromChildren(p, nodeCollection, edgesToDelete)
-        val (efficientLiteral, safeLiterals) = unitsMap(p)
-        p.premises.foreach (addProtectedLiterals(efficientLiteral, _, protectedLiteralMap))
-//        println("Unit " + p.conclusion + " " + unitsMap(p))
-        (p, safeLiterals)
+        val (efficientLiteral, safeLiteralsForUnit) = unitsMap(p)
+        addProtectedLiterals(efficientLiteral, p, protectedLiteralMap)
+//        println("Unit " + p.conclusion)
+        safeLiteralsForUnit
       }
+      else if (childrensSafeLiterals == Nil) rootSafeLiterals
+      else computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
 
-      // Root node
-      else if (childrensSafeLiterals == Nil) (p, rootSafeLiterals)
+      computeEdgesToDeleteAndProtectedLiterals(p, safeLiterals, edgesToDelete, protectedLiteralMap)
 
-      else {
-        val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-        computeEdgesToDeleteAndProtectedLiterals(p, safeLiterals, edgesToDelete, protectedLiteralMap)
-        (p, safeLiterals)
-      }
+//      p match {
+//        case CutIC(left,right,pivot,_) if (pivot.toString == "=e4ope2e1") =>
+//          def unitOrNode(s: SequentProof) = if (unitsMap contains s) "Unit" else "Node"
+//          println("Pivot on (" + unitOrNode(left) + ", " + unitOrNode(right) + ")")
+//          edgesToDelete.get(p) match {
+//            case Some(LeftDS)  => println("Deleting left")
+//            case Some(RightDS) => println("Deleting right")
+//            case None          => println("No deletion " + safeLiterals)
+//          }
+//        case _ =>
+//      }
+
+      (p, safeLiterals)
     }
 
     nodeCollection.bottomUp(visit)
@@ -113,9 +120,22 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
     // First pass
     val (rootSafeLiterals, units, unitsMap) = collectLowerables(nodeCollection)
+    val nbUnitChildren = units.foldLeft(0) { (acc,node) => acc + nodeCollection.childrenOf(node).length }
+    println(units.length + " units with " + nbUnitChildren + " children" )
 
     // Second pass
     val edgesToDelete = collectEdgesToDelete(nodeCollection, rootSafeLiterals, unitsMap)
+    println(edgesToDelete.size + " edges to delete (" + (edgesToDelete.size - nbUnitChildren) + " without units' children)")
+//    for ((n,e) <- edgesToDelete) {
+//      val premise = e match {
+//        case LeftDS  => n.premises(0)
+//        case RightDS => n.premises(1)
+//      }
+//      if (!(unitsMap contains premise)) n match {
+//        case CutIC(_,_,pivot,_) => println(pivot)
+//        case _ =>
+//      }
+//    }
 
     // Third pass
     if (edgesToDelete.isEmpty) proof else {
@@ -127,17 +147,30 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 //        else
 //          println("C " + k.conclusion + " -> " + v.conclusion)
 //      }
-      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
-        try {CutIC(left,right)} catch {case e:Exception => left}
+//      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
+//        try {CutIC(left,right)} catch {case e:Exception => left}
+//      }
+//      def firstVar(n: SequentProof) = try { n.conclusion.ant.head } catch { case _:NoSuchElementException => n.conclusion.suc.head }
+      units.foldLeft(fixMap(proof)) { (root, unit) =>
+//        val efficientLiteral = firstVar(unit)
+//        println("R " + efficientLiteral + " in " + root.conclusion + " with " + fixMap(unit).conclusion + " was " + unit.conclusion)
+        if (unit.conclusion.ant.isEmpty)
+          CutIC(fixMap(unit), root, _ == unit.conclusion.suc.head, true)
+        else
+          CutIC(root, fixMap(unit), _ == unit.conclusion.ant.head, true)
+//        CutIC(root, fixMap(unit))
       }
     }
   }
 }
 
-// /data/proofs/QG-classification/qg5/iso_icl906.smt2 /data/proofs/QG-classification/qg5/iso_brn855.smt2 
+// /data/proofs/QG-classification/qg5/iso_icl906.smt2 /data/proofs/QG-classification/qg5/iso_brn855.smt2 /data/proofs/QG-classification/qg5/gensys_icl504.smt2
 
 class ThreePassLower
 extends AbstractThreePassLower {
+
+  // Different from RPILU on :
+  // /data/proofs/QG-classification/qg5/iso_icl464.smt2 /data/proofs/QG-classification/qg5/iso_brn397.smt2 /data/proofs/QG-classification/qg5/iso_icl751.smt2 /data/proofs/QG-classification/qg5/iso_icl048.smt2 /data/proofs/QG-classification/qg5/iso_icl487.smt2 /data/proofs/QG-classification/qg5/iso_brn1086.smt2 
 
   // Just remove this overriding method to have the inefficient but correct compression algorithm
   override protected def computeEdgesToDeleteAndProtectedLiterals(node: SequentProof,
@@ -162,12 +195,12 @@ extends AbstractThreePassLower {
         case (1,0,2) =>
           val literal = p.conclusion.ant(0)
           units.push(p)
-          map.update(p, (new IClause(Set[E](literal),Set[E]()), safeLiterals))
+          map.update(p, (new IClause(Set[E](literal),Set[E]()), literal +: safeLiterals))
           safeLiterals + literal
         case (0,1,2) =>
           val literal = p.conclusion.suc(0)
           units.push(p)
-          map.update(p, (new IClause(Set[E](),Set[E](literal)), safeLiterals))
+          map.update(p, (new IClause(Set[E](),Set[E](literal)), safeLiterals + literal))
           literal +: safeLiterals
         case _ => safeLiterals
       }

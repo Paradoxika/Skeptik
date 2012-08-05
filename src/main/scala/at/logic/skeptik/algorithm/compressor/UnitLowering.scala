@@ -39,7 +39,12 @@ object NewUnitLowering extends Function1[SequentProof,SequentProof] {
   def apply(p: SequentProof) = {
     val proofs  = ProofNodeCollection(p)
     val units   = collectUnits(proofs)
+    println(units.length + " units")
     val fixMap  = fixProofs(units.toSet, proofs)
+//    fixMap(p) match {
+//      case CutIC(_,_,pivot,_) => println("Pseudo root pivot " + pivot)
+//      case _ => println("Pseudo root is not a resolution step")
+//    }
     units.map(fixMap).foldLeft(fixMap(p))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
   }
 }
