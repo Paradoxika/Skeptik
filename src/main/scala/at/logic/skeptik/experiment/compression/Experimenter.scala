@@ -100,7 +100,7 @@ object Experimenter {
     "reQuadra" -> reQuadra,
     "LUniv"    -> new SimpleAlgorithm("LUniv   ", new LowerUnivalents),
     "LUnivRPI" -> new SimpleAlgorithm("LUnivRPI", new LowerUnivalentsAfterRecyclePivots),
-    "RPILUniv" -> new SimpleAlgorithm("RPILUniv", new LowerUnivalentsBeforeRecyclePivots),
+//    "RPILUniv" -> new SimpleAlgorithm("RPILUniv", new LowerUnivalentsBeforeRecyclePivots),
     "rednrec"  -> rednrec,
     "rednrecr" -> rednrecr,
     "rednrec2" -> rednrec2,

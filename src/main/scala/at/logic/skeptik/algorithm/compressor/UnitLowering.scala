@@ -8,44 +8,38 @@ import at.logic.skeptik.proof.ProofNodeCollection
 
 object NewUnitLowering extends Function1[SequentProof,SequentProof] {
 
-  // made public for debug. TODO: private
   private def collectUnits(proofs: ProofNodeCollection[SequentProof]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
-    proofs.foldRight(Nil:List[SequentProof])((p, acc) =>
-      if (isUnitClause(p.conclusion) && proofs.childrenOf(p).length > 1) p::acc else acc
+    proofs.foldRight(Nil:List[SequentProof])((node, acc) =>
+      if (isUnitClause(node.conclusion) && proofs.childrenOf(node).length > 1) node::acc else acc
     );
   }
 
-  // made public for debug. TODO: private
   private def fixProofs(unitsSet: Set[SequentProof], proofs: ProofNodeCollection[SequentProof]) = {
     val fixMap = MMap[SequentProof,SequentProof]()
 
-    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
+    def visit (node: SequentProof, fixedPremises: List[SequentProof]) = {
       lazy val fixedLeft  = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
-      val fixedP = p match {
+      val fixedP = node match {
         case Axiom(conclusion) => Axiom(conclusion)
         case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
         case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
         case CutIC(left,right,aux,_) => CutIC(fixedLeft, fixedRight, _ == aux)
       }
-      if (p == proofs.root || unitsSet.contains(p)) fixMap.update(p, fixedP)
+      if (node == proofs.root || unitsSet.contains(node)) fixMap.update(node, fixedP)
       fixedP
     }
     proofs.foldDown(visit)
     fixMap
   }
 
-  def apply(p: SequentProof) = {
-    val proofs  = ProofNodeCollection(p)
+  def apply(proof: SequentProof) = {
+    val proofs  = ProofNodeCollection(proof)
     val units   = collectUnits(proofs)
-    println(units.length + " units")
+//    println(units.length + " units")
     val fixMap  = fixProofs(units.toSet, proofs)
-//    fixMap(p) match {
-//      case CutIC(_,_,pivot,_) => println("Pseudo root pivot " + pivot)
-//      case _ => println("Pseudo root is not a resolution step")
-//    }
-    units.map(fixMap).foldLeft(fixMap(p))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
+    units.map(fixMap).foldLeft(fixMap(proof))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
   }
 }
 
