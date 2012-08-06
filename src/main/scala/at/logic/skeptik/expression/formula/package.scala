@@ -32,6 +32,9 @@ package object formula {
   
   implicit def enrichFormula(e: E) = new RichFormula(e)
 
+  // Since Scala accepts only !, ~, + and - as prefix unary operators,
+  // the following methods cannot be implemented in RichFormula
+  
   def neg(f: E) = Neg(f) 
   def ¬(f: E) = neg(f)
   

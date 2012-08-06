@@ -43,4 +43,11 @@ class TestsForFormulas extends SpecificationWithJUnit {
       q must beEqualTo( App(allC(i), Abs(x.copy, App(App(Var("f", i -> (i -> o)), a.copy), x.copy)))   )
     }
   }
+  "Unary package method for negation" should {
+ 
+    "construct negated formula correctly" in {
+      val q = ¬(e)
+      q must beEqualTo( Neg(e) )
+    }
+  }
 }
