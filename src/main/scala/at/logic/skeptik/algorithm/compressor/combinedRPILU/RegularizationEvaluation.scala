@@ -194,7 +194,7 @@ trait RegularizeIfPossible extends RegularizationEvaluation {
   }
 }
 
-abstract class MinRegularizationEvaluation
+trait MinRegularizationEvaluation
 extends RegularizationEvaluation {
 // Assumes that only the worst (non-null) regularization of each direct premise will happen.
   protected def lowerInsteadOfRegularizeChooseOnWeight(lowerWeight: Float, regularizationWeight: Float):Boolean

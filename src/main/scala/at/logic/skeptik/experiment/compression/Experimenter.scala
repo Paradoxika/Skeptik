@@ -66,10 +66,10 @@ object Experimenter {
 
   val threeLow = new SimpleAlgorithm("3passLow", new ThreePassLower)
 
-  val reMinReg = new SimpleAlgorithm("ReMinReg", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinRegularizationChoice)
-  val reMinLow = new SimpleAlgorithm("ReMinLow", new MinRegularizationEvaluation with DiscreteCollector with MinEval with MinLoweringChoice)
+  val reMinReg = new SimpleAlgorithm("ReMinReg", new RegularizationEvaluation with DiscreteCollector  with MinEval with MinRegularizationChoice)
+  val reMinLow = new SimpleAlgorithm("ReMinLow", new RegularizationEvaluation with DiscreteCollector  with MinEval with MinLoweringChoice)
   val reRegula = new SimpleAlgorithm("reRegula", new RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible)
-  val reQuadra = new SimpleAlgorithm("reQuadra", new MinRegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice)
+  val reQuadra = new SimpleAlgorithm("reQuadra", new RegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice)
 
   val rednrec  = new SimpleAlgorithm("rednrec ", new ReduceAndReconstruct)
   val rednrec2 = new SimpleAlgorithm("rednrec2", new RRWithA2OnChild)
