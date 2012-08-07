@@ -21,7 +21,7 @@ package lowerableUnivalent {
   object isLowerableUnivalent
   {
     def apply(newProof: SequentProof, oldProof: SequentProof, children: List[SequentProof], loweredPivots: MClause):NodeKind = {
-      val literals = activeLiteralsNotInLoweredPivots(newProof, oldProof, children, loweredPivots)
+      val literals = activeLiteralsNotInLoweredPivots(oldProof, children, loweredPivots)
   //      println("Remaining Literals " + literals)
       (literals.ant.size, literals.suc.size) match {
         case (0,0) => DeletableNode
@@ -33,8 +33,7 @@ package lowerableUnivalent {
     def apply(proof: SequentProof, children: List[SequentProof], loweredPivots: MClause):NodeKind =
         apply(proof, proof, children, loweredPivots)
 
-    private def activeLiteralsNotInLoweredPivots(newProof: SequentProof, oldProof: SequentProof,
-                                             children: Seq[SequentProof], loweredPivots: MClause) = {
+    private def activeLiteralsNotInLoweredPivots(oldProof: SequentProof, children: Seq[SequentProof], loweredPivots: MClause) = {
       val result = MClause()
       children.foreach { (child) =>
           child match {
@@ -129,18 +128,17 @@ extends AbstractThreePassLower {
     val univalentsSafeLiterals = MMap[SequentProof, IClause]()
     val univalentsValentLiteral = MMap[SequentProof, IClause]()
 
-    val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
-      isLowerableUnivalent(p, nodeCollection.childrenOf(p), loweredPivots) match {
-        // TODO : should I add the valent literal to safeLiterals to be transmited to premises ?
+    val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (node, safeLiterals) =>
+      isLowerableUnivalent(node, nodeCollection.childrenOf(node), loweredPivots) match {
         case LowerableUnivalent(Left(l))  =>
-          orderedUnivalents ::= p
-          univalentsValentLiteral.update(p, new IClause(Set(l),Set()))
-          univalentsSafeLiterals.update(p, l +: safeLiterals)
+          orderedUnivalents ::= node
+          univalentsValentLiteral.update(node, new IClause(Set(l),Set()))
+          univalentsSafeLiterals.update(node, l +: safeLiterals)
           safeLiterals + l
         case LowerableUnivalent(Right(l)) =>
-          orderedUnivalents ::= p
-          univalentsValentLiteral.update(p, new IClause(Set(),Set(l)))
-          univalentsSafeLiterals.update(p, safeLiterals + l)
+          orderedUnivalents ::= node
+          univalentsValentLiteral.update(node, new IClause(Set(),Set(l)))
+          univalentsSafeLiterals.update(node, safeLiterals + l)
           l +: safeLiterals
         case _ => safeLiterals
       }
