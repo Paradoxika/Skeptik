@@ -70,10 +70,6 @@ extends (SequentProof => SequentProof) {
       // If premises haven't been changed, we keep the proof as is (memory optimisation)
       case CutIC(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
 
-      // Tautological optimization
-      case CutIC(_,_,_,_) if (!(fixedLeft .conclusion.ant.toSet intersect fixedLeft .conclusion.suc.toSet).isEmpty) => println("Tauto") ; fixedRight
-      case CutIC(_,_,_,_) if (!(fixedRight.conclusion.ant.toSet intersect fixedRight.conclusion.suc.toSet).isEmpty) => println("Tauto") ; fixedLeft
-
       case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
     }
   }
