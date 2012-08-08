@@ -16,36 +16,33 @@ object Experimenter {
   // Measures
 
   object timeMeasure
-  extends DoubleMeasure[Timed[_]]("%7.1f ms", _.time)
+  extends DoubleMeasure[Result]("%7.1f ms", _.time)
 
   object countMeasure
-  extends Measure[Result] {
-    var nb = 0
-    var sum = MMap[String,Int]()
+  extends IntMeasure[Result](" times",_.count) {
+    override def before(proof: Result) = { nb += 1 ; "" }
 
-    def before(proof: Result) = { nb += 1 ; "" }
-
-    def after(algorithm: String, proof: Result) = proof match {
-      case c:CountedResult => 
-        val value = c.count
-        sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
-        value.toString + " times"
-      case _ => ""
+    override def after(algorithm: String, proof: Result) = {
+      val value = proof.count
+      sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
+      if (value > 1) value.toString + " times" else ""
     }
-
-    def average(algorithm: String) =
-      if ((sum contains algorithm) && sum(algorithm) != 0) String.format("%.1f times", double2Double(sum(algorithm).toDouble / nb.toDouble)) else ""
-  }
+  } 
 
   object compressionRatioMeasure
-  extends IntPercentMeasure[Result](_.nodeCollection.size)
+  extends IntPercentMeasure[Result](_.proof.size)
 
   val measures = List(timeMeasure, countMeasure, compressionRatioMeasure)
 
   // Algorithms
 
-//  val newUnitLowering = new SimpleAlgorithm ("UnitLowr", NewUnitLowering)
-//
+  val algorithms = MMap[String, WrappedAlgorithm]()
+
+  def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProof]) =
+    algorithms(name) = new TimeOutAlgorithm(String.format("%-8.8s",name), algo)
+
+  addTimeOutAlgorithm("LU", NewUnitLowering)
+
 //  val newRP    = new SimpleAlgorithm("RP      ", new RecyclePivots with outIntersection)
 //  val newRPI   = new SimpleAlgorithm("RPI     ", new RecyclePivots with Intersection)
 //
@@ -82,8 +79,6 @@ object Experimenter {
 //  val splitr   = new TimeOutAlgorithm("split R ", new Split(false) with RandomChoice)
 //  val splitd   = new TimeOutAlgorithm("split D ", new Split(false) with DeterministicChoice)
 
-  val algorithms = Map[String, WrappedAlgorithm](
-  )
 //    "UL"   -> newUnitLowering,
 //    "LU"   -> newUnitLowering,
 //    "RP"   -> newRP,
@@ -120,8 +115,8 @@ object Experimenter {
 //  (1 to 8).map { n => val name = "msplitr"+n ; name -> new TimeOutAlgorithm(name, new MultiSplit(n) with RandomChoice) }
 
   def getProofFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
-    case Some(".proof") => Result ( timed { (new SimplePropositionalResolutionProofFormatParser(filename)).getProof } )
-    case Some(".smt2")  => Result ( timed { (new SMT2Parser(filename)).getProof } )
+    case Some(".proof") => Result ( { (new SimplePropositionalResolutionProofFormatParser(filename)).getProof } )
+    case Some(".smt2")  => Result ( { (new SMT2Parser(filename)).getProof } )
     case _ => throw new Exception("Unknown format for " + filename)
   }  
 
@@ -132,21 +127,21 @@ object Experimenter {
       // Read
       println("------------------------------------------------------------")
       print("* " + proofFilename)
-      val proof = getProofFromFile(proofFilename)
-      for (measure <- measures) { print(" " + measure.before(proof)) }
+      val original = getProofFromFile(proofFilename)
+      for (measure <- measures) { print(" " + measure.before(original)) }
       println()
 
       // Compress
       for (algo <- algos) {
-        val compressed = algo(proof)
+        val compressed = algo(original)
 //        println(compressed)
         print(algo.name + ": ")
-        if (compressed.result.conclusion == proof.result.conclusion) {
+        if (compressed.proof.root.conclusion == original.proof.root.conclusion) {
           for (measure <- measures) { print(" " + measure.after(algo.name, compressed)) }
           println()
         }
         else
-          println("Error, " + compressed.result.conclusion + " instead of " + proof.result.conclusion)
+          println("Error, " + compressed.proof.root.conclusion + " instead of " + original.proof.root.conclusion)
       }
     }
 

@@ -1,71 +1,60 @@
 package at.logic.skeptik.experiment.compression
 
+import at.logic.skeptik.algorithm.compressor._
+import at.logic.skeptik.algorithm.compressor.guard._
 import at.logic.skeptik.proof.sequent.SequentProof
 import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.util.time._
 
 // Results
 
-class Result (result: SequentProof, time: Double)
-extends Timed[SequentProof](result, time) {
-  lazy val nodeCollection = ProofNodeCollection(this.result)
-}
+class Result (val proof: ProofNodeCollection[SequentProof], val time: Double, val count: Int)
+
 object Result {
-  def apply(t: Timed[SequentProof]) = new Result(t.result, t.time)
+  def apply(f: => ProofNodeCollection[SequentProof]) = {
+    val beginning = System.nanoTime
+    val proof = f
+    new Result(proof, (System.nanoTime - beginning).toDouble / 1000000., 1)
+  }
 }
 
-class CountedResult (result: SequentProof, time: Double, val count: Int)
-extends Result(result, time) {
-  def +(other: Timed[SequentProof]) = new CountedResult(other.result, time + other.time, count + 1)
-}
-object CountedResult {
-  def reset(r: Result) = new CountedResult(r.result, 0., 0)
-}
 
 
 // Algorithms
 
 abstract class WrappedAlgorithm (val name: String)
-extends Function1[Result,Result]
+extends Function1[Result,Result] {
+  val algo: CompressorAlgorithm[SequentProof]
 
-class SimpleAlgorithm (name: String, fct: SequentProof => SequentProof)
-extends WrappedAlgorithm(name) {
-  def apply(result: Result) = Result(timed { fct(result.result) })
-}
-
-class RepeatAlgorithm (name: String, fct: SequentProof => SequentProof)
-extends WrappedAlgorithm(name) {
-  def apply(result: Result) = {
-    def repeat(preceding: CountedResult):CountedResult = {
-      val next = preceding + timed { fct(preceding.result) }
-      if (next.nodeCollection.size < preceding.nodeCollection.size) repeat(next) else next
+  protected abstract class InnerGuard
+  extends Guard[SequentProof] {
+    var beginning:Long = 0
+    var duration:Double = 0.
+    var count:Int = 0
+    def decide(p: ProofNodeCollection[SequentProof]):Boolean
+    def apply(p: ProofNodeCollection[SequentProof]) = {
+      duration = (System.nanoTime - beginning).toDouble / 1000000.
+      count += 1
+      decide(p)
     }
-    repeat(CountedResult.reset(result))
-  }
-}
-
-class RepeatAndAfter (name: String, fct: SequentProof => SequentProof, after: SequentProof => SequentProof)
-extends WrappedAlgorithm(name) {
-  def apply(result: Result) = {
-    def repeat(preceding: CountedResult):CountedResult = {
-      val next = preceding + timed { fct(preceding.result) }
-      if (next.nodeCollection.size < preceding.nodeCollection.size) repeat(next) else next
+    def proceed(original: Result) = {
+      beginning = System.nanoTime
+      val compressed = algo(original.proof, this)
+      new Result(compressed, duration, count)
     }
-    val lastRepeat = repeat(CountedResult.reset(result))
-    lastRepeat + timed { after(lastRepeat.result) }
   }
-}
 
-class TimeOutAlgorithm (name: String, fct: SequentProof => SequentProof)
+}   
+
+class TimeOutAlgorithm (name: String, val algo: CompressorAlgorithm[SequentProof])
 extends WrappedAlgorithm(name) {
   lazy val factor = environment.getOrElse("timeout","1.").toDouble
-  def apply(result: Result) = {
-    var timeout = result.time * factor
-    def repeat(preceding: CountedResult):CountedResult = {
-      val next = preceding + timed { fct(preceding.result) }
-      if (next.time < timeout) repeat(next) else next
-    }
-    repeat(CountedResult.reset(result))
-  }
-}
 
+  def apply(result: Result) = {
+    val guard = new InnerGuard {
+      def decide(p: ProofNodeCollection[SequentProof]) = duration < result.time * factor
+    }
+    guard.proceed(result)
+  }
+
+}

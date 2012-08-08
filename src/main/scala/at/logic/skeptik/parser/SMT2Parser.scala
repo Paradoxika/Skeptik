@@ -3,12 +3,12 @@ package at.logic.skeptik.parser
 import scala.util.parsing.combinator._
 import collection.mutable.{HashMap => MMap}
 import java.io.FileReader
+import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment._
-import at.logic.skeptik.expression._
 
 class SMT2Parser(filename: String)
 extends JavaTokenParsers with RegexParsers {
@@ -66,7 +66,7 @@ extends JavaTokenParsers with RegexParsers {
   def getProof = {
     parse(proof, new FileReader(filename)) match {
       case Success(Nil,_) => throw new Exception(proofMap.keys.toString)
-      case Success(list,_) => list.last // returns proof whose root is in the last line of the proof file
+      case Success(list,_) => ProofNodeCollection(list.last) // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception(message)
       case Error(message,_) => throw new Exception(message)
     }
