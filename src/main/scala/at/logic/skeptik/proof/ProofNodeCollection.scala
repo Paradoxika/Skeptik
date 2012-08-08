@@ -11,7 +11,7 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
 // Proof tree is rotated clockwise. That means that traversing "left" is bottom-up.
 // Traversing "right" is top-down and we ensure that premises of a proof are processed before that proof.
 // For convenience, children of proofs are computed as well.
-class ProofNodeCollection[P <: Proof[_,P]] private(nodeArray: Array[P], children: collection.Map[P,List[P]])
+class ProofNodeCollection[P <: Proof[_,P]] private(nodeArray: Seq[P], children: collection.Map[P,List[P]])
 extends Iterable[P]
 {
   override def iterator:Iterator[P] = new SimpleIterator(nodeArray)
@@ -71,7 +71,7 @@ extends Iterable[P]
     iterate(0)
   }
 
-  private class SimpleIterator (nodeArray: Array[P])
+  private class SimpleIterator (nodeArray: Seq[P])
   extends BufferedIterator[P] {
     var pos = 0
 
@@ -88,7 +88,7 @@ extends Iterable[P]
 }
 
 object ProofNodeCollection {
-  def apply[P <: Proof[_,P] : ClassManifest](root: P) = {
+  def apply[P <: Proof[_,P]](root: P) = {
     val nodes = Stack[P]()
     val children = MMap[P,List[P]]()
     val visited = MSet[P]()
@@ -101,6 +101,6 @@ object ProofNodeCollection {
       nodes.push(p)
     }
     visit(root)
-    new ProofNodeCollection(nodes.toArray, children)
+    new ProofNodeCollection(nodes, children)
   }
 }
