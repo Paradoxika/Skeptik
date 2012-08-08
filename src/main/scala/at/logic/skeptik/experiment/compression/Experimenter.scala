@@ -41,6 +41,25 @@ object Experimenter {
   def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProof]) =
     algorithms(name) = new TimeOutAlgorithm(String.format("%-8.8s",name), algo)
 
+    override def after(algorithm: String, proof: Result) = {
+      val value = proof.count
+      sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
+      if (value > 1) value.toString + " times" else ""
+    }
+  } 
+
+  object compressionRatioMeasure
+  extends IntPercentMeasure[Result](_.proof.size)
+
+  val measures = List(timeMeasure, countMeasure, compressionRatioMeasure)
+
+  // Algorithms
+
+  val algorithms = MMap[String, WrappedAlgorithm]()
+
+  def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProof]) =
+    algorithms(name) = new TimeOutAlgorithm(String.format("%-8.8s",name), algo)
+
   addTimeOutAlgorithm("LU", NewUnitLowering)
 
 //  val newRP    = new SimpleAlgorithm("RP      ", new RecyclePivots with outIntersection)
@@ -118,11 +137,40 @@ object Experimenter {
     case Some(".proof") => Result ( { (new SimplePropositionalResolutionProofFormatParser(filename)).getProof } )
     case Some(".smt2")  => Result ( { (new SMT2Parser(filename)).getProof } )
     case _ => throw new Exception("Unknown format for " + filename)
-  }  
+  }
+
+  val initialMeasuresRecord = measures map { m => (m, 0.) }
+
+  def csvReport(algos : Seq[WrappedAlgorithm], proofs : Seq[String], iteration: Int) =
+  {
+    for (proofFilename <- proofs) {
+
+      // TODO: CSV header
+
+      // Read
+      print("\"" + proofFilename + "\"")
+      val original = getProofFromFile(proofFilename)
+      for (measure <- measures) print("," + measure(original))
+
+      // Compress
+      for (algo <- algos) {
+        var measuresRecord = initialMeasuresRecord
+        var i = 0
+        do {
+          val compressed = algo(original)
+          measuresRecord = measuresRecord map { (t) => (t._1, t._2 + t._1(compressed)) }
+          i += 1
+        } while (i < iteration)
+
+        for ((_, value) <- measuresRecord) print("," + (value / iteration))
+      }
+
+      println()
+    }
+  }
 
   def experiment(algos : Seq[WrappedAlgorithm], proofs : Seq[String]) =
   {
-    // Algorithms
     for (proofFilename <- proofs) {
       // Read
       println("------------------------------------------------------------")
@@ -161,7 +209,8 @@ object Experimenter {
   {
     val mapOptions = Map(
       "a" -> "algos",
-      "t" -> "timeout"
+      "t" -> "timeout",
+      "c" -> "csv"
     )
 
     var proofs = List[String]()
@@ -178,6 +227,10 @@ object Experimenter {
       }
 
     val algos = environment.getOrElse("algos","LU,RPI").split(",").map { algorithms(_) }
-    experiment(algos, proofs)
+
+    environment.get("csv") match {
+      case Some(iteration) => csvReport(algos, proofs, iteration.toInt)
+      case None            => experiment(algos, proofs)
+    }
   }
 }

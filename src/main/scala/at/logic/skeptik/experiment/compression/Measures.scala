@@ -2,7 +2,8 @@ package at.logic.skeptik.experiment.compression
 
 import collection.mutable.{HashMap => MMap}
 
-abstract class Measure[-P] {
+abstract class Measure[-P]
+extends Function1[P,Double] {
   def before(proof: P):String
   def after(algorithm: String, proof: P):String
   def average(algorithm: String):String
@@ -13,6 +14,8 @@ extends Measure[P] {
 
   var nb = 0
   var sum = MMap[String,Int]()
+
+  def apply(proof: P) = op(proof).toDouble
 
   def before(proof: P) = {
     nb += 1
@@ -35,6 +38,8 @@ extends Measure[P] {
   var nb = 0
   var sum = MMap[String,Double]()
 
+  def apply(proof: P) = op(proof)
+
   def before(proof: P) = {
     nb += 1
     String.format(format, double2Double(op(proof)))
@@ -56,6 +61,8 @@ extends Measure[P] {
   var beforeVal = 0
   var beforeSum:Long = 0
   val afterSum = MMap[String,Long]()
+
+  def apply(proof: P) = op(proof).toDouble
 
   def before(proof: P) = {
     beforeVal = op(proof)
