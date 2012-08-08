@@ -6,11 +6,12 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
+import at.logic.skeptik.algorithm.compressor.guard._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractReduceAndReconstruct
-extends (SequentProof => SequentProof) {
+extends CompressorAlgorithm[SequentProof] with RepeatableAlgorithm[SequentProof] {
 
   protected def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
       (fallback: (SequentProof,Boolean,Boolean) => SequentProof):SequentProof =
@@ -77,8 +78,8 @@ extends (SequentProof => SequentProof) {
     case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
   }
 
-  protected def reduceAndReconstruct(nodeCollection: ProofNodeCollection[SequentProof], fallback: (SequentProof,Boolean,Boolean) => SequentProof) = {
-    def hasOnlyOneChild(p: SequentProof) = nodeCollection.childrenOf(p) match {
+  protected def reduceAndReconstruct(proof: ProofNodeCollection[SequentProof], fallback: (SequentProof,Boolean,Boolean) => SequentProof) = {
+    def hasOnlyOneChild(p: SequentProof) = proof.childrenOf(p) match {
         case _::Nil => true
         case _ => false
     }
@@ -99,10 +100,26 @@ extends (SequentProof => SequentProof) {
 class ReduceAndReconstruct
 extends AbstractReduceAndReconstruct {
 
-  def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
-    nodeCollection.foldDown(reduceAndReconstruct(nodeCollection, a2))
+  def apply(proof: ProofNodeCollection[SequentProof]) = ProofNodeCollection(proof.foldDown(reduceAndReconstruct(proof, a2)))
+
+  /** If ReduceAndReconstruct doesn't compress the proof for two following runs, it can't compress the proof further. */
+  override def apply(proof: ProofNodeCollection[SequentProof], guard: Guard[SequentProof]) = {
+    val innerGuard = new Guard[SequentProof] {
+      var lastRunProofSize = proof.size
+      var lastRunDidntCompress = false
+      def apply(p: ProofNodeCollection[SequentProof]) = {
+        val currentRunDidntCompress = proof.size >= lastRunProofSize
+        if (currentRunDidntCompress && lastRunDidntCompress) false
+        else {
+          lastRunProofSize = proof.size
+          lastRunDidntCompress = currentRunDidntCompress
+          true
+        }
+      }
+    }
+    super.apply(proof, innerGuard & guard)
   }
+
 }
 
 class RRWithA2OnChild
@@ -124,16 +141,12 @@ extends AbstractReduceAndReconstruct {
     case _ => node
   }
 
-  def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
-    nodeCollection.foldDown(reduceAndReconstruct(nodeCollection, a2recursive))
-  }
+  def apply(proof: ProofNodeCollection[SequentProof]) = ProofNodeCollection(proof.foldDown(reduceAndReconstruct(proof, a2recursive)))
 }
 
 class RRWithoutA2
 extends AbstractReduceAndReconstruct {
-  def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
-    nodeCollection.foldDown(reduceAndReconstruct(nodeCollection, { (n,_,_) => n }))
-  }
+
+  def apply(proof: ProofNodeCollection[SequentProof]) = ProofNodeCollection(proof.foldDown(reduceAndReconstruct(proof, { (n,_,_) => n })))
+
 }

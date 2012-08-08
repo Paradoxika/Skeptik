@@ -4,6 +4,13 @@ import at.logic.skeptik.proof._
 
 package object compressor {
 
+  /** A faster "size" */
+  def fakeSize[A](l: List[A]) = l match {
+    case Nil => 0
+    case _::Nil => 1
+    case _::_ => 2
+  }
+
   /* Scala forbids to inherit from different function traits. As a workaround,
    * some implicit conversion are provided.
    */

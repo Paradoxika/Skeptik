@@ -8,9 +8,9 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 abstract class AbstractSplit
-extends (SequentProof => SequentProof) {
+extends CompressorAlgorithm[SequentProof] {
   
-  protected def computeAdditivities(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def computeAdditivities(proof: ProofNodeCollection[SequentProof]) = {
     var totalAdditivity = 0.toLong
     val literalAdditivity = MMap[E,Long]()
     def visit(node: SequentProof) = node match {
@@ -20,7 +20,7 @@ extends (SequentProof => SequentProof) {
         literalAdditivity.update(aux, literalAdditivity.getOrElse(aux,0.toLong) + nodeAdditivity)
       case _ =>
     }
-    nodeCollection.foreach(visit)
+    proof.foreach(visit)
     (literalAdditivity, totalAdditivity)
   }
 
@@ -73,9 +73,9 @@ extends AbstractSplit {
  *
  * It's still 30% faster than MultiSplit(1).
  */
-abstract class Split (continueUntilCompression: Boolean)
+abstract class CottonSplit
 extends AbstractSplit {
-  private def split(nodeCollection: ProofNodeCollection[SequentProof], selectedVariable: E):SequentProof = {
+  protected def split(proof: ProofNodeCollection[SequentProof], selectedVariable: E):SequentProof = {
     def visit(node: SequentProof, fixedPremises: List[(SequentProof,SequentProof)]) = {
       lazy val (fixedLeftPos,  fixedLeftNeg)  = fixedPremises.head;
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last;
@@ -96,20 +96,31 @@ extends AbstractSplit {
             if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else CutIC(fixedLeftNeg, fixedRightNeg, _ == aux, true) )
       }
     }
-    val (pos,neg) = nodeCollection.foldDown(visit)
+    val (pos,neg) = proof.foldDown(visit)
     CutIC(pos, neg, _ == selectedVariable)
   }
+}
 
-  def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val (literalAdditivity, totalAdditivity) = computeAdditivities(nodeCollection)
-    def repeat(sum: Long):SequentProof = {
+abstract class Split (continueUntilCompression: Boolean)
+extends CottonSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
+    val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
+    val selectedVariable = chooseAVariable(literalAdditivity, totalAdditivity)
+    ProofNodeCollection(split(proof, selectedVariable))
+  }
+}
+
+abstract class TerminatingSplit
+extends CottonSplit with RepeatableWhileCompressingAlgorithm[SequentProof] {
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
+    val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
+    def repeat(sum: Long):ProofNodeCollection[SequentProof] = {
       val selectedVariable = chooseAVariable(literalAdditivity, sum)
-      val compressed = split(nodeCollection, selectedVariable)
-      if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed
+      val compressed = ProofNodeCollection(split(proof, selectedVariable))
+      if (compressed.size < proof.size) compressed
       else {
         val newSum = sum - literalAdditivity(selectedVariable)
-        if (!continueUntilCompression || newSum < 1) proof else {
+        if (newSum < 1) proof else {
           literalAdditivity.remove(selectedVariable)
           repeat(newSum)
         }
@@ -120,31 +131,31 @@ extends AbstractSplit {
 }
 
 /** Extended Split compression algorithm
- *
- * A arbitrary number of variables are selected and the proof is split in 2^n
- * subproofs.
- */
+  *
+  * A arbitrary number of variables are selected and the proof is split in 2^n
+  * subproofs.
+  */
 abstract class MultiSplit (nbVariables: Int)
-extends AbstractSplit {
+extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
 
   /** Binary tree to store partial proofs.
-  *
-  * Each level of the tree correspond to a selected variable.
-  *
-  * I've choose to not include those variables in the structure.  At first I
-  * thought that including them would increase memory consumption. But later I
-  * added a depth which would have been useless with a variable list. A better
-  * reason is the symetry between leaves' depth and nodes' depth. If depth is
-  * replaced by a variable list, an empty list would be allowed for leaves but
-  * not for nodes. It would introduce complication for the optimization case of
-  * Split.apply. Another reason to not include variables in Splitter is what
-  * I've understand about "referencial transparency". The variable list doesn't
-  * have to be handled by Splitter but by the code which use it.
-  *
-  * An alternative implementation would be to add a
-  *    case class Trunk(branch: Split, depth: Int)
-  *
-  */
+    *
+    * Each level of the tree correspond to a selected variable.
+    *
+    * I've choose to not include those variables in the structure.  At first I
+    * thought that including them would increase memory consumption. But later I
+    * added a depth which would have been useless with a variable list. A better
+    * reason is the symetry between leaves' depth and nodes' depth. If depth is
+    * replaced by a variable list, an empty list would be allowed for leaves but
+    * not for nodes. It would introduce complication for the optimization case of
+    * Split.apply. Another reason to not include variables in Splitter is what
+    * I've understand about "referencial transparency". The variable list doesn't
+    * have to be handled by Splitter but by the code which use it.
+    *
+    * An alternative implementation would be to add a
+    *    case class Trunk(branch: Split, depth: Int)
+    *
+    */
   private abstract sealed class Splitter {
     def pos:Splitter
     def neg:Splitter
@@ -182,13 +193,13 @@ extends AbstractSplit {
 //    def debugDepth = 1 + pos.debugDepth
   }
 
-  private case class SplitterLeaf (proof: SequentProof)
+  private case class SplitterLeaf (node: SequentProof)
   extends Splitter {
     def pos = throw new Exception("Traversing beyond leaves")
     def neg = pos
-    def merge(variableList: List[E]) = proof
+    def merge(variableList: List[E]) = node
 
-//    override def toString = "{" + proof.conclusion.toString + "}"
+//    override def toString = "{" + node.conclusion.toString + "}"
 //    def debugDepth = 0
   }
 
@@ -235,19 +246,18 @@ extends AbstractSplit {
   }
 
 
-  private def split(nodeCollection: ProofNodeCollection[SequentProof], variableList: List[E]) = {
+  private def split(proof: ProofNodeCollection[SequentProof], variableList: List[E]) = {
     def visit(node: SequentProof, premises: List[Splitter]) =
       node match {
         case Axiom(_) => Splitter(node, variableList)
         case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
       }
-    val result = nodeCollection.foldDown(visit)
+    val result = proof.foldDown(visit)
     result.merge(variableList)
   }
 
-  override def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val (literalAdditivity, totalAdditivity) = computeAdditivities(nodeCollection)
+  override def apply(proof: ProofNodeCollection[SequentProof]) = {
+    val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
     var sum = totalAdditivity
     val variableList = {
       def selectVariables(variableList: List[E], left: Int):List[E] = if (left < 1 || sum < 1) variableList else {
@@ -258,7 +268,6 @@ extends AbstractSplit {
       }
       selectVariables(List(), nbVariables)
     }
-    val compressed = split(nodeCollection, variableList)
-    if (ProofNodeCollection(compressed).size < nodeCollection.size) compressed else proof
+    ProofNodeCollection(split(proof, variableList))
   }
 }

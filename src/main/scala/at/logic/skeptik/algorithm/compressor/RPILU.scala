@@ -10,7 +10,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractRPILUAlgorithm
-extends (SequentProof => SequentProof) {
+extends CompressorAlgorithm[SequentProof] {
 
   protected sealed abstract  class DeletedSide
   protected object LeftDS  extends DeletedSide
@@ -29,14 +29,6 @@ extends (SequentProof => SequentProof) {
     case CutIC(left, right, _,_) if parent == left  => LeftDS
     case CutIC(left, right, _,_) if parent == right => RightDS
     case _ => throw new Exception("Unable to find parent in child")
-  }
-
-  // A faster size
-  // TODO: rename to fastSize and move to package object
-  def fakeSize[A](l: List[A]) = l match {
-    case Nil => 0
-    case _::Nil => 1
-    case _::_ => 2
   }
 
   protected def isUnit(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof]) =

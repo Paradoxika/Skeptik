@@ -2,34 +2,29 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.ProofNodeCollection
-import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
-import at.logic.skeptik.expression._
-import collection.mutable.{HashMap => MMap}
-import collection.Map
-
-// For debug
-import at.logic.skeptik.help._
 
 abstract class RecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
-  def apply(proof: SequentProof): SequentProof = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val edgesToDelete = collectEdgesToDelete(nodeCollection)
+
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
+    val edgesToDelete = collectEdgesToDelete(proof)
 //    println(edgesToDelete.size + " edges to delete")
-    if (edgesToDelete.isEmpty) proof else nodeCollection.foldDown(fixProofs(edgesToDelete))
+    if (edgesToDelete.isEmpty) proof else ProofNodeCollection(proof.foldDown(fixProofs(edgesToDelete)))
   }
+
 }
 
 trait outIntersection
 extends AbstractRPIAlgorithm {
-  protected def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, IClause)],
-                          edgesToDelete: Map[SequentProof,DeletedSide]
-                          ) : IClause =
+
+  protected def computeSafeLiterals(node: SequentProof,
+                                    childrensSafeLiterals: List[(SequentProof, IClause)],
+                                    edgesToDelete: Map[SequentProof,DeletedSide] ) : IClause =
     if (childrensSafeLiterals.length == 1)
-      safeLiteralsFromChild(childrensSafeLiterals.head, proof, edgesToDelete)
+      safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     else
       IClause()
+
 }

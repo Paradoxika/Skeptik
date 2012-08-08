@@ -8,9 +8,10 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 object DAGification
-extends Function1[SequentProof,SequentProof] {
-  def apply(proof: SequentProof) = {
-    val nodeCollection = ProofNodeCollection(proof)
+extends CompressorAlgorithm[SequentProof] with IdempotentAlgorithm[SequentProof] {
+
+  // TODO: optimize to directly construct a ProofNodeCollection
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
     val nodeMap = MMap[Sequent,SequentProof]()
     def dagify(node: SequentProof, premises: List[SequentProof]) = node match {
       case _ if nodeMap.contains(node.conclusion) => nodeMap(node.conclusion)
@@ -22,7 +23,8 @@ extends Function1[SequentProof,SequentProof] {
         nodeMap.update(newNode.conclusion, newNode)
         newNode
     }
-    nodeCollection.foldDown(dagify)
+    ProofNodeCollection(proof.foldDown(dagify))
   }
+
 }
 
