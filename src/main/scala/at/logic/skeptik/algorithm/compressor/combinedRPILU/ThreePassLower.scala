@@ -45,7 +45,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 }
 
 
-class ThreePassLower
+class ThreePassLowerUnits
 extends AbstractThreePassLower with IdempotentAlgorithm[SequentProof] {
 
   protected def collectLowerables(proof: ProofNodeCollection[SequentProof]) = {
@@ -93,3 +93,6 @@ extends AbstractThreePassLower with IdempotentAlgorithm[SequentProof] {
   }
 
 }
+
+object ThreePassLowerUnits
+extends ThreePassLowerUnits

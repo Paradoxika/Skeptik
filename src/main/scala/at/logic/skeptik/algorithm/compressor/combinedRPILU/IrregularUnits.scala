@@ -76,3 +76,9 @@ trait AlwaysLowerIrregularUnits extends IrregularUnits {
 trait AlwaysRegularizeIrregularUnits extends IrregularUnits {
   protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean = false
 }
+
+object IrregularUnitsLower
+extends IrregularUnits with AlwaysLowerIrregularUnits
+
+object IrregularUnitsRegularize
+extends IrregularUnits with AlwaysRegularizeIrregularUnits

@@ -37,7 +37,7 @@ extends CompressorAlgorithm[P] {
   def apply(proof: ProofNodeCollection[P], guard: Guard[P]):ProofNodeCollection[P] = {
     var currentProof = proof
     do {
-      currentProof = apply(proof)
+      currentProof = apply(currentProof)
     } while (guard(currentProof))
     currentProof
   }
@@ -69,7 +69,7 @@ extends RepeatableAlgorithm[P] {
   override def apply(initialProof: ProofNodeCollection[P], guard: Guard[P]):ProofNodeCollection[P] = {
     var currentProof = initialProof
     do {
-      val compressedProof = apply(initialProof)
+      val compressedProof = apply(currentProof)
       if (compressedProof.size < currentProof.size) currentProof = compressedProof
     } while (guard(currentProof))
     currentProof

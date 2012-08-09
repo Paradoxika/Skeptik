@@ -237,3 +237,19 @@ trait MinLoweringChoice extends MinRegularizationEvaluation {
 trait MinRegularizationChoice extends MinRegularizationEvaluation {
   protected def lowerInsteadOfRegularizeChooseOnWeight(lowerWeight: Float, regularizationWeight: Float) = lowerWeight > regularizationWeight
 }
+
+
+
+// Convenient objects
+
+object RegularizationInformationRegularizationChoice
+extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinRegularizationChoice
+
+object RegularizationEvaluationLoweringChoice
+extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinLoweringChoice
+
+object RegularizationEvaluationRegularizeIfPossible
+extends RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible
+
+object RegularizationEvaluationQuadraticHeuristic
+extends RegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice

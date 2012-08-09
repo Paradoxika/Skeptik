@@ -4,6 +4,7 @@ import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
+import collection._
 
 abstract class RecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
@@ -15,6 +16,8 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
   }
 
 }
+
+// Intersection trait is defined is RPILU.scala
 
 trait outIntersection
 extends AbstractRPIAlgorithm {
@@ -28,3 +31,12 @@ extends AbstractRPIAlgorithm {
       IClause()
 
 }
+
+object RecyclePivots
+extends RecyclePivots with outIntersection with IdempotentAlgorithm[SequentProof]
+
+/** RPI isn't idempotent, but the case is such rare that RPI is mostly used as
+  * an idempotent algorithm.
+  */
+object RecyclePivotsWithIntersection
+extends RecyclePivots with Intersection with IdempotentAlgorithm[SequentProof]

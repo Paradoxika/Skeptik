@@ -98,29 +98,14 @@ extends CompressorAlgorithm[SequentProof] with RepeatableAlgorithm[SequentProof]
 }
 
 class ReduceAndReconstruct
-extends AbstractReduceAndReconstruct {
+extends AbstractReduceAndReconstruct with RepeatableAlgorithm[SequentProof] {
 
   def apply(proof: ProofNodeCollection[SequentProof]) = ProofNodeCollection(proof.foldDown(reduceAndReconstruct(proof, a2)))
 
-  /** If ReduceAndReconstruct doesn't compress the proof for two following runs, it can't compress the proof further. */
-  override def apply(proof: ProofNodeCollection[SequentProof], guard: Guard[SequentProof]) = {
-    val innerGuard = new Guard[SequentProof] {
-      var lastRunProofSize = proof.size
-      var lastRunDidntCompress = false
-      def apply(p: ProofNodeCollection[SequentProof]) = {
-        val currentRunDidntCompress = proof.size >= lastRunProofSize
-        if (currentRunDidntCompress && lastRunDidntCompress) false
-        else {
-          lastRunProofSize = proof.size
-          lastRunDidntCompress = currentRunDidntCompress
-          true
-        }
-      }
-    }
-    super.apply(proof, innerGuard & guard)
-  }
-
 }
+
+object ReduceAndReconstruct
+extends ReduceAndReconstruct
 
 class RRWithA2OnChild
 extends AbstractReduceAndReconstruct {
