@@ -115,6 +115,9 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUniv
 
 }
 
+object LowerUnivalentsAfterRecyclePivots
+extends LowerUnivalentsAfterRecyclePivots with RepeatableWhileCompressingAlgorithm[SequentProof]
+
 object IdempotentLowerUnivalentsAfterRecyclePivots
 extends LowerUnivalentsAfterRecyclePivots with IdempotentAlgorithm[SequentProof]
 
@@ -170,6 +173,9 @@ extends AbstractThreePassLower {
   }
 
 }
+
+object LowerUnivalentsBeforeRecyclePivots
+extends LowerUnivalentsBeforeRecyclePivots with RepeatableWhileCompressingAlgorithm[SequentProof]
 
 object IdempotentLowerUnivalentsBeforeRecyclePivots
 extends LowerUnivalentsBeforeRecyclePivots with IdempotentAlgorithm[SequentProof]

@@ -39,7 +39,7 @@ object Experimenter {
   val algorithms = MMap[String, WrappedAlgorithm]()
 
   def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProof]) =
-    algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-8.8s",name), algo)
+    algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-10.10s",name), algo)
 
   addTimeOutAlgorithm("LU", NewUnitLowering)
 
@@ -73,6 +73,12 @@ object Experimenter {
 
   addTimeOutAlgorithm("DAG",  DAGification)
 
+  // Test for practical idempotency
+  addTimeOutAlgorithm("RPI R",      RecyclePivotsWithIntersection)
+  addTimeOutAlgorithm("RPILU R",    RepeatableWhileCompressingAlgorithm(RecyclePivotsWithIntersection, NewUnitLowering))
+  addTimeOutAlgorithm("LURPI R",    RepeatableWhileCompressingAlgorithm(NewUnitLowering, RecyclePivotsWithIntersection))
+  addTimeOutAlgorithm("RPILUniv R", LowerUnivalentsBeforeRecyclePivots)
+  addTimeOutAlgorithm("LUnivRPI R", LowerUnivalentsAfterRecyclePivots)
 
   def getProofFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
     case Some(".proof") => Result ( { (new SimplePropositionalResolutionProofFormatParser(filename)).getProof } )

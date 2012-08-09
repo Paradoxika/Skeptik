@@ -31,7 +31,7 @@ extends CompressorAlgorithm[P] {
 
 object IdempotentAlgorithm {
   def apply[P <: Proof[_,P]](algos: CompressorAlgorithm[P]*) = new IdempotentAlgorithm[P] {
-    def apply(proof: ProofNodeCollection[P]) = algos.foldRight(proof) { (fct, result) => fct(result) }
+    def apply(proof: ProofNodeCollection[P]) = algos.foldRight(proof) { (fct, result) => fct(result,once) }
   }
 }
 
@@ -68,7 +68,7 @@ extends RepeatableAlgorithm[P] {
 
 object RepeatableWhileCompressingAlgorithm {
   def apply[P <: Proof[_,P]](algos: CompressorAlgorithm[P]*) = new RepeatableWhileCompressingAlgorithm[P] {
-    def apply(proof: ProofNodeCollection[P]) = algos.foldRight(proof) { (fct, result) => fct(result) }
+    def apply(proof: ProofNodeCollection[P]) = algos.foldRight(proof) { (fct, result) => fct(result,once) }
   }
 }
 
