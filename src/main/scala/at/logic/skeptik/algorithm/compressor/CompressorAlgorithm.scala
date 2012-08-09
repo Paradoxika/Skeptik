@@ -29,6 +29,12 @@ extends CompressorAlgorithm[P] {
 
 }
 
+object IdempotentAlgorithm {
+  def apply[P <: Proof[_,P]](algos: CompressorAlgorithm[P]*) = new IdempotentAlgorithm[P] {
+    def apply(proof: ProofNodeCollection[P]) = algos.foldRight(proof) { (fct, result) => fct(result) }
+  }
+}
+
 /* Every algorithm that could be called iteratively should inherit that trait.
  */
 trait RepeatableAlgorithm [P <: Proof[_,P]]
@@ -59,6 +65,13 @@ extends RepeatableAlgorithm[P] {
     super.apply(proof, internalGuard(proof) & guard)
 
 }
+
+object RepeatableWhileCompressingAlgorithm {
+  def apply[P <: Proof[_,P]](algos: CompressorAlgorithm[P]*) = new RepeatableWhileCompressingAlgorithm[P] {
+    def apply(proof: ProofNodeCollection[P]) = algos.foldRight(proof) { (fct, result) => fct(result) }
+  }
+}
+
 
 /* Non-deterministic algorithms which might produce proof bigger than the
  * original.

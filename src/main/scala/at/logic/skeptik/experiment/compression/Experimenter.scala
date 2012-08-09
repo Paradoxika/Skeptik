@@ -46,7 +46,8 @@ object Experimenter {
   addTimeOutAlgorithm("RP",  RecyclePivots)
   addTimeOutAlgorithm("RPI", RecyclePivotsWithIntersection)
 
-  // TODO: RPILU and LURPI
+  addTimeOutAlgorithm("RPILU", IdempotentAlgorithm(RecyclePivotsWithIntersection, NewUnitLowering))
+  addTimeOutAlgorithm("LURPI", IdempotentAlgorithm(NewUnitLowering, RecyclePivotsWithIntersection))
 
   addTimeOutAlgorithm("IU Reg", IrregularUnitsRegularize)
   addTimeOutAlgorithm("IU Low", IrregularUnitsLower)
