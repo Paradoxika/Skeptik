@@ -44,24 +44,24 @@ object Experimenter {
   addTimeOutAlgorithm("LU", NewUnitLowering)
 
   addTimeOutAlgorithm("RP",  RecyclePivots)
-  addTimeOutAlgorithm("RPI", RecyclePivotsWithIntersection)
+  addTimeOutAlgorithm("RPI", IdempotentRecyclePivotsWithIntersection)
 
-  addTimeOutAlgorithm("RPILU", IdempotentAlgorithm(RecyclePivotsWithIntersection, NewUnitLowering))
-  addTimeOutAlgorithm("LURPI", IdempotentAlgorithm(NewUnitLowering, RecyclePivotsWithIntersection))
+  addTimeOutAlgorithm("RPILU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, NewUnitLowering))
+  addTimeOutAlgorithm("LURPI", IdempotentAlgorithm(NewUnitLowering, IdempotentRecyclePivotsWithIntersection))
 
-  addTimeOutAlgorithm("IU Reg", IrregularUnitsRegularize)
-  addTimeOutAlgorithm("IU Low", IrregularUnitsLower)
+  addTimeOutAlgorithm("IU Reg", IdempotentIrregularUnitsRegularize)
+  addTimeOutAlgorithm("IU Low", IdempotentIrregularUnitsLower)
 
-  addTimeOutAlgorithm("RI Reg",   RegularizationInformationRegularizationChoice)
-  addTimeOutAlgorithm("RI Low",   RegularizationEvaluationLoweringChoice)
-  addTimeOutAlgorithm("RI alReg", RegularizationEvaluationRegularizeIfPossible)
-  addTimeOutAlgorithm("RI Quad",  RegularizationEvaluationQuadraticHeuristic)
+  addTimeOutAlgorithm("RI Reg",   IdempotentRegularizationInformationRegularizationChoice)
+  addTimeOutAlgorithm("RI Low",   IdempotentRegularizationEvaluationLoweringChoice)
+  addTimeOutAlgorithm("RI alReg", IdempotentRegularizationEvaluationRegularizeIfPossible)
+  addTimeOutAlgorithm("RI Quad",  IdempotentRegularizationEvaluationQuadraticHeuristic)
 
-  addTimeOutAlgorithm("3pass LU", ThreePassLowerUnits)
+  addTimeOutAlgorithm("3pass LU", IdempotentThreePassLowerUnits)
 
   addTimeOutAlgorithm("LUniv",    LowerUnivalents)
-  addTimeOutAlgorithm("LUnivRPI", LowerUnivalentsAfterRecyclePivots)
-  addTimeOutAlgorithm("RPILUniv", LowerUnivalentsBeforeRecyclePivots)
+  addTimeOutAlgorithm("LUnivRPI", IdempotentLowerUnivalentsAfterRecyclePivots)
+  addTimeOutAlgorithm("RPILUniv", IdempotentLowerUnivalentsBeforeRecyclePivots)
 
   addTimeOutAlgorithm("RednRec", ReduceAndReconstruct)
 

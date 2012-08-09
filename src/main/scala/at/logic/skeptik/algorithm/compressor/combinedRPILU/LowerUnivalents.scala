@@ -94,7 +94,7 @@ extends AbstractRPILUAlgorithm {
 }
 
 abstract class LowerUnivalents
-extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixing {
+extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixing with IdempotentAlgorithm[SequentProof] {
 
   def apply(proof: ProofNodeCollection[SequentProof]) =
     ProofNodeCollection(fixProofAndLowerUnivalents(proof, MMap[SequentProof,DeletedSide]()))
@@ -102,7 +102,7 @@ extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixing {
 }
 
 object LowerUnivalents
-extends LowerUnivalents with IdempotentAlgorithm[SequentProof]
+extends LowerUnivalents
 
 abstract class LowerUnivalentsAfterRecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUnivalentsDuringFixing with Intersection
@@ -115,7 +115,7 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUniv
 
 }
 
-object LowerUnivalentsAfterRecyclePivots
+object IdempotentLowerUnivalentsAfterRecyclePivots
 extends LowerUnivalentsAfterRecyclePivots with IdempotentAlgorithm[SequentProof]
 
 abstract class LowerUnivalentsBeforeRecyclePivots
@@ -171,5 +171,5 @@ extends AbstractThreePassLower {
 
 }
 
-object LowerUnivalentsBeforeRecyclePivots
+object IdempotentLowerUnivalentsBeforeRecyclePivots
 extends LowerUnivalentsBeforeRecyclePivots with IdempotentAlgorithm[SequentProof]

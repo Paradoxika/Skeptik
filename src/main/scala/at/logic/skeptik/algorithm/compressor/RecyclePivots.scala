@@ -38,5 +38,5 @@ extends RecyclePivots with outIntersection with IdempotentAlgorithm[SequentProof
 /** RPI isn't idempotent, but the case is such rare that RPI is mostly used as
   * an idempotent algorithm.
   */
-object RecyclePivotsWithIntersection
+object IdempotentRecyclePivotsWithIntersection
 extends RecyclePivots with Intersection with IdempotentAlgorithm[SequentProof]

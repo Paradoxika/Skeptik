@@ -45,8 +45,8 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 }
 
 
-class ThreePassLowerUnits
-extends AbstractThreePassLower with IdempotentAlgorithm[SequentProof] {
+abstract class ThreePassLowerUnits
+extends AbstractThreePassLower {
 
   protected def collectLowerables(proof: ProofNodeCollection[SequentProof]) = {
     val unitsSafeLiterals = MMap[SequentProof,IClause]()
@@ -94,5 +94,5 @@ extends AbstractThreePassLower with IdempotentAlgorithm[SequentProof] {
 
 }
 
-object ThreePassLowerUnits
-extends ThreePassLowerUnits
+object IdempotentThreePassLowerUnits
+extends ThreePassLowerUnits with IdempotentAlgorithm[SequentProof]

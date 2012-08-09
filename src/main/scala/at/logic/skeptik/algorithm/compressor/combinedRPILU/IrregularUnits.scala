@@ -11,7 +11,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList =>
 import scala.collection.Map
 
 abstract class IrregularUnits
-extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with IdempotentAlgorithm[SequentProof] {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
   protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean
 
@@ -77,8 +77,8 @@ trait AlwaysRegularizeIrregularUnits extends IrregularUnits {
   protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean = false
 }
 
-object IrregularUnitsLower
-extends IrregularUnits with AlwaysLowerIrregularUnits
+object IdempotentIrregularUnitsLower
+extends IrregularUnits with AlwaysLowerIrregularUnits with IdempotentAlgorithm[SequentProof]
 
-object IrregularUnitsRegularize
-extends IrregularUnits with AlwaysRegularizeIrregularUnits
+object IdempotentIrregularUnitsRegularize
+extends IrregularUnits with AlwaysRegularizeIrregularUnits with IdempotentAlgorithm[SequentProof]

@@ -25,7 +25,7 @@ object RegularizationInformation {
 }
 
 abstract class RegularizationEvaluation
-extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with IdempotentAlgorithm[SequentProof] {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
   /** Collector : compute information about each node (using Eval) */
   protected def collectInformationMap(proof: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation]
@@ -242,14 +242,14 @@ trait MinRegularizationChoice extends MinRegularizationEvaluation {
 
 // Convenient objects
 
-object RegularizationInformationRegularizationChoice
-extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinRegularizationChoice
+object IdempotentRegularizationInformationRegularizationChoice
+extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinRegularizationChoice with IdempotentAlgorithm[SequentProof]
 
-object RegularizationEvaluationLoweringChoice
-extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinLoweringChoice
+object IdempotentRegularizationEvaluationLoweringChoice
+extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinLoweringChoice with IdempotentAlgorithm[SequentProof]
 
-object RegularizationEvaluationRegularizeIfPossible
-extends RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible
+object IdempotentRegularizationEvaluationRegularizeIfPossible
+extends RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible with IdempotentAlgorithm[SequentProof]
 
-object RegularizationEvaluationQuadraticHeuristic
-extends RegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice
+object IdempotentRegularizationEvaluationQuadraticHeuristic
+extends RegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice with IdempotentAlgorithm[SequentProof]
