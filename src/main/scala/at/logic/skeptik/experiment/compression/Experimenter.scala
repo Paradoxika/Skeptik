@@ -1,12 +1,13 @@
 package at.logic.skeptik.experiment.compression
 
-import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.compressor.combinedRPILU._
 import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.proof.sequent.SequentProof
 import at.logic.skeptik.parser._
-import at.logic.skeptik.util.time._
+import at.logic.skeptik.expression._
+import at.logic.skeptik.proof.sequent.lk._
 
 object environment
 extends MMap[String,String]
@@ -21,18 +22,40 @@ object Experimenter {
   object countMeasure
   extends IntMeasure[Result](" times",_.count) {
     override def before(proof: Result) = { nb += 1 ; "" }
-
-    override def after(algorithm: String, proof: Result) = {
-      val value = proof.count
-      sum.update(algorithm, sum.getOrElse(algorithm,0) + value)
-      if (value > 1) value.toString + " times" else ""
-    }
   } 
 
-  object compressionRatioMeasure
+  object nodeCompressionRatioMeasure
   extends IntPercentMeasure[Result](_.proof.size)
 
-  val measures = List(timeMeasure, countMeasure, compressionRatioMeasure)
+  object axiomCompressionRatioMeasure
+  extends IntPercentMeasure[Result](_.nbAxioms)
+
+  object variableCompressionRatioMeasure
+  extends IntPercentMeasure[Result](_.nbVariables)
+
+  object axiomSizeCompressionRatioMeasure
+  extends IntPercentMeasure[Result](_.axiomsSize)
+
+  object irregularNodeCompressionRatioMeasure
+  extends IntPercentMeasure[Result]( { result =>
+    var nbIrregularNodes = 0
+    def visit(node: SequentProof, childrenPivots: List[MSet[E]]) =
+      node match {
+        case CutIC(_,_,pivot,_) =>
+          var pivots = childrenPivots.foldLeft(MSet[E]())(_ ++= _)
+          if (pivots contains pivot) nbIrregularNodes += 1 else pivots += pivot
+          pivots
+        case _ => MSet[E]()
+      }
+    result.proof.bottomUp(visit)
+    nbIrregularNodes
+  })
+
+
+  val measures = List(timeMeasure, countMeasure,
+                      nodeCompressionRatioMeasure,
+                      axiomCompressionRatioMeasure, variableCompressionRatioMeasure, axiomSizeCompressionRatioMeasure,
+                      irregularNodeCompressionRatioMeasure)
 
   // Algorithms
 

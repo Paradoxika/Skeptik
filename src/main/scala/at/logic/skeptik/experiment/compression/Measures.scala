@@ -73,7 +73,7 @@ extends Measure[P] {
   def after(algorithm: String, proof: P) = {
     val afterVal = op(proof)
     afterSum.update(algorithm, afterSum.getOrElse(algorithm, 0.toLong) + afterVal.toLong)
-    String.format("%.3f %%", double2Double(100. * afterVal.toDouble / beforeVal.toDouble))
+    String.format("%7.3f %%", double2Double(100. * afterVal.toDouble / beforeVal.toDouble))
   }
 
   def average(algorithm: String) = String.format("%.3f %%", double2Double(100. * afterSum(algorithm).toDouble / beforeSum.toDouble))

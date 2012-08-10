@@ -5,10 +5,31 @@ import at.logic.skeptik.algorithm.compressor.guard._
 import at.logic.skeptik.proof.sequent.SequentProof
 import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.util.time._
+import at.logic.skeptik.expression._
+import at.logic.skeptik.proof.sequent.lk._
+import collection.mutable.{ HashSet => MSet }
 
 // Results
 
-class Result (val proof: ProofNodeCollection[SequentProof], val time: Double, val count: Int)
+class Result (val proof: ProofNodeCollection[SequentProof], val time: Double, val count: Int) {
+
+  // Many measures can be done in the same traversal. We store them.
+  lazy val (nbAxioms, nbVariables, axiomsSize) = {
+    var nbAxioms = 0
+    val variableSet = MSet[E]()
+    var axiomsSize = 0
+    for (node <- proof) node match {
+      case Axiom(clause) =>
+        nbAxioms += 1
+        variableSet ++= clause.ant.toSet ++ clause.suc.toSet
+        axiomsSize += clause.ant.length + clause.suc.length
+      case _ =>
+    }
+    (nbAxioms, variableSet.size, axiomsSize)
+  }
+
+}
+
 
 object Result {
   def apply(f: => ProofNodeCollection[SequentProof]) = {
