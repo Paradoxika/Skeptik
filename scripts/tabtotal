@@ -1,0 +1,160 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+use feature qw(:5.10);
+
+############################################################
+# Constants
+############################################################
+use Readonly;
+
+############################################################
+# Globals
+############################################################
+my @columns = ("Algorithm", "Nodes", "Axioms", "Variables", "Ax. Size", "Irregular.");
+
+
+############################################################
+# Arguments
+############################################################
+
+my $csvfile = shift @ARGV;
+my $colStep = shift @ARGV;
+my @algos = map { /^(\d+)-(\d+)$/ ? ($1..$2) : $_ } (split ',', (shift @ARGV));
+unshift @algos, 0;
+
+splice @columns, ($colStep - 1);
+
+sub getHeaders {
+    # Type  : to mask local variables
+    # Descr : 
+    # Params: 
+    # Return: 
+    # Throws: 
+    my $input = <STDIN>;
+    my @all = split ',',$input;
+    return (map { my $r = $all[$_ - 1] ; $r =~ s:_: :g ; $r } @algos);
+}
+my @headers = getHeaders();
+
+
+############################################################
+# Parse
+############################################################
+use Parse::CSV;
+
+my @data = map { [ 0,0,0,0,0 ] } @algos;
+
+my $csv = Parse::CSV->new( file => $csvfile );
+while (my $csv_row = $csv->fetch ) {
+  for (my $i=0; $i <= $#algos; $i++) {
+    my $base = $algos[$i] * $colStep + 1;
+    for my $j (1..$#columns) {
+      $data[$i][$j-1] += $csv_row->[$base+$j];
+    }
+  }
+}
+
+############################################################
+# Draw
+############################################################
+
+print '\begin{tabular}{l';
+for (1..$#columns) { print 'r' }
+say '}';
+
+say '\toprule';
+say join(' & ', @columns) . ' \\\\';
+say '\midrule';
+
+for my $i (1..$#algos) {
+  print $headers[$i];
+  for my $j (1..$#columns) {
+    printf ' & %.1f \\%%', (1 - ($data[$i][$j-1] / $data[0][$j-1])) * 100;
+  }
+  say ' \\\\';
+}
+
+say '\bottomrule';
+say '\end{tabular}';
+#printf "On %d proofs.\n", $nbProofs;
+
+
+__END__
+
+=head1 NAME
+
+tabaverage - 
+
+=head1 SYNOPSIS
+
+    tabtotal [options] <csvfile> <colStep> <algos> <header
+
+=head1 DESCRIPTION
+
+
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item  <csvfile>
+
+CSV file name.
+
+=item colStep
+
+Number of measures minus one.
+
+=item algos
+
+Algorithms to include in table (starting from 1).
+
+=back
+
+
+=head1 OPTIONS
+
+=over 5
+
+=item 
+
+=back
+
+
+=head1 DIAGNOSTICS
+
+=over
+
+=item 
+
+=back
+
+
+=head1 DEPENDENCIES
+
+L<>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2009 Joseph Boudou.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

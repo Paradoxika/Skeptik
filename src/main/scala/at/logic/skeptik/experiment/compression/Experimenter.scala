@@ -1,6 +1,7 @@
 package at.logic.skeptik.experiment.compression
 
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.immutable.{HashSet => ISet}
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.compressor.combinedRPILU._
 import at.logic.skeptik.proof.ProofNodeCollection
@@ -39,13 +40,12 @@ object Experimenter {
   object irregularNodeCompressionRatioMeasure
   extends IntPercentMeasure[Result]( { result =>
     var nbIrregularNodes = 0
-    def visit(node: SequentProof, childrenPivots: List[MSet[E]]) =
+    def visit(node: SequentProof, childrenPivots: List[ISet[E]]) =
       node match {
-        case CutIC(_,_,pivot,_) =>
-          var pivots = childrenPivots.foldLeft(MSet[E]())(_ ++= _)
-          if (pivots contains pivot) nbIrregularNodes += 1 else pivots += pivot
-          pivots
-        case _ => MSet[E]()
+        case CutIC(_,_,pivot,_) if !childrenPivots.isEmpty =>
+          var pivots = childrenPivots.tail.foldLeft(childrenPivots.head) (_ ++ _)
+          if (pivots contains pivot) { nbIrregularNodes += 1 ; pivots } else pivots + pivot
+        case _ => ISet[E]()
       }
     result.proof.bottomUp(visit)
     nbIrregularNodes

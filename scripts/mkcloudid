@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use version; BEGIN { our $VERSION = qv('0.0') }
-
+use Charts qw( :all );
 
 ############################################################
 # Constants
@@ -41,46 +41,48 @@ sub updtmax {
 ############################################################
 
 print <<'EOT';
-\documentclass[a4paper,twoside]{article}
-
-\usepackage{kpfonts}
-
-\usepackage[left=2.8cm, right=4cm, bottom=2.5cm]{geometry}
-
-\usepackage{array}
-\usepackage{booktabs}
-
-\usepackage{tikz,pgffor}
-\usetikzlibrary{positioning}
-
-\usepackage{xcolor}
-
-\begin{document}
-
-\begin{table}[thb]
-\centering
 \begin{tikzpicture}
 
-\foreach \pos in {
 EOT
 
 ############################################################
 # Parsing
 ############################################################
 use Parse::CSV;
+use POSIX qw( ceil );
 
 my $csv = Parse::CSV->new( file => $opt_csvfile );
 while (my $csv_row = $csv->fetch ) {
-  my $h = $csv_row->[$opt_hcol];
-  my $v = $csv_row->[$opt_vcol];
+  my $h = $csv_row->[$opt_h{col}];
+  my $v = $csv_row->[$opt_v{col}];
   if (defined($opt_refCol)) {
     $h = 1 - ($h / $csv_row->[$opt_refCol]);
     $v = 1 - ($v / $csv_row->[$opt_refCol]);
+  } elsif (defined($opt_factor)) {
+    $h *= $opt_factor;
+    $v *= $opt_factor;
   }
   updtmax($h,$v);
-  print "\t(" . ($h / $opt_factor) . ', ' . ($v / $opt_factor) . "),\n" ;
 }
+my $factor = square_size() / (ceil($max / $opt_divStep) * $opt_divStep);
 
+draw_x($opt_h{name}, $opt_divStep, $factor, square_size(), square_size());
+draw_y($opt_v{name}, $opt_divStep, $factor, square_size(), square_size());
+
+print '\foreach \pos in {'."\n";
+$csv = Parse::CSV->new( file => $opt_csvfile );
+while (my $csv_row = $csv->fetch ) {
+  my $h = $csv_row->[$opt_h{col}];
+  my $v = $csv_row->[$opt_v{col}];
+  if (defined($opt_refCol)) {
+    $h = 1 - ($h / $csv_row->[$opt_refCol]);
+    $v = 1 - ($v / $csv_row->[$opt_refCol]);
+  } elsif (defined($opt_factor)) {
+    $h *= $opt_factor;
+    $v *= $opt_factor;
+  }
+  printf "\t(%f, %f),\n", $h * $factor, $v * $factor;
+}
 
 ############################################################
 # Footer
@@ -88,26 +90,12 @@ while (my $csv_row = $csv->fetch ) {
 
 print "} \\fill \\pos circle(0.03);\n";
 
-if (defined($opt_divStep)) {
-  for (my $i = $opt_divStep; $i < $max; $i += $opt_divStep) {
-    my $if = $i / $opt_factor;
-    print "\\draw (0.05, $if) -- (-0.2, $if) node [anchor=east]  {$i};\n";
-    print "\\draw ($if, 0.05) -- ($if, -0.2) node [anchor=north] {$i};\n";
-  } 
-}
-
-$max = $max / $opt_factor;
-print <<"EOT";
-\\draw ($max,0) -- (0,0) -- (0, $max);
-\\draw (0,0) -- ($max, $max);
-
-EOT
+$max = square_size();
+print "\\draw (0,0) -- ($max, $max);\n";
 
 print <<'EOT';
 \end{tikzpicture}
-\end{table}
 
-\end{document}
 EOT
 
 
@@ -119,7 +107,7 @@ mkcloudid -
 
 =head1 SYNOPSIS
 
-    mkcloudid [options] -h[col]=<h> -v[col]=<v> <csvfile>
+    mkcloudid [options] -h=<col>:<name> -v=<col>:<name> <csvfile>
 
 =head1 DESCRIPTION
 
@@ -131,19 +119,19 @@ mkcloudid -
 
 =item <csvfile>
 
-=item -h[col][=] <h>
+=item -h[=] <col>:<name>
 
-Colon for horizontal axis.
-
-=for Euclid:
-  h.type = integer
-
-=item -v[col][=] <v>
-
-Colon for vertical axis.
+Column for horizontal axis.
 
 =for Euclid:
-  v.type: integer
+  col.type = integer
+
+=item -v[=] <col>:<name>
+
+Column for vertical axis.
+
+=for Euclid:
+  col.type: integer
 
 =back
 
@@ -153,17 +141,11 @@ Colon for vertical axis.
 
 =item -r[ef[Col]][=] <r>
 
-=item -f[actor][=] <f>
-
-Values are divided by this number
-
-=for Euclid:
-  f.type: number
-  f.default: 1
-
 =item -d[iv[Step]][=] <d>
 
 Divisions
+
+=item -f[actor] <f>
 
 =back
 
