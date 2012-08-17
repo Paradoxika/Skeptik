@@ -1,0 +1,185 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+use Charts qw( :all );
+
+############################################################
+# Constants
+############################################################
+use Readonly;
+
+############################################################
+# Globals
+############################################################
+my $max = 0;
+
+############################################################
+# Arguments
+############################################################
+use Getopt::Euclid qw( :vars<opt_> );
+
+############################################################
+# Functions
+############################################################
+
+sub updtmax {
+    # Type  : 
+    # Descr : 
+    # Params: 
+    # Return: 
+    # Throws: 
+    for my $v (@_) {
+       if ($v > $max) { $max = $v }
+    }
+}
+
+############################################################
+# Header
+############################################################
+
+print <<'EOT';
+\begin{tikzpicture}
+
+EOT
+
+############################################################
+# Parsing
+############################################################
+use Parse::CSV;
+use POSIX qw( ceil );
+
+my $csv = Parse::CSV->new( file => $opt_csvfile );
+while (my $csv_row = $csv->fetch ) {
+  my $h = $csv_row->[$opt_h{col}];
+  my $v = $csv_row->[$opt_v{col}];
+  if (defined($opt_refCol)) {
+    $h = 1 - ($h / $csv_row->[$opt_refCol]);
+    $v = 1 - ($v / $csv_row->[$opt_refCol]);
+  } elsif (defined($opt_factor)) {
+    $h *= $opt_factor;
+    $v *= $opt_factor;
+  }
+  updtmax($h,$v);
+}
+my $factor = square_size() / (ceil($max / $opt_divStep) * $opt_divStep);
+
+draw_x($opt_h{name}, $opt_divStep, $factor, square_size(), square_size());
+draw_y($opt_v{name}, $opt_divStep, $factor, square_size(), square_size());
+
+print '\foreach \pos in {'."\n";
+$csv = Parse::CSV->new( file => $opt_csvfile );
+while (my $csv_row = $csv->fetch ) {
+  my $h = $csv_row->[$opt_h{col}];
+  my $v = $csv_row->[$opt_v{col}];
+  if (defined($opt_refCol)) {
+    $h = 1 - ($h / $csv_row->[$opt_refCol]);
+    $v = 1 - ($v / $csv_row->[$opt_refCol]);
+  } elsif (defined($opt_factor)) {
+    $h *= $opt_factor;
+    $v *= $opt_factor;
+  }
+  printf "\t(%f, %f),\n", $h * $factor, $v * $factor;
+}
+
+############################################################
+# Footer
+############################################################
+
+print "} \\fill \\pos circle(0.03);\n";
+
+$max = square_size();
+print "\\draw (0,0) -- ($max, $max);\n";
+
+print <<'EOT';
+\end{tikzpicture}
+
+EOT
+
+
+__END__
+
+=head1 NAME
+
+mkcloudid - 
+
+=head1 SYNOPSIS
+
+    mkcloudid [options] -h=<col>:<name> -v=<col>:<name> <csvfile>
+
+=head1 DESCRIPTION
+
+
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item <csvfile>
+
+=item -h[=] <col>:<name>
+
+Column for horizontal axis.
+
+=for Euclid:
+  col.type = integer
+
+=item -v[=] <col>:<name>
+
+Column for vertical axis.
+
+=for Euclid:
+  col.type: integer
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item -r[ef[Col]][=] <r>
+
+=item -d[iv[Step]][=] <d>
+
+Divisions
+
+=item -f[actor] <f>
+
+=back
+
+
+=head1 DIAGNOSTICS
+
+=over
+
+=item 
+
+=back
+
+
+=head1 DEPENDENCIES
+
+L<>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2009 Joseph Boudou.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

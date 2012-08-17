@@ -2,47 +2,41 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.ProofNodeCollection
-import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
-import at.logic.skeptik.expression._
-import collection.mutable.{HashMap => MMap}
-import collection.Map
-
+import collection._
 
 abstract class RecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
-  def apply(proof: SequentProof): SequentProof = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val edgesToDelete = collectEdgesToDelete(nodeCollection)
-    if (edgesToDelete.isEmpty) proof else nodeCollection.foldDown(fixProofs(edgesToDelete))
+
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
+    val edgesToDelete = collectEdgesToDelete(proof)
+//    println(edgesToDelete.size + " edges to delete")
+    if (edgesToDelete.isEmpty) proof else ProofNodeCollection(proof.foldDown(fixProofs(edgesToDelete)))
   }
+
 }
+
+// Intersection trait is defined is RPILU.scala
 
 trait outIntersection
 extends AbstractRPIAlgorithm {
-  def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, IClause)],
-                          edgesToDelete: Map[SequentProof,DeletedSide],
-                          safeLiteralsFromChild: ((SequentProof, IClause)) => IClause
-                          ) : IClause =
+
+  protected def computeSafeLiterals(node: SequentProof,
+                                    childrensSafeLiterals: List[(SequentProof, IClause)],
+                                    edgesToDelete: Map[SequentProof,DeletedSide] ) : IClause =
     if (childrensSafeLiterals.length == 1)
-      safeLiteralsFromChild(childrensSafeLiterals.head)
+      safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     else
       IClause()
+
 }
 
-trait MinConclusionHeuristic
-extends AbstractRPILUAlgorithm {
-  def heuristicChoose(left: SequentProof, right: SequentProof):SequentProof = {
-    def sequentSize(s: Sequent) = s.ant.length + s.suc.length
-    if (sequentSize(left.conclusion) < sequentSize(right.conclusion)) left else right
-  }
-}
+object RecyclePivots
+extends RecyclePivots with outIntersection with IdempotentAlgorithm[SequentProof]
 
-trait MinProofHeuristic
-extends AbstractRPILUAlgorithm {
-  def heuristicChoose(left: SequentProof, right: SequentProof):SequentProof = {
-    if (ProofNodeCollection(left).size < ProofNodeCollection(right).size) left else right
-  }
-}
+object RecyclePivotsWithIntersection
+extends RecyclePivots with Intersection with RepeatableWhileCompressingAlgorithm[SequentProof]
+
+object IdempotentRecyclePivotsWithIntersection
+extends RecyclePivots with Intersection with IdempotentAlgorithm[SequentProof]

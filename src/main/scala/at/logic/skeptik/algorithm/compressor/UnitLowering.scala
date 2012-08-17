@@ -6,43 +6,41 @@ import at.logic.skeptik.judgment.Sequent
 import collection.mutable.{Queue, HashMap => MMap}
 import at.logic.skeptik.proof.ProofNodeCollection
 
-object NewUnitLowering extends Function1[SequentProof,SequentProof] {
+object NewUnitLowering
+extends CompressorAlgorithm[SequentProof] with IdempotentAlgorithm[SequentProof] {
 
-  // made public for debug. TODO: private
-  def collectUnits(proofs: ProofNodeCollection[SequentProof]) = {
+  private def collectUnits(proof: ProofNodeCollection[SequentProof]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
-    proofs.foldRight(Nil:List[SequentProof])((p, acc) =>
-      if (isUnitClause(p.conclusion) && proofs.childrenOf(p).length > 1) p::acc else acc
+    proof.foldRight(Nil:List[SequentProof])((node, acc) =>
+      if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) node::acc else acc
     );
   }
 
-  // made public for debug. TODO: private
-  def fixProofs(unitsSet: Set[SequentProof], proofs: ProofNodeCollection[SequentProof]) = {
+  private def fixProofs(unitsSet: Set[SequentProof], proof: ProofNodeCollection[SequentProof]) = {
     val fixMap = MMap[SequentProof,SequentProof]()
 
-    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
+    def visit (node: SequentProof, fixedPremises: List[SequentProof]) = {
       lazy val fixedLeft  = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
-      val fixedP = p match {
+      val fixedP = node match {
         case Axiom(conclusion) => Axiom(conclusion)
         case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
         case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
         case CutIC(left,right,aux,_) => CutIC(fixedLeft, fixedRight, _ == aux)
       }
-      if (p == proofs.root || unitsSet.contains(p)) fixMap.update(p, fixedP)
+      if (node == proof.root || unitsSet.contains(node)) fixMap.update(node, fixedP)
       fixedP
     }
-    proofs.foldDown(visit)
+    proof.foldDown(visit)
     fixMap
   }
 
-  def apply(p: SequentProof) = {
-    val proofs  = ProofNodeCollection(p)
-    val units   = collectUnits(proofs)
-    val fixMap  = fixProofs(units.toSet, proofs)
-    units.map(fixMap).foldLeft(fixMap(p))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
+    val units   = collectUnits(proof)
+//    println(units.length + " units")
+    val fixMap  = fixProofs(units.toSet, proof)
+    val root = units.map(fixMap).foldLeft(fixMap(proof.root))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
+    ProofNodeCollection(root)
   }
+
 }
-
-
-

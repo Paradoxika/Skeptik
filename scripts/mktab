@@ -1,0 +1,213 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+use feature qw(:5.10);
+
+
+############################################################
+# Constants
+############################################################
+use Readonly;
+
+
+############################################################
+# Arguments
+############################################################
+my $colStep = 7;
+while (1) {
+  given ($ARGV[0]) {
+    when ('-s') {
+      $colStep = eval $ARGV[1];
+      splice @ARGV, 0, 2;
+    }
+    last;
+  }
+}
+
+my $csvfile= shift @ARGV;
+my @algos = map { /^(\d+)-(\d+)$/ ? ($1..$2) : $_ } (split ',', (shift @ARGV));
+my @cols  = map { /^(\d+):(.*)$/ ; { id => $1, name => $2 } } (split ',', (shift @ARGV));
+
+sub getHeaders {
+    # Type  : to mask local variables
+    # Descr : 
+    # Params: 
+    # Return: 
+    # Throws: 
+    my $input = <STDIN>;
+    my @all = split ',',$input;
+    return (map { my $r = $all[$_ - 1] ; $r =~ s:_: :g ; $r } @algos);
+}
+my @headers = getHeaders();
+
+############################################################
+# Parse
+############################################################
+use Parse::CSV;
+
+my @data = map { [ map { [0,0,0,0] } @cols ] } @algos;
+my $nbProofs = 0;
+
+my $csv = Parse::CSV->new( file => $csvfile );
+while (my $csv_row = $csv->fetch ) {
+  for (my $j = 0; $j <= $#cols; $j++) {
+    my $ref = $cols[$j]{id} == 0 ? 1 : $cols[$j]{id};
+
+    my $max = 0;
+    my $min = $csv_row->[$ref];
+    for (my $i = 0; $i <= $#algos; $i++) {
+      my $v = $csv_row->[$algos[$i] * $colStep + $cols[$j]{id}];
+      if ($v > $max) {
+        $max = $v;
+      }
+      if ($v < $min) {
+        $min = $v;
+      }
+    }
+    my $deviation = ($max - $min) / $csv_row->[$ref];
+
+    for (my $i = 0; $i <= $#algos; $i++) {
+      my $v = $csv_row->[$algos[$i] * $colStep + $cols[$j]{id}];
+      if ($v == $max) {
+        $data[$i][$j][0] += 1;
+        $data[$i][$j][1] += $deviation;
+      }
+      die "more than max" if ($v > $max);
+      if ($v == $min) {
+        $data[$i][$j][2] += 1;
+        $data[$i][$j][3] += $deviation;
+      }
+      die "less than min" if ($v < $min);
+    }
+  }
+  $nbProofs += 1;
+}
+
+
+############################################################
+# Draw
+############################################################
+
+print '\begin{tabular}{l';
+for (@cols) { print 'r>{\color{gray} \footnotesize}rr>{\color{gray} \footnotesize}r' }
+say '}';
+say '\toprule';
+
+print '\multirow{3}{*}{\textbf{Algorithm}} ';
+for (@cols) { print '& \multicolumn{4}{c}{\textbf{' . $_->{name} . '}} ' }
+say '\\\\';
+
+for (@cols) { print '& \multicolumn{2}{c}{Best} & \multicolumn{2}{c}{Worse} ' }
+say '\\\\';
+
+for (@cols) { print '& \scriptsize Frequence & \scriptsize Deviation & \scriptsize Frequence & \scriptsize Deviation ' }
+say '\\\\';
+
+say '\midrule';
+
+sub affTuple {
+    # Type  : convenient
+    # Descr : draw Min or Max value
+    # Params: $i, $j, 0 for Max or 2 for Min
+    # Return: nothing
+    # Throws: 
+    my ($i, $j, $base) = @_;
+
+    if ($data[$i][$j][$base] == 0) {
+      print ' & 0 \\% & - ';
+    }
+    else {
+      printf ' & %.1f \\%% & %.1f \\%% ',
+        $data[$i][$j][$base] * 100 / $nbProofs, $data[$i][$j][$base + 1] * 100 / $data[$i][$j][$base];
+    }
+}
+
+for (my $i = 0; $i <= $#algos; $i++) {
+  print $headers[$i];
+  for (my $j = 0; $j <= $#cols; $j++) {
+    affTuple($i,$j,2);
+    affTuple($i,$j,0);
+  }
+  say '\\\\';
+}
+
+say '\bottomrule';
+say '\end{tabular}';
+#printf "On %d proofs.\n", $nbProofs;
+
+__END__
+
+=head1 NAME
+
+mktab - 
+
+=head1 SYNOPSIS
+
+    mktab [options] <csvfile> <list algo> <list col>
+
+=head1 DESCRIPTION
+
+
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item <csvfile>
+
+=item <id>,...
+
+Algorithm indices (starting from 1).
+
+=item <id>:<name>,...
+
+=back
+
+
+=head1 OPTIONS
+
+=over
+
+=item -s <step>
+
+Default to 7.
+
+=back
+
+
+=head1 DIAGNOSTICS
+
+=over
+
+=item 
+
+=back
+
+
+=head1 DEPENDENCIES
+
+L<>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2009 Joseph Boudou.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

@@ -9,6 +9,8 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.oldResolution.defs._
 import at.logic.skeptik.proof.oldResolution.typeAliases._
 
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
+
 // A collection of functions to analyse proofs and differences between proofs.
 object help {
 
@@ -51,7 +53,7 @@ object help {
     recursive(p)
   }
 
-  def printDigraph[A](filename: String, in: Map[A,List[(A,A)]]) = {
+  def printDigraph[A](filename: String, in: Map[A,List[A]]) = {
     val out = new java.io.PrintStream(filename)
     var next = 0
     val map = collection.mutable.HashMap[A,String]()
@@ -63,15 +65,40 @@ object help {
         ret
       }
     out.println("digraph proof {")
-    in.keys.foreach { k =>
-      in(k).foreach { v =>
-        out.println("  " + nodeString(k) + " -> " + nodeString(v._1) + ";")
-        out.println("  " + nodeString(k) + " -> " + nodeString(v._2) + ";")
-      }
+    for (k <- in.keys ; v <- in(k)) {
+      out.println("  " + nodeString(k) + " -> " + nodeString(v) + ";")
     }
     map.foreach { t => out.println("  " + t._2 + " [label=\"" + t._1 + "\"];") }
     out.println("}")
     out.close()
+  }
+
+  def makeMapOfChildren(node: SequentProof, nodeCollection: ProofNodeCollection[SequentProof]) = {
+    class Wrap(val n: SequentProof) {
+      override def equals(other: Any):Boolean = other match {
+        case w:Wrap => w.n eq n
+        case _ => false
+      }
+      override def hashCode = n.hashCode
+      override def toString = n match {
+        case CutIC(_,_,pivot,_) => pivot.toString
+        case _ => "Axiom"
+      }
+    }
+
+    val map = MMap[Wrap,List[Wrap]]()
+    val visited = MSet[SequentProof]()
+    def addChildrenOf(parent: SequentProof):Unit = {
+      if (visited contains parent) return else visited += parent
+      for (child <- nodeCollection.childrenOf(parent)) {
+        map.update(new Wrap(child), new Wrap(parent)::(map.getOrElse(new Wrap(child),Nil)))
+        addChildrenOf(child)
+      }
+      for (premise <- parent.premises)
+        if (!(map contains new Wrap(premise))) map.update(new Wrap(parent), new Wrap(premise)::(map.getOrElse(new Wrap(parent),Nil)))
+    }
+    addChildrenOf(node)
+    map.toMap
   }
 
 }

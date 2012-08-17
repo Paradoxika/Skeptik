@@ -11,68 +11,87 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import collection.Map
 
 abstract class AbstractThreePassLower
-extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]):(IClause, Seq[SequentProof], Map[SequentProof,IClause])
-
-  private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collectEdgesToDelete(proof: ProofNodeCollection[SequentProof],
+                                     rootSafeLiterals: IClause,
+                                     unitsSafeLiterals: Map[SequentProof,IClause]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val (rootSafeLiterals, units, unitsMap) = collectUnits(nodeCollection)
 
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
-      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
-        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
-        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
-        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
-        case _ => throw new Exception("Unknown or impossible inference rule")
+    def visit(node: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+      val safeLiterals = if (unitsSafeLiterals contains node) {
+        deleteFromChildren(node, proof, edgesToDelete)
+//        println("Unit " + node.conclusion)
+        unitsSafeLiterals(node)
       }
-      if (unitsMap contains p) {
-        deleteFromChildren(p, nodeCollection, edgesToDelete)
-//        println("Unit " + p.conclusion + " " + unitsMap(p))
-        (p, unitsMap(p))
+      else if (childrensSafeLiterals == Nil) rootSafeLiterals
+      else computeSafeLiterals(node, childrensSafeLiterals, edgesToDelete)
+
+      node match {
+        case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) =>
+          edgesToDelete.update(node, LeftDS)
+        case CutIC(left ,_,auxL,_) if (safeLiterals.suc contains auxL) =>
+          edgesToDelete.update(node, RightDS)
+        case _ =>
       }
-      else if (childrensSafeLiterals == Nil) (p, rootSafeLiterals)
-      else {
-        val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
-        p match {
-            case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.update(p, LeftDS)
-            case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.update(p, RightDS)
-            case _ =>
-        }
-        (p, safeLiterals)
-      }
+
+      (node, safeLiterals)
     }
 
-    nodeCollection.bottomUp(visit)
-//    units.foreach (deleteFromChildren(_, nodeCollection, edgesToDelete))
-    (units, edgesToDelete)
+    proof.bottomUp(visit)
+    edgesToDelete
   }
 
-  def apply(proof: SequentProof): SequentProof = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val (units, edgesToDelete) = collect(nodeCollection)
-    if (edgesToDelete.isEmpty) proof else {
-      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, nodeCollection)
-      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
-        try {CutIC(left,right)} catch {case e:Exception => left}
-      }
-    }
-  }
 }
 
-class ThreePassLower
+
+abstract class ThreePassLowerUnits
 extends AbstractThreePassLower {
-  def collectUnits(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val map = MMap[SequentProof, IClause]()
-    val units = collection.mutable.Stack[SequentProof]()
-    val rootSafeLiterals = nodeCollection.foldRight (IClause()) { (p, safeLiterals) =>
-      (fakeSize(p.conclusion.ant), fakeSize(p.conclusion.suc), fakeSize(nodeCollection.childrenOf(p))) match {
-        // TODO : should I add the unit's literal to safeLiterals to be transmited to unit's premises ?
-        case (1,0,2) => units.push(p) ; map.update(p, safeLiterals) ; safeLiterals + p.conclusion.ant(0)
-        case (0,1,2) => units.push(p) ; map.update(p, safeLiterals) ; p.conclusion.suc(0) +: safeLiterals
+  protected def collectLowerables(proof: ProofNodeCollection[SequentProof]) = {
+    val unitsSafeLiterals = MMap[SequentProof,IClause]()
+    val orderedUnits = scala.collection.mutable.Stack[SequentProof]()
+    val rootSafeLiterals = proof.foldRight (IClause()) { (node, safeLiterals) =>
+      (fakeSize(node.conclusion.ant), fakeSize(node.conclusion.suc), fakeSize(proof.childrenOf(node))) match {
+        case (1,0,2) =>
+          val literal = node.conclusion.ant(0)
+          orderedUnits.push(node)
+          unitsSafeLiterals.update(node, literal +: safeLiterals)
+          safeLiterals + literal
+        case (0,1,2) =>
+          val literal = node.conclusion.suc(0)
+          orderedUnits.push(node)
+          unitsSafeLiterals.update(node, safeLiterals + literal)
+          literal +: safeLiterals
         case _ => safeLiterals
       }
     }
-    (rootSafeLiterals, units, map)
+    (rootSafeLiterals, orderedUnits, unitsSafeLiterals)
   } 
+
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
+
+    // First pass
+    val (rootSafeLiterals, orderedUnits, unitsSafeLiterals) = collectLowerables(proof)
+//    val nbUnitChildren = orderedUnits.foldLeft(0) { (acc,node) => acc + proof.childrenOf(node).length }
+//    println(orderedUnits.length + " orderedUnits with " + nbUnitChildren + " children" )
+
+    // Second pass
+    val edgesToDelete = collectEdgesToDelete(proof, rootSafeLiterals, unitsSafeLiterals)
+//    println(edgesToDelete.size + " edges to delete (" + (edgesToDelete.size - nbUnitChildren) + " without orderedUnits' children)")
+
+    // Third pass
+    if (edgesToDelete.isEmpty) proof else ProofNodeCollection({
+      val fixMap = mapFixedProofs(orderedUnits.toSet + proof.root, edgesToDelete, proof)
+      orderedUnits.foldLeft(fixMap(proof.root)) { (root, unit) =>
+        if (unit.conclusion.ant.isEmpty)
+          CutIC(fixMap(unit), root, _ == unit.conclusion.suc.head, true)
+        else
+          CutIC(root, fixMap(unit), _ == unit.conclusion.ant.head, true)
+      }
+    })
+  }
+
 }
+
+object IdempotentThreePassLowerUnits
+extends ThreePassLowerUnits with IdempotentAlgorithm[SequentProof]

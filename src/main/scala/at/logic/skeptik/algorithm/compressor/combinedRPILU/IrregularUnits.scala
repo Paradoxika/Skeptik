@@ -11,18 +11,18 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet, LinkedList => LList
 import collection.Map
 
 abstract class IrregularUnits
-extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection with LeftHeuristic {
+extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
-  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean
+  protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean
 
-  private def collect(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  private def collect(proof: ProofNodeCollection[SequentProof]) = {
     val edgesToDelete = MMap[SequentProof,DeletedSide]()
     val units = collection.mutable.Queue[SequentProof]()
 
     def isUnitAndSomething(something: (SequentProof, Int) => Boolean)
                           (p: SequentProof) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
-        val currentChildrenNumber = nodeCollection.childrenOf(p).foldLeft(0) { (acc,child) =>
+        val currentChildrenNumber = proof.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
         }
         (currentChildrenNumber > 1) && (something(p, currentChildrenNumber))
@@ -32,13 +32,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
-      def safeLiteralsFromChild(v:(SequentProof, IClause)) = v match {
-        case (p, safeLiterals) if edgesToDelete contains p => safeLiterals
-        case (CutIC(left,_,_,auxR),  safeLiterals) if left  == p => safeLiterals + auxR
-        case (CutIC(_,right,auxL,_), safeLiterals) if right == p => auxL +: safeLiterals
-        case _ => throw new Exception("Unknown or impossible inference rule")
-      }
-      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete, safeLiteralsFromChild _)
+      val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       def regularize(position: DeletedSide) = 
         if (isUnitToLower(p)) lower() else {
           edgesToDelete.update(p, position)
@@ -46,7 +40,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         }
       def lower() = {
         units.enqueue(p)
-        deleteFromChildren(p, nodeCollection, edgesToDelete)
+        deleteFromChildren(p, proof, edgesToDelete)
         if (fakeSize(p.conclusion.ant) == 1)
           (p, new IClause(Set(p.conclusion.ant(0)), Set[E]()))
         else
@@ -59,29 +53,32 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
     }
 
-    nodeCollection.bottomUp(visit)
+    proof.bottomUp(visit)
     (units,edgesToDelete)
   }
 
-  def apply(proof: SequentProof): SequentProof = {
-    val nodeCollection = ProofNodeCollection(proof)
-    val (units,edgesToDelete) = collect(nodeCollection)
-    if (edgesToDelete.isEmpty) proof else {
-      val fixMap = mapFixedProofs(units.toSet + proof, edgesToDelete, nodeCollection)
-      units.map(fixMap).foldLeft(fixMap(proof)) { (left,right) =>
+  def apply(proof: ProofNodeCollection[SequentProof]) = {
+    val (units,edgesToDelete) = collect(proof)
+    if (edgesToDelete.isEmpty) proof else ProofNodeCollection({
+      val fixMap = mapFixedProofs(units.toSet + proof.root, edgesToDelete, proof)
+      units.map(fixMap).foldLeft(fixMap(proof.root)) { (left,right) =>
+        // Right is a unit. No choice for a pivot.
         try {CutIC(left,right)} catch {case e:Exception => left}
       }
-    }
+    })
   }
 }
 
 trait AlwaysLowerIrregularUnits extends IrregularUnits {
-  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = true
+  protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean = true
 }
 
 trait AlwaysRegularizeIrregularUnits extends IrregularUnits {
-  def lowerInsteadOfRegularize(proof: SequentProof, currentChildrenNumber: Int):Boolean = {
-//    println("Irregular unit " + proof.conclusion + " with " + currentChildrenNumber + " children")
-    false
-  }
+  protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean = false
 }
+
+object IdempotentIrregularUnitsLower
+extends IrregularUnits with AlwaysLowerIrregularUnits with IdempotentAlgorithm[SequentProof]
+
+object IdempotentIrregularUnitsRegularize
+extends IrregularUnits with AlwaysRegularizeIrregularUnits with IdempotentAlgorithm[SequentProof]

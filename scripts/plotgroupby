@@ -1,0 +1,207 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+use feature qw(:5.10);
+
+use Charts qw( :all );
+
+############################################################
+# Constants
+############################################################
+use Readonly;
+
+############################################################
+# Function
+############################################################
+
+sub compile {
+    # Type  : 
+    # Descr : Translate DSL to Perl
+    # Params: DSL
+    # Return: Perl
+    # Throws: 
+    my ($dsl) = @_;
+
+    $dsl =~ s'%i'$i'g;
+    $dsl =~ s'%_'$value[$i]'g;
+    $dsl =~ s/%(\d+)/\$csv_row->[$1]/g;
+
+    return $dsl;
+}
+
+
+############################################################
+# Arguments
+############################################################
+my $initial = 0;
+my $zero;
+my $fformula = '$value[$i]';
+my $descx;
+my $descy;
+while (1) {
+  given ($ARGV[0]) {
+    when ('-i') {
+      $initial = eval $ARGV[1];
+      splice @ARGV, 0, 2;
+    }
+    when ('-z') {
+      $zero = $ARGV[1];
+      splice @ARGV, 0, 2;
+    }
+    when ('-f') {
+      $fformula = compile($ARGV[1]);
+      splice @ARGV, 0, 2;
+    }
+    when ('-x') {
+      $descx = $ARGV[1];
+      splice @ARGV, 0, 2;
+    }
+    when ('-y') {
+      $descy = $ARGV[1];
+      splice @ARGV, 0, 2;
+    }
+    last;
+  }
+}
+
+my $csvfile = shift @ARGV;
+my $iformula = compile(shift @ARGV);
+my $vformula = compile(shift @ARGV);
+my $xformula = compile(shift @ARGV);
+my $divy = shift @ARGV;
+
+#print STDERR "f $fformula\n";
+#print STDERR "i $iformula\n";
+#print STDERR "v $vformula\n";
+#print STDERR "x $xformula\n";
+
+############################################################
+# Parse
+############################################################
+use Parse::CSV;
+use POSIX qw( ceil floor );
+
+my @value;
+
+my $csv = Parse::CSV->new( file => $csvfile );
+while (my $csv_row = $csv->fetch ) {
+  my $i = floor(eval $iformula);
+  if (!defined $value[$i]) {
+    $value[$i] = $initial;
+  }
+  $value[$i] = eval $vformula
+}
+
+
+############################################################
+# Compute
+############################################################
+
+my $max = 0;
+for my $i (0..$#value) {
+  next unless (defined $value[$i]);
+  $value[$i] = eval $fformula;
+  if ($value[$i] > $max) { $max = $value[$i] }
+}
+
+my $factx = rec_width() / scalar(@value);
+my $facty = rec_height() / (ceil($max / $divy) * $divy);
+
+############################################################
+# Draw
+############################################################
+
+say '\begin{tikzpicture}';
+
+# TODO draw x
+my @div;
+for my $i (0..$#value) { push @div, (eval $xformula) }
+draw_mx($descx, rec_width(), rec_height(), @div);
+draw_y($descy, $divy, $facty, rec_width(), rec_height());
+
+print '\draw plot[smooth] coordinates { ';
+for my $i (0..$#value) {
+  next unless (defined $value[$i]);
+  printf "(%f,%f) ", ($i + 0.5) * $factx, $value[$i] * $facty;
+}
+say '};';
+say '\end{tikzpicture}';
+
+__END__
+
+=head1 NAME
+
+plotgroupby - 
+
+=head1 SYNOPSIS
+
+    plotgroupby [options] <csvfile> <indice formula> <value formula> <divx formula> <divy>
+
+=head1 DESCRIPTION
+
+
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item 
+
+=back
+
+
+=head1 OPTIONS
+
+=over
+
+=item -i <initial value>
+
+=item -z <zero>
+
+Origin absisse.
+
+=item -f <final formula>
+
+=item -x <desc>
+
+=item -y <desc>
+
+=back
+
+
+=head1 DIAGNOSTICS
+
+=over
+
+=item 
+
+=back
+
+
+=head1 DEPENDENCIES
+
+L<>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2009 Joseph Boudou.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

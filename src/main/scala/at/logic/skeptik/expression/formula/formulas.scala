@@ -43,7 +43,7 @@ object Neg extends UnaryFormula(negC)
 
 object And extends BinaryFormula(andC)
 
-object Or extends BinaryFormula(andC)
+object Or extends BinaryFormula(orC)
 
 object Imp extends BinaryFormula(impC)
   

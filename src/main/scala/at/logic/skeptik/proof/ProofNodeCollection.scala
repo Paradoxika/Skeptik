@@ -12,10 +12,10 @@ import reflect.ClassTag
 // Proof tree is rotated clockwise. That means that traversing "left" is bottom-up.
 // Traversing "right" is top-down and we ensure that premises of a proof are processed before that proof.
 // For convenience, children of proofs are computed as well.
-class ProofNodeCollection[P <: Proof[_,P]] private(nodeArray: Array[P], children: collection.Map[P,List[P]])
+class ProofNodeCollection[P <: Proof[_,P]] private(nodeArray: IndexedSeq[P], children: collection.Map[P,List[P]])
 extends Iterable[P]
 {
-  override def iterator:Iterator[P] = new SimpleIterator(nodeArray)
+  override def iterator:Iterator[P] = nodeArray.iterator
 
   // Some optimisations (more TODO)
   override def foldRight[B](z:B)(op: (P,B) => B):B = {
@@ -25,8 +25,8 @@ extends Iterable[P]
   }
 
   override def isEmpty:Boolean = nodeArray.isEmpty
-  override def head: P = nodeArray(0)
-  override def last: P = nodeArray(nodeArray.length - 1)
+  override def head: P = nodeArray.head
+  override def last: P = nodeArray.last
   override def size:Int = nodeArray.length
   // Array is not variant...
   // override def toArray[B >: P]:Array[B] = nodeArray.clone()
@@ -56,7 +56,7 @@ extends Iterable[P]
   }
 
   def bottomUp[X](f:(P, List[X])=>X):Unit = {
-    val resultsFromChildren : MMap[P, List[X]] = MMap()
+    val resultsFromChildren = MMap[P, List[X]]()
     val lastPos = nodeArray.length
     def iterate(pos:Int):Unit = {
       if (pos >= lastPos) return
@@ -72,24 +72,10 @@ extends Iterable[P]
     iterate(0)
   }
 
-  private class SimpleIterator (nodeArray: Array[P])
-  extends BufferedIterator[P] {
-    var pos = 0
-
-    def next() = {
-      if (!hasNext) throw new Exception("Iterator terminated");
-      val ret = nodeArray(pos)
-      pos += 1
-      ret
-    }
-
-    def head = nodeArray(pos)
-    def hasNext = pos < nodeArray.length
-  }
 }
 
 object ProofNodeCollection {
-  def apply[P <: Proof[_,P] : ClassTag](root: P) = {
+  def apply[P <: Proof[_,P]](root: P) = {
     val nodes = Stack[P]()
     val children = MMap[P,List[P]]()
     val visited = MSet[P]()
@@ -102,6 +88,6 @@ object ProofNodeCollection {
       nodes.push(p)
     }
     visit(root)
-    new ProofNodeCollection(nodes.toArray, children)
+    new ProofNodeCollection(nodes.toIndexedSeq, children)
   }
 }

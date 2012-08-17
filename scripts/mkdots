@@ -1,0 +1,151 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+use Charts qw( :all );
+
+############################################################
+# Constants
+############################################################
+use Readonly;
+
+############################################################
+# Function
+############################################################
+
+sub max {
+    # Type  : 
+    # Descr : 
+    # Params: list of positive numbers
+    # Return: max
+    # Throws: 
+    my $ret = 0;
+    for my $v (@_) {
+      if ($v > $ret) { $ret = $v }
+    }
+    return $ret;
+}
+
+############################################################
+# Arguments
+############################################################
+my $divx = shift @ARGV;
+my $divy = shift @ARGV;
+
+############################################################
+# Data
+############################################################
+$_ = <STDIN>; chomp;
+my @name = map { $_ =~ s:_::g ; $_ } split /,/, $_;
+$_ = <STDIN>; chomp;
+my @x    = split /,/, $_;
+$_ = <STDIN>; chomp;
+my @y    = split /,/, $_;
+
+if ($#name != $#x or $#x != $#y) {
+  die "Not the same number of data $#name, $#x, $#y";
+}
+
+use POSIX qw( ceil );
+my $max_x = ceil(max(@x) / $divx);
+my $max_y = ceil(max(@y) / $divy);
+
+my $fac_x = square_size() / ($max_x * $divx);
+my $fac_y = square_size() / ($max_y * $divy);
+
+############################################################
+# Ploting
+############################################################
+
+
+print <<'EOT';
+\begin{tikzpicture}
+
+\foreach \name / \x / \y in {
+EOT
+
+for my $i (0..$#name) {
+  print ($i == 0 ? "\t" : ",\n\t");
+  print "\t" . join(' / ', $name[$i], $x[$i] * $fac_x, $y[$i] * $fac_y);
+}
+
+print <<'EOT';
+
+} \draw [fill=black] (\x,\y) circle (0.03) node[anchor=south west] {\footnotesize \name};
+EOT
+
+draw_x("Duration \\tiny (in seconds)", $divx, $fac_x, square_size(), square_size());
+draw_y(undef, $divy, $fac_y, square_size(), square_size());
+
+print <<'EOT';
+\end{tikzpicture}
+
+EOT
+
+__END__
+
+=head1 NAME
+
+mkdots - 
+
+=head1 SYNOPSIS
+
+    mkdots [options]
+
+=head1 DESCRIPTION
+
+
+
+=head1 REQUIRED ARGUMENTS
+
+=over 5
+
+=item 
+
+=back
+
+
+=head1 OPTIONS
+
+=over 5
+
+=item 
+
+=back
+
+
+=head1 DIAGNOSTICS
+
+=over
+
+=item 
+
+=back
+
+
+=head1 DEPENDENCIES
+
+L<>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2009 Joseph Boudou.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
