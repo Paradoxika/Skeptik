@@ -26,11 +26,13 @@ If you face any difficulty, do not hesitate to contact us.
 * [Ohloh](https://www.ohloh.net/p/Skeptik)
 
 
-### Authors and Contributors
+###Developers and Contributors###
 
  * Bruno Woltzenlogel Paleo (@Ceilican)
  * Joseph Boudou (@Jogo27)
 
-### Mailinglists
 
- * skeptik-dev@googlegroups.com - for Skeptik's developers
+###Websites and Forums###
+
+ * [Skeptik's Main Website](http://paradoxika.github.com/Skeptik/)
+ * [Skeptik's Mailinglist for Developers](https://groups.google.com/forum/?fromgroups#!forum/skeptik-dev)
