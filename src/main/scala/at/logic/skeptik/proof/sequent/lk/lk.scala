@@ -11,7 +11,7 @@ import at.logic.skeptik.prover.InferenceRule
 
 class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProof
 with Nullary with NoImplicitContraction {
-  override def mainFormulas = Sequent(mainLeft,mainRight)
+  override def mainFormulas = Sequent(mainLeft)(mainRight)
   override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("Active formulas in axioms have no ancestors.")
 }
 
@@ -179,7 +179,7 @@ object WeakeningL extends InferenceRule[Sequent, SequentProof] {
   def apply(premises: Seq[SequentProof], conclusion: Sequent): Option[SequentProof] = { 
     val premConc = premises.head.conclusion
     if (premises.length == 1 && 
-        (conclusion supersequentOf premConc) && 
+        (premConc isSubsequentOf conclusion) && 
         conclusion.ant.length == premConc.ant.length + 1 && 
         conclusion.suc.length == premConc.suc.length) {
       

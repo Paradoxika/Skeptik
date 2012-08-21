@@ -11,8 +11,8 @@ class R(val leftPremise:SequentProof, val rightPremise:SequentProof,
           val auxL:E, val auxR:E)(implicit unifiableVariables: Set[Var])
 extends SequentProof with Binary
 with NoMainFormula {
-  val leftAuxFormulas = Sequent(Nil,auxL)
-  val rightAuxFormulas = Sequent(auxR,Nil)
+  val leftAuxFormulas = Sequent()(auxL)
+  val rightAuxFormulas = Sequent(auxR)()
   val mgu = unify((auxL,auxR)::Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => u
@@ -20,16 +20,16 @@ with NoMainFormula {
   private val ancestryMap = new MMap[(E,SequentProof),Sequent]
   override val conclusionContext = {
     def descendant(e:E, p:SequentProof, anc: Sequent) = {val eS = mgu(e); ancestryMap += ((eS,p) -> anc); eS }
-    val antecedent = leftPremise.conclusion.ant.map(e=>descendant(e,leftPremise,Sequent(e,Nil))) ++
-                    (rightPremise.conclusion.ant.filter(_ != auxR)).map(e=>descendant(e,rightPremise,Sequent(e,Nil)))
-    val succedent = (leftPremise.conclusion.suc.filter(_ != auxL)).map(e=>descendant(e,leftPremise,Sequent(Nil,e))) ++
-                    rightPremise.conclusion.suc.map(e=>descendant(e,rightPremise,Sequent(Nil,e)))
-    Sequent(antecedent,succedent)
+    val antecedent = leftPremise.conclusion.ant.map(e=>descendant(e,leftPremise,Sequent(e)())) ++
+                    (rightPremise.conclusion.ant.filter(_ != auxR)).map(e=>descendant(e,rightPremise,Sequent(e)()))
+    val succedent = (leftPremise.conclusion.suc.filter(_ != auxL)).map(e=>descendant(e,leftPremise,Sequent()(e))) ++
+                    rightPremise.conclusion.suc.map(e=>descendant(e,rightPremise,Sequent()(e)))
+    Sequent(antecedent)(succedent)
   }
   override def contextAncestry(f:E,premise:SequentProof) = {
-    require(conclusion contains f)
+    require((conclusion.ant contains f) || (conclusion.suc contains f))
     require(premises contains premise)
-    ancestryMap.getOrElse((f,premise),Sequent())
+    ancestryMap.getOrElse((f,premise),Sequent()())
   }
 }
 

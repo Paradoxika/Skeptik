@@ -7,11 +7,11 @@ import at.logic.skeptik.expression.E
 
 abstract class SequentProof
 extends Proof[Sequent, SequentProof] {
-  require(premises.forall(p => p.conclusion supersequentOf auxFormulasMap(p)))
+  require(premises.forall(p => auxFormulasMap(p) isSubsequentOf p.conclusion ))
   // ancestry returns the subsequent of the given premise's conclusion
   // containing only ancestors of the given formula
   def ancestry(f: E, premise: SequentProof): Sequent = {
-    if (mainFormulas.exists(_ eq f)) activeAncestry(f, premise)
+    if (mainFormulas.ant.exists(_ eq f) || mainFormulas.suc.exists(_ eq f)) activeAncestry(f, premise)
     else contextAncestry(f,premise)
   }
   def activeAncestry(f: E, premise: SequentProof): Sequent
@@ -33,17 +33,19 @@ trait Unary extends SequentProof with GenUnary[Sequent,SequentProof] {
   def auxFormulasMap = Map(premise -> auxFormulas)
 }
 
-trait NoAuxFormula extends Unary { def auxFormulas = Sequent() }
+trait NoAuxFormula extends Unary { def auxFormulas = Sequent()() }
 
 trait SingleAuxFormula { def aux: E }
-trait InAnt extends Unary with SingleAuxFormula { def auxFormulas = Sequent(aux,Nil) }
-trait InSuc extends Unary with SingleAuxFormula { def auxFormulas = Sequent(Nil,aux) }
+trait InAnt extends Unary with SingleAuxFormula { def auxFormulas = Sequent(aux)() }
+trait InSuc extends Unary with SingleAuxFormula { def auxFormulas = Sequent()(aux) }
 
 trait TwoAuxFormulas { def auxL: E ; def auxR: E }
-trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(List(auxL,auxR),Nil) }
-trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(Nil,List(auxL,auxR)) }
-trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR) }
-
+//trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(List(auxL,auxR),Nil) }
+//trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(Nil,List(auxL,auxR)) }
+trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR)() }
+trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent()(auxL,auxR) }
+//trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR) }
+trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL)(auxR) }
 
 trait Binary extends SequentProof with GenBinary[Sequent,SequentProof] {  
   def leftAuxFormulas: Sequent
@@ -52,18 +54,18 @@ trait Binary extends SequentProof with GenBinary[Sequent,SequentProof] {
 }
 
 trait OnePerAntecedent extends Binary with TwoAuxFormulas {
-  def leftAuxFormulas = Sequent(auxL,Nil)
-  def rightAuxFormulas = Sequent(auxR,Nil)
+  def leftAuxFormulas = Sequent(auxL)()
+  def rightAuxFormulas = Sequent(auxR)()
 }
 
 trait OnePerSuccedent extends Binary with TwoAuxFormulas {
-  def leftAuxFormulas = Sequent(Nil,auxL)
-  def rightAuxFormulas = Sequent(Nil,auxR)
+  def leftAuxFormulas = Sequent()(auxL)
+  def rightAuxFormulas = Sequent()(auxR)
 }
 
 trait LeftInSucRightInAnt extends Binary with TwoAuxFormulas {
-  def leftAuxFormulas = Sequent(Nil,auxL)
-  def rightAuxFormulas = Sequent(auxR,Nil)
+  def leftAuxFormulas = Sequent()(auxL)
+  def rightAuxFormulas = Sequent(auxR)()
 }
 
 
@@ -71,15 +73,15 @@ trait SingleMainFormula extends SequentProof {
   def mainFormula : E
   override def activeAncestry(f:E,premise:SequentProof) = {
     require(f eq mainFormula); require(premises contains premise)
-    auxFormulasMap.getOrElse(premise,Sequent())
+    auxFormulasMap.getOrElse(premise,Sequent()())
   }
 }
 
-trait Left  extends SingleMainFormula {override def mainFormulas = Sequent(mainFormula,Nil)}
-trait Right extends SingleMainFormula {override def mainFormulas = Sequent(Nil,mainFormula)}
+trait Left  extends SingleMainFormula {override def mainFormulas = Sequent(mainFormula)()}
+trait Right extends SingleMainFormula {override def mainFormulas = Sequent()(mainFormula)}
 
 trait NoMainFormula extends SequentProof {
-  override def mainFormulas = Sequent()
+  override def mainFormulas = Sequent()()
   override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("the given formula cannot be the main formula of this inference, because this inference has no main formula.")
 }
 
@@ -89,15 +91,15 @@ trait NoImplicitContraction extends SequentProof {
     val premiseContexts = premises.map(p => p.conclusion --* auxFormulasMap(p))
     premiseContexts match {
       case h::t => (h /: t)((s1,s2) => s1 ++ s2)
-      case Nil => Sequent()
+      case Nil => Sequent()()
     }
   }
   override def contextAncestry(f: E, premise: SequentProof): Sequent = {
-    require(conclusionContext.exists(_ eq f))
+    require(conclusionContext.ant.exists(_ eq f) || conclusionContext.suc.exists(_ eq f))
     require(premises contains premise)
-    if (premise.conclusion.ant.exists(_ eq f)) Sequent(f,Nil)
-    else if (premise.conclusion.suc.exists(_ eq f)) Sequent(Nil,f)
-    else Sequent(Nil,Nil)
+    if (premise.conclusion.ant.exists(_ eq f)) Sequent(f)()
+    else if (premise.conclusion.suc.exists(_ eq f)) Sequent()(f)
+    else Sequent()()
   }
 }
 
@@ -155,17 +157,17 @@ trait ImplicitContraction extends SequentProof {
           contextAncestryMap += ((descendant,p) -> s(f))
         }
       }
-      computeConclusionAndAncestry(context(p).ant, antDuplicates, descendantsForAntDuplicates, conclusionContextAnt, Sequent(_,Nil))  
-      computeConclusionAndAncestry(context(p).suc, sucDuplicates, descendantsForSucDuplicates, conclusionContextSuc, Sequent(Nil,_))
+      computeConclusionAndAncestry(context(p).ant, antDuplicates, descendantsForAntDuplicates, conclusionContextAnt, Sequent(_)())  
+      computeConclusionAndAncestry(context(p).suc, sucDuplicates, descendantsForSucDuplicates, conclusionContextSuc, Sequent()(_))
     }
-    (Sequent(conclusionContextAnt.toList,conclusionContextSuc.toList), contextAncestryMap)
+    (Sequent(conclusionContextAnt.toSeq : _*)(conclusionContextSuc.toSeq : _*), contextAncestryMap)
   }
 
   override val conclusionContext = contextAndAncestryAux._1
   override def contextAncestry(f: E, premise: SequentProof): Sequent = {
-    require(conclusionContext contains f)
+    require((conclusionContext.ant contains f) || (conclusionContext.suc contains f))
     require(premises contains premise)
-    contextAndAncestryAux._2.getOrElse((f,premise),Sequent(Nil,Nil))
+    contextAndAncestryAux._2.getOrElse((f,premise),Sequent()())
   }
 }
 

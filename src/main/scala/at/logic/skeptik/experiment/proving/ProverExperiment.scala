@@ -59,7 +59,7 @@ object ProverExperiment {
     val fp = new PrintWriter(file)
     
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
-    implicit def formulaToSequent(f: E) = Sequent(Nil, f)
+    implicit def formulaToSequent(f: E) = Sequent()(f)
     
     val results = MMap[(E, String),Timed[Option[Proof[_,_]]]]()
     for (g <- goals) {

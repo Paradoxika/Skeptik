@@ -26,12 +26,6 @@ class SetSequent(val ant:MSet[E], val suc:MSet[E]) extends ASequent {
   def =+:(f:E) = { ant += f ; this }
   def -=(f:E) =  { suc -= f ; this }
   def =-:(f:E) = { ant -= f ; this }
-  
-  @deprecated("Use either `sequent += e` or `e =+: sequent` instead", "0.2") 
-  def +=(e: Either[E,E]): SetSequent = e match {
-    case Left(f) => =+:(f)
-    case Right(f) => +=(f)
-  }
 }
 
 object SetSequent {

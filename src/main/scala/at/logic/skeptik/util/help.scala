@@ -37,7 +37,7 @@ object help {
     var ant: List[E] = Nil
     var suc: List[E] = Nil
     clause.foreach { l => if (l.polarity) ant = Var(l.atom.toString,o)::ant else suc = Var(l.atom.toString,o)::suc }
-    Sequent(ant,suc)
+    Sequent(ant)(suc)
   }
 
   def convertToSequentProof(p: proof.oldResolution.Proof) = {

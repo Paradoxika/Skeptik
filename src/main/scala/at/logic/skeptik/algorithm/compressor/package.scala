@@ -6,7 +6,7 @@ import at.logic.skeptik.algorithm.compressor.guard._
 package object compressor {
 
   /** A faster "size" */
-  def fakeSize[A](l: List[A]) = l match {
+  def fakeSize[A](l: Seq[A]) = l.toList match {
     case Nil => 0
     case _::Nil => 1
     case _::_ => 2

@@ -40,5 +40,5 @@ object Main {
     -compress      : compresses proof
       [not implemented yet]
     
-  """   
+  """ 
 }
