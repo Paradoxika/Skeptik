@@ -28,8 +28,6 @@ extends Iterable[P]
   override def head: P = nodeArray.head
   override def last: P = nodeArray.last
   override def size:Int = nodeArray.length
-  // Array is not variant...
-  // override def toArray[B >: P]:Array[B] = nodeArray.clone()
 
   def root = nodeArray(0)
   def childrenOf(p: P) = children.getOrElse(p,Nil)

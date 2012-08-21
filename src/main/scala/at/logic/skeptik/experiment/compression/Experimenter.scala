@@ -109,7 +109,7 @@ object Experimenter {
     case _ => throw new Exception("Unknown format for " + filename)
   }
 
-  val initialMeasuresRecord = measures map { m => (m, 0.) }
+  val initialMeasuresRecord = measures map { m => (m, 0.0) }
 
   def csvReport(algos : Seq[WrappedAlgorithm], proofs : Seq[String], iteration: Int) =
   {

@@ -48,7 +48,7 @@ object Result {
   def apply(f: => ProofNodeCollection[SequentProof]) = {
     val beginning = System.nanoTime
     val proof = f
-    new Result(proof, (System.nanoTime - beginning).toDouble / 1000000., 1)
+    new Result(proof, (System.nanoTime - beginning).toDouble / 1000000.0, 1)
 //>>>>>>> 5c9430904afeeb751fcc6f4b516f7e53fe7968c5
   }
 }
@@ -81,11 +81,11 @@ extends Function1[Result,Result] {
   protected abstract class InnerGuard
   extends Guard[SequentProof] {
     var beginning:Long = 0
-    var duration:Double = 0.
+    var duration:Double = 0.0
     var count:Int = 0
     def decide(p: ProofNodeCollection[SequentProof]):Boolean
     def apply(p: ProofNodeCollection[SequentProof]) = {
-      duration = (System.nanoTime - beginning).toDouble / 1000000.
+      duration = (System.nanoTime - beginning).toDouble / 1000000.0
       count += 1
       decide(p)
     }
