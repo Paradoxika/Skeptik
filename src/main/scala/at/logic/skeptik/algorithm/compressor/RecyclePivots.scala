@@ -2,7 +2,7 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.ProofNodeCollection
-import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import collection._
 

@@ -8,7 +8,7 @@ import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
-import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
 class SMT2Parser(filename: String)
 extends JavaTokenParsers with RegexParsers {

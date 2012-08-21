@@ -11,7 +11,8 @@ import at.logic.skeptik.proof.natural.{ImpElim => ImpE}
 import at.logic.skeptik.proof.natural.ImpElimC
 import at.logic.skeptik.proof.natural.{ImpIntro => ImpI}
 import at.logic.skeptik.proof.natural.{ImpIntroC,ImpIntroCK}
-import at.logic.skeptik.judgment.{Judgment, Sequent, NamedE, NaturalSequent}
+import at.logic.skeptik.judgment.{Judgment, NamedE, NaturalSequent}
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.prover.SimpleProver
 import collection.mutable.{Map => MMap}
 import at.logic.skeptik.util.time._

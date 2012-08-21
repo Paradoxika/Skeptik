@@ -2,7 +2,7 @@ package at.logic.skeptik.proof
 package sequent
 package lk
 
-import at.logic.skeptik.judgment.Sequent
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression.{E,Var}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression.position.Position

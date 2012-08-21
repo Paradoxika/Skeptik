@@ -18,6 +18,5 @@ class SetSequent(val ant: Set[E], val suc: Set[E]) extends ASequent {
 
 object SetSequent {
   def apply() = new SetSequent(Set(),Set())
-  def apply(s: Sequent) = new SetSequent(s.ant.toSet, s.suc.toSet)
 }
 

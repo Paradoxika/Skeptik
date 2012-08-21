@@ -3,7 +3,7 @@ package at.logic.skeptik.algorithm.compressor
 import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
@@ -129,7 +129,7 @@ extends AbstractRPIAlgorithm {
                           edgesToDelete: Map[SequentProof,DeletedSide]
                           ) : IClause = {
     childrensSafeLiterals.filter { x => !childIsMarkedToDeleteParent(x._1, proof, edgesToDelete)} match {
-      case Nil  => IClause(proof.conclusion)
+      case Nil  => proof.conclusion.toSetSequent
       case h::t =>
         t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) => acc intersect safeLiteralsFromChild(v, proof, edgesToDelete) }
     }

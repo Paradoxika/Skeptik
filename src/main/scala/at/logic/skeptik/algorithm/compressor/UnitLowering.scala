@@ -2,7 +2,7 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk.{Axiom,CutIC}
-import at.logic.skeptik.judgment.Sequent
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{Queue, HashMap => MMap}
 import at.logic.skeptik.proof.ProofNodeCollection
 

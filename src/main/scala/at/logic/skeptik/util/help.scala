@@ -3,7 +3,7 @@ package at.logic.skeptik
 import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.oldResolution.defs._

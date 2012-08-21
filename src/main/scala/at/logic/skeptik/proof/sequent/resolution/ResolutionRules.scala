@@ -2,7 +2,7 @@ package at.logic.skeptik.proof.sequent
 package resolution
 
 import collection.mutable.{HashMap => MMap}
-import at.logic.skeptik.judgment.Sequent
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression.{Var,E}
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 

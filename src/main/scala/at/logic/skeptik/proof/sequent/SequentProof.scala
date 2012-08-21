@@ -2,7 +2,7 @@ package at.logic.skeptik.proof
 package sequent
 
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
-import at.logic.skeptik.judgment.Sequent
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression.E
 
 abstract class SequentProof
