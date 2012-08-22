@@ -13,7 +13,7 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]: ClassTag](calculus: Calculus[
     val deadline = System.nanoTime + timeout * 1000000 
     
     def proveRec(j: J, seen: Set[J])(implicit d:Int): Option[P] = {
-      if (System.nanoTime > deadline || (seen contains j) || j.size > goal.size) { // avoids cycles
+      if (System.nanoTime > deadline || (seen contains j) || j.logicalSize > goal.logicalSize) { // avoids cycles
         debug(j); debug("seen subgoals below"); seen.map(debug _); debug("seen goal!"); debug("")
         return None
       } 

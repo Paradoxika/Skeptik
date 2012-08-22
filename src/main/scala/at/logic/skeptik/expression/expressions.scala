@@ -8,7 +8,7 @@ sealed abstract class E extends Judgment {
     
   def copy: E
     
-  def size: Int
+  def logicalSize: Int
   
   //alphaEquals
   def =+=(that:E) = {
@@ -32,20 +32,20 @@ sealed abstract class E extends Judgment {
 }
 case class Var(val name: String, override val t:T) extends E {
   def copy = new Var(name,t)
-  def size = 1
+  def logicalSize = 1
   override def toString = name
 }
 case class Abs(val variable: Var, val body: E) extends E {
   def copy = new Abs(variable.copy,body.copy)
   override lazy val t = variable.t -> body.t 
-  def size = (variable.t.size + 1) + body.size + 1
+  def logicalSize = (variable.t.logicalSize + 1) + body.logicalSize + 1
   override def toString = unicodeOrElse("\u03BB","@") + variable.name + ":" + variable.t + "." + body
 }
 case class App(val function: E, val argument: E) extends E {
   require(function.t.asInstanceOf[Arrow].t1 == argument.t)
   def copy = new App(function.copy,argument.copy)
   override lazy val t = function.t.asInstanceOf[Arrow].t2
-  def size = function.size + argument.size + 1
+  def logicalSize = function.logicalSize + argument.logicalSize + 1
 
   override def toString = this match {
     case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"

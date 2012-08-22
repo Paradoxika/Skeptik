@@ -5,7 +5,7 @@ import at.logic.skeptik.util.unicode._
   
 
 case class NamedE(name:String, expression:E) {
-  def size = expression.size + 1
+  def logicalSize = expression.logicalSize + 1
   override def toString = name + ": " + expression
 }
 
@@ -17,8 +17,8 @@ class NaturalSequent(val context: Set[NamedE], val e:E) extends Judgment {
   }		
   def canEqual(other: Any) = other.isInstanceOf[NaturalSequent]
   
-  //def size = (context.map(_.size) :\ 0)(_ + _ + 1) + e.size
-  def size = e.size
+  //def logicalSize = (context.map(_.size) :\ 0)(_ + _ + 1) + e.size
+  def logicalSize = e.logicalSize
   
   override def hashCode = 42*context.hashCode + e.hashCode
   override def toString = context.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + e
