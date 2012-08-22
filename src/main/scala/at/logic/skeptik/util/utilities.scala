@@ -28,6 +28,23 @@ object argMin {
   
 }
 
+object rich {
+  class RichIterable[T](c: Iterable[T]) {
+    def contains(e: T) = if (c.isInstanceOf[Set[_]]) c.asInstanceOf[Set[T]].contains(e)
+                         else if (c.isInstanceOf[Seq[_]]) c.asInstanceOf[Seq[T]].contains(e)
+                         else c.exists(_ == e)
+    def diff(that: Iterable[T]) = if (c.isInstanceOf[Set[_]]) c.asInstanceOf[Set[T]] diff that.toSet
+                         else if (c.isInstanceOf[Seq[_]]) c.asInstanceOf[Seq[T]] diff that.toSeq
+                         else c.filterNot(new RichIterable(that).contains(_))
+    def intersect(that: Iterable[T]) = if (c.isInstanceOf[Set[_]]) c.asInstanceOf[Set[T]] intersect that.toSet
+                         else if (c.isInstanceOf[Seq[_]]) c.asInstanceOf[Seq[T]] intersect that.toSeq
+                         else c.filterNot(new RichIterable(that).contains(_))
+  }
+  object RichIterable {
+    implicit def enrichIterable[T](c: Iterable[T]) = new RichIterable(c)
+  }
+}
+
 object time {
   import actors.Futures.{awaitAll, future}
   

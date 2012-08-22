@@ -7,7 +7,7 @@ import at.logic.skeptik.expression.E
 
 abstract class SequentProof
 extends Proof[Sequent, SequentProof] {
-  require(premises.forall(p => auxFormulasMap(p) isSubsequentOf p.conclusion ))
+  require(premises.forall(p => auxFormulasMap(p) subsequentOf p.conclusion ))
   // ancestry returns the subsequent of the given premise's conclusion
   // containing only ancestors of the given formula
   def ancestry(f: E, premise: SequentProof): Sequent = {
@@ -21,7 +21,7 @@ extends Proof[Sequent, SequentProof] {
   def conclusionContext : Sequent
   // The lazy modifier for "conclusion" is very important,
   // because "conclusion" calls methods that will only be overriden by subtraits and subclasses.
-  override lazy val conclusion = mainFormulas ++ conclusionContext
+  override lazy val conclusion: Sequent = mainFormulas union conclusionContext
 }
 
 trait Nullary extends SequentProof with GenNullary[Sequent,SequentProof] {
@@ -40,11 +40,8 @@ trait InAnt extends Unary with SingleAuxFormula { def auxFormulas = Sequent(aux)
 trait InSuc extends Unary with SingleAuxFormula { def auxFormulas = Sequent()(aux) }
 
 trait TwoAuxFormulas { def auxL: E ; def auxR: E }
-//trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(List(auxL,auxR),Nil) }
-//trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(Nil,List(auxL,auxR)) }
 trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR)() }
 trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent()(auxL,auxR) }
-//trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL,auxR) }
 trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL)(auxR) }
 
 trait Binary extends SequentProof with GenBinary[Sequent,SequentProof] {  
@@ -90,7 +87,7 @@ trait NoImplicitContraction extends SequentProof {
   override def conclusionContext: Sequent = {
     val premiseContexts = premises.map(p => p.conclusion --* auxFormulasMap(p))
     premiseContexts match {
-      case h::t => (h /: t)((s1,s2) => s1 ++ s2)
+      case h::t => (h /: t)((s1,s2) => s1 union s2)
       case Nil => Sequent()()
     }
   }
@@ -111,7 +108,7 @@ trait ImplicitContraction extends SequentProof {
     // The bug shall be properly fixed once all proof fixing codes are refactored into a single
     // method in a superclass or in a trait.
     // val context = premises.map(p => (p -> (p.conclusion --* auxFormulas(p)))).toMap
-    val context = premises.map(p => (p -> (p.conclusion -- auxFormulasMap(p)))).toMap
+    val context = premises.map(p => (p -> (p.conclusion diff auxFormulasMap(p)))).toMap
     val antSeen = new MSet[E]
     val antDuplicates = new MSet[E]
     val sucSeen = new MSet[E]

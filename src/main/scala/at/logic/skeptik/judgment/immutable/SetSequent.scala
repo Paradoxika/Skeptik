@@ -10,10 +10,7 @@ class SetSequent(val ant: Set[E], val suc: Set[E]) extends ASequent {
   def -(f:E) =  new SetSequent(ant, suc - f)
   def -:(f:E) = new SetSequent(ant - f, suc)
 
-
-  def ++(other:SetSequent) = new SetSequent(ant ++ other.ant, suc ++ other.suc)
-  def --(other:SetSequent) = new SetSequent(ant -- other.ant, suc -- other.suc)
-  def intersect(other:SetSequent) = new SetSequent(ant intersect other.ant, suc intersect other.suc)
+  def intersect(that:SetSequent) = new SetSequent(ant intersect that.ant, suc intersect that.suc)
 }
 
 object SetSequent {

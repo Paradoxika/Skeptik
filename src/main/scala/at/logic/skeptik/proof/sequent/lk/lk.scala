@@ -179,7 +179,7 @@ object WeakeningL extends InferenceRule[Sequent, SequentProof] {
   def apply(premises: Seq[SequentProof], conclusion: Sequent): Option[SequentProof] = { 
     val premConc = premises.head.conclusion
     if (premises.length == 1 && 
-        (premConc isSubsequentOf conclusion) && 
+        (premConc subsequentOf conclusion) && 
         conclusion.ant.length == premConc.ant.length + 1 && 
         conclusion.suc.length == premConc.suc.length) {
       
