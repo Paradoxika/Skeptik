@@ -36,3 +36,10 @@ If you face any difficulty, do not hesitate to contact us.
 
  * [Skeptik's Main Website](http://paradoxika.github.com/Skeptik/)
  * [Skeptik's Mailinglist for Developers](https://groups.google.com/forum/?fromgroups#!forum/skeptik-dev)
+ 
+
+###Support###
+ 
+ * Skeptik's development is currently funded by the Austrian Science Fund ([Project P24300](http://www.fwf.ac.at/en/projects/projekt_datenbank.asp))
+ * Skeptik was supported by [Google Summer of Code 2012](http://www.google-melange.com/gsoc/project/google/gsoc2012/josephboudou/17001)
+ * [YourKit](http://www.yourkit.com/) is an excellent profiler for Scala applications. It supports our open-source project with a free license.
