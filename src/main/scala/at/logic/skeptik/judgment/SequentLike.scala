@@ -7,7 +7,12 @@ import at.logic.skeptik.util.rich.RichIterable._
 import language.reflectiveCalls
 import language.implicitConversions
 
-
+/** A trait for sequent-like data structures.
+ *
+ *  @author  Bruno Woltzenlogel Paleo
+ *  @version 0.2
+ *  @since   0.2
+ */
 trait SequentLike[+Repr <: SequentLike[Repr]] {
   def ant: Iterable[E]
   def suc: Iterable[E]  

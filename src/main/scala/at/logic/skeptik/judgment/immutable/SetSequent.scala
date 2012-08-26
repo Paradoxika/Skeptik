@@ -3,7 +3,27 @@ package immutable
 
 import at.logic.skeptik.expression.E
   
-
+/** A class for immutable sequents whose cedents are immutable sets.
+ *
+ *  @example {{{
+ *  // Make an empty SetSequent via the companion object factory
+ *  val s = SetSequent()()
+ *  
+ *  // Add formula f to the succedent of sequent s
+ *  val s1 = s + f
+ *  
+ *  // Add formula f to the antecedent of sequent s
+ *  val s2 = f +: s
+ *  
+ *  // Compute the union of two sequents
+ *  val s3 = s1 union s2
+ *  
+ *  }}}
+ *
+ *  @author  Bruno Woltzenlogel Paleo
+ *  @version 0.2
+ *  @since   0.2
+ */
 class SetSequent(val ant: Set[E], val suc: Set[E]) extends Sequent with SequentLike[SetSequent] { 
   def +(f:E) = new SetSequent(ant, suc + f)
   def +:(f:E) = new SetSequent(ant + f, suc)
@@ -16,6 +36,6 @@ class SetSequent(val ant: Set[E], val suc: Set[E]) extends Sequent with SequentL
 }
 
 object SetSequent {
-  def apply() = new SetSequent(Set(),Set())
+  def apply()()  = new SetSequent(Set(),Set())
 }
 

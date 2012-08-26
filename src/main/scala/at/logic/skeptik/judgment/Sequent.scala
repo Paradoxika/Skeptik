@@ -1,13 +1,15 @@
 package at.logic.skeptik.judgment 
 
-import at.logic.skeptik.expression.E
 import at.logic.skeptik.util.unicode._
 
-import collection.IterableLike
-import collection.mutable.{Builder, MapBuilder}
-import collection.generic.CanBuildFrom
 
-trait Sequent extends Judgment with SequentLike[Sequent] {
+/** An abstract superclass for all kinds of sequents.
+ *
+ *  @author  Bruno Woltzenlogel Paleo
+ *  @version 0.2
+ *  @since   0.2
+ */
+abstract class Sequent extends Judgment with SequentLike[Sequent] {
 
   def toSetSequent = new immutable.SetSequent(ant.toSet, suc.toSet)
   def toSeqSequent = new immutable.SeqSequent(ant.toSeq, suc.toSeq)

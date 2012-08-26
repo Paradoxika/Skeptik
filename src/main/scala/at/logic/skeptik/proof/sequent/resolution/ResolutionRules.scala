@@ -24,7 +24,7 @@ with NoMainFormula {
                     (rightPremise.conclusion.ant.filter(_ != auxR)).map(e=>descendant(e,rightPremise,Sequent(e)()))
     val succedent = (leftPremise.conclusion.suc.filter(_ != auxL)).map(e=>descendant(e,leftPremise,Sequent()(e))) ++
                     rightPremise.conclusion.suc.map(e=>descendant(e,rightPremise,Sequent()(e)))
-    Sequent(antecedent)(succedent)
+    new Sequent(antecedent, succedent)
   }
   override def contextAncestry(f:E,premise:SequentProof) = {
     require((conclusion.ant contains f) || (conclusion.suc contains f))
