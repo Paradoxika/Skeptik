@@ -1,7 +1,6 @@
 package at.logic.skeptik.proof
 
 import at.logic.skeptik.judgment.Judgment
-import reflect.ClassTag
 
 abstract class Proof[+J <: Judgment, +P <: Proof[J,P]] 
 {
@@ -10,6 +9,8 @@ abstract class Proof[+J <: Judgment, +P <: Proof[J,P]]
   def premises: Seq[P]
   def conclusion : J
   def parameters: Seq[Any] = Nil
+  
+  @deprecated //ToDo: this method should be implemented in ProofNodeCollection instead. It is node the responsibility of a node to know everything above it.
   override def toString = {
     var counter = 0; var result = "";
     def visitNode(n:P, r:Seq[Int]): Int = {
