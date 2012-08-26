@@ -10,7 +10,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class TestsForSequent extends SpecificationWithJUnit {
+class SequentSpec extends SpecificationWithJUnit {
 
   val a = Var("a", o)
   val x = Var("x", o)

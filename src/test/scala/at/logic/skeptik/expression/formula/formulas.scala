@@ -8,7 +8,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class TestsForFormulas extends SpecificationWithJUnit {
+class FormulaSpecification extends SpecificationWithJUnit {
 
   val a = Var("a",i)
   val x = Var("x",i)
