@@ -8,15 +8,15 @@ import at.logic.skeptik.expression.formula.Neg
 
 
 
-class SeqSequent(val ant: Seq[E], val suc: Seq[E]) extends ASequent { 
+class SeqSequent(val ant: Seq[E], val suc: Seq[E]) extends Sequent with SequentLike[SeqSequent] { 
   def +(f:E) = new SeqSequent(ant, suc :+ f)
   def +:(f:E) = new SeqSequent(ant :+ f, suc)
   def -(f:E) =  new SeqSequent(ant, suc.filterNot(_ == f))
   def -:(f:E) = new SeqSequent(ant.filterNot(_ == f), suc)
  
-  def union(that:SeqSequent) = new SeqSequent(ant union that.ant.toSeq, suc union that.suc.toSeq)
-  def diff(that:SeqSequent) = new SeqSequent(ant diff that.ant.toSeq, suc diff that.suc.toSeq)
-  def intersect(that:ASequent) = new SeqSequent(ant intersect that.ant.toSeq, suc intersect that.suc.toSeq)  
+  def union(that: Sequent) = new SeqSequent(ant union that.ant.toSeq, suc union that.suc.toSeq)
+  def diff(that: Sequent) = new SeqSequent(ant diff that.ant.toSeq, suc diff that.suc.toSeq)
+  def intersect(that: Sequent) = new SeqSequent(ant intersect that.ant.toSeq, suc intersect that.suc.toSeq)  
   
   def -*(f:E) = new SeqSequent(ant, suc.filterNot(_ eq f)) 
   def -*:(f:E) = new SeqSequent(ant.filterNot(_ eq f), suc)  
