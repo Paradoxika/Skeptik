@@ -11,6 +11,11 @@ import at.logic.skeptik.proof.oldResolution.typeAliases._
 
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
 
+
+// ToDo: all these functions should be moved outside the util package.
+// the util package should not depend on other packages in Skeptik.
+
+
 // A collection of functions to analyse proofs and differences between proofs.
 object help {
 
