@@ -9,6 +9,7 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
 class ProofNodeCollection[P <: Proof[_,P]] private(nodes: IndexedSeq[P], children: collection.Map[P,List[P]])
 extends Iterable[P]
 {
+  // ToDo: Traversing with iterator is inefficient
   override def iterator:Iterator[P] = nodes.iterator
 
   override def foldRight[B](z:B)(op: (P,B) => B):B = {
@@ -18,8 +19,8 @@ extends Iterable[P]
   }
 
   override def isEmpty:Boolean = nodes.isEmpty
-  override def head: P = nodes.head
-  override def last: P = nodes.last
+  //override def head: P = nodes.head
+  //override def last: P = nodes.last
   override def size:Int = nodes.length
 
   def root = nodes(0)
