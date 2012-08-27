@@ -15,8 +15,11 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "1.9-2.10.0-M5-B2",
   "org.specs2" %% "specs2" % "1.11",
   "org.scalacheck" %% "scalacheck" % "1.10.0",
-  "junit" % "junit" % "4.10"
+  "junit" % "junit" % "4.10",
+  "commons-lang" % "commons-lang" % "2.6"
 )
+
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 licenses := Seq("GNU GPL v3" -> url("http://www.gnu.org/licenses/gpl.html"))
 
