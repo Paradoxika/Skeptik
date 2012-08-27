@@ -19,7 +19,8 @@ libraryDependencies ++= Seq(
   "commons-lang" % "commons-lang" % "2.6"
 )
 
-seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+//uncomment the following line to use one-jar
+//seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 licenses := Seq("GNU GPL v3" -> url("http://www.gnu.org/licenses/gpl.html"))
 
