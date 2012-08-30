@@ -40,7 +40,7 @@ object Experimenter {
   object irregularNodeCompressionRatioMeasure
   extends IntPercentMeasure[Result]( { result =>
     var nbIrregularNodes = 0
-    def visit(node: SequentProofNode, childrenPivots: List[ISet[E]]) =
+    def visit(node: SequentProofNode, childrenPivots: Seq[ISet[E]]) =
       node match {
         case CutIC(_,_,pivot,_) if !childrenPivots.isEmpty =>
           var pivots = childrenPivots.tail.foldLeft(childrenPivots.head) (_ ++ _)

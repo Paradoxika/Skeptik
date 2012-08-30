@@ -83,7 +83,7 @@ extends CompressorAlgorithm[SequentProofNode] with RepeatableAlgorithm[SequentPr
         case _::Nil => true
         case _ => false
     }
-    { (node: SequentProofNode, fixedPremises: List[SequentProofNode]) => {
+    { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
       val fixedNode = fixedPremises match {
         case Nil => node
         case left::right::Nil => reconstruct(node, left, right)

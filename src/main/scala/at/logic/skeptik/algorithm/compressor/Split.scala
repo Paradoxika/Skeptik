@@ -76,7 +76,7 @@ extends AbstractSplit {
 abstract class CottonSplit
 extends AbstractSplit {
   protected def split(proof: Proof[SequentProofNode], selectedVariable: E):SequentProofNode = {
-    def visit(node: SequentProofNode, fixedPremises: List[(SequentProofNode,SequentProofNode)]) = {
+    def visit(node: SequentProofNode, fixedPremises: Seq[(SequentProofNode,SequentProofNode)]) = {
       lazy val (fixedLeftPos,  fixedLeftNeg)  = fixedPremises.head;
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last;
       node match {
@@ -256,7 +256,7 @@ extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProofNode
 
 
   private def split(proof: Proof[SequentProofNode], variableList: List[E]) = {
-    def visit(node: SequentProofNode, premises: List[Splitter]) =
+    def visit(node: SequentProofNode, premises: Seq[Splitter]) =
       node match {
         case Axiom(_) => Splitter(node, variableList)
         case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)

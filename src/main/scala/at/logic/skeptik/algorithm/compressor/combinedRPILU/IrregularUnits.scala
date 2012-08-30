@@ -31,7 +31,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     val isTrueUnit = isUnitAndSomething { (_,_) => true } _
 
 
-    def visit(p: SequentProofNode, childrensSafeLiterals: List[(SequentProofNode, IClause)]) = {
+    def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       def regularize(position: DeletedSide) = 
         if (isUnitToLower(p)) lower() else {

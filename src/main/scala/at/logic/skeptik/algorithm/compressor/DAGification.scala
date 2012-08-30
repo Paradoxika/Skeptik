@@ -13,7 +13,7 @@ extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentPr
   // TODO: optimize to directly construct a Proof
   def apply(proof: Proof[SequentProofNode]) = {
     val nodeMap = MMap[Sequent,SequentProofNode]()
-    def dagify(node: SequentProofNode, premises: List[SequentProofNode]) = node match {
+    def dagify(node: SequentProofNode, premises: Seq[SequentProofNode]) = node match {
       case _ if nodeMap.contains(node.conclusion) => nodeMap(node.conclusion)
       case Axiom(conclusion) => nodeMap.update(conclusion, node) ; node
       case CutIC(left,right,aux,_) => 

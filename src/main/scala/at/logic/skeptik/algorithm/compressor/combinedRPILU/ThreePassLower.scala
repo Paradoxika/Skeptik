@@ -18,7 +18,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
                                      unitsSafeLiterals: Map[SequentProofNode,IClause]) = {
     val edgesToDelete = MMap[SequentProofNode,DeletedSide]()
 
-    def visit(node: SequentProofNode, childrensSafeLiterals: List[(SequentProofNode, IClause)]) = {
+    def visit(node: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = if (unitsSafeLiterals contains node) {
         deleteFromChildren(node, proof, edgesToDelete)
 //        println("Unit " + node.conclusion)

@@ -55,7 +55,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         (currentChildrenNumber > 1) && (lowerInsteadOfRegularize(p, currentChildrenNumber, informationMap(p), safeLiterals))
       }
 
-    def visit(p: SequentProofNode, childrensSafeLiterals: List[(SequentProofNode, IClause)]) = {
+    def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       def regularize(position: DeletedSide) = {
         edgesToDelete.update(p, position)
@@ -103,7 +103,7 @@ extends RegularizationEvaluation {
 
   protected def collectInformationMap(proof: Proof[SequentProofNode]):MMap[SequentProofNode,RegularizationInformation] = {
     val informationMap = MMap[SequentProofNode, RegularizationInformation]()
-    def visit(p: SequentProofNode, premisesInformation: List[RegularizationInformation]) = {
+    def visit(p: SequentProofNode, premisesInformation: Seq[RegularizationInformation]) = {
       val nbChildren = proof.childrenOf(p).length
       def evaluate = p match {
         case CutIC(left, right, aux, _) => evaluateDerivation(p, proof, aux, premisesInformation(0), premisesInformation(1))
@@ -128,7 +128,7 @@ trait QuadraticCollector
 extends RegularizationEvaluation {
   protected def collectInformationMap(proof: Proof[SequentProofNode]):MMap[SequentProofNode,RegularizationInformation] = {
     val informationMap = MMap[SequentProofNode, RegularizationInformation]()
-    def visit(p: SequentProofNode, premisesInformation: List[RegularizationInformation]) = {
+    def visit(p: SequentProofNode, premisesInformation: Seq[RegularizationInformation]) = {
       val nbChildren = proof.childrenOf(p).length
       def evaluate = p match {
         case CutIC(left, right, aux, _) => evaluateDerivation(p, proof, aux, premisesInformation(0), premisesInformation(1))

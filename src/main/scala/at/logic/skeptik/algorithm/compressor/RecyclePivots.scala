@@ -23,7 +23,7 @@ trait outIntersection
 extends AbstractRPIAlgorithm {
 
   protected def computeSafeLiterals(node: SequentProofNode,
-                                    childrensSafeLiterals: List[(SequentProofNode, IClause)],
+                                    childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
                                     edgesToDelete: Map[SequentProofNode,DeletedSide] ) : IClause =
     if (childrensSafeLiterals.length == 1)
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)

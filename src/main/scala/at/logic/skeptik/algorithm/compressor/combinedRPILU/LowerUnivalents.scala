@@ -20,7 +20,7 @@ package lowerableUnivalent {
 
   object isLowerableUnivalent
   {
-    def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: List[SequentProofNode], loweredPivots: MClause):NodeKind = {
+    def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):NodeKind = {
       val literals = activeLiteralsNotInLoweredPivots(oldNode, children, loweredPivots)
   //      println("Remaining Literals " + literals)
       (literals.ant.size, literals.suc.size) match {
@@ -30,7 +30,7 @@ package lowerableUnivalent {
         case _ => OrdinaryNode
       }
     }
-    def apply(node: SequentProofNode, children: List[SequentProofNode], loweredPivots: MClause):NodeKind =
+    def apply(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):NodeKind =
         apply(node, node, children, loweredPivots)
 
     private def activeLiteralsNotInLoweredPivots(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause) = {
@@ -70,7 +70,7 @@ extends AbstractRPILUAlgorithm {
     var univalents = List[SequentProofNode]()
     val loweredPivots = MClause()
 
-    def reconstructProofNode(oldProofNode: SequentProofNode, fixedPremises: List[SequentProofNode]) = {
+    def reconstructProofNode(oldProofNode: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
       val newProofNode = fixProofNodes(edgesToDelete)(oldProofNode, fixedPremises)
       val children = proof.childrenOf(oldProofNode) filter { child => !childIsMarkedToDeleteParent(child, oldProofNode, edgesToDelete) }
       isLowerableUnivalent(newProofNode, oldProofNode, children, loweredPivots) match {

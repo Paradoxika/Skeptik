@@ -19,7 +19,7 @@ extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentPr
   private def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode]) = {
     val fixMap = MMap[SequentProofNode,SequentProofNode]()
 
-    def visit (node: SequentProofNode, fixedPremises: List[SequentProofNode]) = {
+    def visit (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
       lazy val fixedLeft  = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
       val fixedP = node match {
