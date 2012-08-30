@@ -20,14 +20,14 @@ object CurryHoward {
   
   private def varToNamedE(v: Var) = NamedE(v.name, typeToFormula(v.t))
   
-  def apply(p: NaturalDeductionProof): E = p match {
+  def apply(p: NaturalDeductionProofNode): E = p match {
     case a: Assumption => namedEToVar(a.a)
     case ImpIntro(premise, namedE) => Abs(namedEToVar(namedE),apply(premise))
     case ImpElim(leftPremise, rightPremise) => App(apply(rightPremise), apply(leftPremise))
   }
 
   
-  def apply(term: E): NaturalDeductionProof = term match {
+  def apply(term: E): NaturalDeductionProofNode = term match {
     case v: Var => {
       val n = varToNamedE(v)
       new Assumption(Set(n),n) 

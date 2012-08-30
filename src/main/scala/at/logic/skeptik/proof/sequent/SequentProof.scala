@@ -5,18 +5,18 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression.E
 
-abstract class SequentProof
-extends Proof[Sequent, SequentProof] {
+abstract class SequentProofNode
+extends ProofNode[Sequent, SequentProofNode] {
   require(premises.forall(p => auxFormulasMap(p) subsequentOf p.conclusion ))
   // ancestry returns the subsequent of the given premise's conclusion
   // containing only ancestors of the given formula
-  def ancestry(f: E, premise: SequentProof): Sequent = {
+  def ancestry(f: E, premise: SequentProofNode): Sequent = {
     if (mainFormulas.ant.exists(_ eq f) || mainFormulas.suc.exists(_ eq f)) activeAncestry(f, premise)
     else contextAncestry(f,premise)
   }
-  def activeAncestry(f: E, premise: SequentProof): Sequent
-  def contextAncestry(f: E, premise: SequentProof): Sequent
-  def auxFormulasMap: Map[SequentProof, Sequent]
+  def activeAncestry(f: E, premise: SequentProofNode): Sequent
+  def contextAncestry(f: E, premise: SequentProofNode): Sequent
+  def auxFormulasMap: Map[SequentProofNode, Sequent]
   def mainFormulas : Sequent
   def conclusionContext : Sequent
   // The lazy modifier for "conclusion" is very important,
@@ -24,11 +24,11 @@ extends Proof[Sequent, SequentProof] {
   override lazy val conclusion: Sequent = mainFormulas union conclusionContext
 }
 
-trait Nullary extends SequentProof with GenNullary[Sequent,SequentProof] {
+trait Nullary extends SequentProofNode with GenNullary[Sequent,SequentProofNode] {
   def auxFormulasMap = Map()
 }
 
-trait Unary extends SequentProof with GenUnary[Sequent,SequentProof] {
+trait Unary extends SequentProofNode with GenUnary[Sequent,SequentProofNode] {
   def auxFormulas: Sequent
   def auxFormulasMap = Map(premise -> auxFormulas)
 }
@@ -44,7 +44,7 @@ trait BothInAnt extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(au
 trait BothInSuc extends Unary with TwoAuxFormulas { def auxFormulas = Sequent()(auxL,auxR) }
 trait OnePerCedent extends Unary with TwoAuxFormulas { def auxFormulas = Sequent(auxL)(auxR) }
 
-trait Binary extends SequentProof with GenBinary[Sequent,SequentProof] {  
+trait Binary extends SequentProofNode with GenBinary[Sequent,SequentProofNode] {  
   def leftAuxFormulas: Sequent
   def rightAuxFormulas: Sequent
   def auxFormulasMap = Map(leftPremise -> leftAuxFormulas, rightPremise -> rightAuxFormulas)
@@ -66,9 +66,9 @@ trait LeftInSucRightInAnt extends Binary with TwoAuxFormulas {
 }
 
 
-trait SingleMainFormula extends SequentProof {
+trait SingleMainFormula extends SequentProofNode {
   def mainFormula : E
-  override def activeAncestry(f:E,premise:SequentProof) = {
+  override def activeAncestry(f:E,premise:SequentProofNode) = {
     require(f eq mainFormula); require(premises contains premise)
     auxFormulasMap.getOrElse(premise,Sequent()())
   }
@@ -77,13 +77,13 @@ trait SingleMainFormula extends SequentProof {
 trait Left  extends SingleMainFormula {override def mainFormulas = Sequent(mainFormula)()}
 trait Right extends SingleMainFormula {override def mainFormulas = Sequent()(mainFormula)}
 
-trait NoMainFormula extends SequentProof {
+trait NoMainFormula extends SequentProofNode {
   override def mainFormulas = Sequent()()
-  override def activeAncestry(f: E, premise: SequentProof) = throw new Exception("the given formula cannot be the main formula of this inference, because this inference has no main formula.")
+  override def activeAncestry(f: E, premise: SequentProofNode) = throw new Exception("the given formula cannot be the main formula of this inference, because this inference has no main formula.")
 }
 
 
-trait NoImplicitContraction extends SequentProof {
+trait NoImplicitContraction extends SequentProofNode {
   override def conclusionContext: Sequent = {
     val premiseContexts = premises.map(p => p.conclusion --* auxFormulasMap(p))
     premiseContexts match {
@@ -91,7 +91,7 @@ trait NoImplicitContraction extends SequentProof {
       case Nil => Sequent()()
     }
   }
-  override def contextAncestry(f: E, premise: SequentProof): Sequent = {
+  override def contextAncestry(f: E, premise: SequentProofNode): Sequent = {
     require(conclusionContext.ant.exists(_ eq f) || conclusionContext.suc.exists(_ eq f))
     require(premises contains premise)
     if (premise.conclusion.ant.exists(_ eq f)) Sequent(f)()
@@ -100,8 +100,8 @@ trait NoImplicitContraction extends SequentProof {
   }
 }
 
-trait ImplicitContraction extends SequentProof {
-  private val contextAndAncestryAux: (Sequent, MMap[(E,SequentProof),Sequent]) = {
+trait ImplicitContraction extends SequentProofNode {
+  private val contextAndAncestryAux: (Sequent, MMap[(E,SequentProofNode),Sequent]) = {
     // ToDo : (B) --* should be used instead of -- .
     // However, doing this makes the proof compression algorithms stop working.
     // The bug is actually in the proof fixing codes (e.g. in line 30 in UnitLowering.scala)
@@ -125,7 +125,7 @@ trait ImplicitContraction extends SequentProof {
       }
     }
 
-    val contextAncestryMap = new MMap[(E,SequentProof),Sequent] // stores the ancestor relation
+    val contextAncestryMap = new MMap[(E,SequentProofNode),Sequent] // stores the ancestor relation
     val conclusionContextAnt = new MSet[E] // stores the formulas that will go into the antecedent of the conclusion context
     val conclusionContextSuc = new MSet[E] // stores the formulas that will go into the succedent of the conclusion context
     val descendantsForAntDuplicates = new MMap[E,E] // stores the new copy that will serve as the contraction for several duplicates in the antecedent.
@@ -161,7 +161,7 @@ trait ImplicitContraction extends SequentProof {
   }
 
   override val conclusionContext = contextAndAncestryAux._1
-  override def contextAncestry(f: E, premise: SequentProof): Sequent = {
+  override def contextAncestry(f: E, premise: SequentProofNode): Sequent = {
     require((conclusionContext.ant contains f) || (conclusionContext.suc contains f))
     require(premises contains premise)
     contextAndAncestryAux._2.getOrElse((f,premise),Sequent()())

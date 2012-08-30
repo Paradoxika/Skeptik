@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm.compressor
 package combinedRPILU
 
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -13,14 +13,14 @@ import collection.Map
 abstract class IrregularUnits
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
-  protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean
+  protected def lowerInsteadOfRegularize(node: SequentProofNode, currentChildrenNumber: Int):Boolean
 
-  private def collect(proof: ProofNodeCollection[SequentProof]) = {
-    val edgesToDelete = MMap[SequentProof,DeletedSide]()
-    val units = collection.mutable.Queue[SequentProof]()
+  private def collect(proof: Proof[SequentProofNode]) = {
+    val edgesToDelete = MMap[SequentProofNode,DeletedSide]()
+    val units = collection.mutable.Queue[SequentProofNode]()
 
-    def isUnitAndSomething(something: (SequentProof, Int) => Boolean)
-                          (p: SequentProof) =
+    def isUnitAndSomething(something: (SequentProofNode, Int) => Boolean)
+                          (p: SequentProofNode) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
         val currentChildrenNumber = proof.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
@@ -31,7 +31,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     val isTrueUnit = isUnitAndSomething { (_,_) => true } _
 
 
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+    def visit(p: SequentProofNode, childrensSafeLiterals: List[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       def regularize(position: DeletedSide) = 
         if (isUnitToLower(p)) lower() else {
@@ -57,10 +57,10 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     (units,edgesToDelete)
   }
 
-  def apply(proof: ProofNodeCollection[SequentProof]) = {
+  def apply(proof: Proof[SequentProofNode]) = {
     val (units,edgesToDelete) = collect(proof)
-    if (edgesToDelete.isEmpty) proof else ProofNodeCollection({
-      val fixMap = mapFixedProofs(units.toSet + proof.root, edgesToDelete, proof)
+    if (edgesToDelete.isEmpty) proof else Proof({
+      val fixMap = mapFixedProofNodes(units.toSet + proof.root, edgesToDelete, proof)
       units.map(fixMap).foldLeft(fixMap(proof.root)) { (left,right) =>
         // Right is a unit. No choice for a pivot.
         try {CutIC(left,right)} catch {case e:Exception => left}
@@ -70,15 +70,15 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 }
 
 trait AlwaysLowerIrregularUnits extends IrregularUnits {
-  protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean = true
+  protected def lowerInsteadOfRegularize(node: SequentProofNode, currentChildrenNumber: Int):Boolean = true
 }
 
 trait AlwaysRegularizeIrregularUnits extends IrregularUnits {
-  protected def lowerInsteadOfRegularize(node: SequentProof, currentChildrenNumber: Int):Boolean = false
+  protected def lowerInsteadOfRegularize(node: SequentProofNode, currentChildrenNumber: Int):Boolean = false
 }
 
 object IdempotentIrregularUnitsLower
-extends IrregularUnits with AlwaysLowerIrregularUnits with IdempotentAlgorithm[SequentProof]
+extends IrregularUnits with AlwaysLowerIrregularUnits with IdempotentAlgorithm[SequentProofNode]
 
 object IdempotentIrregularUnitsRegularize
-extends IrregularUnits with AlwaysRegularizeIrregularUnits with IdempotentAlgorithm[SequentProof]
+extends IrregularUnits with AlwaysRegularizeIrregularUnits with IdempotentAlgorithm[SequentProofNode]

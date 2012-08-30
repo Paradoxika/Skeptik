@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm.compressor
 import at.logic.skeptik.proof.oldResolution._
 import at.logic.skeptik.proof.oldResolution.defs._
-import at.logic.skeptik.algorithm.compressor.ProofFixing._
+import at.logic.skeptik.algorithm.compressor.ProofNodeFixing._
 import collection._
 import language.postfixOps
 
@@ -10,23 +10,23 @@ object UnitLowering {
 
   private var counter = 0
 
-  private def collectUnits(proof: Proof): mutable.Queue[Proof] = {
-    val units = new mutable.Queue[Proof]
-    val visitedProofs = new mutable.HashSet[Proof]
+  private def collectUnits(proof: ProofNode): mutable.Queue[ProofNode] = {
+    val units = new mutable.Queue[ProofNode]
+    val visitedProofNodes = new mutable.HashSet[ProofNode]
 
 
-    def rec(p: Proof): Unit = {
-      if (p.children.forall(c => visitedProofs contains c )) { // TODO: This can be made more efficient by keeping a callCount
+    def rec(p: ProofNode): Unit = {
+      if (p.children.forall(c => visitedProofNodes contains c )) { // TODO: This can be made more efficient by keeping a callCount
 
-        visitedProofs += p
+        visitedProofNodes += p
 
         counter += 1
 
         if (p.clause.size == 1 && p.children.length > 1) { // p is a unit with many children
           units += p
           for (c <- p.children) {
-            if (p == c.left) deletedSubProof replacesLeftParentOf c
-            else deletedSubProof replacesRightParentOf c
+            if (p == c.left) deletedSubProofNode replacesLeftParentOf c
+            else deletedSubProofNode replacesRightParentOf c
           }
           //require( p.children == Nil )
         }
@@ -45,25 +45,25 @@ object UnitLowering {
     units
   }
 
-  private def reinsertUnits(proof: Proof, units: mutable.Queue[Proof]): Proof = {
+  private def reinsertUnits(proof: ProofNode, units: mutable.Queue[ProofNode]): ProofNode = {
     if (units.length == 0) proof
     else {
       val u = units.dequeue
       //println("reinserting: " + u.id + ": " +  u.clause + " ; " + proof.id + ": " +  proof.clause)
-      val newRootProof = try {
+      val newRootProofNode = try {
         val p = new Resolvent(proof, u)
         p.pivot
         p
       } catch {
         case _: Throwable => {println(u.clause + " failed to resolve"); proof}
       }
-      reinsertUnits(newRootProof, units)
+      reinsertUnits(newRootProofNode, units)
     }
-    //println("new root clause: " + newRootProof.clause)
+    //println("new root clause: " + newRootProofNode.clause)
   }
     
 
-  def lowerUnits(p: Proof): Proof = {
+  def lowerUnits(p: ProofNode): ProofNode = {
     //println("collecting units")
     val units = collectUnits(p)
     //println("units: " + units.map(u => u.id + ": " + u.clause))
@@ -74,7 +74,7 @@ object UnitLowering {
     val fixedRoots = fixTopDown(roots)
     //for (r <- fixedRoots) println(r.id)
     val fixedP = fixedRoots.head
-    val fixedUnits = new mutable.Queue[Proof]
+    val fixedUnits = new mutable.Queue[ProofNode]
     fixedUnits ++= fixedRoots.tail
     //println(fixedUnits.length)
     //println("units (after fixing): " + fixedUnits.map(u => u.id + ": " + u.clause))

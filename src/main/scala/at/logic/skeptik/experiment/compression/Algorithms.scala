@@ -2,8 +2,8 @@ package at.logic.skeptik.experiment.compression
 
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.compressor.guard._
-import at.logic.skeptik.proof.sequent.SequentProof
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.util.time._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
@@ -11,7 +11,7 @@ import collection.mutable.{ HashSet => MSet }
 
 // Results
 
-class Result (val proof: ProofNodeCollection[SequentProof], val time: Double, val count: Int) {
+class Result (val proof: Proof[SequentProofNode], val time: Double, val count: Int) {
 
   // Many measures can be done in the same traversal. We store them.
   lazy val (nbAxioms, nbVariables, axiomsSize) = {
@@ -39,13 +39,13 @@ class Result (val proof: ProofNodeCollection[SequentProof], val time: Double, va
 //  // P is in contravariant position for p and in covariant position for eval
 //  def experiment(p: P, eval: P => Report): Unit = {
 //    System.gc()
-//    val outProof = algorithm(p)
-//    val curEval = eval(outProof) + ("duration.s" -> algorithm.duration.toDouble / 1000.0)
+//    val outProofNode = algorithm(p)
+//    val curEval = eval(outProofNode) + ("duration.s" -> algorithm.duration.toDouble / 1000.0)
 //    println(name + ": " + curEval)
 //    report = report add curEval
 //=======
 object Result {
-  def apply(f: => ProofNodeCollection[SequentProof]) = {
+  def apply(f: => Proof[SequentProofNode]) = {
     val beginning = System.nanoTime
     val proof = f
     new Result(proof, (System.nanoTime - beginning).toDouble / 1000000.0, 1)
@@ -61,10 +61,10 @@ object Result {
 //  override def experiment(p: P, eval: P => Report): Unit = {
 //    System.gc()
 //    def rec(duration:Long, run:Int, ratio:Double, proof:P):Unit = {
-//      val newProof = algorithm(proof)
+//      val newProofNode = algorithm(proof)
 //      val newDuration = duration + algorithm.duration
-//      val curEval = eval(newProof) + ("duration.s" -> newDuration.toDouble / 1000.0) + ("run" -> run.toDouble)
-//      if (curEval("ratio.%") < ratio) rec(newDuration, run+1, curEval("ratio.%"), newProof)
+//      val curEval = eval(newProofNode) + ("duration.s" -> newDuration.toDouble / 1000.0) + ("run" -> run.toDouble)
+//      if (curEval("ratio.%") < ratio) rec(newDuration, run+1, curEval("ratio.%"), newProofNode)
 //      else {
 //        println(name + ": " + curEval)
 //        report = report add curEval
@@ -76,15 +76,15 @@ object Result {
 
 abstract class WrappedAlgorithm (val name: String)
 extends Function1[Result,Result] {
-  val algo: CompressorAlgorithm[SequentProof]
+  val algo: CompressorAlgorithm[SequentProofNode]
 
   protected abstract class InnerGuard
-  extends Guard[SequentProof] {
+  extends Guard[SequentProofNode] {
     var beginning:Long = 0
     var duration:Double = 0.0
     var count:Int = 0
-    def decide(p: ProofNodeCollection[SequentProof]):Boolean
-    def apply(p: ProofNodeCollection[SequentProof]) = {
+    def decide(p: Proof[SequentProofNode]):Boolean
+    def apply(p: Proof[SequentProofNode]) = {
       duration = (System.nanoTime - beginning).toDouble / 1000000.0
       count += 1
       decide(p)
@@ -99,11 +99,11 @@ extends Function1[Result,Result] {
 
 }   
 
-class TimeOutAlgorithm (name: String, val algo: CompressorAlgorithm[SequentProof])
+class TimeOutAlgorithm (name: String, val algo: CompressorAlgorithm[SequentProofNode])
 extends WrappedAlgorithm(name) {
   def apply(result: Result) = {
     val guard = new InnerGuard {
-      def decide(p: ProofNodeCollection[SequentProof]) = duration < (result.proof.size + result.axiomsSize).toDouble
+      def decide(p: Proof[SequentProofNode]) = duration < (result.proof.size + result.axiomsSize).toDouble
     }
     guard.proceed(result)
   }

@@ -4,8 +4,8 @@ import at.logic.skeptik.algorithm.generator.FormulaGenerator
 import at.logic.skeptik.expression.E
 import at.logic.skeptik.expression.formula.Imp
 import at.logic.skeptik.expression.o
+import at.logic.skeptik.proof.ProofNode
 import at.logic.skeptik.proof.Proof
-import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.proof.natural.Assumption
 import at.logic.skeptik.proof.natural.{ImpElim => ImpE}
 import at.logic.skeptik.proof.natural.ImpElimC
@@ -62,7 +62,7 @@ object ProverExperiment {
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
     implicit def formulaToSequent(f: E) = Sequent()(f)
     
-    val results = MMap[(E, String),Timed[Option[Proof[_,_]]]]()
+    val results = MMap[(E, String),Timed[Option[ProofNode[_,_]]]]()
     for (g <- goals) {
       println("Goal: " + g)
       fp.print(g)
@@ -78,7 +78,7 @@ object ProverExperiment {
         fp.print(", " + resultTimeMS)
         fp.print(", " + (result.result match {
           case None => -1
-          case Some(p) => ProofNodeCollection(p).size
+          case Some(p) => Proof(p).size
         }))
         results((g, p._1)) = result
       }

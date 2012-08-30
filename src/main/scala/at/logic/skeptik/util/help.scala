@@ -19,7 +19,7 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 // A collection of functions to analyse proofs and differences between proofs.
 object help {
 
-  def PNCToMap(pnc: ProofNodeCollection[SequentProof]) =
+  def ProofToMap(pnc: Proof[SequentProofNode]) =
     pnc.foldLeft(Map[Sequent, List[(Sequent,Sequent)]]()) { (map,p) => p match {
       case CutIC(left,right,_,_) => map + (p.conclusion -> ((left.conclusion,right.conclusion)::(map.getOrElse(p.conclusion,Nil))))
       case _ => map
@@ -45,9 +45,9 @@ object help {
     new Sequent(ant, suc)
   }
 
-  def convertToSequentProof(p: proof.oldResolution.Proof) = {
-    val toSequent = collection.mutable.HashMap[proof.oldResolution.Proof,SequentProof]()
-    def recursive(p: proof.oldResolution.Proof):SequentProof = if (toSequent contains p) toSequent(p) else {
+  def convertToSequentProofNode(p: proof.oldResolution.ProofNode) = {
+    val toSequent = collection.mutable.HashMap[proof.oldResolution.ProofNode,SequentProofNode]()
+    def recursive(p: proof.oldResolution.ProofNode):SequentProofNode = if (toSequent contains p) toSequent(p) else {
       val seq = p match {
         case proof.oldResolution.Resolvent(left,right) => CutIC(recursive(left), recursive(right))
         case proof.oldResolution.Input(clause) => Axiom(convertToSequent(clause))
@@ -78,8 +78,8 @@ object help {
     out.close()
   }
 
-  def makeMapOfChildren(node: SequentProof, nodeCollection: ProofNodeCollection[SequentProof]) = {
-    class Wrap(val n: SequentProof) {
+  def makeMapOfChildren(node: SequentProofNode, nodeCollection: Proof[SequentProofNode]) = {
+    class Wrap(val n: SequentProofNode) {
       override def equals(other: Any):Boolean = other match {
         case w:Wrap => w.n eq n
         case _ => false
@@ -92,8 +92,8 @@ object help {
     }
 
     val map = MMap[Wrap,List[Wrap]]()
-    val visited = MSet[SequentProof]()
-    def addChildrenOf(parent: SequentProof):Unit = {
+    val visited = MSet[SequentProofNode]()
+    def addChildrenOf(parent: SequentProofNode):Unit = {
       if (visited contains parent) return else visited += parent
       for (child <- nodeCollection.childrenOf(parent)) {
         map.update(new Wrap(child), new Wrap(parent)::(map.getOrElse(new Wrap(child),Nil)))

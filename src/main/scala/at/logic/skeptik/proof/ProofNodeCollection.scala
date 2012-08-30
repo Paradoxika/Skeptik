@@ -3,10 +3,10 @@ package at.logic.skeptik.proof
 import collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
 
 
-// Proof tree is rotated clockwise. That means that traversing "left" is bottom-up.
+// ProofNode tree is rotated clockwise. That means that traversing "left" is bottom-up.
 // Traversing "right" is top-down and we ensure that premises of a proof are processed before that proof.
 // For convenience, children of proofs are computed as well.
-class ProofNodeCollection[P <: Proof[_,P]] private(nodes: IndexedSeq[P], children: collection.Map[P,List[P]])
+class Proof[P <: ProofNode[_,P]] private(nodes: IndexedSeq[P], children: collection.Map[P,List[P]])
 extends Iterable[P]
 {
   // ToDo: Traversing with iterator is inefficient
@@ -54,8 +54,8 @@ extends Iterable[P]
 
 }
 
-object ProofNodeCollection {
-  def apply[P <: Proof[_,P]](root: P) = {
+object Proof {
+  def apply[P <: ProofNode[_,P]](root: P) = {
     val nodes = Stack[P]()
     val children = MMap[P,List[P]]()
     val visited = MSet[P]()
@@ -68,6 +68,6 @@ object ProofNodeCollection {
       nodes.push(p)
     }
     visit(root)
-    new ProofNodeCollection(nodes.toIndexedSeq, children)
+    new Proof(nodes.toIndexedSeq, children)
   }
 }

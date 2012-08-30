@@ -1,14 +1,14 @@
 package at.logic.skeptik.prover
 
-import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.proof.ProofNode
 import at.logic.skeptik.judgment.Judgment
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.util.debug._
 import at.logic.skeptik.util.argMin
 import reflect.ClassTag
 
 // ToDo: (B) Use futures and Map from (goal, inference) to future to create DAG-proof!
-class SimpleProver[J <: Judgment, P <: Proof[J,P]: ClassTag](calculus: Calculus[J,P]) {
+class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calculus[J,P]) {
   def prove(goal:J, timeout: Long = Long.MaxValue) : Option[P] = {
     val deadline = System.nanoTime + timeout * 1000000 
     
@@ -31,7 +31,7 @@ class SimpleProver[J <: Judgment, P <: Proof[J,P]: ClassTag](calculus: Calculus[
         }
 
         argMin(proofs.filter(_ != None).map(_.asInstanceOf[Some[P]].get).toList, 
-               (p: P) => ProofNodeCollection(p).size)
+               (p: P) => Proof(p).size)
       }
     }
     proveRec(goal, Set())(0)

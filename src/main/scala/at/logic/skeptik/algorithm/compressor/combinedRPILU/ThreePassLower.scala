@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm.compressor
 package combinedRPILU
 
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -13,12 +13,12 @@ import collection.Map
 abstract class AbstractThreePassLower
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
-  protected def collectEdgesToDelete(proof: ProofNodeCollection[SequentProof],
+  protected def collectEdgesToDelete(proof: Proof[SequentProofNode],
                                      rootSafeLiterals: IClause,
-                                     unitsSafeLiterals: Map[SequentProof,IClause]) = {
-    val edgesToDelete = MMap[SequentProof,DeletedSide]()
+                                     unitsSafeLiterals: Map[SequentProofNode,IClause]) = {
+    val edgesToDelete = MMap[SequentProofNode,DeletedSide]()
 
-    def visit(node: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+    def visit(node: SequentProofNode, childrensSafeLiterals: List[(SequentProofNode, IClause)]) = {
       val safeLiterals = if (unitsSafeLiterals contains node) {
         deleteFromChildren(node, proof, edgesToDelete)
 //        println("Unit " + node.conclusion)
@@ -47,9 +47,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 abstract class ThreePassLowerUnits
 extends AbstractThreePassLower {
-  protected def collectLowerables(proof: ProofNodeCollection[SequentProof]) = {
-    val unitsSafeLiterals = MMap[SequentProof,IClause]()
-    val orderedUnits = scala.collection.mutable.Stack[SequentProof]()
+  protected def collectLowerables(proof: Proof[SequentProofNode]) = {
+    val unitsSafeLiterals = MMap[SequentProofNode,IClause]()
+    val orderedUnits = scala.collection.mutable.Stack[SequentProofNode]()
     val rootSafeLiterals = proof.foldRight (IClause()) { (node, safeLiterals) =>
       (fakeSize(node.conclusion.ant), fakeSize(node.conclusion.suc), fakeSize(proof.childrenOf(node))) match {
         case (1,0,2) =>
@@ -68,7 +68,7 @@ extends AbstractThreePassLower {
     (rootSafeLiterals, orderedUnits, unitsSafeLiterals)
   } 
 
-  def apply(proof: ProofNodeCollection[SequentProof]) = {
+  def apply(proof: Proof[SequentProofNode]) = {
 
     // First pass
     val (rootSafeLiterals, orderedUnits, unitsSafeLiterals) = collectLowerables(proof)
@@ -80,8 +80,8 @@ extends AbstractThreePassLower {
 //    println(edgesToDelete.size + " edges to delete (" + (edgesToDelete.size - nbUnitChildren) + " without orderedUnits' children)")
 
     // Third pass
-    if (edgesToDelete.isEmpty) proof else ProofNodeCollection({
-      val fixMap = mapFixedProofs(orderedUnits.toSet + proof.root, edgesToDelete, proof)
+    if (edgesToDelete.isEmpty) proof else Proof({
+      val fixMap = mapFixedProofNodes(orderedUnits.toSet + proof.root, edgesToDelete, proof)
       orderedUnits.foldLeft(fixMap(proof.root)) { (root, unit) =>
         if (unit.conclusion.ant.isEmpty)
           CutIC(fixMap(unit), root, _ == unit.conclusion.suc.head, true)
@@ -94,4 +94,4 @@ extends AbstractThreePassLower {
 }
 
 object IdempotentThreePassLowerUnits
-extends ThreePassLowerUnits with IdempotentAlgorithm[SequentProof]
+extends ThreePassLowerUnits with IdempotentAlgorithm[SequentProofNode]

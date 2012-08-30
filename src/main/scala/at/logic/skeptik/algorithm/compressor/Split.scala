@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -8,12 +8,12 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 abstract class AbstractSplit
-extends CompressorAlgorithm[SequentProof] {
+extends CompressorAlgorithm[SequentProofNode] {
   
-  protected def computeAdditivities(proof: ProofNodeCollection[SequentProof]) = {
+  protected def computeAdditivities(proof: Proof[SequentProofNode]) = {
     var totalAdditivity = 0.toLong
     val literalAdditivity = MMap[E,Long]()
-    def visit(node: SequentProof) = node match {
+    def visit(node: SequentProofNode) = node match {
       case CutIC(_,_,aux,_) =>
         val nodeAdditivity = ((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1
         totalAdditivity += nodeAdditivity
@@ -75,8 +75,8 @@ extends AbstractSplit {
  */
 abstract class CottonSplit
 extends AbstractSplit {
-  protected def split(proof: ProofNodeCollection[SequentProof], selectedVariable: E):SequentProof = {
-    def visit(node: SequentProof, fixedPremises: List[(SequentProof,SequentProof)]) = {
+  protected def split(proof: Proof[SequentProofNode], selectedVariable: E):SequentProofNode = {
+    def visit(node: SequentProofNode, fixedPremises: List[(SequentProofNode,SequentProofNode)]) = {
       lazy val (fixedLeftPos,  fixedLeftNeg)  = fixedPremises.head;
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last;
       node match {
@@ -102,11 +102,11 @@ extends AbstractSplit {
 }
 
 abstract class Split
-extends CottonSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
-  def apply(proof: ProofNodeCollection[SequentProof]) = {
+extends CottonSplit with RandomCompressionRepeatableAlgorithm[SequentProofNode] {
+  def apply(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
     val selectedVariable = chooseAVariable(literalAdditivity, totalAdditivity)
-    ProofNodeCollection(split(proof, selectedVariable))
+    Proof(split(proof, selectedVariable))
   }
 }
 
@@ -114,12 +114,12 @@ object Split
 extends Split with RandomChoice
 
 abstract class TerminatingSplit
-extends CottonSplit with RepeatableWhileCompressingAlgorithm[SequentProof] {
-  def apply(proof: ProofNodeCollection[SequentProof]) = {
+extends CottonSplit with RepeatableWhileCompressingAlgorithm[SequentProofNode] {
+  def apply(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
-    def repeat(sum: Long):ProofNodeCollection[SequentProof] = {
+    def repeat(sum: Long):Proof[SequentProofNode] = {
       val selectedVariable = chooseAVariable(literalAdditivity, sum)
-      val compressed = ProofNodeCollection(split(proof, selectedVariable))
+      val compressed = Proof(split(proof, selectedVariable))
       if (compressed.size < proof.size) compressed
       else {
         val newSum = sum - literalAdditivity(selectedVariable)
@@ -145,7 +145,7 @@ extends TerminatingSplit with RandomChoice
   * subproofs.
   */
 abstract class MultiSplit (nbVariables: Int)
-extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
+extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProofNode] {
 
   /** Binary tree to store partial proofs.
     *
@@ -168,7 +168,7 @@ extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
   private abstract sealed class Splitter {
     def pos:Splitter
     def neg:Splitter
-    def merge(variableList: List[E]):SequentProof
+    def merge(variableList: List[E]):SequentProofNode
 
     def deepen(amount: Int = 1) = if (amount == 0) this else SplitterTrunk(this, amount)
 
@@ -202,7 +202,7 @@ extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
 //    def debugDepth = 1 + pos.debugDepth
   }
 
-  private case class SplitterLeaf (node: SequentProof)
+  private case class SplitterLeaf (node: SequentProofNode)
   extends Splitter {
     def pos = throw new Exception("Traversing beyond leaves")
     def neg = pos
@@ -251,12 +251,12 @@ extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
       ret
     }
 
-    def apply(axiom: SequentProof, variableList: List[E]):Splitter = SplitterTrunk(SplitterLeaf(axiom), variableList.length)
+    def apply(axiom: SequentProofNode, variableList: List[E]):Splitter = SplitterTrunk(SplitterLeaf(axiom), variableList.length)
   }
 
 
-  private def split(proof: ProofNodeCollection[SequentProof], variableList: List[E]) = {
-    def visit(node: SequentProof, premises: List[Splitter]) =
+  private def split(proof: Proof[SequentProofNode], variableList: List[E]) = {
+    def visit(node: SequentProofNode, premises: List[Splitter]) =
       node match {
         case Axiom(_) => Splitter(node, variableList)
         case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
@@ -265,7 +265,7 @@ extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
     result.merge(variableList)
   }
 
-  override def apply(proof: ProofNodeCollection[SequentProof]) = {
+  override def apply(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
     var sum = totalAdditivity
     val variableList = {
@@ -277,6 +277,6 @@ extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProof] {
       }
       selectVariables(List(), nbVariables)
     }
-    ProofNodeCollection(split(proof, variableList))
+    Proof(split(proof, variableList))
   }
 }
