@@ -52,6 +52,18 @@ extends Iterable[P]
     iterate(0)
   }
 
+  override def toString = {
+    var counter = 0; var result = "";
+    def visitNode(n:P, r:Seq[Int]): Int = {
+      counter += 1
+      result += counter.toString + ": {" + n.conclusion + "} \t:" +
+                n.name + "(" + r.mkString(", ") + ")[" + n.parameters.mkString(", ") + "]\n"
+      counter
+    }
+    foldDown(visitNode)
+    result
+  }
+  
 }
 
 object Proof {
