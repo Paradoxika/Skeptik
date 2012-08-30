@@ -17,7 +17,7 @@ Then go to Skeptik's root directory using the terminal and simply execute:
   sbt run
 ```
 
-(you may increase the value after -Xmx, if you need/want/ to provide more memory to the JVM)
+(you may increase the value after -Xmx, if you need or want to provide more memory to the JVM)
 
 Further instructions, such as necessary command-line arguments, will be shown to you.
 If you face any difficulty, do not hesitate to contact us.
