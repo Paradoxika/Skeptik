@@ -12,8 +12,12 @@ You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) (
 Then go to Skeptik's root directory using the terminal and simply execute:
 
 ```
+  export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Xmx512m -XX:MaxPermSize=256m"
+
   sbt run
 ```
+
+(you may increase the value after -Xmx, if you need/want/ to provide more memory to the JVM)
 
 Further instructions, such as necessary command-line arguments, will be shown to you.
 If you face any difficulty, do not hesitate to contact us.
