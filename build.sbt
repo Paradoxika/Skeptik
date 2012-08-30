@@ -4,7 +4,7 @@ organization := "at.logic"
 
 version := "0.2-SNAPSHOT"
 
-scalaVersion := "2.10.0-M5"
+scalaVersion := "2.10.0-M7"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
@@ -12,8 +12,8 @@ scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "1.9-2.10.0-M5-B2",
-  "org.specs2" %% "specs2" % "1.11",
+  "org.scalatest" %% "scalatest" % "1.9-2.10.0-M7-B1",
+  "org.specs2" %% "specs2" % "1.12.1",
   "org.scalacheck" %% "scalacheck" % "1.10.0",
   "junit" % "junit" % "4.10",
   "commons-lang" % "commons-lang" % "2.6"
