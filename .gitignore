@@ -10,3 +10,9 @@ project/target/
 *.swp
 experiments/NDc/report*
 *.aux
+*.nav
+*.out
+*.snm
+*.toc
+*.pdf
+*.lst

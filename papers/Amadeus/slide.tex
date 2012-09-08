@@ -1,0 +1,175 @@
+\documentclass[compress]{beamer}
+\useoutertheme[footline=authortitle,subsection=false]{miniframes}
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{vertmoyen}{HTML}{A9CB60}
+\definecolor{vertclair}{HTML}{D3F192}
+\definecolor{vertfonce}{HTML}{347003}
+
+\usecolortheme[named=vertfonce]{structure}
+
+\setbeamercolor{section in head/foot}{fg=vertfonce,bg=vertmoyen}
+\setbeamercolor{author in head/foot}{fg=white}
+\setbeamercolor{titlelike}{bg=vertclair}
+\setbeamertemplate{mini frame in other subsection}[default][0!white!100]
+\setbeamertemplate{section in head/foot shaded}[default][0!white!100]
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{kpfonts}
+
+\usepackage{amsmath,bussproofs}
+
+\usepackage{graphics,booktabs,array}
+
+\title{Combining RecyclePivotsWithIntersection and LowerUnits}
+\author[Joseph Boudou]{Joseph Boudou, Bruno Woltzenlogel Paleo}
+
+\def\fCenter{\mbox{\large\ $\vdash$\ }}
+\newcommand{\InfDesc}[1]{\RightLabel{\tiny $(#1)$}}
+
+\newcommand{\siecle}[1]{\textsc{\romannumeral #1}\textsuperscript{e}~siècle}
+
+\newenvironment{subpart}[1]
+{ \begin{block}{#1}
+  \begin{itemize}
+}{
+  \end{itemize}
+  \end{block}
+}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,matrix,positioning}
+
+
+\includeonly{}
+%%%%%%%%%%%%%%%%%%
+% Begin Document %
+%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\tikzset{bottomrule/.style={%
+    execute at end cell={%
+        \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
+        }
+    }
+}
+
+\begin{frame}
+\date{October 2012}
+\titlepage
+\end{frame}
+
+\begin{frame}{Overview}
+\tableofcontents
+\end{frame}
+
+\begin{frame}{Benchmarks}
+  \begin{subpart}{1000 proofs from VeriT}
+    \item 100 SAT proof from the old external SAT solver
+    \item 900 SMT proofs translated to propositional resolution
+  \end{subpart}
+  \begin{block}{Algorithms implemented in Scala for Skeptik}
+  \end{block}
+\end{frame}
+
+\section{Introduction}
+\subsection{RPI, LU, composing them}
+
+\begin{frame}{RPI}
+  \begin{subpart}{Regularization}
+    \item A prood node is regular if its pivot is not reused on any path to the root.
+    \item Full regularization might lead to bigger proofs.
+  \end{subpart}
+  \begin{subpart}{Recycle Pivots with Intersections}
+    \item Extends RecyclePivots.
+    \item Delete a branch only if its pivot appears on every path from the root to the node.
+  \end{subpart}
+  \begin{subpart}{Two traversals}
+    \item Collect \emph{safe literals} and mark edges to delete.
+    \item Delete edges and fix the proof.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}{LU}
+  \begin{subpart}{Lowering}
+    \item Moving a node down the proof to resolve it only once.
+    \item Units can always be lowered.
+  \end{subpart}
+  \begin{subpart}{Lowering Units}
+    \item Lower every unit with more than one child.
+    \item Reduces \emph{horizontal irregularities}.
+  \end{subpart}
+  \begin{subpart}{Two traversals}
+    \item Collect units with more than one child.
+    \item Delete units and fix the proof then reintroduce units.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}{Sequential Composition}
+\centering
+\include{composition-chart}
+\end{frame}
+
+
+\section{Difficulties}
+\subsection{to find a combined algorithm always at least as good as both compositions}
+
+\begin{frame}{Irregular Units}
+\end{frame}
+
+\begin{frame}{Root Safe Literals}
+\end{frame}
+
+\begin{frame}{Units introduced by RPI}
+\end{frame}
+
+\begin{frame}{Back to Irregular Units}
+\end{frame}
+
+
+\section{Combined Equivalents}
+\subsection{to both sequential compositions}
+
+\begin{frame}{RPI[3]LU}
+\end{frame}
+
+\begin{frame}{LUnivRPI}
+\end{frame}
+
+\section{LowerUnivalents}
+\subsection{A new algorithm extending LU}
+
+\begin{frame}{Formal Presentation}
+\end{frame}
+
+\begin{frame}{Implementation}
+\end{frame}
+
+
+\appendix
+
+\begin{frame}{Conclusion}
+\centering
+\include{combination-chart}
+\end{frame}
+
+\begin{frame}{Références}
+
+\begin{subpart}{Sur le web}
+\item http://www.matabio.net/OSeqCal
+\end{subpart}
+
+\begin{subpart}{Bibliographie}
+\item L. Mehats, S. Soloviev. Coherence in SMCCs and equivalences on derivations in IMLL with unit. Annals of Pure and Applied Logic, 147-3 (2007), pp. 127-179.
+\item S. Soloviev, V. Orevkov. On categorical equivalence of Gentzen-style derivations in IMLL. Theoretical Comp. Science, 303 (2003), pp. 245-260.
+\item J. Boudou, S. Soloviev. Verification using OCaml of Commutativity of
+Diagrams in Free Symmetric Monoidal Closed Categories, PCA2012
+S\textsuperscript{t} Petersburg, 8~pp.
+\end{subpart}
+
+\end{frame}
+
+\end{document}
