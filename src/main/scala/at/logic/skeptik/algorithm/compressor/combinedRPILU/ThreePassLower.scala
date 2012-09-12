@@ -44,6 +44,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 }
 
+/* Not equivalent to RPI.LU on :
+ * /data/proofs/QG-classification/qg5/iso_icl464.smt2 /data/proofs/QG-classification/qg5/iso_icl395.smt2 /data/proofs/QG-classification/qg5/iso_brn397.smt2 /data/proofs/QG-classification/qg5/iso_icl751.smt2 /data/proofs/QG-classification/qg5/iso_icl048.smt2 /data/proofs/QG-classification/qg5/iso_icl487.smt2 
+ */
 
 abstract class ThreePassLowerUnits
 extends AbstractThreePassLower {
