@@ -16,6 +16,8 @@
 \setbeamertemplate{mini frame in other subsection}[default][0!white!100]
 \setbeamertemplate{section in head/foot shaded}[default][0!white!100]
 
+%\usepackage{etex,pgfpages}
+%\pgfpagesuselayout{8 on 1}[a4paper,shrink=3cm]
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -42,8 +44,12 @@
   \end{block}
 }
 
+\usepackage[vlined]{algorithm2e}
+
 \usepackage{tikz}
 \usetikzlibrary{arrows,matrix,positioning}
+
+\newcommand{\chartscale}{1}
 
 \tikzstyle{proof edge}=[thick,cap=round]
 \tikzstyle{deleted edge}=[proof edge, dashed, color=deletecol]
@@ -84,7 +90,7 @@
   }
 }}
 
-\includeonly{}
+%\includeonly{combination-chart,composition-chart,combluniv-chart}
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
 %%%%%%%%%%%%%%%%%%
@@ -212,6 +218,21 @@
 \subsection{to both sequential compositions}
 
 \begin{frame}{RPI[3]LU}
+\begin{subpart}{Three traversals}
+  \item collect units and compute the \emph{root safe literals} ;
+  \item compute safe literals and mark edges to be deleted ;
+  \item fix the proof and reintroduce units.
+\end{subpart}
+\begin{subpart}{Implementation}
+  \item Many corner cases
+  \item Twice as fast as RPI.LU
+\end{subpart}
+\end{frame}
+
+\begin{frame}{RPI[3]LU vs RPI.LU}
+\centering
+\only<+>{\include{3pass-compress}}
+\only<+>{\include{3pass-time}}
 \end{frame}
 
 \begin{frame}{LUnivRPI}
@@ -220,32 +241,106 @@
 \section{LowerUnivalents}
 \subsection{A new algorithm extending LU}
 
-\begin{frame}{Formal Presentation}
+\begin{frame}{Lowering a node}
+  \begin{subpart}{The (generalized) problem}
+    \item Given $\psi[\eta] \odot_{a_1} \eta_1 \odot_{a_2} \cdots \odot_{a_n} \eta_n$
+    \item is $\psi_{\text{\tiny fixed}}[] \odot_a \eta \odot_{a_1} \eta_1 \odot_{a_2} \cdots \odot_{a_n} \eta_n$ equivalent ?
+  \end{subpart}
+  \begin{subpart}{It depends on}
+    \item $\eta$ and its children in $\psi[\eta]$
+    \item $a_{i \in 1..n}$ called \emph{the clause of lowered pivots}
+  \end{subpart}
 \end{frame}
 
-\begin{frame}{Implementation}
+\begin{frame}{Univalent clause}
+  \begin{definition}[Valent literal]
+  A literal $a$ is said to be valent w.r.t. a clause $\Delta$ iff $\bar{a}$
+  does not occur in $\Delta$.
+  \end{definition}
+
+  \begin{definition}[Univalent clause]
+  A clause $\Gamma$ is said to be univalent w.r.t. another clause $\Delta$ iff
+  there is exactely one literal $a$ in $\Gamma$ which is valent w.r.t.
+  $\Delta$.
+  \end{definition}
+
+  \addtocounter{beamerpauses}{1}
+  \begin{subpart}{\only<+->{A univalent clause isn't sufficient for a node to be lowered}}
+    \item<+-> $\Delta = \left\{ \bar{a} \right\}$ and $\eta$'s clause $= \left\{ a, b \right\}$
+    \item<+-> $\eta$'s child with pivot $a$
+    \item<+-> \alert{$\bar{a}$ propagated down the proof}
+  \end{subpart}
 \end{frame}
 
+\begin{frame}{Active literals}
+\begin{definition}[Active literal]
+Let's consider a node $\eta$ with clause $\Gamma$. A literal $a$ from
+$\Gamma$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
+one of $\eta$'s child.
+\end{definition}
+
+\begin{theorem}
+If all the active literals of a node $\eta$ with clause $\Gamma$ univalent
+w.r.t. the clause $\Delta$ of lowered literals either are the valent
+literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
+\end{theorem}
+\end{frame}
+
+\begin{frame}{Partial regularization}
+\end{frame}
+
+\begin{frame}{Algorithm}
+  \SetKw{aElseIf}{else if}
+  \SetKwFor{And}{and}{then}{endif}
+  \begin{algorithm}[H]
+    $\Delta \leftarrow \varnothing$ \;
+    \For{every node $\eta$ in a top-down traversal}{
+      Fix $\eta$ \;
+      \uIf{every $\eta$'s active literal belongs to $\Delta$}{Delete $\eta$ \;}
+    \aElseIf{$\eta$'s clause is univalent w.r.t. $\Delta$ with valent literal $a$}
+    \And{$a$ is the only active literal not belonging to $\Delta$}{
+        Lower $\eta$ \;
+        $\Delta \leftarrow \Delta \cup \{ a \}$ \;
+      }
+     }
+  \end{algorithm}
+\end{frame}
+
+\begin{frame}{Comparison with LU}
+\centering
+\only<+>{\include{LUniv-compress}}
+\only<+>{\include{LUniv-axiom}}
+\only<+>{\include{LUniv-time}}
+\end{frame}
 
 \appendix
 
 \begin{frame}{Conclusion}
-\centering
-\include{combination-chart}
+\renewcommand{\chartscale}{0.85}
+\begin{columns}
+
+  \column{0.45\textwidth}
+  \centering
+  \include{composition-chart}
+
+  \column{0.55\textwidth}
+  \centering
+  \only<+>{\include{combination-chart}}
+  \only<+>{\include{combluniv-chart}}
+  
+\end{columns}
 \end{frame}
 
 \begin{frame}{Références}
 
-\begin{subpart}{Sur le web}
-\item http://www.matabio.net/OSeqCal
+\begin{subpart}{Skeptik}
+\item http://github.com/Paradoxika/Skeptik
 \end{subpart}
 
-\begin{subpart}{Bibliographie}
-\item L. Mehats, S. Soloviev. Coherence in SMCCs and equivalences on derivations in IMLL with unit. Annals of Pure and Applied Logic, 147-3 (2007), pp. 127-179.
-\item S. Soloviev, V. Orevkov. On categorical equivalence of Gentzen-style derivations in IMLL. Theoretical Comp. Science, 303 (2003), pp. 245-260.
-\item J. Boudou, S. Soloviev. Verification using OCaml of Commutativity of
-Diagrams in Free Symmetric Monoidal Closed Categories, PCA2012
-S\textsuperscript{t} Petersburg, 8~pp.
+\begin{subpart}{Bibliography}
+\item Fontaine, P., Merz, S., Woltzenlogel Paleo, B.: Compression of
+  propositional resolution proofs via partial regularization. In: CADE. Lecture
+  Notes in Computer Science, vol. 6803, pp. 237--251. Springer (2011)
 \end{subpart}
 
 \end{frame}
