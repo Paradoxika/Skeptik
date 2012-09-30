@@ -26,28 +26,45 @@
 
 \usepackage{amsmath,bussproofs}
 
-\usepackage{graphics,booktabs,array}
-
-\title{Combining RecyclePivotsWithIntersection and LowerUnits}
-\author[Joseph Boudou]{Joseph Boudou, Bruno Woltzenlogel Paleo}
-
 \def\fCenter{\mbox{\large\ $\vdash$\ }}
 \newcommand{\InfDesc}[1]{\RightLabel{\tiny $(#1)$}}
 
 \newcommand{\siecle}[1]{\textsc{\romannumeral #1}\textsuperscript{e}~siècle}
 
-\newenvironment{subpart}[1]
-{ \begin{block}{#1}
+\newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
+
+\newcommand{\set}[2]{\ensuremath{\left\{#1\mid#2\right\}}}
+
+\newenvironment<>{subpart}[1]
+{ \begin{block}#2{#1}
   \begin{itemize}
 }{
   \end{itemize}
   \end{block}
 }
 
-\usepackage[vlined]{algorithm2e}
+\newcommand<>{\singleline}[1]{\begin{block}{\only#2#1}\end{block}}
+
+\usepackage[vlined,linesnumbered]{algorithm2e}
 
 \usepackage{tikz}
 \usetikzlibrary{arrows,matrix,positioning}
+
+\newcommand{\basecharttitle}[1]{{\color{vertfonce}#1}\vspace{-0.8em}}
+\makeatletter
+\newcommand{\charttitle}{\@ifstar\charttitlestar\charttitleplain}
+\makeatother
+\newcommand{\charttitleplain}[1]{\hspace{2em}\basecharttitle{#1}}
+\newcommand{\charttitlestar}[1]{\centering\basecharttitle{#1}}
+
+\newcommand{\compC}{Compression ratio comparison}
+\newcommand{\timeC}{Compression time comparison \scriptsize (in seconds)}
+\newcommand{\axioC}{Axiom compression ratio comparison}
+
+\newcommand{\asGoodRPILU}{For a combined algorithm to be always at least as
+good as RPI.LU it has to compute root and units safe literals.}
+\newcommand{\asGoodLURPI}{For a combined algorithm to be always at least as
+good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \newcommand{\chartscale}{1}
 
@@ -62,9 +79,9 @@
   \proofnode[#1]{root}{$\bot$}
 }
 
-\newcommand{\drawchildren}[3]{
-  \draw [proof edge] (#1) -- (#2);
-  \draw [proof edge] (#1) -- (#3)
+\newcommand<>{\drawchildren}[3]{
+  \draw#4 [proof edge] (#1) -- (#2);
+  \draw#4 [proof edge] (#1) -- (#3)
 }
 
 \newcommand{\addchildren}[5]{
@@ -77,19 +94,20 @@
   \drawchildren{#1}{#2}{#4}
 }
 
-\newcommand<>{\crossnode}[2][]{{
-  \only#3{
-    \draw [color=deletecol,thick,cap=round,#1] (#2.mid) ++(10:0.3) -- ++(190:0.6);
-%    \draw [color=red,thick,cap=round,#1] (#2.north west) -- (#2.south east);
-  }
-}}
+\newcommand<>{\crossnode}[2][]{
+  \draw#3 [color=deletecol,thick,cap=round,#1] (#2.mid) ++(10:0.3) -- ++(190:0.6);
+}
 
-\newcommand<>{\pivot}[3][]{{
-  \only#4{
-    \node [anchor=base,color=vertfonce,#1] at (#2.north) {\scriptsize #3};
-  }
-}}
+\newcommand<>{\pivot}[3][]{
+  \node#4 [anchor=base,color=vertfonce,#1] at (#2.north) {\scriptsize #3};
+}
 
+\title{Combining RecyclePivotsWithIntersection and LowerUnits}
+\author[Joseph Boudou]{Joseph Boudou, Bruno Woltzenlogel Paleo}
+\institute[GSoC]{Google Summer of Code 2012}
+\date{October 2012}
+
+%\includeonly{}
 %\includeonly{combination-chart,composition-chart,combluniv-chart}
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
@@ -104,7 +122,6 @@
 }
 
 \begin{frame}
-\date{October 2012}
 \titlepage
 \end{frame}
 
@@ -113,12 +130,11 @@
 \end{frame}
 
 \begin{frame}{Benchmarks}
+  \singleline{Algorithms implemented in Scala for Skeptik}
   \begin{subpart}{1000 proofs from VeriT}
     \item 100 SAT proof from the old external SAT solver
     \item 900 SMT proofs translated to propositional resolution
   \end{subpart}
-  \begin{block}{Algorithms implemented in Scala for Skeptik}
-  \end{block}
 \end{frame}
 
 \section{Introduction}
@@ -131,7 +147,7 @@
   \end{subpart}
   \begin{subpart}{Recycle Pivots with Intersections}
     \item Extends RecyclePivots.
-    \item Delete a branch only if its pivot appears on every path from the root to the node.
+    \item Delete a branch only if the pivot appears on \textbf{every} path from the root to the node.
   \end{subpart}
   \begin{subpart}{Two traversals}
     \item Collect \emph{safe literals} and mark edges to delete.
@@ -142,10 +158,9 @@
 \begin{frame}{LU}
   \begin{subpart}{Lowering}
     \item Moving a node down the proof to resolve it only once.
-    \item Units can always be lowered.
   \end{subpart}
   \begin{subpart}{Lowering Units}
-    \item Lower every unit with more than one child.
+    \item Units can always be lowered.
     \item Reduces \emph{horizontal irregularities}.
   \end{subpart}
   \begin{subpart}{Two traversals}
@@ -156,6 +171,7 @@
 
 \begin{frame}{Sequential Composition}
 \centering
+\charttitle{\compC}
 \include{composition-chart}
 \end{frame}
 
@@ -168,21 +184,21 @@
 \begin{tikzpicture}[node distance=1.3cm]
   \proofnode[color=addcolor]{luroot}{\only<4>{$\bot$}};
 
-  \proofnode[above left of=luroot]{root}{\alt<3-4>{$\bar{a}$}{$\bot$}};
-  \withchildren{root} {r2}{\alt<3-4>{$\bar{a} c$}{$c$}} {a4}{$\bar{c}$};
-  \withchildren{r2} {r0}{\alt<8>{$b c$}{$b$}} {r1}{$\bar{b} c$};
+  \proofnode[above left of=luroot]{root}{\alt<3-4>{$\dual{a}$}{$\bot$}};
+  \withchildren{root} {r2}{\alt<3-4>{$\dual{a} c$}{$c$}} {a4}{$\dual{c}$};
+  \withchildren{r2} {r0}{\alt<8>{$b c$}{$b$}} {r1}{$\dual{b} c$};
 
-  \addchildren{r0} {a0}{$\bar{a} b$} {iu}{$a$};
+  \addchildren{r0} {a0}{$\dual{a} b$} {iu}{$a$};
   \draw [proof edge] (r0) -- (a0);
   \only<1,5->{\draw [proof edge] (r0) -- (iu);}
   \only<2>{\draw [deleted edge] (r0) -- (iu);}
 
-  \addchildren{iu} {a1}{$a c$} {a2}{$a \bar{c}$};
+  \addchildren{iu} {a1}{$a c$} {a2}{$a \dual{c}$};
   \draw [proof edge] (iu) -- (a1);
   \only<1-6>{\draw [proof edge] (iu) -- (a2);}
   \only<7>{\draw [deleted edge] (iu) -- (a2);}
 
-  \proofnode[above right of=r1]{a3}{$\bar{a} \bar{b} c$};
+  \proofnode[above right of=r1]{a3}{$\dual{a} \dual{b} c$};
   \draw [proof edge] (r1) -- (a3);
   \only<1,5->{\draw [proof edge] (r1) -- (iu);}
   \only<2>{\draw [deleted edge] (r1) -- (iu);}
@@ -204,13 +220,55 @@
 \end{center}
 \end{frame}
 
-\begin{frame}{Root Safe Literals}
+\begin{frame}{Root and Units Safe Literals}
+\begin{subpart}{In RPI.LU, after LU :}
+  \item the proof is of the form $\eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ ;
+  \item $\set{\dual{a}_i}{i \leq n}$ is the safe literals for $\eta$ : \emph{the root's safe literals} ;
+  \item $\forall i < n$, $\set{\dual{a}_j}{i < j \leq n}$ is the safe literals for $\eta_i$ : \emph{a unit's safe literals}.
+\end{subpart}
+\begin{overlayarea}{\textwidth}{2em}
+  \singleline<2->{\asGoodRPILU}
+\end{overlayarea}
 \end{frame}
 
 \begin{frame}{Units introduced by RPI}
-\end{frame}
+\begin{center}
+\vspace{-3em}
+\begin{tikzpicture}[node distance=1.3cm,scale=0.93]
+  \rootnode;
+  \addchildren{root} {n0}{\alt<3->{$\bot$}{$d$}} {a0}{$\dual{d}$};
+  \draw<-2> [proof edge] (root) -- (n0);
+  \draw     [proof edge] (root) -- (a0);
+  \withchildren{n0} {n1}{\alt<3->{$e$}{$d e$}} {n2}{\alt<3->{$\dual{e}$}{$d \dual{e}$}};
 
-\begin{frame}{Back to Irregular Units}
+  \withchildren{n1} {a1}{$\dual{b} e$} {u0}{\alt<3->{\alert<3>{$b$}}{$d b$}};
+  \proofnode[above right of=n2]{a2}{$\dual{b} \dual{e}$};
+  \drawchildren{n2} {u0} {a2};
+
+  \withchildren{u0} {n3}{$a b d$} {a3}{$\dual{a} b$};
+  \addchildren{n3} {n4}{$b d c$} {a4}{$\dual{c} a$};
+  \draw    [proof edge]   (n3) -- (n4);
+  \draw<-2>[proof edge]   (n3) -- (a4);
+  \addchildren{n4} {a5}{$a b$}   {a6}{$\dual{a} d c$};
+  \draw    [proof edge]   (n4) -- (a5);
+  \draw<1> [proof edge]   (n4) -- (a6);
+  \draw<2> [deleted edge] (n4) -- (a6);
+
+  \pivot<2>{u0} {$a$}
+  \pivot<2>{n4} {$a$}
+  \crossnode<3->{a6}
+
+  \crossnode<3->{n4}
+  \crossnode<3->{n3}
+  \crossnode<3->{a4}
+  \crossnode<3->{root}
+  \crossnode<3->{a0}
+\end{tikzpicture}
+\vspace{-2.2em}
+\end{center}
+\begin{overlayarea}{\textwidth}{1em}
+  \singleline<4>{\asGoodLURPI}
+\end{overlayarea}
 \end{frame}
 
 
@@ -218,24 +276,34 @@
 \subsection{to both sequential compositions}
 
 \begin{frame}{RPI[3]LU}
+\singleline{\asGoodRPILU}
 \begin{subpart}{Three traversals}
-  \item collect units and compute the \emph{root safe literals} ;
+  \item collect units and compute \emph{root and units safe literals} ;
   \item compute safe literals and mark edges to be deleted ;
   \item fix the proof and reintroduce units.
 \end{subpart}
-\begin{subpart}{Implementation}
-  \item Many corner cases
-  \item Twice as fast as RPI.LU
-\end{subpart}
+%\begin{subpart}{Implementation}
+%  \item Many corner cases
+%  \item Twice as fast as RPI.LU
+%\end{subpart}
 \end{frame}
 
 \begin{frame}{RPI[3]LU vs RPI.LU}
 \centering
-\only<+>{\include{3pass-compress}}
-\only<+>{\include{3pass-time}}
+\only<+>{\charttitle{\compC} \include{3pass-compress}}
+\only<+>{\charttitle{\timeC} \include{3pass-time}}
 \end{frame}
 
 \begin{frame}{LUnivRPI}
+\begin{subpart}{\asGoodLURPI}
+  \item Collect units during fixing (top-down traversal).
+\end{subpart}
+\addtocounter{beamerpauses}{1}
+\begin{subpart}{Problems}<+->
+  \item<.-> If a unit $\{a\}$ depends on a unit $\{b\}$ it'll be seen as $\left\{a, \dual{b}\right\}$.
+  \item<+-> What to do if we find $\left\{a, \dual{b}\right\}$ after $\{b\}$ ?
+  \item<+-> A new algorithm extending LU is needed.
+\end{subpart}
 \end{frame}
 
 \section{LowerUnivalents}
@@ -243,32 +311,32 @@
 
 \begin{frame}{Lowering a node}
   \begin{subpart}{The (generalized) problem}
-    \item Given $\psi[\eta] \odot_{a_1} \eta_1 \odot_{a_2} \cdots \odot_{a_n} \eta_n$
-    \item is $\psi_{\text{\tiny fixed}}[] \odot_a \eta \odot_{a_1} \eta_1 \odot_{a_2} \cdots \odot_{a_n} \eta_n$ equivalent ?
+    \item Given $\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$
+    \item is $\psi_{\text{\tiny fixed}}[] \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ equivalent ?
   \end{subpart}
   \begin{subpart}{It depends on}
-    \item $\eta$ and its children in $\psi[\eta]$
-    \item $a_{i \in 1..n}$ called \emph{the clause of lowered pivots}
+    \item $\eta$ and its children in $\psi[\eta]$ ;
+    \item $\set{a_i}{i \leq n}$ called \emph{the clause of lowered pivots}.
   \end{subpart}
 \end{frame}
 
 \begin{frame}{Univalent clause}
   \begin{definition}[Valent literal]
-  A literal $a$ is said to be valent w.r.t. a clause $\Delta$ iff $\bar{a}$
+  A literal $a$ is said to be valent w.r.t. a clause $\Delta$ iff $\dual{a}$
   does not occur in $\Delta$.
   \end{definition}
 
   \begin{definition}[Univalent clause]
   A clause $\Gamma$ is said to be univalent w.r.t. another clause $\Delta$ iff
-  there is exactely one literal $a$ in $\Gamma$ which is valent w.r.t.
+  there is exactly one literal $a$ in $\Gamma$ which is valent w.r.t.
   $\Delta$.
   \end{definition}
 
   \addtocounter{beamerpauses}{1}
-  \begin{subpart}{\only<+->{A univalent clause isn't sufficient for a node to be lowered}}
-    \item<+-> $\Delta = \left\{ \bar{a} \right\}$ and $\eta$'s clause $= \left\{ a, b \right\}$
+  \begin{subpart}{A univalent clause isn't sufficient for a node to be lowered}<+->
+    \item<+-> $\Delta = \left\{ \dual{a} \right\}$ and $\eta$'s clause $= \left\{ a, b \right\}$
     \item<+-> $\eta$'s child with pivot $a$
-    \item<+-> \alert{$\bar{a}$ propagated down the proof}
+    \item<+-> \alert{$\dual{a}$ propagated down the proof}
   \end{subpart}
 \end{frame}
 
@@ -287,6 +355,14 @@ literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
 \end{frame}
 
 \begin{frame}{Partial regularization}
+\begin{subpart}{Deletable node}
+  \item Suppose all active literals of a node $\eta$ belong to $\Delta$.
+  \item Deleting $\eta$ will introduce only duals of literals from $\Delta$.
+\end{subpart}
+\begin{subpart}<2->{Partial regularization}
+  \item Given $\Delta = \set{a_i}{i \leq n}$, $\Sigma = \set{\dual{a}_i}{i \leq n}$ is the root safe literals.
+  \item If the pivot of any $\eta$'s child belongs to $\Delta$ then delete the edge.
+\end{subpart}
 \end{frame}
 
 \begin{frame}{Algorithm}
@@ -308,14 +384,15 @@ literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
 
 \begin{frame}{Comparison with LU}
 \centering
-\only<+>{\include{LUniv-compress}}
-\only<+>{\include{LUniv-axiom}}
-\only<+>{\include{LUniv-time}}
+\only<+>{\charttitle{\compC} \include{LUniv-compress}}
+\only<+>{\charttitle{\axioC} \include{LUniv-axiom}}
+\only<+>{\charttitle{\timeC} \include{LUniv-time}}
 \end{frame}
 
 \appendix
 
 \begin{frame}{Conclusion}
+\charttitle*{Compression ratio comparison}
 \renewcommand{\chartscale}{0.85}
 \begin{columns}
 
@@ -331,7 +408,7 @@ literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
 \end{columns}
 \end{frame}
 
-\begin{frame}{Références}
+\begin{frame}{References}
 
 \begin{subpart}{Skeptik}
 \item http://github.com/Paradoxika/Skeptik
