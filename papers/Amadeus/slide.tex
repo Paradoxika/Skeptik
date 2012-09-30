@@ -16,20 +16,12 @@
 \setbeamertemplate{mini frame in other subsection}[default][0!white!100]
 \setbeamertemplate{section in head/foot shaded}[default][0!white!100]
 
-%\usepackage{etex,pgfpages}
-%\pgfpagesuselayout{8 on 1}[a4paper,shrink=3cm]
-
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
 \usepackage{kpfonts}
 
-\usepackage{amsmath,bussproofs}
-
-\def\fCenter{\mbox{\large\ $\vdash$\ }}
-\newcommand{\InfDesc}[1]{\RightLabel{\tiny $(#1)$}}
-
-\newcommand{\siecle}[1]{\textsc{\romannumeral #1}\textsuperscript{e}~siècle}
+\usepackage{amsmath}
 
 \newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
 
@@ -45,10 +37,10 @@
 
 \newcommand<>{\singleline}[1]{\begin{block}{\only#2#1}\end{block}}
 
-\usepackage[vlined,linesnumbered]{algorithm2e}
+\usepackage[vlined]{algorithm2e}
 
 \usepackage{tikz}
-\usetikzlibrary{arrows,matrix,positioning}
+\usetikzlibrary{positioning}
 
 \newcommand{\basecharttitle}[1]{{\color{vertfonce}#1}\vspace{-0.8em}}
 \makeatletter
@@ -108,18 +100,10 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \date{October 2012}
 
 %\includeonly{}
-%\includeonly{combination-chart,composition-chart,combluniv-chart}
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
 %%%%%%%%%%%%%%%%%%
 \begin{document}
-
-\tikzset{bottomrule/.style={%
-    execute at end cell={%
-        \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
-        }
-    }
-}
 
 \begin{frame}
 \titlepage
@@ -132,7 +116,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \begin{frame}{Benchmarks}
   \singleline{Algorithms implemented in Scala for Skeptik}
   \begin{subpart}{1000 proofs from VeriT}
-    \item 100 SAT proof from the old external SAT solver
+    \item 100 SAT proofs from the old external SAT solver
     \item 900 SMT proofs translated to propositional resolution
   \end{subpart}
 \end{frame}
@@ -140,28 +124,61 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \section{Introduction}
 \subsection{RPI, LU, composing them}
 
-\begin{frame}{RPI}
-  \begin{subpart}{Regularization}
-    \item A prood node is regular if its pivot is not reused on any path to the root.
-    \item Full regularization might lead to bigger proofs.
-  \end{subpart}
-  \begin{subpart}{Recycle Pivots with Intersections}
-    \item Extends RecyclePivots.
+\begin{frame}{Propositional resolution calculus}
+\begin{subpart}{Conventions}
+  \item Clauses are sets of literals.
+  \item Let $\eta_{\Gamma}$ be a proof of clause $\Gamma$ and $\eta_{\Delta}$ a proof of $\Delta$.
+  \item $\eta_{\Sigma} = \eta_{\Gamma} \odot_a \eta_{\Delta}$ iff its clause $\Sigma$ is such that
+        $\left\{\dual{a}\right\} = \Gamma \setminus \Sigma \wedge \left\{a\right\} = \Delta \setminus \Sigma$.
+  \item $a$ is the \emph{pivot} of $\eta_\Sigma$.
+  \item $\eta_\Gamma$ and $\eta_\Delta$ are the \emph{premises} of $\eta_\Sigma$.
+  \item $\eta_\Sigma$ is a \emph{child} of both $\eta_\Gamma$ and $\eta_\Delta$.
+\end{subpart}
+\begin{subpart}{Proof as DAG}
+  \item A node can have more than one child.
+\end{subpart}
+\end{frame}
+
+\begin{frame}{Regular proof}
+\begin{definition}[Regular proof]
+  A proof is said to be regular if on every path from its root to any of its axiom, each pivot appears only once.
+\end{definition}
+\begin{theorem}<2->[Tseitin]
+  Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentialy bigger
+  than the smallest irregular proof of $\Gamma$.
+\end{theorem}
+\end{frame}
+
+\begin{frame}{Extending Irregularity}
+\begin{definition}[Fully regular proof]
+  A proof is fully regular if for each variable there is at most one resolution node with this variable as pivot.
+\end{definition}
+\begin{subpart}{Conventions}
+  \item Usual irregularities are called \emph{vertical irregularities}.
+  \item Other irregularities are called \emph{horizontal irregularities}.
+\end{subpart}
+\end{frame}
+
+\begin{frame}{RecyclePivotsWithIntersection (RPI)}
+  \begin{subpart}{Partial Regularization}
     \item Delete a branch only if the pivot appears on \textbf{every} path from the root to the node.
   \end{subpart}
+  \begin{definition}[Safe literal]
+    A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing the proof's conclusion.
+  \end{definition}
   \begin{subpart}{Two traversals}
-    \item Collect \emph{safe literals} and mark edges to delete.
+    \item Collect safe literals and mark edges to delete.
     \item Delete edges and fix the proof.
   \end{subpart}
 \end{frame}
 
-\begin{frame}{LU}
+\begin{frame}{LowerUnits (LU)}
   \begin{subpart}{Lowering}
     \item Moving a node down the proof to resolve it only once.
   \end{subpart}
   \begin{subpart}{Lowering Units}
     \item Units can always be lowered.
-    \item Reduces \emph{horizontal irregularities}.
+    \item Reduces horizontal irregularities.
   \end{subpart}
   \begin{subpart}{Two traversals}
     \item Collect units with more than one child.
@@ -278,14 +295,10 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \begin{frame}{RPI[3]LU}
 \singleline{\asGoodRPILU}
 \begin{subpart}{Three traversals}
-  \item collect units and compute \emph{root and units safe literals} ;
+  \item collect units and compute root and units safe literals ;
   \item compute safe literals and mark edges to be deleted ;
   \item fix the proof and reintroduce units.
 \end{subpart}
-%\begin{subpart}{Implementation}
-%  \item Many corner cases
-%  \item Twice as fast as RPI.LU
-%\end{subpart}
 \end{frame}
 
 \begin{frame}{RPI[3]LU vs RPI.LU}
@@ -355,12 +368,12 @@ literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
 \end{frame}
 
 \begin{frame}{Partial regularization}
-\begin{subpart}{Deletable node}
+\begin{subpart}{Deletable node \uncover<3->{(implemented)}}
   \item Suppose all active literals of a node $\eta$ belong to $\Delta$.
   \item Deleting $\eta$ will introduce only duals of literals from $\Delta$.
 \end{subpart}
-\begin{subpart}<2->{Partial regularization}
-  \item Given $\Delta = \set{a_i}{i \leq n}$, $\Sigma = \set{\dual{a}_i}{i \leq n}$ is the root safe literals.
+\begin{subpart}<2->{Partial regularization \uncover<3->{(not implemented)}}
+  \item If $\Delta = \set{a_i}{i \leq n}$ then $\set{\dual{a}_i}{i \leq n}$ is the root safe literals.
   \item If the pivot of any $\eta$'s child belongs to $\Delta$ then delete the edge.
 \end{subpart}
 \end{frame}
