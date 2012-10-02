@@ -58,6 +58,10 @@ good as RPI.LU it has to compute root and units safe literals.}
 \newcommand{\asGoodLURPI}{For a combined algorithm to be always at least as
 good as LU.RPI it has to be able to lower units introduced by RPI.}
 
+\newcommand{\bottomup}{\item[$\uparrow$]}
+\newcommand{\topdown} {\item[$\downarrow$]}
+\newcommand{\anydir}  {\item[$\updownarrow$]}
+
 \newcommand{\chartscale}{1}
 
 \tikzstyle{proof edge}=[thick,cap=round]
@@ -94,6 +98,10 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \node#4 [anchor=base,color=vertfonce,#1] at (#2.north) {\scriptsize #3};
 }
 
+\newcommand<>{\safelit}[3][]{
+  \node#4 [anchor=west,color=vertfonce,#1] at (#2.mid) {\hspace{0.2em} \scriptsize $\left\{#3\right\}$};
+}
+
 \title{Combining RecyclePivotsWithIntersection and LowerUnits}
 \author[Joseph Boudou]{Joseph Boudou, Bruno Woltzenlogel Paleo}
 %\institute[GSoC]{Google Summer of Code 2012}
@@ -101,7 +109,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \institute[GSoC]{\fbox{\includegraphics[scale=0.2]{gsoc.eps}}}
 \date{October 2012}
 
-%\includeonly{}
+\includeonly{}
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
 %%%%%%%%%%%%%%%%%%
@@ -129,12 +137,13 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \begin{frame}{Propositional resolution calculus}
 \begin{subpart}{Conventions}
   \item Clauses are sets of literals.
+  \item $\dual{a}$ is the dual of $a$.
   \item Let $\eta_{\Gamma}$ be a proof of clause $\Gamma$ and $\eta_{\Delta}$ a proof of $\Delta$.
-  \item If $\dual{a} \in \Gamma$ and $a \in \Delta$ then $\eta_\Gamma \odot_a \eta_\Delta$ is a proof of
-        $\left(\Gamma U \Delta\right) \setminus \left\{a,\dual{a}\right\}$.
-  \item $a$ is the \emph{pivot} of $\eta_\Sigma$.
-  \item $\eta_\Gamma$ and $\eta_\Delta$ are the \emph{premises} of $\eta_\Sigma$.
-  \item $\eta_\Sigma$ is a \emph{child} of both $\eta_\Gamma$ and $\eta_\Delta$.
+  \item If $\dual{a} \in \Gamma$ and $a \in \Delta$ then $\eta = \eta_\Gamma \odot_a \eta_\Delta$ is a proof of
+        $\left(\Gamma \cup \Delta\right) \setminus \left\{a,\dual{a}\right\}$.
+  \item $a$ is the \emph{pivot} of $\eta$.
+  \item $\eta_\Gamma$ and $\eta_\Delta$ are the \emph{premises} of $\eta$.
+  \item $\eta$ is a \emph{child} of both $\eta_\Gamma$ and $\eta_\Delta$.
 \end{subpart}
 \begin{subpart}{Proof as DAG}
   \item A node can have more than one child.
@@ -169,8 +178,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing the proof's conclusion (root's clause).
   \end{definition}
   \begin{subpart}{Two traversals}
-    \item Collect safe literals and mark edges to delete.
-    \item Delete edges and fix the proof.
+    \bottomup Collect safe literals and mark edges to delete.
+    \topdown Delete edges and fix the proof.
   \end{subpart}
 \end{frame}
 
@@ -183,8 +192,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     \item Reduces horizontal irregularities.
   \end{subpart}
   \begin{subpart}{Two traversals}
-    \item Collect units with more than one child.
-    \item Delete units, fix the proof and then reintroduce the units at the bottom of the proof.
+    \anydir Collect units with more than one child.
+    \topdown Delete units, fix the proof and then reintroduce the units at the bottom of the proof.
   \end{subpart}
 \end{frame}
 
@@ -229,8 +238,13 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     \draw [proof edge,color=addcolor] (luroot) .. controls ++(1.2,1.5) .. (iu);
   }
 
-  \pivot<6-7>{iu}{$c$}
-  \pivot<6->{root}{$c$}
+  \pivot<6>{iu}{$c$}
+  \pivot<6>{root}{$c$}
+  \safelit<7>{root}{}
+  \safelit<7>{r2}{c}
+  \safelit<7>{r0}{b,c}
+  \safelit<7>{r1}{\dual{b},c}
+  \safelit<7>{iu}{a,c}
   \crossnode<8>{a2}
   \crossnode<8>{iu}
 
@@ -243,7 +257,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \begin{subpart}{In RPI.LU, after LU :}
   \item the proof is of the form $\eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ ;
   \item $\set{\dual{a}_i}{i \leq n}$ is the safe literals for $\eta$ : \emph{the root's safe literals} ;
-  \item $\forall i < n$, $\set{\dual{a}_j}{i < j \leq n}$ is the safe literals for $\eta_i$ : \emph{a unit's safe literals}.
+  \item $\forall i < n$, $\set{\dual{a}_j}{i < j \leq n}$ is the safe literals for $\eta_i$.
 \end{subpart}
 \begin{overlayarea}{\textwidth}{2em}
   \singleline<2->{\asGoodRPILU}
@@ -297,9 +311,9 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \begin{frame}{RPI[3]LU}
 \singleline{\asGoodRPILU}
 \begin{subpart}{Three traversals}
-  \item collect units and compute root and units safe literals ;
-  \item compute safe literals and mark edges to be deleted ;
-  \item fix the proof and reintroduce units.
+  \topdown  collect units and compute root and units safe literals ;
+  \bottomup compute safe literals and mark edges to be deleted ;
+  \topdown  fix the proof and reintroduce units.
 \end{subpart}
 \end{frame}
 
@@ -327,7 +341,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \begin{frame}{Lowering a node}
   \begin{subpart}{The (generalized) problem}
     \item Given $\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$
-    \item is $\psi_{\text{\tiny fixed}}[] \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ equivalent ?
+    \item is $\text{Fix}\left(\psi[]\right) \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ equivalent ?
   \end{subpart}
   \begin{subpart}{It depends on}
     \item $\eta$ and its children in $\psi[\eta]$ ;
@@ -361,11 +375,13 @@ Let's consider a node $\eta$ with clause $\Gamma$. A literal $a$ from
 $\Gamma$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
 one of $\eta$'s child.
 \end{definition}
-
 \begin{theorem}
-If all the active literals of a node $\eta$ with clause $\Gamma$ univalent
-w.r.t. the clause $\Delta$ of lowered literals either are the valent
-literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
+Let $\Delta$ be the clause of lowered pivots and $\eta$ a node with clause
+$\Gamma$ univalent w.r.t. to $\Delta$.  If any active literal in $\Gamma$ is
+either valent or belongs to $\Delta$, then $\eta$ can be lowered.
+%If all the active literals of a node $\eta$ with clause $\Gamma$ univalent
+%w.r.t. the clause $\Delta$ of lowered literals either are the valent
+%literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
 \end{theorem}
 \end{frame}
 
@@ -376,7 +392,7 @@ literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
 \end{subpart}
 \begin{subpart}<2->{Partial regularization \uncover<3->{(not implemented)}}
   \item If $\Delta = \set{a_i}{i \leq n}$ then $\set{\dual{a}_i}{i \leq n}$ is the root safe literals.
-  \item If the pivot of any $\eta$'s child belongs to $\Delta$ then delete the edge.
+  \item If the pivot of any of $\eta$'s children belongs to $\Delta$ then delete the edge.
 \end{subpart}
 \end{frame}
 
@@ -387,7 +403,7 @@ literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
     $\Delta \leftarrow \varnothing$ \;
     \For{every node $\eta$ in a top-down traversal}{
       Fix $\eta$ \;
-      \uIf{every $\eta$'s active literal belongs to $\Delta$}{Delete $\eta$ \;}
+      \uIf{every active literal of $\eta$ belongs to $\Delta$}{Delete $\eta$ \;}
     \aElseIf{$\eta$'s clause is univalent w.r.t. $\Delta$ with valent literal $a$}
     \And{$a$ is the only active literal not belonging to $\Delta$}{
         Lower $\eta$ \;
