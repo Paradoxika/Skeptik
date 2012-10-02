@@ -130,8 +130,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \begin{subpart}{Conventions}
   \item Clauses are sets of literals.
   \item Let $\eta_{\Gamma}$ be a proof of clause $\Gamma$ and $\eta_{\Delta}$ a proof of $\Delta$.
-  \item $\eta_{\Sigma} = \eta_{\Gamma} \odot_a \eta_{\Delta}$ iff its clause $\Sigma$ is such that
-        $\left\{\dual{a}\right\} = \Gamma \setminus \Sigma \wedge \left\{a\right\} = \Delta \setminus \Sigma$.
+  \item If $\dual{a} \in \Gamma$ and $a \in \Delta$ then $\eta_\Gamma \odot_a \eta_\Delta$ is a proof of
+        $\left(\Gamma U \Delta\right) \setminus \left\{a,\dual{a}\right\}$.
   \item $a$ is the \emph{pivot} of $\eta_\Sigma$.
   \item $\eta_\Gamma$ and $\eta_\Delta$ are the \emph{premises} of $\eta_\Sigma$.
   \item $\eta_\Sigma$ is a \emph{child} of both $\eta_\Gamma$ and $\eta_\Delta$.
@@ -162,11 +162,11 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{frame}
 
 \begin{frame}{RecyclePivotsWithIntersection (RPI)}
-  \begin{subpart}{Partial Regularization}
+  \begin{subpart}{Partial Vertical Regularization}
     \item Delete a branch only if the pivot appears on \textbf{every} path from the root to the node.
   \end{subpart}
   \begin{definition}[Safe literal]
-    A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing the proof's conclusion.
+    A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing the proof's conclusion (root's clause).
   \end{definition}
   \begin{subpart}{Two traversals}
     \item Collect safe literals and mark edges to delete.
@@ -184,7 +184,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \end{subpart}
   \begin{subpart}{Two traversals}
     \item Collect units with more than one child.
-    \item Delete units and fix the proof then reintroduce units.
+    \item Delete units, fix the proof and then reintroduce the units at the bottom of the proof.
   \end{subpart}
 \end{frame}
 
