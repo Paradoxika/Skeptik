@@ -109,7 +109,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \institute[GSoC]{\fbox{\includegraphics[scale=0.2]{gsoc.eps}}}
 \date{October 2012}
 
-\includeonly{}
+%\includeonly{}
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
 %%%%%%%%%%%%%%%%%%
@@ -363,10 +363,44 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
   \addtocounter{beamerpauses}{1}
   \begin{subpart}{A univalent clause isn't sufficient for a node to be lowered}<+->
-    \item<+-> $\Delta = \left\{ \dual{a} \right\}$ and $\eta$'s clause $= \left\{ a, b \right\}$
-    \item<+-> $\eta$'s child with pivot $a$
-    \item<+-> \alert{$\dual{a}$ propagated down the proof}
+    \item<+-> $\Delta = \left\{ a \right\}$ and $\eta$'s clause $= \left\{ \dual{a}, b \right\}$
+    \item<+-> $\eta$'s child with pivot $\dual{a}$
+    \item<+-> \alert{$a$ propagated down the proof}
   \end{subpart}
+\end{frame}
+
+\begin{frame}{Sample}
+\begin{center}
+\begin{tikzpicture}[node distance=1.3cm]
+  \proofnode{n0}{$\dual{d}$};
+  \addchildren{n0} {a0}{$\dual{a},\dual{d}$} {u0}{$a$};
+  \draw     [proof edge]   (n0) -- (a0);
+  \draw<-1> [proof edge]   (n0) -- (u0);
+  \draw<2>  [deleted edge] (n0) -- (u0);
+  \withchildren{u0} {a1}{$\dual{c},a$} {a2}{$c,a$};
+  \crossnode<3->{n0};
+
+  \proofnode[below right of=a2]{n1}{$c,b$};
+  \proofnode[above right of=n1]{u1}{$\dual{a},b$};
+  \draw     [proof edge]   (n1) -- (a2);
+  \draw<-3> [proof edge]   (n1) -- (u1);
+  \draw<4>  [deleted edge] (n1) -- (u1);
+  \crossnode<5->{n1};
+
+  \proofnode[below right of=n1]{n2}{$c$};
+  \proofnode[above right of=n2]{a3}{$\dual{b},c$};
+  \drawchildren{n2}{n1}{a3};
+  \crossnode<5->{n2};
+  \crossnode<5->{a3};
+
+  \proofnode[below left of=n2]{n3}{\alt<5->{$d,a$}{$d$}};
+  \proofnode[above left of=n3]{a4}{$\dual{c},d$};
+  \drawchildren{n3}{n2}{a4};
+
+  \proofnode[below left of=n3]{root}{\alt<3->{\alt<5->{$\dual{a},a$}{$\dual{a}$}}{$\bot$}};
+  \drawchildren{root}{n0}{n3};
+\end{tikzpicture}
+\end{center}
 \end{frame}
 
 \begin{frame}{Active literals}
