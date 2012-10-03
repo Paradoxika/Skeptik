@@ -340,93 +340,40 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \begin{frame}{Lowering a node}
   \begin{subpart}{The (generalized) problem}
-    \item Given $\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$
-    \item is $\text{Fix}\left(\psi[]\right) \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ equivalent ?
+    \item Given $\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_{n-1}} \eta_{n-1}$
+    \item is $\text{Fix}\left(\psi[]\right) \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_{n-1}} \eta_{n-1}$ equivalent ?
   \end{subpart}
-  \begin{subpart}{It depends on}
-    \item $\eta$ and its children in $\psi[\eta]$ ;
-    \item $\set{a_i}{i \leq n}$ called \emph{the clause of lowered pivots}.
+  \begin{subpart}{Two steps}
+    \item Deleting the node : $\text{Fix}\left(\psi[]\right)$ ;
+    \item Reintroducing it : $\odot_a \eta$.
   \end{subpart}
-\end{frame}
-
-\begin{frame}{Univalent clause}
-  \begin{definition}[Valent literal]
-  A literal $a$ is said to be valent w.r.t. a clause $\Delta$ iff $\dual{a}$
-  does not occur in $\Delta$.
-  \end{definition}
-
-  \begin{definition}[Univalent clause]
-  A clause $\Gamma$ is said to be univalent w.r.t. another clause $\Delta$ iff
-  there is exactly one literal $a$ in $\Gamma$ which is valent w.r.t.
-  $\Delta$.
-  \end{definition}
-
-  \addtocounter{beamerpauses}{1}
-  \begin{subpart}{A univalent clause isn't sufficient for a node to be lowered}<+->
-    \item<+-> $\Delta = \left\{ a \right\}$ and $\eta$'s clause $= \left\{ \dual{a}, b \right\}$
-    \item<+-> $\eta$'s child with pivot $\dual{a}$
-    \item<+-> \alert{$a$ propagated down the proof}
+  \begin{subpart}{Beware of introduced literals}
+    \item $\Delta = \set{\dual{a}_i}{i < n}$ is the safe literals of $\text{Fix}\left(\psi[]\right) \odot_a \eta$.
   \end{subpart}
 \end{frame}
 
-\begin{frame}{Sample}
-\begin{center}
-\begin{tikzpicture}[node distance=1.3cm]
-  \proofnode{n0}{$\dual{d}$};
-  \addchildren{n0} {a0}{$\dual{a},\dual{d}$} {u0}{$a$};
-  \draw     [proof edge]   (n0) -- (a0);
-  \draw<-1> [proof edge]   (n0) -- (u0);
-  \draw<2>  [deleted edge] (n0) -- (u0);
-  \withchildren{u0} {a1}{$\dual{c},a$} {a2}{$c,a$};
-  \crossnode<3->{n0};
-
-  \proofnode[below right of=a2]{n1}{$c,b$};
-  \proofnode[above right of=n1]{u1}{$\dual{a},b$};
-  \draw     [proof edge]   (n1) -- (a2);
-  \draw<-3> [proof edge]   (n1) -- (u1);
-  \draw<4>  [deleted edge] (n1) -- (u1);
-  \crossnode<5->{n1};
-
-  \proofnode[below right of=n1]{n2}{$c$};
-  \proofnode[above right of=n2]{a3}{$\dual{b},c$};
-  \drawchildren{n2}{n1}{a3};
-  \crossnode<5->{n2};
-  \crossnode<5->{a3};
-
-  \proofnode[below left of=n2]{n3}{\alt<5->{$d,a$}{$d$}};
-  \proofnode[above left of=n3]{a4}{$\dual{c},d$};
-  \drawchildren{n3}{n2}{a4};
-
-  \proofnode[below left of=n3]{root}{\alt<3->{\alt<5->{$\dual{a},a$}{$\dual{a}$}}{$\bot$}};
-  \drawchildren{root}{n0}{n3};
-\end{tikzpicture}
-\end{center}
-\end{frame}
-
-\begin{frame}{Active literals}
+\begin{frame}{Conditions}
+\begin{subpart}{Literals introduced by reintroducing the node}
+  \item Let $\Gamma_+$ be $\eta$'s clause,
+  \item $\Gamma \setminus \Delta = \{a\}$.
+\end{subpart}
 \begin{definition}[Active literal]
-Let's consider a node $\eta$ with clause $\Gamma$. A literal $a$ from
-$\Gamma$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
+Let's consider a node $\eta$ with clause $\Gamma_+$. A literal $a$ from
+$\Gamma_+$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
 one of $\eta$'s child.
 \end{definition}
-\begin{theorem}
-Let $\Delta$ be the clause of lowered pivots and $\eta$ a node with clause
-$\Gamma$ univalent w.r.t. to $\Delta$.  If any active literal in $\Gamma$ is
-either valent or belongs to $\Delta$, then $\eta$ can be lowered.
-%If all the active literals of a node $\eta$ with clause $\Gamma$ univalent
-%w.r.t. the clause $\Delta$ of lowered literals either are the valent
-%literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
-\end{theorem}
+\begin{subpart}{Literals introduced by deleting the node}
+  \item Let $\Gamma_-$ be the set of the duals of $\eta$'s active literals,
+  \item $\Gamma_- \setminus \Delta = \{\dual{a}\}$.
+\end{subpart}
 \end{frame}
 
 \begin{frame}{Partial regularization}
 \begin{subpart}{Deletable node \uncover<3->{(implemented)}}
-  \item Suppose all active literals of a node $\eta$ belong to $\Delta$.
-  \item Deleting $\eta$ will introduce only duals of literals from $\Delta$.
+  \item If $\Gamma_- \setminus \Delta = \varnothing$ then delete $\eta$.
 \end{subpart}
 \begin{subpart}<2->{Partial regularization \uncover<3->{(not implemented)}}
-  \item If $\Delta = \set{a_i}{i \leq n}$ then $\set{\dual{a}_i}{i \leq n}$ is the root safe literals.
-  \item If the pivot of any of $\eta$'s children belongs to $\Delta$ then delete the edge.
+  \item If the dual of any of $\eta$'s active literal belongs to $\Delta$ then delete the edge.
 \end{subpart}
 \end{frame}
 
@@ -437,9 +384,10 @@ either valent or belongs to $\Delta$, then $\eta$ can be lowered.
     $\Delta \leftarrow \varnothing$ \;
     \For{every node $\eta$ in a top-down traversal}{
       Fix $\eta$ \;
-      \uIf{every active literal of $\eta$ belongs to $\Delta$}{Delete $\eta$ \;}
-    \aElseIf{$\eta$'s clause is univalent w.r.t. $\Delta$ with valent literal $a$}
-    \And{$a$ is the only active literal not belonging to $\Delta$}{
+      Compute $\Gamma_- \setminus \Delta$ \;
+      \uIf{$\Gamma_- \setminus \Delta = \varnothing$}{Delete $\eta$ \;}
+    \aElseIf{$\Gamma_- \setminus \Delta = \left\{\dual{a}\right\}$}
+    \And{$\Gamma_+ \setminus \Delta = \{a\}$}{
         Lower $\eta$ \;
         $\Delta \leftarrow \Delta \cup \{ a \}$ \;
       }
