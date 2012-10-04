@@ -16,11 +16,11 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
   protected def collectEdgesToDelete(proof: ProofNodeCollection[SequentProof],
                                      rootSafeLiterals: IClause,
                                      unitsSafeLiterals: Map[SequentProof,IClause]) = {
-    val edgesToDelete = MMap[SequentProof,DeletedSide]()
+    val edgesToDelete = EdgesToDelete()
 
     def visit(node: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
       val safeLiterals = if (unitsSafeLiterals contains node) {
-        deleteFromChildren(node, proof, edgesToDelete)
+        edgesToDelete.delteNode(node)
 //        println("Unit " + node.conclusion)
         unitsSafeLiterals(node)
       }
@@ -29,9 +29,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
       node match {
         case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) =>
-          edgesToDelete.update(node, LeftDS)
+          edgesToDelete.markEdge(node, LeftDS)
         case CutIC(left ,_,auxL,_) if (safeLiterals.suc contains auxL) =>
-          edgesToDelete.update(node, RightDS)
+          edgesToDelete.markEdge(node, RightDS)
         case _ =>
       }
 
@@ -81,7 +81,6 @@ extends AbstractThreePassLower {
 
     // Second pass
     val edgesToDelete = collectEdgesToDelete(proof, rootSafeLiterals, unitsSafeLiterals)
-//    println(edgesToDelete.size + " edges to delete (" + (edgesToDelete.size - nbUnitChildren) + " without orderedUnits' children)")
 
     // Third pass
     if (edgesToDelete.isEmpty) proof else ProofNodeCollection({
