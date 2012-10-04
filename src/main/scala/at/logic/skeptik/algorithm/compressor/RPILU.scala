@@ -20,10 +20,10 @@ extends CompressorAlgorithm[SequentProof] {
   class EdgesToDelete {
     // The progation of deletion when both premises are deleted is done during fixing.
 
-    val edges = IMap[SequentProof,DeletedSide];
+    val edges = MMap[SequentProof,DeletedSide]()
 
     def markEdge(node: SequentProof, premiseSide: DeletedSide) =
-      edges[node] = if (edges contains node) BothDS else premiseSide
+      edges.update(node, if (edges contains node) BothDS else premiseSide)
 
     def markOutgoing(node: SequentProof, premises: SequentProof*) =
       premises.foreach { (premise) =>
@@ -36,7 +36,7 @@ extends CompressorAlgorithm[SequentProof] {
       }
 
     def deleteNode(node: SequentProof) =
-      edges[node] = BothDS
+      edges.update(node, BothDS)
 
     def deletedSide(node: SequentProof) = edges.get(node)
 
@@ -44,18 +44,18 @@ extends CompressorAlgorithm[SequentProof] {
 
     private def markIs(node: SequentProof, side: DeletedSide) =
       // TODO : remove it if it's not used often enough
-      (edgesToDelete contains node) && (edgesToDelete[node] == side)
+      (edges contains node) && (edges(node) == side)
 
     def isMarked(node: SequentProof, premise: SequentProof):Boolean =  
       // may be optimzed
-      ((edges contains node) && (edges[node] == BothDS || edges[node] == sideOf(premise, node))) || nodeIsMarked(premise)
+      ((edges contains node) && (edges(node) == BothDS || edges(node) == sideOf(premise, node))) || nodeIsMarked(premise)
 
     def nodeIsMarked(node: SequentProof):Boolean =
       // may be optimized (edgesToDelete contains node is checked 3 times)
       node match {
         case _ if markIs(node, BothDS) => true
         case CutIC(left,right,_,_) if (isMarked(node, left) && isMarked(node,right)) =>
-          edgesToDelete[node] = BothDS
+          edges(node) = BothDS
           true
         case _ => false
       }
@@ -89,8 +89,8 @@ extends CompressorAlgorithm[SequentProof] {
 
       // Delete nodes and edges
       case _ if edgesToDelete.nodeIsMarked(p) => p
-      case CutIC(left,_,_,_)  if edgesToDelete.isMarked(p,left)  => right
-      case CutIC(_,right,_,_) if edgesToDelete.isMarked(p,right) => left
+      case CutIC(left,right,_,_) if edgesToDelete.isMarked(p,left)  => right
+      case CutIC(left,right,_,_) if edgesToDelete.isMarked(p,right) => left
 
       // If premises haven't been changed, we keep the proof as is (memory optimisation)
       case CutIC(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
@@ -124,7 +124,7 @@ trait CollectEdgesUsingSafeLiterals
 extends AbstractRPIAlgorithm {
   
   protected def collectEdgesToDelete(nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val edgesToDelete = EdgesToDelete()
+    val edgesToDelete = new EdgesToDelete()
     def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {

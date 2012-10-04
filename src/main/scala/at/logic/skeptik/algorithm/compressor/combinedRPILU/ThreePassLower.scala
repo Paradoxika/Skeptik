@@ -16,11 +16,11 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
   protected def collectEdgesToDelete(proof: ProofNodeCollection[SequentProof],
                                      rootSafeLiterals: IClause,
                                      unitsSafeLiterals: Map[SequentProof,IClause]) = {
-    val edgesToDelete = EdgesToDelete()
+    val edgesToDelete = new EdgesToDelete()
 
     def visit(node: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
       val safeLiterals = if (unitsSafeLiterals contains node) {
-        edgesToDelete.delteNode(node)
+        edgesToDelete.deleteNode(node)
 //        println("Unit " + node.conclusion)
         unitsSafeLiterals(node)
       }

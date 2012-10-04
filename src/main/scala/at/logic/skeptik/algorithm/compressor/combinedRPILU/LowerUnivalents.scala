@@ -74,8 +74,8 @@ extends AbstractRPILUAlgorithm {
       val newNode = fixProofs(edgesToDelete)(oldNode, fixedPremises)
       val children = proof.childrenOf(oldNode) filter { child => !edgesToDelete.isMarked(child, oldNode) }
       isLowerableUnivalent(newNode, oldNode, children, loweredPivots) match {
-        case LowerableUnivalent(_) => univalents ::= newNode ; edgesToDelete.delteNode(oldNode)
-        case DeletableNode => edgesToDelete.delteNode(oldNode)
+        case LowerableUnivalent(_) => univalents ::= newNode ; edgesToDelete.deleteNode(oldNode)
+        case DeletableNode => edgesToDelete.deleteNode(oldNode)
         case _ =>
       }
       newNode
@@ -97,7 +97,7 @@ abstract class LowerUnivalents
 extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixing with IdempotentAlgorithm[SequentProof] {
 
   def apply(proof: ProofNodeCollection[SequentProof]) =
-    ProofNodeCollection(fixProofAndLowerUnivalents(proof, MMap[SequentProof,DeletedSide]()))
+    ProofNodeCollection(fixProofAndLowerUnivalents(proof, new EdgesToDelete()))
 
 }
 

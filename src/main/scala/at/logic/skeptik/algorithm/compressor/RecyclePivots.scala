@@ -10,7 +10,7 @@ abstract class RecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
 
   def apply(proof: ProofNodeCollection[SequentProof]) = {
-    val edgesToDelete = EdgesToDelete()
+    val edgesToDelete = new EdgesToDelete()
 //    println(edgesToDelete.size + " edges to delete")
     if (edgesToDelete.isEmpty) proof else ProofNodeCollection(proof.foldDown(fixProofs(edgesToDelete)))
   }

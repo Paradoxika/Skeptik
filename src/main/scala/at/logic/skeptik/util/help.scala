@@ -45,7 +45,7 @@ object help {
 
   object simplifySequent {
     val map = MMap[E,E]()
-    private val next = 0
+    private var next = 0
     def trans(exp: E) = if (map.contains(exp)) map(exp) else { map += (exp -> Var("#" + next,o)) ; next += 1 ; map(exp) }
     def apply(seq: Sequent) = Sequent(seq.ant.map(trans _), seq.suc.map(trans _))
   }

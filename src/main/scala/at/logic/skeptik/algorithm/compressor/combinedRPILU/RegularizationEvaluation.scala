@@ -43,7 +43,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
   // Main functions
 
   private def collect(proof: ProofNodeCollection[SequentProof]) = {
-    val edgesToDelete = EdgesToDelete()
+    val edgesToDelete = new EdgesToDelete()
     val units = scala.collection.mutable.Queue[SequentProof]()
     val informationMap = collectInformationMap(proof)
 
@@ -63,7 +63,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       }
       def lower() = {
         units.enqueue(p)
-        edgesToDelete.delteNode(p)
+        edgesToDelete.deleteNode(p)
         if (fakeSize(p.conclusion.ant) == 1)
           (p, new IClause(Set(p.conclusion.ant(0)), Set[E]()))
         else
