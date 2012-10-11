@@ -49,7 +49,7 @@ object rich {
 }
 
 object time {
-  import actors.Futures.{awaitAll, future}
+  import scala.actors.Futures.{awaitAll, future}
   
   def timeout[R](time: Long)(f: => R): Option[R] = awaitAll(time, future { f }).head.asInstanceOf[Option[R]]
 

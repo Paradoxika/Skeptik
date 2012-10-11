@@ -12,11 +12,12 @@ scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "1.9-2.10.0-M7-B1",
-  "org.specs2" %% "specs2" % "1.12.1",
-  "org.scalacheck" %% "scalacheck" % "1.10.0",
+//  "org.scalatest" %% "scalatest" % "1.9-2.10.0-M7-B1",
+  "org.specs2" %% "specs2" % "1.11",
+//  "org.scalacheck" %% "scalacheck" % "1.10.0",
   "junit" % "junit" % "4.10",
-  "commons-lang" % "commons-lang" % "2.6"
+  "commons-lang" % "commons-lang" % "2.6",
+  "org.scala-lang" % "scala-actors-migration" % "2.10.0-M7"          
 )
 
 // Uncomment the following line to use one-jar (https://github.com/sbt/sbt-onejar)
