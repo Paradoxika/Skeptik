@@ -20,17 +20,34 @@ object help {
       case _ => map
     }
   }
-
-  def diffMap[A,B,C](ma: Map[A,B], mb: Map[A,C]) = {
-    val keys = (ma.keySet) union (mb.keySet)
-    keys.foldLeft(Map[A,(Option[B],Option[C])]()) { (map,k) =>
-      (ma contains k, mb contains k) match {
-        case (true,true) if (ma(k) != mb(k)) => map + (k -> (Some(ma(k)),Some(mb(k))))
-        case (true,false) => map + (k -> (Some(ma(k)),None))
-        case (false,true) => map + (k -> (None,Some(mb(k))))
+  
+  // proof must be DAGified
+  def proofToSequentMap(proof: ProofNodeCollection[SequentProof]) =
+    proof.foldLeft(Map[Sequent, (Sequent,Sequent)]()) { (map,node) =>
+      node match {
+        case CutIC(left,right,_,_) => map + (node.conclusion -> (left.conclusion, right.conclusion))
         case _ => map
       }
     }
+
+  def diffMap[A,B,C](ma: Map[A,B], mb: Map[A,C]) = {
+    val keys = (ma.keySet) union (mb.keySet)
+   
+    keys.foldLeft((Map[A,B](),Map[A,C]())) { case ((da,db),k) =>
+      (ma contains k, mb contains k) match {
+        case (true,true) if (ma(k) != mb(k)) => (da + (k -> ma(k)), db + (k -> mb(k)))
+        case (true,false) => (da + (k -> ma(k)), db)
+        case (false,true) => (da, db + (k -> mb(k)))
+        case _ => (da, db)
+      }
+    }
+  }
+
+  object simplifySequent {
+    val map = MMap[E,E]()
+    private var next = 0
+    def trans(exp: E) = if (map.contains(exp)) map(exp) else { map += (exp -> Var("#" + next,o)) ; next += 1 ; map(exp) }
+    def apply(seq: Sequent) = Sequent(seq.ant.map(trans _), seq.suc.map(trans _))
   }
 
   def convertToSequent(clause: Clause) = {

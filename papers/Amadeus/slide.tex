@@ -1,0 +1,438 @@
+\documentclass[compress]{beamer}
+\useoutertheme[footline=authortitle,subsection=false]{miniframes}
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{vertmoyen}{HTML}{A9CB60}
+\definecolor{vertclair}{HTML}{D3F192}
+\definecolor{vertfonce}{HTML}{347003}
+\definecolor{deletecol}{HTML}{3B8A13}
+\definecolor{addcolor} {HTML}{9E0270}
+
+\usecolortheme[named=vertfonce]{structure}
+
+\setbeamercolor{section in head/foot}{fg=vertfonce,bg=vertmoyen}
+\setbeamercolor{author in head/foot}{fg=white}
+\setbeamercolor{titlelike}{bg=vertclair}
+\setbeamertemplate{mini frame in other subsection}[default][0!white!100]
+\setbeamertemplate{section in head/foot shaded}[default][0!white!100]
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{kpfonts}
+
+\usepackage{amsmath}
+
+\newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
+
+\newcommand{\set}[2]{\ensuremath{\left\{#1\mid#2\right\}}}
+
+\newenvironment<>{subpart}[1]
+{ \begin{block}#2{#1}
+  \begin{itemize}
+}{
+  \end{itemize}
+  \end{block}
+}
+
+\newcommand<>{\singleline}[1]{\begin{block}{\only#2#1}\end{block}}
+
+\usepackage[vlined]{algorithm2e}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+\newcommand{\basecharttitle}[1]{{\color{vertfonce}#1}\vspace{-0.8em}}
+\makeatletter
+\newcommand{\charttitle}{\@ifstar\charttitlestar\charttitleplain}
+\makeatother
+\newcommand{\charttitleplain}[1]{\hspace{2em}\basecharttitle{#1}}
+\newcommand{\charttitlestar}[1]{\centering\basecharttitle{#1}}
+
+\newcommand{\compC}{Compression ratio comparison}
+\newcommand{\timeC}{Compression time comparison \scriptsize (in seconds)}
+\newcommand{\axioC}{Axiom compression ratio comparison}
+
+\newcommand{\asGoodRPILU}{For a combined algorithm to be always at least as
+good as RPI.LU it has to compute root and units safe literals.}
+\newcommand{\asGoodLURPI}{For a combined algorithm to be always at least as
+good as LU.RPI it has to be able to lower units introduced by RPI.}
+
+\newcommand{\bottomup}{\item[$\uparrow$]}
+\newcommand{\topdown} {\item[$\downarrow$]}
+\newcommand{\anydir}  {\item[$\updownarrow$]}
+
+\newcommand{\chartscale}{1}
+
+\tikzstyle{proof edge}=[thick,cap=round]
+\tikzstyle{deleted edge}=[proof edge, dashed, color=deletecol]
+
+\newcommand{\proofnode}[3][]{
+  \node [anchor=mid, #1] (#2) {#3}
+}
+
+\newcommand{\rootnode}[1][]{
+  \proofnode[#1]{root}{$\bot$}
+}
+
+\newcommand<>{\drawchildren}[3]{
+  \draw#4 [proof edge] (#1) -- (#2);
+  \draw#4 [proof edge] (#1) -- (#3)
+}
+
+\newcommand{\addchildren}[5]{
+  \proofnode[above left  of=#1]{#2}{#3};
+  \proofnode[above right of=#1]{#4}{#5}
+}
+
+\newcommand{\withchildren}[5]{
+  \addchildren{#1}{#2}{#3}{#4}{#5};
+  \drawchildren{#1}{#2}{#4}
+}
+
+\newcommand<>{\crossnode}[2][]{
+  \draw#3 [color=deletecol,thick,cap=round,#1] (#2.mid) ++(10:0.3) -- ++(190:0.6);
+}
+
+\newcommand<>{\pivot}[3][]{
+  \node#4 [anchor=base,color=vertfonce,#1] at (#2.north) {\scriptsize #3};
+}
+
+\newcommand<>{\safelit}[3][]{
+  \node#4 [anchor=west,color=vertfonce,#1] at (#2.mid) {\hspace{0.2em} \scriptsize $\left\{#3\right\}$};
+}
+
+\title{Combining RecyclePivotsWithIntersection and LowerUnits}
+\author[Joseph Boudou]{Joseph Boudou, Bruno Woltzenlogel Paleo}
+%\institute[GSoC]{Google Summer of Code 2012}
+\usepackage{graphics}
+\institute[GSoC]{\fbox{\includegraphics[scale=0.2]{gsoc.eps}}}
+\date{October 2012}
+
+%\includeonly{}
+%%%%%%%%%%%%%%%%%%
+% Begin Document %
+%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Overview}
+\tableofcontents
+\end{frame}
+
+\begin{frame}{Benchmarks}
+  \singleline{Algorithms implemented in Scala for Skeptik}
+  \begin{subpart}{1000 proofs from VeriT}
+    \item 100 SAT proofs from the old external SAT solver
+    \item 900 SMT proofs translated to propositional resolution
+  \end{subpart}
+\end{frame}
+
+\section{Introduction}
+\subsection{RPI, LU, composing them}
+
+\begin{frame}{Propositional resolution calculus}
+\begin{subpart}{Conventions}
+  \item Clauses are sets of literals.
+  \item $\dual{a}$ is the dual of $a$.
+  \item Let $\eta_{\Gamma}$ be a proof of clause $\Gamma$ and $\eta_{\Delta}$ a proof of $\Delta$.
+  \item If $\dual{a} \in \Gamma$ and $a \in \Delta$ then $\eta = \eta_\Gamma \odot_a \eta_\Delta$ is a proof of
+        $\left(\Gamma \cup \Delta\right) \setminus \left\{a,\dual{a}\right\}$.
+  \item $a$ is the \emph{pivot} of $\eta$.
+  \item $\eta_\Gamma$ and $\eta_\Delta$ are the \emph{premises} of $\eta$.
+  \item $\eta$ is a \emph{child} of both $\eta_\Gamma$ and $\eta_\Delta$.
+\end{subpart}
+\begin{subpart}{Proof as DAG}
+  \item A node can have more than one child.
+\end{subpart}
+\end{frame}
+
+\begin{frame}{Regular proof}
+\begin{definition}[Regular proof]
+  A proof is said to be regular if on every path from its root to any of its axiom, each pivot appears only once.
+\end{definition}
+\begin{theorem}<2->[Tseitin]
+  Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentialy bigger
+  than the smallest irregular proof of $\Gamma$.
+\end{theorem}
+\end{frame}
+
+\begin{frame}{Extending Irregularity}
+\begin{definition}[Fully regular proof]
+  A proof is fully regular if for each variable there is at most one resolution node with this variable as pivot.
+\end{definition}
+\begin{subpart}{Conventions}
+  \item Usual irregularities are called \emph{vertical irregularities}.
+  \item Other irregularities are called \emph{horizontal irregularities}.
+\end{subpart}
+\end{frame}
+
+\begin{frame}{RecyclePivotsWithIntersection (RPI)}
+  \begin{subpart}{Partial Vertical Regularization}
+    \item Delete a branch only if the pivot appears on \textbf{every} path from the root to the node.
+  \end{subpart}
+  \begin{definition}[Safe literal]
+    A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing the proof's conclusion (root's clause).
+  \end{definition}
+  \begin{subpart}{Two traversals}
+    \bottomup Collect safe literals and mark edges to delete.
+    \topdown Delete edges and fix the proof.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}{LowerUnits (LU)}
+  \begin{subpart}{Lowering}
+    \item Moving a node down the proof to resolve it only once.
+  \end{subpart}
+  \begin{subpart}{Lowering Units}
+    \item Units can always be lowered.
+    \item Reduces horizontal irregularities.
+  \end{subpart}
+  \begin{subpart}{Two traversals}
+    \anydir Collect units with more than one child.
+    \topdown Delete units, fix the proof and then reintroduce the units at the bottom of the proof.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}{Sequential Composition}
+\centering
+\charttitle{\compC}
+\include{composition-chart}
+\end{frame}
+
+
+\section{Difficulties}
+\subsection{to find a combined algorithm always at least as good as both compositions}
+
+\begin{frame}{Irregular Units}
+  \begin{center}
+\begin{tikzpicture}[node distance=1.3cm]
+  \proofnode[color=addcolor]{luroot}{\only<4>{$\bot$}};
+
+  \proofnode[above left of=luroot]{root}{\alt<3-4>{$\dual{a}$}{$\bot$}};
+  \withchildren{root} {r2}{\alt<3-4>{$\dual{a} c$}{$c$}} {a4}{$\dual{c}$};
+  \withchildren{r2} {r0}{\alt<8>{$b c$}{$b$}} {r1}{$\dual{b} c$};
+
+  \addchildren{r0} {a0}{$\dual{a} b$} {iu}{$a$};
+  \draw [proof edge] (r0) -- (a0);
+  \only<1,5->{\draw [proof edge] (r0) -- (iu);}
+  \only<2>{\draw [deleted edge] (r0) -- (iu);}
+
+  \addchildren{iu} {a1}{$a c$} {a2}{$a \dual{c}$};
+  \draw [proof edge] (iu) -- (a1);
+  \only<1-6>{\draw [proof edge] (iu) -- (a2);}
+  \only<7>{\draw [deleted edge] (iu) -- (a2);}
+
+  \proofnode[above right of=r1]{a3}{$\dual{a} \dual{b} c$};
+  \draw [proof edge] (r1) -- (a3);
+  \only<1,5->{\draw [proof edge] (r1) -- (iu);}
+  \only<2>{\draw [deleted edge] (r1) -- (iu);}
+
+  \crossnode<3-4>{r0}
+  \crossnode<3-4>{r1}
+  \only<4>{
+    \draw [proof edge,color=addcolor] (luroot) -- (root);
+    \draw [proof edge,color=addcolor] (luroot) .. controls ++(1.2,1.5) .. (iu);
+  }
+
+  \pivot<6>{iu}{$c$}
+  \pivot<6>{root}{$c$}
+  \safelit<7>{root}{}
+  \safelit<7>{r2}{c}
+  \safelit<7>{r0}{b,c}
+  \safelit<7>{r1}{\dual{b},c}
+  \safelit<7>{iu}{a,c}
+  \crossnode<8>{a2}
+  \crossnode<8>{iu}
+
+  \draw (luroot) ++(1.2,-0.5) node {};
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\begin{frame}{Root and Units Safe Literals}
+\begin{subpart}{In RPI.LU, after LU :}
+  \item the proof is of the form $\eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ ;
+  \item $\set{\dual{a}_i}{i \leq n}$ is the safe literals for $\eta$ : \emph{the root's safe literals} ;
+  \item $\forall i < n$, $\set{\dual{a}_j}{i < j \leq n}$ is the safe literals for $\eta_i$.
+\end{subpart}
+\begin{overlayarea}{\textwidth}{2em}
+  \singleline<2->{\asGoodRPILU}
+\end{overlayarea}
+\end{frame}
+
+\begin{frame}{Units introduced by RPI}
+\begin{center}
+\vspace{-3em}
+\begin{tikzpicture}[node distance=1.3cm,scale=0.93]
+  \rootnode;
+  \addchildren{root} {n0}{\alt<3->{$\bot$}{$d$}} {a0}{$\dual{d}$};
+  \draw<-2> [proof edge] (root) -- (n0);
+  \draw     [proof edge] (root) -- (a0);
+  \withchildren{n0} {n1}{\alt<3->{$e$}{$d e$}} {n2}{\alt<3->{$\dual{e}$}{$d \dual{e}$}};
+
+  \withchildren{n1} {a1}{$\dual{b} e$} {u0}{\alt<3->{\alert<3>{$b$}}{$d b$}};
+  \proofnode[above right of=n2]{a2}{$\dual{b} \dual{e}$};
+  \drawchildren{n2} {u0} {a2};
+
+  \withchildren{u0} {n3}{$a b d$} {a3}{$\dual{a} b$};
+  \addchildren{n3} {n4}{$b d c$} {a4}{$\dual{c} a$};
+  \draw    [proof edge]   (n3) -- (n4);
+  \draw<-2>[proof edge]   (n3) -- (a4);
+  \addchildren{n4} {a5}{$a b$}   {a6}{$\dual{a} d c$};
+  \draw    [proof edge]   (n4) -- (a5);
+  \draw<1> [proof edge]   (n4) -- (a6);
+  \draw<2> [deleted edge] (n4) -- (a6);
+
+  \pivot<2>{u0} {$a$}
+  \pivot<2>{n4} {$a$}
+  \crossnode<3->{a6}
+
+  \crossnode<3->{n4}
+  \crossnode<3->{n3}
+  \crossnode<3->{a4}
+  \crossnode<3->{root}
+  \crossnode<3->{a0}
+\end{tikzpicture}
+\vspace{-2.2em}
+\end{center}
+\begin{overlayarea}{\textwidth}{1em}
+  \singleline<4>{\asGoodLURPI}
+\end{overlayarea}
+\end{frame}
+
+
+\section{Combined Equivalents}
+\subsection{to both sequential compositions}
+
+\begin{frame}{RPI[3]LU}
+\singleline{\asGoodRPILU}
+\begin{subpart}{Three traversals}
+  \topdown  collect units and compute root and units safe literals ;
+  \bottomup compute safe literals and mark edges to be deleted ;
+  \topdown  fix the proof and reintroduce units.
+\end{subpart}
+\end{frame}
+
+\begin{frame}{RPI[3]LU vs RPI.LU}
+\centering
+\only<+>{\charttitle{\compC} \include{3pass-compress}}
+\only<+>{\charttitle{\timeC} \include{3pass-time}}
+\end{frame}
+
+\begin{frame}{LUnivRPI}
+\begin{subpart}{\asGoodLURPI}
+  \item Collect units during fixing (top-down traversal).
+\end{subpart}
+\addtocounter{beamerpauses}{1}
+\begin{subpart}{Problems}<+->
+  \item<.-> If a unit $\{a\}$ depends on a unit $\{b\}$ it'll be seen as $\left\{a, \dual{b}\right\}$.
+  \item<+-> What to do if we find $\left\{a, \dual{b}\right\}$ after $\{b\}$ ?
+  \item<+-> A new algorithm extending LU is needed.
+\end{subpart}
+\end{frame}
+
+\section{LowerUnivalents}
+\subsection{A new algorithm extending LU}
+
+\begin{frame}{Lowering a node}
+  \begin{subpart}{The (generalized) problem}
+    \item Given $\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_{n-1}} \eta_{n-1}$
+    \item is $\text{Fix}\left(\psi[]\right) \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_{n-1}} \eta_{n-1}$ equivalent ?
+  \end{subpart}
+  \begin{subpart}{Two steps}
+    \item Deleting the node : $\text{Fix}\left(\psi[]\right)$ ;
+    \item Reintroducing it : $\odot_a \eta$.
+  \end{subpart}
+  \begin{subpart}{Beware of introduced literals}
+    \item $\Delta = \set{\dual{a}_i}{i < n}$ is the safe literals of $\text{Fix}\left(\psi[]\right) \odot_a \eta$.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}{Conditions}
+\begin{subpart}{Literals introduced by reintroducing the node}
+  \item Let $\Gamma_+$ be $\eta$'s clause,
+  \item $\Gamma \setminus \Delta = \{a\}$.
+\end{subpart}
+\begin{definition}[Active literal]
+Let's consider a node $\eta$ with clause $\Gamma_+$. A literal $a$ from
+$\Gamma_+$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
+one of $\eta$'s child.
+\end{definition}
+\begin{subpart}{Literals introduced by deleting the node}
+  \item Let $\Gamma_-$ be the set of the duals of $\eta$'s active literals,
+  \item $\Gamma_- \setminus \Delta = \{\dual{a}\}$.
+\end{subpart}
+\end{frame}
+
+\begin{frame}{Partial regularization}
+\begin{subpart}{Deletable node \uncover<3->{(implemented)}}
+  \item If $\Gamma_- \setminus \Delta = \varnothing$ then delete $\eta$.
+\end{subpart}
+\begin{subpart}<2->{Partial regularization \uncover<3->{(not implemented)}}
+  \item If the dual of any of $\eta$'s active literal belongs to $\Delta$ then delete the edge.
+\end{subpart}
+\end{frame}
+
+\begin{frame}{Algorithm}
+  \SetKw{aElseIf}{else if}
+  \SetKwFor{And}{and}{then}{endif}
+  \begin{algorithm}[H]
+    $\Delta \leftarrow \varnothing$ \;
+    \For{every node $\eta$ in a top-down traversal}{
+      Fix $\eta$ \;
+      Compute $\Gamma_- \setminus \Delta$ \;
+      \uIf{$\Gamma_- \setminus \Delta = \varnothing$}{Delete $\eta$ \;}
+    \aElseIf{$\Gamma_- \setminus \Delta = \left\{\dual{a}\right\}$}
+    \And{$\Gamma_+ \setminus \Delta = \{a\}$}{
+        Lower $\eta$ \;
+        $\Delta \leftarrow \Delta \cup \{ a \}$ \;
+      }
+     }
+  \end{algorithm}
+\end{frame}
+
+\begin{frame}{Comparison with LU}
+\centering
+\only<+>{\charttitle{\compC} \include{LUniv-compress}}
+\only<+>{\charttitle{\axioC} \include{LUniv-axiom}}
+\only<+>{\charttitle{\timeC} \include{LUniv-time}}
+\end{frame}
+
+\appendix
+
+\begin{frame}{Conclusion}
+\charttitle*{Compression ratio comparison}
+\renewcommand{\chartscale}{0.85}
+\begin{columns}
+
+  \column{0.45\textwidth}
+  \centering
+  \include{composition-chart}
+
+  \column{0.55\textwidth}
+  \centering
+  \only<+>{\include{combination-chart}}
+  \only<+>{\include{combluniv-chart}}
+  
+\end{columns}
+\end{frame}
+
+\begin{frame}{References}
+
+\begin{subpart}{Skeptik}
+\item http://github.com/Paradoxika/Skeptik
+\end{subpart}
+
+\begin{subpart}{Bibliography}
+\item Fontaine, P., Merz, S., Woltzenlogel Paleo, B.: Compression of
+  propositional resolution proofs via partial regularization. In: CADE. Lecture
+  Notes in Computer Science, vol. 6803, pp. 237--251. Springer (2011)
+\end{subpart}
+
+\end{frame}
+
+\end{document}

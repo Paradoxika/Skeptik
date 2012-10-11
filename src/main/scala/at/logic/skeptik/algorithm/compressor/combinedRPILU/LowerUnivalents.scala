@@ -65,20 +65,20 @@ import lowerableUnivalent._
 trait CollectUnivalentsDuringFixing
 extends AbstractRPILUAlgorithm {
 
-  protected def fixProofAndLowerUnivalents(proof: ProofNodeCollection[SequentProof], edgesToDelete: MMap[SequentProof,DeletedSide]) = {
+  protected def fixProofAndLowerUnivalents(proof: ProofNodeCollection[SequentProof], edgesToDelete: EdgesToDelete) = {
 
     var univalents = List[SequentProof]()
     val loweredPivots = MClause()
 
-    def reconstructProof(oldProof: SequentProof, fixedPremises: List[SequentProof]) = {
-      val newProof = fixProofs(edgesToDelete)(oldProof, fixedPremises)
-      val children = proof.childrenOf(oldProof) filter { child => !childIsMarkedToDeleteParent(child, oldProof, edgesToDelete) }
-      isLowerableUnivalent(newProof, oldProof, children, loweredPivots) match {
-        case LowerableUnivalent(_) => univalents ::= newProof ; deleteFromChildren(oldProof, proof, edgesToDelete)
-        case DeletableNode => deleteFromChildren(oldProof, proof, edgesToDelete)
+    def reconstructProof(oldNode: SequentProof, fixedPremises: List[SequentProof]) = {
+      val newNode = fixProofs(edgesToDelete)(oldNode, fixedPremises)
+      val children = proof.childrenOf(oldNode) filter { child => !edgesToDelete.isMarked(child, oldNode) }
+      isLowerableUnivalent(newNode, oldNode, children, loweredPivots) match {
+        case LowerableUnivalent(_) => univalents ::= newNode ; edgesToDelete.deleteNode(oldNode)
+        case DeletableNode => edgesToDelete.deleteNode(oldNode)
         case _ =>
       }
-      newProof
+      newNode
     }
     val pseudoRoot = proof.foldDown(reconstructProof _)
 
@@ -97,7 +97,7 @@ abstract class LowerUnivalents
 extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixing with IdempotentAlgorithm[SequentProof] {
 
   def apply(proof: ProofNodeCollection[SequentProof]) =
-    ProofNodeCollection(fixProofAndLowerUnivalents(proof, MMap[SequentProof,DeletedSide]()))
+    ProofNodeCollection(fixProofAndLowerUnivalents(proof, new EdgesToDelete()))
 
 }
 
@@ -157,7 +157,6 @@ extends AbstractThreePassLower {
 
     // Second pass
     val edgesToDelete = collectEdgesToDelete(proof, rootSafeLiterals, univalentsSafeLiterals)
-//    println(edgesToDelete.size + " edges to delete (" + (edgesToDelete.size - nbUnitChildren) + " without orderedUnivalents' children)")
 
     // Third pass
     if (edgesToDelete.isEmpty) proof else ProofNodeCollection({
