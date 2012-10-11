@@ -14,6 +14,7 @@ extends Iterable[P]
 
   def root = nodes(0)
 
+
   def foldDown[X](f: (P, Seq[X]) => X): X = {
     val resultFrom = MMap[P,X]()
     @tailrec def iterate(pos:Int):Unit = {
