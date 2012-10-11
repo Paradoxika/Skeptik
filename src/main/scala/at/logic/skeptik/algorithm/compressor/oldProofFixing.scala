@@ -4,18 +4,18 @@ import at.logic.skeptik.proof.oldResolution._
 import at.logic.skeptik.proof.oldResolution.defs._
 import collection._
 
-object ProofFixing {
-  def fix(p:Proof): Proof = {fix(List(p)); p}
-  def fix(proofs:List[Proof]): List[Proof] = {
-    val visitedProofs = new mutable.HashSet[Proof]
-    val newRootsMap = new mutable.HashMap[Proof,Proof]
-    for (p <- proofs) fixRec(p,visitedProofs,newRootsMap)
+object ProofNodeFixing {
+  def fix(p:ProofNode): ProofNode = {fix(List(p)); p}
+  def fix(proofs:List[ProofNode]): List[ProofNode] = {
+    val visitedProofNodes = new mutable.HashSet[ProofNode]
+    val newRootsMap = new mutable.HashMap[ProofNode,ProofNode]
+    for (p <- proofs) fixRec(p,visitedProofNodes,newRootsMap)
     for (p <- proofs) yield {newRootsMap(p)}
   }
 
-  private def fixRec(proof:Proof, visitedProofs: mutable.HashSet[Proof], newRootsMap: mutable.HashMap[Proof,Proof]) : Unit = {
-    if (!visitedProofs.contains(proof)) {
-      visitedProofs += proof
+  private def fixRec(proof:ProofNode, visitedProofNodes: mutable.HashSet[ProofNode], newRootsMap: mutable.HashMap[ProofNode,ProofNode]) : Unit = {
+    if (!visitedProofNodes.contains(proof)) {
+      visitedProofNodes += proof
       proof match {
         case i: Input => {
           if (i.children.length == 0) {
@@ -24,8 +24,8 @@ object ProofFixing {
         }
         case n : Resolvent => {
 
-          fixRec(n.left, visitedProofs,newRootsMap)
-          fixRec(n.right, visitedProofs,newRootsMap)
+          fixRec(n.left, visitedProofNodes,newRootsMap)
+          fixRec(n.right, visitedProofNodes,newRootsMap)
           if (n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) {
             n.update
             if (n.children.length == 0) {
@@ -34,9 +34,9 @@ object ProofFixing {
           }
           else {
 
-            val survivingParent : Proof =
-              if (n.left == deletedSubProof) n.right
-              else if (n.right == deletedSubProof) n.left
+            val survivingParent : ProofNode =
+              if (n.left == deletedSubProofNode) n.right
+              else if (n.right == deletedSubProofNode) n.left
               else if (n.left.clause.contains(n.pivot._1) && !n.right.clause.contains(n.pivot._2)) n.right
               else if (!n.left.clause.contains(n.pivot._1) && n.right.clause.contains(n.pivot._2)) n.left
               else {
@@ -57,12 +57,12 @@ object ProofFixing {
     }
   }
   
-  def getInputNodes(roots: List[Proof]): Set[Input] = {
-    val visitedProofs = new mutable.HashSet[Proof]
+  def getInputNodes(roots: List[ProofNode]): Set[Input] = {
+    val visitedProofNodes = new mutable.HashSet[ProofNode]
     val inputNodes = new mutable.HashSet[Input]
-    def rec(p: Proof): Unit = {
-      if (!visitedProofs.contains(p)) {
-        visitedProofs += p
+    def rec(p: ProofNode): Unit = {
+      if (!visitedProofNodes.contains(p)) {
+        visitedProofNodes += p
         p match {
           case i: Input => inputNodes += i
           case Resolvent(left, right) => {rec(left); rec(right)}
@@ -74,20 +74,20 @@ object ProofFixing {
   }
 
 
-  def fixTopDown(proof: Proof):Proof = fixTopDown(List(proof)).head
-  def fixTopDown(roots: List[Proof]): List[Proof] = {
-    val oneParentVisited = new mutable.HashSet[Proof]
-    val nodesToBeFixed = new mutable.Queue[Proof]
-    val newRootsMap = new mutable.HashMap[Proof,Proof]
+  def fixTopDown(proof: ProofNode):ProofNode = fixTopDown(List(proof)).head
+  def fixTopDown(roots: List[ProofNode]): List[ProofNode] = {
+    val oneParentVisited = new mutable.HashSet[ProofNode]
+    val nodesToBeFixed = new mutable.Queue[ProofNode]
+    val newRootsMap = new mutable.HashMap[ProofNode,ProofNode]
 
-    val bothParentsVisited = new mutable.HashSet[Proof]
+    val bothParentsVisited = new mutable.HashSet[ProofNode]
 
     val inputNodes = getInputNodes(roots)
     nodesToBeFixed ++= inputNodes
     oneParentVisited ++= inputNodes
     while (!nodesToBeFixed.isEmpty) fixNode(nodesToBeFixed.dequeue)
 
-    def fixNode(p: Proof): Unit = {
+    def fixNode(p: ProofNode): Unit = {
       if (!oneParentVisited.contains(p)) {
         oneParentVisited += p
       }
@@ -112,9 +112,9 @@ object ProofFixing {
               }
             }
             else {
-              val survivingParent : Proof =
-                if (r.left == deletedSubProof) r.right
-                else if (r.right == deletedSubProof) r.left
+              val survivingParent : ProofNode =
+                if (r.left == deletedSubProofNode) r.right
+                else if (r.right == deletedSubProofNode) r.left
                 else if (r.left.clause.contains(r.pivot._1) && !r.right.clause.contains(r.pivot._2)) r.right
                 else if (!r.left.clause.contains(r.pivot._1) && r.right.clause.contains(r.pivot._2)) r.left
                 else {

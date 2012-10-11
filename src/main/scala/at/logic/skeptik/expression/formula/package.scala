@@ -1,6 +1,7 @@
 package at.logic.skeptik.expression
 package object formula {
   import at.logic.skeptik.util.unicode._
+  import language.implicitConversions
 
   // Logical Symbols and Connectives
   
@@ -31,6 +32,9 @@ package object formula {
   
   implicit def enrichFormula(e: E) = new RichFormula(e)
 
+  // Since Scala accepts only !, ~, + and - as prefix unary operators,
+  // the following methods cannot be implemented in RichFormula
+  
   def neg(f: E) = Neg(f) 
   def ¬(f: E) = neg(f)
   

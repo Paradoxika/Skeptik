@@ -6,7 +6,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class TestsForImmutableSubstitution extends SpecificationWithJUnit {
+class ImmutableSubstitutionSpecification extends SpecificationWithJUnit {
 
   val s = Substitution(Var("a",i) -> Var("b", o))
   

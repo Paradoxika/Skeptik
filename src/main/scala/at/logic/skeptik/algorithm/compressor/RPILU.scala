@@ -1,26 +1,25 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.Map
 
 abstract class AbstractRPILUAlgorithm
-extends CompressorAlgorithm[SequentProof] {
+extends CompressorAlgorithm[SequentProofNode] {
 
   protected sealed abstract  class DeletedSide
   protected object NoDS    extends DeletedSide
   protected object LeftDS  extends DeletedSide
   protected object RightDS extends DeletedSide
-//protected object BothDS  extends DeletedSide
 
   class EdgesToDelete {
 
-    val edges = MMap[SequentProof,(DeletedSide,Boolean)]()
+    val edges = MMap[SequentProofNode,(DeletedSide,Boolean)]()
 
     private def otherSide(side: DeletedSide) =
       side match {
@@ -29,17 +28,17 @@ extends CompressorAlgorithm[SequentProof] {
         case _ => NoDS
       }
 
-    def markEdge(node: SequentProof, premiseSide: DeletedSide) = {
+    def markEdge(node: SequentProofNode, premiseSide: DeletedSide) = {
       if ((edges contains node) && (edges(node)._1 == otherSide(premiseSide))) println("Case A")
       val deleteNode = (edges contains node) &&
                        { val old = edges(node) ; old._2 || old._1 == otherSide(premiseSide) }
       edges(node) = (premiseSide, deleteNode)
     }
 
-    def deleteNode(node: SequentProof) =
+    def deleteNode(node: SequentProofNode) =
       edges(node) = (edges.getOrElse(node,(NoDS,true))._1, true)
 
-    def deletedSide(node: SequentProof) =
+    def deletedSide(node: SequentProofNode) =
       edges.get(node) match {
         case Some((NoDS,_)) => None
         case Some((s,_))    => Some(s)
@@ -48,10 +47,10 @@ extends CompressorAlgorithm[SequentProof] {
 
     def isEmpty = edges.isEmpty
 
-    def isMarked(node: SequentProof, premise: SequentProof):Boolean =
+    def isMarked(node: SequentProofNode, premise: SequentProofNode):Boolean =
       ((edges contains node) && (edges(node)._1 == sideOf(premise, node))) || nodeIsMarked(premise)
 
-    def nodeIsMarked(node: SequentProof):Boolean =
+    def nodeIsMarked(node: SequentProofNode):Boolean =
       // may be optimized (edgesToDelete contains node is checked 3 times)
       node match {
         case _ if ((edges contains node) && edges(node)._2) => true
@@ -65,21 +64,21 @@ extends CompressorAlgorithm[SequentProof] {
 
   // Utility functions
 
-  protected def sideOf(parent: SequentProof, child: SequentProof) = child match {
+  protected def sideOf(parent: SequentProofNode, child: SequentProofNode) = child match {
     case CutIC(left, right, _,_) if parent == left  => LeftDS
     case CutIC(left, right, _,_) if parent == right => RightDS
     case _ => throw new Exception("Unable to find parent in child")
   }
 
-  protected def isUnit(proof: SequentProof, nodeCollection: ProofNodeCollection[SequentProof]) =
+  protected def isUnit(proof: SequentProofNode, nodeCollection: Proof[SequentProofNode]) =
     (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
     (fakeSize(nodeCollection.childrenOf(proof)) > 1)
 
 
   // Main functions
 
-  protected def fixProofs(edgesToDelete: EdgesToDelete)
-               (p: SequentProof, fixedPremises: List[SequentProof]) = {
+  protected def fixProofNodes(edgesToDelete: EdgesToDelete)
+               (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
     lazy val fixedLeft  = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
     p match {
@@ -109,8 +108,8 @@ extends CompressorAlgorithm[SequentProof] {
 abstract class AbstractRPIAlgorithm
 extends AbstractRPILUAlgorithm {
 
-  protected def safeLiteralsFromChild (childWithSafeLiterals: (SequentProof, IClause),
-                                       parent: SequentProof, edgesToDelete: EdgesToDelete) =
+  protected def safeLiteralsFromChild (childWithSafeLiterals: (SequentProofNode, IClause),
+                                       parent: SequentProofNode, edgesToDelete: EdgesToDelete) =
     childWithSafeLiterals match {
       case (child @ CutIC(left,right,_,auxR), safeLiterals) if left  == parent => 
         if (edgesToDelete.isMarked(child,right)) safeLiterals else (safeLiterals + auxR)
@@ -119,8 +118,8 @@ extends AbstractRPILUAlgorithm {
       case _ => throw new Exception("Unknown or impossible inference rule")
     }
 
-  protected def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, IClause)],
+  protected def computeSafeLiterals(proof: SequentProofNode,
+                          childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
                           edgesToDelete: EdgesToDelete
                           ) : IClause
 
@@ -129,9 +128,9 @@ extends AbstractRPILUAlgorithm {
 trait CollectEdgesUsingSafeLiterals
 extends AbstractRPIAlgorithm {
   
-  protected def collectEdgesToDelete(nodeCollection: ProofNodeCollection[SequentProof]) = {
+  protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new EdgesToDelete()
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+    def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
         case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markEdge(p, RightDS)
@@ -147,12 +146,12 @@ extends AbstractRPIAlgorithm {
 
 trait UnitsCollectingBeforeFixing
 extends AbstractRPILUAlgorithm {
-  protected def mapFixedProofs(proofsToMap: Set[SequentProof],
+  protected def mapFixedProofNodes(proofsToMap: Set[SequentProofNode],
                      edgesToDelete: EdgesToDelete,
-                     nodeCollection: ProofNodeCollection[SequentProof]) = {
-    val fixMap = MMap[SequentProof,SequentProof]()
-    def visit (p: SequentProof, fixedPremises: List[SequentProof]) = {
-      val result = fixProofs(edgesToDelete)(p, fixedPremises)
+                     nodeCollection: Proof[SequentProofNode]) = {
+    val fixMap = MMap[SequentProofNode,SequentProofNode]()
+    def visit (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+      val result = fixProofNodes(edgesToDelete)(p, fixedPremises)
 //      if (proofsToMap contains p) { fixMap.update(p, result) ; println(p.conclusion + " => " + result.conclusion) }
       if (proofsToMap contains p) fixMap.update(p, result)
       result
@@ -164,12 +163,12 @@ extends AbstractRPILUAlgorithm {
 
 trait Intersection
 extends AbstractRPIAlgorithm {
-  protected def computeSafeLiterals(proof: SequentProof,
-                          childrensSafeLiterals: List[(SequentProof, IClause)],
+  protected def computeSafeLiterals(proof: SequentProofNode,
+                          childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
                           edgesToDelete: EdgesToDelete
                           ) : IClause = {
     childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof)} match {
-      case Nil  => IClause(proof.conclusion)
+      case Nil  => proof.conclusion.toSetSequent
       case h::t =>
         t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) => acc intersect safeLiteralsFromChild(v, proof, edgesToDelete) }
     }

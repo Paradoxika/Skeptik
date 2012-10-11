@@ -36,13 +36,13 @@ object defs {
            newLiterals
   }
   
-  val deletedSubProof = new Input(immutable.HashSet(L(Int.MaxValue,true),L(Int.MaxValue,false)))
+  val deletedSubProofNode = new Input(immutable.HashSet(L(Int.MaxValue,true),L(Int.MaxValue,false)))
 
-  def length(proof:Proof) : Int = {
-    val visitedProofs = new mutable.HashSet[Proof]
-    def rec(p: Proof) : Int = {
-      if (!visitedProofs.contains(p)) {
-        visitedProofs += p
+  def length(proof:ProofNode) : Int = {
+    val visitedProofNodes = new mutable.HashSet[ProofNode]
+    def rec(p: ProofNode) : Int = {
+      if (!visitedProofNodes.contains(p)) {
+        visitedProofNodes += p
         p match {
           case Input(c) => 1
           case Resolvent(left, right) => (rec(left) + rec(right) + 1)
@@ -61,7 +61,7 @@ object Clause {
 
 
 
-abstract class Proof {
+abstract class ProofNode {
   def clause : Clause  
   var children : List[Resolvent] = Nil
   
@@ -71,22 +71,22 @@ abstract class Proof {
 
   def forgetLiteralsBelow = lB = null
 
-  def duplicate : Proof = {
-    val visitedProofs = new mutable.HashMap[Proof,Proof]
-    def duplicateRec(p: Proof) : Proof = {
-      if (visitedProofs.contains(p)) return visitedProofs(p)
+  def duplicate : ProofNode = {
+    val visitedProofNodes = new mutable.HashMap[ProofNode,ProofNode]
+    def duplicateRec(p: ProofNode) : ProofNode = {
+      if (visitedProofNodes.contains(p)) return visitedProofNodes(p)
       else {
-        val newProof = p match {
+        val newProofNode = p match {
           case Resolvent(l,r) => new Resolvent(duplicateRec(l), duplicateRec(r))
           case Input(c) => new Input(c)
         }
-        visitedProofs += (p -> newProof)
-        return newProof
+        visitedProofNodes += (p -> newProofNode)
+        return newProofNode
       }
     }
     duplicateRec(this)
   }
-  def replaces(that: Proof) = {
+  def replaces(that: ProofNode) = {
     //require(clause == that.clause)
     for (c <- that.children) {
       children = c::children
@@ -97,7 +97,7 @@ abstract class Proof {
     that.children = Nil
   }
 
-  def replacesAsParentOf(that: Proof, child: Resolvent) = {
+  def replacesAsParentOf(that: ProofNode, child: Resolvent) = {
     children = child::children
     if (child.left == that) child.left = this
     else child.right = this
@@ -118,9 +118,9 @@ abstract class Proof {
 
   def delete : Unit = {
     for (c <- children) {
-      if (c.left == this) c.left = deletedSubProof
-      else c.right = deletedSubProof
-      deletedSubProof.children = c::deletedSubProof.children
+      if (c.left == this) c.left = deletedSubProofNode
+      else c.right = deletedSubProofNode
+      deletedSubProofNode.children = c::deletedSubProofNode.children
     }
     children = Nil
     if (this.isInstanceOf[Resolvent]) {
@@ -133,7 +133,7 @@ abstract class Proof {
 
   
 
-  def isBelow(that: Proof): Boolean = {
+  def isBelow(that: ProofNode): Boolean = {
     if (this == that) return true
     else this match {
       case Input(_) => return false
@@ -141,7 +141,7 @@ abstract class Proof {
     }
   }
 }
-class Input(val clause: Clause) extends Proof {
+class Input(val clause: Clause) extends ProofNode {
   override def toString: String = {
     if (clause.isEmpty) "{}"
     else {
@@ -153,12 +153,12 @@ class Input(val clause: Clause) extends Proof {
 }
 object Input {
   def apply(clause: Clause) = new Input(clause)
-  def unapply(p:Proof) = p match {
+  def unapply(p:ProofNode) = p match {
     case i:Input => Some(i.clause)
     case _ => None
   }
 }
-class Resolvent(var left: Proof, var right: Proof) extends Proof {
+class Resolvent(var left: ProofNode, var right: ProofNode) extends ProofNode {
   private var c : Clause = null
   def clause = if (c != null) c
                         else {update; c}
@@ -193,8 +193,8 @@ class Resolvent(var left: Proof, var right: Proof) extends Proof {
   }
 }
 object Resolvent {
-  def apply(left: Proof, right: Proof) = new Resolvent(left, right)
-  def unapply(p:Proof) = p match {
+  def apply(left: ProofNode, right: ProofNode) = new Resolvent(left, right)
+  def unapply(p:ProofNode) = p match {
     case r:Resolvent => Some((r.left,r.right))
     case _ => None
   }

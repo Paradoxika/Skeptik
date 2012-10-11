@@ -5,29 +5,29 @@ import at.logic.skeptik.proof.oldResolution.typeAliases._
 import collection._
 
 object oldDAGification {
-  def DAGify(proof: Proof, measure: Proof => Int): Proof = {
-    val visitedProofs = new mutable.HashSet[Proof]
-    val map = new mutable.HashMap[Clause,Proof]
-    def rec(p: Proof): Unit = {
-      if (!visitedProofs.contains(p)) {
+  def DAGify(proof: ProofNode, measure: ProofNode => Int): ProofNode = {
+    val visitedProofNodes = new mutable.HashSet[ProofNode]
+    val map = new mutable.HashMap[Clause,ProofNode]
+    def rec(p: ProofNode): Unit = {
+      if (!visitedProofNodes.contains(p)) {
         if (p.isInstanceOf[Resolvent]) {
           rec(p.asInstanceOf[Resolvent].left)
           rec(p.asInstanceOf[Resolvent].right)
         }
         map.get(p.clause) match {
           case None => map += (p.clause -> p)
-          case Some(otherProof) => {
-            if (measure(otherProof) < measure(p)) {
-              otherProof replaces p
+          case Some(otherProofNode) => {
+            if (measure(otherProofNode) < measure(p)) {
+              otherProofNode replaces p
             }
             else {
-              p replaces otherProof   // OldToDo: I changed the "replaces" method. Hence this line might not work anymore.
-              map -= otherProof.clause
+              p replaces otherProofNode   // OldToDo: I changed the "replaces" method. Hence this line might not work anymore.
+              map -= otherProofNode.clause
               map += (p.clause -> p)
             }
           }
         }
-        visitedProofs += p
+        visitedProofNodes += p
       }
     }
     rec(proof)

@@ -1,5 +1,5 @@
-package at.logic.skeptik.gridgain
-
+//package at.logic.skeptik.util.gridgain
+//
 //import org.gridgain.scalar.scalar
 //import org.gridgain.scalar.scalar._
 //import org.gridgain.grid.GridClosureCallMode._
@@ -18,5 +18,5 @@ package at.logic.skeptik.gridgain
 //  def foreach[U](f: A => U): Unit = map(f)
 //}
 //object GridGainSeq {
-//  def apply[A](elements: Iterable[A]) = new GridGainSeq(elements.toSeq)
+//  def apply[A](elements: A*) = new GridGainSeq(elements)
 //}

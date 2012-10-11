@@ -4,8 +4,8 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import collection.immutable.{HashSet => ISet}
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.compressor.combinedRPILU._
-import at.logic.skeptik.proof.ProofNodeCollection
-import at.logic.skeptik.proof.sequent.SequentProof
+import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.parser._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
@@ -40,7 +40,7 @@ object Experimenter {
   object irregularNodeCompressionRatioMeasure
   extends IntPercentMeasure[Result]( { result =>
     var nbIrregularNodes = 0
-    def visit(node: SequentProof, childrenPivots: List[ISet[E]]) =
+    def visit(node: SequentProofNode, childrenPivots: Seq[ISet[E]]) =
       node match {
         case CutIC(_,_,pivot,_) if !childrenPivots.isEmpty =>
           var pivots = childrenPivots.tail.foldLeft(childrenPivots.head) (_ ++ _)
@@ -61,7 +61,7 @@ object Experimenter {
 
   val algorithms = MMap[String, WrappedAlgorithm]()
 
-  def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProof]) =
+  def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProofNode]) =
     algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-10.10s",name), algo)
 
   addTimeOutAlgorithm("LU", NewUnitLowering)
@@ -103,13 +103,13 @@ object Experimenter {
   addTimeOutAlgorithm("RPILUniv R", LowerUnivalentsBeforeRecyclePivots)
   addTimeOutAlgorithm("LUnivRPI R", LowerUnivalentsAfterRecyclePivots)
 
-  def getProofFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
-    case Some(".proof") => Result ( { (new SimplePropositionalResolutionProofFormatParser(filename)).getProof } )
-    case Some(".smt2")  => Result ( { (new SMT2Parser(filename)).getProof } )
+  def getProofNodeFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
+    case Some(".proof") => Result ( { (new SimplePropositionalResolutionProofNodeFormatParser(filename)).getProofNode } )
+    case Some(".smt2")  => Result ( { (new SMT2Parser(filename)).getProofNode } )
     case _ => throw new Exception("Unknown format for " + filename)
   }
 
-  val initialMeasuresRecord = measures map { m => (m, 0.) }
+  val initialMeasuresRecord = measures map { m => (m, 0.0) }
 
   def csvReport(algos : Seq[WrappedAlgorithm], proofs : Seq[String], iteration: Int) =
   {
@@ -119,7 +119,7 @@ object Experimenter {
 
       // Read
       print("\"" + proofFilename + "\"")
-      val original = getProofFromFile(proofFilename)
+      val original = getProofNodeFromFile(proofFilename)
       for (measure <- measures) print("," + measure(original))
 
       // Compress
@@ -145,7 +145,7 @@ object Experimenter {
       // Read
       println("------------------------------------------------------------")
       print("* " + proofFilename)
-      val original = getProofFromFile(proofFilename)
+      val original = getProofNodeFromFile(proofFilename)
       for (measure <- measures) { print(" " + measure.before(original)) }
       println()
 
@@ -161,6 +161,15 @@ object Experimenter {
         else
           println("Error, " + compressed.proof.root.conclusion + " instead of " + original.proof.root.conclusion)
       }
+//<<<<<<< HEAD
+//      println(String.format(" (%.2f s)", double2Double((java.lang.System.currentTimeMillis - beginParsing)/1000.0)))
+//
+//      algos.foreach( _ match {
+//        case a: WrappedOldAlgorithm     => a.experiment(oldProofNode,     oldMeasurer)
+//        case a: WrappedSequentAlgorithm => a.experiment(sequentProofNode, sequentMeasurer)
+//      })
+//=======
+//>>>>>>> 5c9430904afeeb751fcc6f4b516f7e53fe7968c5
     }
 
     // Report

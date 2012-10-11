@@ -4,17 +4,19 @@ import at.logic.skeptik.algorithm.generator.FormulaGenerator
 import at.logic.skeptik.expression.E
 import at.logic.skeptik.expression.formula.Imp
 import at.logic.skeptik.expression.o
+import at.logic.skeptik.proof.ProofNode
 import at.logic.skeptik.proof.Proof
-import at.logic.skeptik.proof.ProofNodeCollection
 import at.logic.skeptik.proof.natural.Assumption
 import at.logic.skeptik.proof.natural.{ImpElim => ImpE}
 import at.logic.skeptik.proof.natural.ImpElimC
 import at.logic.skeptik.proof.natural.{ImpIntro => ImpI}
 import at.logic.skeptik.proof.natural.{ImpIntroC,ImpIntroCK}
-import at.logic.skeptik.judgment.{Judgment, Sequent, NamedE, NaturalSequent}
+import at.logic.skeptik.judgment.{Judgment, NamedE, NaturalSequent}
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.prover.SimpleProver
 import collection.mutable.{Map => MMap}
 import at.logic.skeptik.util.time._
+import language.implicitConversions
 
 import java.io.{File,PrintWriter}
 
@@ -58,9 +60,9 @@ object ProverExperiment {
     val fp = new PrintWriter(file)
     
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
-    implicit def formulaToSequent(f: E) = Sequent(Nil, f)
+    implicit def formulaToSequent(f: E) = Sequent()(f)
     
-    val results = MMap[(E, String),Timed[Option[Proof[_,_]]]]()
+    val results = MMap[(E, String),Timed[Option[ProofNode[_,_]]]]()
     for (g <- goals) {
       println("Goal: " + g)
       fp.print(g)
@@ -76,7 +78,7 @@ object ProverExperiment {
         fp.print(", " + resultTimeMS)
         fp.print(", " + (result.result match {
           case None => -1
-          case Some(p) => ProofNodeCollection(p).size
+          case Some(p) => Proof(p).size
         }))
         results((g, p._1)) = result
       }

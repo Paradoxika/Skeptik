@@ -1,14 +1,14 @@
 package at.logic.skeptik.algorithm.compressor
 package combinedRPILU
 
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import scala.collection.Map
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.Map
 
 class RegularizationInformation (val estimatedSize: Float,
                                  val estimatedGainForLeftSafeLiteral: Map[E,Float],
@@ -28,26 +28,26 @@ abstract class RegularizationEvaluation
 extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection {
 
   /** Collector : compute information about each node (using Eval) */
-  protected def collectInformationMap(proof: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation]
+  protected def collectInformationMap(proof: Proof[SequentProofNode]):MMap[SequentProofNode,RegularizationInformation]
 
   /** Eval : compute information about CutIC nodes */
-  protected def evaluateDerivation(node: SequentProof, proof: ProofNodeCollection[SequentProof], aux: E,
+  protected def evaluateDerivation(node: SequentProofNode, proof: Proof[SequentProofNode], aux: E,
                                    leftInfo: RegularizationInformation, rightInfo:RegularizationInformation):RegularizationInformation
 
   /** Choice : choose between lowering and regularization */
-  protected def lowerInsteadOfRegularize(node: SequentProof,
+  protected def lowerInsteadOfRegularize(node: SequentProofNode,
                                          currentChildrenNumber: Int,
                                          information: RegularizationInformation,
                                          safeLiterals: IClause                 ):Boolean
   
   // Main functions
 
-  private def collect(proof: ProofNodeCollection[SequentProof]) = {
+  private def collect(proof: Proof[SequentProofNode]) = {
     val edgesToDelete = new EdgesToDelete()
-    val units = scala.collection.mutable.Queue[SequentProof]()
+    val units = scala.collection.mutable.Queue[SequentProofNode]()
     val informationMap = collectInformationMap(proof)
 
-    def isStillUnit(p: SequentProof, safeLiterals: IClause) =
+    def isStillUnit(p: SequentProofNode, safeLiterals: IClause) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
         val currentChildrenNumber = proof.childrenOf(p).foldLeft(0) { (acc,child) =>
           if (edgesToDelete.isMarked(child, p)) acc else (acc + 1)
@@ -55,7 +55,7 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         (currentChildrenNumber > 1) && (lowerInsteadOfRegularize(p, currentChildrenNumber, informationMap(p), safeLiterals))
       }
 
-    def visit(p: SequentProof, childrensSafeLiterals: List[(SequentProof, IClause)]) = {
+    def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       def regularize(position: DeletedSide) = {
         edgesToDelete.markEdge(p, position)
@@ -81,14 +81,14 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     (units,edgesToDelete)
   }
 
-  def apply(proof: ProofNodeCollection[SequentProof]) = {
+  def apply(proof: Proof[SequentProofNode]) = {
     val (units,edgesToDelete) = collect(proof)
     if (edgesToDelete.isEmpty) proof else {
-      val fixMap = mapFixedProofs(units.toSet + proof.root, edgesToDelete, proof)
+      val fixMap = mapFixedProofNodes(units.toSet + proof.root, edgesToDelete, proof)
       val root = units.map(fixMap).foldLeft(fixMap(proof.root)) { (left,right) =>
         try {CutIC(left,right)} catch {case e:Exception => left}
       }
-      ProofNodeCollection(root)
+      Proof(root)
     }
   }
 }
@@ -101,9 +101,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 trait DiscreteCollector
 extends RegularizationEvaluation {
 
-  protected def collectInformationMap(proof: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
-    val informationMap = MMap[SequentProof, RegularizationInformation]()
-    def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
+  protected def collectInformationMap(proof: Proof[SequentProofNode]):MMap[SequentProofNode,RegularizationInformation] = {
+    val informationMap = MMap[SequentProofNode, RegularizationInformation]()
+    def visit(p: SequentProofNode, premisesInformation: Seq[RegularizationInformation]) = {
       val nbChildren = proof.childrenOf(p).length
       def evaluate = p match {
         case CutIC(left, right, aux, _) => evaluateDerivation(p, proof, aux, premisesInformation(0), premisesInformation(1))
@@ -126,9 +126,9 @@ extends RegularizationEvaluation {
   */
 trait QuadraticCollector
 extends RegularizationEvaluation {
-  protected def collectInformationMap(proof: ProofNodeCollection[SequentProof]):MMap[SequentProof,RegularizationInformation] = {
-    val informationMap = MMap[SequentProof, RegularizationInformation]()
-    def visit(p: SequentProof, premisesInformation: List[RegularizationInformation]) = {
+  protected def collectInformationMap(proof: Proof[SequentProofNode]):MMap[SequentProofNode,RegularizationInformation] = {
+    val informationMap = MMap[SequentProofNode, RegularizationInformation]()
+    def visit(p: SequentProofNode, premisesInformation: Seq[RegularizationInformation]) = {
       val nbChildren = proof.childrenOf(p).length
       def evaluate = p match {
         case CutIC(left, right, aux, _) => evaluateDerivation(p, proof, aux, premisesInformation(0), premisesInformation(1))
@@ -152,15 +152,15 @@ extends RegularizationEvaluation {
 trait AddEval extends RegularizationEvaluation {
 
   private def addMap(ma: Map[E,Float], mb: Map[E,Float]):Map[E,Float] =
-    ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0..toFloat))) }
+    ma.keys.foldLeft(mb) { (acc,k) => acc + (k -> (ma(k) + mb.getOrElse(k,0.0.toFloat))) }
 
-  protected def evaluateDerivation(node: SequentProof, proof: ProofNodeCollection[SequentProof], aux: E,
+  protected def evaluateDerivation(node: SequentProofNode, proof: Proof[SequentProofNode], aux: E,
                                    leftInfo: RegularizationInformation, rightInfo:RegularizationInformation):RegularizationInformation = {
     val (left,right) = (node.premises(0), node.premises(1))
-    def evalRegularization(node: SequentProof, information: RegularizationInformation) =
-      if (fakeSize(proof.childrenOf(node)) == 1) information.estimatedSize + 1..toFloat else 1..toFloat
+    def evalRegularization(node: SequentProofNode, information: RegularizationInformation) =
+      if (fakeSize(proof.childrenOf(node)) == 1) information.estimatedSize + 1.0.toFloat else 1.0.toFloat
     RegularizationInformation(
-      evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1..toFloat,
+      evalRegularization(left, leftInfo) + evalRegularization(right,rightInfo) - 1.0.toFloat,
       addMap(leftInfo.estimatedGainForLeftSafeLiteral,  rightInfo.estimatedGainForLeftSafeLiteral)  + (aux -> evalRegularization(left, leftInfo)),
       addMap(leftInfo.estimatedGainForRightSafeLiteral, rightInfo.estimatedGainForRightSafeLiteral) + (aux -> evalRegularization(right,rightInfo))
     )
@@ -176,10 +176,10 @@ trait MinEval extends RegularizationEvaluation {
       acc + (k -> (if ((mb contains k) && (mb(k) < ma(k))) mb(k) else ma(k)))
     }
 
-  protected def evaluateDerivation(node: SequentProof, proof: ProofNodeCollection[SequentProof], aux: E,
+  protected def evaluateDerivation(node: SequentProofNode, proof: Proof[SequentProofNode], aux: E,
                                    leftInfo: RegularizationInformation, rightInfo:RegularizationInformation):RegularizationInformation = {
     RegularizationInformation(
-      leftInfo.estimatedSize + rightInfo.estimatedSize - 1..toFloat,
+      leftInfo.estimatedSize + rightInfo.estimatedSize - 1.0.toFloat,
       minMap(leftInfo.estimatedGainForLeftSafeLiteral,  rightInfo.estimatedGainForLeftSafeLiteral)  + (aux -> leftInfo.estimatedSize),
       minMap(leftInfo.estimatedGainForRightSafeLiteral, rightInfo.estimatedGainForRightSafeLiteral) + (aux -> rightInfo.estimatedSize)
     )
@@ -192,7 +192,7 @@ trait MinEval extends RegularizationEvaluation {
 /** Don't lower any unit that can be regularized or whose (direct or indirect) premises can be. */
 trait RegularizeIfPossible extends RegularizationEvaluation {
 
-  protected def lowerInsteadOfRegularize(node: SequentProof,
+  protected def lowerInsteadOfRegularize(node: SequentProofNode,
                                          currentChildrenNumber: Int,
                                          information: RegularizationInformation,
                                          safeLiterals: IClause                  ):Boolean = {
@@ -203,13 +203,14 @@ trait RegularizeIfPossible extends RegularizationEvaluation {
   }
 }
 
+
 /** Assumes that only the worst (non-null) regularization of each direct premise will happen. */
 trait MinRegularizationEvaluation
 extends RegularizationEvaluation {
 
   protected def lowerInsteadOfRegularizeChooseOnWeight(lowerWeight: Float, regularizationWeight: Float):Boolean
 
-  protected def lowerInsteadOfRegularize(node: SequentProof,
+  protected def lowerInsteadOfRegularize(node: SequentProofNode,
                                          currentChildrenNumber: Int,
                                          information: RegularizationInformation,
                                          safeLiterals: IClause                  ):Boolean = {
@@ -220,8 +221,8 @@ extends RegularizationEvaluation {
       }
       else acc
     val regularizeGain =
-      safeLiterals.ant.foldLeft(0..toFloat)(foldFunction(information.estimatedGainForLeftSafeLiteral))  +
-      safeLiterals.suc.foldLeft(0..toFloat)(foldFunction(information.estimatedGainForRightSafeLiteral))
+      safeLiterals.ant.foldLeft(0.0.toFloat)(foldFunction(information.estimatedGainForLeftSafeLiteral))  +
+      safeLiterals.suc.foldLeft(0.0.toFloat)(foldFunction(information.estimatedGainForRightSafeLiteral))
 //    println("Clever " + node.conclusion + " with " + currentChildrenNumber + " children, size " +
 //            information.estimatedSize + " reg " + regularizeGain)
     lowerInsteadOfRegularizeChooseOnWeight((currentChildrenNumber - 1).toFloat, regularizeGain)
@@ -243,13 +244,13 @@ trait MinRegularizationChoice extends MinRegularizationEvaluation {
 // Convenient objects
 
 object IdempotentRegularizationInformationRegularizationChoice
-extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinRegularizationChoice with IdempotentAlgorithm[SequentProof]
+extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinRegularizationChoice with IdempotentAlgorithm[SequentProofNode]
 
 object IdempotentRegularizationEvaluationLoweringChoice
-extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinLoweringChoice with IdempotentAlgorithm[SequentProof]
+extends RegularizationEvaluation with DiscreteCollector  with MinEval with MinLoweringChoice with IdempotentAlgorithm[SequentProofNode]
 
 object IdempotentRegularizationEvaluationRegularizeIfPossible
-extends RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible with IdempotentAlgorithm[SequentProof]
+extends RegularizationEvaluation with QuadraticCollector with AddEval with RegularizeIfPossible with IdempotentAlgorithm[SequentProofNode]
 
 object IdempotentRegularizationEvaluationQuadraticHeuristic
-extends RegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice with IdempotentAlgorithm[SequentProof]
+extends RegularizationEvaluation with QuadraticCollector with MinEval with MinLoweringChoice with IdempotentAlgorithm[SequentProofNode]

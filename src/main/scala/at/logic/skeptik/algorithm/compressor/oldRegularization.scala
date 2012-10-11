@@ -7,13 +7,13 @@ import collection._
 
 object Regularization {
 
-  def removeUnusedResolvents(proof: Proof): Proof = {
+  def removeUnusedResolvents(proof: ProofNode): ProofNode = {
     println("removing unused resolvents")
     proof.duplicate
   }
 
-  def getIrregularNodes(proof: Proof) = {
-    def getIrregularNodesRec(p: Proof, pivotsBelow: List[Atom]) : List[Proof] = {
+  def getIrregularNodes(proof: ProofNode) = {
+    def getIrregularNodesRec(p: ProofNode, pivotsBelow: List[Atom]) : List[ProofNode] = {
       p match {
         case Input(_) => Nil
         case Resolvent(l,r) => {
@@ -31,8 +31,8 @@ object Regularization {
     getIrregularNodesRec(proof, Nil)
   }
 
-  def isRegular(proof: Proof) = {
-    def isRegularRec(p: Proof, pivotsBelow: List[Atom]): Boolean = {
+  def isRegular(proof: ProofNode) = {
+    def isRegularRec(p: ProofNode, pivotsBelow: List[Atom]): Boolean = {
       p match {
         case Input(_) => true
         case Resolvent(l, r) => {
@@ -59,18 +59,18 @@ object Regularization {
     else if (criticalLiterals.contains(p.pivot._1)) {
       //println("here2")
       regularizationRecSchema(p.left, p, None, continuation)
-      deletedSubProof replacesAsParentOf (p.left, p)
+      deletedSubProofNode replacesAsParentOf (p.left, p)
       regularizationRecSchema(p.right, p, Some(criticalLiterals), continuation)
     }
     else {
       //println("here3")
       regularizationRecSchema(p.right, p, None, continuation)
-      deletedSubProof replacesAsParentOf (p.right, p)
+      deletedSubProofNode replacesAsParentOf (p.right, p)
       regularizationRecSchema(p.left, p, Some(criticalLiterals), continuation)
     }
   }
 
-  private def regularizationRecSchema(p: Proof, callingChild: Resolvent, litB: Option[mutable.HashSet[Literal]], continuation: Resolvent => Unit): Unit = {
+  private def regularizationRecSchema(p: ProofNode, callingChild: Resolvent, litB: Option[mutable.HashSet[Literal]], continuation: Resolvent => Unit): Unit = {
     //println(p.id)
     //println(p.isInstanceOf[Input])
     p match {
@@ -112,7 +112,7 @@ object Regularization {
   }
 
 
-  def recyclePivots(p:Proof): Proof = {
+  def recyclePivots(p:ProofNode): ProofNode = {
     if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], new mutable.HashSet[Literal], recyclePivotsContinuation)
     p
   }
@@ -125,7 +125,7 @@ object Regularization {
   }
 
 
-  def recyclePivotsWithIntersection(p:Proof): Proof = {
+  def recyclePivotsWithIntersection(p:ProofNode): ProofNode = {
     if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], new mutable.HashSet[Literal], recyclePivotsWithIntersectionContinuation)
     p
   }
@@ -142,11 +142,11 @@ object Regularization {
   }
 
 
-  def regularizeNaive(p: Proof): Proof = {
+  def regularizeNaive(p: ProofNode): ProofNode = {
     if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], new mutable.HashSet[Literal], fullyRegularizeContinuation(doNotFilterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
     p
   }
-  def regularizeWithOnlyRootDuplication(p: Proof): Proof = {
+  def regularizeWithOnlyRootDuplication(p: ProofNode): ProofNode = {
     if (p.isInstanceOf[Resolvent]) doRegularize(p.asInstanceOf[Resolvent], new mutable.HashSet[Literal], fullyRegularizeContinuation(doNotFilterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
     p
   }
@@ -164,27 +164,27 @@ object Regularization {
   private def doNotFilterCriticalLiterals(criticalLiterals: mutable.HashSet[Literal]) = criticalLiterals
   private def simpleDuplicateAndRegularizeDuplicates(filterCriticalLiterals: mutable.HashSet[Literal] => mutable.HashSet[Literal])(r: Resolvent)(criticalLiterals: mutable.HashSet[Literal]):Unit = {
     for (c <- r.children.tail) {
-      val newProof = r.duplicate
-      newProof.children = c::Nil
-      if (c.left == r) c.left = newProof
-      else c.right = newProof
+      val newProofNode = r.duplicate
+      newProofNode.children = c::Nil
+      if (c.left == r) c.left = newProofNode
+      else c.right = newProofNode
       r.children = r.children.filterNot(_ == c)
-      val literalsBelowForNewProof = r.literalsBelow(c)
+      val literalsBelowForNewProofNode = r.literalsBelow(c)
       r.literalsBelow -= c
-      regularizationRecSchema(newProof, c, Some(literalsBelowForNewProof), fullyRegularizeContinuation(filterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
+      regularizationRecSchema(newProofNode, c, Some(literalsBelowForNewProofNode), fullyRegularizeContinuation(filterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
     }
     doRegularize(r, r.literalsBelow(r.children.head), fullyRegularizeContinuation(filterCriticalLiterals, simpleDuplicateAndRegularizeDuplicates))
   }
   private def duplicateOnlyRootAndRegularizeDuplicates(filterCriticalLiterals: mutable.HashSet[Literal] => mutable.HashSet[Literal])(r: Resolvent)(criticalLiterals: mutable.HashSet[Literal]):Unit = {
     for (c <- r.children.tail) {
-      val newProof = r.duplicateRoot
-      newProof.children = c::Nil
-      if (c.left == r) c.left = newProof
-      else c.right = newProof
+      val newProofNode = r.duplicateRoot
+      newProofNode.children = c::Nil
+      if (c.left == r) c.left = newProofNode
+      else c.right = newProofNode
       r.children = r.children.filterNot(_ == c)
-      val literalsBelowForNewProof = r.literalsBelow(c)
+      val literalsBelowForNewProofNode = r.literalsBelow(c)
       r.literalsBelow -= c
-      regularizationRecSchema(newProof, c, Some(literalsBelowForNewProof), fullyRegularizeContinuation(filterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
+      regularizationRecSchema(newProofNode, c, Some(literalsBelowForNewProofNode), fullyRegularizeContinuation(filterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
     }
     doRegularize(r, r.literalsBelow(r.children.head), fullyRegularizeContinuation(filterCriticalLiterals, duplicateOnlyRootAndRegularizeDuplicates))
   }

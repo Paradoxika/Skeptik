@@ -4,18 +4,23 @@ organization := "at.logic"
 
 version := "0.2-SNAPSHOT"
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.0-M7"
 
-scalacOptions ++= Seq("-unchecked", "-deprecation")
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
+
+scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
+
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "1.7.2",
-//  "org.scalatest" % "scalatest_2.9.2" % "1.7.2",
-  "org.specs2" %% "specs2" % "1.10",
-//  "org.specs2" % "specs2_2.9.2" % "1.10",
-  "org.scalacheck" %% "scalacheck" % "1.9",
-  "junit" % "junit" % "4.10"
+//  "org.scalatest" %% "scalatest" % "1.9-2.10.0-M7-B1",
+//  "org.specs2" %% "specs2" % "1.12.1",
+//  "org.scalacheck" %% "scalacheck" % "1.10.0",
+  "junit" % "junit" % "4.10",
+  "commons-lang" % "commons-lang" % "2.6"
 )
+
+// Uncomment the following line to use one-jar (https://github.com/sbt/sbt-onejar)
+//seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 licenses := Seq("GNU GPL v3" -> url("http://www.gnu.org/licenses/gpl.html"))
 
@@ -59,18 +64,18 @@ pomExtra := (
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
 				<version>3.0.2</version>
+				<configuration>
+                	<args>
+                    	<arg>-diagrams</arg>
+                    	<arg>-implicits</arg>
+                	</args>
+                </configuration>
 				<executions>
 					<execution>
 						<goals>
 							<goal>compile</goal>
 							<goal>testCompile</goal>
 						</goals>
-						<configuration>
-							<args>
-								<arg>-make:transitive</arg>
-								<arg>-dependencyfile</arg>
-							</args>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -82,9 +87,6 @@ pomExtra := (
 				<groupId>net.alchim31.maven</groupId>
 				<artifactId>scala-maven-plugin</artifactId>
 				<version>3.0.2</version>
-				<configuration>
-					<scalaVersion>2.9.1</scalaVersion>
-				</configuration>
 			</plugin>
 		</plugins>
 	</reporting>

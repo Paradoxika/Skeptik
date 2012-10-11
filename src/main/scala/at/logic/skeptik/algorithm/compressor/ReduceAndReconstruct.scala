@@ -1,9 +1,9 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.judgment._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.compressor.guard._
@@ -11,10 +11,10 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractReduceAndReconstruct
-extends CompressorAlgorithm[SequentProof] with RepeatableAlgorithm[SequentProof] {
+extends CompressorAlgorithm[SequentProofNode] with RepeatableAlgorithm[SequentProofNode] {
 
-  protected def reduce(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
-      (fallback: (SequentProof,Boolean,Boolean) => SequentProof):SequentProof =
+  protected def reduce(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
+      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode):SequentProofNode =
   node match {
 
     // B2
@@ -56,7 +56,7 @@ extends CompressorAlgorithm[SequentProof] with RepeatableAlgorithm[SequentProof]
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
-  def a2(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
+  def a2(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
     case CutIC(CutIC(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild &&
                                                    !(alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
          CutIC(CutIC(beta,alpha, _ == t), gamma, _ == s)
@@ -73,17 +73,17 @@ extends CompressorAlgorithm[SequentProof] with RepeatableAlgorithm[SequentProof]
     case _ => node
   }
 
-  protected def reconstruct(node: SequentProof, fixedLeft: SequentProof, fixedRight: SequentProof) = node match {
+  protected def reconstruct(node: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode) = node match {
     case Axiom(conclusion) => Axiom(conclusion)
     case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
   }
 
-  protected def reduceAndReconstruct(proof: ProofNodeCollection[SequentProof], fallback: (SequentProof,Boolean,Boolean) => SequentProof) = {
-    def hasOnlyOneChild(p: SequentProof) = proof.childrenOf(p) match {
+  protected def reduceAndReconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode) = {
+    def hasOnlyOneChild(p: SequentProofNode) = proof.childrenOf(p) match {
         case _::Nil => true
         case _ => false
     }
-    { (node: SequentProof, fixedPremises: List[SequentProof]) => {
+    { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
       val fixedNode = fixedPremises match {
         case Nil => node
         case left::right::Nil => reconstruct(node, left, right)
@@ -98,9 +98,9 @@ extends CompressorAlgorithm[SequentProof] with RepeatableAlgorithm[SequentProof]
 }
 
 class ReduceAndReconstruct
-extends AbstractReduceAndReconstruct with RepeatableAlgorithm[SequentProof] {
+extends AbstractReduceAndReconstruct with RepeatableAlgorithm[SequentProofNode] {
 
-  def apply(proof: ProofNodeCollection[SequentProof]) = ProofNodeCollection(proof.foldDown(reduceAndReconstruct(proof, a2)))
+  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, a2)))
 
 }
 
@@ -109,7 +109,7 @@ extends ReduceAndReconstruct
 
 class RRWithA2OnChild
 extends AbstractReduceAndReconstruct {
-  private def a2recursive(node: SequentProof, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
+  private def a2recursive(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
     // A2 (recursive)
     case CutIC(left,right,r,_) =>
       val nLeft  = if (leftPremiseHasOneChild)  a2(left,true,true)  else left
@@ -126,12 +126,12 @@ extends AbstractReduceAndReconstruct {
     case _ => node
   }
 
-  def apply(proof: ProofNodeCollection[SequentProof]) = ProofNodeCollection(proof.foldDown(reduceAndReconstruct(proof, a2recursive)))
+  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, a2recursive)))
 }
 
 class RRWithoutA2
 extends AbstractReduceAndReconstruct {
 
-  def apply(proof: ProofNodeCollection[SequentProof]) = ProofNodeCollection(proof.foldDown(reduceAndReconstruct(proof, { (n,_,_) => n })))
+  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, { (n,_,_) => n })))
 
 }

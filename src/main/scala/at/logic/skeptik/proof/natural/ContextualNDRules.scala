@@ -14,14 +14,14 @@ case object RightArrow extends ImpElimCArrow
 case object LeftArrow extends ImpElimCArrow
 
 
-class ImpIntroCK(val premise: NaturalDeductionProof, val assumption: NamedE, val position: Position)
-extends NaturalDeductionProof with Unary {
+class ImpIntroCK(val premise: NaturalDeductionProofNode, val assumption: NamedE, val position: Position)
+extends NaturalDeductionProofNode with Unary {
   require(premise.conclusion.context contains assumption)
   require(position isPositiveIn premise.conclusion.e)
   override val conclusion = new NaturalSequent(premise.conclusion.context - assumption , (((e:E) => Imp(assumption.expression,e)) @: position)(premise.conclusion.e))
 }
 
-class ImpIntroC(premise: NaturalDeductionProof, assumption: NamedE, position: Position)
+class ImpIntroC(premise: NaturalDeductionProofNode, assumption: NamedE, position: Position)
 extends ImpIntroCK(premise, assumption, position)
 with IntuitionisticSoundnessCondition
 
@@ -35,7 +35,7 @@ trait IntuitionisticSoundnessCondition extends ImpIntroCK {
     rec(conclusion.e)
   }
   def assumptionIsUsed: Boolean = {
-    def rec(p: NaturalDeductionProof): Boolean = p match {
+    def rec(p: NaturalDeductionProofNode): Boolean = p match {
       case Assumption(context, a) => if (a == assumption) true else false
       case _ => p.premises.exists(premise => rec(premise))
     }
@@ -44,9 +44,9 @@ trait IntuitionisticSoundnessCondition extends ImpIntroCK {
   require(positionIsStronglyPositive || !assumptionIsUsed)
 }
 
-class ImpElimC(val leftPremise: NaturalDeductionProof, val rightPremise: NaturalDeductionProof, 
+class ImpElimC(val leftPremise: NaturalDeductionProofNode, val rightPremise: NaturalDeductionProofNode, 
                val leftPosition: Position, val rightPosition: Position, val arrow: ImpElimCArrow)
-extends NaturalDeductionProof with Binary {
+extends NaturalDeductionProofNode with Binary {
   require(leftPosition isPositiveIn leftPremise.conclusion.e)
   require(rightPosition isPositiveIn rightPremise.conclusion.e)
   private def deepAuxL = (leftPremise.conclusion.e !: leftPosition).get 
@@ -62,8 +62,8 @@ extends NaturalDeductionProof with Binary {
   val conclusion = new NaturalSequent(leftPremise.conclusion.context ++ rightPremise.conclusion.context, main)
 }
 
-abstract class ImpIntroCRule extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
-  def apply(premise: NaturalDeductionProof, assumption: NamedE, position: Position): NaturalDeductionProof
+abstract class ImpIntroCRule extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] {
+  def apply(premise: NaturalDeductionProofNode, assumption: NamedE, position: Position): NaturalDeductionProofNode
   
   // ToDo: (B) A much more efficient implementation is possible in the intuitionistic case,
   // because positivePositions contains many positions that do not satisfy the soundness condition
@@ -87,17 +87,17 @@ abstract class ImpIntroCRule extends InferenceRule[NaturalSequent, NaturalDeduct
     }).filter(_ != None).map(_.get)
   }
   
-  def apply(premises: Seq[NaturalDeductionProof], conclusion: NaturalSequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+  def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 1) {
       val positions = EmptyP.getSubpositions(conclusion.e)
       val positivePositions = positions.filter(p => p.isPositiveIn(conclusion.e) && p.existsIn(premises(0).conclusion.e) && p.isPositiveIn(premises(0).conclusion.e))
-      val optionProofs = (for (p <- positivePositions.view) yield {
+      val optionProofNodes = (for (p <- positivePositions.view) yield {
         val deepMain = (conclusion.e !: p).get
         deepMain match {
           case i @ Imp(a,b) => {
             val deepAux = (premises(0).conclusion.e !: p).get
             if (b == deepAux) premises(0).conclusion.context.find(_.expression == a) match {
-              case Some(assumption) => try { Some(apply(premises(0), assumption, p)) } catch {case _ => None}
+              case Some(assumption) => try { Some(apply(premises(0), assumption, p)) } catch {case _: Throwable => None}
               case None => None
             }
             else None   
@@ -105,34 +105,34 @@ abstract class ImpIntroCRule extends InferenceRule[NaturalSequent, NaturalDeduct
           case _ => None
         }
       })
-      optionProofs.find(_ != None).getOrElse(None)
+      optionProofNodes.find(_ != None).getOrElse(None)
     }
     else None
   }
 }
 
 object ImpIntroC extends ImpIntroCRule {
-  def apply(premise: NaturalDeductionProof, assumption: NamedE, position: Position) = new ImpIntroC(premise, assumption, position)
-  def unapply(p: NaturalDeductionProof) = p match {
+  def apply(premise: NaturalDeductionProofNode, assumption: NamedE, position: Position) = new ImpIntroC(premise, assumption, position)
+  def unapply(p: NaturalDeductionProofNode) = p match {
     case p: ImpIntroC => Some((p.premise, p.assumption, p.position))
     case _ => None
   }
 }
 
 object ImpIntroCK extends ImpIntroCRule {
-  def apply(premise: NaturalDeductionProof, assumption: NamedE, position: Position) = new ImpIntroCK(premise, assumption, position)
-  def unapply(p: NaturalDeductionProof) = p match {
+  def apply(premise: NaturalDeductionProofNode, assumption: NamedE, position: Position) = new ImpIntroCK(premise, assumption, position)
+  def unapply(p: NaturalDeductionProofNode) = p match {
     case p: ImpIntroCK => Some((p.premise, p.assumption, p.position))
     case _ => None
   }
 }
 
 
-object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
-  def apply(leftPremise: NaturalDeductionProof, rightPremise: NaturalDeductionProof, leftPosition: Position, rightPosition: Position, arrow: ImpElimCArrow) = 
+object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] {
+  def apply(leftPremise: NaturalDeductionProofNode, rightPremise: NaturalDeductionProofNode, leftPosition: Position, rightPosition: Position, arrow: ImpElimCArrow) = 
     new ImpElimC(leftPremise, rightPremise, leftPosition, rightPosition, arrow)
   
-  def unapply(p: NaturalDeductionProof) = p match {
+  def unapply(p: NaturalDeductionProofNode) = p match {
     case p: ImpElimC => Some((p.leftPremise, p.rightPremise, p.leftPosition, p.rightPosition, p.arrow))
     case _ => None
   }
@@ -175,7 +175,7 @@ object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProof] {
     result
   }
   
-  def apply(premises: Seq[NaturalDeductionProof], conclusion: NaturalSequent): Option[NaturalDeductionProof] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+  def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 2) {
       val auxL = premises(0).conclusion.e
       val auxR = premises(1).conclusion.e

@@ -2,24 +2,24 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk.{Axiom,CutIC}
-import at.logic.skeptik.judgment.Sequent
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{Queue, HashMap => MMap}
-import at.logic.skeptik.proof.ProofNodeCollection
+import at.logic.skeptik.proof.Proof
 
 object NewUnitLowering
-extends CompressorAlgorithm[SequentProof] with IdempotentAlgorithm[SequentProof] {
+extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentProofNode] {
 
-  private def collectUnits(proof: ProofNodeCollection[SequentProof]) = {
+  private def collectUnits(proof: Proof[SequentProofNode]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
-    proof.foldRight(Nil:List[SequentProof])((node, acc) =>
+    proof.foldRight(Nil:List[SequentProofNode])((node, acc) =>
       if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) node::acc else acc
     );
   }
 
-  private def fixProofs(unitsSet: Set[SequentProof], proof: ProofNodeCollection[SequentProof]) = {
-    val fixMap = MMap[SequentProof,SequentProof]()
+  private def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode]) = {
+    val fixMap = MMap[SequentProofNode,SequentProofNode]()
 
-    def visit (node: SequentProof, fixedPremises: List[SequentProof]) = {
+    def visit (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
       lazy val fixedLeft  = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
       val fixedP = node match {
@@ -35,12 +35,12 @@ extends CompressorAlgorithm[SequentProof] with IdempotentAlgorithm[SequentProof]
     fixMap
   }
 
-  def apply(proof: ProofNodeCollection[SequentProof]) = {
+  def apply(proof: Proof[SequentProofNode]) = {
     val units   = collectUnits(proof)
 //    println(units.length + " units")
-    val fixMap  = fixProofs(units.toSet, proof)
+    val fixMap  = fixProofNodes(units.toSet, proof)
     val root = units.map(fixMap).foldLeft(fixMap(proof.root))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
-    ProofNodeCollection(root)
+    Proof(root)
   }
 
 }

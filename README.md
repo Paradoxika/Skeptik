@@ -8,12 +8,16 @@ By providing smaller resolution proofs that are easier and faster to check, Skep
 
 ###Usage Instructions###
 
-You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) installed. 
+You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) (version >= 0.11.3) installed. 
 Then go to Skeptik's root directory using the terminal and simply execute:
 
 ```
+  export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Xmx512m -XX:MaxPermSize=256m"
+
   sbt run
 ```
+
+(you may increase the value after -Xmx, if you need or want to provide more memory to the JVM)
 
 Further instructions, such as necessary command-line arguments, will be shown to you.
 If you face any difficulty, do not hesitate to contact us.
@@ -22,15 +26,24 @@ If you face any difficulty, do not hesitate to contact us.
 
 ###Stats###
 
-* [![Build Status](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/badge/icon)](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/)
+* [![Build Status](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/badge/icon)](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/) (BuildHive currently does not support SBT 0.11.3. Therefore, the build status is outdated.)
 * [Ohloh](https://www.ohloh.net/p/Skeptik)
 
 
-### Authors and Contributors
+###Developers and Contributors###
 
  * Bruno Woltzenlogel Paleo (@Ceilican)
  * Joseph Boudou (@Jogo27)
 
-### Mailinglists
 
- * skeptik-dev@googlegroups.com - for Skeptik's developers
+###Websites and Forums###
+
+ * [Skeptik's Main Website](http://paradoxika.github.com/Skeptik/)
+ * [Skeptik's Mailinglist for Developers](https://groups.google.com/forum/?fromgroups#!forum/skeptik-dev)
+ 
+
+###Support###
+ 
+ * Skeptik's development is currently funded by the Austrian Science Fund ([Project P24300](http://www.fwf.ac.at/en/projects/projekt_datenbank.asp))
+ * Skeptik was supported by [Google Summer of Code 2012](http://www.google-melange.com/gsoc/project/google/gsoc2012/josephboudou/17001)
+ * [YourKit](http://www.yourkit.com/) is an excellent profiler for Scala applications. It supports our open-source project with a free license.

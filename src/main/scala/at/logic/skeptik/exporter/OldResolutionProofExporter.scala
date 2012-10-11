@@ -6,13 +6,13 @@ import collection.mutable._
 import java.io.FileWriter
 
 package object exporter {
-  def writeProofToFile(proof:Proof, filename: String)(implicit maxUnnamedResolvents: Int) = {
+  def writeProofNodeToFile(proof:ProofNode, filename: String)(implicit maxUnnamedResolvents: Int) = {
     var unnamedResolventsCounter = 0
     var counter = 0
-    val visitedProofs = new HashMap[Proof,String]
+    val visitedProofNodes = new HashMap[ProofNode,String]
     val writer = new FileWriter(filename)
-    def writeProofToFileRec(p:Proof): String = {
-      if (visitedProofs.contains(p)) return visitedProofs(p)
+    def writeProofNodeToFileRec(p:ProofNode): String = {
+      if (visitedProofNodes.contains(p)) return visitedProofNodes(p)
       else {
         p match {
           case Input(_) => {
@@ -23,13 +23,13 @@ package object exporter {
               val clause = p.toString
               val line = name + " = " + clause + "\n"
               writer.write(line, 0, line.length)
-              visitedProofs += (p -> name)
+              visitedProofNodes += (p -> name)
               return name
             }
           }
           case Resolvent(left,right) => {
-            val leftString = writeProofToFileRec(left)
-            val rightString = writeProofToFileRec(right)
+            val leftString = writeProofNodeToFileRec(left)
+            val rightString = writeProofNodeToFileRec(right)
             if (p.children.length == 1 && unnamedResolventsCounter <= maxUnnamedResolvents) {
               unnamedResolventsCounter += 1
               "(" + leftString + "." + rightString + ")"
@@ -41,14 +41,14 @@ package object exporter {
               val subproof = "(" + leftString + "." + rightString + ")"
               val line = name + " = " + subproof + "\n"
               writer.write(line, 0, line.length)
-              visitedProofs += (p -> name)
+              visitedProofNodes += (p -> name)
               return name
             }
           }
         }
       }
     }
-    writeProofToFileRec(proof)
+    writeProofNodeToFileRec(proof)
     val lastLine = "qed = " + (counter-1)
     writer.write(lastLine, 0, lastLine.length)
     writer.close
