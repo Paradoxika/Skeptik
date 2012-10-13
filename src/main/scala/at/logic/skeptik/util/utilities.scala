@@ -1,5 +1,7 @@
 package at.logic.skeptik.util
 
+import language.implicitConversions
+
 object unicode {
   def unicodeOrElse(unicode: String, alternative: String) = 
     if (System.getProperty("file.encoding") == "UTF-8") unicode

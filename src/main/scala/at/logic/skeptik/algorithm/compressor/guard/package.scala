@@ -1,6 +1,7 @@
 package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof._
+import language.implicitConversions
 
 package object guard {
 
