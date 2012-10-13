@@ -29,7 +29,7 @@ extends CompressorAlgorithm[SequentProofNode] {
       }
 
     def markEdge(node: SequentProofNode, premiseSide: DeletedSide) = {
-      if ((edges contains node) && (edges(node)._1 == otherSide(premiseSide))) println("Case A")
+//      if ((edges contains node) && (edges(node)._1 == otherSide(premiseSide))) println("Case A")
       val deleteNode = (edges contains node) &&
                        { val old = edges(node) ; old._2 || old._1 == otherSide(premiseSide) }
       edges(node) = (premiseSide, deleteNode)
@@ -55,7 +55,7 @@ extends CompressorAlgorithm[SequentProofNode] {
       node match {
         case _ if ((edges contains node) && edges(node)._2) => true
         case CutIC(left,right,_,_) if (isMarked(node, left) && isMarked(node,right)) =>
-          println("Case B")
+//          println("Case B")
           deleteNode(node)
           true
         case _ => false
