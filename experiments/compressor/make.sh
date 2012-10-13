@@ -8,12 +8,12 @@ cd /home/jogo/gsoc/git/experiments/compressor
 
 # Compute data files
 
-cat slice2.csv slice3.csv slice4.csv slice5.csv slice6.csv slice7.csv slice8.csv slice9.csv | cut -d, -f 1,2,4- >full.csv
+cat slice1.csv slice2.csv slice3.csv slice4.csv slice5.csv slice6.csv slice7.csv slice8.csv slice9.csv | cut -d, -f 1,2,4- >full.csv
 cat header-full.csv full.csv >/home/jogo/Dropbox/Experiment/full.csv
 LFUL=$( wc -l full.csv | sed 's: .*::' )
 
 ( cut -d, -f 1-161,176-182,197-203 full.csv
-  cat slice7m.csv slice9m.csv slice10m.csv | cut -d, -f 1,2,4-
+  cat slice7m.csv slice8m.csv slice9m.csv slice10m.csv | cut -d, -f 1,2,4-
 ) >medium.csv
 cut -d, -f 1-161,176-182,197-203 header-full.csv >header-medium.csv
 cat header-medium.csv medium.csv >/home/jogo/Dropbox/Experiment/medium.csv
@@ -21,6 +21,7 @@ LMED=$( wc -l medium.csv | sed 's: .*::' )
 
 #             *  LU   RPI   RPI_R LURPI _R    RPILU _R    3pass   LUniv   -RPI    _R      RPILUniv _R     RednRec Split   DAG
 ( cut -d, -f 1-6,8-13,22-27,29-34,36-41,43-48,50-55,57-62,106-111,113-118,120-125,127-132,134-139,141-146,148-153,155-160,169-174 medium.csv
+  cat slice9l.csv | cut -d, -f 1,2,4-
 ) >light.csv
 cut -d, -f 1-6,8-13,22-27,29-34,36-41,43-48,50-55,57-62,106-111,113-118,120-125,127-132,134-139,141-146,148-153,155-160,169-174 header-medium.csv >header-light.csv
 cat header-light.csv light.csv >/home/jogo/Dropbox/Experiment/light.csv
@@ -207,7 +208,7 @@ EOT
 EOT
   plotgroupby -x 'Average number of children per node' -i '[0,0]' -f '1 - (%_->[1] / %_->[0])' "$1.csv" 'int(10 - ((20 * %3) / %2))' "[%_->[0] + %2, %_->[1] + %$c]" '1 + (%i + 1) / 10' 0.1
   cat <<EOT
-    \caption{Compression ratio w.r.t. DAGification}
+    \caption{Compression ratio w.r.t. DAG degree}
   \end{subfigure}
 EOT
 }
@@ -278,6 +279,43 @@ cat header.tex
 
 echo '\section{Benchmarks}'
 
+# Full
+
+cat <<EOT
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+EOT
+
+plotgroupby -x 'Proof size' full.csv  "%2 < 1000 ? 0 : (log(%2/1000)/log(2) + 1)" '%_+1' "1000 * (2 ** %i)" 50
+
+cat <<EOT
+  \caption{Repartition of proofs by size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+EOT
+
+plotgroupby -x 'Amount of Irregular Nodes (in percents)' full.csv '10 * %6 / %2' '%_+1' '(%i + 1) * 10' 50
+
+cat <<EOT
+  \caption{Repartition of proofs by number of irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+EOT
+
+plotgroupby -x 'Average number of children per node' full.csv 'int(10 - ((20 * %3) / %2))' "%_+1" '1 + (%i + 1) / 10' 50
+
+cat <<EOT
+  \caption{Repartition of proofs by DAG degree}
+  \end{subfigure}
+\caption{Repartition of proofs from the \emph{full} set}
+\end{figure}
+EOT
+
+# Medium
+
 cat <<EOT
 \begin{figure}[hbt]
   \begin{subfigure}{\textwidth}
@@ -287,6 +325,7 @@ EOT
 plotgroupby -x 'Proof size' medium.csv  "%2 < 1000 ? 0 : (log(%2/1000)/log(2) + 1)" '%_+1' "1000 * (2 ** %i)" 50
 
 cat <<EOT
+  \caption{Repartition of proofs by size}
   \end{subfigure}
   \begin{subfigure}{\textwidth}
     \centering
@@ -295,6 +334,7 @@ EOT
 plotgroupby -x 'Amount of Irregular Nodes (in percents)' medium.csv '10 * %6 / %2' '%_+1' '(%i + 1) * 10' 50
 
 cat <<EOT
+  \caption{Repartition of proofs by number of irregular nodes}
   \end{subfigure}
   \begin{subfigure}{\textwidth}
     \centering
@@ -303,93 +343,121 @@ EOT
 plotgroupby -x 'Average number of children per node' medium.csv 'int(10 - ((20 * %3) / %2))' "%_+1" '1 + (%i + 1) / 10' 50
 
 cat <<EOT
+  \caption{Repartition of proofs by DAG degree}
   \end{subfigure}
+\caption{Repartition of proofs from the \emph{medium} set}
 \end{figure}
 EOT
 
-#echo '\section{Reimplementing algorithms}'
-#
-#section_medium 'Reimplemented Algorithms' 1-4
-#
-#solo_light 1 LU
-#solo_light 2 RPI
-#two_light 1 LU 2 RPI 10
-#two_medium 2 RP 3 RPI 3
-#two_light 2 RPI 3 'RPI R' 15
-#group_medium "Comparison of LU, RP and RPI" 1-3 0.5 0.05
-#
-#echo '\section{Combining RPI and LU}'
-#
-#section_medium 'Combined Algorithms' 5-15
-#
-#solo_light 4 LURPI
-#solo_light 6 RPILU
-#two_light 4 LURPI 6 RPILU 15
-#solo_light 5 'LURPI R' 2
-#solo_light 7 'RPILU R' 2
-#two_light 5 'LURPI R' 7 'RPILU R' 20
-#
-#two_medium 5 LURPI  9 'IU Reg' 10
-#two_medium 7 RPILU 10 'IU Low' 10
-#group_medium "Irregular Units Algorithms Comparison" 5,7,9,10 1 0.1
-#
-#two_medium 5 LURPI 11 'RI Reg'   10
-#two_medium 7 RPILU 12 'RI Low'   10
-#two_medium 5 LURPI 13 'RI alReg' 60
-#two_medium 7 RPILU 14 'RI Quad'  60
-#group_medium "Regularization Informations Algorithms Comparison" 5,7,11-14 2 0.05
-#
-#two_light 6 RPILU 8 '3pass LU' 10
-#
-#echo '\section{Lowering Univalents}'
-#
-#section_light 'Lowering Univalents Algorithms' 9-13
-#
-#solo_light 9 LUniv
-#two_light 1 LU 9 LUniv 10
-#
-#solo_light 10 LUnivRPI
-#two_light 4 LURPI 10 LUnivRPI 10
-#solo_light 12 RPILUniv
-#two_light 6 RPILU 12 RPILUniv 10
-#
-#solo_light 11 'LUnivRPI R' 2
-#two_light 10 LUnivRPI 11 'LUnivRPI R' 15
-#solo_light 13 'RPILUniv R' 2
-#two_light 12 RPILUniv 13 'RPILUniv R' 15
-#
-#two_light 10 LUnivRPI 12 RPILUniv 10
-#two_light 11 'LUnivRPI R' 13 'RPILUniv R' 20
-#two_light 10 LUnivRPI 8 '3pass LU' 10
-#
-#group_light "Comparing LUniv with others" 1,2,4,6,9,10,12 1 0.05
-#group_light "Comparing combined algorithms" 4,6,8,10,12 1 0.05
-#group_light "Comparing combined repeating algorithms" 5,7,11,13 2 0.05
-#
-#echo '\section{Repeatable Algorithms}'
-#
-#section_full 'Repeatable Algorithms' 21-27
-#
-#solo_rep_light 14 'ReduceAndReconstruct' 4
-#solo_rep_light 15 'Split' 4
-#
-#two_rep_light 15 'Split' 14 'ReduceAndReconstruct' 250
-#
-#two_rep_full 24 'TSPlit Random' 23 'TSplit Deterministic' 25
-#two_rep_medium 22 'Split' 23 'MSplit 2' 250
-#
-#group_no_full 'Comparison of Split algorithms' 22-27 15 0.02
-#group_no_medium 'Comparison of some repeatable algorithms' 21-23 10 0.01
-#
-#echo '\section{Global overview}'
-#
-#section_full 'all Algorithms' 1-28
-#
-#global_table full 7 "Overview of nodes compression ratio" 1-28 '2:Nodes Compression'
-#global_table full 7 "Overview of SAT core compression" 1-28 '3:Axioms Compression,4:Variables Compression'
-#
-#global_table light 6 "Overview of nodes compression ratio" 1-16 '2:Nodes Compression'
-#global_table light 6 "Overview of SAT core compression" 1-16 '3:Axioms Compression,4:Variables Compression'
+# Light
+
+cat <<EOT
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+EOT
+
+plotgroupby -x 'Proof size' light.csv  "%2 < 1000 ? 0 : (log(%2/1000)/log(2) + 1)" '%_+1' "1000 * (2 ** %i)" 50
+
+cat <<EOT
+  \caption{Repartition of proofs by size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+EOT
+
+plotgroupby -x 'Average number of children per node' light.csv 'int(10 - ((20 * %3) / %2))' "%_+1" '1 + (%i + 1) / 10' 50
+
+cat <<EOT
+  \caption{Repartition of proofs by DAG degree}
+  \end{subfigure}
+\caption{Repartition of proofs from the \emph{light} set}
+\end{figure}
+EOT
+
+echo '\section{Reimplementing algorithms}'
+
+section_medium 'Reimplemented Algorithms' 1-4
+
+solo_light 1 LU
+solo_light 2 RPI
+two_light 1 LU 2 RPI 10
+two_medium 2 RP 3 RPI 3
+two_light 2 RPI 3 'RPI-R' 15
+group_medium "Comparison of LU, RP and RPI" 1-3 0.5 0.05
+
+echo '\section{Combining RPI and LU}'
+
+section_medium 'Combined Algorithms' 5-15
+
+solo_light 4 LURPI
+solo_light 6 RPILU
+two_light 4 LURPI 6 RPILU 15
+solo_light 5 'LURPI-R' 2
+solo_light 7 'RPILU-R' 2
+two_light 5 'LURPI-R' 7 'RPILU-R' 20
+
+two_medium 5 LURPI  9 'IU-Reg' 10
+two_medium 7 RPILU 10 'IU-Low' 10
+group_medium "Irregular Units Algorithms Comparison" 5,7,9,10 1 0.1
+
+two_medium 5 LURPI 11 'RI-Reg'   10
+two_medium 7 RPILU 12 'RI-Low'   10
+two_medium 5 LURPI 13 'RI-alReg' 60
+two_medium 7 RPILU 14 'RI-Quad'  60
+group_medium "Regularization Informations Algorithms Comparison" 5,7,11-14 2 0.05
+
+two_light 6 RPILU 8 '3pass-LU' 10
+
+echo '\section{Lowering Univalents}'
+
+section_light 'Lowering Univalents Algorithms' 9-13
+
+solo_light 9 LUniv
+two_light 1 LU 9 LUniv 10
+
+solo_light 10 LUnivRPI
+two_light 4 LURPI 10 LUnivRPI 10
+solo_light 12 RPILUniv
+two_light 6 RPILU 12 RPILUniv 10
+
+solo_light 11 'LUnivRPI-R' 2
+two_light 10 LUnivRPI 11 'LUnivRPI-R' 15
+solo_light 13 'RPILUniv-R' 2
+two_light 12 RPILUniv 13 'RPILUniv-R' 15
+
+two_light 10 LUnivRPI 12 RPILUniv 10
+two_light 11 'LUnivRPI-R' 13 'RPILUniv-R' 20
+two_light 10 LUnivRPI 8 '3pass-LU' 10
+
+group_light "Comparing LUniv with others" 1,2,4,6,9,10,12 1 0.05
+group_light "Comparing combined algorithms" 4,6,8,10,12 1 0.05
+group_light "Comparing combined repeating algorithms" 5,7,11,13 2 0.05
+
+echo '\section{Repeatable Algorithms}'
+
+section_full 'Repeatable Algorithms' 21-27
+
+solo_rep_light 14 'ReduceAndReconstruct' 4
+solo_rep_light 15 'Split' 4
+
+two_rep_light 15 'Split' 14 'ReduceAndReconstruct' 250
+
+two_rep_full 24 'TSPlit-Random' 23 'TSplit-Deterministic' 25
+two_rep_medium 22 'Split' 23 'MSplit2' 250
+
+group_no_full 'Comparison of Split algorithms' 22-27 15 0.02
+group_no_medium 'Comparison of some repeatable algorithms' 21-23 10 0.01
+
+echo '\section{Global overview}'
+
+section_full 'all Algorithms' 1-28
+
+global_table full 7 "Overview of nodes compression ratio" 1-28 '2:Nodes Compression'
+global_table full 7 "Overview of unSAT core compression" 1-28 '3:Axioms Compression,4:Variables Compression'
+
+global_table light 6 "Overview of nodes compression ratio" 1-16 '2:Nodes Compression'
+global_table light 6 "Overview of unSAT core compression" 1-16 '3:Axioms Compression,4:Variables Compression'
 
 cat footer.tex
 } >experiments.tex

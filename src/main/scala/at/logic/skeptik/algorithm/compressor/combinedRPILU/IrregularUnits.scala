@@ -16,14 +16,14 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
   protected def lowerInsteadOfRegularize(node: SequentProofNode, currentChildrenNumber: Int):Boolean
 
   private def collect(proof: Proof[SequentProofNode]) = {
-    val edgesToDelete = MMap[SequentProofNode,DeletedSide]()
+    val edgesToDelete = new EdgesToDelete()
     val units = collection.mutable.Queue[SequentProofNode]()
 
     def isUnitAndSomething(something: (SequentProofNode, Int) => Boolean)
                           (p: SequentProofNode) =
       (fakeSize(p.conclusion.ant) + fakeSize(p.conclusion.suc) == 1) && {
         val currentChildrenNumber = proof.childrenOf(p).foldLeft(0) { (acc,child) =>
-          if (childIsMarkedToDeleteParent(child, p, edgesToDelete)) acc else (acc + 1)
+          if (edgesToDelete.isMarked(child, p)) acc else (acc + 1)
         }
         (currentChildrenNumber > 1) && (something(p, currentChildrenNumber))
       }
@@ -35,12 +35,12 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       def regularize(position: DeletedSide) = 
         if (isUnitToLower(p)) lower() else {
-          edgesToDelete.update(p, position)
+          edgesToDelete.markEdge(p, position)
           (p, safeLiterals)
         }
       def lower() = {
         units.enqueue(p)
-        deleteFromChildren(p, proof, edgesToDelete)
+        edgesToDelete.deleteNode(p)
         if (fakeSize(p.conclusion.ant) == 1)
           (p, new IClause(Set(p.conclusion.ant(0)), Set[E]()))
         else

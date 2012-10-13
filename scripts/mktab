@@ -100,7 +100,7 @@ print '\multirow{3}{*}{\textbf{Algorithm}} ';
 for (@cols) { print '& \multicolumn{4}{c}{\textbf{' . $_->{name} . '}} ' }
 say '\\\\';
 
-for (@cols) { print '& \multicolumn{2}{c}{Best} & \multicolumn{2}{c}{Worse} ' }
+for (@cols) { print '& \multicolumn{2}{c}{Best} & \multicolumn{2}{c}{Worst} ' }
 say '\\\\';
 
 for (@cols) { print '& \scriptsize Frequence & \scriptsize Deviation & \scriptsize Frequence & \scriptsize Deviation ' }

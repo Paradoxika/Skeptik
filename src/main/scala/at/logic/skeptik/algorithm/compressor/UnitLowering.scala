@@ -23,7 +23,7 @@ extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentPr
       lazy val fixedLeft  = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
       val fixedP = node match {
-        case Axiom(conclusion) => Axiom(conclusion)
+        case Axiom(conclusion) => node
         case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
         case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
         case CutIC(left,right,aux,_) => CutIC(fixedLeft, fixedRight, _ == aux)
