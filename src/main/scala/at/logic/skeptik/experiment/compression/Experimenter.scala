@@ -83,6 +83,7 @@ object Experimenter {
   addTimeOutAlgorithm("3pass LU", IdempotentThreePassLowerUnits)
 
   addTimeOutAlgorithm("LUniv",    LowerUnivalents)
+  addTimeOutAlgorithm("LUniv Op",  LowerUnivalentsOpt)
   addTimeOutAlgorithm("LUnivRPI", IdempotentLowerUnivalentsAfterRecyclePivots)
   addTimeOutAlgorithm("RPILUniv", IdempotentLowerUnivalentsBeforeRecyclePivots)
 

@@ -28,12 +28,15 @@ extends CompressorAlgorithm[SequentProofNode] {
         case _ => NoDS
       }
 
-    def markEdge(node: SequentProofNode, premiseSide: DeletedSide) = {
+    def markEdge(node: SequentProofNode, premiseSide: DeletedSide):Unit = {
 //      if ((edges contains node) && (edges(node)._1 == otherSide(premiseSide))) println("Case A")
       val deleteNode = (edges contains node) &&
                        { val old = edges(node) ; old._2 || old._1 == otherSide(premiseSide) }
       edges(node) = (premiseSide, deleteNode)
     }
+    
+    def markEdge(child: SequentProofNode, premise: SequentProofNode):Unit =
+      markEdge(child, sideOf(premise, child))
 
     def deleteNode(node: SequentProofNode) =
       edges(node) = (edges.getOrElse(node,(NoDS,true))._1, true)
