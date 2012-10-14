@@ -16,11 +16,11 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
   protected def collectEdgesToDelete(proof: Proof[SequentProofNode],
                                      rootSafeLiterals: IClause,
                                      unitsSafeLiterals: Map[SequentProofNode,IClause]) = {
-    val edgesToDelete = MMap[SequentProofNode,DeletedSide]()
+    val edgesToDelete = new EdgesToDelete()
 
     def visit(node: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = if (unitsSafeLiterals contains node) {
-        deleteFromChildren(node, proof, edgesToDelete)
+        edgesToDelete.deleteNode(node)
 //        println("Unit " + node.conclusion)
         unitsSafeLiterals(node)
       }
@@ -29,9 +29,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
       node match {
         case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) =>
-          edgesToDelete.update(node, LeftDS)
+          edgesToDelete.markEdge(node, LeftDS)
         case CutIC(left ,_,auxL,_) if (safeLiterals.suc contains auxL) =>
-          edgesToDelete.update(node, RightDS)
+          edgesToDelete.markEdge(node, RightDS)
         case _ =>
       }
 
@@ -44,6 +44,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
 }
 
+/* Not equivalent to RPI.LU on :
+ * /data/proofs/QG-classification/qg5/iso_icl464.smt2 /data/proofs/QG-classification/qg5/iso_icl395.smt2 /data/proofs/QG-classification/qg5/iso_brn397.smt2 /data/proofs/QG-classification/qg5/iso_icl751.smt2 /data/proofs/QG-classification/qg5/iso_icl048.smt2 /data/proofs/QG-classification/qg5/iso_icl487.smt2 
+ */
 
 abstract class ThreePassLowerUnits
 extends AbstractThreePassLower {
@@ -77,7 +80,6 @@ extends AbstractThreePassLower {
 
     // Second pass
     val edgesToDelete = collectEdgesToDelete(proof, rootSafeLiterals, unitsSafeLiterals)
-//    println(edgesToDelete.size + " edges to delete (" + (edgesToDelete.size - nbUnitChildren) + " without orderedUnits' children)")
 
     // Third pass
     if (edgesToDelete.isEmpty) proof else Proof({

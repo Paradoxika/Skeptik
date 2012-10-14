@@ -11,7 +11,6 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
 
   def apply(proof: Proof[SequentProofNode]) = {
     val edgesToDelete = collectEdgesToDelete(proof)
-//    println(edgesToDelete.size + " edges to delete")
     if (edgesToDelete.isEmpty) proof else Proof(proof.foldDown(fixProofNodes(edgesToDelete)))
   }
 
@@ -24,7 +23,7 @@ extends AbstractRPIAlgorithm {
 
   protected def computeSafeLiterals(node: SequentProofNode,
                                     childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
-                                    edgesToDelete: Map[SequentProofNode,DeletedSide] ) : IClause =
+                                    edgesToDelete: EdgesToDelete ) : IClause =
     if (childrensSafeLiterals.length == 1)
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     else

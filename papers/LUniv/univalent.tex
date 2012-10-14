@@ -1,32 +1,47 @@
-\documentclass[a4paper]{article}
+\documentclass{llncs}
 
-\usepackage{kpfonts}
-\usepackage[left=2.8cm, right=4cm, bottom=2.5cm]{geometry}
-
-\usepackage{amsthm}
-\theoremstyle{definition}
-\newtheorem{thm}{Theorem}
-\newtheorem{defn}{Definition}
-\newtheorem*{nota}{Notation}
+\spnewtheorem*{notation}{Notation}{\bfseries}{\itshape}
 
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
+% The following is to comment draft source file. It has to be deleted for the
+% final document.
+\usepackage{xcolor}
+\newenvironment{jogo}{\color{teal}}{}
+
+\title{LoweringUnivalents}
+\author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
+\institute{Vienna University of Technology, Austria}
+
 \begin{document}
+
+\maketitle
+
+\begin{abstract}
+\begin{jogo}
+  To do.
+\end{jogo}
+\end{abstract}
 
 \section{Introduction}
 
-We would like to extend the unit concept for lowering more nodes. Intuitively,
-if a node with a clause $a$ is already marked to be lowered, another node with
-a clause $\bar{a},b$ might be lowered too.
+\begin{jogo}
+In this section we introduce propositional resolution proof compression and the
+definitions and notations we'll use trough this paper.
+\end{jogo}
 
-\begin{nota}[Resolution]
+\begin{notation}[Resolution]
 Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a
 \eta_1$, $a$ being the pivot literal such that $\bar{a} \in \eta_0$ and $a
 \in \eta_1$.
-\end{nota}
+\end{notation}
 
-\section{Lowering node}
+\section{Lowering Nodes}
+
+\begin{jogo}
+In this section we define formely what we mean by lowering a node. Then we explain why it's interessing for proof compression. Finaly we briefly describe LowerUnits.
+\end{jogo}
 
 The problem of lowering a node $\eta$ in a proof of the form $\psi[\eta]
 \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is to decide
@@ -38,27 +53,37 @@ This problem doesn't depend on the sequence $\eta_{i \in 0..n}$ but only on
 $\psi[\eta]$ and $a_{i \in 0..n}$. This last sequence might be seen as a
 clause. We call it the clause of lowered pivots.
 
-\section{Univalent clause}
+\section{LoweringUnivalents}
+
+\begin{jogo}
+This is the main section. First we define univalent clause and we prove that it's not sufficent for a node to be lowered. Second we introduce active literals and the main theorem (with proof). Third we explain the partial regularization done by "Deletable" nodes. Fourth we give the algorithm. Fifth we prove it's always better than LowerUnits.
+\end{jogo}
+
+We would like to extend LowerUnits presented in \cite{LURPI}. Intuitively,
+if a node with a clause $a$ is already marked to be lowered, another node with
+a clause $\bar{a},b$ might be lowered too.
+
+\subsection{Univalent Clauses}
 
 The extended unit concept intuitively presented above can be formely defined as
 univalent clause.
 
-\begin{defn}[Valent literal]
+\begin{definition}[Valent literal]
 A literal $a$ is said to be valent w.r.t. a clause $\Delta$ iff $\bar{a}$ does
 not occur in $\Delta$.
-\end{defn}
+\end{definition}
 
-\begin{defn}[Univalent clause]
+\begin{definition}[Univalent clause]
 A clause $\Gamma$ is said to be univalent w.r.t. another clause $\Delta$ iff
-there is exactely one literal $a$ in $\Gamma$ which is valent w.r.t. $\Delta$.
-\end{defn}
+there is exactly one literal $a$ in $\Gamma$ which is valent w.r.t. $\Delta$.
+\end{definition}
 
 Units have univalent clause w.r.t. a clause $\Delta$ unless their sole literal
 is a dual of a $\Delta$'s literal. Therefore univalent clauses are not a
 strict extension of units.
 
 
-\section{Lowering nodes with univalent clause}
+\subsection{Lowering Nodes with Univalent Clause}
 
 The question now is whether nodes with a univalent clause w.r.t. the clause of
 lowered pivots can be lowered.
@@ -71,17 +96,17 @@ the literal $\bar{a}$ which will propagate down the proof.
 
 Hence we need a condition on the children of the node we want to lower.
 
-\begin{defn}[Active literal]
+\begin{definition}[Active literal]
 Let's consider a node $\eta$ with clause $\Gamma$. A literal $a$ from
 $\Gamma$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
 one of $\eta$'s child.
-\end{defn}
+\end{definition}
 
-\begin{thm}
+\begin{theorem}
 If all the active literals of a node $\eta$ with clause $\Gamma$ univalent
 w.r.t. the clause $\Delta$ of lowered literals either are the valent
 literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
-\end{thm}
+\end{theorem}
 
 \begin{proof}
 Let $\bar{\Delta}$ be the clause of all $\Delta$'s literals duals.
@@ -92,6 +117,18 @@ By removing $\eta$ from $\psi$ only the dual of every $\eta$'s active literal
 might be introduced. If the active literal is $a$, its dual will be removed
 by the resolution on $a$. If the active literal belongs to $\Delta$, its
 dual belongs to $\bar{\Delta}$.
+\qed
 \end{proof}
+
+\section{Experiments}
+
+\begin{jogo}
+LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
+\end{jogo}
+
+\section{Conclusions}
+
+\bibliographystyle{splncs}
+\bibliography{biblio}
 
 \end{document}

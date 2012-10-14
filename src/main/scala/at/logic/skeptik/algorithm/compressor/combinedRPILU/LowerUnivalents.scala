@@ -65,22 +65,22 @@ import lowerableUnivalent._
 trait CollectUnivalentsDuringFixing
 extends AbstractRPILUAlgorithm {
 
-  protected def fixProofNodeAndLowerUnivalents(proof: Proof[SequentProofNode], edgesToDelete: MMap[SequentProofNode,DeletedSide]) = {
+  protected def fixProofAndLowerUnivalents(proof: Proof[SequentProofNode], edgesToDelete: EdgesToDelete) = {
 
     var univalents = List[SequentProofNode]()
     val loweredPivots = MClause()
 
-    def reconstructProofNode(oldProofNode: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
-      val newProofNode = fixProofNodes(edgesToDelete)(oldProofNode, fixedPremises)
-      val children = proof.childrenOf(oldProofNode) filter { child => !childIsMarkedToDeleteParent(child, oldProofNode, edgesToDelete) }
-      isLowerableUnivalent(newProofNode, oldProofNode, children, loweredPivots) match {
-        case LowerableUnivalent(_) => univalents ::= newProofNode ; deleteFromChildren(oldProofNode, proof, edgesToDelete)
-        case DeletableNode => deleteFromChildren(oldProofNode, proof, edgesToDelete)
+    def fixResolutionAndDeleteUnivalent(oldNode: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+      val newNode = fixProofNodes(edgesToDelete)(oldNode, fixedPremises)
+      val children = proof.childrenOf(oldNode) filter { child => !edgesToDelete.isMarked(child, oldNode) }
+      isLowerableUnivalent(newNode, oldNode, children, loweredPivots) match {
+        case LowerableUnivalent(_) => univalents ::= newNode ; edgesToDelete.deleteNode(oldNode)
+        case DeletableNode => edgesToDelete.deleteNode(oldNode)
         case _ =>
       }
-      newProofNode
+      newNode
     }
-    val pseudoRoot = proof.foldDown(reconstructProofNode _)
+    val pseudoRoot = proof.foldDown(fixResolutionAndDeleteUnivalent _)
 
     /* The pivot literal needed to reintroduce univalent clause's nodes can be
      * safely forgotten. The algorithm ensures the lowered pivots clause isn't
@@ -97,7 +97,7 @@ abstract class LowerUnivalents
 extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixing with IdempotentAlgorithm[SequentProofNode] {
 
   def apply(proof: Proof[SequentProofNode]) =
-    Proof(fixProofNodeAndLowerUnivalents(proof, MMap[SequentProofNode,DeletedSide]()))
+    Proof(fixProofAndLowerUnivalents(proof, new EdgesToDelete()))
 
 }
 
@@ -110,7 +110,7 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUniv
 
   def apply(proof: Proof[SequentProofNode]) = {
     val edgesToDelete = collectEdgesToDelete(proof)
-    Proof(fixProofNodeAndLowerUnivalents(proof, edgesToDelete))
+    Proof(fixProofAndLowerUnivalents(proof, edgesToDelete))
   }
 
 }
@@ -157,7 +157,6 @@ extends AbstractThreePassLower {
 
     // Second pass
     val edgesToDelete = collectEdgesToDelete(proof, rootSafeLiterals, univalentsSafeLiterals)
-//    println(edgesToDelete.size + " edges to delete (" + (edgesToDelete.size - nbUnitChildren) + " without orderedUnivalents' children)")
 
     // Third pass
     if (edgesToDelete.isEmpty) proof else Proof({

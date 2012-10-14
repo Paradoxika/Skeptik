@@ -63,18 +63,12 @@ my $fac_y = square_size() / ($max_y * $divy);
 print <<'EOT';
 \begin{tikzpicture}
 
-\foreach \name / \x / \y in {
 EOT
 
 for my $i (0..$#name) {
-  print ($i == 0 ? "\t" : ",\n\t");
-  print "\t" . join(' / ', $name[$i], $x[$i] * $fac_x, $y[$i] * $fac_y);
+  printf "\\draw [fill=black] (%f,%f) circle (0.03) node[anchor=south west] {\\footnotesize %s};\n",
+    ($x[$i] * $fac_x), ($y[$i] * $fac_y), $name[$i];
 }
-
-print <<'EOT';
-
-} \draw [fill=black] (\x,\y) circle (0.03) node[anchor=south west] {\footnotesize \name};
-EOT
 
 draw_x("Duration \\tiny (in seconds)", $divx, $fac_x, square_size(), square_size());
 draw_y(undef, $divy, $fac_y, square_size(), square_size());
