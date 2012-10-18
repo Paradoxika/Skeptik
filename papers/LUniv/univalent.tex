@@ -5,12 +5,14 @@
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
+\usepackage{enumitem,amsmath}
+
 % The following is to comment draft source file. It has to be deleted for the
 % final document.
 \usepackage{xcolor}
 \newenvironment{jogo}{\color{teal}}{}
 
-\title{LoweringUnivalents}
+\title{Propositional Resolution Proof Compression by Lowering Nodes}
 \author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
 \institute{Vienna University of Technology, Austria}
 
@@ -27,42 +29,130 @@
 \section{Introduction}
 
 \begin{jogo}
-In this section we introduce propositional resolution proof compression and the
-definitions and notations we'll use trough this paper.
+In this section we introduce the domain : first SAT then compression.
+I could be a good idea to talk about the problem of measuring a proof.
+We could explain the use case of verifying a proof and how we plan to measure its complexity.
+\end{jogo}
+
+\section{Propositional Resolution Calculus}
+
+\begin{jogo}
+In this section we introduce the definitions and notations we'll use trough this paper.
+
+Here is a list of things to define (maybe elsewhere) : \begin{itemize}[nosep]
+    \item variable, dual, literal, clause, node, proof
+    \item premise, children, parent
+    \item regularity (vertical and horizontal)
+    \item safe literals
+\end{itemize}
 \end{jogo}
 
 \begin{notation}[Resolution]
-Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a
-\eta_1$, $a$ being the pivot literal such that $\bar{a} \in \eta_0$ and $a
-\in \eta_1$.
+Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a \eta_1$, $a$ being the pivot
+literal such that $\bar{a} \in \eta_0$ and $a \in \eta_1$.
 \end{notation}
 
 \section{Lowering Nodes}
 
 \begin{jogo}
-In this section we define formely what we mean by lowering a node. Then we explain why it's interessing for proof compression. Finaly we briefly describe LowerUnits.
+In this section we define formely what we mean by lowering a node. Then we explain why it's
+interessing for proof compression. Finaly we briefly describe LowerUnits.
 \end{jogo}
 
-The problem of lowering a node $\eta$ in a proof of the form $\psi[\eta]
-\odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is to decide
-whether a literal $a$ such that the proof $\psi[] \odot_a \eta
-\odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is equivalent to
-the original proof exists.
+When a node $\eta$ as more than one child in a proof $\psi[\eta]$ it might be convenient to factor
+the corresponding resolutions. Lowering $\eta$ is such a factorisation. We construct a new
+equivalent proof by removing $\eta$ from $\psi$, fixing $\psi[]$ such that it remains a valid proof
+and then reintroducing $\eta$ at the bottom of the proof. Formaly, $\eta$ can be lowered in
+$\psi[\eta]$ if there exists a literal $a$ such that $\operatorname{fix}\left(\psi[]\right) \odot_a
+\eta$ is equivalent to $\psi[\eta]$. A possible implementation of the $\operatorname{fix}$ function
+is proposed as the \ref{algo:fix}.
 
-This problem doesn't depend on the sequence $\eta_{i \in 0..n}$ but only on
-$\psi[\eta]$ and $a_{i \in 0..n}$. This last sequence might be seen as a
-clause. We call it the clause of lowered pivots.
+\begin{algorithm}[hbt]
+  \For{every resolution node $\eta$ with in a top-down traversal}{
+    Let $p$ be $\eta$'s pivot \;
+    \uIf{the left premise of $\eta$ is deleted or its conclusion doesn't contain $\dual{p}$}{
+      Replace $\eta$ by its right premise \; }
+    \uElseIf{the right premise of $\eta$ is deleted or its conclusion doesn't contain $p$}{
+      Replace $\eta$ by its left premise \; }
+    \Else{
+      Recompute $\eta$'s clause based on the current premises \; }
+  }
+  \label{algo:fix}
+  \caption{A possible \operatorname{fix} implementation}
+\end{algorithm}
+
+\begin{jogo}
+This introduction to lowering is not the same as the one of LU's paper. The drawback is that we need
+to cope with the fix function which is not nice. But the advantage is that it's simpler and not
+limited to the 2 children case. An alternative solution would be to use multi-arguments environments
+and define lowering as transforming $\psi\left[\eta_0 \odot \eta, \cdots, \eta_n \odot \eta\right]$
+into $\psi\left[\eta_0, \cdots, \eta_n\right] \odot \eta$. But anyway we'll need a fix function to
+introduce LowerUnivalent.
+\end{jogo}
+
+It's obvious that lowering nodes with more than one child leads to an smaller equivalent proof.
+These idea has been introduce in \cite{LURPI} for the LowerUnits algorithm. Units are nodes with a
+clause consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
+lowers every unit with more than one child. Care is taken to reintroduce units in an order
+corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
+unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
+
+\begin{algorithm}[htb]
+  Units $\leftarrow \varnothing$ \;
+
+  \For{every node $\eta$ in a bottom-up traversal}{
+    \If{$\eta$ is a unit}{Enqueue $\eta$ in Units \; }
+  }
+
+  \For{every node $\eta$ in a top-down traversal}{
+    \uIf{the right premise of $\eta$ belongs to Units}{
+      Replace $\eta$ by its left premise \; }
+    \uElseIf{the left premise of $\eta$ belongs to Units}{
+      Replace $\eta$ by its left premise \; }
+    \Else{
+      Recompute $\eta$'s clause based on the current premises \; }
+  }
+
+  $\eta \leftarrow$ the new root of the proof \;
+  \For{every unit $\upsilon$ in Units}{
+    $\eta \leftarrow \eta \odot \upsilon$ \;
+  }
+
+  \label{algo:LU}
+  \caption{A possible LowerUnit implementation}
+\end{algorithm}
+
+A possible implementation of LowerUnits is shown in \ref{algo:LU}. Units are collected during a
+first traversal. As this traversal is bottom up, units are stored in a queue. The traversal could
+have been top-down and units stored in a stack. Units are effectively removed during a second,
+top-down traversal. The last step is the reintroduction of units. There is no need here for such a
+complicated fix implementation as \ref{algo:fix}, because deleting units only introduce literals in
+the children's clauses and therefore all the resolutions are still valid.
+
 
 \section{LoweringUnivalents}
 
 \begin{jogo}
-This is the main section. First we define univalent clause and we prove that it's not sufficent for a node to be lowered. Second we introduce active literals and the main theorem (with proof). Third we explain the partial regularization done by "Deletable" nodes. Fourth we give the algorithm. Fifth we prove it's always better than LowerUnits.
+This is the main section. First we define univalent clause and we prove that it's not sufficent for
+a node to be lowered. Second we introduce active literals and the main theorem (with proof). Third
+we explain the partial regularization done by "Deletable" nodes. Fourth we give the algorithm. Fifth
+we prove it's always better than LowerUnits.
 \end{jogo}
 
 We would like to extend LowerUnits presented in \cite{LURPI}. Intuitively,
 if a node with a clause $a$ is already marked to be lowered, another node with
 a clause $\bar{a},b$ might be lowered too.
 
+The problem of lowering a node $\eta$ in a proof of the form
+\begin{equation}
+\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
+\end{equation}
+is to decide whether a literal $a$ such that the proof 
+\begin{equation}
+\text{Fix}\left(\psi[]\right) \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
+\end{equation}
+is equivalent to
+the original proof exists.
 \subsection{Univalent Clauses}
 
 The extended unit concept intuitively presented above can be formely defined as
@@ -129,6 +219,6 @@ LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
 \section{Conclusions}
 
 \bibliographystyle{splncs}
-\bibliography{biblio}
+\bibliography{../biblio}
 
 \end{document}
