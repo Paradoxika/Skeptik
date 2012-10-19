@@ -167,6 +167,21 @@ extends LowerUnivalentsAfterRecyclePivots with RepeatableWhileCompressingAlgorit
 object IdempotentLowerUnivalentsAfterRecyclePivots
 extends LowerUnivalentsAfterRecyclePivots with IdempotentAlgorithm[SequentProofNode]
 
+
+abstract class LowerUnivalentsAfterRecyclePivotsWithOpt
+extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUnivalentsDuringFixingWithOpt with Intersection
+{
+
+  def apply(proof: Proof[SequentProofNode]) = {
+    val edgesToDelete = collectEdgesToDelete(proof)
+    Proof(fixProofAndLowerUnivalents(proof, edgesToDelete))
+  }
+
+}
+
+object IdempotentLowerUnivalentsAfterRecyclePivotsOpt
+extends LowerUnivalentsAfterRecyclePivotsWithOpt with IdempotentAlgorithm[SequentProofNode]
+
 abstract class LowerUnivalentsBeforeRecyclePivots
 extends AbstractThreePassLower {
 
