@@ -37,9 +37,12 @@ extends CompressorAlgorithm[SequentProofNode] {
         case Some((_,del)) => (premiseSide, del)
       }
 
+    def markEdge(child: SequentProofNode, premise: SequentProofNode):Unit =
+      markEdge(child, sideOf(premise, child))
+
     def markBothEdges(node: SequentProofNode) =
       edges(node) = (BothDS, true)
-
+    
     def deleteNode(node: SequentProofNode) =
       edges(node) = (edges.getOrElse(node,(NoDS,true))._1, true)
 
