@@ -5,7 +5,12 @@
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
-\usepackage{enumitem,amsmath}
+\usepackage{enumitem,amsmath,amssymb}
+
+\usepackage{algorithm2e}
+
+\newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
+\newcommand{\fix}{\ensuremath{\operatorname{fix}}}
 
 % The following is to comment draft source file. It has to be deleted for the
 % final document.
@@ -52,6 +57,10 @@ Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a \eta_1$, $a
 literal such that $\bar{a} \in \eta_0$ and $a \in \eta_1$.
 \end{notation}
 
+\begin{definition}[Safe literal]
+In a proof $\psi[\eta]$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ proving $\Gamma$ if for all proof $\eta'$ of $\Gamma \cup \{p\}$, $\psi[\eta']$ still proves $\Sigma$.
+\end{definition}
+
 \section{Lowering Nodes}
 
 \begin{jogo}
@@ -63,8 +72,8 @@ When a node $\eta$ as more than one child in a proof $\psi[\eta]$ it might be co
 the corresponding resolutions. Lowering $\eta$ is such a factorisation. We construct a new
 equivalent proof by removing $\eta$ from $\psi$, fixing $\psi[]$ such that it remains a valid proof
 and then reintroducing $\eta$ at the bottom of the proof. Formaly, $\eta$ can be lowered in
-$\psi[\eta]$ if there exists a literal $a$ such that $\operatorname{fix}\left(\psi[]\right) \odot_a
-\eta$ is equivalent to $\psi[\eta]$. A possible implementation of the $\operatorname{fix}$ function
+$\psi[\eta]$ if there exists a literal $a$ such that $\fix\left(\psi[]\right) \odot_a
+\eta$ is equivalent to $\psi[\eta]$. A possible implementation of the $\fix$ function
 is proposed as the \ref{algo:fix}.
 
 \begin{algorithm}[hbt]
@@ -78,15 +87,15 @@ is proposed as the \ref{algo:fix}.
       Recompute $\eta$'s clause based on the current premises \; }
   }
   \label{algo:fix}
-  \caption{A possible \operatorname{fix} implementation}
+  \caption{A possible \fix implementation}
 \end{algorithm}
 
 \begin{jogo}
 This introduction to lowering is not the same as the one of LU's paper. The drawback is that we need
-to cope with the fix function which is not nice. But the advantage is that it's simpler and not
+to cope with the \fix function which is not nice. But the advantage is that it's simpler and not
 limited to the 2 children case. An alternative solution would be to use multi-arguments environments
 and define lowering as transforming $\psi\left[\eta_0 \odot \eta, \cdots, \eta_n \odot \eta\right]$
-into $\psi\left[\eta_0, \cdots, \eta_n\right] \odot \eta$. But anyway we'll need a fix function to
+into $\psi\left[\eta_0, \cdots, \eta_n\right] \odot \eta$. But anyway we'll need a \fix function to
 introduce LowerUnivalent.
 \end{jogo}
 
@@ -126,7 +135,7 @@ A possible implementation of LowerUnits is shown in \ref{algo:LU}. Units are col
 first traversal. As this traversal is bottom up, units are stored in a queue. The traversal could
 have been top-down and units stored in a stack. Units are effectively removed during a second,
 top-down traversal. The last step is the reintroduction of units. There is no need here for such a
-complicated fix implementation as \ref{algo:fix}, because deleting units only introduce literals in
+complicated \fix implementation as \ref{algo:fix}, because deleting units only introduce literals in
 the children's clauses and therefore all the resolutions are still valid.
 
 
