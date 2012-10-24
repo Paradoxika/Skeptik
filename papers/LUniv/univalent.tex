@@ -9,6 +9,7 @@
 
 \usepackage{algorithm2e}
 
+\newcommand{\litr}[1]{\ensuremath{\mathcal{#1}}}
 \newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
 \newcommand{\fix}{\ensuremath{\operatorname{fix}}}
 
@@ -52,6 +53,24 @@ Here is a list of things to define (maybe elsewhere) : \begin{itemize}[nosep]
 \end{itemize}
 \end{jogo}
 
+\begin{jogo}
+I think we need to distinguish between variables and literals. There is only one curly lowercase
+letter in standart \LaTeX ($\ell$) hence we can't use that. I propose to rely on usual conventions
+for propositional logic and use uppercase roman letters for propositional variables. Literals would
+be written in lowercase roman letters. Clauses still are written as uppercase greek letters and nodes
+as lowercase greek letters.
+
+What follows is a Cut-and-Paste from your paper. I don't know what has to be a definition or what
+has to be written in a simple paragraph. Actually everything in this section reads like a
+definition.
+\end{jogo}
+
+A \emph{literal} is a propositional variable or the negation of a propositional variable. We write
+\dual{l} to denote the dual of $l$ (i.e. for all propositional variable $P$, $\dual{P} =
+\neg P$ and $\overline{\neg P} = P$) and $|l|$ for the propositional variable underlying the literal
+$l$ (i.e. $|P| = |\neg P| = P$). A \emph{clause} is a set of literals, $\bot$ denotes the
+\emph{empty clause}.
+
 \begin{notation}[Resolution]
 Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a \eta_1$, $a$ being the pivot
 literal such that $\bar{a} \in \eta_0$ and $a \in \eta_1$.
@@ -74,20 +93,20 @@ equivalent proof by removing $\eta$ from $\psi$, fixing $\psi[]$ such that it re
 and then reintroducing $\eta$ at the bottom of the proof. Formaly, $\eta$ can be lowered in
 $\psi[\eta]$ if there exists a literal $a$ such that $\fix\left(\psi[]\right) \odot_a
 \eta$ is equivalent to $\psi[\eta]$. A possible implementation of the $\fix$ function
-is proposed as the \ref{algo:fix}.
+is proposed in Algorithm \ref{algo:fix}.
 
 \begin{algorithm}[hbt]
-  \For{every resolution node $\eta$ with in a top-down traversal}{
-    Let $p$ be $\eta$'s pivot \;
-    \uIf{the left premise of $\eta$ is deleted or its conclusion doesn't contain $\dual{p}$}{
+  \For{every resolution node $\eta$ in a top-down traversal}{
+    Let $p$ be $\eta$'s pivot literal \;
+    \uIf{the left premise of $\eta$ is deleted or the right premise's clause doesn't contain $p$}{
       Replace $\eta$ by its right premise \; }
-    \uElseIf{the right premise of $\eta$ is deleted or its conclusion doesn't contain $p$}{
+    \uElseIf{the right premise is deleted or the left premise's conclusion doesn't contain $\dual{p}$}{
       Replace $\eta$ by its left premise \; }
     \Else{
       Recompute $\eta$'s clause based on the current premises \; }
   }
   \label{algo:fix}
-  \caption{A possible \fix implementation}
+  \caption{A possible $\fix$ implementation}
 \end{algorithm}
 
 \begin{jogo}
@@ -99,12 +118,18 @@ into $\psi\left[\eta_0, \cdots, \eta_n\right] \odot \eta$. But anyway we'll need
 introduce LowerUnivalent.
 \end{jogo}
 
-It's obvious that lowering nodes with more than one child leads to an smaller equivalent proof.
 These idea has been introduce in \cite{LURPI} for the LowerUnits algorithm. Units are nodes with a
 clause consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
 lowers every unit with more than one child. Care is taken to reintroduce units in an order
 corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
 unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
+
+A possible implementation of LowerUnits is shown in Algorithm \ref{algo:LU}. Units are collected during a
+first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal could
+have been top-down and units stored in a stack. Units are effectively removed during a second,
+top-down traversal. The last step is the reintroduction of units. There is no need here for such a
+complicated $\fix$ implementation as the Algorithm \ref{algo:fix}. Deleting units only introduces literals in
+the children's clauses and therefore all the resolutions are still valid.
 
 \begin{algorithm}[htb]
   Units $\leftarrow \varnothing$ \;
@@ -117,26 +142,21 @@ unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$
     \uIf{the right premise of $\eta$ belongs to Units}{
       Replace $\eta$ by its left premise \; }
     \uElseIf{the left premise of $\eta$ belongs to Units}{
-      Replace $\eta$ by its left premise \; }
+      Replace $\eta$ by its right premise \; }
     \Else{
       Recompute $\eta$'s clause based on the current premises \; }
   }
 
   $\eta \leftarrow$ the new root of the proof \;
   \For{every unit $\upsilon$ in Units}{
-    $\eta \leftarrow \eta \odot \upsilon$ \;
+    Let $\{u\}$ be $\upsilon$'s clause \;
+    \lIf{$\eta$'s clause contains $\dual{u}$}{
+    $\eta \leftarrow \eta \odot \upsilon$ \;}
   }
 
   \label{algo:LU}
   \caption{A possible LowerUnit implementation}
 \end{algorithm}
-
-A possible implementation of LowerUnits is shown in \ref{algo:LU}. Units are collected during a
-first traversal. As this traversal is bottom up, units are stored in a queue. The traversal could
-have been top-down and units stored in a stack. Units are effectively removed during a second,
-top-down traversal. The last step is the reintroduction of units. There is no need here for such a
-complicated \fix implementation as \ref{algo:fix}, because deleting units only introduce literals in
-the children's clauses and therefore all the resolutions are still valid.
 
 
 \section{LoweringUnivalents}
