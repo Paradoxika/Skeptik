@@ -4,6 +4,8 @@
 #$ -M jogo@matabio.net    # email address to be notified
 #$ -m beas                # notifies of job's beginning, end, abortion and rescheduling
 # -l mem_free=10G        # allow to run on 16G memory nodes
-#$ -l h_rt=00:15:00       # runs job for a maximum time of hh:mm:ss
+#$ -l h_rt=00:02:30       # runs job for a maximum time of hh:mm:ss
 
-java -jar ../../skeptik.jar -experiment --compression -a 3pass_LU,RPILUniv $( cat "slice.$SGE_TASK_ID" )
+SLICE=$( printf 'slice.%02d' $SGE_TASK_ID )
+
+java -jar ../../skeptik.jar -experiment --compression -a LU,LUniv_Op,3pass_LU,RPILUniv,LURPI,LUvRPI_Op $( cat "${SLICE}" )
