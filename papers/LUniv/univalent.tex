@@ -9,7 +9,6 @@
 
 \usepackage{algorithm2e}
 
-\newcommand{\litr}[1]{\ensuremath{\mathcal{#1}}}
 \newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
 \newcommand{\fix}{\ensuremath{\operatorname{fix}}}
 
@@ -77,8 +76,124 @@ literal such that $\bar{a} \in \eta_0$ and $a \in \eta_1$.
 \end{notation}
 
 \begin{definition}[Safe literal]
-In a proof $\psi[\eta]$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ proving $\Gamma$ if for all proof $\eta'$ of $\Gamma \cup \{p\}$, $\psi[\eta']$ still proves $\Sigma$.
+In a proof $\psi[\eta]$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ proving $\Gamma$ if
+for all proof $\eta'$ of $\Gamma \cup \{p\}$, $\psi[\eta']$ still proves $\Sigma$.
 \end{definition}
+
+\subsection{Proof as Directed Acyclic Graph}
+
+A proof of $\Gamma$ based on a set $\mathcal{A}$ of axioms is represented as a tree-like directed
+acyclic graphs (DAG) where leaves are axioms, nodes are resolution steps and the root node's
+conclusion is $\Gamma$.
+
+\begin{definition}[Proof] \label{def:proof}
+Given a set $\mathcal{A}$ of clauses called axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a
+\emph{proof} of clause $\Gamma$ is a DAG $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V},
+f_\mathcal{E} \rangle$ verifying the following conditions:
+\begin{enumerate}[nosep]
+  \item $\mathcal{V}$ is a set of \emph{vertices} such that
+    $\mathcal{V} \cap \mathcal{A} \neq \emptyset$.
+    $\mathcal{N} = \mathcal{V} \setminus \mathcal{A}$ is the set of resolutions nodes of $\psi$.
+  \item $\mathcal{E} \subset \mathcal{V} \times \mathcal{V}$ is the \emph{premise} relation.
+    It is such that $\forall \varsigma \in \mathcal{A}, \forall \eta \in \mathcal{V}, (\varsigma,
+    \eta) \notin \mathcal{E}$. $(\varsigma, \eta) \in \mathcal{E}$ is noted $\varsigma \rightarrow
+    \eta$. The inverse relation is the \emph{child} relation. The transitive closure of
+    $\mathcal{E}$ is the \emph{parent} relation, noted $\xrightarrow{*}$.
+  \item $f_\mathcal{E}$ is a function $\mathcal{E} \longrightarrow \mathcal{L}$ labeling edges with
+    literals. We write $\varsigma \xrightarrow[a]{} \eta$ to denote
+    $(\varsigma, \eta) \in \mathcal{E} \wedge f_\mathcal{E}(\varsigma, \eta) = a$.
+  \item $\exists \rho \in \mathcal{V}$ such that $\forall \eta \in \mathcal{V} \setminus \{\rho\}$,
+    $\rho \xrightarrow{*} \eta$. $\psi$ beeing acyclic, there is exactly one such $\rho$ called the
+    \emph{root} of $\psi$, written $\rho_\psi$.
+  \item For $\varsigma \in \mathcal{N}$ there is exactly two vertices $\eta, \theta \in \mathcal{V}$
+    such that $\varsigma \rightarrow \eta$ and $\varsigma \rightarrow \theta$. Moreover,
+    $\exists a \in \mathcal{L}$ s.t. $\varsigma \xrightarrow[a]{} \eta \wedge \varsigma
+    \xrightarrow[\dual{a}]{} \theta$.
+  \item $f_\mathcal{V}$ is a function $\mathcal{V} \longrightarrow 2^\mathcal{L}$ labeling vertices
+    with clauses. $f_\mathcal{V}(\eta)$ is called the \emph{conclusion} of $\eta$. It is recusively
+    defined as:
+    \begin{equation*}
+      f_\mathcal{V}(\eta) = \begin{cases}
+        \eta & \eta \in \mathcal{A} \cap \mathcal{V} \\
+        \left(f_\mathcal{V}(\theta) \setminus \{a\}\right) \cup
+        \left(f_\mathcal{V}(\theta') \setminus \{\dual{a}\}\right) &
+              \eta \in \mathcal{N} \text{ with } \eta \xrightarrow[a]{} \theta \text{ and }
+                                               \eta \xrightarrow[\dual{a}]{} \theta'
+      \end{cases}
+    \end{equation*}
+  \item $\varsigma \xrightarrow[a]{} \eta \Rightarrow a \in f_\mathcal{V}(\eta)$
+  \item $f_\mathcal{V}(\rho_\psi) = \Gamma$
+  \qed
+\end{enumerate}
+\end{definition}
+
+\begin{definition}[Pseudo-proof]
+Given a set $\mathcal{A}$ of axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a \emph{pseudo-proof} is
+a DAG with a marked vertex $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E},
+\rho \rangle$ verifying conditions 1 to 3 from Definition \ref{def:proof} plus the following ones:
+\begin{enumerate}[nosep,start=4]
+  \item $\forall \eta \in \mathcal{V}, (\eta, \rho) \notin \mathcal{E}$
+  \item For $\varsigma \in \mathcal{N}$ there is at most two vertices $\eta \in \mathcal{V}$ such
+    that $\varsigma \rightarrow \eta$. Moreover, $\exists \varsigma, \eta, \theta \in \mathcal{V},
+    \exists a, b \in \mathcal{L}, \eta \neq \theta \wedge \varsigma \xrightarrow[a]{} \eta \wedge
+    \varsigma \xrightarrow[b]{} \theta \Rightarrow a = \dual{b}$
+  \item %$f_\mathcal{V}$ is a function $\mathcal{V} \longrightarrow 2^\mathcal{L}$ labeling vertices
+%    with clauses, recusively defined as:
+    \begin{equation*}
+      f_\mathcal{V}(\eta) = \begin{cases}
+        \eta & \eta \in \mathcal{A} \cap \mathcal{V} \\
+        \left(f_\mathcal{V}(\theta) \setminus \{a\}\right) \cup
+        \left(f_\mathcal{V}(\theta') \setminus \{\dual{a}\}\right) &
+              \eta \in \mathcal{N} \text{ with } \eta \xrightarrow[a]{} \theta \text{ and }
+                                               \eta \xrightarrow[\dual{a}]{} \theta' \\
+        \mathcal{L} & \text{otherwise}
+      \end{cases}
+    \end{equation*}
+  \qed
+\end{enumerate}
+\end{definition}
+
+\begin{proposition}
+For all pseudo-proof $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$,
+there exists a proof $\psi' = \langle \mathcal{V}', \mathcal{E}', f_{\mathcal{V}'},
+f_{\mathcal{E}'} \rangle$ verifying :
+\begin{enumerate}[nosep]
+  \item $\mathcal{V}' \subseteq \mathcal{V}$
+  \item $|\mathcal{E}'| \leq |\mathcal{E}|$
+  \item $\forall \eta \in \mathcal{V}', f_{\mathcal{V}'}(\eta) \subseteq f_\mathcal{V}(\eta)$
+  \item $( (\varsigma,\eta) \in \mathcal{E} \wedge f_\mathcal{E}(\varsigma, \eta) = a \wedge
+    \varsigma \in \mathcal{V}' \wedge \eta \in \mathcal{V}' ) \Rightarrow (
+    (\varsigma,\eta) \in \mathcal{E}' \wedge f_{\mathcal{E}'}(\varsigma, \eta) = a )$
+  \item $\rho_{\psi'} = \rho$
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+In the following, a function $f : A \longrightarrow B$ is considered as a part of $A \times B$, i.e.
+$f \subset A \times B$.
+Let $f$ be a recursive function which given a pseudo-proof $\psi = \langle \mathcal{V},
+\mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$ does:
+\begin{itemize}[nosep]
+  \item Let $\mathcal{V}' = \{\eta|\rho \xrightarrow{*} \eta\}$. If $\mathcal{V}' \neq \mathcal{V}$
+    then return $f\left(\langle \mathcal{V}', \mathcal{E}' = \mathcal{E} \cap (\mathcal{V}' \times \mathcal{V}'),
+    f_\mathcal{V} \cap (\mathcal{V}' \times 2^\mathcal{L}), f_\mathcal{E} \cap (\mathcal{E}' \times \mathcal{L}),
+    \rho \rangle\right)$
+\end{itemize}
+\end{proof}
+
+\begin{algorithm}[hbt]
+  \uIf{$\{\eta|\rho \xrightarrow{*} \eta\} \neq \mathcal{V}$}
+    { $\mathcal{V} \leftarrow \{\eta|\rho \xrightarrow{*} \eta\}$ \;
+    }
+  \uElseIf{$\exists \varsigma, \exists ! \eta, \varsigma \rightarrow \eta$}
+    { $\mathcal{V} \leftarrow \mathcal{V} \setminus \{\varsigma\}$ \;
+      $\mathcal{E} \leftarrow \mathcal{E} \cup \{(\theta,\eta)|(\theta,\varsigma) \in \mathcal{E}\}$ \;
+    }
+  \ElseIf{$\exists \varsigma, \eta, a, \varsigma \xrightarrow[a]{} \eta \wedge a \notin f_\mathcal{V}(\eta)$}
+    { $\mathcal{V} \leftarrow \mathcal{V} \setminus \{\varsigma\}$ \;
+      $\mathcal{E} \leftarrow \mathcal{E} \cup \{(\theta,\eta)|(\theta,\varsigma) \in \mathcal{E}\}$ \;
+    }
+\end{algorithm}
 
 \section{Lowering Nodes}
 
@@ -98,10 +213,16 @@ is proposed in Algorithm \ref{algo:fix}.
 \begin{algorithm}[hbt]
   \For{every resolution node $\eta$ in a top-down traversal}{
     Let $p$ be $\eta$'s pivot literal \;
-    \uIf{the left premise of $\eta$ is deleted or the right premise's clause doesn't contain $p$}{
+    \uIf{both premises of $\eta$ are deleted}{
+      Delete $\eta$ \; }
+    \uElseIf{the left premise of $\eta$ is deleted}{
       Replace $\eta$ by its right premise \; }
-    \uElseIf{the right premise is deleted or the left premise's conclusion doesn't contain $\dual{p}$}{
+    \uElseIf{the right premise of $\eta$ is deleted}{
       Replace $\eta$ by its left premise \; }
+    \uElseIf{the left premise's conclusion doesn't contain $\dual{p}$}{
+      Replace $\eta$ by its left premise \; }
+    \uElseIf{the right premise's conclusion doesn't contain $p$}{
+      Replace $\eta$ by its right premise \; }
     \Else{
       Recompute $\eta$'s clause based on the current premises \; }
   }
@@ -135,7 +256,7 @@ the children's clauses and therefore all the resolutions are still valid.
   Units $\leftarrow \varnothing$ \;
 
   \For{every node $\eta$ in a bottom-up traversal}{
-    \If{$\eta$ is a unit}{Enqueue $\eta$ in Units \; }
+    \If{$\eta$ is a unit with more than one child}{Enqueue $\eta$ in Units \; }
   }
 
   \For{every node $\eta$ in a top-down traversal}{
