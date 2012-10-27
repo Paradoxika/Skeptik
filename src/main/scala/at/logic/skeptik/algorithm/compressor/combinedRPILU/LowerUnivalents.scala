@@ -20,8 +20,9 @@ package lowerableUnivalent {
 
   object isLowerableUnivalent
   {
-    def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):NodeKind = {
-      val literals = activeLiteralsNotInLoweredPivots(oldNode, children, loweredPivots)
+    def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+              delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):NodeKind = {
+      val literals = activeLiteralsNotInLoweredPivots(oldNode, children, loweredPivots, delete)
   //      println("Remaining Literals " + literals)
       (literals.ant.size, literals.suc.size) match {
         case (0,0) => DeletableNode
@@ -33,14 +34,15 @@ package lowerableUnivalent {
     def apply(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):NodeKind =
         apply(node, node, children, loweredPivots)
 
-    private def activeLiteralsNotInLoweredPivots(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause) = {
+    private def activeLiteralsNotInLoweredPivots(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+                                                 delete: (SequentProofNode,SequentProofNode) => Unit) = {
       val result = MClause()
       children.foreach { (child) =>
           child match {
           case CutIC(left, right, aux, _) if left  == oldNode =>
-            if (!(loweredPivots.suc contains aux)) result += aux
+            if (loweredPivots.suc contains aux) delete(child,left)  else result += aux
           case CutIC(left, right, aux, _) if right == oldNode =>
-            if (!(loweredPivots.ant contains aux)) aux =+: result
+            if (loweredPivots.ant contains aux) delete(child,right) else aux =+: result
           case _ =>
           }
       }
@@ -104,6 +106,50 @@ extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixing with Idempoten
 object LowerUnivalents
 extends LowerUnivalents
 
+
+trait CollectUnivalentsDuringFixingWithOpt
+extends AbstractRPILUAlgorithm {
+
+  protected def fixProofAndLowerUnivalents(proof: Proof[SequentProofNode], edgesToDelete: EdgesToDelete) = {
+
+    var univalents = List[SequentProofNode]()
+    val loweredPivots = MClause()
+
+    def fixResolutionAndDeleteUnivalent(oldNode: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+      val newNode = fixProofNodes(edgesToDelete)(oldNode, fixedPremises)
+      val children = proof.childrenOf(oldNode) filter { child => !edgesToDelete.isMarked(child, oldNode) }
+      isLowerableUnivalent(newNode, oldNode, children, loweredPivots, edgesToDelete.markEdge) match {
+        case LowerableUnivalent(_) => univalents ::= newNode ; edgesToDelete.deleteNode(oldNode)
+        case _ =>
+      }
+      newNode
+    }
+    val pseudoRoot = proof.foldDown(fixResolutionAndDeleteUnivalent _)
+
+    /* The pivot literal needed to reintroduce univalent clause's nodes can be
+     * safely forgotten. The algorithm ensures the lowered pivots clause isn't
+     * tautological and that all non-valent literal of a lowered node have
+     * their dual in the lowered pivots clause.                              */
+    univalents.foldLeft(pseudoRoot) { (left,right) =>
+      try {CutIC(left, right)} catch {case e:Exception => left}
+    }
+  }
+
+}
+
+abstract class LowerUnivalentsOpt
+extends AbstractRPILUAlgorithm with CollectUnivalentsDuringFixingWithOpt with IdempotentAlgorithm[SequentProofNode] {
+
+  def apply(proof: Proof[SequentProofNode]) =
+    Proof(fixProofAndLowerUnivalents(proof, new EdgesToDelete()))
+
+}
+
+object LowerUnivalentsOpt
+extends LowerUnivalentsOpt
+
+
+
 abstract class LowerUnivalentsAfterRecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUnivalentsDuringFixing with Intersection
 {
@@ -120,6 +166,21 @@ extends LowerUnivalentsAfterRecyclePivots with RepeatableWhileCompressingAlgorit
 
 object IdempotentLowerUnivalentsAfterRecyclePivots
 extends LowerUnivalentsAfterRecyclePivots with IdempotentAlgorithm[SequentProofNode]
+
+
+abstract class LowerUnivalentsAfterRecyclePivotsWithOpt
+extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUnivalentsDuringFixingWithOpt with Intersection
+{
+
+  def apply(proof: Proof[SequentProofNode]) = {
+    val edgesToDelete = collectEdgesToDelete(proof)
+    Proof(fixProofAndLowerUnivalents(proof, edgesToDelete))
+  }
+
+}
+
+object IdempotentLowerUnivalentsAfterRecyclePivotsOpt
+extends LowerUnivalentsAfterRecyclePivotsWithOpt with IdempotentAlgorithm[SequentProofNode]
 
 abstract class LowerUnivalentsBeforeRecyclePivots
 extends AbstractThreePassLower {
