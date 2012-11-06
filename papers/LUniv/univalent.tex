@@ -9,7 +9,7 @@
 
 \usepackage{algorithm2e}
 
-\newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
+\newcommand{\dual}[1]{{\ensuremath{\bar{#1}}}}
 \newcommand{\fix}{\ensuremath{\operatorname{fix}}}
 
 % The following is to comment draft source file. It has to be deleted for the
@@ -82,50 +82,112 @@ for all proof $\eta'$ of $\Gamma \cup \{p\}$, $\psi[\eta']$ still proves $\Sigma
 
 \subsection{Proof as Directed Acyclic Graph}
 
-A proof of $\Gamma$ based on a set $\mathcal{A}$ of axioms is represented as a tree-like directed
-acyclic graphs (DAG) where leaves are axioms, nodes are resolution steps and the root node's
-conclusion is $\Gamma$.
+\begin{jogo}
+In this subsection I would like to introduce the DAG representation of proofs.  The set of proofs on
+a set of axioms has to be defined for transformation to be clearly stated. I think we should have
+three trnsformations : resolution $\odot$, deletion of a node from a proof, replacement of a node in
+a proof. The two latter ones implies to introduce the fix operation in this subsection.
+\end{jogo}
+
+A proof of $\Gamma$ based on a set $\mathcal{A}$ of axioms is represented as an unordered tree-like
+directed acyclic graphs. Leaves are axioms from $\mathcal{A}$ and inner nodes are resolution steps.
+Edges are directed from the resolution node to its premises and are labeled by the premise's
+auxiliary literal. Nodes are labeled by their conclusion. The root node's conclusion is $\Gamma$.
 
 \begin{definition}[Proof] \label{def:proof}
-Given a set $\mathcal{A}$ of clauses called axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a
-\emph{proof} of clause $\Gamma$ is a DAG $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V},
-f_\mathcal{E} \rangle$ verifying the following conditions:
+Given a finite set $\mathcal{A}$ of clauses called axioms, the set $\mathcal{P_A}$ of proofs on
+$\mathcal{A}$ are graphs $\langle \mathcal{V},\mathcal{E} \subset \mathcal{V} \times \mathcal{V},
+f_\mathcal{V} : \mathcal{V} \longrightarrow 2^\mathcal{L}, f_\mathcal{E} : \mathcal{E}
+\longrightarrow \mathcal{L}, \rho \in \mathcal{V} \rangle$ inductively defined as :
 \begin{enumerate}[nosep]
-  \item $\mathcal{V}$ is a set of \emph{vertices} such that
-    $\mathcal{V} \cap \mathcal{A} \neq \emptyset$.
-    $\mathcal{N} = \mathcal{V} \setminus \mathcal{A}$ is the set of resolutions nodes of $\psi$.
-  \item $\mathcal{E} \subset \mathcal{V} \times \mathcal{V}$ is the \emph{premise} relation.
-    It is such that $\forall \varsigma \in \mathcal{A}, \forall \eta \in \mathcal{V}, (\varsigma,
-    \eta) \notin \mathcal{E}$. $(\varsigma, \eta) \in \mathcal{E}$ is noted $\varsigma \rightarrow
-    \eta$. The inverse relation is the \emph{child} relation. The transitive closure of
-    $\mathcal{E}$ is the \emph{parent} relation, noted $\xrightarrow{*}$.
-  \item $f_\mathcal{E}$ is a function $\mathcal{E} \longrightarrow \mathcal{L}$ labeling edges with
-    literals. We write $\varsigma \xrightarrow[a]{} \eta$ to denote
-    $(\varsigma, \eta) \in \mathcal{E} \wedge f_\mathcal{E}(\varsigma, \eta) = a$.
-  \item $\exists \rho \in \mathcal{V}$ such that $\forall \eta \in \mathcal{V} \setminus \{\rho\}$,
-    $\rho \xrightarrow{*} \eta$. $\psi$ beeing acyclic, there is exactly one such $\rho$ called the
-    \emph{root} of $\psi$, written $\rho_\psi$.
-  \item For $\varsigma \in \mathcal{N}$ there is exactly two vertices $\eta, \theta \in \mathcal{V}$
-    such that $\varsigma \rightarrow \eta$ and $\varsigma \rightarrow \theta$. Moreover,
-    $\exists a \in \mathcal{L}$ s.t. $\varsigma \xrightarrow[a]{} \eta \wedge \varsigma
-    \xrightarrow[\dual{a}]{} \theta$.
-  \item $f_\mathcal{V}$ is a function $\mathcal{V} \longrightarrow 2^\mathcal{L}$ labeling vertices
-    with clauses. $f_\mathcal{V}(\eta)$ is called the \emph{conclusion} of $\eta$. It is recusively
-    defined as:
+  \item $\forall \Gamma \in \mathcal{A}$, $\langle \{\Gamma\}, \varnothing, \Gamma
+    \rightarrow \Gamma, \varnothing, \Gamma \rangle$ is a proof of $\Gamma$.
+  \item If $\psi_L = \langle V_L, E_L, f_{V_L}, f_{E_L}, \rho_L \rangle \in \mathcal{P_A}$ and
+    $\psi_R = \langle V_R, E_R, f_{V_R}, f_{E_R}, \rho_R \rangle \in \mathcal{P_A}$ with $\psi_L
+    \neq \psi_R$, then $\forall a \in \mathcal{L}$ such that $\dual{a} \in f_{V_L}(\rho_L)$ and $a
+    \in f_{V_R}(\rho_L)$ and given a new node $\rho$ the graph $\psi = \langle V_L \cup V_R \cup
+    \{\rho\}, E_L \cup E_R \cup \{(\rho,\rho_L),(\rho,\rho_R)\}, f_V, f_L, \rho \rangle$ with $f_V$
+    defined as
     \begin{equation*}
-      f_\mathcal{V}(\eta) = \begin{cases}
-        \eta & \eta \in \mathcal{A} \cap \mathcal{V} \\
-        \left(f_\mathcal{V}(\theta) \setminus \{a\}\right) \cup
-        \left(f_\mathcal{V}(\theta') \setminus \{\dual{a}\}\right) &
-              \eta \in \mathcal{N} \text{ with } \eta \xrightarrow[a]{} \theta \text{ and }
-                                               \eta \xrightarrow[\dual{a}]{} \theta'
+      f_V(\eta) = \begin{cases}
+        f_{V_L}(\eta) & \eta \in V_L \\
+        f_{V_R}(\eta) & \eta \in V_R \\
+        (f_{V_L}(\rho_L) \setminus \{\dual{a}\}) \cup (f_{V_R}(\rho_R) \setminus \{a\}) &
+          \eta = \rho
       \end{cases}
     \end{equation*}
-  \item $\varsigma \xrightarrow[a]{} \eta \Rightarrow a \in f_\mathcal{V}(\eta)$
-  \item $f_\mathcal{V}(\rho_\psi) = \Gamma$
+    and $f_L$ as
+    \begin{equation*}
+      f_E(\varsigma,\eta) = \begin{cases}
+        f_{E_L}(\varsigma,\eta) & (\varsigma,\eta) \in E_L \\
+        f_{E_R}(\varsigma,\eta) & (\varsigma,\eta) \in E_R \\
+        \dual{a} & \varsigma = \rho \text{ and } \eta = \rho_L \\
+        a        & \varsigma = \rho \text{ and } \eta = \rho_R
+      \end{cases}
+    \end{equation*}
+    is a proof of $f_V(\rho)$. We write $\psi = \psi_L \odot_a \psi_R$.
   \qed
 \end{enumerate}
 \end{definition}
+
+As the premises are unordered we have $\psi_L \odot_a \psi_R = \psi_R \odot_\dual{a} \psi_L$.
+Furthermore, nodes are uniquely defined by their premises and conclusion. Hence there is a bijection
+between nodes and proofs and we will often identify one with the other. Each node $\eta$ of a proof
+is a subproof of its conclusion $f_V(\eta)$.
+
+The following properties can easily be proved by induction for any proofs.
+
+\begin{property}
+\label{prop:proof_leaf}
+Axioms are leaves : $\Gamma \in \mathcal{A} \cap V \Leftrightarrow \forall \eta \in V ,~
+(\Gamma,\eta) \notin E$.
+\end{property}
+
+\begin{property}
+Every inner node $\varsigma \in V \setminus \mathcal{A}$ has exactely two premises.
+\end{property}
+
+\begin{property}
+\label{prop:proof_edges}
+If a node $\varsigma \in V$ has two premises $\eta_L$ and $\eta_R$ then
+\begin{equation*}
+f_E(\varsigma,\eta_L) = \overline{f_E(\varsigma,\eta_R)}
+\end{equation*}
+\end{property}
+
+\begin{property}
+\label{prop:proof_conclusion}
+If a node $\varsigma \in V$ has two premises $\eta_L$ and $\eta_R$ then
+\begin{equation*}
+  f_V(\varsigma) =
+  (f_V(\eta_L) \setminus \{f_E(\varsigma,\eta_L)\}) \cup
+  (f_V(\eta_R) \setminus \{f_E(\varsigma,\eta_R)\})
+\end{equation*}
+\end{property}
+
+\begin{property}
+$(\varsigma,\eta) \in E \Rightarrow f_E(\varsigma,\eta) \in f_V(\eta)$.
+\end{property}
+
+\begin{property}
+For all node $\eta$ different from $\rho$ there is a path from $\rho$ to $\eta$.
+\end{property}
+
+Conversely, if all those properties hold for a directed acyclic graph (DAG) then it is a proof,
+modulo the identity of inner nodes.
+
+\subsection{Proofs Transformations}
+
+To reduce proof's size we'll need to transform proofs. But many simple graph transformation like
+deleting an edge will result in a DAG which isn't a proof anymore. We are particularly interested in
+transformations which lead to DAG verifying the properties \ref{prop:proof_leaf} and
+\ref{prop:proof_edges} plus the following ones.
+
+\begin{property}
+Every node has at most two premises.
+\end{property}
+
+We call such a proof a \emph{pseudo-proof} because we can reconstruct a proof from it b
 
 \begin{definition}[Pseudo-proof]
 Given a set $\mathcal{A}$ of axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a \emph{pseudo-proof} is
