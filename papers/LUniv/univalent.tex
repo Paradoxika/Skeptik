@@ -5,12 +5,19 @@
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
+\usepackage{enumitem,amsmath,amssymb}
+
+\usepackage{algorithm2e}
+
+\newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
+\newcommand{\fix}{\ensuremath{\operatorname{fix}}}
+
 % The following is to comment draft source file. It has to be deleted for the
 % final document.
 \usepackage{xcolor}
 \newenvironment{jogo}{\color{teal}}{}
 
-\title{LoweringUnivalents}
+\title{Propositional Resolution Proof Compression by Lowering Nodes}
 \author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
 \institute{Vienna University of Technology, Austria}
 
@@ -27,42 +34,275 @@
 \section{Introduction}
 
 \begin{jogo}
-In this section we introduce propositional resolution proof compression and the
-definitions and notations we'll use trough this paper.
+In this section we introduce the domain : first SAT then compression.
+I could be a good idea to talk about the problem of measuring a proof.
+We could explain the use case of verifying a proof and how we plan to measure its complexity.
 \end{jogo}
 
+\section{Propositional Resolution Calculus}
+
+\begin{jogo}
+In this section we introduce the definitions and notations we'll use trough this paper.
+
+Here is a list of things to define (maybe elsewhere) : \begin{itemize}[nosep]
+    \item variable, dual, literal, clause, node, proof
+    \item premise, children, parent
+    \item regularity (vertical and horizontal)
+    \item safe literals
+\end{itemize}
+\end{jogo}
+
+\begin{jogo}
+I think we need to distinguish between variables and literals. There is only one curly lowercase
+letter in standart \LaTeX ($\ell$) hence we can't use that. I propose to rely on usual conventions
+for propositional logic and use uppercase roman letters for propositional variables. Literals would
+be written in lowercase roman letters. Clauses still are written as uppercase greek letters and nodes
+as lowercase greek letters.
+
+What follows is a Cut-and-Paste from your paper. I don't know what has to be a definition or what
+has to be written in a simple paragraph. Actually everything in this section reads like a
+definition.
+\end{jogo}
+
+A \emph{literal} is a propositional variable or the negation of a propositional variable. We write
+\dual{l} to denote the dual of $l$ (i.e. for all propositional variable $P$, $\dual{P} =
+\neg P$ and $\overline{\neg P} = P$) and $|l|$ for the propositional variable underlying the literal
+$l$ (i.e. $|P| = |\neg P| = P$). A \emph{clause} is a set of literals, $\bot$ denotes the
+\emph{empty clause}.
+
 \begin{notation}[Resolution]
-Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a
-\eta_1$, $a$ being the pivot literal such that $\bar{a} \in \eta_0$ and $a
-\in \eta_1$.
+Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a \eta_1$, $a$ being the pivot
+literal such that $\bar{a} \in \eta_0$ and $a \in \eta_1$.
 \end{notation}
+
+\begin{definition}[Safe literal]
+In a proof $\psi[\eta]$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ proving $\Gamma$ if
+for all proof $\eta'$ of $\Gamma \cup \{p\}$, $\psi[\eta']$ still proves $\Sigma$.
+\end{definition}
+
+\subsection{Proof as Directed Acyclic Graph}
+
+A proof of $\Gamma$ based on a set $\mathcal{A}$ of axioms is represented as a tree-like directed
+acyclic graphs (DAG) where leaves are axioms, nodes are resolution steps and the root node's
+conclusion is $\Gamma$.
+
+\begin{definition}[Proof] \label{def:proof}
+Given a set $\mathcal{A}$ of clauses called axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a
+\emph{proof} of clause $\Gamma$ is a DAG $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V},
+f_\mathcal{E} \rangle$ verifying the following conditions:
+\begin{enumerate}[nosep]
+  \item $\mathcal{V}$ is a set of \emph{vertices} such that
+    $\mathcal{V} \cap \mathcal{A} \neq \emptyset$.
+    $\mathcal{N} = \mathcal{V} \setminus \mathcal{A}$ is the set of resolutions nodes of $\psi$.
+  \item $\mathcal{E} \subset \mathcal{V} \times \mathcal{V}$ is the \emph{premise} relation.
+    It is such that $\forall \varsigma \in \mathcal{A}, \forall \eta \in \mathcal{V}, (\varsigma,
+    \eta) \notin \mathcal{E}$. $(\varsigma, \eta) \in \mathcal{E}$ is noted $\varsigma \rightarrow
+    \eta$. The inverse relation is the \emph{child} relation. The transitive closure of
+    $\mathcal{E}$ is the \emph{parent} relation, noted $\xrightarrow{*}$.
+  \item $f_\mathcal{E}$ is a function $\mathcal{E} \longrightarrow \mathcal{L}$ labeling edges with
+    literals. We write $\varsigma \xrightarrow[a]{} \eta$ to denote
+    $(\varsigma, \eta) \in \mathcal{E} \wedge f_\mathcal{E}(\varsigma, \eta) = a$.
+  \item $\exists \rho \in \mathcal{V}$ such that $\forall \eta \in \mathcal{V} \setminus \{\rho\}$,
+    $\rho \xrightarrow{*} \eta$. $\psi$ beeing acyclic, there is exactly one such $\rho$ called the
+    \emph{root} of $\psi$, written $\rho_\psi$.
+  \item For $\varsigma \in \mathcal{N}$ there is exactly two vertices $\eta, \theta \in \mathcal{V}$
+    such that $\varsigma \rightarrow \eta$ and $\varsigma \rightarrow \theta$. Moreover,
+    $\exists a \in \mathcal{L}$ s.t. $\varsigma \xrightarrow[a]{} \eta \wedge \varsigma
+    \xrightarrow[\dual{a}]{} \theta$.
+  \item $f_\mathcal{V}$ is a function $\mathcal{V} \longrightarrow 2^\mathcal{L}$ labeling vertices
+    with clauses. $f_\mathcal{V}(\eta)$ is called the \emph{conclusion} of $\eta$. It is recusively
+    defined as:
+    \begin{equation*}
+      f_\mathcal{V}(\eta) = \begin{cases}
+        \eta & \eta \in \mathcal{A} \cap \mathcal{V} \\
+        \left(f_\mathcal{V}(\theta) \setminus \{a\}\right) \cup
+        \left(f_\mathcal{V}(\theta') \setminus \{\dual{a}\}\right) &
+              \eta \in \mathcal{N} \text{ with } \eta \xrightarrow[a]{} \theta \text{ and }
+                                               \eta \xrightarrow[\dual{a}]{} \theta'
+      \end{cases}
+    \end{equation*}
+  \item $\varsigma \xrightarrow[a]{} \eta \Rightarrow a \in f_\mathcal{V}(\eta)$
+  \item $f_\mathcal{V}(\rho_\psi) = \Gamma$
+  \qed
+\end{enumerate}
+\end{definition}
+
+\begin{definition}[Pseudo-proof]
+Given a set $\mathcal{A}$ of axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a \emph{pseudo-proof} is
+a DAG with a marked vertex $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E},
+\rho \rangle$ verifying conditions 1 to 3 from Definition \ref{def:proof} plus the following ones:
+\begin{enumerate}[nosep,start=4]
+  \item $\forall \eta \in \mathcal{V}, (\eta, \rho) \notin \mathcal{E}$
+  \item For $\varsigma \in \mathcal{N}$ there is at most two vertices $\eta \in \mathcal{V}$ such
+    that $\varsigma \rightarrow \eta$. Moreover, $\exists \varsigma, \eta, \theta \in \mathcal{V},
+    \exists a, b \in \mathcal{L}, \eta \neq \theta \wedge \varsigma \xrightarrow[a]{} \eta \wedge
+    \varsigma \xrightarrow[b]{} \theta \Rightarrow a = \dual{b}$
+  \item %$f_\mathcal{V}$ is a function $\mathcal{V} \longrightarrow 2^\mathcal{L}$ labeling vertices
+%    with clauses, recusively defined as:
+    \begin{equation*}
+      f_\mathcal{V}(\eta) = \begin{cases}
+        \eta & \eta \in \mathcal{A} \cap \mathcal{V} \\
+        \left(f_\mathcal{V}(\theta) \setminus \{a\}\right) \cup
+        \left(f_\mathcal{V}(\theta') \setminus \{\dual{a}\}\right) &
+              \eta \in \mathcal{N} \text{ with } \eta \xrightarrow[a]{} \theta \text{ and }
+                                               \eta \xrightarrow[\dual{a}]{} \theta' \\
+        \mathcal{L} & \text{otherwise}
+      \end{cases}
+    \end{equation*}
+  \qed
+\end{enumerate}
+\end{definition}
+
+\begin{proposition}
+For all pseudo-proof $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$,
+there exists a proof $\psi' = \langle \mathcal{V}', \mathcal{E}', f_{\mathcal{V}'},
+f_{\mathcal{E}'} \rangle$ verifying :
+\begin{enumerate}[nosep]
+  \item $\mathcal{V}' \subseteq \mathcal{V}$
+  \item $|\mathcal{E}'| \leq |\mathcal{E}|$
+  \item $\forall \eta \in \mathcal{V}', f_{\mathcal{V}'}(\eta) \subseteq f_\mathcal{V}(\eta)$
+  \item $( (\varsigma,\eta) \in \mathcal{E} \wedge f_\mathcal{E}(\varsigma, \eta) = a \wedge
+    \varsigma \in \mathcal{V}' \wedge \eta \in \mathcal{V}' ) \Rightarrow (
+    (\varsigma,\eta) \in \mathcal{E}' \wedge f_{\mathcal{E}'}(\varsigma, \eta) = a )$
+  \item $\rho_{\psi'} = \rho$
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+In the following, a function $f : A \longrightarrow B$ is considered as a part of $A \times B$, i.e.
+$f \subset A \times B$.
+Let $f$ be a recursive function which given a pseudo-proof $\psi = \langle \mathcal{V},
+\mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$ does:
+\begin{itemize}[nosep]
+  \item Let $\mathcal{V}' = \{\eta|\rho \xrightarrow{*} \eta\}$. If $\mathcal{V}' \neq \mathcal{V}$
+    then return $f\left(\langle \mathcal{V}', \mathcal{E}' = \mathcal{E} \cap (\mathcal{V}' \times \mathcal{V}'),
+    f_\mathcal{V} \cap (\mathcal{V}' \times 2^\mathcal{L}), f_\mathcal{E} \cap (\mathcal{E}' \times \mathcal{L}),
+    \rho \rangle\right)$
+\end{itemize}
+\end{proof}
+
+\begin{algorithm}[hbt]
+  \uIf{$\{\eta|\rho \xrightarrow{*} \eta\} \neq \mathcal{V}$}
+    { $\mathcal{V} \leftarrow \{\eta|\rho \xrightarrow{*} \eta\}$ \;
+    }
+  \uElseIf{$\exists \varsigma, \exists ! \eta, \varsigma \rightarrow \eta$}
+    { $\mathcal{V} \leftarrow \mathcal{V} \setminus \{\varsigma\}$ \;
+      $\mathcal{E} \leftarrow \mathcal{E} \cup \{(\theta,\eta)|(\theta,\varsigma) \in \mathcal{E}\}$ \;
+    }
+  \ElseIf{$\exists \varsigma, \eta, a, \varsigma \xrightarrow[a]{} \eta \wedge a \notin f_\mathcal{V}(\eta)$}
+    { $\mathcal{V} \leftarrow \mathcal{V} \setminus \{\varsigma\}$ \;
+      $\mathcal{E} \leftarrow \mathcal{E} \cup \{(\theta,\eta)|(\theta,\varsigma) \in \mathcal{E}\}$ \;
+    }
+\end{algorithm}
 
 \section{Lowering Nodes}
 
 \begin{jogo}
-In this section we define formely what we mean by lowering a node. Then we explain why it's interessing for proof compression. Finaly we briefly describe LowerUnits.
+In this section we define formely what we mean by lowering a node. Then we explain why it's
+interessing for proof compression. Finaly we briefly describe LowerUnits.
 \end{jogo}
 
-The problem of lowering a node $\eta$ in a proof of the form $\psi[\eta]
-\odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is to decide
-whether a literal $a$ such that the proof $\psi[] \odot_a \eta
-\odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is equivalent to
-the original proof exists.
+When a node $\eta$ as more than one child in a proof $\psi[\eta]$ it might be convenient to factor
+the corresponding resolutions. Lowering $\eta$ is such a factorisation. We construct a new
+equivalent proof by removing $\eta$ from $\psi$, fixing $\psi[]$ such that it remains a valid proof
+and then reintroducing $\eta$ at the bottom of the proof. Formaly, $\eta$ can be lowered in
+$\psi[\eta]$ if there exists a literal $a$ such that $\fix\left(\psi[]\right) \odot_a
+\eta$ is equivalent to $\psi[\eta]$. A possible implementation of the $\fix$ function
+is proposed in Algorithm \ref{algo:fix}.
 
-This problem doesn't depend on the sequence $\eta_{i \in 0..n}$ but only on
-$\psi[\eta]$ and $a_{i \in 0..n}$. This last sequence might be seen as a
-clause. We call it the clause of lowered pivots.
+\begin{algorithm}[hbt]
+  \For{every resolution node $\eta$ in a top-down traversal}{
+    Let $p$ be $\eta$'s pivot literal \;
+    \uIf{both premises of $\eta$ are deleted}{
+      Delete $\eta$ \; }
+    \uElseIf{the left premise of $\eta$ is deleted}{
+      Replace $\eta$ by its right premise \; }
+    \uElseIf{the right premise of $\eta$ is deleted}{
+      Replace $\eta$ by its left premise \; }
+    \uElseIf{the left premise's conclusion doesn't contain $\dual{p}$}{
+      Replace $\eta$ by its left premise \; }
+    \uElseIf{the right premise's conclusion doesn't contain $p$}{
+      Replace $\eta$ by its right premise \; }
+    \Else{
+      Recompute $\eta$'s clause based on the current premises \; }
+  }
+  \label{algo:fix}
+  \caption{A possible $\fix$ implementation}
+\end{algorithm}
+
+\begin{jogo}
+This introduction to lowering is not the same as the one of LU's paper. The drawback is that we need
+to cope with the \fix function which is not nice. But the advantage is that it's simpler and not
+limited to the 2 children case. An alternative solution would be to use multi-arguments environments
+and define lowering as transforming $\psi\left[\eta_0 \odot \eta, \cdots, \eta_n \odot \eta\right]$
+into $\psi\left[\eta_0, \cdots, \eta_n\right] \odot \eta$. But anyway we'll need a \fix function to
+introduce LowerUnivalent.
+\end{jogo}
+
+These idea has been introduce in \cite{LURPI} for the LowerUnits algorithm. Units are nodes with a
+clause consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
+lowers every unit with more than one child. Care is taken to reintroduce units in an order
+corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
+unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
+
+A possible implementation of LowerUnits is shown in Algorithm \ref{algo:LU}. Units are collected during a
+first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal could
+have been top-down and units stored in a stack. Units are effectively removed during a second,
+top-down traversal. The last step is the reintroduction of units. There is no need here for such a
+complicated $\fix$ implementation as the Algorithm \ref{algo:fix}. Deleting units only introduces literals in
+the children's clauses and therefore all the resolutions are still valid.
+
+\begin{algorithm}[htb]
+  Units $\leftarrow \varnothing$ \;
+
+  \For{every node $\eta$ in a bottom-up traversal}{
+    \If{$\eta$ is a unit with more than one child}{Enqueue $\eta$ in Units \; }
+  }
+
+  \For{every node $\eta$ in a top-down traversal}{
+    \uIf{the right premise of $\eta$ belongs to Units}{
+      Replace $\eta$ by its left premise \; }
+    \uElseIf{the left premise of $\eta$ belongs to Units}{
+      Replace $\eta$ by its right premise \; }
+    \Else{
+      Recompute $\eta$'s clause based on the current premises \; }
+  }
+
+  $\eta \leftarrow$ the new root of the proof \;
+  \For{every unit $\upsilon$ in Units}{
+    Let $\{u\}$ be $\upsilon$'s clause \;
+    \lIf{$\eta$'s clause contains $\dual{u}$}{
+    $\eta \leftarrow \eta \odot \upsilon$ \;}
+  }
+
+  \label{algo:LU}
+  \caption{A possible LowerUnit implementation}
+\end{algorithm}
+
 
 \section{LoweringUnivalents}
 
 \begin{jogo}
-This is the main section. First we define univalent clause and we prove that it's not sufficent for a node to be lowered. Second we introduce active literals and the main theorem (with proof). Third we explain the partial regularization done by "Deletable" nodes. Fourth we give the algorithm. Fifth we prove it's always better than LowerUnits.
+This is the main section. First we define univalent clause and we prove that it's not sufficent for
+a node to be lowered. Second we introduce active literals and the main theorem (with proof). Third
+we explain the partial regularization done by "Deletable" nodes. Fourth we give the algorithm. Fifth
+we prove it's always better than LowerUnits.
 \end{jogo}
 
 We would like to extend LowerUnits presented in \cite{LURPI}. Intuitively,
 if a node with a clause $a$ is already marked to be lowered, another node with
 a clause $\bar{a},b$ might be lowered too.
 
+The problem of lowering a node $\eta$ in a proof of the form
+\begin{equation}
+\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
+\end{equation}
+is to decide whether a literal $a$ such that the proof 
+\begin{equation}
+\text{Fix}\left(\psi[]\right) \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
+\end{equation}
+is equivalent to
+the original proof exists.
 \subsection{Univalent Clauses}
 
 The extended unit concept intuitively presented above can be formely defined as
@@ -129,6 +369,6 @@ LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
 \section{Conclusions}
 
 \bibliographystyle{splncs}
-\bibliography{biblio}
+\bibliography{../biblio}
 
 \end{document}
