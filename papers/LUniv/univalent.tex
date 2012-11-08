@@ -157,11 +157,11 @@ f_E(\varsigma,\eta_L) = \overline{f_E(\varsigma,\eta_R)}
 
 \begin{property}
 \label{prop:proof_conclusion}
-If a node $\varsigma \in V$ has two premises $\eta_L$ and $\eta_R$ then
 \begin{equation*}
-  f_V(\varsigma) =
-  (f_V(\eta_L) \setminus \{f_E(\varsigma,\eta_L)\}) \cup
-  (f_V(\eta_R) \setminus \{f_E(\varsigma,\eta_R)\})
+  f_V(\varsigma) = \begin{cases}
+    \varsigma & \varsigma \text{ has no premise} \\
+    \bigcup_{(\varsigma,\eta) \in E}{f_V(\eta) \setminus f_E(\varsigma,\eta)} & \text{otherwise}
+  \end{cases}
 \end{equation*}
 \end{property}
 
@@ -178,131 +178,63 @@ modulo the identity of inner nodes.
 
 \subsection{Proofs Transformations}
 
-To reduce proof's size we'll need to transform proofs. But many simple graph transformation like
+To reduce proofs' size we'll need to transform proofs. But many simple graph transformation like
 deleting an edge will result in a DAG which isn't a proof anymore. We are particularly interested in
-transformations which lead to DAG verifying the properties \ref{prop:proof_leaf} and
-\ref{prop:proof_edges} plus the following ones.
+transformations which lead to DAG verifying the property \ref{prop:proof_edges} plus the following one.
 
 \begin{property}
+\label{prop:pseudo-proof}
 Every node has at most two premises.
 \end{property}
 
-We call such a proof a \emph{pseudo-proof} because we can reconstruct a proof from it b
+Such a DAG can be transformed into a proof by \emph{fixing} it as defined below.
 
-\begin{definition}[Pseudo-proof]
-Given a set $\mathcal{A}$ of axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a \emph{pseudo-proof} is
-a DAG with a marked vertex $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E},
-\rho \rangle$ verifying conditions 1 to 3 from Definition \ref{def:proof} plus the following ones:
-\begin{enumerate}[nosep,start=4]
-  \item $\forall \eta \in \mathcal{V}, (\eta, \rho) \notin \mathcal{E}$
-  \item For $\varsigma \in \mathcal{N}$ there is at most two vertices $\eta \in \mathcal{V}$ such
-    that $\varsigma \rightarrow \eta$. Moreover, $\exists \varsigma, \eta, \theta \in \mathcal{V},
-    \exists a, b \in \mathcal{L}, \eta \neq \theta \wedge \varsigma \xrightarrow[a]{} \eta \wedge
-    \varsigma \xrightarrow[b]{} \theta \Rightarrow a = \dual{b}$
-  \item %$f_\mathcal{V}$ is a function $\mathcal{V} \longrightarrow 2^\mathcal{L}$ labeling vertices
-%    with clauses, recusively defined as:
-    \begin{equation*}
-      f_\mathcal{V}(\eta) = \begin{cases}
-        \eta & \eta \in \mathcal{A} \cap \mathcal{V} \\
-        \left(f_\mathcal{V}(\theta) \setminus \{a\}\right) \cup
-        \left(f_\mathcal{V}(\theta') \setminus \{\dual{a}\}\right) &
-              \eta \in \mathcal{N} \text{ with } \eta \xrightarrow[a]{} \theta \text{ and }
-                                               \eta \xrightarrow[\dual{a}]{} \theta' \\
-        \mathcal{L} & \text{otherwise}
-      \end{cases}
-    \end{equation*}
+\begin{definition}[Fixing]
+Fixing a DAG $\langle V, E, f_V, f_E, \rho \rangle$ verifying properties \ref{prop:proof_edges} and
+\ref{prop:pseudo-proof} into a proof on $\mathcal{A}$ consist in applying recursively the following
+transformations until a fix-point is reached.
+\begin{enumerate}
+  \item Delete every node $\eta \in V \setminus \mathcal{A}$ which have no premise.
+  \item For every node $\varsigma$ which have exactely one premise $\eta$, replace every incoming
+    edge $(\theta,\varsigma)$ by $(\theta,\eta)$.
+  \item Replace $f_V$ by a function verifying the property \ref{prop:proof_conclusion}.
+  \item For every edge $(\varsigma,\eta)$ such that $f_E(\varsigma,\eta) \notin f_V(\eta)$, replace
+    every edge $(\theta,\varsigma) \in E$ by $(\theta,\eta)$.
+  \item Delete every node and every edge not reachable from $\rho$.
   \qed
 \end{enumerate}
 \end{definition}
 
-\begin{proposition}
-For all pseudo-proof $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$,
-there exists a proof $\psi' = \langle \mathcal{V}', \mathcal{E}', f_{\mathcal{V}'},
-f_{\mathcal{E}'} \rangle$ verifying :
-\begin{enumerate}[nosep]
-  \item $\mathcal{V}' \subseteq \mathcal{V}$
-  \item $|\mathcal{E}'| \leq |\mathcal{E}|$
-  \item $\forall \eta \in \mathcal{V}', f_{\mathcal{V}'}(\eta) \subseteq f_\mathcal{V}(\eta)$
-  \item $( (\varsigma,\eta) \in \mathcal{E} \wedge f_\mathcal{E}(\varsigma, \eta) = a \wedge
-    \varsigma \in \mathcal{V}' \wedge \eta \in \mathcal{V}' ) \Rightarrow (
-    (\varsigma,\eta) \in \mathcal{E}' \wedge f_{\mathcal{E}'}(\varsigma, \eta) = a )$
-  \item $\rho_{\psi'} = \rho$
-\end{enumerate}
-\end{proposition}
-
-\begin{proof}
-In the following, a function $f : A \longrightarrow B$ is considered as a part of $A \times B$, i.e.
-$f \subset A \times B$.
-Let $f$ be a recursive function which given a pseudo-proof $\psi = \langle \mathcal{V},
-\mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$ does:
-\begin{itemize}[nosep]
-  \item Let $\mathcal{V}' = \{\eta|\rho \xrightarrow{*} \eta\}$. If $\mathcal{V}' \neq \mathcal{V}$
-    then return $f\left(\langle \mathcal{V}', \mathcal{E}' = \mathcal{E} \cap (\mathcal{V}' \times \mathcal{V}'),
-    f_\mathcal{V} \cap (\mathcal{V}' \times 2^\mathcal{L}), f_\mathcal{E} \cap (\mathcal{E}' \times \mathcal{L}),
-    \rho \rangle\right)$
-\end{itemize}
-\end{proof}
-
-\begin{algorithm}[hbt]
-  \uIf{$\{\eta|\rho \xrightarrow{*} \eta\} \neq \mathcal{V}$}
-    { $\mathcal{V} \leftarrow \{\eta|\rho \xrightarrow{*} \eta\}$ \;
-    }
-  \uElseIf{$\exists \varsigma, \exists ! \eta, \varsigma \rightarrow \eta$}
-    { $\mathcal{V} \leftarrow \mathcal{V} \setminus \{\varsigma\}$ \;
-      $\mathcal{E} \leftarrow \mathcal{E} \cup \{(\theta,\eta)|(\theta,\varsigma) \in \mathcal{E}\}$ \;
-    }
-  \ElseIf{$\exists \varsigma, \eta, a, \varsigma \xrightarrow[a]{} \eta \wedge a \notin f_\mathcal{V}(\eta)$}
-    { $\mathcal{V} \leftarrow \mathcal{V} \setminus \{\varsigma\}$ \;
-      $\mathcal{E} \leftarrow \mathcal{E} \cup \{(\theta,\eta)|(\theta,\varsigma) \in \mathcal{E}\}$ \;
-    }
-\end{algorithm}
-
-\section{Lowering Nodes}
-
 \begin{jogo}
-In this section we define formely what we mean by lowering a node. Then we explain why it's
-interessing for proof compression. Finaly we briefly describe LowerUnits.
+Do you think we need a proof of that or is it obvious ?
 \end{jogo}
 
-When a node $\eta$ as more than one child in a proof $\psi[\eta]$ it might be convenient to factor
-the corresponding resolutions. Lowering $\eta$ is such a factorisation. We construct a new
-equivalent proof by removing $\eta$ from $\psi$, fixing $\psi[]$ such that it remains a valid proof
-and then reintroducing $\eta$ at the bottom of the proof. Formaly, $\eta$ can be lowered in
-$\psi[\eta]$ if there exists a literal $a$ such that $\fix\left(\psi[]\right) \odot_a
-\eta$ is equivalent to $\psi[\eta]$. A possible implementation of the $\fix$ function
-is proposed in Algorithm \ref{algo:fix}.
+With the help of this fixing operation, we can easily define the deletion of a node in a proof and
+the replacement of a node by another one.
 
-\begin{algorithm}[hbt]
-  \For{every resolution node $\eta$ in a top-down traversal}{
-    Let $p$ be $\eta$'s pivot literal \;
-    \uIf{both premises of $\eta$ are deleted}{
-      Delete $\eta$ \; }
-    \uElseIf{the left premise of $\eta$ is deleted}{
-      Replace $\eta$ by its right premise \; }
-    \uElseIf{the right premise of $\eta$ is deleted}{
-      Replace $\eta$ by its left premise \; }
-    \uElseIf{the left premise's conclusion doesn't contain $\dual{p}$}{
-      Replace $\eta$ by its left premise \; }
-    \uElseIf{the right premise's conclusion doesn't contain $p$}{
-      Replace $\eta$ by its right premise \; }
-    \Else{
-      Recompute $\eta$'s clause based on the current premises \; }
-  }
-  \label{algo:fix}
-  \caption{A possible $\fix$ implementation}
-\end{algorithm}
+\begin{definition}[Deletion of a node]
+Deleting a node $\eta$ in a proof $\psi$ consist in deleting every edge $(\varsigma,\eta) \in E$ and
+fixing the resulting DAG. It is written $\psi[\setminus \eta]$.
+\end{definition}
 
-\begin{jogo}
-This introduction to lowering is not the same as the one of LU's paper. The drawback is that we need
-to cope with the \fix function which is not nice. But the advantage is that it's simpler and not
-limited to the 2 children case. An alternative solution would be to use multi-arguments environments
-and define lowering as transforming $\psi\left[\eta_0 \odot \eta, \cdots, \eta_n \odot \eta\right]$
-into $\psi\left[\eta_0, \cdots, \eta_n\right] \odot \eta$. But anyway we'll need a \fix function to
-introduce LowerUnivalent.
-\end{jogo}
+\begin{definition}[Replacing a node]
+Replacing a node $\eta$ in a proof $\psi$ by a node $\eta'$ (not necessirly in $V$) consist in
+replacing every edge $(\varsigma,\eta) \in E$ by $(\varsigma,\eta')$ and fixing the resulting DAG.
+It is written $\psi[\eta \leftarrow \eta']$.
+\end{definition}
+
+
+\section{LowerUnits}
+
+When a node $\eta$ as more than one child in a proof $\psi$ it might be convenient to factor the
+corresponding resolutions. Lowering $\eta$ is such a factorisation. A new equivalent proof is
+constructed by removing $\eta$ from $\psi$, fixing the resulting DAG and then reintroducing $\eta$
+at the bottom of the proof. Formaly, a node $\eta$ in a proof $\psi$ of $\Gamma$ can be lowered if
+there exists a proof $\psi'$ of $\Gamma$ and a literal $a$ such that $\psi' = \psi[\setminus \eta]
+\odot_a \eta$.
 
 These idea has been introduce in \cite{LURPI} for the LowerUnits algorithm. Units are nodes with a
-clause consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
+conclusion consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
 lowers every unit with more than one child. Care is taken to reintroduce units in an order
 corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
 unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
@@ -310,37 +242,37 @@ unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$
 A possible implementation of LowerUnits is shown in Algorithm \ref{algo:LU}. Units are collected during a
 first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal could
 have been top-down and units stored in a stack. Units are effectively removed during a second,
-top-down traversal. The last step is the reintroduction of units. There is no need here for such a
-complicated $\fix$ implementation as the Algorithm \ref{algo:fix}. Deleting units only introduces literals in
-the children's clauses and therefore all the resolutions are still valid.
+top-down traversal. The last step is the reintroduction of units.
 
-\begin{algorithm}[htb]
+\begin{algorithm}[tb]
   Units $\leftarrow \varnothing$ \;
 
   \For{every node $\eta$ in a bottom-up traversal}{
     \If{$\eta$ is a unit with more than one child}{Enqueue $\eta$ in Units \; }
   }
 
-  \For{every node $\eta$ in a top-down traversal}{
-    \uIf{the right premise of $\eta$ belongs to Units}{
-      Replace $\eta$ by its left premise \; }
-    \uElseIf{the left premise of $\eta$ belongs to Units}{
-      Replace $\eta$ by its right premise \; }
+  \For{every node $\varsigma$ in a top-down traversal}{
+    \uIf{a premise $\eta$ of $\varsigma$ belongs to Units}{
+      Replace $\varsigma$ by $\eta$ \; }
     \Else{
-      Recompute $\eta$'s clause based on the current premises \; }
+      Recompute $\varsigma$'s conclusion based on the current premises \; }
   }
 
-  $\eta \leftarrow$ the new root of the proof \;
+  $\rho \leftarrow$ the new root of the proof \;
   \For{every unit $\upsilon$ in Units}{
-    Let $\{u\}$ be $\upsilon$'s clause \;
-    \lIf{$\eta$'s clause contains $\dual{u}$}{
-    $\eta \leftarrow \eta \odot \upsilon$ \;}
+    Let $\{u\}$ be $\upsilon$'s conclusion \;
+    \lIf{$\rho$'s conclusion contains $\dual{u}$}{
+    $\rho \leftarrow \rho \odot_u \upsilon$ \;}
   }
 
   \label{algo:LU}
   \caption{A possible LowerUnit implementation}
 \end{algorithm}
 
+LU has been successfully composed with the RecyclePivotsWithIntersection (RPI) algorithm presented in
+\cite{LURPI}. Both sequential compositions achieve very good compression ratio in reasonnable amount
+of time. Unfortunately, none of them is always better than the other and there is actually no
+heuristic to choose which one to apply a priori.
 
 \section{LoweringUnivalents}
 
