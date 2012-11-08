@@ -16,19 +16,53 @@
 % final document.
 \usepackage{xcolor}
 \newenvironment{jogo}{\color{teal}}{}
+\newenvironment{bruno}{\color{red}}{}
+
+\newif\ifcomments
+\commentstrue
+%\commentsfalse   % gobble comments, set for final version
+
+\ifcomments
+  \newcommand{\BW}[1]{\marginpar{\footnotesize{\sf BW: #1}}}
+\else
+  \newcommand{\BW}[1]{}
+\fi
+
+
 
 \title{Propositional Resolution Proof Compression by Lowering Nodes}
 \author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
 \institute{Vienna University of Technology, Austria}
 
+\author{
+  Joseph Boudou\inst{1}\thanks{This work was partly supported by the Google Summer of Code program.}
+  \and 
+  Bruno Woltzenlogel Paleo\inst{2}
+}
+
+\authorrunning{P.\~Fontaine \and S.\~Merz \and B.\~Woltzenlogel Paleo}
+
+\institute{
+  University of Toulouse (TODO) \\
+  \email{jogo@matabio.net}
+  \and 
+  Vienna University of Technology \\
+  \email{bruno@logic.at}
+}
+
+
+\newcommand{\LowerUnits}{\texttt{LowerUnits}}
+\newcommand{\LowerUnivalents}{\texttt{LowerUnivalents}}
+
+\newcommand{\VeriT}{\texttt{veriT}}
+
 \begin{document}
 
 \maketitle
 
+
 \begin{abstract}
-\begin{jogo}
-  To do.
-\end{jogo}
+This paper describes a generalization of the {\LowerUnits} algorithm \cite{ToDo} for the compression of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is able to lower not only units but also proof nodes containing non-unit clauses, provided that their literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on thousands of proofs produced by the SMT-Solver {\VeriT}.
 \end{abstract}
 
 \section{Introduction}
@@ -44,7 +78,7 @@ We could explain the use case of verifying a proof and how we plan to measure it
 \begin{jogo}
 In this section we introduce the definitions and notations we'll use trough this paper.
 
-Here is a list of things to define (maybe elsewhere) : \begin{itemize}[nosep]
+Here is a list of things to define (maybe elsewhere) : \begin{itemize}%%[nosep]
     \item variable, dual, literal, clause, node, proof
     \item premise, children, parent
     \item regularity (vertical and horizontal)
@@ -90,7 +124,7 @@ conclusion is $\Gamma$.
 Given a set $\mathcal{A}$ of clauses called axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a
 \emph{proof} of clause $\Gamma$ is a DAG $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V},
 f_\mathcal{E} \rangle$ verifying the following conditions:
-\begin{enumerate}[nosep]
+\begin{enumerate}%%[nosep]
   \item $\mathcal{V}$ is a set of \emph{vertices} such that
     $\mathcal{V} \cap \mathcal{A} \neq \emptyset$.
     $\mathcal{N} = \mathcal{V} \setminus \mathcal{A}$ is the set of resolutions nodes of $\psi$.
@@ -131,7 +165,7 @@ f_\mathcal{E} \rangle$ verifying the following conditions:
 Given a set $\mathcal{A}$ of axioms, $\mathcal{L} = \bigcup{\mathcal{A}}$, a \emph{pseudo-proof} is
 a DAG with a marked vertex $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E},
 \rho \rangle$ verifying conditions 1 to 3 from Definition \ref{def:proof} plus the following ones:
-\begin{enumerate}[nosep,start=4]
+\begin{enumerate}%[nosep,start=4]
   \item $\forall \eta \in \mathcal{V}, (\eta, \rho) \notin \mathcal{E}$
   \item For $\varsigma \in \mathcal{N}$ there is at most two vertices $\eta \in \mathcal{V}$ such
     that $\varsigma \rightarrow \eta$. Moreover, $\exists \varsigma, \eta, \theta \in \mathcal{V},
@@ -157,7 +191,7 @@ a DAG with a marked vertex $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{
 For all pseudo-proof $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$,
 there exists a proof $\psi' = \langle \mathcal{V}', \mathcal{E}', f_{\mathcal{V}'},
 f_{\mathcal{E}'} \rangle$ verifying :
-\begin{enumerate}[nosep]
+\begin{enumerate}%%[nosep]
   \item $\mathcal{V}' \subseteq \mathcal{V}$
   \item $|\mathcal{E}'| \leq |\mathcal{E}|$
   \item $\forall \eta \in \mathcal{V}', f_{\mathcal{V}'}(\eta) \subseteq f_\mathcal{V}(\eta)$
@@ -173,7 +207,7 @@ In the following, a function $f : A \longrightarrow B$ is considered as a part o
 $f \subset A \times B$.
 Let $f$ be a recursive function which given a pseudo-proof $\psi = \langle \mathcal{V},
 \mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$ does:
-\begin{itemize}[nosep]
+\begin{itemize}%%[nosep]
   \item Let $\mathcal{V}' = \{\eta|\rho \xrightarrow{*} \eta\}$. If $\mathcal{V}' \neq \mathcal{V}$
     then return $f\left(\langle \mathcal{V}', \mathcal{E}' = \mathcal{E} \cap (\mathcal{V}' \times \mathcal{V}'),
     f_\mathcal{V} \cap (\mathcal{V}' \times 2^\mathcal{L}), f_\mathcal{E} \cap (\mathcal{E}' \times \mathcal{L}),
