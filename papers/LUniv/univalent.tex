@@ -143,6 +143,7 @@ f_\mathcal{E} \rangle$ verifying the following conditions:
     \eta) \notin \mathcal{E}$. $(\varsigma, \eta) \in \mathcal{E}$ is noted $\varsigma \rightarrow
     \eta$. The inverse relation is the \emph{child} relation. The transitive closure of
     $\mathcal{E}$ is the \emph{ancestor} relation, noted $\xrightarrow{*}$.
+    \BW{$\xrightarrow{*}$ is defined as the transitive closure here. But in proposition 1, you seem to need it to be the transitive reflexive closure. Usually, $\xrightarrow{+}$ is used for the transitive closure and $\xrightarrow{*}$ for the transitive reflexive closure.}
   \item $f_\mathcal{E}$ is a function $\mathcal{E} \longrightarrow \mathcal{L}$ labeling edges with
     literals. We write $\varsigma \xrightarrow[a]{} \eta$ to denote
     $(\varsigma, \eta) \in \mathcal{E} \wedge f_\mathcal{E}(\varsigma, \eta) = a$.
@@ -177,7 +178,7 @@ a DAG with a marked vertex $\psi = \langle \mathcal{V}, \mathcal{E}, f_\mathcal{
 \rho \rangle$ verifying conditions 1 to 3 from Definition \ref{def:proof} plus the following ones:
 \begin{enumerate}%[nosep,start=4]
   \item $\forall \eta \in \mathcal{V}, (\eta, \rho) \notin \mathcal{E}$
-  \item For $\varsigma \in \mathcal{N}$ there is at most two vertices $\eta \in \mathcal{V}$ such
+  \item For $\varsigma \in \mathcal{N}$ there are at most two vertices $\eta \in \mathcal{V}$ such
     that $\varsigma \rightarrow \eta$. Moreover, $\exists \varsigma, \eta, \theta \in \mathcal{V},
     \exists a, b \in \mathcal{L}, \eta \neq \theta \wedge \varsigma \xrightarrow[a]{} \eta \wedge
     \varsigma \xrightarrow[b]{} \theta \Rightarrow a = \dual{b}$
@@ -218,10 +219,12 @@ $f \subset A \times B$.
 Let $f$ be a recursive function which given a pseudo-proof $\psi = \langle \mathcal{V},
 \mathcal{E}, f_\mathcal{V}, f_\mathcal{E}, \rho \rangle$ does:
 \begin{itemize}%%[nosep]
-  \item Let $\mathcal{V}' = \{\eta|\rho \xrightarrow{*} \eta\}$. If $\mathcal{V}' \neq \mathcal{V}$
+  \item Let $\mathcal{V}' = \{\eta|\rho \xrightarrow{*} \eta\}$.
+\BW{When transforming a pseudo-proof into a proof, you also want to get rid of nodes that have only one parent. The definition of $\mathcal{V}'$ here does not do that.}
+   If $\mathcal{V}' \neq \mathcal{V}$
     then return $f\left(\langle \mathcal{V}', \mathcal{E}' = \mathcal{E} \cap (\mathcal{V}' \times \mathcal{V}'),
     f_\mathcal{V} \cap (\mathcal{V}' \times 2^\mathcal{L}), f_\mathcal{E} \cap (\mathcal{E}' \times \mathcal{L}),
-    \rho \rangle\right)$
+    \rho \rangle\right)$ \BW{else.. ?}
 \end{itemize}
 \end{proof}
 
