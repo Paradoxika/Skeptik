@@ -16,19 +16,58 @@
 % final document.
 \usepackage{xcolor}
 \newenvironment{jogo}{\color{teal}}{}
+\newenvironment{bruno}{\color{red}}{}
+
+\newif\ifcomments
+\commentstrue
+%\commentsfalse   % gobble comments, set for final version
+
+\ifcomments
+  \newcommand{\BW}[1]{\marginpar{\color{blue}\footnotesize{#1}}}
+\else
+  \newcommand{\BW}[1]{}
+\fi
+
+
 
 \title{Propositional Resolution Proof Compression by Lowering Nodes}
 \author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
 \institute{Vienna University of Technology, Austria}
 
+\author{
+  Joseph Boudou\inst{1}\thanks{This work was partly supported by the Google Summer of Code program.}
+  \and 
+  Bruno Woltzenlogel Paleo\inst{2}
+}
+
+\authorrunning{P.\~Fontaine \and S.\~Merz \and B.\~Woltzenlogel Paleo}
+
+\institute{
+  University of Toulouse (TODO) \\
+  \email{jogo@matabio.net}
+  \and 
+  Vienna University of Technology \\
+  \email{bruno@logic.at}
+}
+
+
+\newcommand{\LowerUnits}{\texttt{LowerUnits}}
+\newcommand{\LowerUnivalents}{\texttt{LowerUnivalents}}
+
+\newcommand{\VeriT}{\texttt{veriT}}
+
 \begin{document}
 
 \maketitle
 
+
 \begin{abstract}
-\begin{jogo}
-  To do.
-\end{jogo}
+This paper describes a generalization of the {\LowerUnits} algorithm \cite{ToDo} for the compression
+of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is
+able to lower not only units but also proof nodes containing non-unit clauses, provided that their
+literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
+compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
+thousands of proofs produced by the SMT-Solver {\VeriT}.
 \end{abstract}
 
 \section{Introduction}
@@ -44,7 +83,7 @@ We could explain the use case of verifying a proof and how we plan to measure it
 \begin{jogo}
 In this section we introduce the definitions and notations we'll use trough this paper.
 
-Here is a list of things to define (maybe elsewhere) : \begin{itemize}[nosep]
+Here is a list of things to define (maybe elsewhere) : \begin{itemize}%%[nosep]
     \item variable, dual, literal, clause, node, proof
     \item premise, children, parent
     \item regularity (vertical and horizontal)
@@ -58,22 +97,32 @@ letter in standart \LaTeX ($\ell$) hence we can't use that. I propose to rely on
 for propositional logic and use uppercase roman letters for propositional variables. Literals would
 be written in lowercase roman letters. Clauses still are written as uppercase greek letters and nodes
 as lowercase greek letters.
+\BW{I find lowercase roman letters more elegant than uppercase ones for propositional variables. We can use $\ell_1$, $\ell_2$, \ldots, $\ell_n$ for literals.}
 
 What follows is a Cut-and-Paste from your paper. I don't know what has to be a definition or what
 has to be written in a simple paragraph. Actually everything in this section reads like a
 definition.
 \end{jogo}
 
+\BW{Although it is considered acceptable to use ``we'' in papers nowadays, I think it is almost always more elegant and more concise not to use it.}
 A \emph{literal} is a propositional variable or the negation of a propositional variable. We write
 \dual{l} to denote the dual of $l$ (i.e. for all propositional variable $P$, $\dual{P} =
 \neg P$ and $\overline{\neg P} = P$) and $|l|$ for the propositional variable underlying the literal
 $l$ (i.e. $|P| = |\neg P| = P$). A \emph{clause} is a set of literals, $\bot$ denotes the
 \emph{empty clause}.
 
-\begin{notation}[Resolution]
-Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a \eta_1$, $a$ being the pivot
-literal such that $\bar{a} \in \eta_0$ and $a \in \eta_1$.
+\BW{We must distinguish clauses and nodes. A node contains a clause, but it is more than a clause. This is not clear in the definitions of Resolution and Proof below. In particular, note that you try to compute the intersection of $\mathcal{A}$ and $\mathcal{V}$, which are sets of clauses and nodes, respectively. I suggest to define $\mathcal{A}$ to be the subset of $\mathcal{V}$ containing all nodes without parents.}
+
+
+\BW{It is also important to distinguish nodes and proofs. I suggest using $\eta$ and $\varsigma$ exclusively for nodes and $\varphi$ and $\psi$ exclusively for proofs. If necessary, we could define a notation (e.g. $\varphi_{\eta}$) for the subproof of $\varphi$ ending in $\eta$. But only if necessary. In general, we should be as minimalistic as possible in defining new notations.}
+
+
+\begin{notation}[Resolvent]
+The \emph{resolvent} $\eta_0 \odot_p \eta_1$ of two, $p$ being the pivot
+literal such that $\neg p \in \eta_0$ and $p \in \eta_1$.
 \end{notation}
+
+\BW{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
 
 \subsection{Proof as Directed Acyclic Graph}
 

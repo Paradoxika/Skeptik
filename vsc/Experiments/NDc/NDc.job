@@ -1,8 +1,8 @@
-#$ -N TestJob             # declares job name                
-#$ -pe mpich 8            # requests 8 cores
+#$ -N SkeptikNDc          # declares job name                
+#$ -pe mpich 16           # requests 16 cores
 #$ -V                     # imports all environment variables
 #$ -M bruno.wp@gmail.com  # email address to be notified
 #$ -m beas                # notifies of job's beginning, end, abortion and rescheduling
-#$ -l h_rt=03:00:00       # runs job for a maximum of 3 hours
+#$ -l h_rt=00:02:00       # runs job for a maximum time of hh:mm:ss
 
-echo "hello world"
+java -jar ../../skeptik.jar

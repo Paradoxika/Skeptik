@@ -16,3 +16,5 @@ experiments/NDc/report*
 *.toc
 *.pdf
 *.lst
+*.log
+*.synctex.gz
