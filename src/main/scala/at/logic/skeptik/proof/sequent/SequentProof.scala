@@ -79,7 +79,7 @@ trait Right extends SingleMainFormula {override def mainFormulas = Sequent()(mai
 
 trait NoMainFormula extends SequentProofNode {
   override def mainFormulas = Sequent()()
-  override def activeAncestry(f: E, premise: SequentProofNode) = throw new Exception("the given formula cannot be the main formula of this inference, because this inference has no main formula.")
+  override def activeAncestry(f: E, premise: SequentProofNode): Sequent = throw new Exception("the given formula cannot be the main formula of this inference, because this inference has no main formula.")
 }
 
 
