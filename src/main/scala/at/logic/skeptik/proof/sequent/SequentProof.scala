@@ -7,7 +7,10 @@ import at.logic.skeptik.expression.E
 
 abstract class SequentProofNode
 extends ProofNode[Sequent, SequentProofNode] {
-  require(premises.forall(p => auxFormulasMap(p) subsequentOf p.conclusion ))
+  // This requirement is commented out for efficiency reasons.
+  // auxFormulasMap creates a Map and two SeqSequents, and they are useless for proof compression
+  //require(premises.forall(p => auxFormulasMap(p) subsequentOf p.conclusion ))
+  
   // ancestry returns the subsequent of the given premise's conclusion
   // containing only ancestors of the given formula
   def ancestry(f: E, premise: SequentProofNode): Sequent = {

@@ -79,9 +79,39 @@ with NoMainFormula {
 class Cut(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E)
 extends AbstractCut with NoImplicitContraction 
 
-class CutIC(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E)
-extends AbstractCut with ImplicitContraction 
+// The following class uses the methods from trait ImplicitContraction for computing the formula ancestor relation. 
+// This turned out to produce too many sequents, preventing its use in propositional proof compression,
+// where the ancestor relation is irrelevant anyway.
+//class CutIC(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E)
+//extends AbstractCut with ImplicitContraction 
 
+
+// This class replaces the inefficient class above. It is a quick fix. 
+// It simply does not compute the ancestor relation.
+// ToDo: This class should eventually use SetSequent instead of SeqSequent.
+class CutIC(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E) 
+extends AbstractCut {
+  // Requirements only necessary because I commented out the inefficient requirement in SequentProofNode 
+  require(leftPremise.conclusion.suc contains auxL)
+  require(rightPremise.conclusion.ant contains auxR)
+  
+  override def ancestry(f: E, premise: SequentProofNode): Sequent = throw new Exception("Not implemented")
+  override def activeAncestry(f: E, premise: SequentProofNode): Sequent = throw new Exception("Not implemented")
+  override def contextAncestry(f: E, premise: SequentProofNode): Sequent = throw new Exception("Not implemented")
+  override def auxFormulasMap: Map[SequentProofNode, Sequent] = throw new Exception("Not implemented")
+  override def mainFormulas : Sequent = throw new Exception("Not implemented")
+  override def conclusionContext : Sequent = throw new Exception("Not implemented")
+
+  // ToDo: if necessary, this could be made more efficient by making 
+  // our own implementation of filterNot, with early breaking of the traversal, 
+  // because we know that auxR occurs only once in the rightPremise.conclusion.ant, for example.
+  // Similarly, distinct could be optimized.
+  // But unless there is immediate need for this, I would rather leave this as it is, 
+  // because anyway a lot will change when SetSequent is used. 
+  override lazy val conclusion: Sequent = 
+    new Sequent((leftPremise.conclusion.ant ++ (rightPremise.conclusion.ant.filterNot(_ eq auxR))).distinct,
+                (rightPremise.conclusion.suc ++ (leftPremise.conclusion.suc.filterNot(_ eq auxL))).distinct)
+}
 
 
 
