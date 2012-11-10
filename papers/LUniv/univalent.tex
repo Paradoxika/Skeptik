@@ -5,120 +5,455 @@
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
+\usepackage{enumitem,amsmath,amssymb}
+
+\usepackage{algorithm2e}
+
+\newcommand{\dual}[1]{{\ensuremath{\bar{#1}}}}
+\newcommand{\fix}{\ensuremath{\operatorname{fix}}}
+
 % The following is to comment draft source file. It has to be deleted for the
 % final document.
 \usepackage{xcolor}
 \newenvironment{jogo}{\color{teal}}{}
+\newenvironment{bruno}{\color{blue}}{}
 
-\title{LoweringUnivalents}
-\author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
-\institute{Vienna University of Technology, Austria}
+\newif\ifcomments
+\commentstrue
+%\commentsfalse   % gobble comments, set for final version
+
+\ifcomments
+  \newcommand{\BW}[1]{\marginpar{\color{blue}\footnotesize{#1}}}
+\else
+  \newcommand{\BW}[1]{}
+\fi
+
+
+
+\title{Propositional Resolution Proof Compression by Lowering Nodes}
+
+\author{
+  Joseph Boudou\inst{1}\thanks{This work was partly supported by the Google Summer of Code program.}
+  \and 
+  Bruno Woltzenlogel Paleo\inst{2}
+}
+
+\authorrunning{P.\~Fontaine \and S.\~Merz \and B.\~Woltzenlogel Paleo}
+
+\institute{
+  Universit\'e Paul Sabatier, Toulouse \\
+  \email{joseph.boudou@matabio.net}
+  \and 
+  Vienna University of Technology \\
+  \email{bruno@logic.at}
+}
+
+
+\newcommand{\LowerUnits}{\texttt{LowerUnits}}
+\newcommand{\LowerUnivalents}{\texttt{LowerUnivalents}}
+
+\newcommand{\VeriT}{\texttt{veriT}}
 
 \begin{document}
 
 \maketitle
 
+
 \begin{abstract}
-\begin{jogo}
-  To do.
-\end{jogo}
+This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
+of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is
+able to lower not only units but also proof nodes containing non-unit clauses, provided that their
+literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
+compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
+thousands of proofs produced by the SMT-Solver {\VeriT}.
 \end{abstract}
 
 \section{Introduction}
 
 \begin{jogo}
-In this section we introduce propositional resolution proof compression and the
-definitions and notations we'll use trough this paper.
+In this section we introduce the domain : first SAT then compression.
+I could be a good idea to talk about the problem of measuring a proof.
+We could explain the use case of verifying a proof and how we plan to measure its complexity.
 \end{jogo}
 
-\begin{notation}[Resolution]
-Resolution of nodes $\eta_0$ and $\eta_1$ is written $\eta_0 \odot_a
-\eta_1$, $a$ being the pivot literal such that $\bar{a} \in \eta_0$ and $a
-\in \eta_1$.
-\end{notation}
-
-\section{Lowering Nodes}
+\section{Propositional Resolution Calculus}
 
 \begin{jogo}
-In this section we define formely what we mean by lowering a node. Then we explain why it's interessing for proof compression. Finaly we briefly describe LowerUnits.
+List of things to define (maybe elsewhere) : \begin{itemize}%%[nosep]
+  \item variable, dual, literal, clause, node, proof
+  \item premise, children, parent
+  \item safe, active and valent literals
+\end{itemize}
+
+Notations : \begin{itemize}%%[nosep]
+  \item Propositions : $p,q$
+  \item Literals : $a,b,c$
+  \item Clause : $\Gamma,\Sigma$ and $\Delta$ for sets of literals that are not clauses
+  \item Node : $\eta,\theta$ and $\varsigma$ for children
+  \item Proof : $\psi$ and $\varphi$ for proof as node or node as proof
+\end{itemize}
 \end{jogo}
 
-The problem of lowering a node $\eta$ in a proof of the form $\psi[\eta]
-\odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is to decide
-whether a literal $a$ such that the proof $\psi[] \odot_a \eta
-\odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ is equivalent to
-the original proof exists.
+\BW{Although it is considered acceptable to use ``we'' in papers nowadays, I think it is almost
+always more elegant and more concise not to use it.}
 
-This problem doesn't depend on the sequence $\eta_{i \in 0..n}$ but only on
-$\psi[\eta]$ and $a_{i \in 0..n}$. This last sequence might be seen as a
-clause. We call it the clause of lowered pivots.
+A \emph{literal} is a propositional variable or the negation of a propositional variable.  \dual{a}
+denotes the dual of $a$ (i.e. for all propositional variable $p$, $\dual{p} = \neg p$ and
+$\overline{\neg p} = p$) and $|a|$ the propositional variable underlying the literal $a$ (i.e. $|p|
+= |\neg p| = p$). A \emph{clause} is a set of literals, $\bot$ denotes the \emph{empty clause}.
 
-\section{LoweringUnivalents}
+\subsection{Proof as Directed Acyclic Graph}
+
+A proof of $\Gamma$ based on a set $\mathcal{A}$ of axioms is represented as an unordered tree-like
+directed acyclic graphs. Leaves are axioms from $\mathcal{A}$ and inner nodes are resolution steps.
+Edges are directed from the resolution node to its premises and are labeled by the premise's
+auxiliary literal. Nodes are labeled by their conclusion. The root node's conclusion is $\Gamma$.
 
 \begin{jogo}
-This is the main section. First we define univalent clause and we prove that it's not sufficent for a node to be lowered. Second we introduce active literals and the main theorem (with proof). Third we explain the partial regularization done by "Deletable" nodes. Fourth we give the algorithm. Fifth we prove it's always better than LowerUnits.
+The following inductive definition ensure us that nodes are properly shared among proofs. It's still
+rather formal but I think we need that formalism. If you disagree, more intuitive definition could
+be found, but I think we have to stick with an inductive definition and with the tuple with $\rho$
+($f_V$ may be omitted).
 \end{jogo}
 
-We would like to extend LowerUnits presented in \cite{LURPI}. Intuitively,
-if a node with a clause $a$ is already marked to be lowered, another node with
-a clause $\bar{a},b$ might be lowered too.
+\begin{definition}[Proof] \label{def:proof}
+Given a set $\mathcal{L}$ of literals and a finite set $\mathcal{A}$ of clauses called axioms, the
+set $P_\mathcal{A}$ of proofs on $\mathcal{A}$ are graphs $\langle V, E \subset V \times V, f_V : V
+\longrightarrow 2^\mathcal{L}, f_E : E \longrightarrow \mathcal{L}, \rho \in V \rangle$ inductively
+defined as :
+\begin{enumerate}[nosep]
+  \item $\forall \Gamma \in \mathcal{A}$, $\langle \{\Gamma\}, \varnothing, \Gamma
+    \rightarrow \Gamma, \varnothing, \Gamma \rangle$ is a proof of $\Gamma$.
+  \item If $\psi_L = \langle V_L, E_L, f_{V_L}, f_{E_L}, \rho_L \rangle \in P_\mathcal{A}$ and
+    $\psi_R = \langle V_R, E_R, f_{V_R}, f_{E_R}, \rho_R \rangle \in P_\mathcal{A}$ with $\psi_L
+    \neq \psi_R$, then $\forall a \in \mathcal{L}$ such that $\dual{a} \in f_{V_L}(\rho_L)$ and $a
+    \in f_{V_R}(\rho_L)$ and given a new node $\rho$ the graph $\psi = \langle V,E, f_V, f_L, \rho
+    \rangle$ defined such as
+    \begin{equation*}
+      V = V_L \cup V_R \cup \{\rho\}
+    \end{equation*}
+    \begin{equation*}
+      E = E_L \cup E_R \cup \{(\rho,\rho_L),(\rho,\rho_R)\}
+    \end{equation*}
+    \begin{equation*}
+      f_V(\eta) = \begin{cases}
+        f_{V_L}(\eta) & \eta \in V_L \\
+        f_{V_R}(\eta) & \eta \in V_R \\
+        (f_{V_L}(\rho_L) \setminus \{\dual{a}\}) \cup (f_{V_R}(\rho_R) \setminus \{a\}) &
+          \eta = \rho
+      \end{cases}
+    \end{equation*}
+    \begin{equation*}
+      f_E(\varsigma,\eta) = \begin{cases}
+        f_{E_L}(\varsigma,\eta) & (\varsigma,\eta) \in E_L \\
+        f_{E_R}(\varsigma,\eta) & (\varsigma,\eta) \in E_R \\
+        \dual{a} & \varsigma = \rho \text{ and } \eta = \rho_L \\
+        a        & \varsigma = \rho \text{ and } \eta = \rho_R
+      \end{cases}
+    \end{equation*}
+    is a proof of $f_V(\rho)$. This proof is written $\psi = \psi_L \odot_a \psi_R$.
+  \qed
+\end{enumerate}
+\end{definition}
 
-\subsection{Univalent Clauses}
+\begin{bruno}
+We must distinguish clauses and nodes. A node contains a clause, but it is more than a clause.
+This is not clear in the definitions of Resolution and Proof below. In particular, note that you try
+to compute the intersection of $\mathcal{A}$ and $\mathcal{V}$, which are sets of clauses and nodes,
+respectively. I suggest to define $\mathcal{A}$ to be the subset of $\mathcal{V}$ containing all
+nodes without parents.
+\end{bruno}
+\begin{jogo}
+I don't understand the issue of axioms being leaves. But if we change it care must be taken to
+have exactely one leaf for each axiom (in the set of proofs on these axioms). That means we must
+have a bijection. Otherwise the node won't be unique and we'll lose the bijection between nodes and
+proofs.
+\end{jogo}
 
-The extended unit concept intuitively presented above can be formely defined as
-univalent clause.
+\begin{bruno}
+It is also important to distinguish nodes and proofs. I suggest using $\eta$ and $\varsigma$
+exclusively for nodes and $\varphi$ and $\psi$ exclusively for proofs. If necessary, we could define
+a notation (e.g. $\varphi_{\eta}$) for the subproof of $\varphi$ ending in $\eta$. But only if
+necessary. In general, we should be as minimalistic as possible in defining new notations.
+\end{bruno}
+\begin{jogo}
+I believe a clear introduction of the bijection between nodes and proofs would resolve this issue.
+\end{jogo}
+
+$E$ is the \emph{premise} relation. Its inverse relation is the \emph{child} relation and its
+transitive closure is the \emph{parent} relation. 
+
+\begin{definition}[Active literals]
+The active literals of a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ are the
+labels of incoming edges to $\eta$: $\{a \in \mathcal{L} | \exists \varsigma, f_E(\varsigma,\eta) =
+a\}$.
+\end{definition}
+
+As the premises are unordered $\psi_L \odot_a \psi_R$ denotes the same proof as $\psi_R
+\odot_\dual{a} \psi_L$.  Furthermore, nodes are uniquely defined by their premises and conclusion.
+Each node $\eta$ of a proof is a subproof of its conclusion $f_V(\eta)$.  Hence there is a bijection
+between nodes and proofs and in the following the distinction between them will sometimes be eluded
+for the sake of clarity.
+
+For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
+can easily be proved by induction.
+
+\begin{property}
+\label{prop:proof_leaf}
+Axioms are leaves : $\Gamma \in \mathcal{A} \cap V \Leftrightarrow \forall \eta \in V ,~
+(\Gamma,\eta) \notin E$.
+\end{property}
+
+\begin{property}
+Every inner node $\varsigma \in V \setminus \mathcal{A}$ has exactely two premises.
+\end{property}
+
+\begin{property}
+\label{prop:proof_edges}
+If a node $\varsigma \in V$ has two premises $\eta_L$ and $\eta_R$ then
+\begin{equation*}
+f_E(\varsigma,\eta_L) = \overline{f_E(\varsigma,\eta_R)}
+\end{equation*}
+\end{property}
+
+\begin{property}
+\label{prop:proof_conclusion}
+The conclusion of every node $\varsigma$ verifies
+\begin{equation*}
+  f_V(\varsigma) = \begin{cases}
+    \varsigma & \varsigma \text{ has no premise} \\
+    \bigcup_{(\varsigma,\eta) \in E}{f_V(\eta) \setminus f_E(\varsigma,\eta)} & \text{otherwise}
+  \end{cases}
+\end{equation*}
+\end{property}
+
+\begin{property}
+Every active literal of a node $\eta$ belongs to $\eta$'s conclusion:
+\begin{equation*}
+  (\varsigma,\eta) \in E \Rightarrow f_E(\varsigma,\eta) \in f_V(\eta)
+\end{equation*}
+\end{property}
+
+\begin{property}
+For all node $\eta$ different from $\rho$ there is a path from $\rho$ to $\eta$.
+\end{property}
+
+Conversely, if all those properties hold for a directed acyclic graph (DAG) then it is a proof,
+modulo the identity of inner nodes.
+
+\subsection{Proofs Transformations}
+
+Proof compression algorithms presented in this paper are local graph transformations.  But many
+simple graph transformations like deleting an edge may result in DAGs which aren't proofs anymore.
+An important class of such transformations are those which result in DAGs verifying the property
+\ref{prop:proof_edges} plus the following one.
+
+\begin{property}
+\label{prop:pseudo-proof}
+Every node has at most two premises.
+\end{property}
+
+Such a DAG can be transformed into a proof by \emph{fixing} it as defined below.
+
+\begin{definition}[Fixing]
+Fixing a DAG $\langle V, E, f_V, f_E, \rho \rangle$ verifying properties \ref{prop:proof_edges} and
+\ref{prop:pseudo-proof} into a proof on $\mathcal{A}$ consist in applying recursively the following
+transformations until a fix-point is reached.
+\begin{enumerate}
+  \item Delete every node $\eta \in V \setminus \mathcal{A}$ which have no premise.
+  \item For every node $\varsigma$ which have exactely one premise $\eta$, replace every incoming
+    edge $(\theta,\varsigma)$ by $(\theta,\eta)$.
+  \item Replace $f_V$ by a function verifying the property \ref{prop:proof_conclusion}.
+  \item For every edge $(\varsigma,\eta)$ such that $f_E(\varsigma,\eta) \notin f_V(\eta)$, replace
+    every edge $(\theta,\varsigma) \in E$ by $(\theta,\eta)$.
+  \item Delete every node and every edge not reachable from $\rho$.
+  \qed
+\end{enumerate}
+\end{definition}
+
+\begin{jogo}
+Do you think we need a proof of that or is it obvious ?
+\end{jogo}
+
+With the help of this fixing operation, the deletion of a node in a proof and the replacement of a
+node by another one can easily be defined.
+
+\begin{definition}[Deletion of a node]
+Deleting a node $\eta$ in a proof $\psi$ consist in deleting every edge $(\varsigma,\eta) \in E$ and
+fixing the resulting DAG. It is written $\psi[\setminus \eta]$.
+\end{definition}
+
+\begin{definition}[Replacing a node]
+Replacing a node $\eta$ in a proof $\psi$ by a proof $\varphi$ with root $\rho$ consist in adding
+every nodes and edges from $\varphi$, replacing every edge $(\varsigma,\eta) \in E$ by
+$(\varsigma,\rho)$ and fixing the resulting DAG.  It is written $\psi[\eta \leftarrow \varphi]$.
+\end{definition}
+
+\begin{jogo}
+The definition of the replacement is very informal. If you prefer a more formal one, here it is :
+
+Replacing a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ by a proof $\varphi =
+\langle V_\varphi,E_\varphi,f_{V_\varphi},f_{E_\varphi},\rho_\varphi \rangle$ consits in fixing the DAG
+$\langle V',E',f_V',f_E',\rho \rangle$ such that $f_V'$ is defined to verify the property
+\ref{prop:proof_conclusion} and
+\begin{equation*}
+  V' = (V \setminus \{\eta\}) \cup V_\varphi
+\end{equation*}
+\begin{equation*}
+  E' = (E \setminus \{(\varsigma,\eta)|\varsigma \in V\}) \cup E \cup
+       \{(\varsigma,\rho_\varphi)|(\varsigma,\eta) \in E\}
+\end{equation*}
+\begin{equation*}
+  f_V'(\varsigma,\theta) = \begin{cases}
+    f_V(\varsigma,\theta) & \varsigma \in E \text{ and } \theta \in E \\
+    f_{V_\varphi}(\varsigma,\theta) & \varsigma \in E_\varphi \text{ and } \theta \in E_\varphi \\
+    f_V(\varsigma,\eta) & \varsigma \in E \text{ and } \theta = \rho_\varphi
+  \end{cases}
+\end{equation*}
+\end{jogo}
+
+Finaly, for the transformations to result in proof size compression the resulting proof's conclusion
+has to be equal or to subsume the original proof's conclusion. To help in proving such statement the
+concepts of safe literal (introduced in \cite{RP}) and of valent literal are defined.
+
+\BW{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
+necessarily a single node.}
+
+\begin{definition}[Safe literal]
+In a proof $\psi$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ which conclusion is $\Gamma$ if
+for all proof $\varphi$ of $\Gamma \cup \{p\}$, $\psi[\eta \leftarrow \varphi]$ still proves $\Sigma$.
+\end{definition}
 
 \begin{definition}[Valent literal]
-A literal $a$ is said to be valent w.r.t. a clause $\Delta$ iff $\bar{a}$ does
-not occur in $\Delta$.
+In a proof $\psi$ of $\Sigma$, a literal $a$ is valent for the node $\eta$ if $\dual{a}$ belongs to
+the conclusion of $\psi[\setminus \eta]$ but not to the conclusion of $\psi$.
 \end{definition}
 
-\begin{definition}[Univalent clause]
-A clause $\Gamma$ is said to be univalent w.r.t. another clause $\Delta$ iff
-there is exactly one literal $a$ in $\Gamma$ which is valent w.r.t. $\Delta$.
-\end{definition}
-
-Units have univalent clause w.r.t. a clause $\Delta$ unless their sole literal
-is a dual of a $\Delta$'s literal. Therefore univalent clauses are not a
-strict extension of units.
-
-
-\subsection{Lowering Nodes with Univalent Clause}
-
-The question now is whether nodes with a univalent clause w.r.t. the clause of
-lowered pivots can be lowered.
-
-Actually this isn't always the case. For example let's consider a node
-$\eta$ with clause $a,b$, the clause $\Delta$ of lowered pivots being
-$\bar{a}$. Obviously, $\eta$'s clause is univalent. But if an $\eta$'s
-direct child has $a$ as pivot, removing $\eta$ from $\psi$ will introduce
-the literal $\bar{a}$ which will propagate down the proof.
-
-Hence we need a condition on the children of the node we want to lower.
-
-\begin{definition}[Active literal]
-Let's consider a node $\eta$ with clause $\Gamma$. A literal $a$ from
-$\Gamma$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
-one of $\eta$'s child.
-\end{definition}
-
-\begin{theorem}
-If all the active literals of a node $\eta$ with clause $\Gamma$ univalent
-w.r.t. the clause $\Delta$ of lowered literals either are the valent
-literal $a$ or belong to $\Delta$, then $\eta$ can be lowered.
-\end{theorem}
+\begin{proposition}
+In a proof $\psi$, a valent literal of a node $\eta$ is an active literal of $\eta$.
+\end{proposition}
 
 \begin{proof}
-Let $\bar{\Delta}$ be the clause of all $\Delta$'s literals duals.
-$\psi[\eta]$'s clause subsumes $\bar{\Delta}$. For $\eta$ to be lowerable,
-the conclusion of $\psi[] \odot_a \eta$ has to subsume $\bar{\Delta}$ too.
-
-By removing $\eta$ from $\psi$ only the dual of every $\eta$'s active literal
-might be introduced. If the active literal is $a$, its dual will be removed
-by the resolution on $a$. If the active literal belongs to $\Delta$, its
-dual belongs to $\bar{\Delta}$.
-\qed
+If $a$ is a valent literal of $\eta$ then an edge with label $\dual{a}$ is removed by the deletion of
+$\eta$ in $\psi$. The proposition states that this edge is removed by applying the step 2 of fixing
+to a child of $\eta$ in $\psi$. We will prove that such an edge can't be deleted by any other step.
+First this edge can't be an edge pointing to $\eta$ because step 5 of fixing deletes $\eta$.
+It can't have been removed by step 1 of fixing because this step is never applied for deletion of a
+single node.
+It can't have been removed by step 4 because this step doesn't introduce any literal in any conclusion.
+It can't have been removed by step 5 because the edge has to be reachable from the root of $\psi$.
+Finally, the step 2 can't be applied to any other node but the children
+of $\eta$. \qed
 \end{proof}
+
+\begin{jogo}
+This last proposition and its proof are very important for LUniv. Should I make it a theorem ?
+\end{jogo}
+
+
+\section{LowerUnits}
+
+When a node $\eta$ as more than one child in a proof $\psi$ it might be convenient to factor the
+corresponding resolutions. Lowering $\eta$ is such a factorisation. A new equivalent proof is
+constructed by removing $\eta$ from $\psi$, fixing the resulting DAG and then reintroducing $\eta$
+at the bottom of the proof. Formaly, a node $\eta$ in a proof $\psi$ of $\Gamma$ can be lowered if
+there exists a proof $\psi'$ of $\Gamma$ and a literal $a$ such that $\psi' = \psi[\setminus \eta]
+\odot_a \eta$.
+
+These idea has been introduce in \cite{LURPI} for the {\LowerUnits} algorithm. Units are nodes with a
+conclusion consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
+lowers every unit with more than one child. Care is taken to reintroduce units in an order
+corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
+unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
+
+A possible presentation of {\LowerUnits} is shown in Algorithm \ref{algo:LU}. Units are collected during a
+first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal could
+have been top-down and units stored in a stack. Units are effectively removed during a second,
+top-down traversal. The last step is the reintroduction of units.
+
+\begin{algorithm}[tb]
+  Units $\leftarrow \varnothing$ \;
+
+  \For{every node $\eta$ in a bottom-up traversal}{
+    \If{$\eta$ is a unit with more than one child}{Enqueue $\eta$ in Units \; }
+  }
+
+  \For{every node $\varsigma$ in a top-down traversal}{
+    \uIf{a premise $\eta$ of $\varsigma$ belongs to Units}{
+      Replace $\varsigma$ by $\eta$ \; }
+    \Else{
+      Recompute $\varsigma$'s conclusion based on the current premises \; }
+  }
+
+  $\rho \leftarrow$ the new root of the proof \;
+  \For{every unit $\upsilon$ in Units}{
+    Let $\{u\}$ be $\upsilon$'s conclusion \;
+    \lIf{$\rho$'s conclusion contains $\dual{u}$}{
+    $\rho \leftarrow \rho \odot_u \upsilon$ \;}
+  }
+
+  \label{algo:LU}
+  \caption{\LowerUnits}
+\end{algorithm}
+
+LU has been successfully composed with the \texttt{RecyclePivotsWithIntersection} (RPI) algorithm
+presented in \cite{LURPI}. Both sequential compositions achieve very good compression ratio in
+reasonnable amount of time. Unfortunately, none of them is always better than the other and there is
+actually no heuristic to choose which one to apply a priori.
+
+\section{LowerUnivalents}
+
+\begin{jogo}
+This is the main section. First we present formaly the principles of the algorithm. Then the partial
+regularization. Then the algorithm. Then the proof it's always better than LU (and LUnivRPI always
+better than LU.RPI).
+
+This is still a draft that have to be completely rewritten.
+\end{jogo}
+
+{\LowerUnits} obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
+account the already lowered nodes. For instance, if a unit $\upsilon$ with conclusion $\{a\}$ has already been
+lowered, a node $\eta$ with conclusion $\{\dual{a},b\}$ may be lowered too and reintroduced above
+$\upsilon$. To state which conditions $\eta$ has to satisfy to be lowered without changing the
+proof's conclusion, the lower problem has to be redefined as follow.
+
+Let suppose a set $\{\eta_i\}_{i \in [0..n]}$ of nodes has already been lowered resulting in a proof
+$\psi$ of $\Gamma$ such that
+\begin{equation} \label{eqn:before_LUniv}
+  \psi = \varphi \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
+\end{equation}
+with each $\eta_i$ having only one child in $\psi$. A node $\eta$ which is a parent of $\varphi$ but
+not a parent of any $\eta_i$ is lowerable if there is a literal $a$ and a proof $\psi'$ of
+$\Gamma$ such that
+\begin{equation}
+  \psi' = \psi[\varphi \leftarrow (\varphi[\setminus \eta] \odot_a \eta)]
+\end{equation}
+For clarity, we will consider that no $\eta_i$ is deleted during fixing. However the algorithm
+presented later takes into account the possibily that some of them could actually be deleted. This
+hypothesis having be added the previous equation can be rewritten
+\begin{equation} \label{eqn:after_LUniv}
+  \psi' = \varphi[\setminus \eta] \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
+\end{equation}
+
+Equation \ref{eqn:before_LUniv} states that the set $\Delta = \{\dual{a_i}\}_{i \in [0..n]}$
+represents the safe literals of $\varphi$ in $\psi$ and that the conclusion of $\varphi$ is included
+in $\Gamma \cup \Delta$. Equation \ref{eqn:after_LUniv} states that every literal in the conclusion
+of $\eta$ either is $a$ or belongs to $\Gamma \cup \Delta$. Similarly, every literal in the
+conclusion of $\varphi[\setminus \eta]$ either is $\dual{a}$ or belongs to $\Gamma \cup \Delta$.
+
+\begin{definition}[Univalent node]
+A node $\eta$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
+exactely one valent literal $a$ in $\psi$ and every literal in $\eta$'s conclusion either is $a$ or
+belongs to $\Delta$.
+\end{definition}
+
+In a proof $\psi$ verifying the equation \ref{eqn:before_LUniv}, a univalent node $\eta$ w.r.t. to
+$\{\dual{a_i}\}$ which is a parent of $\varphi$ but not the parent of any $\eta_i$ is lowerable.
+
+\begin{jogo}
+Should I put the previous paragraph in a proposition ? In a theorem ? Should I prove it ? Can I cite
+an equation in a proposition or should I rewrite it ?
+\end{jogo}
 
 \section{Experiments}
 
@@ -129,6 +464,6 @@ LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
 \section{Conclusions}
 
 \bibliographystyle{splncs}
-\bibliography{biblio}
+\bibliography{../biblio}
 
 \end{document}
