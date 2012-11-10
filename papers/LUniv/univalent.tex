@@ -16,7 +16,7 @@
 % final document.
 \usepackage{xcolor}
 \newenvironment{jogo}{\color{teal}}{}
-\newenvironment{bruno}{\color{red}}{}
+\newenvironment{bruno}{\color{blue}}{}
 
 \newif\ifcomments
 \commentstrue
@@ -31,8 +31,6 @@
 
 
 \title{Propositional Resolution Proof Compression by Lowering Nodes}
-\author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
-\institute{Vienna University of Technology, Austria}
 
 \author{
   Joseph Boudou\inst{1}\thanks{This work was partly supported by the Google Summer of Code program.}
@@ -43,8 +41,8 @@
 \authorrunning{P.\~Fontaine \and S.\~Merz \and B.\~Woltzenlogel Paleo}
 
 \institute{
-  University of Toulouse (TODO) \\
-  \email{jogo@matabio.net}
+  Universit\'e Paul Sabatier, Toulouse \\
+  \email{joseph.boudou@matabio.net}
   \and 
   Vienna University of Technology \\
   \email{bruno@logic.at}
@@ -62,7 +60,7 @@
 
 
 \begin{abstract}
-This paper describes a generalization of the {\LowerUnits} algorithm \cite{ToDo} for the compression
+This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
 of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is
 able to lower not only units but also proof nodes containing non-unit clauses, provided that their
 literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
@@ -81,48 +79,28 @@ We could explain the use case of verifying a proof and how we plan to measure it
 \section{Propositional Resolution Calculus}
 
 \begin{jogo}
-In this section we introduce the definitions and notations we'll use trough this paper.
+List of things to define (maybe elsewhere) : \begin{itemize}%%[nosep]
+  \item variable, dual, literal, clause, node, proof
+  \item premise, children, parent
+  \item safe, active and valent literals
+\end{itemize}
 
-Here is a list of things to define (maybe elsewhere) : \begin{itemize}%%[nosep]
-    \item variable, dual, literal, clause, node, proof
-    \item premise, children, parent
-    \item regularity (vertical and horizontal)
-    \item safe literals
+Notations : \begin{itemize}%%[nosep]
+  \item Propositions : $p,q$
+  \item Literals : $a,b,c$
+  \item Clause : $\Gamma,\Sigma$ and $\Delta$ for sets of literals that are not clauses
+  \item Node : $\eta,\theta$ and $\varsigma$ for children
+  \item Proof : $\psi$ and $\varphi$ for proof as node or node as proof
 \end{itemize}
 \end{jogo}
 
-\begin{jogo}
-I think we need to distinguish between variables and literals. There is only one curly lowercase
-letter in standart \LaTeX ($\ell$) hence we can't use that. I propose to rely on usual conventions
-for propositional logic and use uppercase roman letters for propositional variables. Literals would
-be written in lowercase roman letters. Clauses still are written as uppercase greek letters and nodes
-as lowercase greek letters.
-\BW{I find lowercase roman letters more elegant than uppercase ones for propositional variables. We can use $\ell_1$, $\ell_2$, \ldots, $\ell_n$ for literals.}
+\BW{Although it is considered acceptable to use ``we'' in papers nowadays, I think it is almost
+always more elegant and more concise not to use it.}
 
-What follows is a Cut-and-Paste from your paper. I don't know what has to be a definition or what
-has to be written in a simple paragraph. Actually everything in this section reads like a
-definition.
-\end{jogo}
-
-\BW{Although it is considered acceptable to use ``we'' in papers nowadays, I think it is almost always more elegant and more concise not to use it.}
-A \emph{literal} is a propositional variable or the negation of a propositional variable. We write
-\dual{l} to denote the dual of $l$ (i.e. for all propositional variable $P$, $\dual{P} =
-\neg P$ and $\overline{\neg P} = P$) and $|l|$ for the propositional variable underlying the literal
-$l$ (i.e. $|P| = |\neg P| = P$). A \emph{clause} is a set of literals, $\bot$ denotes the
-\emph{empty clause}.
-
-\BW{We must distinguish clauses and nodes. A node contains a clause, but it is more than a clause. This is not clear in the definitions of Resolution and Proof below. In particular, note that you try to compute the intersection of $\mathcal{A}$ and $\mathcal{V}$, which are sets of clauses and nodes, respectively. I suggest to define $\mathcal{A}$ to be the subset of $\mathcal{V}$ containing all nodes without parents.}
-
-
-\BW{It is also important to distinguish nodes and proofs. I suggest using $\eta$ and $\varsigma$ exclusively for nodes and $\varphi$ and $\psi$ exclusively for proofs. If necessary, we could define a notation (e.g. $\varphi_{\eta}$) for the subproof of $\varphi$ ending in $\eta$. But only if necessary. In general, we should be as minimalistic as possible in defining new notations.}
-
-
-\begin{notation}[Resolvent]
-The \emph{resolvent} $\eta_0 \odot_p \eta_1$ of two, $p$ being the pivot
-literal such that $\neg p \in \eta_0$ and $p \in \eta_1$.
-\end{notation}
-
-\BW{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
+A \emph{literal} is a propositional variable or the negation of a propositional variable.  \dual{a}
+denotes the dual of $a$ (i.e. for all propositional variable $p$, $\dual{p} = \neg p$ and
+$\overline{\neg p} = p$) and $|a|$ the propositional variable underlying the literal $a$ (i.e. $|p|
+= |\neg p| = p$). A \emph{clause} is a set of literals, $\bot$ denotes the \emph{empty clause}.
 
 \subsection{Proof as Directed Acyclic Graph}
 
@@ -173,24 +151,49 @@ defined as :
         a        & \varsigma = \rho \text{ and } \eta = \rho_R
       \end{cases}
     \end{equation*}
-    is a proof of $f_V(\rho)$. We write $\psi = \psi_L \odot_a \psi_R$.
+    is a proof of $f_V(\rho)$. This proof is written $\psi = \psi_L \odot_a \psi_R$.
   \qed
 \end{enumerate}
 \end{definition}
 
+\begin{bruno}
+We must distinguish clauses and nodes. A node contains a clause, but it is more than a clause.
+This is not clear in the definitions of Resolution and Proof below. In particular, note that you try
+to compute the intersection of $\mathcal{A}$ and $\mathcal{V}$, which are sets of clauses and nodes,
+respectively. I suggest to define $\mathcal{A}$ to be the subset of $\mathcal{V}$ containing all
+nodes without parents.
+\end{bruno}
+\begin{jogo}
+I don't understand the issue of axioms being leaves. But if we change it care must be taken to
+have exactely one leaf for each axiom (in the set of proofs on these axioms). That means we must
+have a bijection. Otherwise the node won't be unique and we'll lose the bijection between nodes and
+proofs.
+\end{jogo}
+
+\begin{bruno}
+It is also important to distinguish nodes and proofs. I suggest using $\eta$ and $\varsigma$
+exclusively for nodes and $\varphi$ and $\psi$ exclusively for proofs. If necessary, we could define
+a notation (e.g. $\varphi_{\eta}$) for the subproof of $\varphi$ ending in $\eta$. But only if
+necessary. In general, we should be as minimalistic as possible in defining new notations.
+\end{bruno}
+\begin{jogo}
+I believe a clear introduction of the bijection between nodes and proofs would resolve this issue.
+\end{jogo}
+
 $E$ is the \emph{premise} relation. Its inverse relation is the \emph{child} relation and its
 transitive closure is the \emph{parent} relation. 
-
-As the premises are unordered we have $\psi_L \odot_a \psi_R = \psi_R \odot_\dual{a} \psi_L$.
-Furthermore, nodes are uniquely defined by their premises and conclusion. Hence there is a bijection
-between nodes and proofs and we will often identify one with the other. Each node $\eta$ of a proof
-is a subproof of its conclusion $f_V(\eta)$.
 
 \begin{definition}[Active literals]
 The active literals of a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ are the
 labels of incoming edges to $\eta$: $\{a \in \mathcal{L} | \exists \varsigma, f_E(\varsigma,\eta) =
 a\}$.
 \end{definition}
+
+As the premises are unordered $\psi_L \odot_a \psi_R$ denotes the same proof as $\psi_R
+\odot_\dual{a} \psi_L$.  Furthermore, nodes are uniquely defined by their premises and conclusion.
+Each node $\eta$ of a proof is a subproof of its conclusion $f_V(\eta)$.  Hence there is a bijection
+between nodes and proofs and in the following the distinction between them will sometimes be eluded
+for the sake of clarity.
 
 For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
 can easily be proved by induction.
@@ -240,9 +243,10 @@ modulo the identity of inner nodes.
 
 \subsection{Proofs Transformations}
 
-To reduce proofs' size we'll need to transform proofs. But many simple graph transformation like
-deleting an edge will result in a DAG which isn't a proof anymore. We are particularly interested in
-transformations which lead to DAG verifying the property \ref{prop:proof_edges} plus the following one.
+Proof compression algorithms presented in this paper are local graph transformations.  But many
+simple graph transformations like deleting an edge may result in DAGs which aren't proofs anymore.
+An important class of such transformations are those which result in DAGs verifying the property
+\ref{prop:proof_edges} plus the following one.
 
 \begin{property}
 \label{prop:pseudo-proof}
@@ -280,23 +284,48 @@ fixing the resulting DAG. It is written $\psi[\setminus \eta]$.
 \end{definition}
 
 \begin{definition}[Replacing a node]
-Replacing a node $\eta$ in a proof $\psi$ by a node $\eta'$ (not necessirly in $V$) consist in
-replacing every edge $(\varsigma,\eta) \in E$ by $(\varsigma,\eta')$ and fixing the resulting DAG.
-It is written $\psi[\eta \leftarrow \eta']$.
+Replacing a node $\eta$ in a proof $\psi$ by a proof $\varphi$ with root $\rho$ consist in adding
+every nodes and edges from $\varphi$, replacing every edge $(\varsigma,\eta) \in E$ by
+$(\varsigma,\rho)$ and fixing the resulting DAG.  It is written $\psi[\eta \leftarrow \varphi]$.
 \end{definition}
 
-Finaly, for such transformation to result in proof size compression it is usually mandatory that the
-resulting proof's conclusion is equal or subsumes the original proof's conclusion. To help in
-proving such statement the concepts of safe literal (introduced in \cite{RPILU}) and of valent
-literal are defined.
+\begin{jogo}
+The definition of the replacement is very informal. If you prefer a more formal one, here it is :
+
+Replacing a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ by a proof $\varphi =
+\langle V_\varphi,E_\varphi,f_{V_\varphi},f_{E_\varphi},\rho_\varphi \rangle$ consits in fixing the DAG
+$\langle V',E',f_V',f_E',\rho \rangle$ such that $f_V'$ is defined to verify the property
+\ref{prop:proof_conclusion} and
+\begin{equation*}
+  V' = (V \setminus \{\eta\}) \cup V_\varphi
+\end{equation*}
+\begin{equation*}
+  E' = (E \setminus \{(\varsigma,\eta)|\varsigma \in V\}) \cup E \cup
+       \{(\varsigma,\rho_\varphi)|(\varsigma,\eta) \in E\}
+\end{equation*}
+\begin{equation*}
+  f_V'(\varsigma,\theta) = \begin{cases}
+    f_V(\varsigma,\theta) & \varsigma \in E \text{ and } \theta \in E \\
+    f_{V_\varphi}(\varsigma,\theta) & \varsigma \in E_\varphi \text{ and } \theta \in E_\varphi \\
+    f_V(\varsigma,\eta) & \varsigma \in E \text{ and } \theta = \rho_\varphi
+  \end{cases}
+\end{equation*}
+\end{jogo}
+
+Finaly, for the transformations to result in proof size compression the resulting proof's conclusion
+has to be equal or to subsume the original proof's conclusion. To help in proving such statement the
+concepts of safe literal (introduced in \cite{RP}) and of valent literal are defined.
+
+\BW{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
+necessarily a single node.}
 
 \begin{definition}[Safe literal]
 In a proof $\psi$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ which conclusion is $\Gamma$ if
-for all proof $\eta'$ of $\Gamma \cup \{p\}$, $\psi[\eta \leftarrow \eta']$ still proves $\Sigma$.
+for all proof $\varphi$ of $\Gamma \cup \{p\}$, $\psi[\eta \leftarrow \varphi]$ still proves $\Sigma$.
 \end{definition}
 
 \begin{definition}[Valent literal]
-In a proof $\psi$ of $\Sigma$, a literal $p$ is valent for the node $\eta$ if $\dual{p}$ belongs to
+In a proof $\psi$ of $\Sigma$, a literal $a$ is valent for the node $\eta$ if $\dual{a}$ belongs to
 the conclusion of $\psi[\setminus \eta]$ but not to the conclusion of $\psi$.
 \end{definition}
 
@@ -331,13 +360,13 @@ at the bottom of the proof. Formaly, a node $\eta$ in a proof $\psi$ of $\Gamma$
 there exists a proof $\psi'$ of $\Gamma$ and a literal $a$ such that $\psi' = \psi[\setminus \eta]
 \odot_a \eta$.
 
-These idea has been introduce in \cite{LURPI} for the LowerUnits algorithm. Units are nodes with a
+These idea has been introduce in \cite{LURPI} for the {\LowerUnits} algorithm. Units are nodes with a
 conclusion consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
 lowers every unit with more than one child. Care is taken to reintroduce units in an order
 corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
 unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
 
-A possible implementation of LowerUnits is shown in Algorithm \ref{algo:LU}. Units are collected during a
+A possible presentation of {\LowerUnits} is shown in Algorithm \ref{algo:LU}. Units are collected during a
 first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal could
 have been top-down and units stored in a stack. Units are effectively removed during a second,
 top-down traversal. The last step is the reintroduction of units.
@@ -364,13 +393,13 @@ top-down traversal. The last step is the reintroduction of units.
   }
 
   \label{algo:LU}
-  \caption{A possible LowerUnit implementation}
+  \caption{\LowerUnits}
 \end{algorithm}
 
-LU has been successfully composed with the RecyclePivotsWithIntersection (RPI) algorithm presented in
-\cite{LURPI}. Both sequential compositions achieve very good compression ratio in reasonnable amount
-of time. Unfortunately, none of them is always better than the other and there is actually no
-heuristic to choose which one to apply a priori.
+LU has been successfully composed with the \texttt{RecyclePivotsWithIntersection} (RPI) algorithm
+presented in \cite{LURPI}. Both sequential compositions achieve very good compression ratio in
+reasonnable amount of time. Unfortunately, none of them is always better than the other and there is
+actually no heuristic to choose which one to apply a priori.
 
 \section{LowerUnivalents}
 
@@ -378,9 +407,11 @@ heuristic to choose which one to apply a priori.
 This is the main section. First we present formaly the principles of the algorithm. Then the partial
 regularization. Then the algorithm. Then the proof it's always better than LU (and LUnivRPI always
 better than LU.RPI).
+
+This is still a draft that have to be completely rewritten.
 \end{jogo}
 
-LowerUnits obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
+{\LowerUnits} obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
 account the already lowered nodes. For instance, if a unit $\upsilon$ with conclusion $\{a\}$ has already been
 lowered, a node $\eta$ with conclusion $\{\dual{a},b\}$ may be lowered too and reintroduced above
 $\upsilon$. To state which conditions $\eta$ has to satisfy to be lowered without changing the
