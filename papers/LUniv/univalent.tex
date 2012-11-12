@@ -120,8 +120,8 @@ $\rho \in V$, and such that it is inductively constructible as follows:
 \begin{enumerate}
   \item $\langle \{\rho\}, \varnothing, \{ \Gamma \}, \{ (\rho, \Gamma) \}, \varnothing,  \rho \rangle$ 
     is a proof of $\Gamma$ from $\{ \Gamma \}$.
-  \item If $\psi_L$ is a proof $\langle V_L, E_L, \mathcal{A}_L, \clause_L, \pivot_L, \rho_L \rangle$ and
-    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \pivot_R, \rho_R \rangle$, then, for any $a$ such that $\dual{a} \in \clause(\rho_L)$ and $a
+  \item If $\psi_L$ is a proof $\langle V_L, E_L, \mathcal{A}_L, \clause_L, \rho_L \rangle$ and
+    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \rho_R \rangle$, then, for any $a$ such that $\dual{a} \in \clause(\rho_L)$ and $a
     \in \clause(\rho_R)$ and a new node $\rho$, the graph 
     $\langle 
     V_L \cup V_R \cup \{\rho\},
@@ -143,20 +143,20 @@ $\rho \in V$, and such that it is inductively constructible as follows:
 \end{enumerate}
 \end{definition}
 
-$E$ is the \emph{premise} relation. Its inverse relation is the \emph{child} relation and its
-transitive closure is the \emph{parent} relation. 
+\BW{ToDo: fix this paragraph} $E$ is the \emph{premise} or \emph{parent} relation. Its inverse relation is the \emph{child} relation and its
+transitive closure is the \emph{ancestor} relation.  
 
 As the premises are unordered we have $\psi_L \odot_a \psi_R = \psi_R \odot_\dual{a} \psi_L$.
 Furthermore, nodes are uniquely defined by their premises and conclusion. Hence there is a bijection
 between nodes and proofs and we will often identify one with the other. Each node $\eta$ of a proof
-is a subproof of its conclusion $f_V(\eta)$.
+is the root of a subproof of its conclusion $f_V(\eta)$.
 
 \begin{definition}[Active literals]
 The set of active literals $A_{\psi}(\eta)$ of a node $\eta$ in a proof $\psi$
 % = \langle V,E,f_V,f_E,\rho \rangle$ are the
 are the labels of $\eta$'s incoming edges: 
 $$
-A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \varsigma \xrightarrow{a} \eta \}
+A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \ \varsigma \xrightarrow{a} \eta \}
 $$
 \end{definition}
 
