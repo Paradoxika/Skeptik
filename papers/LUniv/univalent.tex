@@ -152,9 +152,12 @@ between nodes and proofs and we will often identify one with the other. Each nod
 is a subproof of its conclusion $f_V(\eta)$.
 
 \begin{definition}[Active literals]
-The active literals of a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ are the
-labels of incoming edges to $\eta$: $\{a \in \mathcal{L} | \exists \varsigma, f_E(\varsigma,\eta) =
-a\}$.
+The set of active literals $A_{\psi}(\eta)$ of a node $\eta$ in a proof $\psi$
+% = \langle V,E,f_V,f_E,\rho \rangle$ are the
+are the labels of $\eta$'s incoming edges: 
+$$
+A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \varsigma \xrightarrow{a} \eta \}
+$$
 \end{definition}
 
 For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
