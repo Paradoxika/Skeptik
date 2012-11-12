@@ -103,16 +103,11 @@ resolved literals; and there is a single \emph{root} node, containing clause $\G
 \newcommand{\clause}{c}
 \newcommand{\pivot}{\mathit{piv}}
 
+
+\BW{I think the definition could become even simpler if we make $E \subset V \times V \times \mathcal{L}$ and drop $\pivot$.}
+\BW{I liked your arrow notation for edges, that you used in an older version of this paper. Are you sure we shouldn't use it?}
 \begin{definition}[Proof] \label{def:proof}
 A proof is a directed acyclic graph
-%$\langle 
-%V, 
-%E \subset V \times V, 
-%\mathcal{A} \subset 2^\mathcal{L},
-%\clause : V \longrightarrow 2^\mathcal{L}, 
-%\pivot : E \longrightarrow \mathcal{L}, 
-%\rho \in V 
-%\rangle$,
 $\langle 
 V, 
 E, 
@@ -130,8 +125,8 @@ $\rho \in V$, and such that it is inductively constructible as follows:
   \item $\langle \{\rho\}, \varnothing, \{ \Gamma \}, \{ (\rho, \Gamma) \}, \varnothing,  \rho \rangle$ 
     is a proof of $\Gamma$ from $\{ \Gamma \}$.
   \item If $\psi_L$ is a proof $\langle V_L, E_L, \mathcal{A}_L, \clause_L, \pivot_L, \rho_L \rangle$ and
-    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \pivot_R, \rho_R \rangle$, then for any $a \in \mathcal{L}$ such that $\dual{a} \in \clause(\rho_L)$ and $a
-    \in \clause(\rho_L)$ and a new node $\rho \notin V_L \cup V_R$, the graph 
+    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \pivot_R, \rho_R \rangle$, then, for any $a$ such that $\dual{a} \in \clause(\rho_L)$ and $a
+    \in \clause(\rho_R)$ and a new node $\rho$, the graph 
     $\langle 
     V_L \cup V_R \cup \{\rho\},
     E_L \cup E_R \cup \{(\rho,\rho_L),(\rho,\rho_R)\}, 
