@@ -151,14 +151,7 @@ Furthermore, nodes are uniquely defined by their premises and conclusion. Hence 
 between nodes and proofs and we will often identify one with the other. Each node $\eta$ of a proof
 is the root of a subproof of its conclusion $f_V(\eta)$.
 
-\begin{definition}[Active literals]
-The set of active literals $A_{\psi}(\eta)$ of a node $\eta$ in a proof $\psi$
-% = \langle V,E,f_V,f_E,\rho \rangle$ are the
-are the labels of $\eta$'s incoming edges: 
-$$
-A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \ \varsigma \xrightarrow{a} \eta \}
-$$
-\end{definition}
+
 
 For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
 can easily be proved by induction.
@@ -203,10 +196,14 @@ Every active literal of a node $\eta$ belongs to $\eta$'s conclusion:
 For all node $\eta$ different from $\rho$ there is a path from $\rho$ to $\eta$.
 \end{property}
 
-Conversely, if all those properties hold for a directed acyclic graph (DAG) then it is a proof,
+\BW{
+Most of these properties are trivial. Perhaps we shouldn't mention them.
+On the other hand, the converse does not seem so trivial. We would need to show that all these properties suffice. This lemma would be important, if we want to show a proof that fixing really converts a broken proof into a proof.
+}
+Conversely, if all those properties hold for a directed acyclic graph (DAG), then it is a proof,
 modulo the identity of inner nodes.
 
-\subsection{Proofs Transformations}
+\section{Basic Proof Transformations}
 
 To reduce proofs' size we'll need to transform proofs. But many simple graph transformation like
 deleting an edge will result in a DAG which isn't a proof anymore. We are particularly interested in
@@ -216,6 +213,12 @@ transformations which lead to DAG verifying the property \ref{prop:proof_edges} 
 \label{prop:pseudo-proof}
 Every node has at most two premises.
 \end{property}
+
+\begin{definition}{Broken Proof}
+ToDo
+
+\end{definition}
+
 
 Such a DAG can be transformed into a proof by \emph{fixing} it as defined below.
 
@@ -234,10 +237,10 @@ transformations until a fix-point is reached.
   \qed
 \end{enumerate}
 \end{definition}
-
-\begin{jogo}
+\JB{
 Do you think we need a proof of that or is it obvious ?
-\end{jogo}
+}
+
 
 With the help of this fixing operation, the deletion of a node in a proof and the replacement of a
 node by another one can easily be defined.
@@ -344,6 +347,15 @@ of time. Unfortunately, none of them is always better than the other and there i
 heuristic to choose which one to apply a priori.
 
 \section{LowerUnivalents}
+
+\begin{definition}[Active literals]
+The set of active literals $A_{\psi}(\eta)$ of a node $\eta$ in a proof $\psi$
+% = \langle V,E,f_V,f_E,\rho \rangle$ are the
+are the labels of $\eta$'s incoming edges: 
+$$
+A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \ \varsigma \xrightarrow{a} \eta \}
+$$
+\end{definition}
 
 \begin{jogo}
 This is the main section. First we present formaly the principles of the algorithm. Then the partial
