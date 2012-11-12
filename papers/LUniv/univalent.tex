@@ -24,8 +24,10 @@
 
 \ifcomments
   \newcommand{\BW}[1]{\marginpar{\color{blue}\footnotesize{#1}}}
+  \newcommand{\JB}[1]{\marginpar{\color{teal}\footnotesize{#1}}}
 \else
   \newcommand{\BW}[1]{}
+  \newcommand{\JB}[1]{}
 \fi
 
 
@@ -72,108 +74,98 @@ thousands of proofs produced by the SMT-Solver {\VeriT}.
 
 \section{Introduction}
 
-\begin{jogo}
+\JB{
 In this section we introduce the domain : first SAT then compression.
 I could be a good idea to talk about the problem of measuring a proof.
 We could explain the use case of verifying a proof and how we plan to measure its complexity.
-\end{jogo}
+}
 
 \section{Propositional Resolution Calculus}
 
-\begin{jogo}
-In this section we introduce the definitions and notations we'll use trough this paper.
 
-Here is a list of things to define (maybe elsewhere) : \begin{itemize}%%[nosep]
-    \item variable, dual, literal, clause, node, proof
-    \item premise, children, parent
-    \item regularity (vertical and horizontal)
-    \item safe literals
-\end{itemize}
-\end{jogo}
-
-\begin{jogo}
-I think we need to distinguish between variables and literals. There is only one curly lowercase
-letter in standart \LaTeX ($\ell$) hence we can't use that. I propose to rely on usual conventions
-for propositional logic and use uppercase roman letters for propositional variables. Literals would
-be written in lowercase roman letters. Clauses still are written as uppercase greek letters and nodes
-as lowercase greek letters.
-\BW{I find lowercase roman letters more elegant than uppercase ones for propositional variables. We can use $\ell_1$, $\ell_2$, \ldots, $\ell_n$ for literals.}
-
-What follows is a Cut-and-Paste from your paper. I don't know what has to be a definition or what
-has to be written in a simple paragraph. Actually everything in this section reads like a
-definition.
-\end{jogo}
-
-\BW{Although it is considered acceptable to use ``we'' in papers nowadays, I think it is almost always more elegant and more concise not to use it.}
-A \emph{literal} is a propositional variable or the negation of a propositional variable. We write
-\dual{l} to denote the dual of $l$ (i.e. for all propositional variable $P$, $\dual{P} =
-\neg P$ and $\overline{\neg P} = P$) and $|l|$ for the propositional variable underlying the literal
-$l$ (i.e. $|P| = |\neg P| = P$). A \emph{clause} is a set of literals, $\bot$ denotes the
-\emph{empty clause}.
-
-\BW{We must distinguish clauses and nodes. A node contains a clause, but it is more than a clause. This is not clear in the definitions of Resolution and Proof below. In particular, note that you try to compute the intersection of $\mathcal{A}$ and $\mathcal{V}$, which are sets of clauses and nodes, respectively. I suggest to define $\mathcal{A}$ to be the subset of $\mathcal{V}$ containing all nodes without parents.}
-
-
-\BW{It is also important to distinguish nodes and proofs. I suggest using $\eta$ and $\varsigma$ exclusively for nodes and $\varphi$ and $\psi$ exclusively for proofs. If necessary, we could define a notation (e.g. $\varphi_{\eta}$) for the subproof of $\varphi$ ending in $\eta$. But only if necessary. In general, we should be as minimalistic as possible in defining new notations.}
+A \emph{literal} is a propositional variable or the negation of a propositional variable. The \emph{dual} of a literal $\ell$ is denoted
+$\dual{\ell}$ (i.e. for any propositional variable $p$, $\dual{p} =
+\neg p$ and $\dual{\neg p} = p$) and the \emph{underlying variable} of a literal
+$\ell$ is written $|\ell|$ (i.e. $|p| = |\neg p| = p$). The set of all literals is denoted $\mathcal{L}$. A \emph{clause} is a set of literals. $\bot$ denotes the \emph{empty clause}.
 
 
 \begin{notation}[Resolvent]
 The \emph{resolvent} $\eta_0 \odot_p \eta_1$ of two, $p$ being the pivot
-literal such that $\neg p \in \eta_0$ and $p \in \eta_1$.
+literal such that $\neg p \in \eta_0$ and $p \in \eta_1$. ToDo
 \end{notation}
 
-\BW{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
+\noindent
+A \emph{proof} of a clause $\Gamma$ from a set of clauses $\mathcal{A}$ is a
+directed acyclic graph where: leaves contain \emph{axioms} from $\mathcal{A}$;
+any inner node $\eta$ has exactly two outgoing edges to its \emph{premises} $\eta^L$ and $\eta^R$, and $\eta$'s clause is a resolvent of its premises' clauses; the edges are labeled by the premises'
+resolved literals; and there is a single \emph{root} node, containing clause $\Gamma$. A \emph{refutation} of $\mathcal{A}$ is a proof of $\bot$ from $\mathcal{A}$.
 
-\subsection{Proof as Directed Acyclic Graph}
-
-A proof of $\Gamma$ based on a set $\mathcal{A}$ of axioms is represented as an unordered tree-like
-directed acyclic graphs. Leaves are axioms from $\mathcal{A}$ and inner nodes are resolution steps.
-Edges are directed from the resolution node to its premises and are labeled by the premise's
-auxiliary literal. Nodes are labeled by their conclusion. The root node's conclusion is $\Gamma$.
-
-\begin{jogo}
-The following inductive definition ensure us that nodes are properly shared among proofs. It's still
-rather formal but I think we need that formalism. If you disagree, more intuitive definition could
-be found, but I think we have to stick with an inductive definition and with the tuple with $\rho$
-($f_V$ may be omitted).
-\end{jogo}
+\newcommand{\clause}{c}
+\newcommand{\pivot}{\mathit{piv}}
 
 \begin{definition}[Proof] \label{def:proof}
-Given a set $\mathcal{L}$ of literals and a finite set $\mathcal{A}$ of clauses called axioms, the
-set $P_\mathcal{A}$ of proofs on $\mathcal{A}$ are graphs $\langle V, E \subset V \times V, f_V : V
-\longrightarrow 2^\mathcal{L}, f_E : E \longrightarrow \mathcal{L}, \rho \in V \rangle$ inductively
-defined as :
-\begin{enumerate}[nosep]
-  \item $\forall \Gamma \in \mathcal{A}$, $\langle \{\Gamma\}, \varnothing, \Gamma
-    \rightarrow \Gamma, \varnothing, \Gamma \rangle$ is a proof of $\Gamma$.
-  \item If $\psi_L = \langle V_L, E_L, f_{V_L}, f_{E_L}, \rho_L \rangle \in P_\mathcal{A}$ and
-    $\psi_R = \langle V_R, E_R, f_{V_R}, f_{E_R}, \rho_R \rangle \in P_\mathcal{A}$ with $\psi_L
-    \neq \psi_R$, then $\forall a \in \mathcal{L}$ such that $\dual{a} \in f_{V_L}(\rho_L)$ and $a
-    \in f_{V_R}(\rho_L)$ and given a new node $\rho$ the graph $\psi = \langle V,E, f_V, f_L, \rho
-    \rangle$ defined such as
+A proof is a directed acyclic graph
+%$\langle 
+%V, 
+%E \subset V \times V, 
+%\mathcal{A} \subset 2^\mathcal{L},
+%\clause : V \longrightarrow 2^\mathcal{L}, 
+%\pivot : E \longrightarrow \mathcal{L}, 
+%\rho \in V 
+%\rangle$,
+$\langle 
+V, 
+E, 
+\mathcal{A},
+\clause, 
+\pivot, 
+\rho
+\rangle$, 
+where $V$ is a set of nodes, $E \subset V \times V$, 
+$\mathcal{A} \subset 2^\mathcal{L}$,
+$\clause : V \longrightarrow 2^\mathcal{L}$, 
+$\pivot : E \longrightarrow \mathcal{L}$, 
+$\rho \in V$, and such that it is inductively constructible as follows:
+\begin{enumerate}
+  \item $\langle \{\rho\}, \varnothing, \{ \Gamma \}, \{ (\rho, \Gamma) \}, \varnothing,  \rho \rangle$ 
+    is a proof of $\Gamma$ from $\{ \Gamma \}$.
+  \item If $\psi_L$ is a proof $\langle V_L, E_L, \mathcal{A}_L, \clause_L, \pivot_L, \rho_L \rangle$ and
+    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \pivot_R, \rho_R \rangle$, then for any $a \in \mathcal{L}$ such that $\dual{a} \in \clause(\rho_L)$ and $a
+    \in \clause(\rho_L)$ and a new node $\rho \notin V_L \cup V_R$, the graph 
+    $\langle 
+    V_L \cup V_R \cup \{\rho\},
+    E_L \cup E_R \cup \{(\rho,\rho_L),(\rho,\rho_R)\}, 
+    \mathcal{A}_L \cup \mathcal{A}_R,
+    \clause, 
+    \pivot, 
+    \rho
+    \rangle$ where
+%    \begin{equation*}
+%      V = V_L \cup V_R \cup \{\rho\}
+%    \end{equation*}
+%    \begin{equation*}
+%      E = E_L \cup E_R \cup \{(\rho,\rho_L),(\rho,\rho_R)\}
+%    \end{equation*}
+%    \begin{equation*}
+%      \mathcal{A} = \mathcal{A}_L \cup \mathcal{A}_R
+%    \end{equation*}
     \begin{equation*}
-      V = V_L \cup V_R \cup \{\rho\}
-    \end{equation*}
-    \begin{equation*}
-      E = E_L \cup E_R \cup \{(\rho,\rho_L),(\rho,\rho_R)\}
-    \end{equation*}
-    \begin{equation*}
-      f_V(\eta) = \begin{cases}
-        f_{V_L}(\eta) & \eta \in V_L \\
-        f_{V_R}(\eta) & \eta \in V_R \\
-        (f_{V_L}(\rho_L) \setminus \{\dual{a}\}) \cup (f_{V_R}(\rho_R) \setminus \{a\}) &
+      \clause(\eta) = \begin{cases}
+        \clause_L(\eta) & \eta \in V_L \\
+        \clause_R(\eta) & \eta \in V_R \\
+        (\clause_L(\rho_L) \setminus \{\dual{a}\}) \cup (\clause_R(\rho_R) \setminus \{a\}) &
           \eta = \rho
       \end{cases}
     \end{equation*}
     \begin{equation*}
-      f_E(\varsigma,\eta) = \begin{cases}
-        f_{E_L}(\varsigma,\eta) & (\varsigma,\eta) \in E_L \\
-        f_{E_R}(\varsigma,\eta) & (\varsigma,\eta) \in E_R \\
+      \pivot(\varsigma,\eta) = \begin{cases}
+        \pivot_L(\varsigma,\eta) & (\varsigma,\eta) \in E_L \\
+         \pivot_R(\varsigma,\eta) & (\varsigma,\eta) \in E_R \\
         \dual{a} & \varsigma = \rho \text{ and } \eta = \rho_L \\
         a        & \varsigma = \rho \text{ and } \eta = \rho_R
       \end{cases}
     \end{equation*}
-    is a proof of $f_V(\rho)$. We write $\psi = \psi_L \odot_a \psi_R$.
+    is a proof of $\clause(\rho)$ from $\mathcal{A}_L \cup \mathcal{A}_R$, and is denoted $\psi_L \odot_a \psi_R$.
   \qed
 \end{enumerate}
 \end{definition}
@@ -289,6 +281,9 @@ Finaly, for such transformation to result in proof size compression it is usuall
 resulting proof's conclusion is equal or subsumes the original proof's conclusion. To help in
 proving such statement the concepts of safe literal (introduced in \cite{RPILU}) and of valent
 literal are defined.
+
+
+\BW{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
 
 \begin{definition}[Safe literal]
 In a proof $\psi$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ which conclusion is $\Gamma$ if
