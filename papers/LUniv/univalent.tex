@@ -1,35 +1,16 @@
 \documentclass{llncs}
 
-\spnewtheorem*{notation}{Notation}{\bfseries}{\itshape}
-
+\usepackage{xcolor}
+\usepackage{enumitem,amsmath,amssymb}
+\usepackage{stmaryrd}    % needed for \mapsfrom
+\usepackage{algorithm2e}
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
-\usepackage{enumitem,amsmath,amssymb}
-
-\usepackage{algorithm2e}
-
-\newcommand{\dual}[1]{{\ensuremath{\bar{#1}}}}
-\newcommand{\fix}{\ensuremath{\operatorname{fix}}}
-
-% The following is to comment draft source file. It has to be deleted for the
-% final document.
-\usepackage{xcolor}
-\newenvironment{jogo}{\color{teal}}{}
-\newenvironment{bruno}{\color{blue}}{}
-
-\newif\ifcomments
-\commentstrue
-%\commentsfalse   % gobble comments, set for final version
-
-\ifcomments
-  \newcommand{\BW}[1]{\marginpar{\color{blue}\footnotesize{#1}}}
-  \newcommand{\JB}[1]{\marginpar{\color{teal}\footnotesize{#1}}}
-\else
-  \newcommand{\BW}[1]{}
-  \newcommand{\JB}[1]{}
-\fi
-
+\usepackage{logictools}
+\usepackage{prooftheory}
+\usepackage{comment}
+\usepackage{mathenvironments}
 
 
 \title{Propositional Resolution Proof Compression by Lowering Nodes}
@@ -51,10 +32,8 @@
 }
 
 
-\newcommand{\LowerUnits}{\texttt{LowerUnits}}
-\newcommand{\LowerUnivalents}{\texttt{LowerUnivalents}}
 
-\newcommand{\VeriT}{\texttt{veriT}}
+
 
 \begin{document}
 
@@ -67,7 +46,7 @@ of propositional resolution proofs. The generalized algorithm, here called {\Low
 able to lower not only units but also proof nodes containing non-unit clauses, provided that their
 literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
 compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
-thousands of proofs produced by the SMT-Solver {\VeriT}.
+thousands of proofs produced by the SMT-Solver \veriT.
 \end{abstract}
 
 \section{Introduction}
@@ -96,10 +75,6 @@ A \emph{proof} of a clause $\Gamma$ from a set of clauses $\mathcal{A}$ is a
 directed acyclic graph where: leaves contain \emph{axioms} from $\mathcal{A}$;
 any inner node $\eta$ has exactly two outgoing edges to its \emph{premises} $\eta^L$ and $\eta^R$, and $\eta$'s clause is a resolvent of its premises' clauses; the edges are labeled by the premises'
 resolved literals; and there is a single \emph{root} node, containing clause $\Gamma$. A \emph{refutation} of $\mathcal{A}$ is a proof of $\bot$ from $\mathcal{A}$.
-
-
-\newcommand{\clause}{c}
-\newcommand{\pivot}{\mathit{piv}}
 
 
 \begin{definition}[Proof] \label{def:proof}
@@ -142,10 +117,10 @@ $\rho \in V$, and such that it is inductively constructible as follows:
 \end{definition}
 
 
-\BW{ToDo: fix this paragraph} $E$ is the \emph{premise} or \emph{parent} relation. Its inverse relation is the \emph{child} relation and its
+\BWP{ToDo: fix this paragraph} $E$ is the \emph{premise} or \emph{parent} relation. Its inverse relation is the \emph{child} relation and its
 transitive closure is the \emph{ancestor} relation.  
 
-As the premises are unordered we have $\psi_L \odot_a \psi_R = \psi_R \odot_\dual{a} \psi_L$.
+As the premises are unordered we have $\psi_L \odot_a \psi_R = \psi_R \odot_{\dual{a}} \psi_L$.
 Furthermore, nodes are uniquely defined by their premises and conclusion. Hence there is a bijection
 between nodes and proofs and we will often identify one with the other. Each node $\eta$ of a proof
 is the root of a subproof of its conclusion $f_V(\eta)$.
@@ -153,7 +128,7 @@ is the root of a subproof of its conclusion $f_V(\eta)$.
 
 
 As the premises are unordered $\psi_L \odot_a \psi_R$ denotes the same proof as $\psi_R
-\odot_\dual{a} \psi_L$.  Furthermore, nodes are uniquely defined by their premises and conclusion.
+\odot_{\dual{a}} \psi_L$.  Furthermore, nodes are uniquely defined by their premises and conclusion.
 Each node $\eta$ of a proof is a subproof of its conclusion $f_V(\eta)$.  Hence there is a bijection
 between nodes and proofs and in the following the distinction between them will sometimes be eluded
 for the sake of clarity.
@@ -201,7 +176,7 @@ Every active literal of a node $\eta$ belongs to $\eta$'s conclusion:
 For all node $\eta$ different from $\rho$ there is a path from $\rho$ to $\eta$.
 \end{property}
 
-\BW{
+\BWP{
 Most of these properties are trivial. Perhaps we shouldn't mention them.
 On the other hand, the converse does not seem so trivial. We would need to show that all these properties suffice. This lemma would be important, if we want to show a proof that fixing really converts a broken proof into a proof.
 }
@@ -209,6 +184,10 @@ Conversely, if all those properties hold for a directed acyclic graph (DAG), the
 modulo the identity of inner nodes.
 
 \section{Basic Proof Transformations}
+
+
+
+\BWP{Testing new commands: $\rn{\f{ \dn{\psi}{\eta} }}{\varsigma}{\varsigma'}$} 
 
 Proof compression algorithms presented in this paper are local graph transformations.  But many
 simple graph transformations like deleting an edge may result in DAGs which aren't proofs anymore.
@@ -262,9 +241,8 @@ every nodes and edges from $\varphi$, replacing every edge $(\varsigma,\eta) \in
 $(\varsigma,\rho)$ and fixing the resulting DAG.  It is written $\psi[\eta \leftarrow \varphi]$.
 \end{definition}
 
-\begin{jogo}
-The definition of the replacement is very informal. If you prefer a more formal one, here it is :
-
+\begin{jb}
+The definition of the replacement is very informal. If you prefer a more formal one, here it is :\\
 Replacing a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ by a proof $\varphi =
 \langle V_\varphi,E_\varphi,f_{V_\varphi},f_{E_\varphi},\rho_\varphi \rangle$ consits in fixing the DAG
 $\langle V',E',f_V',f_E',\rho \rangle$ such that $f_V'$ is defined to verify the property
@@ -283,17 +261,17 @@ $\langle V',E',f_V',f_E',\rho \rangle$ such that $f_V'$ is defined to verify the
     f_V(\varsigma,\eta) & \varsigma \in E \text{ and } \theta = \rho_\varphi
   \end{cases}
 \end{equation*}
-\end{jogo}
+\end{jb}
 
 Finaly, for the transformations to result in proof size compression the resulting proof's conclusion
 has to be equal or to subsume the original proof's conclusion. To help in proving such statement the
 concepts of safe literal (introduced in \cite{RP}) and of valent literal are defined.
 
-\BW{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
+\BWP{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
 necessarily a single node.}
 
 
-\BW{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
+\BWP{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
 
 \begin{definition}[Safe literal]
 In a proof $\psi$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ which conclusion is $\Gamma$ if
@@ -322,9 +300,9 @@ Finally, the step 2 can't be applied to any other node but the children
 of $\eta$. \qed
 \end{proof}
 
-\begin{jogo}
+\JB{
 This last proposition and its proof are very important for LUniv. Should I make it a theorem ?
-\end{jogo}
+}
 
 
 \section{LowerUnits}
@@ -388,13 +366,13 @@ A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \ \varsigma \xrightarrow{
 $$
 \end{definition}
 
-\begin{jogo}
+\begin{jb}
 This is the main section. First we present formaly the principles of the algorithm. Then the partial
 regularization. Then the algorithm. Then the proof it's always better than LU (and LUnivRPI always
 better than LU.RPI).
 
 This is still a draft that have to be completely rewritten.
-\end{jogo}
+\end{jb}
 
 {\LowerUnits} obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
 account the already lowered nodes. For instance, if a unit $\upsilon$ with conclusion $\{a\}$ has already been
@@ -435,16 +413,12 @@ belongs to $\Delta$.
 In a proof $\psi$ verifying the equation \ref{eqn:before_LUniv}, a univalent node $\eta$ w.r.t. to
 $\{\dual{a_i}\}$ which is a parent of $\varphi$ but not the parent of any $\eta_i$ is lowerable.
 
-\begin{jogo}
-Should I put the previous paragraph in a proposition ? In a theorem ? Should I prove it ? Can I cite
-an equation in a proposition or should I rewrite it ?
-\end{jogo}
 
 \section{Experiments}
 
-\begin{jogo}
+\begin{jb}
 LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
-\end{jogo}
+\end{jb}
 
 \section{Conclusions}
 
