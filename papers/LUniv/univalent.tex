@@ -417,6 +417,37 @@ lowered, a node $\eta$ with conclusion $\{\dual{a},b\}$ may be lowered too and r
 $\upsilon$. To state which conditions $\eta$ has to satisfy to be lowered without changing the
 proof's conclusion, the lower problem has to be redefined as follow.
 
+\begin{definition}[Lowerable node]
+Given a proof $\psi$ of $\Gamma$ and a subproof $\varphi$, a node $\eta$ of $\varphi$ is lowerable
+below $\varphi$ if there exists a literal $a$ and a proof $\psi'$ of $\Gamma' \subseteq
+\Gamma$ such that
+\begin{equation}
+  \psi' = \psi[\varphi \leftarrow (\varphi[\setminus \eta] \odot_a \eta)]
+\end{equation}
+\end{definition}
+The previous definition is very general. The lowerable node introduction presented in the previous
+Section can be obtained when $\varphi = \psi$. In the context of proof compression, lowering a node
+is wanted to reduce the number of $\eta$'s children. For instance, it could be required that every
+path from the root of $\psi$ to $\eta$ goes through the root of $\varphi$. In this case, $\eta$ is
+guaranted to have only one child in $\psi'$.
+
+\begin{definition}[Lowered part]
+In a proof $\psi$ with a subproof $\varphi$, the pair $\langle L,\Delta \rangle$ in which $L$ is a
+sequence $(\eta_1,\cdots,\eta_n)$ of proofs and $\Delta$ a sequence $(a_1,\cdots,a_n)$ of literals
+is a lowered part of $\psi$ below $\varphi$ if
+\begin{equation}
+  \psi = \varphi \odot_{a_n} \eta_n \cdots \odot_{a_1} \eta_1
+\end{equation}
+\end{definition}
+Once again this is a broad definition. In the context of proof compression the root of each proof
+$\eta_i \in L$ would usualy have exactely one child in $\psi$.
+
+
+
+\begin{jogo}
+What folow is the old definition. I'm not sure the new one is such better than this one.
+\end{jogo}
+
 Let suppose a set $\{\eta_i\}_{i \in [0..n]}$ of nodes has already been lowered resulting in a proof
 $\psi$ of $\Gamma$ such that
 \begin{equation} \label{eqn:before_LUniv}
