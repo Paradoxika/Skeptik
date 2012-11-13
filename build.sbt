@@ -13,7 +13,7 @@ scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 libraryDependencies ++= Seq(
 //  "org.scalatest" %% "scalatest" % "1.9-2.10.0-M7-B1",
-  "org.specs2" %% "specs2" % "1.11",
+//  "org.specs2" %% "specs2" % "1.11",
 //  "org.scalacheck" %% "scalacheck" % "1.10.0",
   "junit" % "junit" % "4.10",
   "commons-lang" % "commons-lang" % "2.6",
@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
 )
 
 // Uncomment the following line to use one-jar (https://github.com/sbt/sbt-onejar)
-//seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 licenses := Seq("GNU GPL v3" -> url("http://www.gnu.org/licenses/gpl.html"))
 

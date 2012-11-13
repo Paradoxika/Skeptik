@@ -16,7 +16,7 @@
 % final document.
 \usepackage{xcolor}
 \newenvironment{jogo}{\color{teal}}{}
-\newenvironment{bruno}{\color{red}}{}
+\newenvironment{bruno}{\color{blue}}{}
 
 \newif\ifcomments
 \commentstrue
@@ -33,8 +33,6 @@
 
 
 \title{Propositional Resolution Proof Compression by Lowering Nodes}
-\author{Joseph Boudou \and Bruno Woltzenlogel Paleo}
-\institute{Vienna University of Technology, Austria}
 
 \author{
   Joseph Boudou\inst{1}\thanks{This work was partly supported by the Google Summer of Code program.}
@@ -45,8 +43,8 @@
 \authorrunning{P.\~Fontaine \and S.\~Merz \and B.\~Woltzenlogel Paleo}
 
 \institute{
-  University of Toulouse (TODO) \\
-  \email{jogo@matabio.net}
+  Universit\'e Paul Sabatier, Toulouse \\
+  \email{joseph.boudou@matabio.net}
   \and 
   Vienna University of Technology \\
   \email{bruno@logic.at}
@@ -64,7 +62,7 @@
 
 
 \begin{abstract}
-This paper describes a generalization of the {\LowerUnits} algorithm \cite{ToDo} for the compression
+This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
 of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is
 able to lower not only units but also proof nodes containing non-unit clauses, provided that their
 literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
@@ -82,7 +80,6 @@ We could explain the use case of verifying a proof and how we plan to measure it
 
 \section{Propositional Resolution Calculus}
 
-
 A \emph{literal} is a propositional variable or the negation of a propositional variable. The \emph{dual} of a literal $\ell$ is denoted
 $\dual{\ell}$ (i.e. for any propositional variable $p$, $\dual{p} =
 \neg p$ and $\dual{\neg p} = p$) and the \emph{underlying variable} of a literal
@@ -99,6 +96,7 @@ A \emph{proof} of a clause $\Gamma$ from a set of clauses $\mathcal{A}$ is a
 directed acyclic graph where: leaves contain \emph{axioms} from $\mathcal{A}$;
 any inner node $\eta$ has exactly two outgoing edges to its \emph{premises} $\eta^L$ and $\eta^R$, and $\eta$'s clause is a resolvent of its premises' clauses; the edges are labeled by the premises'
 resolved literals; and there is a single \emph{root} node, containing clause $\Gamma$. A \emph{refutation} of $\mathcal{A}$ is a proof of $\bot$ from $\mathcal{A}$.
+
 
 \newcommand{\clause}{c}
 \newcommand{\pivot}{\mathit{piv}}
@@ -143,6 +141,7 @@ $\rho \in V$, and such that it is inductively constructible as follows:
 \end{enumerate}
 \end{definition}
 
+
 \BW{ToDo: fix this paragraph} $E$ is the \emph{premise} or \emph{parent} relation. Its inverse relation is the \emph{child} relation and its
 transitive closure is the \emph{ancestor} relation.  
 
@@ -152,6 +151,12 @@ between nodes and proofs and we will often identify one with the other. Each nod
 is the root of a subproof of its conclusion $f_V(\eta)$.
 
 
+
+As the premises are unordered $\psi_L \odot_a \psi_R$ denotes the same proof as $\psi_R
+\odot_\dual{a} \psi_L$.  Furthermore, nodes are uniquely defined by their premises and conclusion.
+Each node $\eta$ of a proof is a subproof of its conclusion $f_V(\eta)$.  Hence there is a bijection
+between nodes and proofs and in the following the distinction between them will sometimes be eluded
+for the sake of clarity.
 
 For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
 can easily be proved by induction.
@@ -205,9 +210,10 @@ modulo the identity of inner nodes.
 
 \section{Basic Proof Transformations}
 
-To reduce proofs' size we'll need to transform proofs. But many simple graph transformation like
-deleting an edge will result in a DAG which isn't a proof anymore. We are particularly interested in
-transformations which lead to DAG verifying the property \ref{prop:proof_edges} plus the following one.
+Proof compression algorithms presented in this paper are local graph transformations.  But many
+simple graph transformations like deleting an edge may result in DAGs which aren't proofs anymore.
+An important class of such transformations are those which result in DAGs verifying the property
+\ref{prop:proof_edges} plus the following one.
 
 \begin{property}
 \label{prop:pseudo-proof}
@@ -251,26 +257,51 @@ fixing the resulting DAG. It is written $\psi[\setminus \eta]$.
 \end{definition}
 
 \begin{definition}[Replacing a node]
-Replacing a node $\eta$ in a proof $\psi$ by a node $\eta'$ (not necessirly in $V$) consist in
-replacing every edge $(\varsigma,\eta) \in E$ by $(\varsigma,\eta')$ and fixing the resulting DAG.
-It is written $\psi[\eta \leftarrow \eta']$.
+Replacing a node $\eta$ in a proof $\psi$ by a proof $\varphi$ with root $\rho$ consist in adding
+every nodes and edges from $\varphi$, replacing every edge $(\varsigma,\eta) \in E$ by
+$(\varsigma,\rho)$ and fixing the resulting DAG.  It is written $\psi[\eta \leftarrow \varphi]$.
 \end{definition}
 
-Finaly, for such transformation to result in proof size compression it is usually mandatory that the
-resulting proof's conclusion is equal or subsumes the original proof's conclusion. To help in
-proving such statement the concepts of safe literal (introduced in \cite{RPILU}) and of valent
-literal are defined.
+\begin{jogo}
+The definition of the replacement is very informal. If you prefer a more formal one, here it is :
+
+Replacing a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ by a proof $\varphi =
+\langle V_\varphi,E_\varphi,f_{V_\varphi},f_{E_\varphi},\rho_\varphi \rangle$ consits in fixing the DAG
+$\langle V',E',f_V',f_E',\rho \rangle$ such that $f_V'$ is defined to verify the property
+\ref{prop:proof_conclusion} and
+\begin{equation*}
+  V' = (V \setminus \{\eta\}) \cup V_\varphi
+\end{equation*}
+\begin{equation*}
+  E' = (E \setminus \{(\varsigma,\eta)|\varsigma \in V\}) \cup E \cup
+       \{(\varsigma,\rho_\varphi)|(\varsigma,\eta) \in E\}
+\end{equation*}
+\begin{equation*}
+  f_V'(\varsigma,\theta) = \begin{cases}
+    f_V(\varsigma,\theta) & \varsigma \in E \text{ and } \theta \in E \\
+    f_{V_\varphi}(\varsigma,\theta) & \varsigma \in E_\varphi \text{ and } \theta \in E_\varphi \\
+    f_V(\varsigma,\eta) & \varsigma \in E \text{ and } \theta = \rho_\varphi
+  \end{cases}
+\end{equation*}
+\end{jogo}
+
+Finaly, for the transformations to result in proof size compression the resulting proof's conclusion
+has to be equal or to subsume the original proof's conclusion. To help in proving such statement the
+concepts of safe literal (introduced in \cite{RP}) and of valent literal are defined.
+
+\BW{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
+necessarily a single node.}
 
 
 \BW{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
 
 \begin{definition}[Safe literal]
 In a proof $\psi$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ which conclusion is $\Gamma$ if
-for all proof $\eta'$ of $\Gamma \cup \{p\}$, $\psi[\eta \leftarrow \eta']$ still proves $\Sigma$.
+for all proof $\varphi$ of $\Gamma \cup \{p\}$, $\psi[\eta \leftarrow \varphi]$ still proves $\Sigma$.
 \end{definition}
 
 \begin{definition}[Valent literal]
-In a proof $\psi$ of $\Sigma$, a literal $p$ is valent for the node $\eta$ if $\dual{p}$ belongs to
+In a proof $\psi$ of $\Sigma$, a literal $a$ is valent for the node $\eta$ if $\dual{a}$ belongs to
 the conclusion of $\psi[\setminus \eta]$ but not to the conclusion of $\psi$.
 \end{definition}
 
@@ -305,13 +336,13 @@ at the bottom of the proof. Formaly, a node $\eta$ in a proof $\psi$ of $\Gamma$
 there exists a proof $\psi'$ of $\Gamma$ and a literal $a$ such that $\psi' = \psi[\setminus \eta]
 \odot_a \eta$.
 
-These idea has been introduce in \cite{LURPI} for the LowerUnits algorithm. Units are nodes with a
+These idea has been introduce in \cite{LURPI} for the {\LowerUnits} algorithm. Units are nodes with a
 conclusion consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
 lowers every unit with more than one child. Care is taken to reintroduce units in an order
 corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
 unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
 
-A possible implementation of LowerUnits is shown in Algorithm \ref{algo:LU}. Units are collected during a
+A possible presentation of {\LowerUnits} is shown in Algorithm \ref{algo:LU}. Units are collected during a
 first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal could
 have been top-down and units stored in a stack. Units are effectively removed during a second,
 top-down traversal. The last step is the reintroduction of units.
@@ -338,13 +369,13 @@ top-down traversal. The last step is the reintroduction of units.
   }
 
   \label{algo:LU}
-  \caption{A possible LowerUnit implementation}
+  \caption{\LowerUnits}
 \end{algorithm}
 
-LU has been successfully composed with the RecyclePivotsWithIntersection (RPI) algorithm presented in
-\cite{LURPI}. Both sequential compositions achieve very good compression ratio in reasonnable amount
-of time. Unfortunately, none of them is always better than the other and there is actually no
-heuristic to choose which one to apply a priori.
+LU has been successfully composed with the \texttt{RecyclePivotsWithIntersection} (RPI) algorithm
+presented in \cite{LURPI}. Both sequential compositions achieve very good compression ratio in
+reasonnable amount of time. Unfortunately, none of them is always better than the other and there is
+actually no heuristic to choose which one to apply a priori.
 
 \section{LowerUnivalents}
 
@@ -361,9 +392,11 @@ $$
 This is the main section. First we present formaly the principles of the algorithm. Then the partial
 regularization. Then the algorithm. Then the proof it's always better than LU (and LUnivRPI always
 better than LU.RPI).
+
+This is still a draft that have to be completely rewritten.
 \end{jogo}
 
-LowerUnits obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
+{\LowerUnits} obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
 account the already lowered nodes. For instance, if a unit $\upsilon$ with conclusion $\{a\}$ has already been
 lowered, a node $\eta$ with conclusion $\{\dual{a},b\}$ may be lowered too and reintroduced above
 $\upsilon$. To state which conditions $\eta$ has to satisfy to be lowered without changing the

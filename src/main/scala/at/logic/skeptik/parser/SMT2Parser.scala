@@ -52,9 +52,10 @@ extends JavaTokenParsers with RegexParsers {
   def orE: Parser[E] = "(or" ~> rep(expression) <~ ")" ^^ {
     list => list.tail.foldLeft(list.head) { (left,right) => Or(left,right) }
   }
-  def otherE: Parser[E] = "(" ~> name ~ rep(expression) <~ ")" ^^ {
-    case ~(op,l) => Var(l.foldLeft(op) { (left,right) => left.toString + right.toString }, o)
+  def otherE: Parser[E] = "(" ~> otherOther ~ rep(otherOther) <~ ")" ^^ {
+    case ~(op,l) => Var(l.foldLeft(op) { (left,right) => left + right }, o)
   }
+  def otherOther: Parser[String] = ( expression ^^ (_.toString) | name )
 
   def letE: Parser[E] = "(let (" ~> rep(letAssignment) ~> ")" ~> expression <~ ")"
   def letAssignment: Parser[Unit] = "(" ~> name ~ expression <~ ")" ^^ {
@@ -65,7 +66,7 @@ extends JavaTokenParsers with RegexParsers {
 
   def getProofNode = {
     parse(proof, new FileReader(filename)) match {
-      case Success(Nil,_) => throw new Exception(proofMap.keys.toString)
+      case Success(Nil,in) => throw new Exception(exprMap.keys.toString + " at " + in.pos + " " + in.pos.longString)
       case Success(list,_) => Proof(list.last) // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception(message)
       case Error(message,_) => throw new Exception(message)

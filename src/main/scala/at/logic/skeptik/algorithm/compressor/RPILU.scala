@@ -16,6 +16,7 @@ extends CompressorAlgorithm[SequentProofNode] {
   protected object NoDS    extends DeletedSide
   protected object LeftDS  extends DeletedSide
   protected object RightDS extends DeletedSide
+  protected object BothDS  extends DeletedSide
 
   class EdgesToDelete {
 
@@ -28,13 +29,20 @@ extends CompressorAlgorithm[SequentProofNode] {
         case _ => NoDS
       }
 
-    def markEdge(node: SequentProofNode, premiseSide: DeletedSide) = {
-//      if ((edges contains node) && (edges(node)._1 == otherSide(premiseSide))) println("Case A")
-      val deleteNode = (edges contains node) &&
-                       { val old = edges(node) ; old._2 || old._1 == otherSide(premiseSide) }
-      edges(node) = (premiseSide, deleteNode)
-    }
+    def markEdge(node: SequentProofNode, premiseSide: DeletedSide) =
+      edges(node) = edges.get(node) match {
+        case None => (premiseSide, false)
+        case Some((BothDS,_)) => (BothDS, true)
+        case Some((side,_)) if side == otherSide(premiseSide) => (BothDS, true)
+        case Some((_,del)) => (premiseSide, del)
+      }
 
+    def markEdge(child: SequentProofNode, premise: SequentProofNode):Unit =
+      markEdge(child, sideOf(premise, child))
+
+    def markBothEdges(node: SequentProofNode) =
+      edges(node) = (BothDS, true)
+    
     def deleteNode(node: SequentProofNode) =
       edges(node) = (edges.getOrElse(node,(NoDS,true))._1, true)
 
@@ -48,7 +56,11 @@ extends CompressorAlgorithm[SequentProofNode] {
     def isEmpty = edges.isEmpty
 
     def isMarked(node: SequentProofNode, premise: SequentProofNode):Boolean =
-      ((edges contains node) && (edges(node)._1 == sideOf(premise, node))) || nodeIsMarked(premise)
+      (edges.get(node) match {
+        case None => false
+        case Some((BothDS,_)) => true
+        case Some((side,_)) => side == sideOf(premise, node)
+      }) || nodeIsMarked(premise)
 
     def nodeIsMarked(node: SequentProofNode):Boolean =
       // may be optimized (edgesToDelete contains node is checked 3 times)
@@ -166,11 +178,12 @@ extends AbstractRPIAlgorithm {
   protected def computeSafeLiterals(proof: SequentProofNode,
                           childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
                           edgesToDelete: EdgesToDelete
-                          ) : IClause = {
+                          ) : IClause =
     childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof)} match {
-      case Nil  => proof.conclusion.toSetSequent
+      case Nil  =>
+        if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
+        proof.conclusion.toSetSequent
       case h::t =>
         t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) => acc intersect safeLiteralsFromChild(v, proof, edgesToDelete) }
     }
-  }
 }
