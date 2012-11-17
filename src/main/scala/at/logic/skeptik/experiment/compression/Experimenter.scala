@@ -40,9 +40,6 @@ object Experimenter {
   object literalsCompressionRatioMeasure
   extends IntPercentMeasure[Result](_.nbLiterals)
 
-  object estimatedVerificationTimeCompressionRatioMeasure
-  extends DoublePercentMeasure[Result](_.estimatedVerificationTime)
-
   object irregularNodeCompressionRatioMeasure
   extends IntPercentMeasure[Result]( { result =>
     var nbIrregularNodes = 0
@@ -61,7 +58,7 @@ object Experimenter {
   val measures = List(timeMeasure, countMeasure,
                       nodeCompressionRatioMeasure,
                       axiomCompressionRatioMeasure, variableCompressionRatioMeasure,
-                      literalsCompressionRatioMeasure, estimatedVerificationTimeCompressionRatioMeasure)
+                      literalsCompressionRatioMeasure)
 //                      axiomSizeCompressionRatioMeasure,
 //                      irregularNodeCompressionRatioMeasure)
 
