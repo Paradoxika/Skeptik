@@ -18,7 +18,7 @@ extends JavaTokenParsers with RegexParsers {
 
   private def newExpr(n: String) = {
     if (!(exprMap contains n)) exprMap.update(n, Var(n,o))
-    Var(n,o)
+    exprMap(n)
   }
 
   def proof: Parser[List[SequentProofNode]] = rep(line)
