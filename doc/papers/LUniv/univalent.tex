@@ -78,11 +78,6 @@ $\dual{\ell}$ (i.e. for any propositional variable $p$, $\dual{p} =
 $\ell$ is written $|\ell|$ (i.e. $|p| = |\neg p| = p$). The set of all literals is denoted $\mathcal{L}$. A \emph{clause} is a set of literals. $\bot$ denotes the \emph{empty clause}.
 
 
-\begin{notation}[Resolvent]
-The \emph{resolvent} $\eta_0 \odot_p \eta_1$ of two, $p$ being the pivot
-literal such that $\neg p \in \eta_0$ and $p \in \eta_1$. ToDo
-\end{notation}
-
 \noindent
 A \emph{proof} of a clause $\Gamma$ from a set of clauses $\mathcal{A}$ is a
 directed acyclic graph where: leaves contain \emph{axioms} from $\mathcal{A}$;
@@ -133,18 +128,20 @@ $\rho \in V$, and such that it is inductively constructible as follows:
 \BWP{ToDo: fix this paragraph} $E$ is the \emph{premise} or \emph{parent} relation. Its inverse relation is the \emph{child} relation and its
 transitive closure is the \emph{ancestor} relation.  
 
-As the premises are unordered we have $\psi_L \odot_a \psi_R = \psi_R \odot_{\dual{a}} \psi_L$.
-Furthermore, nodes are uniquely defined by their premises and conclusion. Hence there is a bijection
-between nodes and proofs and we will often identify one with the other. Each node $\eta$ of a proof
-is the root of a subproof of its conclusion $f_V(\eta)$.
-
-
-
 As the premises are unordered $\psi_L \odot_a \psi_R$ denotes the same proof as $\psi_R
 \odot_{\dual{a}} \psi_L$.  Furthermore, nodes are uniquely defined by their premises and conclusion.
 Each node $\eta$ of a proof is a subproof of its conclusion $f_V(\eta)$.  Hence there is a bijection
 between nodes and proofs and in the following the distinction between them will sometimes be eluded
 for the sake of clarity.
+
+\begin{definition}[Active literals]
+The set of active literals $A_{\psi}(\eta)$ of a node $\eta$ in a proof $\psi$
+% = \langle V,E,f_V,f_E,\rho \rangle$ are the
+are the labels of $\eta$'s incoming edges: 
+$$
+A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \ \varsigma \xrightarrow{a} \eta \}
+$$
+\end{definition}
 
 For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
 can easily be proved by induction.
@@ -198,9 +195,6 @@ modulo the identity of inner nodes.
 
 \section{Basic Proof Transformations}
 
-
-
-\BWP{Testing new commands: $\rn{\f{ \dn{\psi}{\eta} }}{\varsigma}{\varsigma'}$} 
 
 Proof compression algorithms presented in this paper are local graph transformations.  But many
 simple graph transformations like deleting an edge may result in DAGs which aren't proofs anymore.
@@ -283,9 +277,6 @@ concepts of safe literal (introduced in \cite{RP}) and of valent literal are def
 \BWP{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
 necessarily a single node.}
 
-
-\BWP{In the definition of safe literal, note that $\eta$ can be an arbitrary subproof... it is not necessarily a single node.}
-
 \begin{definition}[Safe literal]
 In a proof $\psi$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ which conclusion is $\Gamma$ if
 for all proof $\varphi$ of $\Gamma \cup \{p\}$, $\psi[\eta \leftarrow \varphi]$ still proves $\Sigma$.
@@ -346,8 +337,8 @@ top-down traversal. The last step is the reintroduction of units.
   }
 
   \For{every node $\varsigma$ in a top-down traversal}{
-    \uIf{a premise $\eta$ of $\varsigma$ belongs to Units}{
-      Replace $\varsigma$ by $\eta$ \; }
+    \uIf{a premise of $\varsigma$ belongs to Units}{
+      Replace $\varsigma$ by the other premise \; }
     \Else{
       Recompute $\varsigma$'s conclusion based on the current premises \; }
   }
@@ -369,15 +360,6 @@ reasonnable amount of time. Unfortunately, none of them is always better than th
 actually no heuristic to choose which one to apply a priori.
 
 \section{LowerUnivalents}
-
-\begin{definition}[Active literals]
-The set of active literals $A_{\psi}(\eta)$ of a node $\eta$ in a proof $\psi$
-% = \langle V,E,f_V,f_E,\rho \rangle$ are the
-are the labels of $\eta$'s incoming edges: 
-$$
-A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \ \varsigma \xrightarrow{a} \eta \}
-$$
-\end{definition}
 
 \begin{jb}
 This is the main section. First we present formaly the principles of the algorithm. Then the partial
@@ -420,9 +402,9 @@ $\eta_i \in L$ would usualy have exactely one child in $\psi$.
 
 
 
-\begin{jogo}
+\begin{jb}
 What folow is the old definition. I'm not sure the new one is such better than this one.
-\end{jogo}
+\end{jb}
 
 Let suppose a set $\{\eta_i\}_{i \in [0..n]}$ of nodes has already been lowered resulting in a proof
 $\psi$ of $\Gamma$ such that
