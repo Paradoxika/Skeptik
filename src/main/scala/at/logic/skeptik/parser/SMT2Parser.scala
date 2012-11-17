@@ -16,11 +16,6 @@ extends JavaTokenParsers with RegexParsers {
   private val proofMap = new MMap[String,SequentProofNode]
   private val exprMap = new MMap[String,E]
 
-  private def newExpr(n: String) = {
-    if (!(exprMap contains n)) exprMap.update(n, Var(n,o))
-    exprMap(n)
-  }
-
   def proof: Parser[List[SequentProofNode]] = rep(line)
   def line: Parser[SequentProofNode] = "(set"  ~> name ~ "(" ~ inference <~ "))" ^^ {
     case ~(~(n,_),p) => proofMap += (n -> p); p
@@ -42,11 +37,11 @@ extends JavaTokenParsers with RegexParsers {
 
   def expression: Parser[E] = (assignmentE | simpleE)
   def assignmentE: Parser[E] = name <~ ":" <~ simpleE ^^ {
-    n => newExpr(n)
+    n => exprMap.getOrElseUpdate(n, Var(n,o))
   }
   def simpleE: Parser[E] = (posE | negE | otherE)
   def posE: Parser[E] = name ^^ {
-    n => newExpr(n)
+    n => exprMap.getOrElseUpdate(n, Var(n,o))
   }
   def negE: Parser[E] = "(not" ~> expression <~ ")" ^^ {
     e => Neg(e)
