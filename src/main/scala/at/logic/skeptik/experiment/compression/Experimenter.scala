@@ -37,6 +37,12 @@ object Experimenter {
   object axiomSizeCompressionRatioMeasure
   extends IntPercentMeasure[Result](_.axiomsSize)
 
+  object literalsCompressionRatioMeasure
+  extends IntPercentMeasure[Result](_.nbLiterals)
+
+  object estimatedVerificationTimeCompressionRatioMeasure
+  extends DoublePercentMeasure[Result](_.estimatedVerificationTime)
+
   object irregularNodeCompressionRatioMeasure
   extends IntPercentMeasure[Result]( { result =>
     var nbIrregularNodes = 0
@@ -54,8 +60,10 @@ object Experimenter {
 
   val measures = List(timeMeasure, countMeasure,
                       nodeCompressionRatioMeasure,
-                      axiomCompressionRatioMeasure, variableCompressionRatioMeasure, axiomSizeCompressionRatioMeasure,
-                      irregularNodeCompressionRatioMeasure)
+                      axiomCompressionRatioMeasure, variableCompressionRatioMeasure,
+                      literalsCompressionRatioMeasure, estimatedVerificationTimeCompressionRatioMeasure)
+//                      axiomSizeCompressionRatioMeasure,
+//                      irregularNodeCompressionRatioMeasure)
 
   // Algorithms
 
@@ -163,15 +171,6 @@ object Experimenter {
         else
           println("Error, " + compressed.proof.root.conclusion + " instead of " + original.proof.root.conclusion)
       }
-//<<<<<<< HEAD
-//      println(String.format(" (%.2f s)", double2Double((java.lang.System.currentTimeMillis - beginParsing)/1000.0)))
-//
-//      algos.foreach( _ match {
-//        case a: WrappedOldAlgorithm     => a.experiment(oldProofNode,     oldMeasurer)
-//        case a: WrappedSequentAlgorithm => a.experiment(sequentProofNode, sequentMeasurer)
-//      })
-//=======
-//>>>>>>> 5c9430904afeeb751fcc6f4b516f7e53fe7968c5
     }
 
     // Report
