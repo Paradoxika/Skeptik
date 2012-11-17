@@ -80,3 +80,28 @@ extends Measure[P] {
 
 }
 
+class DoublePercentMeasure[-P] (op: P => Double)
+extends Measure[P] {
+
+  var beforeVal = 0.0
+  var beforeSum = 0.0
+  val afterSum = MMap[String,Double]()
+
+  def apply(proof: P) = op(proof)
+
+  def before(proof: P) = {
+    beforeVal = op(proof)
+    beforeSum += beforeVal
+    beforeVal.toString
+  }
+
+  def after(algorithm: String, proof: P) = {
+    val afterVal = op(proof)
+    afterSum.update(algorithm, afterSum.getOrElse(algorithm, 0.0) + afterVal)
+    String.format("%7.3f %%", double2Double(100.0 * afterVal / beforeVal))
+  }
+
+  def average(algorithm: String) = String.format("%.3f %%", double2Double(100.0 * afterSum(algorithm) / beforeSum))
+
+}
+
