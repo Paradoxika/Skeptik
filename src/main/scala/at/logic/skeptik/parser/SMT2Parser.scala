@@ -14,6 +14,12 @@ class SMT2Parser(filename: String)
 extends JavaTokenParsers with RegexParsers {
   
   private val proofMap = new MMap[String,SequentProofNode]
+  private val exprMap = new MMap[String,E]
+
+  private def newExpr(n: String) = {
+    if (!(exprMap contains n)) exprMap.update(n, Var(n,o))
+    Var(n,o)
+  }
 
   def proof: Parser[List[SequentProofNode]] = rep(line)
   def line: Parser[SequentProofNode] = "(set"  ~> name ~ "(" ~ inference <~ "))" ^^ {
@@ -36,11 +42,11 @@ extends JavaTokenParsers with RegexParsers {
 
   def expression: Parser[E] = (assignmentE | simpleE)
   def assignmentE: Parser[E] = name <~ ":" <~ simpleE ^^ {
-    n => Var(n,o)
+    n => newExpr(n)
   }
   def simpleE: Parser[E] = (posE | negE | otherE)
   def posE: Parser[E] = name ^^ {
-    n => Var(n,o)
+    n => newExpr(n)
   }
   def negE: Parser[E] = "(not" ~> expression <~ ")" ^^ {
     e => Neg(e)
