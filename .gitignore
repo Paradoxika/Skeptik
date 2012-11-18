@@ -16,3 +16,4 @@ experiments/NDc/report*
 *.toc
 *.pdf
 *.lst
+vsc/Experiments/compression/slice.*

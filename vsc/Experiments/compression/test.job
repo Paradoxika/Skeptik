@@ -1,11 +1,10 @@
 #$ -N SkeptikComp         # declares job name                
-#$ -pe mpich 16           # requests 16 cores
+#$ -pe mpich1 1           # requests 1 core with 32 GB
 #$ -V                     # imports all environment variables
 #$ -M jogo@matabio.net    # email address to be notified
 #$ -m beas                # notifies of job's beginning, end, abortion and rescheduling
-# -l mem_free=10G        # allow to run on 16G memory nodes
-#$ -l h_rt=24:00:00       # runs job for a maximum time of hh:mm:ss
+#$ -l h_rt=36:00:00       # runs job for a maximum time of hh:mm:ss
 
 SLICE=$( printf 'slice.%02d' $SGE_TASK_ID )
 
-java -Xmx30720M -Xss1536M -jar ../../skeptik.jar -experiment --compression -a LU,LUniv_Op,3pass_LU,RPILUniv,LURPI,LUvRPI_Op -csv 2 $( cat "${SLICE}" )
+java -d64 -Xmx26624M -Xss1024M -jar ../../skeptik.jar -experiment --compression -a LU,LUniv_Op,3pass_LU,RPILUniv,LURPI,LUvRPI_Op -csv 2 $( cat "${SLICE}" )
