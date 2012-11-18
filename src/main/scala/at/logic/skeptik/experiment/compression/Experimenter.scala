@@ -55,7 +55,8 @@ object Experimenter {
   })
 
 
-  val measures = List(timeMeasure, countMeasure,
+  val measures = List(timeMeasure,
+//                      countMeasure,
                       nodeCompressionRatioMeasure,
                       axiomCompressionRatioMeasure, variableCompressionRatioMeasure,
                       literalsCompressionRatioMeasure)
@@ -67,15 +68,15 @@ object Experimenter {
   val algorithms = MMap[String, WrappedAlgorithm]()
 
   def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProofNode]) =
-    algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-10.10s",name), algo)
+    algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-11.11s",name), algo)
 
   addTimeOutAlgorithm("LU", NewUnitLowering)
 
   addTimeOutAlgorithm("RP",  RecyclePivots)
   addTimeOutAlgorithm("RPI", IdempotentRecyclePivotsWithIntersection)
 
-  addTimeOutAlgorithm("RPILU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, NewUnitLowering))
-  addTimeOutAlgorithm("LURPI", IdempotentAlgorithm(NewUnitLowering, IdempotentRecyclePivotsWithIntersection))
+  addTimeOutAlgorithm("RPI.LU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, NewUnitLowering))
+  addTimeOutAlgorithm("LU.RPI", IdempotentAlgorithm(NewUnitLowering, IdempotentRecyclePivotsWithIntersection))
 
   addTimeOutAlgorithm("IU Reg", IdempotentIrregularUnitsRegularize)
   addTimeOutAlgorithm("IU Low", IdempotentIrregularUnitsLower)
@@ -85,13 +86,11 @@ object Experimenter {
   addTimeOutAlgorithm("RI alReg", IdempotentRegularizationEvaluationRegularizeIfPossible)
   addTimeOutAlgorithm("RI Quad",  IdempotentRegularizationEvaluationQuadraticHeuristic)
 
-  addTimeOutAlgorithm("3pass LU", IdempotentThreePassLowerUnits)
+  addTimeOutAlgorithm("RPI[3]LU", IdempotentThreePassLowerUnits)
 
-  addTimeOutAlgorithm("LUniv",    LowerUnivalents)
-  addTimeOutAlgorithm("LUniv Op", LowerUnivalentsOpt)
-  addTimeOutAlgorithm("LUnivRPI", IdempotentLowerUnivalentsAfterRecyclePivots)
-  addTimeOutAlgorithm("LUvRPI Op",IdempotentLowerUnivalentsAfterRecyclePivotsOpt)
-  addTimeOutAlgorithm("RPILUniv", IdempotentLowerUnivalentsBeforeRecyclePivots)
+  addTimeOutAlgorithm("LUniv",    LowerUnivalentsOpt)
+  addTimeOutAlgorithm("LUnivRPI",IdempotentLowerUnivalentsAfterRecyclePivotsOpt)
+  addTimeOutAlgorithm("RPI[3]LUniv", IdempotentLowerUnivalentsBeforeRecyclePivots)
 
   addTimeOutAlgorithm("RednRec", ReduceAndReconstruct)
 
@@ -103,7 +102,7 @@ object Experimenter {
 
   addTimeOutAlgorithm("DAG",  DAGification)
 
-  // Test for practical idempotency
+  // Test for practical idempotency (outdated)
   addTimeOutAlgorithm("RPI R",      RecyclePivotsWithIntersection)
   addTimeOutAlgorithm("RPILU R",    RepeatableWhileCompressingAlgorithm(RecyclePivotsWithIntersection, NewUnitLowering))
   addTimeOutAlgorithm("LURPI R",    RepeatableWhileCompressingAlgorithm(NewUnitLowering, RecyclePivotsWithIntersection))
@@ -150,7 +149,7 @@ object Experimenter {
   {
     for (proofFilename <- proofs) {
       // Read
-      println("------------------------------------------------------------")
+      println("------------------------------------------------------------------------")
       print("* " + proofFilename)
       val original = getProofNodeFromFile(proofFilename)
       for (measure <- measures) { print(" " + measure.before(original)) }
@@ -171,15 +170,15 @@ object Experimenter {
     }
 
     // Report
-    println("------------------------------------------------------------")
+    println("------------------------------------------------------------------------")
     println()
-    println("------------------------------------------------------------")
+    println("------------------------------------------------------------------------")
     for (algo <- algos) {
       print(algo.name + ": ")
       for (measure <- measures) { print(" " + measure.average(algo.name)) }
       println()
     }
-    println("------------------------------------------------------------")
+    println("------------------------------------------------------------------------")
   }
 
   def run(args: Array[String]): Unit =
