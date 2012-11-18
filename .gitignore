@@ -9,6 +9,7 @@ project/target/
 *~
 *.swp
 experiments/NDc/report*
+experiments/compressor/slice*
 *.aux
 *.nav
 *.out
@@ -17,3 +18,7 @@ experiments/NDc/report*
 *.pdf
 *.lst
 vsc/Experiments/compression/slice.*
+*.log
+*.bbl
+*.blg
+*.synctex.gz
