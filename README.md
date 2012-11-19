@@ -33,9 +33,10 @@ If you face any difficulty, do not hesitate to contact us.
 ###Development Policy###
 
 Skeptik developers and contributors are encouraged to:
-1. fork from [Paradoxika/Skeptik](https://github.com/Paradoxika/Skeptik), 
-2. follow the [git flow](http://nvie.com/posts/a-successful-git-branching-model/) branching model in their own forks, 
-3. make pull requests when they have finished a feature or hotfix branch.
+ 
+ 1. fork from [Paradoxika/Skeptik](https://github.com/Paradoxika/Skeptik), 
+ 2. follow the [git flow](http://nvie.com/posts/a-successful-git-branching-model/) branching model in their own forks, 
+ 3. make pull requests when they have finished a feature or hotfix branch.
 
 Using the git flow model can be easier with the [gitflow extension for git](https://github.com/nvie/gitflow).
 
