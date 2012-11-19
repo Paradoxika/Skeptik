@@ -32,8 +32,8 @@ If you face any difficulty, do not hesitate to contact us.
 
 ###Developers and Contributors###
 
- * Bruno Woltzenlogel Paleo (@Ceilican)
- * Joseph Boudou (@Jogo27)
+ * [Bruno Woltzenlogel Paleo](https://github.com/Ceilican/Skeptik)
+ * [Joseph Boudou](https://github.com/Jogo27/ResK-GSoC)
 
 
 ###Websites and Forums###
