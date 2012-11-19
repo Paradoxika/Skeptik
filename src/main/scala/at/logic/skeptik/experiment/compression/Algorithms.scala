@@ -9,21 +9,18 @@ import at.logic.skeptik.util.time._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
 import collection.mutable.{ HashSet => MSet }
-import math.log
 
 // Results
 
 class Result (val proof: Proof[SequentProofNode], val time: Double, val count: Int) {
 
   // Many measures can be done in the same traversal. We store them.
-  lazy val (nbAxioms, nbVariables, axiomsSize, nbLiterals, estimatedVerificationTime) = {
+  lazy val (nbAxioms, nbVariables, axiomsSize, nbLiterals) = {
     var nbAxioms = 0
     val variableSet = MSet[E]()
     var axiomsSize = 0
     var nbLiterals = 0
-    var estimatedVerificationTime = 0.0
     def clauseSize(clause: Sequent) = clause.ant.length + clause.suc.length
-    def log2(x: Double) = log(x) / log(2)
     for (node <- proof) node match {
       case Axiom(clause) =>
         nbAxioms += 1
@@ -33,15 +30,9 @@ class Result (val proof: Proof[SequentProofNode], val time: Double, val count: I
         nbLiterals += nodeSize
       case CutIC(left,right,_,_) =>
         nbLiterals += clauseSize(node.conclusion)
-        estimatedVerificationTime += ( (clauseSize(left.conclusion), clauseSize(right.conclusion)) match {
-          case (1,m) => log2(m)
-          case (m,1) => log2(m)
-          case (n,m) if n < m => (n + 1.0) * log2(m + n - 3.0)
-          case (m,n) => (n + 1.0) * log2(m + n - 3.0)
-        })
       case _ =>
     }
-    (nbAxioms, variableSet.size, axiomsSize, nbLiterals, estimatedVerificationTime)
+    (nbAxioms, variableSet.size, axiomsSize, nbLiterals)
   }
 
 }

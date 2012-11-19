@@ -76,7 +76,7 @@ extends Measure[P] {
     String.format("%7.3f %%", double2Double(100.0 * afterVal.toDouble / beforeVal.toDouble))
   }
 
-  def average(algorithm: String) = String.format("%.3f %%", double2Double(100.0 * afterSum(algorithm).toDouble / beforeSum.toDouble))
+  def average(algorithm: String) = String.format("%7.3f %%", double2Double(100.0 * afterSum(algorithm).toDouble / beforeSum.toDouble))
 
 }
 
