@@ -392,7 +392,8 @@ root of $\varphi$. In this case, $\eta$'s root is guaranted to have only one chi
 \begin{definition}[Lowered part]
 If a proof $\psi$ can be written as
 \begin{equation}
-  \psi = \varphi \odot_{\ell_n} \eta_n \cdots \odot_{\ell_1} \eta_1
+  \psi = \eta_1 \odot_{\ell_1} ( \eta_2 \odot_{\ell_2} ( \cdots (\eta_n \odot_{\ell_n} \varphi)
+          \cdots ))
 \end{equation}
 then the pair $\langle L,\Delta \rangle$ in which $L$ is a sequence $(\eta_1,\cdots,\eta_n)$ of
 proofs and $\Delta$ a sequence $(\ell_1,\cdots,\ell_n)$ of literals is called a lowered part of $\psi$
@@ -408,10 +409,17 @@ exactely one valent literal $\ell$ in $\psi$ and $\Gamma \subseteq \Delta \cup \
 \end{definition}
 
 \begin{proposition}
-If $\langle L,\Delta \rangle$ is a lowered part of $\psi$ below $\varphi$ and $\eta$ a subproof
-in $\psi$ which is univalent w.r.t. $\Delta$, then $\eta$ is lowerable below $\varphi$.
+If $\langle L,\Delta \rangle$ is a lowered part of $\psi$ below $\varphi$ and $\eta$ a subproof of
+$\varphi$ which is univalent in $\varphi$ w.r.t. $\Delta$, then $\eta$ is lowerable in $\psi$ below $\varphi$.
 \end{proposition}
 
+\begin{proof}
+Let call $\Gamma$ the conclusion of $\varphi$.  The only valent literal of $\eta$ in $\varphi$ being
+$\ell$, the conclusion of $\dn{\varphi}{\eta}$ is a subset of $\Gamma \cup \{\dual{\ell}\}$. As the
+conclusion of $\eta$ is a subset of $\Delta \cup \{\ell\}$, the conclusion of $\left(
+\dn{\varphi}{\eta} \right) \odot_\ell \eta$ is a subset of $\Gamma \cup \Delta$. Finaly, $\Delta$ is
+a set of safe literals for $\varphi$ in $\psi$. \qed
+\end{proof}
 
 \begin{jb}
 What folow is the old definition. I'm not sure the new one is such better than this one.
