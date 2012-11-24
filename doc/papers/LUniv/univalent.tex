@@ -369,49 +369,68 @@ better than LU.RPI).
 This is still a draft that have to be completely rewritten.
 \end{jb}
 
-{\LowerUnits} obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
-account the already lowered nodes. For instance, if a unit $\upsilon$ with conclusion $\{a\}$ has already been
-lowered, a node $\eta$ with conclusion $\{\dual{a},b\}$ may be lowered too and reintroduced above
-$\upsilon$. To state which conditions $\eta$ has to satisfy to be lowered without changing the
+{\LowerUnits} obviously doesn't lower every lowerable subproofs. In particular, it doesn't take into
+account the already lowered subproofs. For instance, if a unit $\upsilon$ proving $\{a\}$ has
+already been lowered, a subproof $\eta$ of $\{\dual{a},b\}$ may be lowered too and reintroduced
+above $\upsilon$. To state which conditions $\eta$ must satisfy to be lowered without changing the
 proof's conclusion, the lower problem has to be redefined as follow.
 
-\begin{definition}[Lowerable node]
-Given a proof $\psi$ of $\Gamma$ and a subproof $\varphi$, a node $\eta$ of $\varphi$ is lowerable
-below $\varphi$ if there exists a literal $a$ and a proof $\psi'$ of $\Gamma' \subseteq
+\begin{definition}[Lowerable subproof]
+Given a proof $\psi$ of $\Gamma$ and a subproof $\varphi$, a subproof $\eta$ from $\varphi$ is lowerable
+below $\varphi$ if there exists a literal $\ell$ and a proof $\psi'$ of $\Gamma' \subseteq
 \Gamma$ such that
 \begin{equation}
-  \psi' = \psi[\varphi \leftarrow (\varphi[\setminus \eta] \odot_a \eta)]
+  \psi' = \rn{\psi}{\varphi}{\left(\dn{\varphi}{\eta}\right) \odot_\ell \eta}
 \end{equation}
 \end{definition}
-The previous definition is very general. The lowerable node introduction presented in the previous
-Section can be obtained when $\varphi = \psi$. In the context of proof compression, lowering a node
-is wanted to reduce the number of $\eta$'s children. For instance, it could be required that every
-path from the root of $\psi$ to $\eta$ goes through the root of $\varphi$. In this case, $\eta$ is
-guaranted to have only one child in $\psi'$.
+The previous definition is very general. The lowerable subproof introduction presented in the
+previous Section can be obtained when $\varphi = \psi$. In the context of proof compression,
+lowering a subproof is wanted to reduce the number of $\eta$'s root's children. For instance, it
+could be required that every path from the root of $\psi$ to the root of $\eta$ goes through the
+root of $\varphi$. In this case, $\eta$'s root is guaranted to have only one child in $\psi'$.
 
 \begin{definition}[Lowered part]
-In a proof $\psi$ with a subproof $\varphi$, the pair $\langle L,\Delta \rangle$ in which $L$ is a
-sequence $(\eta_1,\cdots,\eta_n)$ of proofs and $\Delta$ a sequence $(a_1,\cdots,a_n)$ of literals
-is a lowered part of $\psi$ below $\varphi$ if
+If a proof $\psi$ can be written as
 \begin{equation}
-  \psi = \varphi \odot_{a_n} \eta_n \cdots \odot_{a_1} \eta_1
+  \psi = \eta_1 \odot_{\ell_1} ( \eta_2 \odot_{\ell_2} ( \ldots (\eta_n \odot_{\ell_n} \varphi)
+          \ldots ))
 \end{equation}
+then the pair $\langle L,\Delta \rangle$ in which $L$ is the sequence $(\eta_1,\ldots,\eta_n)$ of
+proofs and $\Delta$ the sequence $(\ell_1,\ldots,\ell_n)$ of literals is called a lowered part of
+$\psi$ below $\varphi$.
 \end{definition}
 Once again this is a broad definition. In the context of proof compression the root of each proof
 $\eta_i \in L$ would usualy have exactely one child in $\psi$.
 
+\begin{definition}[Univalent subproof]
+A subproof $\eta$ of $\Gamma$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
+exactely one valent literal $\ell$ in $\psi$ and $\Gamma \subseteq \Delta \cup \left\{ \ell
+\right\}$.
+\end{definition}
 
+\begin{proposition}
+If $\langle L,\Delta \rangle$ is a lowered part of $\psi$ below $\varphi$ and $\eta$ a subproof of
+$\varphi$ which is univalent in $\varphi$ w.r.t. $\Delta$, then $\eta$ is lowerable in $\psi$ below $\varphi$.
+\end{proposition}
+
+\begin{proof}
+Let call $\Gamma$ the conclusion of $\varphi$.  The only valent literal of $\eta$ in $\varphi$ being
+$\ell$, the conclusion of $\dn{\varphi}{\eta}$ is a subset of $\Gamma \cup \{\dual{\ell}\}$. As the
+conclusion of $\eta$ is a subset of $\Delta \cup \{\ell\}$, the conclusion of $\left(
+\dn{\varphi}{\eta} \right) \odot_\ell \eta$ is a subset of $\Gamma \cup \Delta$. Finaly, $\Delta$ is
+a set of safe literals for $\varphi$ in $\psi$. \qed
+\end{proof}
 
 \begin{jb}
 What folow is the old definition. I'm not sure the new one is such better than this one.
 \end{jb}
 
-Let suppose a set $\{\eta_i\}_{i \in [0..n]}$ of nodes has already been lowered resulting in a proof
+Let suppose a set $\{\eta_i\}_{i \in [0..n]}$ of subproofs has already been lowered resulting in a proof
 $\psi$ of $\Gamma$ such that
 \begin{equation} \label{eqn:before_LUniv}
   \psi = \varphi \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
 \end{equation}
-with each $\eta_i$ having only one child in $\psi$. A node $\eta$ which is a parent of $\varphi$ but
+with each $\eta_i$ having only one child in $\psi$. A subproof $\eta$ which is a parent of $\varphi$ but
 not a parent of any $\eta_i$ is lowerable if there is a literal $a$ and a proof $\psi'$ of
 $\Gamma$ such that
 \begin{equation}
@@ -430,13 +449,13 @@ in $\Gamma \cup \Delta$. Equation \ref{eqn:after_LUniv} states that every litera
 of $\eta$ either is $a$ or belongs to $\Gamma \cup \Delta$. Similarly, every literal in the
 conclusion of $\varphi[\setminus \eta]$ either is $\dual{a}$ or belongs to $\Gamma \cup \Delta$.
 
-\begin{definition}[Univalent node]
-A node $\eta$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
+\begin{definition}[Univalent subproof]
+A subproof $\eta$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
 exactely one valent literal $a$ in $\psi$ and every literal in $\eta$'s conclusion either is $a$ or
 belongs to $\Delta$.
 \end{definition}
 
-In a proof $\psi$ verifying the equation \ref{eqn:before_LUniv}, a univalent node $\eta$ w.r.t. to
+In a proof $\psi$ verifying the equation \ref{eqn:before_LUniv}, a univalent subproof $\eta$ w.r.t. to
 $\{\dual{a_i}\}$ which is a parent of $\varphi$ but not the parent of any $\eta_i$ is lowerable.
 
 
