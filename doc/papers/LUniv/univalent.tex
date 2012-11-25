@@ -16,7 +16,8 @@
 \title{Propositional Resolution Proof Compression by Lowering Nodes}
 
 \author{
-  Joseph Boudou\inst{1}\thanks{This work was partly supported by the Google Summer of Code program.}
+  Joseph Boudou\inst{1}
+  \thanks{This work was supported by the Google Summer of Code program.}
   \and 
   Bruno Woltzenlogel Paleo\inst{2}
 }
@@ -41,13 +42,17 @@
 
 
 \begin{abstract}
-This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
-of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is
-able to lower not only units but also proof nodes containing non-unit clauses, provided that their
-literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
-compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
+This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI}
+for the compression of propositional resolution proofs. 
+The generalized algorithm, here called {\LowerUnivalents}, is
+able to lower not only units but also proof nodes containing non-unit clauses, 
+provided that their literals satisfy some additional conditions. 
+A formal proof that {\LowerUnivalents} always compresses more than {\LowerUnits} is shown, 
+and both algorithms are empirically compared on
 thousands of proofs produced by the SMT-Solver \veriT.
 \end{abstract}
+
+
 
 \section{Introduction}
 
@@ -67,7 +72,8 @@ literals satisfy some additional conditions. A formal proof that {\LowerUnivalen
 compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
 thousands of proofs produced by the SMT-Solver \veriT.
 
-ToDo: explain the organization of the paper here.
+ToDo: explain the organization of the paper here..
+
 
 
 \section{Propositional Resolution Calculus}
@@ -78,6 +84,14 @@ $\dual{\ell}$ (i.e. for any propositional variable $p$, $\dual{p} =
 $\ell$ is written $|\ell|$ (i.e. $|p| = |\neg p| = p$). The set of all literals is denoted $\mathcal{L}$. A \emph{clause} is a set of literals. $\bot$ denotes the \emph{empty clause}.
 
 
+%\noindent
+%A \emph{proof} of a clause $\Gamma$ from a set of clauses $\mathcal{A}$ is a
+%directed acyclic graph where: leaves contain \emph{axioms} from $\mathcal{A}$;
+%any inner node $\eta$ has exactly two outgoing edges to its \emph{premises} $\eta^L$ and $\eta^R$, and $\eta$'s clause is a resolvent of its premises' clauses; the edges are labeled by the premises'
+%resolved literals; and there is a single \emph{root} node, containing clause $\Gamma$. A \emph{refutation} of $\mathcal{A}$ is a proof of $\bot$ from $\mathcal{A}$.
+
+
+
 \noindent
 A \emph{proof} of a clause $\Gamma$ from a set of clauses $\mathcal{A}$ is a
 directed acyclic graph where: leaves contain \emph{axioms} from $\mathcal{A}$;
@@ -85,44 +99,82 @@ any inner node $\eta$ has exactly two outgoing edges to its \emph{premises} $\et
 resolved literals; and there is a single \emph{root} node, containing clause $\Gamma$. A \emph{refutation} of $\mathcal{A}$ is a proof of $\bot$ from $\mathcal{A}$.
 
 
-\begin{definition}[Proof] \label{def:proof}
-A proof is a directed acyclic graph
-$\langle 
-V, 
-E, 
-\mathcal{A},
-\clause, 
-\rho
-\rangle$, 
-where $V$ is a set of nodes, $E \subset V \times \mathcal{L} \times V$, 
-$\mathcal{A} \subset 2^\mathcal{L}$,
-$\clause : V \longrightarrow 2^\mathcal{L}$, 
-$\rho \in V$, and such that it is inductively constructible as follows:
+\newcommand{\axiom}[1]{\hat{#1}}
+\newcommand{\n}{v}
+\newcommand{\raiz}[1]{\rho(#1)}
+
+\begin{definition}[Proof] 
+\label{def:proof}
+A directed acyclic graph $\langle V, E, \clause \rangle$, 
+where $V$ is a set of nodes and 
+$E$ is a set of edges labeled by literals (i.e. $E \subset V \times \mathcal{L} \times V$ and $\n_1 \xrightarrow{\ell} \n_2$ denotes an edge from node $\n_1$ to node $\n_2$ labeled by $\ell$), is a proof of a clause $c$ iff it is
+inductively constructible according to the following cases:
+%
 \begin{enumerate}
-  \item $\langle \{\rho\}, \varnothing, \{ \Gamma \}, \{ (\rho, \Gamma) \}, \varnothing,  \rho \rangle$ 
-    is a proof of $\Gamma$ from $\{ \Gamma \}$.
-  \item If $\psi_L$ is a proof $\langle V_L, E_L, \mathcal{A}_L, \clause_L, \rho_L \rangle$ and
-    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \rho_R \rangle$, then, for any $a$ such that $\dual{a} \in \clause(\rho_L)$ and $a
-    \in \clause(\rho_R)$ and a new node $\rho$, the graph 
-    $\langle 
-    V_L \cup V_R \cup \{\rho\},
-    E_L \cup E_R \cup \{\rho \xrightarrow{\dual{a}} \rho_L, \rho \xrightarrow{a} \rho_R\}, 
-    \mathcal{A}_L \cup \mathcal{A}_R,
-    \clause,
-    \rho
-    \rangle$ where
-    \begin{equation*}
-      \clause(\eta) = \begin{cases}
-        \clause_L(\eta) & \eta \in V_L \\
-        \clause_R(\eta) & \eta \in V_R \\
-        (\clause_L(\rho_L) \setminus \{\dual{a}\}) \cup (\clause_R(\rho_R) \setminus \{a\}) &
-          \eta = \rho
-      \end{cases}
-    \end{equation*}
-    is a proof of $\clause(\rho)$ from $\mathcal{A}_L \cup \mathcal{A}_R$, and is denoted $\psi_L \odot_a \psi_R$.
+  \item If $\Gamma$ is a clause, $\axiom{\Gamma}$ denotes some proof $\langle \{ \n \}, \varnothing, \Gamma \} \rangle$, where $\n$ is a new node.
+  \item If $\psi_L$ is a proof $\langle V_L, E_L, \clause_L \rangle$ and
+    $\psi_R$ is a proof $\langle V_R, E_R, \clause_R \rangle$ and $a$ is an atom such that
+    $a \in \clause_L$ and $\neg a \in \clause_R$, then
+    $\psi_L \odot_a \psi_R$ denotes a proof 
+    $$\langle 
+    V_L \cup V_R \cup \{\n \},
+    E_L \cup E_R \cup \{\n \xrightarrow{a} \raiz{\psi_L}, \n \xrightarrow{\neg a} \raiz{\psi_R}\}, 
+    (\clause_L \setminus \{ a \}) \cup (\clause_R \setminus \{ \neg a\})
+    \rangle$$
+     where $\n$ is a new node and $\raiz{\varphi}$ denotes the root node of $\varphi$.
+%    \begin{equation*}
+%      \clause(\eta) = \begin{cases}
+%        \clause_L(\eta) = \clause_R(\eta) & \eta \in V_L \cap V_R \\
+%        \clause_L(\eta) & \eta \in V_L \\
+%        \clause_R(\eta) & \eta \in V_R \\
+%        (\clause_L(\rho_L) \setminus \{\neg a \}) \cup (\clause_R(\rho_R) \setminus \{a\}) &
+%          \eta = \rho
+%      \end{cases}
+%    \end{equation*}
   \qed
 \end{enumerate}
 \end{definition}
+
+
+%\begin{definition}[Proof] 
+%\label{def:proof}
+%A proof is a directed acyclic graph
+%$\langle 
+%V, 
+%E, 
+%\mathcal{A},
+%\clause, 
+%\rho
+%\rangle$, 
+%where $V$ is a set of nodes, $E \subset V \times \mathcal{L} \times V$, 
+%$\mathcal{A} \subset 2^\mathcal{L}$,
+%$\clause : V \longrightarrow 2^\mathcal{L}$, 
+%$\rho \in V$, and such that it is inductively constructible as follows:
+%\begin{enumerate}
+%  \item $\langle \{\rho\}, \varnothing, \{ \Gamma \}, \{ (\rho, \Gamma) \}, \varnothing,  \rho \rangle$ 
+%    is a proof of $\Gamma$ from $\{ \Gamma \}$.
+%  \item If $\psi_L$ is a proof $\langle V_L, E_L, \mathcal{A}_L, \clause_L, \rho_L \rangle$ and
+%    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \rho_R \rangle$, then, for any $a$ such that $\dual{a} \in \clause(\rho_L)$ and $a
+%    \in \clause(\rho_R)$ and a new node $\rho$, the graph 
+%    $\langle 
+%    V_L \cup V_R \cup \{\rho\},
+%    E_L \cup E_R \cup \{\rho \xrightarrow{\dual{a}} \rho_L, \rho \xrightarrow{a} \rho_R\}, 
+%    \mathcal{A}_L \cup \mathcal{A}_R,
+%    \clause,
+%    \rho
+%    \rangle$ where
+%    \begin{equation*}
+%      \clause(\eta) = \begin{cases}
+%        \clause_L(\eta) & \eta \in V_L \\
+%        \clause_R(\eta) & \eta \in V_R \\
+%        (\clause_L(\rho_L) \setminus \{\dual{a}\}) \cup (\clause_R(\rho_R) \setminus \{a\}) &
+%          \eta = \rho
+%      \end{cases}
+%    \end{equation*}
+%    is a proof of $\clause(\rho)$ from $\mathcal{A}_L \cup \mathcal{A}_R$, and is denoted $\psi_L \odot_a \psi_R$.
+%  \qed
+%\end{enumerate}
+%\end{definition}
 
 
 \BWP{ToDo: fix this paragraph} $E$ is the \emph{premise} or \emph{parent} relation. Its inverse relation is the \emph{child} relation and its
@@ -188,7 +240,8 @@ For all node $\eta$ different from $\rho$ there is a path from $\rho$ to $\eta$.
 
 \BWP{
 Most of these properties are trivial. Perhaps we shouldn't mention them.
-On the other hand, the converse does not seem so trivial. We would need to show that all these properties suffice. This lemma would be important, if we want to show a proof that fixing really converts a broken proof into a proof.
+On the other hand, the converse does not seem so trivial. We would need to show that all these properties suffice.
+ This lemma would be important, if we want to show a proof that fixing really converts a broken proof into a proof.
 }
 Conversely, if all those properties hold for a directed acyclic graph (DAG), then it is a proof,
 modulo the identity of inner nodes.
