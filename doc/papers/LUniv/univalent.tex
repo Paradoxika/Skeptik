@@ -9,6 +9,7 @@
 
 \usepackage{tikz}
 \usepackage{subfig}
+\usepackage{array,booktabs,multirow}
 
 \usepackage{logictools}
 \usepackage{prooftheory}
@@ -349,7 +350,7 @@ first traversal. As this traversal is bottom-up, units are stored in a queue. Th
 have been top-down and units stored in a stack. Units are effectively removed during a second,
 top-down traversal. The last step is the reintroduction of units.
 
-\begin{algorithm}[tb]
+\begin{algorithm}[bt]
   Units $\leftarrow \varnothing$ \;
 
   \For{every node $\eta$ in a bottom-up traversal}{
@@ -441,49 +442,32 @@ conclusion of $\eta$ is a subset of $\Delta \cup \{\ell\}$, the conclusion of $\
 a set of safe literals for $\varphi$ in $\psi$. \qed
 \end{proof}
 
-\begin{jb}
-What folow is the old definition. I'm not sure the new one is such better than this one.
-\end{jb}
-
-Let suppose a set $\{\eta_i\}_{i \in [0..n]}$ of subproofs has already been lowered resulting in a proof
-$\psi$ of $\Gamma$ such that
-\begin{equation} \label{eqn:before_LUniv}
-  \psi = \varphi \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
-\end{equation}
-with each $\eta_i$ having only one child in $\psi$. A subproof $\eta$ which is a parent of $\varphi$ but
-not a parent of any $\eta_i$ is lowerable if there is a literal $a$ and a proof $\psi'$ of
-$\Gamma$ such that
-\begin{equation}
-  \psi' = \psi[\varphi \leftarrow (\varphi[\setminus \eta] \odot_a \eta)]
-\end{equation}
-For clarity, we will consider that no $\eta_i$ is deleted during fixing. However the algorithm
-presented later takes into account the possibily that some of them could actually be deleted. This
-hypothesis having be added the previous equation can be rewritten
-\begin{equation} \label{eqn:after_LUniv}
-  \psi' = \varphi[\setminus \eta] \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
-\end{equation}
-
-Equation \ref{eqn:before_LUniv} states that the set $\Delta = \{\dual{a_i}\}_{i \in [0..n]}$
-represents the safe literals of $\varphi$ in $\psi$ and that the conclusion of $\varphi$ is included
-in $\Gamma \cup \Delta$. Equation \ref{eqn:after_LUniv} states that every literal in the conclusion
-of $\eta$ either is $a$ or belongs to $\Gamma \cup \Delta$. Similarly, every literal in the
-conclusion of $\varphi[\setminus \eta]$ either is $\dual{a}$ or belongs to $\Gamma \cup \Delta$.
-
-\begin{definition}[Univalent subproof]
-A subproof $\eta$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
-exactely one valent literal $a$ in $\psi$ and every literal in $\eta$'s conclusion either is $a$ or
-belongs to $\Delta$.
-\end{definition}
-
-In a proof $\psi$ verifying the equation \ref{eqn:before_LUniv}, a univalent subproof $\eta$ w.r.t. to
-$\{\dual{a_i}\}$ which is a parent of $\varphi$ but not the parent of any $\eta_i$ is lowerable.
-
 
 \section{Experiments}
 
 \begin{jb}
 LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
 \end{jb}
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    \multirow{2}{*}{Algorithm} & Nodes       & Axioms      & \multirow{2}{*}{Speed} \\
+                               & compression & compression & \\
+    \midrule
+    LU         &  7.5 \% &  0.0 \% & 21.7 n/ms \\
+    LUniv      &  8.0 \% &  0.8 \% &  7.6 n/ms \\
+    RPILU      & 22.3 \% &  3.6 \% &  8.3 n/ms \\
+    RPILUniv   & 22.4 \% &  3.6 \% &  5.0 n/ms \\
+    LURPI      & 21.9 \% &  3.1 \% & 15.2 n/ms \\
+    LUnivRPI   & 22.3 \% &  3.6 \% &  8.1 n/ms \\
+    Best LU    & 22.4 \% &  3.7 \% &  5.4 n/ms \\
+    Best LUniv & 22.5 \% &  3.8 \% &  3.1 n/ms \\
+    \bottomrule
+  \end{tabular}
+  \caption{Total compression ratios}
+\end{table}
 
 \include{LU_charts}
 \include{RPILU_charts}
