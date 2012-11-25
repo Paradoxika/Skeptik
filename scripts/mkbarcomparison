@@ -61,7 +61,7 @@ while (1)  {
     $max_x = $k if ($k > $max_x);
   };
 
-  last if (($max_x - $min_x) < (20*$opt_precision));
+  last if (($max_x - $min_x) < (16*$opt_precision));
 
   if (($data{$min_x} + $cumul_rm_min) < ($data{$max_x} + $cumul_rm_max)) {
     $cumul_rm_min += $data{$min_x};
