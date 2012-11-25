@@ -20,7 +20,7 @@ EOT
 EOT
   let h=$h+1
   let v=$v+1
-  mkcloudid -h "$h:$2" -v "$v:$3" -r 3 -d 0.1 all-final.csv
+  mkcloudid -h "$h:$2" -v "$v:$3" -r 3 -d 0.2 all-final.csv
   cat <<EOT
   } \\
   \subfloat[Nodes compression difference]{
