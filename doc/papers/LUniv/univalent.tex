@@ -7,6 +7,8 @@
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
+\usepackage{tikz}
+
 \usepackage{logictools}
 \usepackage{prooftheory}
 \usepackage{comment}
@@ -461,15 +463,14 @@ $\{\dual{a_i}\}$ which is a parent of $\varphi$ but not the parent of any $\eta_
 
 \section{Experiments}
 
-\JB{
-It could be a good idea to talk about the problem of measuring a proof.
-We could explain the use case of verifying a proof and how we plan to measure its complexity.
-}
-
-
 \begin{jb}
 LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
 \end{jb}
+
+\begin{figure}
+  \centering
+  \include{test}
+\end{figure}
 
 \section{Conclusions}
 
