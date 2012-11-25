@@ -26,7 +26,7 @@ our %EXPORT_TAGS = (
 # Interface
 ############################################################
 
-sub square_size { return  5 }
+sub square_size { return  2.5 }
 sub rec_width   { return 11 }
 sub rec_height  { return  4 }
 
