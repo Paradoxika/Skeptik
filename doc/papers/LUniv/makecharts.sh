@@ -5,7 +5,8 @@ export PERL5LIB=/home/jogo/gsoc/git/scripts
 
 function make_charts { # caption algo_h algo_v col_base_h col_base_v
   cat <<EOT
-\begin{figure}
+\begin{figure}[tbh]
+  \centering
   \subfloat[Nodes compression]{
     \centering
 EOT
@@ -13,19 +14,13 @@ EOT
   let v=$5+1
   mkcloudid -h "$h:$2" -v "$v:$3" -r 2 -d 0.2 all-final.csv
   cat <<EOT
-  }
+  } \qquad
   \subfloat[Unsat core compression]{
     \centering
 EOT
   let h=$h+1
   let v=$v+1
   mkcloudid -h "$h:$2" -v "$v:$3" -r 3 -d 0.1 all-final.csv
-  cat <<EOT
-  }
-  \subfloat[Duration in minutes]{
-    \centering
-EOT
-  mkcloudid -h "$4:$2" -v "$5:$3" -f 0.0000167 -d 10 all-final.csv
   cat <<EOT
   } \\
   \subfloat[Nodes compression difference]{
