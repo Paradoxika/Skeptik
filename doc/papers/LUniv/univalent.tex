@@ -8,6 +8,7 @@
 \def\defaultHypSeparation{\hskip.1in}
 
 \usepackage{tikz}
+\usepackage{subfig}
 
 \usepackage{logictools}
 \usepackage{prooftheory}
@@ -36,7 +37,7 @@
 
 
 
-
+%\includeonly{LU_charts}
 \begin{document}
 
 \maketitle
@@ -53,13 +54,30 @@ thousands of proofs produced by the SMT-Solver \veriT.
 
 \section{Introduction}
 
-Sat-solvers are among the most successful automated deduction tools available today. As standalone tools, they can already be applied to a wide range of problems, especially considering that, due to the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a propositional formula. And, nevertheless, despite the theoretical difficulty associated with NP problems, state-of-the-art sat-solving techniques perform surprisingly well in practice \cite{sat-competition}. With the aim of leveraging this efficiency, sat-solvers have been embedded into various other automated deduction tools that target problems described in more expressive logics. The most prominent examples are SMT-solvers \cite{veriT}, for checking satisfiability modulo theories for equality, linear arithmetic, bit-vectors, arrays and others. But more recently, interactive proof assistants \cite{isabelle-blanchette-boehme} and automated first-order \cite{spassT?MELIA?iProver?Vampire?} and even higher-order \cite{satallax} theorem provers have taken advantage of embedding sat-solvers too.
+Sat-solvers are among the most successful automated deduction tools available today. As standalone
+tools, they can already be applied to a wide range of problems, especially considering that, due to
+the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a
+propositional formula. And, nevertheless, despite the theoretical difficulty associated with NP
+problems, state-of-the-art sat-solving techniques perform surprisingly well in practice
+\cite{sat-competition}. With the aim of leveraging this efficiency, sat-solvers have been embedded
+into various other automated deduction tools that target problems described in more expressive
+logics. The most prominent examples are SMT-solvers \cite{veriT}, for checking satisfiability modulo
+theories for equality, linear arithmetic, bit-vectors, arrays and others. But more recently,
+interactive proof assistants \cite{isabelle-blanchette-boehme} and automated first-order
+\cite{spassT?MELIA?iProver?Vampire?} and even higher-order \cite{satallax} theorem provers have
+taken advantage of embedding sat-solvers too.
 
-In such a scenario, it is essential that sat-solvers output not only a \emph{yes} or \emph{no} answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability). For DPLL- and CDCL-based sat-solvers, propositional resolution is an excellent proof system, since refutations in this system can be generated with an acceptable efficiency overhead and they are detailed enough to allow easy implementation of efficient proof checkers.
+In such a scenario, it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
+answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability).
+For DPLL- and CDCL-based sat-solvers, propositional resolution is an excellent proof system, since
+refutations in this system can be generated with an acceptable efficiency overhead and they are
+detailed enough to allow easy implementation of efficient proof checkers.
 
 ToDo: unsat core, interpolants...
 
-With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to compress and improve such proofs in a post-processing stage. ToDo: briefly describe and list related work here.
+With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
+compress and improve such proofs in a post-processing stage. ToDo: briefly describe and list related
+work here.
 
 In this paper...  ToDo: modify and expand the abstract here\\
  describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
@@ -467,10 +485,10 @@ $\{\dual{a_i}\}$ which is a parent of $\varphi$ but not the parent of any $\eta_
 LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
 \end{jb}
 
-\begin{figure}
-  \centering
-  \include{test}
-\end{figure}
+\include{LU_charts}
+\include{RPILU_charts}
+\include{LURPI_charts}
+\include{best_charts}
 
 \section{Conclusions}
 
