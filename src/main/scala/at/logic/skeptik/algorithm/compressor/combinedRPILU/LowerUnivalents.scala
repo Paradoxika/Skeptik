@@ -50,13 +50,20 @@ package lowerableUnivalent {
     }
 
     private def isTheOnlyValentLiteral(remainingLiteral: Either[E,E], node: SequentProofNode, loweredPivots: MClause) = {
-      val (leftLiterals, rightLiterals) = (node.conclusion.ant.toSet -- loweredPivots.suc,
-                                           node.conclusion.suc.toSet -- loweredPivots.ant)
-      (leftLiterals.size, rightLiterals.size, remainingLiteral) match {
-        case (1,0,Left(literal))  if leftLiterals.head  == literal => literal =+: loweredPivots ; LowerableUnivalent(remainingLiteral)
-        case (0,1,Right(literal)) if rightLiterals.head == literal => loweredPivots += literal  ; LowerableUnivalent(remainingLiteral)
-        case _ => OrdinaryNode
+      val searchValent = (valent: E, lowered: collection.Set[E]) => (lit: E) => { (lit == valent) || (lowered contains lit) }
+      val (searchAnt, searchSuc) = remainingLiteral match {
+        case Left (v) => (searchValent(v, loweredPivots.suc), loweredPivots.ant.contains _)
+        case Right(v) => (loweredPivots.suc.contains _, searchValent(v, loweredPivots.ant))
       }
+
+      if (node.conclusion.ant.forall(searchAnt) && node.conclusion.suc.forall(searchSuc)) {
+        remainingLiteral match {
+          case Left (v) => v =+: loweredPivots
+          case Right(v) => loweredPivots += v
+        }
+        LowerableUnivalent(remainingLiteral)
+      } else
+        OrdinaryNode
     }
 
   } // object isLowerableUnivalent
