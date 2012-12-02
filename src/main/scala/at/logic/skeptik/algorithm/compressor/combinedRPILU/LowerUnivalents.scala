@@ -13,25 +13,19 @@ import scala.collection.Map
 
 package lowerableUnivalent {
 
-  abstract sealed class NodeKind
-  case class  LowerableUnivalent (val valentLiteral: Either[E,E]) extends NodeKind
-  case object DeletableNode extends NodeKind
-  case object OrdinaryNode  extends NodeKind
-
   object isLowerableUnivalent
   {
     def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
-              delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):NodeKind = {
+              delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
       val literals = activeLiteralsNotInLoweredPivots(oldNode, children, loweredPivots, delete)
   //      println("Remaining Literals " + literals)
       (literals.ant.size, literals.suc.size) match {
-        case (0,0) => DeletableNode
         case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newNode, loweredPivots)
         case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newNode, loweredPivots)
-        case _ => OrdinaryNode
+        case _ => None
       }
     }
-    def apply(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):NodeKind =
+    def apply(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):Option[Either[E,E]] =
         apply(node, node, children, loweredPivots)
 
     private def activeLiteralsNotInLoweredPivots(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
@@ -61,9 +55,9 @@ package lowerableUnivalent {
           case Left (v) => v =+: loweredPivots
           case Right(v) => loweredPivots += v
         }
-        LowerableUnivalent(remainingLiteral)
+        Some(remainingLiteral)
       } else
-        OrdinaryNode
+        None
     }
 
   } // object isLowerableUnivalent
@@ -83,7 +77,7 @@ extends AbstractRPILUAlgorithm {
       val newNode = fixProofNodes(edgesToDelete)(oldNode, fixedPremises)
       val children = proof.childrenOf(oldNode) filter { child => !edgesToDelete.isMarked(child, oldNode) }
       isLowerableUnivalent(newNode, oldNode, children, loweredPivots, edgesToDelete.markEdge) match {
-        case LowerableUnivalent(_) => univalents ::= newNode ; edgesToDelete.deleteNode(oldNode)
+        case Some(_) => univalents ::= newNode ; edgesToDelete.deleteNode(oldNode)
         case _ =>
       }
       newNode
@@ -140,12 +134,12 @@ extends AbstractThreePassLower {
 
     val rootSafeLiterals = proof.foldRight (IClause()) { (node, safeLiterals) =>
       isLowerableUnivalent(node, proof.childrenOf(node), loweredPivots) match {
-        case LowerableUnivalent(Left(l))  =>
+        case Some(Left(l))  =>
           orderedUnivalents ::= node
           univalentsValentLiteral.update(node, new IClause(Set(l),Set()))
           univalentsSafeLiterals.update(node, l +: safeLiterals)
           safeLiterals + l
-        case LowerableUnivalent(Right(l)) =>
+        case Some(Right(l)) =>
           orderedUnivalents ::= node
           univalentsValentLiteral.update(node, new IClause(Set(),Set(l)))
           univalentsSafeLiterals.update(node, safeLiterals + l)
