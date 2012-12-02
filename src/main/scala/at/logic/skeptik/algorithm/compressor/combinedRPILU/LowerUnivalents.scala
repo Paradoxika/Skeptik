@@ -13,20 +13,30 @@ import scala.collection.Map
 
 package lowerableUnivalent {
 
+  // TODO: rename private functions
+
   object isLowerableUnivalent
   {
     def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
               delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
       val literals = activeLiteralsNotInLoweredPivots(oldNode, children, loweredPivots, delete)
-  //      println("Remaining Literals " + literals)
       (literals.ant.size, literals.suc.size) match {
         case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newNode, loweredPivots)
         case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newNode, loweredPivots)
         case _ => None
       }
     }
-    def apply(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):Option[Either[E,E]] =
-        apply(node, node, children, loweredPivots)
+
+    def Napply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+              delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
+      val literals = cleanUpActiveLiterals(oldNode, children, loweredPivots, delete)
+      if (literals.isEmpty) None else isTheOnlyValentLiteral(literals.get, newNode, loweredPivots)
+    }
+
+    def apply(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):Option[Either[E,E]] = {
+      val literals = searchValentLiteral(node, children, loweredPivots)
+      if (literals.isEmpty) None else isTheOnlyValentLiteral(literals.get, node, loweredPivots)
+    }
 
     private def activeLiteralsNotInLoweredPivots(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
                                                  delete: (SequentProofNode,SequentProofNode) => Unit) = {
@@ -40,6 +50,67 @@ package lowerableUnivalent {
           case _ =>
           }
       }
+      result
+    }
+
+    private def cleanUpActiveLiterals(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+                                      delete: (SequentProofNode,SequentProofNode) => Unit) = {
+      val it = children.iterator
+      var result:Option[Either[E,E]] = None
+
+      // Search first valent literal
+      while (it.hasNext && result.isEmpty)
+        it.next match {
+          case child @ CutIC(left,  _, aux, _) if (left  == node) =>
+            if (loweredPivots.suc contains aux) delete(child,left)  else result = Some(Right(aux))
+          case child @ CutIC(_, right, aux, _) if (right == node) =>
+            if (loweredPivots.ant contains aux) delete(child,right) else result = Some(Left (aux))
+          case _ =>
+        }
+
+      // Ensure it's the only one
+      while (it.hasNext && !result.isEmpty)
+        it.next match {
+          case child @ CutIC(left,  _, aux, _) if (left  == node) && (Right(aux) != result.get) =>
+            if (loweredPivots.suc contains aux) delete(child,left)  else result = None
+          case child @ CutIC(_, right, aux, _) if (right == node) && (Left (aux) != result.get) =>
+            if (loweredPivots.ant contains aux) delete(child,right) else result = None
+          case _ =>
+        }
+
+      // Remove the last active literals
+      while (it.hasNext && result.isEmpty)
+        it.next match {
+          case child @ CutIC(left,  _, aux, _) if (left  == node) && (loweredPivots.suc contains aux) => delete(child,left)
+          case child @ CutIC(_, right, aux, _) if (right == node) && (loweredPivots.ant contains aux) => delete(child,right)
+          case _ =>
+        }
+
+      result
+    }
+
+                              
+
+    private def searchValentLiteral(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause) = {
+      val it = children.iterator
+      var result:Option[Either[E,E]] = None
+
+      // Search first valent literal
+      while (it.hasNext && result.isEmpty)
+        it.next match {
+          case CutIC(left,  _, aux, _) if (left  == node) && (!(loweredPivots.suc contains aux)) => result = Some(Right(aux))
+          case CutIC(_, right, aux, _) if (right == node) && (!(loweredPivots.ant contains aux)) => result = Some(Left (aux))
+          case _ =>
+        }
+
+      // Ensure it's the only one
+      while (it.hasNext && !result.isEmpty)
+        it.next match {
+          case CutIC(left,  _, aux, _) if (left  == node) && (!(loweredPivots.suc contains aux)) && (Right(aux) != result.get) => result = None
+          case CutIC(_, right, aux, _) if (right == node) && (!(loweredPivots.ant contains aux)) && (Left (aux) != result.get) => result = None
+          case _ =>
+        }
+
       result
     }
 
@@ -130,18 +201,18 @@ extends AbstractThreePassLower {
     val loweredPivots = MClause()
     var orderedUnivalents = List[SequentProofNode]()
     val univalentsSafeLiterals = MMap[SequentProofNode, IClause]()
-    val univalentsValentLiteral = MMap[SequentProofNode, IClause]()
+    val univalentsValentLiteral = MMap[SequentProofNode, Either[E,E]]()
 
     val rootSafeLiterals = proof.foldRight (IClause()) { (node, safeLiterals) =>
       isLowerableUnivalent(node, proof.childrenOf(node), loweredPivots) match {
-        case Some(Left(l))  =>
+        case Some(v @ Left(l))  =>
           orderedUnivalents ::= node
-          univalentsValentLiteral.update(node, new IClause(Set(l),Set()))
+          univalentsValentLiteral.update(node, v)
           univalentsSafeLiterals.update(node, l +: safeLiterals)
           safeLiterals + l
-        case Some(Right(l)) =>
+        case Some(v @ Right(l)) =>
           orderedUnivalents ::= node
-          univalentsValentLiteral.update(node, new IClause(Set(),Set(l)))
+          univalentsValentLiteral.update(node, v)
           univalentsSafeLiterals.update(node, safeLiterals + l)
           l +: safeLiterals
         case _ => safeLiterals
@@ -164,11 +235,12 @@ extends AbstractThreePassLower {
     if (edgesToDelete.isEmpty) proof else Proof({
       val fixMap = mapFixedProofNodes(orderedUnivalents.toSet + proof.root, edgesToDelete, proof)
       orderedUnivalents.foldLeft(fixMap(proof.root)) { (root, univalent) =>
-        val valentLiteral = univalentsValentLiteral(univalent)
-        if (valentLiteral.ant.isEmpty)
-          CutIC(fixMap(univalent), root, _ == valentLiteral.suc.head, true)
-        else
-          CutIC(root, fixMap(univalent), _ == valentLiteral.ant.head, true)
+        univalentsValentLiteral(univalent) match {
+          case Left(l) =>
+            CutIC(root, fixMap(univalent), _ == l, true)
+          case Right(l) =>
+            CutIC(fixMap(univalent), root, _ == l, true)
+          }
       }
     })
   }
