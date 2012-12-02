@@ -19,7 +19,7 @@ package lowerableUnivalent {
   {
     def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
               delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
-      val literals = activeLiteralsNotInLoweredPivots(oldNode, children, loweredPivots, delete)
+      val literals = cleanUpActiveLiterals(oldNode, children, loweredPivots, delete)
       (literals.ant.size, literals.suc.size) match {
         case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newNode, loweredPivots)
         case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newNode, loweredPivots)
@@ -27,18 +27,12 @@ package lowerableUnivalent {
       }
     }
 
-    def Napply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
-              delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
-      val literals = cleanUpActiveLiterals(oldNode, children, loweredPivots, delete)
-      if (literals.isEmpty) None else isTheOnlyValentLiteral(literals.get, newNode, loweredPivots)
-    }
-
     def apply(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause):Option[Either[E,E]] = {
       val literals = searchValentLiteral(node, children, loweredPivots)
       if (literals.isEmpty) None else isTheOnlyValentLiteral(literals.get, node, loweredPivots)
     }
 
-    private def activeLiteralsNotInLoweredPivots(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+    private def cleanUpActiveLiterals(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
                                                  delete: (SequentProofNode,SequentProofNode) => Unit) = {
       val result = MClause()
       children.foreach { (child) =>
@@ -53,43 +47,6 @@ package lowerableUnivalent {
       result
     }
 
-    private def cleanUpActiveLiterals(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
-                                      delete: (SequentProofNode,SequentProofNode) => Unit) = {
-      val it = children.iterator
-      var result:Option[Either[E,E]] = None
-
-      // Search first valent literal
-      while (it.hasNext && result.isEmpty)
-        it.next match {
-          case child @ CutIC(left,  _, aux, _) if (left  == node) =>
-            if (loweredPivots.suc contains aux) delete(child,left)  else result = Some(Right(aux))
-          case child @ CutIC(_, right, aux, _) if (right == node) =>
-            if (loweredPivots.ant contains aux) delete(child,right) else result = Some(Left (aux))
-          case _ =>
-        }
-
-      // Ensure it's the only one
-      while (it.hasNext && !result.isEmpty)
-        it.next match {
-          case child @ CutIC(left,  _, aux, _) if (left  == node) && (Right(aux) != result.get) =>
-            if (loweredPivots.suc contains aux) delete(child,left)  else result = None
-          case child @ CutIC(_, right, aux, _) if (right == node) && (Left (aux) != result.get) =>
-            if (loweredPivots.ant contains aux) delete(child,right) else result = None
-          case _ =>
-        }
-
-      // Remove the last active literals
-      while (it.hasNext && result.isEmpty)
-        it.next match {
-          case child @ CutIC(left,  _, aux, _) if (left  == node) && (loweredPivots.suc contains aux) => delete(child,left)
-          case child @ CutIC(_, right, aux, _) if (right == node) && (loweredPivots.ant contains aux) => delete(child,right)
-          case _ =>
-        }
-
-      result
-    }
-
-                              
 
     private def searchValentLiteral(node: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause) = {
       val it = children.iterator
