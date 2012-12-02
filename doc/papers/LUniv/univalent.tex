@@ -111,21 +111,22 @@ $\ell$ is written $|\ell|$ (i.e. $|p| = |\neg p| = p$). The set of all literals 
 
 \begin{definition}[Proof] 
 \label{def:proof}
-A directed acyclic graph $\langle V, E, \clause \rangle$, 
-where $V$ is a set of nodes and 
-$E$ is a set of edges labeled by literals (i.e. $E \subset V \times \mathcal{L} \times V$ and $\n_1 \xrightarrow{\ell} \n_2$ denotes an edge from node $\n_1$ to node $\n_2$ labeled by $\ell$), is a proof of a clause $c$ iff it is
-inductively constructible according to the following cases:
+A directed acyclic graph $\langle V, E, \clause \rangle$, where $V$ is a set of
+nodes and $E$ is a set of edges labeled by literals (i.e. $E \subset V \times
+\mathcal{L} \times V$ and $\n_1 \xrightarrow{\ell} \n_2$ denotes an edge from
+node $\n_1$ to node $\n_2$ labeled by $\ell$), is a proof of a clause $c$ iff
+it is inductively constructible according to the following cases:
 %
 \begin{enumerate}
   \item If $\Gamma$ is a clause, $\axiom{\Gamma}$ denotes some proof $\langle \{ \n \}, \varnothing, \Gamma \} \rangle$, where $\n$ is a new node.
   \item If $\psi_L$ is a proof $\langle V_L, E_L, \clause_L \rangle$ and
-    $\psi_R$ is a proof $\langle V_R, E_R, \clause_R \rangle$ and $a$ is an atom such that
-    $a \in \clause_L$ and $\neg a \in \clause_R$, then
-    $\psi_L \odot_a \psi_R$ denotes a proof 
+    $\psi_R$ is a proof $\langle V_R, E_R, \clause_R \rangle$ and $\ell$ is a literal such that
+    $\dual{\ell} \in \clause_L$ and $\ell \in \clause_R$, then
+    $\psi_L \odot_\ell \psi_R$ denotes a proof 
     $$\langle 
     V_L \cup V_R \cup \{\n \},
-    E_L \cup E_R \cup \{\n \xrightarrow{a} \raiz{\psi_L}, \n \xrightarrow{\neg a} \raiz{\psi_R}\}, 
-    (\clause_L \setminus \{ a \}) \cup (\clause_R \setminus \{ \neg a\})
+    E_L \cup E_R \cup \{\n \xrightarrow{\dual{\ell}} \raiz{\psi_L}, \n \xrightarrow{\ell} \raiz{\psi_R}\}, 
+    (\clause_L \setminus \{ \dual{\ell} \}) \cup (\clause_R \setminus \{ \ell \})
     \rangle$$
      where $\n$ is a new node and $\raiz{\varphi}$ denotes the root node of $\varphi$.
   \qed
