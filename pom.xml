@@ -2,7 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>at.logic</groupId>
-    <artifactId>skeptik_2.10.0-M5</artifactId>
+    <artifactId>skeptik_2.10</artifactId>
     <packaging>jar</packaging>
     <description>Skeptik</description>
     <url>http://github.com/Paradoxika/Skeptik</url>
@@ -35,17 +35,13 @@
         <encoding>UTF-8</encoding>
     </properties>
     <build>
+        <sourceDirectory>src/main/scala</sourceDirectory>
+        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.0.2</version>
-                <configuration>
-                    <args>
-                        <arg>-diagrams</arg>
-                        <arg>-implicits</arg>
-                    </args>
-                </configuration>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -55,6 +51,23 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <useFile>false</useFile>
+                    <disableXmlReport>true</disableXmlReport>
+                    <!-- If you have classpath issue like NoDefClassError,... -->
+                    <!-- useManifestOnlyJar>false</useManifestOnlyJar -->
+                    <includes>
+                        <include>**/*</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*.off</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <reporting>
@@ -62,7 +75,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.1.0</version>
             </plugin>
         </plugins>
     </reporting>
@@ -70,32 +83,28 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.10.0-M5</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.10.0-M5</artifactId>
-            <version>1.9-2.10.0-M5-B2</version>
-            <scope>compile</scope>
+            <version>2.10.0-RC3</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10.0-M5</artifactId>
-            <version>1.11</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_2.10.0-M5</artifactId>
-            <version>1.10.0</version>
-            <scope>compile</scope>
+            <artifactId>specs2_2.10</artifactId>
+            <version>1.12.3</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
-            <scope>compile</scope>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-actors</artifactId>
+            <version>2.10.0-RC3</version>
         </dependency>
     </dependencies>
 </project>
