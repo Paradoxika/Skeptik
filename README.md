@@ -26,7 +26,7 @@ If you face any difficulty, do not hesitate to contact us.
 
 ###Stats###
 
-* [![Build Status](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/badge/icon)](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/) (BuildHive currently does not support SBT 0.11.3. Therefore, the build status is outdated.)
+* [![Build Status](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/badge/icon)](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/)
 * [Ohloh](https://www.ohloh.net/p/Skeptik)
 
 
