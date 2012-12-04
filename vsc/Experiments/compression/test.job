@@ -7,4 +7,4 @@
 
 SLICE=$( printf 'slice.%02d' $SGE_TASK_ID )
 
-java -d64 -Xmx26624M -Xss1024M -jar ../../skeptik.jar -experiment --compression -a LU,LUniv_Op,3pass_LU,RPILUniv,LURPI,LUvRPI_Op -csv 2 $( cat "${SLICE}" )
+java -d64 -Xmx26624M -Xss1024M -jar ../../skeptik.jar -experiment --compression -a LU,LUniv,RPI[3]LU,RPI[3]LUniv,LU.RPI,LUnivRPI -csv 2 $( cat "${SLICE}" )
