@@ -3,7 +3,7 @@
 \usepackage{xcolor}
 \usepackage{enumitem,amsmath,amssymb}
 \usepackage{stmaryrd}    % needed for \mapsfrom
-\usepackage{algorithm2e}
+\usepackage[linesnumbered]{algorithm2e}
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
@@ -159,40 +159,14 @@ $$
 $$
 \end{definition}
 
-\begin{bwp}
-Advantages of the new definition of proof: 
-\begin{itemize}
-\item it is similar to the implementation: hat corresponds to an axiom inference, and odot corresponds to CutIC.
-\item it is simple and short.
-\item it is similar to the usual notion of resolution proofs that readers already have in mind.
-\end{itemize}
-
-Disadvantage: the notion of "new node" is a bit vague. But I think we can leave it like this.
-Analogously, the notion of "fresh skolem symbol" is also usually left vague.
-
-With this definition, I think it might be easier to define fixing inductively, in a manner similar
-to what we do in the implementation (although not necessarily immutably). We could use the notation
-$\psi \backslash (\varphi_1,\ldots, \varphi_n)$ to denote the result of fixing $\psi$ when the
-subproofs $\varphi_1, \ldots, \varphi_n$ have been marked for deletion.
-
-In general, I have the impression that it will be easier to avoid defining or working with "broken
-proofs" or DAGs that are not proofs. It is probably simpler and easier to work with a pair
-consisting of a proof and a list of nodes/subproofs "marked for deletion", as we do in our
-implementation\ldots  What do you think?
-
-Everything below this point still has to be updated to account for the new definition of proof
-\end{bwp}
-
-In the context of proof compression, deletion of nodes from a proof will be needed.
-
-  \SetKwFunction{Rec}{delete}
-  \newcommand{\fixL}{\Rec{$\varphi_L$,$D$}}
-  \newcommand{\fixR}{\Rec{$\varphi_R$,$D$}}
+\SetKwFunction{Rec}{delete}
 \begin{algorithm}[bt]
   \KwIn{$\varphi$ a subproof of $\psi$}
   \KwIn{$D$ a set of subproofs}
 
   \SetKw{Let}{let}
+  \newcommand{\fixL}{\ensuremath{\varphi'_L}}
+  \newcommand{\fixR}{\ensuremath{\varphi'_R}}
 
   \uIf{$\varphi \in D$ or $\raiz{\varphi}$ has no premises}{
     \Return{$\varphi$} \;
@@ -200,6 +174,8 @@ In the context of proof compression, deletion of nodes from a proof will be need
   \Else{
     \Let{$\varphi_L$, $\varphi_R$ and $\ell$} be such that
       $\varphi = \varphi_L \odot_\ell \varphi_R$ \;
+    \Let{$\varphi'_L = $ \Rec{$\varphi_L$,$D$}} \;
+    \Let{$\varphi'_R = $ \Rec{$\varphi_R$,$D$}} \;
     \uIf{$\varphi_L \in D$}
       { \Return{\fixR} \; }
     \uElseIf{$\varphi_R \in D$}
@@ -211,44 +187,45 @@ In the context of proof compression, deletion of nodes from a proof will be need
     \Else{ \Return{ \fixL~$\odot_\ell$~\fixR} \; }
   }
 
-  \label{algo:del}
   \caption[.]{\Rec{$\psi$,$D$}}
+  \label{algo:del}
 \end{algorithm}
 
+In the context of proof compression, deletion of nodes from a proof will be needed. Algorithm
+\ref{algo:del} describes the deletion operation used in this article. $\dn{\psi}{\varphi_1 \ldots
+\varphi_n}$ denotes \Rec{$\psi$,$\{\varphi_1, \ldots , \varphi_n\}$}. It can easily be proved by
+induction that $\dn{\psi}{A \cup B} = \dn{\left(\dn{\psi}{A}\right)}{B}$.
 
-\BWP{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
-necessarily a single node.}
-
-\begin{definition}[Safe literal]
-In a proof $\psi$ of $\Sigma$, a literal $p$ is safe for the node $\eta$ which conclusion is $\Gamma$ if
-for all proof $\varphi$ of $\Gamma \cup \{p\}$, $\psi[\eta \leftarrow \varphi]$ still proves $\Sigma$.
-\end{definition}
 
 \begin{definition}[Valent literal]
-In a proof $\psi$ of $\Sigma$, a literal $a$ is valent for the node $\eta$ if $\dual{a}$ belongs to
-the conclusion of $\psi[\setminus \eta]$ but not to the conclusion of $\psi$.
+In a proof $\psi$, a literal $\ell$ is valent for the subproof $\varphi$ if $\dual{\ell}$ belongs to
+the conclusion of $\dn{\psi}{\varphi}$ but not to the conclusion of $\psi$.
 \end{definition}
 
 \begin{proposition}
-In a proof $\psi$, a valent literal of a node $\eta$ is an active literal of $\eta$.
+In a proof $\psi$, a valent literal of a subproof $\varphi$ is an active literal of $\varphi$.
 \end{proposition}
 
 \begin{proof}
-If $a$ is a valent literal of $\eta$ then an edge with label $\dual{a}$ is removed by the deletion of
-$\eta$ in $\psi$. The proposition states that this edge is removed by applying the step 2 of fixing
-to a child of $\eta$ in $\psi$. We will prove that such an edge can't be deleted by any other step.
-First this edge can't be an edge pointing to $\eta$ because step 5 of fixing deletes $\eta$.
-It can't have been removed by step 1 of fixing because this step is never applied for deletion of a
-single node.
-It can't have been removed by step 4 because this step doesn't introduce any literal in any conclusion.
-It can't have been removed by step 5 because the edge has to be reachable from the root of $\psi$.
-Finally, the step 2 can't be applied to any other node but the children
-of $\eta$. \qed
+Lines 2, 12, 14 and 16 from Algo. \ref{algo:del} can't introduce a new literal in the conclusion of
+the subproof being processed. Let write $\ell$ for a valent literal of $\varphi$ in $\psi$. Because
+there is only one subproof to be deleted, $\dual{\ell}$ can only be introduced when processing a
+subproof $\varphi'$ such that $\raiz{\varphi'} \xrightarrow{\ell} \raiz{\varphi}$. \qed
 \end{proof}
 
-\JB{
-This last proposition and its proof are very important for LUniv. Should I make it a theorem ?
-}
+\begin{proposition}
+For all proof $\psi$ and a set $D$ of $\psi$'s subproofs, let $\Gamma$ be the conclusion of $\psi$,
+$\Gamma'$ the conclusion of $\dn{\psi}{D}$ and $\Delta$
+the set of valent literals of $D$'s subproofs,
+$$
+\Delta = \{ \ell \ | \ \exists \varphi \in D, \ \ell \text{ is a valent literal of } \varphi \text{ in } \psi \}
+$$
+then
+$$
+\Gamma' \setminus \Gamma \subseteq \Delta
+$$.
+\end{proposition}
+
 
 
 \section{LowerUnits}
