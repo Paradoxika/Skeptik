@@ -39,7 +39,7 @@
 
 
 
-%\includeonly{LU_charts}
+\includeonly{}
 \begin{document}
 
 \maketitle
@@ -139,16 +139,23 @@ it is inductively constructible according to the following cases:
 \newcommand{\Conclusion}[1]{c_{#1}}
 
 \noindent
-If $\n_1 \xrightarrow{\ell} \n_2$, then $\n_2$ is called a \emph{premise} of $\n_1$ and $\n_1$ is called a \emph{child} of $\n_2$. The transitive closures of the premise and child relations are, respectively, the \emph{ancestor} and \emph{descendent} relations. If $\psi = \varphi_L \odot \varphi_R$, then $\varphi_L$ and $\varphi_R$ are \emph{direct subproofs} of $\psi$. The transitive closure of the direct subproof relation is the \emph{subproof} relation.
-\BWP{Before submitting, we should check which of these relations we actually use in the paper and remove the ones that are not used.}  
-$\Vertices{\psi}$, $\Edges{\psi}$ and $\Conclusion{\psi}$ denote, respectively, the nodes, edges and the proven clause (conclusion) of $\psi$.
+If $\n_1 \xrightarrow{\ell} \n_2$, then $\n_2$ is called a \emph{premise} of $\n_1$ and $\n_1$ is
+called a \emph{child} of $\n_2$. The transitive closures of the premise and child relations are,
+respectively, the \emph{ancestor} and \emph{descendent} relations. If $\psi = \varphi_L \odot
+\varphi_R$, then $\varphi_L$ and $\varphi_R$ are \emph{direct subproofs} of $\psi$. The transitive
+closure of the direct subproof relation is the \emph{subproof} relation.
+%
+\BWP{Before submitting, we should check which of these relations we actually use in the paper and
+remove the ones that are not used.}  $\Vertices{\psi}$, $\Edges{\psi}$ and $\Conclusion{\psi}$
+denote, respectively, the nodes, edges and the proven clause (conclusion) of $\psi$.
 
 \newcommand{\Active}[2]{A_{#2}(#1)}
 \begin{definition}[Active literals]
 The set of active literals $\Active{\varphi}{\psi}$ of a subproof $\varphi$ of a proof $\psi$
 are the labels of edges coming into $\varphi$'s root: 
 $$
-\Active{\varphi}{\psi} = \{\ell \ | \ \exists \varsigma \in \Vertices{\psi}. \ \varsigma \xrightarrow{\ell} \raiz{\varphi} \}
+\Active{\varphi}{\psi} =
+  \{\ell \ | \ \exists \varsigma \in \Vertices{\psi}. \ \varsigma \xrightarrow{\ell} \raiz{\varphi} \}
 $$
 \end{definition}
 
@@ -160,146 +167,54 @@ Advantages of the new definition of proof:
 \item it is similar to the usual notion of resolution proofs that readers already have in mind.
 \end{itemize}
 
-Disadvantage: the notion of "new node" is a bit vague. But I think we can leave it like this. Analogously, the notion of "fresh skolem symbol" is also usually left vague.
+Disadvantage: the notion of "new node" is a bit vague. But I think we can leave it like this.
+Analogously, the notion of "fresh skolem symbol" is also usually left vague.
 
-With this definition, I think it might be easier to define fixing inductively, in a manner similar to what we do in the implementation (although not necessarily immutably). We could use the notation $\psi \backslash (\varphi_1,\ldots, \varphi_n)$ to denote the result of fixing $\psi$ when the subproofs $\varphi_1, \ldots, \varphi_n$ have been marked for deletion.
+With this definition, I think it might be easier to define fixing inductively, in a manner similar
+to what we do in the implementation (although not necessarily immutably). We could use the notation
+$\psi \backslash (\varphi_1,\ldots, \varphi_n)$ to denote the result of fixing $\psi$ when the
+subproofs $\varphi_1, \ldots, \varphi_n$ have been marked for deletion.
 
-In general, I have the impression that it will be easier to avoid defining or working with "broken proofs" or DAGs that are not proofs. It is probably simpler and easier to work with a pair consisting of a proof and a list of nodes/subproofs "marked for deletion", as we do in our implementation\ldots  What do you think?
+In general, I have the impression that it will be easier to avoid defining or working with "broken
+proofs" or DAGs that are not proofs. It is probably simpler and easier to work with a pair
+consisting of a proof and a list of nodes/subproofs "marked for deletion", as we do in our
+implementation\ldots  What do you think?
 
 Everything below this point still has to be updated to account for the new definition of proof
 \end{bwp}
 
-For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
-can easily be proved by induction.
+In the context of proof compression, deletion of nodes from a proof will be needed.
 
-\begin{property}
-\label{prop:proof_leaf}
-Axioms are leaves : $\Gamma \in \mathcal{A} \cap V \Leftrightarrow \forall \eta \in V ,~
-(\Gamma,\eta) \notin E$.
-\end{property}
+  \SetKwFunction{Rec}{delete}
+  \newcommand{\fixL}{\Rec{$\varphi_L$,$D$}}
+  \newcommand{\fixR}{\Rec{$\varphi_R$,$D$}}
+\begin{algorithm}[bt]
+  \KwIn{$\varphi$ a subproof of $\psi$}
+  \KwIn{$D$ a set of subproofs}
 
-\begin{property}
-Every inner node $\varsigma \in V \setminus \mathcal{A}$ has exactely two premises.
-\end{property}
+  \SetKw{Let}{let}
 
-\begin{property}
-\label{prop:proof_edges}
-If a node $\varsigma \in V$ has two premises $\eta_L$ and $\eta_R$ then
-\begin{equation*}
-f_E(\varsigma,\eta_L) = \overline{f_E(\varsigma,\eta_R)}
-\end{equation*}
-\end{property}
+  \uIf{$\varphi \in D$ or $\raiz{\varphi}$ has no premises}{
+    \Return{$\varphi$} \;
+  }
+  \Else{
+    \Let{$\varphi_L$, $\varphi_R$ and $\ell$} be such that
+      $\varphi = \varphi_L \odot_\ell \varphi_R$ \;
+    \uIf{$\varphi_L \in D$}
+      { \Return{\fixR} \; }
+    \uElseIf{$\varphi_R \in D$}
+      { \Return{\fixL} \; }
+    \uElseIf{$\dual{\ell} \notin \Conclusion{\fixL}$}
+      { \Return{\fixL} \; }
+    \uElseIf{$\ell \notin \Conclusion{\fixR}$}
+      { \Return{\fixR} \; }
+    \Else{ \Return{ \fixL~$\odot_\ell$~\fixR} \; }
+  }
 
-\begin{property}
-\label{prop:proof_conclusion}
-The conclusion of every node $\varsigma$ verifies
-\begin{equation*}
-  f_V(\varsigma) = \begin{cases}
-    \varsigma & \varsigma \text{ has no premise} \\
-    \bigcup_{(\varsigma,\eta) \in E}{f_V(\eta) \setminus f_E(\varsigma,\eta)} & \text{otherwise}
-  \end{cases}
-\end{equation*}
-\end{property}
+  \label{algo:del}
+  \caption[.]{\Rec{$\psi$,$D$}}
+\end{algorithm}
 
-\begin{property}
-Every active literal of a node $\eta$ belongs to $\eta$'s conclusion:
-\begin{equation*}
-  (\varsigma,\eta) \in E \Rightarrow f_E(\varsigma,\eta) \in f_V(\eta)
-\end{equation*}
-\end{property}
-
-\begin{property}
-For all node $\eta$ different from $\rho$ there is a path from $\rho$ to $\eta$.
-\end{property}
-
-\BWP{
-Most of these properties are trivial. Perhaps we shouldn't mention them.
-On the other hand, the converse does not seem so trivial. We would need to show that all these properties suffice.
- This lemma would be important, if we want to show a proof that fixing really converts a broken proof into a proof.
-}
-Conversely, if all those properties hold for a directed acyclic graph (DAG), then it is a proof,
-modulo the identity of inner nodes.
-
-\section{Basic Proof Transformations}
-
-
-Proof compression algorithms presented in this paper are local graph transformations.  But many
-simple graph transformations like deleting an edge may result in DAGs which aren't proofs anymore.
-An important class of such transformations are those which result in DAGs verifying the property
-\ref{prop:proof_edges} plus the following one.
-
-\begin{property}
-\label{prop:pseudo-proof}
-Every node has at most two premises.
-\end{property}
-
-\begin{definition}{Broken Proof}
-ToDo
-
-\end{definition}
-
-
-Such a DAG can be transformed into a proof by \emph{fixing} it as defined below.
-
-\begin{definition}[Fixing]
-Fixing a DAG $\langle V, E, f_V, f_E, \rho \rangle$ verifying properties \ref{prop:proof_edges} and
-\ref{prop:pseudo-proof} into a proof on $\mathcal{A}$ consist in applying recursively the following
-transformations until a fix-point is reached.
-\begin{enumerate}
-  \item Delete every node $\eta \in V \setminus \mathcal{A}$ which have no premise.
-  \item For every node $\varsigma$ which have exactely one premise $\eta$, replace every incoming
-    edge $(\theta,\varsigma)$ by $(\theta,\eta)$.
-  \item Replace $f_V$ by a function verifying the property \ref{prop:proof_conclusion}.
-  \item For every edge $(\varsigma,\eta)$ such that $f_E(\varsigma,\eta) \notin f_V(\eta)$, replace
-    every edge $(\theta,\varsigma) \in E$ by $(\theta,\eta)$.
-  \item Delete every node and every edge not reachable from $\rho$.
-  \qed
-\end{enumerate}
-\end{definition}
-\JB{
-Do you think we need a proof of that or is it obvious ?
-}
-
-
-With the help of this fixing operation, the deletion of a node in a proof and the replacement of a
-node by another one can easily be defined.
-
-\begin{definition}[Deletion of a node]
-Deleting a node $\eta$ in a proof $\psi$ consist in deleting every edge $(\varsigma,\eta) \in E$ and
-fixing the resulting DAG. It is written $\psi[\setminus \eta]$.
-\end{definition}
-
-\begin{definition}[Replacing a node]
-Replacing a node $\eta$ in a proof $\psi$ by a proof $\varphi$ with root $\rho$ consist in adding
-every nodes and edges from $\varphi$, replacing every edge $(\varsigma,\eta) \in E$ by
-$(\varsigma,\rho)$ and fixing the resulting DAG.  It is written $\psi[\eta \leftarrow \varphi]$.
-\end{definition}
-
-\begin{jb}
-The definition of the replacement is very informal. If you prefer a more formal one, here it is :\\
-Replacing a node $\eta$ in a proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ by a proof $\varphi =
-\langle V_\varphi,E_\varphi,f_{V_\varphi},f_{E_\varphi},\rho_\varphi \rangle$ consits in fixing the DAG
-$\langle V',E',f_V',f_E',\rho \rangle$ such that $f_V'$ is defined to verify the property
-\ref{prop:proof_conclusion} and
-\begin{equation*}
-  V' = (V \setminus \{\eta\}) \cup V_\varphi
-\end{equation*}
-\begin{equation*}
-  E' = (E \setminus \{(\varsigma,\eta)|\varsigma \in V\}) \cup E \cup
-       \{(\varsigma,\rho_\varphi)|(\varsigma,\eta) \in E\}
-\end{equation*}
-\begin{equation*}
-  f_V'(\varsigma,\theta) = \begin{cases}
-    f_V(\varsigma,\theta) & \varsigma \in E \text{ and } \theta \in E \\
-    f_{V_\varphi}(\varsigma,\theta) & \varsigma \in E_\varphi \text{ and } \theta \in E_\varphi \\
-    f_V(\varsigma,\eta) & \varsigma \in E \text{ and } \theta = \rho_\varphi
-  \end{cases}
-\end{equation*}
-\end{jb}
-
-Finaly, for the transformations to result in proof size compression the resulting proof's conclusion
-has to be equal or to subsume the original proof's conclusion. To help in proving such statement the
-concepts of safe literal (introduced in \cite{RP}) and of valent literal are defined.
 
 \BWP{In the definition of safe literal, note that $\varphi$ can be an arbitrary subproof... it is not
 necessarily a single node.}
