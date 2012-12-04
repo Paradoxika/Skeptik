@@ -30,10 +30,20 @@ If you face any difficulty, do not hesitate to contact us.
 * [Ohloh](https://www.ohloh.net/p/Skeptik)
 
 
+###Development Policy###
+
+Skeptik developers and contributors are encouraged to:
+ 
+ 1. fork from [Paradoxika/Skeptik](https://github.com/Paradoxika/Skeptik), 
+ 2. follow the [git flow](http://nvie.com/posts/a-successful-git-branching-model/) branching model in their own forks, 
+ 3. make pull requests when they have finished a feature or hotfix branch.
+
+Using the git flow model can be easier with the [gitflow extension for git](https://github.com/nvie/gitflow).
+
 ###Developers and Contributors###
 
- * Bruno Woltzenlogel Paleo (@Ceilican)
- * Joseph Boudou (@Jogo27)
+ * [Bruno Woltzenlogel Paleo](https://github.com/Ceilican/Skeptik)
+ * [Joseph Boudou](https://github.com/Jogo27/ResK-GSoC)
 
 
 ###Websites and Forums###

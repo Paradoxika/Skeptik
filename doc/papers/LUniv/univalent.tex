@@ -7,6 +7,10 @@
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
+\usepackage{tikz}
+\usepackage{subfig}
+\usepackage{array,booktabs,multirow}
+
 \usepackage{logictools}
 \usepackage{prooftheory}
 \usepackage{comment}
@@ -16,12 +20,13 @@
 \title{Propositional Resolution Proof Compression by Lowering Nodes}
 
 \author{
-  Joseph Boudou\inst{1}\thanks{This work was partly supported by the Google Summer of Code program.}
+  Joseph Boudou\inst{1}
+  \thanks{This work was supported by the Google Summer of Code program.}
   \and 
   Bruno Woltzenlogel Paleo\inst{2}
 }
 
-\authorrunning{P.\~Fontaine \and S.\~Merz \and B.\~Woltzenlogel Paleo}
+\authorrunning{J.\~Boudou \and B.\~Woltzenlogel Paleo}
 
 \institute{
   Universit\'e Paul Sabatier, Toulouse \\
@@ -34,30 +39,51 @@
 
 
 
-
+%\includeonly{LU_charts}
 \begin{document}
 
 \maketitle
 
 
 \begin{abstract}
-This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
-of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is
-able to lower not only units but also proof nodes containing non-unit clauses, provided that their
-literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
-compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
+This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI}
+for the compression of propositional resolution proofs. 
+The generalized algorithm, here called {\LowerUnivalents}, is
+able to lower not only units but also proof nodes containing non-unit clauses, 
+provided that their literals satisfy some additional conditions. 
+A formal proof that {\LowerUnivalents} always compresses more than {\LowerUnits} is shown, 
+and both algorithms are empirically compared on
 thousands of proofs produced by the SMT-Solver \veriT.
 \end{abstract}
 
+
+
 \section{Introduction}
 
-Sat-solvers are among the most successful automated deduction tools available today. As standalone tools, they can already be applied to a wide range of problems, especially considering that, due to the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a propositional formula. And, nevertheless, despite the theoretical difficulty associated with NP problems, state-of-the-art sat-solving techniques perform surprisingly well in practice \cite{sat-competition}. With the aim of leveraging this efficiency, sat-solvers have been embedded into various other automated deduction tools that target problems described in more expressive logics. The most prominent examples are SMT-solvers \cite{veriT}, for checking satisfiability modulo theories for equality, linear arithmetic, bit-vectors, arrays and others. But more recently, interactive proof assistants \cite{isabelle-blanchette-boehme} and automated first-order \cite{spassT?MELIA?iProver?Vampire?} and even higher-order \cite{satallax} theorem provers have taken advantage of embedding sat-solvers too.
+Sat-solvers are among the most successful automated deduction tools available today. As standalone
+tools, they can already be applied to a wide range of problems, especially considering that, due to
+the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a
+propositional formula. And, nevertheless, despite the theoretical difficulty associated with NP
+problems, state-of-the-art sat-solving techniques perform surprisingly well in practice
+\cite{sat-competition}. With the aim of leveraging this efficiency, sat-solvers have been embedded
+into various other automated deduction tools that target problems described in more expressive
+logics. The most prominent examples are SMT-solvers \cite{veriT}, for checking satisfiability modulo
+theories for equality, linear arithmetic, bit-vectors, arrays and others. But more recently,
+interactive proof assistants \cite{isabelle-blanchette-boehme} and automated first-order
+\cite{spassT?MELIA?iProver?Vampire?} and even higher-order \cite{satallax} theorem provers have
+taken advantage of embedding sat-solvers too.
 
-In such a scenario, it is essential that sat-solvers output not only a \emph{yes} or \emph{no} answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability). For DPLL- and CDCL-based sat-solvers, propositional resolution is an excellent proof system, since refutations in this system can be generated with an acceptable efficiency overhead and they are detailed enough to allow easy implementation of efficient proof checkers.
+In such a scenario, it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
+answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability).
+For DPLL- and CDCL-based sat-solvers, propositional resolution is an excellent proof system, since
+refutations in this system can be generated with an acceptable efficiency overhead and they are
+detailed enough to allow easy implementation of efficient proof checkers.
 
 ToDo: unsat core, interpolants...
 
-With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to compress and improve such proofs in a post-processing stage. ToDo: briefly describe and list related work here.
+With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
+compress and improve such proofs in a post-processing stage. ToDo: briefly describe and list related
+work here.
 
 In this paper...  ToDo: modify and expand the abstract here\\
  describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
@@ -67,7 +93,8 @@ literals satisfy some additional conditions. A formal proof that {\LowerUnivalen
 compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
 thousands of proofs produced by the SMT-Solver \veriT.
 
-ToDo: explain the organization of the paper here.
+ToDo: explain the organization of the paper here..
+
 
 
 \section{Propositional Resolution Calculus}
@@ -78,70 +105,69 @@ $\dual{\ell}$ (i.e. for any propositional variable $p$, $\dual{p} =
 $\ell$ is written $|\ell|$ (i.e. $|p| = |\neg p| = p$). The set of all literals is denoted $\mathcal{L}$. A \emph{clause} is a set of literals. $\bot$ denotes the \emph{empty clause}.
 
 
-\noindent
-A \emph{proof} of a clause $\Gamma$ from a set of clauses $\mathcal{A}$ is a
-directed acyclic graph where: leaves contain \emph{axioms} from $\mathcal{A}$;
-any inner node $\eta$ has exactly two outgoing edges to its \emph{premises} $\eta^L$ and $\eta^R$, and $\eta$'s clause is a resolvent of its premises' clauses; the edges are labeled by the premises'
-resolved literals; and there is a single \emph{root} node, containing clause $\Gamma$. A \emph{refutation} of $\mathcal{A}$ is a proof of $\bot$ from $\mathcal{A}$.
+\newcommand{\axiom}[1]{\hat{#1}}
+\newcommand{\n}{v}
+\newcommand{\raiz}[1]{\rho(#1)}
 
-
-\begin{definition}[Proof] \label{def:proof}
-A proof is a directed acyclic graph
-$\langle 
-V, 
-E, 
-\mathcal{A},
-\clause, 
-\rho
-\rangle$, 
-where $V$ is a set of nodes, $E \subset V \times \mathcal{L} \times V$, 
-$\mathcal{A} \subset 2^\mathcal{L}$,
-$\clause : V \longrightarrow 2^\mathcal{L}$, 
-$\rho \in V$, and such that it is inductively constructible as follows:
+\begin{definition}[Proof] 
+\label{def:proof}
+A directed acyclic graph $\langle V, E, \clause \rangle$, where $V$ is a set of
+nodes and $E$ is a set of edges labeled by literals (i.e. $E \subset V \times
+\mathcal{L} \times V$ and $\n_1 \xrightarrow{\ell} \n_2$ denotes an edge from
+node $\n_1$ to node $\n_2$ labeled by $\ell$), is a proof of a clause $c$ iff
+it is inductively constructible according to the following cases:
+%
 \begin{enumerate}
-  \item $\langle \{\rho\}, \varnothing, \{ \Gamma \}, \{ (\rho, \Gamma) \}, \varnothing,  \rho \rangle$ 
-    is a proof of $\Gamma$ from $\{ \Gamma \}$.
-  \item If $\psi_L$ is a proof $\langle V_L, E_L, \mathcal{A}_L, \clause_L, \rho_L \rangle$ and
-    $\psi_R$ is a proof $\langle V_R, E_R, \mathcal{A}_R, \clause_R, \rho_R \rangle$, then, for any $a$ such that $\dual{a} \in \clause(\rho_L)$ and $a
-    \in \clause(\rho_R)$ and a new node $\rho$, the graph 
-    $\langle 
-    V_L \cup V_R \cup \{\rho\},
-    E_L \cup E_R \cup \{\rho \xrightarrow{\dual{a}} \rho_L, \rho \xrightarrow{a} \rho_R\}, 
-    \mathcal{A}_L \cup \mathcal{A}_R,
-    \clause,
-    \rho
-    \rangle$ where
-    \begin{equation*}
-      \clause(\eta) = \begin{cases}
-        \clause_L(\eta) & \eta \in V_L \\
-        \clause_R(\eta) & \eta \in V_R \\
-        (\clause_L(\rho_L) \setminus \{\dual{a}\}) \cup (\clause_R(\rho_R) \setminus \{a\}) &
-          \eta = \rho
-      \end{cases}
-    \end{equation*}
-    is a proof of $\clause(\rho)$ from $\mathcal{A}_L \cup \mathcal{A}_R$, and is denoted $\psi_L \odot_a \psi_R$.
+  \item If $\Gamma$ is a clause, $\axiom{\Gamma}$ denotes some proof $\langle \{ \n \}, \varnothing, \Gamma \} \rangle$, where $\n$ is a new node.
+  \item If $\psi_L$ is a proof $\langle V_L, E_L, \clause_L \rangle$ and
+    $\psi_R$ is a proof $\langle V_R, E_R, \clause_R \rangle$ and $\ell$ is a literal such that
+    $\dual{\ell} \in \clause_L$ and $\ell \in \clause_R$, then
+    $\psi_L \odot_\ell \psi_R$ denotes a proof 
+    $$\langle 
+    V_L \cup V_R \cup \{\n \},
+    E_L \cup E_R \cup \{\n \xrightarrow{\dual{\ell}} \raiz{\psi_L}, \n \xrightarrow{\ell} \raiz{\psi_R}\}, 
+    (\clause_L \setminus \{ \dual{\ell} \}) \cup (\clause_R \setminus \{ \ell \})
+    \rangle$$
+     where $\n$ is a new node and $\raiz{\varphi}$ denotes the root node of $\varphi$.
   \qed
 \end{enumerate}
 \end{definition}
 
 
-\BWP{ToDo: fix this paragraph} $E$ is the \emph{premise} or \emph{parent} relation. Its inverse relation is the \emph{child} relation and its
-transitive closure is the \emph{ancestor} relation.  
+\newcommand{\Vertices}[1]{V_{#1}}
+\newcommand{\Edges}[1]{E_{#1}}
+\newcommand{\Conclusion}[1]{c_{#1}}
 
-As the premises are unordered $\psi_L \odot_a \psi_R$ denotes the same proof as $\psi_R
-\odot_{\dual{a}} \psi_L$.  Furthermore, nodes are uniquely defined by their premises and conclusion.
-Each node $\eta$ of a proof is a subproof of its conclusion $f_V(\eta)$.  Hence there is a bijection
-between nodes and proofs and in the following the distinction between them will sometimes be eluded
-for the sake of clarity.
+\noindent
+If $\n_1 \xrightarrow{\ell} \n_2$, then $\n_2$ is called a \emph{premise} of $\n_1$ and $\n_1$ is called a \emph{child} of $\n_2$. The transitive closures of the premise and child relations are, respectively, the \emph{ancestor} and \emph{descendent} relations. If $\psi = \varphi_L \odot \varphi_R$, then $\varphi_L$ and $\varphi_R$ are \emph{direct subproofs} of $\psi$. The transitive closure of the direct subproof relation is the \emph{subproof} relation.
+\BWP{Before submitting, we should check which of these relations we actually use in the paper and remove the ones that are not used.}  
+$\Vertices{\psi}$, $\Edges{\psi}$ and $\Conclusion{\psi}$ denote, respectively, the nodes, edges and the proven clause (conclusion) of $\psi$.
 
+\newcommand{\Active}[2]{A_{#2}(#1)}
 \begin{definition}[Active literals]
-The set of active literals $A_{\psi}(\eta)$ of a node $\eta$ in a proof $\psi$
-% = \langle V,E,f_V,f_E,\rho \rangle$ are the
-are the labels of $\eta$'s incoming edges: 
+The set of active literals $\Active{\varphi}{\psi}$ of a subproof $\varphi$ of a proof $\psi$
+are the labels of edges coming into $\varphi$'s root: 
 $$
-A_{\psi}(\eta) = \{a \ | \ \exists \varsigma \in \psi. \ \varsigma \xrightarrow{a} \eta \}
+\Active{\varphi}{\psi} = \{\ell \ | \ \exists \varsigma \in \Vertices{\psi}. \ \varsigma \xrightarrow{\ell} \raiz{\varphi} \}
 $$
 \end{definition}
+
+\begin{bwp}
+Advantages of the new definition of proof: 
+\begin{itemize}
+\item it is similar to the implementation: hat corresponds to an axiom inference, and odot corresponds to CutIC.
+\item it is simple and short.
+\item it is similar to the usual notion of resolution proofs that readers already have in mind.
+\end{itemize}
+
+Disadvantage: the notion of "new node" is a bit vague. But I think we can leave it like this. Analogously, the notion of "fresh skolem symbol" is also usually left vague.
+
+With this definition, I think it might be easier to define fixing inductively, in a manner similar to what we do in the implementation (although not necessarily immutably). We could use the notation $\psi \backslash (\varphi_1,\ldots, \varphi_n)$ to denote the result of fixing $\psi$ when the subproofs $\varphi_1, \ldots, \varphi_n$ have been marked for deletion.
+
+In general, I have the impression that it will be easier to avoid defining or working with "broken proofs" or DAGs that are not proofs. It is probably simpler and easier to work with a pair consisting of a proof and a list of nodes/subproofs "marked for deletion", as we do in our implementation\ldots  What do you think?
+
+Everything below this point still has to be updated to account for the new definition of proof
+\end{bwp}
 
 For any proof $\psi = \langle V,E,f_V,f_E,\rho \rangle$ on $\mathcal{A}$, the following properties
 can easily be proved by induction.
@@ -188,7 +214,8 @@ For all node $\eta$ different from $\rho$ there is a path from $\rho$ to $\eta$.
 
 \BWP{
 Most of these properties are trivial. Perhaps we shouldn't mention them.
-On the other hand, the converse does not seem so trivial. We would need to show that all these properties suffice. This lemma would be important, if we want to show a proof that fixing really converts a broken proof into a proof.
+On the other hand, the converse does not seem so trivial. We would need to show that all these properties suffice.
+ This lemma would be important, if we want to show a proof that fixing really converts a broken proof into a proof.
 }
 Conversely, if all those properties hold for a directed acyclic graph (DAG), then it is a proof,
 modulo the identity of inner nodes.
@@ -329,7 +356,7 @@ first traversal. As this traversal is bottom-up, units are stored in a queue. Th
 have been top-down and units stored in a stack. Units are effectively removed during a second,
 top-down traversal. The last step is the reintroduction of units.
 
-\begin{algorithm}[tb]
+\begin{algorithm}[bt]
   Units $\leftarrow \varnothing$ \;
 
   \For{every node $\eta$ in a bottom-up traversal}{
@@ -369,88 +396,97 @@ better than LU.RPI).
 This is still a draft that have to be completely rewritten.
 \end{jb}
 
-{\LowerUnits} obviously doesn't lower every lowerable nodes. In particular, it doesn't take into
-account the already lowered nodes. For instance, if a unit $\upsilon$ with conclusion $\{a\}$ has already been
-lowered, a node $\eta$ with conclusion $\{\dual{a},b\}$ may be lowered too and reintroduced above
-$\upsilon$. To state which conditions $\eta$ has to satisfy to be lowered without changing the
+{\LowerUnits} obviously doesn't lower every lowerable subproofs. In particular, it doesn't take into
+account the already lowered subproofs. For instance, if a unit $\upsilon$ proving $\{a\}$ has
+already been lowered, a subproof $\eta$ of $\{\dual{a},b\}$ may be lowered too and reintroduced
+above $\upsilon$. To state which conditions $\eta$ must satisfy to be lowered without changing the
 proof's conclusion, the lower problem has to be redefined as follow.
 
-\begin{definition}[Lowerable node]
-Given a proof $\psi$ of $\Gamma$ and a subproof $\varphi$, a node $\eta$ of $\varphi$ is lowerable
-below $\varphi$ if there exists a literal $a$ and a proof $\psi'$ of $\Gamma' \subseteq
+\begin{definition}[Lowerable subproof]
+Given a proof $\psi$ of $\Gamma$ and a subproof $\varphi$, a subproof $\eta$ from $\varphi$ is lowerable
+below $\varphi$ if there exists a literal $\ell$ and a proof $\psi'$ of $\Gamma' \subseteq
 \Gamma$ such that
 \begin{equation}
-  \psi' = \psi[\varphi \leftarrow (\varphi[\setminus \eta] \odot_a \eta)]
+  \psi' = \rn{\psi}{\varphi}{\left(\dn{\varphi}{\eta}\right) \odot_\ell \eta}
 \end{equation}
 \end{definition}
-The previous definition is very general. The lowerable node introduction presented in the previous
-Section can be obtained when $\varphi = \psi$. In the context of proof compression, lowering a node
-is wanted to reduce the number of $\eta$'s children. For instance, it could be required that every
-path from the root of $\psi$ to $\eta$ goes through the root of $\varphi$. In this case, $\eta$ is
-guaranted to have only one child in $\psi'$.
+The previous definition is very general. The lowerable subproof introduction presented in the
+previous Section can be obtained when $\varphi = \psi$. In the context of proof compression,
+lowering a subproof is wanted to reduce the number of $\eta$'s root's children. For instance, it
+could be required that every path from the root of $\psi$ to the root of $\eta$ goes through the
+root of $\varphi$. In this case, $\eta$'s root is guaranted to have only one child in $\psi'$.
 
 \begin{definition}[Lowered part]
-In a proof $\psi$ with a subproof $\varphi$, the pair $\langle L,\Delta \rangle$ in which $L$ is a
-sequence $(\eta_1,\cdots,\eta_n)$ of proofs and $\Delta$ a sequence $(a_1,\cdots,a_n)$ of literals
-is a lowered part of $\psi$ below $\varphi$ if
+If a proof $\psi$ can be written as
 \begin{equation}
-  \psi = \varphi \odot_{a_n} \eta_n \cdots \odot_{a_1} \eta_1
+  \psi = \eta_1 \odot_{\ell_1} ( \eta_2 \odot_{\ell_2} ( \ldots (\eta_n \odot_{\ell_n} \varphi)
+          \ldots ))
 \end{equation}
+then the pair $\langle L,\Delta \rangle$ in which $L$ is the sequence $(\eta_1,\ldots,\eta_n)$ of
+proofs and $\Delta$ the sequence $(\ell_1,\ldots,\ell_n)$ of literals is called a lowered part of
+$\psi$ below $\varphi$.
 \end{definition}
 Once again this is a broad definition. In the context of proof compression the root of each proof
 $\eta_i \in L$ would usualy have exactely one child in $\psi$.
 
-
-
-\begin{jb}
-What folow is the old definition. I'm not sure the new one is such better than this one.
-\end{jb}
-
-Let suppose a set $\{\eta_i\}_{i \in [0..n]}$ of nodes has already been lowered resulting in a proof
-$\psi$ of $\Gamma$ such that
-\begin{equation} \label{eqn:before_LUniv}
-  \psi = \varphi \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
-\end{equation}
-with each $\eta_i$ having only one child in $\psi$. A node $\eta$ which is a parent of $\varphi$ but
-not a parent of any $\eta_i$ is lowerable if there is a literal $a$ and a proof $\psi'$ of
-$\Gamma$ such that
-\begin{equation}
-  \psi' = \psi[\varphi \leftarrow (\varphi[\setminus \eta] \odot_a \eta)]
-\end{equation}
-For clarity, we will consider that no $\eta_i$ is deleted during fixing. However the algorithm
-presented later takes into account the possibily that some of them could actually be deleted. This
-hypothesis having be added the previous equation can be rewritten
-\begin{equation} \label{eqn:after_LUniv}
-  \psi' = \varphi[\setminus \eta] \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n
-\end{equation}
-
-Equation \ref{eqn:before_LUniv} states that the set $\Delta = \{\dual{a_i}\}_{i \in [0..n]}$
-represents the safe literals of $\varphi$ in $\psi$ and that the conclusion of $\varphi$ is included
-in $\Gamma \cup \Delta$. Equation \ref{eqn:after_LUniv} states that every literal in the conclusion
-of $\eta$ either is $a$ or belongs to $\Gamma \cup \Delta$. Similarly, every literal in the
-conclusion of $\varphi[\setminus \eta]$ either is $\dual{a}$ or belongs to $\Gamma \cup \Delta$.
-
-\begin{definition}[Univalent node]
-A node $\eta$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
-exactely one valent literal $a$ in $\psi$ and every literal in $\eta$'s conclusion either is $a$ or
-belongs to $\Delta$.
+\begin{definition}[Univalent subproof]
+A subproof $\eta$ of $\Gamma$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
+exactely one valent literal $\ell$ in $\psi$ and $\Gamma \subseteq \Delta \cup \left\{ \ell
+\right\}$.
 \end{definition}
 
-In a proof $\psi$ verifying the equation \ref{eqn:before_LUniv}, a univalent node $\eta$ w.r.t. to
-$\{\dual{a_i}\}$ which is a parent of $\varphi$ but not the parent of any $\eta_i$ is lowerable.
+\begin{proposition}
+If $\langle L,\Delta \rangle$ is a lowered part of $\psi$ below $\varphi$ and $\eta$ a subproof of
+$\varphi$ which is univalent in $\varphi$ w.r.t. $\Delta$, then $\eta$ is lowerable in $\psi$ below $\varphi$.
+\end{proposition}
+
+\begin{proof}
+Let call $\Gamma$ the conclusion of $\varphi$.  The only valent literal of $\eta$ in $\varphi$ being
+$\ell$, the conclusion of $\dn{\varphi}{\eta}$ is a subset of $\Gamma \cup \{\dual{\ell}\}$. As the
+conclusion of $\eta$ is a subset of $\Delta \cup \{\ell\}$, the conclusion of $\left(
+\dn{\varphi}{\eta} \right) \odot_\ell \eta$ is a subset of $\Gamma \cup \Delta$. Finaly, $\Delta$ is
+a set of safe literals for $\varphi$ in $\psi$. \qed
+\end{proof}
 
 
 \section{Experiments}
 
-\JB{
-It could be a good idea to talk about the problem of measuring a proof.
-We could explain the use case of verifying a proof and how we plan to measure its complexity.
-}
-
-
 \begin{jb}
 LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
 \end{jb}
+
+
+\BWP{1) If possible, add RP and RPI to this table too. Otherwise we will only be comparing our own algorithms.}
+\BWP{2) Also, it seems that we are only showing the non-sequential combinations here (or is RPILU actually "RPI.LU"??). If we could also show the sequential combinations, we would compare their speeds and show that the non-sequential combinations are faster, and that LUniv contributed to this.}
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{lrrr}
+    \toprule
+    \multirow{2}{*}{Algorithm} & Nodes       & Axioms      & \multirow{2}{*}{Speed} \\
+                               & compression & compression & \\
+    \midrule
+    LU         &  7.5 \% &  0.0 \% & 21.7 n/ms \\
+    LUniv      &  8.0 \% &  0.8 \% &  7.6 n/ms \\
+    RPILU      & 22.3 \% &  3.6 \% &  8.3 n/ms \\
+    RPILUniv   & 22.4 \% &  3.6 \% &  5.0 n/ms \\
+    LURPI      & 21.9 \% &  3.1 \% & 15.2 n/ms \\
+    LUnivRPI   & 22.3 \% &  3.6 \% &  8.1 n/ms \\
+    Best LU    & 22.4 \% &  3.7 \% &  5.4 n/ms \\
+    Best LUniv & 22.5 \% &  3.8 \% &  3.1 n/ms \\
+    \bottomrule
+  \end{tabular}
+  \caption{Total compression ratios}
+\end{table}
+
+\BWP{3) So, LUniv is about 3 times slower than LU. Can we blame implementation details (e.g. the fact that we use lists instead of sets for conclusion clauses) for this?}
+
+\BWP{4) I think you forgot to push the files with charts}
+
+
+\include{LU_charts}
+\include{RPILU_charts}
+\include{LURPI_charts}
+\include{best_charts}
 
 \section{Conclusions}
 
