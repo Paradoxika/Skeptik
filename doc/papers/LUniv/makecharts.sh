@@ -1,7 +1,7 @@
 #! /bin/bash
 
-PATH=/home/jogo/gsoc/git/scripts/:$PATH
-export PERL5LIB=/home/jogo/gsoc/git/scripts
+PATH=../../../scripts/:$PATH
+export PERL5LIB=../../../scripts
 
 function make_charts { # caption algo_h algo_v col_base_h col_base_v
   cat <<EOT
