@@ -3,7 +3,7 @@
 \usepackage{xcolor}
 \usepackage{enumitem,amsmath,amssymb}
 \usepackage{stmaryrd}    % needed for \mapsfrom
-\usepackage[linesnumbered]{algorithm2e}
+\usepackage[linesnumbered,boxed,noline,noend]{algorithm2e}
 \usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
@@ -160,41 +160,58 @@ $$
 \end{definition}
 
 \SetKwFunction{Rec}{delete}
+\SetKw{Let}{let}
+
 \begin{algorithm}[bt]
   \KwIn{$\varphi$ a subproof of $\psi$}
   \KwIn{$D$ a set of subproofs}
+  \BlankLine
 
-  \SetKw{Let}{let}
   \newcommand{\fixL}{\ensuremath{\varphi'_L}}
   \newcommand{\fixR}{\ensuremath{\varphi'_R}}
 
   \uIf{$\varphi \in D$ or $\raiz{\varphi}$ has no premises}{
     \Return{$\varphi$} \;
   }
+  \BlankLine
+
   \Else{
     \Let{$\varphi_L$, $\varphi_R$ and $\ell$} be such that
       $\varphi = \varphi_L \odot_\ell \varphi_R$ \;
     \Let{$\varphi'_L = $ \Rec{$\varphi_L$,$D$}} \;
     \Let{$\varphi'_R = $ \Rec{$\varphi_R$,$D$}} \;
+    \BlankLine
+
     \uIf{$\varphi_L \in D$}
       { \Return{\fixR} \; }
     \uElseIf{$\varphi_R \in D$}
       { \Return{\fixL} \; }
+    \BlankLine
+
     \uElseIf{$\dual{\ell} \notin \Conclusion{\fixL}$}
       { \Return{\fixL} \; }
     \uElseIf{$\ell \notin \Conclusion{\fixR}$}
       { \Return{\fixR} \; }
+    \BlankLine
+
     \Else{ \Return{ \fixL~$\odot_\ell$~\fixR} \; }
   }
 
-  \caption[.]{\Rec{$\psi$,$D$}}
+  \caption[.]{\FuncSty{delete}}
   \label{algo:del}
 \end{algorithm}
 
 In the context of proof compression, deletion of nodes from a proof will be needed. Algorithm
 \ref{algo:del} describes the deletion operation used in this article. $\dn{\psi}{\varphi_1 \ldots
-\varphi_n}$ denotes \Rec{$\psi$,$\{\varphi_1, \ldots , \varphi_n\}$}. It can easily be proved by
-induction that $\dn{\psi}{A \cup B} = \dn{\left(\dn{\psi}{A}\right)}{B}$.
+\varphi_n}$ denotes \Rec{$\psi$,$\{\varphi_1, \ldots , \varphi_n\}$}.
+
+\begin{proposition} \label{prop:del_assoc}
+\JB{ Proof: by induction }
+For any proof $\psi$ and any sets $A$ and $B$ of $\psi$'s subproofs,
+either $\dn{\psi}{A \cup B}  \in A \cup B$
+and    $\dn{\dn{\psi}{A}}{B} \in A \cup B$,
+or     $\dn{\psi}{A \cup B} = \dn{\dn{\psi}{A}}{B}$.
+\end{proposition}
 
 
 \begin{definition}[Valent literal]
@@ -214,69 +231,65 @@ subproof $\varphi'$ such that $\raiz{\varphi'} \xrightarrow{\ell} \raiz{\varphi}
 \end{proof}
 
 \begin{proposition}
-For all proof $\psi$ and a set $D$ of $\psi$'s subproofs, let $\Gamma$ be the conclusion of $\psi$,
-$\Gamma'$ the conclusion of $\dn{\psi}{D}$ and $\Delta$
-the set of valent literals of $D$'s subproofs,
-$$
-\Delta = \{ \ell \ | \ \exists \varphi \in D, \ \ell \text{ is a valent literal of } \varphi \text{ in } \psi \}
-$$
-then
-$$
-\Gamma' \setminus \Gamma \subseteq \Delta
-$$.
+\JB{ Proof: from Prop. \ref{prop:del_assoc} }
+Given a proof $\psi$ and a set $D = \{\varphi_1 \ldots \varphi_n\}$ of $\psi$'s subproofs, $\forall
+\ell \in \mathcal{L}$ s.t. $\ell$ is in the conclusion of $\dn{\psi}{D}$ but not in $\psi$'s
+conclusion, then $\exists i$ s.t. $\dual{\ell}$ is a valent literal of $\varphi_i$ in $\psi$.
 \end{proposition}
 
 
 
 \section{LowerUnits}
 
-When a node $\eta$ as more than one child in a proof $\psi$ it might be convenient to factor the
-corresponding resolutions. Lowering $\eta$ is such a factorisation. A new equivalent proof is
-constructed by removing $\eta$ from $\psi$, fixing the resulting DAG and then reintroducing $\eta$
-at the bottom of the proof. Formaly, a node $\eta$ in a proof $\psi$ of $\Gamma$ can be lowered if
-there exists a proof $\psi'$ of $\Gamma$ and a literal $a$ such that $\psi' = \psi[\setminus \eta]
-\odot_a \eta$.
+When the root node of a subproof $\varphi$ as more than one child in a proof $\psi$ it might be
+convenient to factor the corresponding resolutions. Lowering $\varphi$ is such a factorisation. A
+new equivalent proof is constructed by removing $\varphi$ from $\psi$ and reintroducing it at the
+bottom of the proof. Formaly, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists
+a proof $\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
+$\Conclusion{\psi'} \subseteq \Conclusion{\psi}$.
 
-These idea has been introduce in \cite{LURPI} for the {\LowerUnits} algorithm. Units are nodes with a
-conclusion consisting of only one literal. Such nodes can always be lowered. The proposed algorithm
-lowers every unit with more than one child. Care is taken to reintroduce units in an order
-corresponding to the transitive closure of the premise relation : if a unit $\eta$ is a parent of a
-unit $\varsigma$ then $\eta$ has to be reintroduced after (ie below) $\varsigma$.
+These idea has been introduce in \cite{LURPI} for the {\LowerUnits} algorithm. Units are subproofs
+with a conclusion consisting of only one literal. Such a subproof can always be lowered. The
+proposed algorithm lowers every unit with more than one child. Care is taken to reintroduce units in
+an order corresponding to the ancestor relation : if a unit $\varphi_2$ is an ancestor of a unit
+$\varphi_1$ then $\varphi_2$ has to be reintroduced after (ie below) $\varphi_1$.
 
-A possible presentation of {\LowerUnits} is shown in Algorithm \ref{algo:LU}. Units are collected during a
-first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal could
-have been top-down and units stored in a stack. Units are effectively removed during a second,
+A possible presentation of {\LowerUnits} is shown in Algorithm \ref{algo:LU}. Units are collected
+during a first traversal. As this traversal is bottom-up, units are stored in a queue. The traversal
+could have been top-down and units stored in a stack. Units are effectively removed during a second,
 top-down traversal. The last step is the reintroduction of units.
 
 \begin{algorithm}[bt]
-  Units $\leftarrow \varnothing$ \;
+  \KwIn {a proof $\psi$}
+  \KwOut{a compressed proof $\psi'$}
+  \BlankLine
 
-  \For{every node $\eta$ in a bottom-up traversal}{
-    \If{$\eta$ is a unit with more than one child}{Enqueue $\eta$ in Units \; }
+  \SetKwData{Units}{Units}
+  \Units $\leftarrow \varnothing$ \;
+  \BlankLine
+
+  \For{every subproof $\varphi$ in a bottom-up traversal}{
+    \If{$\varphi$ is a unit and its root has more than one child}{Enqueue $\varphi$ in \Units \; }
+  }
+  \BlankLine
+
+  $\psi' \leftarrow $ \Rec{$\psi$,$\Units$} \;
+  \BlankLine
+
+  \For{every unit $\varphi$ in \Units}{
+    \Let{$\{\ell\} = \Conclusion{\varphi}$} \;
+    \lIf{$\dual{\ell} \in \Conclusion{\psi'}$}{
+    $\psi' \leftarrow \psi' \odot_\ell \varphi$ \;}
   }
 
-  \For{every node $\varsigma$ in a top-down traversal}{
-    \uIf{a premise of $\varsigma$ belongs to Units}{
-      Replace $\varsigma$ by the other premise \; }
-    \Else{
-      Recompute $\varsigma$'s conclusion based on the current premises \; }
-  }
-
-  $\rho \leftarrow$ the new root of the proof \;
-  \For{every unit $\upsilon$ in Units}{
-    Let $\{u\}$ be $\upsilon$'s conclusion \;
-    \lIf{$\rho$'s conclusion contains $\dual{u}$}{
-    $\rho \leftarrow \rho \odot_u \upsilon$ \;}
-  }
-
-  \label{algo:LU}
   \caption{\LowerUnits}
+  \label{algo:LU}
 \end{algorithm}
 
-LU has been successfully composed with the \texttt{RecyclePivotsWithIntersection} (RPI) algorithm
-presented in \cite{LURPI}. Both sequential compositions achieve very good compression ratio in
-reasonnable amount of time. Unfortunately, none of them is always better than the other and there is
-actually no heuristic to choose which one to apply a priori.
+{\LowerUnits} has been successfully composed with the {\RPI} algorithm presented in \cite{LURPI}.
+Both sequential compositions achieve very good compression ratio in reasonnable amount of time.
+Unfortunately, none of them is always better than the other and there is actually no heuristic to
+choose which one to apply a priori.
 
 \section{LowerUnivalents}
 
