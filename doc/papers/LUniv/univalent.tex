@@ -204,6 +204,7 @@ $$
 In the context of proof compression, deletion of nodes from a proof will be needed. Algorithm
 \ref{algo:del} describes the deletion operation used in this article. $\dn{\psi}{\varphi_1 \ldots
 \varphi_n}$ denotes \Rec{$\psi$,$\{\varphi_1, \ldots , \varphi_n\}$}.
+\JB{ TODO: rewrite this paragraph, addind the algorithm description. }
 
 \begin{proposition} \label{prop:del_assoc}
 \JB{ Proof: by induction }
@@ -290,6 +291,7 @@ top-down traversal. The last step is the reintroduction of units.
 Both sequential compositions achieve very good compression ratio in reasonnable amount of time.
 Unfortunately, none of them is always better than the other and there is actually no heuristic to
 choose which one to apply a priori.
+\JB{ TODO: Rewrite this paragraph. }
 
 \section{LowerUnivalents}
 
@@ -297,14 +299,54 @@ choose which one to apply a priori.
 This is the main section. First we present formaly the principles of the algorithm. Then the partial
 regularization. Then the algorithm. Then the proof it's always better than LU (and LUnivRPI always
 better than LU.RPI).
-
-This is still a draft that have to be completely rewritten.
 \end{jb}
 
 {\LowerUnits} obviously doesn't lower every lowerable subproofs. In particular, it doesn't take into
-account the already lowered subproofs. For instance, if a unit $\upsilon$ proving $\{a\}$ has
-already been lowered, a subproof $\eta$ of $\{\dual{a},b\}$ may be lowered too and reintroduced
-above $\upsilon$. To state which conditions $\eta$ must satisfy to be lowered without changing the
+account the already lowered subproofs. For instance, if a unit $\varphi_1$ proving $\{a\}$ has
+already been lowered, a subproof $\varphi_2$ with conclusion $\{\neg a,b\}$ may be lowered too and
+reintroduced above $\varphi_1$. But care must be taken, because if $\neg a$ is a valent literal of
+$\varphi_2$ then $a$ will be introduced in the proof by the deletion.
+
+\begin{definition}[Univalent subproof]
+A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if
+$\varphi$ has one valent literal $\ell$ in $\psi$ and $\Conclusion{\varphi} \subseteq \Delta \cup
+\left\{ \ell \right\}$. $\ell$ is call the univalent literal of $\varphi$ in $\psi$ w.r.t.
+$\Delta$.
+\end{definition}
+
+The principle of {\LowerUnivalents} is simply to lower every univalent subproofs. $\Delta$ is
+initialized to the empty set. Then the dual of the univalent literals are incrementaly added to
+$\Delta$. The proposition \ref{prop:LUniv} ensures that the conclusion of the resulting proof
+subsumes the conclusion of the original proof.
+
+\begin{proposition} \label{prop:LUniv}
+Given a proof $\psi$, if for an integer $n$ there is a set $U = \{\varphi_1 \ldots \varphi_n\}$ of
+$\psi$'s subproofs and a set $D = \{\Delta_0 \ldots \Delta_n\}$ of sets of literals such that
+$$ \Delta_0 = \varnothing $$
+$$ \forall i \in [1 \ldots n], \varphi_i \text{ is univalent w.r.t. } \Delta_{i-1} $$
+$$ \forall i \in [1 \ldots n], \Delta_i = \Delta_{i-1} \cup \{\dual{\ell_i}\} \text{ with } \ell_i
+\text{ being the univalent literal of } \varphi_i $$
+therefore the conclusion of
+$$ \psi' = \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_1} \varphi_1 $$
+subsumes the conclusion of $\psi$.
+\end{proposition}
+
+\begin{proof}
+The proposition will be proved by induction on $n$. Let suppose a subproof $\varphi_{n+1}$ of $\psi$
+is univalent w.r.t. $\Delta_n$, with univalent literal $\ell_{n+1}$. Let $\Gamma$ be the conclusion
+of $\dn{\psi}{U}$. The conclusion of $ \psi' = \dn{\psi}{U \cup \{\varphi_{n+1}\}} =
+\dn{\dn{\psi}{U}}{\varphi} $ is included in $\Gamma \cup \{\dual{\ell{n+1}}\}$. The conclusion of
+$\psi' \odot_{\ell_{n+1}} \varphi_{n+1}$ is included in $\Gamma \cup \Delta_n$. As $\Gamma \subseteq
+\Conclusion{\psi} \cup \Delta_n$, the conclusion of $\psi' \odot_{\ell_{n+1}} \varphi_{n+1} \ldots
+\odot_{\ell_1} \varphi_1$ is included in $\Conclusion{\psi}$. \qed
+\end{proof}
+
+
+\begin{jb}
+Everything below and until the next section is garbage.
+\end{jb}
+
+To state which conditions $\eta$ must satisfy to be lowered without changing the
 proof's conclusion, the lower problem has to be redefined as follow.
 
 \begin{definition}[Lowerable subproof]
