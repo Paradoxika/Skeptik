@@ -309,9 +309,9 @@ $\varphi_2$ then $a$ will be introduced in the proof by the deletion.
 
 \begin{definition}[Univalent subproof]
 A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if
-$\varphi$ has one valent literal $\ell \notin \Delta$ in $\psi$ and $\Conclusion{\varphi} \subseteq
-\Delta \cup \left\{ \ell \right\}$. $\ell$ is call the univalent literal of $\varphi$ in $\psi$
-w.r.t.  $\Delta$.
+$\varphi$ has exactly one valent literal $\ell$ in $\psi$, $\dual{\ell} \notin \Delta$ and
+$\Conclusion{\varphi} \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the univalent
+literal of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
 \end{definition}
 
 The principle of {\LowerUnivalents} is simply to lower every univalent subproofs. $\Delta$ is
@@ -418,11 +418,10 @@ has at least as many nodes as
 
 \begin{proof}
 A unit $\varphi$ with conclusion $\{\ell\}$ is univalent w.r.t. $\Delta$ iff $\ell$ is a valent
-literal of $\varphi$ and $\dual{\ell} \notin \Delta$.
-If $\ell$ is not a valent literal of $\varphi$ but $\dual{\ell} \notin \Delta$, $\varphi$ will be
-collected by {\LowerUnivalents} but not reintroduced.
-If $\dual{\ell} \in \Delta$, $\varphi$ will be deleted by {\LowerUnivalents} because all edges
-incoming to $\varphi$'s root are labeled with $\ell$. \qed
+literal of $\varphi$ and $\dual{\ell} \notin \Delta$.  If $\ell$ is not a valent literal of
+$\varphi$ but $\dual{\ell} \notin \Delta$, $\varphi$ will be collected by {\LowerUnivalents} but not
+reintroduced.  If $\dual{\ell} \in \Delta$, $\varphi$ will be deleted by {\LowerUnivalents} because
+all edges incoming to $\varphi$'s root are labeled with $\ell$. \qed
 \end{proof}
 
 
