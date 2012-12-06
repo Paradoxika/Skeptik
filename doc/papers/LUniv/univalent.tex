@@ -220,7 +220,7 @@ In a proof $\psi$, a literal $\ell$ is valent for the subproof $\varphi$ if $\du
 the conclusion of $\dn{\psi}{\varphi}$ but not to the conclusion of $\psi$.
 \end{definition}
 
-\begin{proposition}
+\begin{proposition} \label{prop:valentactive}
 In a proof $\psi$, a valent literal of a subproof $\varphi$ is an active literal of $\varphi$.
 \end{proposition}
 
@@ -390,71 +390,44 @@ such an implementation, {\LowerUnivalents} could have a time complexity linear w
 the proof, as long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in
 constant bounded time.
 
+Determining if a literal is valent takes time. But thanks to Prop. \ref{prop:valentactive},
+subproofs with one active literal could be considered instead of subproofs with one valent literal.
+If the active literal is not valent, the corresponding subproof may not be reintroduced but still can
+be safely deleted.
 
+While verifying if a subproof could be univalent, some incoming edges might be deleted. If a
+subproof $\varphi_i$ has already been collected as univalent subproof with univalent literal
+$\ell_i$ and the subproof being considered now has $\ell_i$ as active literal, the corresponding
+incoming edges can be safely removed. Even if $\ell_i$ is valent, only $\dual{\ell_i}$ would be
+introduced and that literal would be deleted when reintroducing $\varphi_i$. A modified
+\FuncSty{delete} operation able to remove nodes and edges can easily be implemented.
 
 \begin{jb}
-Everything below and until the next section is garbage.
+At that point, I don't know if I should add a new algorithm with all the features I just mentioned.
+This algorithm would take a lot of space if the new deleted algorithm is detailed.
+
+I continue with the proof that LUniv compress at least as much as LU.
 \end{jb}
 
-To state which conditions $\eta$ must satisfy to be lowered without changing the
-proof's conclusion, the lower problem has to be redefined as follow.
-
-\begin{definition}[Lowerable subproof]
-Given a proof $\psi$ of $\Gamma$ and a subproof $\varphi$, a subproof $\eta$ from $\varphi$ is lowerable
-below $\varphi$ if there exists a literal $\ell$ and a proof $\psi'$ of $\Gamma' \subseteq
-\Gamma$ such that
-\begin{equation}
-  \psi' = \rn{\psi}{\varphi}{\left(\dn{\varphi}{\eta}\right) \odot_\ell \eta}
-\end{equation}
-\end{definition}
-The previous definition is very general. The lowerable subproof introduction presented in the
-previous Section can be obtained when $\varphi = \psi$. In the context of proof compression,
-lowering a subproof is wanted to reduce the number of $\eta$'s root's children. For instance, it
-could be required that every path from the root of $\psi$ to the root of $\eta$ goes through the
-root of $\varphi$. In this case, $\eta$'s root is guaranted to have only one child in $\psi'$.
-
-\begin{definition}[Lowered part]
-If a proof $\psi$ can be written as
-\begin{equation}
-  \psi = \eta_1 \odot_{\ell_1} ( \eta_2 \odot_{\ell_2} ( \ldots (\eta_n \odot_{\ell_n} \varphi)
-          \ldots ))
-\end{equation}
-then the pair $\langle L,\Delta \rangle$ in which $L$ is the sequence $(\eta_1,\ldots,\eta_n)$ of
-proofs and $\Delta$ the sequence $(\ell_1,\ldots,\ell_n)$ of literals is called a lowered part of
-$\psi$ below $\varphi$.
-\end{definition}
-Once again this is a broad definition. In the context of proof compression the root of each proof
-$\eta_i \in L$ would usualy have exactely one child in $\psi$.
-
-\begin{definition}[Univalent subproof]
-A subproof $\eta$ of $\Gamma$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if $\eta$ has
-exactely one valent literal $\ell$ in $\psi$ and $\Gamma \subseteq \Delta \cup \left\{ \ell
-\right\}$.
-\end{definition}
-
 \begin{proposition}
-If $\langle L,\Delta \rangle$ is a lowered part of $\psi$ below $\varphi$ and $\eta$ a subproof of
-$\varphi$ which is univalent in $\varphi$ w.r.t. $\Delta$, then $\eta$ is lowerable in $\psi$ below $\varphi$.
+For all proof $\psi$,
+{\LowerUnits\FuncSty{(}$\psi$\FuncSty{)}}
+has at least as many nodes as 
+{\LowerUnivalents\FuncSty{(}$\psi$\FuncSty{)}}.
 \end{proposition}
 
 \begin{proof}
-Let call $\Gamma$ the conclusion of $\varphi$.  The only valent literal of $\eta$ in $\varphi$ being
-$\ell$, the conclusion of $\dn{\varphi}{\eta}$ is a subset of $\Gamma \cup \{\dual{\ell}\}$. As the
-conclusion of $\eta$ is a subset of $\Delta \cup \{\ell\}$, the conclusion of $\left(
-\dn{\varphi}{\eta} \right) \odot_\ell \eta$ is a subset of $\Gamma \cup \Delta$. Finaly, $\Delta$ is
-a set of safe literals for $\varphi$ in $\psi$. \qed
+A unit $\varphi$ with conclusion $\{\ell\}$ is univalent w.r.t. $\Delta$ iff $\ell$ is a valent
+literal of $\varphi$ and $\dual{\ell} \notin \Delta$.
+If $\ell$ is not a valent literal of $\varphi$ but $\dual{\ell} \notin \Delta$, $\varphi$ will be
+collected by {\LowerUnivalents} but not reintroduced.
+If $\dual{\ell} \in \Delta$, $\varphi$ will be deleted by {\LowerUnivalents} because all edges
+incoming to $\varphi$'s root are labeled with $\ell$. \qed
 \end{proof}
 
 
 \section{Experiments}
 
-\begin{jb}
-LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
-\end{jb}
-
-
-\BWP{1) If possible, add RP and RPI to this table too. Otherwise we will only be comparing our own algorithms.}
-\BWP{2) Also, it seems that we are only showing the non-sequential combinations here (or is RPILU actually "RPI.LU"??). If we could also show the sequential combinations, we would compare their speeds and show that the non-sequential combinations are faster, and that LUniv contributed to this.}
 \begin{table}[ht]
   \centering
   \begin{tabular}{lrrr}
@@ -474,10 +447,6 @@ LU vs LUniv ; RPI[3]LU vs RPI[3]LUniv ; LUnivRPI vs LU.RPI.
   \end{tabular}
   \caption{Total compression ratios}
 \end{table}
-
-\BWP{3) So, LUniv is about 3 times slower than LU. Can we blame implementation details (e.g. the fact that we use lists instead of sets for conclusion clauses) for this?}
-
-\BWP{4) I think you forgot to push the files with charts}
 
 
 \include{LU_charts}
