@@ -309,37 +309,87 @@ $\varphi_2$ then $a$ will be introduced in the proof by the deletion.
 
 \begin{definition}[Univalent subproof]
 A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if
-$\varphi$ has one valent literal $\ell$ in $\psi$ and $\Conclusion{\varphi} \subseteq \Delta \cup
-\left\{ \ell \right\}$. $\ell$ is call the univalent literal of $\varphi$ in $\psi$ w.r.t.
-$\Delta$.
+$\varphi$ has one valent literal $\ell \notin \Delta$ in $\psi$ and $\Conclusion{\varphi} \subseteq
+\Delta \cup \left\{ \ell \right\}$. $\ell$ is call the univalent literal of $\varphi$ in $\psi$
+w.r.t.  $\Delta$.
 \end{definition}
 
 The principle of {\LowerUnivalents} is simply to lower every univalent subproofs. $\Delta$ is
 initialized to the empty set. Then the dual of the univalent literals are incrementaly added to
 $\Delta$. The proposition \ref{prop:LUniv} ensures that the conclusion of the resulting proof
-subsumes the conclusion of the original proof.
+subsumes the conclusion of the original one.
 
 \begin{proposition} \label{prop:LUniv}
-Given a proof $\psi$, if for an integer $n$ there is a set $U = \{\varphi_1 \ldots \varphi_n\}$ of
-$\psi$'s subproofs and a set $D = \{\Delta_0 \ldots \Delta_n\}$ of sets of literals such that
-$$ \Delta_0 = \varnothing $$
-$$ \forall i \in [1 \ldots n], \varphi_i \text{ is univalent w.r.t. } \Delta_{i-1} $$
-$$ \forall i \in [1 \ldots n], \Delta_i = \Delta_{i-1} \cup \{\dual{\ell_i}\} \text{ with } \ell_i
-\text{ being the univalent literal of } \varphi_i $$
-therefore the conclusion of
+Given a proof $\psi$, if for an integer $n$ there is a sequence $U = (\varphi_1 \ldots \varphi_n)$
+of $\psi$'s subproofs and a sequence $(\ell_1 \ldots \ell_n)$ of literals such that $\forall i \in
+[1 \ldots n], \ell_i$ is the univalent literal of $\varphi_i$ w.r.t. $\Delta_{i-1} = \{\dual{\ell_1}
+\ldots \dual{\ell_{i-1}}\}$, then the conclusion of
 $$ \psi' = \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_1} \varphi_1 $$
 subsumes the conclusion of $\psi$.
 \end{proposition}
 
 \begin{proof}
-The proposition will be proved by induction on $n$. Let suppose a subproof $\varphi_{n+1}$ of $\psi$
-is univalent w.r.t. $\Delta_n$, with univalent literal $\ell_{n+1}$. Let $\Gamma$ be the conclusion
-of $\dn{\psi}{U}$. The conclusion of $ \psi' = \dn{\psi}{U \cup \{\varphi_{n+1}\}} =
-\dn{\dn{\psi}{U}}{\varphi} $ is included in $\Gamma \cup \{\dual{\ell{n+1}}\}$. The conclusion of
-$\psi' \odot_{\ell_{n+1}} \varphi_{n+1}$ is included in $\Gamma \cup \Delta_n$. As $\Gamma \subseteq
-\Conclusion{\psi} \cup \Delta_n$, the conclusion of $\psi' \odot_{\ell_{n+1}} \varphi_{n+1} \ldots
-\odot_{\ell_1} \varphi_1$ is included in $\Conclusion{\psi}$. \qed
+The proposition will be proved by induction on $n$, along with the fact that $\dn{\psi}{U} \notin
+U$. Let suppose a subproof $\varphi_{n+1}$ of $\psi$ is univalent w.r.t. $\Delta_n$, with univalent
+literal $\ell_{n+1}$.  There exists a subproof of $\psi$ which conclusion contains
+$\dual{\ell_{n+1}}$, therefore $\dn{\psi}{U \cup \{\varphi_{n+1}\}} \notin U \cup
+\{\varphi_{n+1}\}$.  Let $\Gamma$ be the conclusion of $\dn{\psi}{U}$. The conclusion of $ \psi' =
+\dn{\psi}{U \cup \{\varphi_{n+1}\}} = \dn{\dn{\psi}{U}}{\varphi_{n+1}} $ is included in $\Gamma \cup
+\{\dual{\ell{n+1}}\}$. The conclusion of $\psi' \odot_{\ell_{n+1}} \varphi_{n+1}$ is included in
+$\Gamma \cup \Delta_n$. As $\Gamma \subseteq \Conclusion{\psi} \cup \Delta_n$, the conclusion of
+$\psi' \odot_{\ell_{n+1}} \varphi_{n+1} \ldots \odot_{\ell_1} \varphi_1$ is included in
+$\Conclusion{\psi}$. \qed
 \end{proof}
+
+For this principle to lead to proof compression care must be taken of the order subproofs are
+considered for lowering. Let suppose for instance that $\varphi_i, \varphi_j$ and $\varphi_k$ have
+been selected to be lowered, $i < j < k$, $\varphi_j$ is a subproof of $\varphi_i$, $\dual{\ell_j}
+\in \Conclusion{\varphi_k}$ and $\varphi_j$ is not a subproof of $\dn{\psi}{\varphi_i}$. In that
+case $\varphi_j$ will have one more child in the resulting proof than in the original one.
+
+\SetKwData{Univ}{Univalents}
+\begin{algorithm}[bt]
+  \KwIn {a proof $\psi$}
+  \KwOut{a compressed proof $\psi'$}
+  \BlankLine
+
+  \SetKw{Push}{push}
+  \SetKw{Pop} {pop}
+
+  \Univ $\leftarrow \varnothing$ \;
+  $\Delta \leftarrow \varnothing$ \;
+  \BlankLine
+
+  \For{every subproof $\varphi$ in a top-down traversal \label{line:LUniv:step1begin} }{
+    $\psi' \leftarrow$ \Rec{$\varphi$,\Univ} \;
+    \If{$\psi'$ is univalent w.r.t. $\Delta$ \label{line:LUniv:lunivtest} }{
+      \Let{$\ell$} be the univalent literal \;
+      \Push $\dual{\ell}$ onto $\Delta$ \;
+      \Push $\psi'$     onto \Univ \label{line:LUniv:step1end} \;
+    }
+  }
+  \BlankLine
+
+  \tcp{$\psi' = \dn{\psi}{\Univ}$}
+  \While{\Univ $\neq \varnothing$}{
+    $\varphi \leftarrow$ \Pop from \Univ \;
+    $\ell \leftarrow$ \Pop from $\Delta$ \;
+    \lIf{$\ell \in \Conclusion{\psi'}$}{
+    $\psi' \leftarrow \varphi \odot_\ell \psi'$ \;}
+  }
+
+  \caption{\LowerUnivalents}
+  \label{algo:LUniv}
+\end{algorithm}
+
+To address this issue, {\LowerUnivalents} considers subproofs in a top-down traversal and deletes
+already collected univalent subproofs at the same time, as shown in Algo. \ref{algo:LUniv}.
+Actually, the first loop (line \ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be
+implemented as a recursive function extending a recursive implementation of \FuncSty{delete}. With
+such an implementation, {\LowerUnivalents} could have a time complexity linear w.r.t. the size of
+the proof, as long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in
+constant bounded time.
+
 
 
 \begin{jb}
