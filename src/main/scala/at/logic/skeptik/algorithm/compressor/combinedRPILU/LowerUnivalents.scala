@@ -93,6 +93,56 @@ package lowerableUnivalent {
       }
     }
 
+
+// The following is an alternative implementation.
+// Currently it's faster but achieve worse compression ratio on some proofs (QF_RDL/skdmxa2/skdmxa-3x3-5.base.cvc.smt2).
+/*
+    def applyNew(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+              delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
+//      print("[" + oldNode.conclusion + "] ")
+      if (children.isEmpty) { return None }
+      cleanUpActiveLiteralsNew(oldNode, children, loweredPivots, delete) match {
+        case Some(lit) => isTheOnlyValentLiteral(lit,  newNode, loweredPivots)
+        case _ => // println(newNode.conclusion + " no valent")
+          None
+      }
+    }
+
+    private def cleanUpActiveLiteralsNew(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+                                                 delete: (SequentProofNode,SequentProofNode) => Unit) = {
+      var result:Option[Either[E,E]] = None
+      val it = children.iterator
+
+      def loop(guard: () => Boolean, valentAction: (Either[E,E]) => Unit = (_:Either[E,E]) => Unit) = {
+        if (it.hasNext) do {
+          it.next match {
+            case child @ CutIC(left, right, aux, _) if left  == oldNode =>
+              if (loweredPivots.suc contains aux) {
+                delete(child,left) ; result = None
+              }
+              else valentAction(Right(aux))
+
+            case child @ CutIC(left, right, aux, _) if right == oldNode =>
+              if (loweredPivots.ant contains aux) {
+                delete(child,right) ; result = None
+              }
+              else valentAction(Left(aux))
+            case _ =>
+          }
+        } while (it.hasNext && guard())
+      }
+
+      loop({() => false}, { (lit:Either[E,E]) => lit match {
+        case Left (l) if !(loweredPivots.suc contains l) => result = Some(lit)
+        case Right(l) if !(loweredPivots.ant contains l) => result = Some(lit)
+        case _ =>
+        }})
+      if (!result.isEmpty) loop({() => !result.isEmpty}, { (lit:Either[E,E]) => if (lit != result.get) result = None})
+      loop({() => true})
+      result
+    }
+*/
+
   } // object isLowerableUnivalent
 } // package lowerableUnivalent
 
