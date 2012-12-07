@@ -20,7 +20,7 @@ package lowerableUnivalent {
     def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
               delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
 //      print("[" + oldNode.conclusion + "] ")
-      val literals = cleanUpActiveLiterals(oldNode, children, loweredPivots, delete)
+      val literals = cleanUpActiveLiterals(newNode, oldNode, children, loweredPivots, delete)
       (literals.ant.size, literals.suc.size) match {
         case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newNode, loweredPivots)
         case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newNode, loweredPivots)
@@ -34,15 +34,17 @@ package lowerableUnivalent {
       if (literals.isEmpty) None else isTheOnlyValentLiteral(literals.get, node, loweredPivots)
     }
 
-    private def cleanUpActiveLiterals(oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
+    private def cleanUpActiveLiterals(newNode:SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
                                                  delete: (SequentProofNode,SequentProofNode) => Unit) = {
       val result = MClause()
       children.foreach { (child) =>
           child match {
           case CutIC(left, right, aux, _) if left  == oldNode =>
-            if (loweredPivots.suc contains aux) delete(child,left)  else if (!(loweredPivots.ant contains aux)) result += aux
+            if (loweredPivots.suc contains aux) delete(child,left)
+            else if ((!(loweredPivots.ant contains aux)) && (newNode.conclusion.suc contains aux)) result += aux
           case CutIC(left, right, aux, _) if right == oldNode =>
-            if (loweredPivots.ant contains aux) delete(child,right) else if (!(loweredPivots.suc contains aux)) aux =+: result
+            if (loweredPivots.ant contains aux) delete(child,right)
+            else if ((!(loweredPivots.suc contains aux)) && (newNode.conclusion.ant contains aux)) aux =+: result
           case _ =>
           }
       }
