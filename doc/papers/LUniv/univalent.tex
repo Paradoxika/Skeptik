@@ -39,7 +39,7 @@
 
 
 
-%\includeonly{}
+\includeonly{}
 \begin{document}
 
 \maketitle
@@ -309,7 +309,7 @@ $\varphi_2$ then $a$ will be introduced in the proof by the deletion.
 
 \begin{definition}[Univalent subproof]
 A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if
-$\varphi$ has exactly one valent literal $\ell$ in $\psi$, $\dual{\ell} \notin \Delta$ and
+$\varphi$ has exactly one valent literal $\ell$ in $\psi$, $\ell \notin \Delta$ and
 $\Conclusion{\varphi} \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the univalent
 literal of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
 \end{definition}
@@ -331,14 +331,14 @@ subsumes the conclusion of $\psi$.
 \begin{proof}
 The proposition will be proved by induction on $n$, along with the fact that $\dn{\psi}{U} \notin
 U$. Let suppose a subproof $\varphi_{n+1}$ of $\psi$ is univalent w.r.t. $\Delta_n$, with univalent
-literal $\ell_{n+1}$.  There exists a subproof of $\psi$ which conclusion contains
-$\dual{\ell_{n+1}}$, therefore $\dn{\psi}{U \cup \{\varphi_{n+1}\}} \notin U \cup
-\{\varphi_{n+1}\}$.  Let $\Gamma$ be the conclusion of $\dn{\psi}{U}$. The conclusion of $ \psi' =
-\dn{\psi}{U \cup \{\varphi_{n+1}\}} = \dn{\dn{\psi}{U}}{\varphi_{n+1}} $ is included in $\Gamma \cup
-\{\dual{\ell{n+1}}\}$. The conclusion of $\psi' \odot_{\ell_{n+1}} \varphi_{n+1}$ is included in
-$\Gamma \cup \Delta_n$. As $\Gamma \subseteq \Conclusion{\psi} \cup \Delta_n$, the conclusion of
-$\psi' \odot_{\ell_{n+1}} \varphi_{n+1} \ldots \odot_{\ell_1} \varphi_1$ is included in
-$\Conclusion{\psi}$. \qed
+literal $\ell_{n+1}$.  Because $\ell_{n+1} \notin \Delta_n$, there exists a subproof of
+$\dn{\psi}{U}$ which conclusion contains $\dual{\ell_{n+1}}$, therefore
+$\dn{\dn{\psi}{U}}{\varphi_{n+1}} \notin U \cup \{\varphi_{n+1}\}$.  Let $\Gamma$ be the conclusion
+of $\dn{\psi}{U}$. The conclusion of $ \psi' = \dn{\psi}{U \cup \{\varphi_{n+1}\}} =
+\dn{\dn{\psi}{U}}{\varphi_{n+1}} $ is included in $\Gamma \cup \{\dual{\ell{n+1}}\}$. The conclusion
+of $\psi' \odot_{\ell_{n+1}} \varphi_{n+1}$ is included in $\Gamma \cup \Delta_n$. As $\Gamma
+\subseteq \Conclusion{\psi} \cup \Delta_n$, the conclusion of $\psi' \odot_{\ell_{n+1}}
+\varphi_{n+1} \ldots \odot_{\ell_1} \varphi_1$ is included in $\Conclusion{\psi}$. \qed
 \end{proof}
 
 For this principle to lead to proof compression care must be taken of the order subproofs are
