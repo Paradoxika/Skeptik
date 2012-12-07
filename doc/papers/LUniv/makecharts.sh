@@ -1,5 +1,7 @@
 #! /bin/bash
 
+FILE=sample.csv
+
 PATH=../../../scripts/:$PATH
 export PERL5LIB=../../../scripts
 
@@ -12,7 +14,7 @@ function make_charts { # caption algo_h algo_v col_base_h col_base_v
 EOT
   let h=$4+1
   let v=$5+1
-  mkcloudid -h "$h:$2" -v "$v:$3" -r 2 -d 0.2 all-final.csv
+  mkcloudid -h "$h:$2" -v "$v:$3" -r 2 -d 0.2 "${FILE}"
   cat <<EOT
   } \qquad
   \subfloat[Unsat core compression]{
@@ -20,7 +22,7 @@ EOT
 EOT
   let h=$h+1
   let v=$v+1
-  mkcloudid -h "$h:$2" -v "$v:$3" -r 3 -d 0.2 all-final.csv
+  mkcloudid -h "$h:$2" -v "$v:$3" -r 3 -d 0.2 "${FILE}"
   cat <<EOT
   } \\
   \subfloat[Nodes compression difference]{
@@ -28,13 +30,13 @@ EOT
 EOT
   let h=$4+1
   let v=$5+1
-  mkbarcomparison -f $h -s $v -p 0.01 all-final.csv
+  mkbarcomparison -f $h -s $v -p 0.01 "${FILE}"
   cat <<EOT
   } \\
   \subfloat[Duration difference]{
     \centering
 EOT
-  mkbarcomparison -f $4 -s $5 -p 0.1 all-final.csv
+  mkbarcomparison -f $4 -s $5 -p 0.1 "${FILE}"
   cat <<EOT
   }
 EOT
