@@ -19,12 +19,12 @@ package lowerableUnivalent {
   {
     def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
               delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
-//      print("[" + oldNode.conclusion + "] ")
+      print("[" + oldNode.conclusion + "] ")
       val literals = cleanUpActiveLiterals(oldNode, children, loweredPivots, delete)
       (literals.ant.size, literals.suc.size) match {
         case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newNode, loweredPivots)
         case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newNode, loweredPivots)
-        case _ => // println(newNode.conclusion + " no valent")
+        case _ => println(newNode.conclusion + " no valent")
           None
       }
     }
@@ -74,21 +74,25 @@ package lowerableUnivalent {
     }
 
     private def isTheOnlyValentLiteral(remainingLiteral: Either[E,E], node: SequentProofNode, loweredPivots: MClause) = {
-      val searchValent = (valent: E, lowered: collection.Set[E]) => (lit: E) => { (lit == valent) || (lowered contains lit) }
+      var foundValent = false
+      val searchValent = (valent: E, lowered: collection.Set[E]) => (lit: E) => {
+        if (lit == valent) { foundValent = true ; true }
+        else (lowered contains lit)
+      }
       val (searchAnt, searchSuc) = remainingLiteral match {
         case Left (v) => (searchValent(v, loweredPivots.suc), loweredPivots.ant.contains _)
         case Right(v) => (loweredPivots.suc.contains _, searchValent(v, loweredPivots.ant))
       }
 
-      if (node.conclusion.ant.forall(searchAnt) && node.conclusion.suc.forall(searchSuc)) {
+      if (node.conclusion.ant.forall(searchAnt) && node.conclusion.suc.forall(searchSuc) && foundValent) {
         remainingLiteral match {
           case Left (v) => v =+: loweredPivots
           case Right(v) => loweredPivots += v
         }
-//        println(node.conclusion + " lowered");
+        println(node.conclusion + " lowered");
         Some(remainingLiteral)
       } else {
-//        println(node.conclusion + " not included in Delta");
+        println(node.conclusion + " not included in Delta");
         None
       }
     }
