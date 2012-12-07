@@ -19,11 +19,13 @@ package lowerableUnivalent {
   {
     def apply(newNode: SequentProofNode, oldNode: SequentProofNode, children: Seq[SequentProofNode], loweredPivots: MClause,
               delete: (SequentProofNode,SequentProofNode) => Unit = (_:SequentProofNode,_:SequentProofNode) => Unit ):Option[Either[E,E]] = {
+//      print("[" + oldNode.conclusion + "] ")
       val literals = cleanUpActiveLiterals(oldNode, children, loweredPivots, delete)
       (literals.ant.size, literals.suc.size) match {
         case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newNode, loweredPivots)
         case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newNode, loweredPivots)
-        case _ => None
+        case _ => // println(newNode.conclusion + " no valent")
+          None
       }
     }
 
@@ -38,9 +40,9 @@ package lowerableUnivalent {
       children.foreach { (child) =>
           child match {
           case CutIC(left, right, aux, _) if left  == oldNode =>
-            if (loweredPivots.suc contains aux) delete(child,left)  else result += aux
+            if (loweredPivots.suc contains aux) delete(child,left)  else if (!(loweredPivots.ant contains aux)) result += aux
           case CutIC(left, right, aux, _) if right == oldNode =>
-            if (loweredPivots.ant contains aux) delete(child,right) else aux =+: result
+            if (loweredPivots.ant contains aux) delete(child,right) else if (!(loweredPivots.suc contains aux)) aux =+: result
           case _ =>
           }
       }
@@ -83,9 +85,12 @@ package lowerableUnivalent {
           case Left (v) => v =+: loweredPivots
           case Right(v) => loweredPivots += v
         }
+//        println(node.conclusion + " lowered");
         Some(remainingLiteral)
-      } else
+      } else {
+//        println(node.conclusion + " not included in Delta");
         None
+      }
     }
 
   } // object isLowerableUnivalent
