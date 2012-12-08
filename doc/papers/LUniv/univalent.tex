@@ -390,10 +390,10 @@ such an implementation, {\LowerUnivalents} could have a time complexity linear w
 the proof, as long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in
 constant bounded time.
 
-Determining if a literal is valent takes time. But thanks to Prop. \ref{prop:valentactive},
-subproofs with one active literal could be considered instead of subproofs with one valent literal.
-If the active literal is not valent, the corresponding subproof may not be reintroduced but still can
-be safely deleted.
+Determining if a literal is valent takes time. But thanks to Prop.  \ref{prop:valentactive},
+subproofs with one active literal which is not in $\Conclusion{\psi}$ could be considered instead
+of subproofs with one valent literal.  If the active literal is not valent, the corresponding
+subproof may not be reintroduced but still can be safely deleted.
 
 While verifying if a subproof could be univalent, some incoming edges might be deleted. If a
 subproof $\varphi_i$ has already been collected as univalent subproof with univalent literal
@@ -410,20 +410,27 @@ I continue with the proof that LUniv compress at least as much as LU.
 \end{jb}
 
 \begin{proposition}
-For all proof $\psi$,
+Given a proof $\psi$,
 {\LowerUnits\FuncSty{(}$\psi$\FuncSty{)}}
 has at least as many nodes as 
-{\LowerUnivalents\FuncSty{(}$\psi$\FuncSty{)}}.
+{\LowerUnivalents\FuncSty{(}$\psi$\FuncSty{)}}
+if there are not two units in $\psi$ with the same conclusion.
 \end{proposition}
 
 \begin{proof}
-A unit $\varphi$ with conclusion $\{\ell\}$ is univalent w.r.t. $\Delta$ iff $\ell$ is a valent
-literal of $\varphi$ and $\dual{\ell} \notin \Delta$.  If $\ell$ is not a valent literal of
-$\varphi$ but $\dual{\ell} \notin \Delta$, $\varphi$ will be collected by {\LowerUnivalents} but not
-reintroduced.  If $\dual{\ell} \in \Delta$, $\varphi$ will be deleted by {\LowerUnivalents} because
-all edges incoming to $\varphi$'s root are labeled with $\ell$. \qed
+A unit $\varphi$ has exactely one active literal $\ell$. Therefore $\varphi$ is collected by
+{\LowerUnivalents} unless $\dual{\ell} \in \Delta$ or $\ell \in \Delta$. If $\dual{\ell} \in \Delta$
+all the incoming edges to $\raiz{\varphi}$ will be deleted. If $\ell \in \Delta$, all edges coming
+from a descendent of $\raiz{\varphi}$ and labeled by $\dual{\ell}$ will be deleted. In particular,
+for every edge $\n \xrightarrow{\ell} \raiz{\varphi}$ the edge $\n \xrightarrow{\dual{\ell}} \n'$ is
+deleted. Moreover, as $\ell$ is the only literal of $\varphi$'s conclusion, $\varphi$ will be
+propagated down the proof until the univalent subproof with valent literal $\dual{\ell}$ is
+reintroduced. \qed
 \end{proof}
 
+In the case where there are at least two units with the same conclusion in $\psi$, the resulting
+compressed proof depends on the order units are collected. For both algorithms, only one of these
+units may appear in the resulting compressed proof.
 
 \section{Experiments}
 
