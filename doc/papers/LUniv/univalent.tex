@@ -287,12 +287,6 @@ top-down traversal. The last step is the reintroduction of units.
   \label{algo:LU}
 \end{algorithm}
 
-{\LowerUnits} has been successfully composed with the {\RPI} algorithm presented in \cite{LURPI}.
-Both sequential compositions achieve very good compression ratio in reasonnable amount of time.
-Unfortunately, none of them is always better than the other and there is actually no heuristic to
-choose which one to apply a priori.
-\JB{ TODO: Rewrite this paragraph. }
-
 \section{LowerUnivalents}
 
 \begin{jb}
@@ -412,7 +406,7 @@ introduced and that literal would be deleted when reintroducing $\varphi_i$. A m
   \Activ $\leftarrow \varnothing$ \;
   \BlankLine
 
-  \For{all incoming edge $\n \xrightarrow{\ell} \raiz{\varphi}$ not marked for deletion }{
+  \For{each incoming edge $\n \xrightarrow{\ell} \raiz{\varphi}$ not marked for deletion }{
     \uIf{$\dual{\ell} \in \Delta$}{
       mark the edge for deletion \;
     }
@@ -461,6 +455,21 @@ proof until the univalent subproof with valent literal $\dual{\ell}$ is reintrod
 In the case where there are at least two units with the same conclusion in $\psi$, the resulting
 compressed proof depends on the order units are collected. For both algorithms, only one of these
 units may appear in the resulting compressed proof.
+
+
+
+\section{Combining {\LowerUnivalents} with {\RPI}}
+\begin{jb}
+This section has to be written.
+\end{jb}
+
+{\LowerUnits} has been successfully composed with the {\RPI} algorithm presented in \cite{LURPI}.
+Both sequential compositions achieve very good compression ratio in reasonnable amount of time.
+Unfortunately, none of them is always better than the other and there is actually no heuristic to
+choose which one to apply a priori.
+\JB{ TODO: Rewrite this paragraph. }
+
+
 
 \section{Experiments}
 
