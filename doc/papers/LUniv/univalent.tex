@@ -402,6 +402,37 @@ incoming edges can be safely removed. Even if $\ell_i$ is valent, only $\dual{\e
 introduced and that literal would be deleted when reintroducing $\varphi_i$. A modified
 \FuncSty{delete} operation able to remove nodes and edges can easily be implemented.
 
+\begin{algorithm}[bt]
+  \KwIn {a proof $\psi$}
+  \KwIn {a subproof $\varphi$}
+  \KwIn {a set $\Delta$ of literal}
+  \BlankLine
+
+  \SetKwData{Activ}{ActiveLiterals}
+  \Activ $\leftarrow \varnothing$ \;
+  \BlankLine
+
+  \For{all incoming edge $\n \xrightarrow{\ell} \raiz{\varphi}$ not marked for deletion }{
+    \uIf{$\dual{\ell} \in \Delta$}{
+      mark the edge for deletion \;
+    }
+    \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$ and
+             $\ell \notin \Conclusion{\psi}$ }{
+      add $\ell$ to \Activ \;
+    }
+  }
+  \BlankLine
+
+  \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
+    \Return{true} and \ArgSty{$\ell$} \;
+  }
+  \Else{\Return{false} \;}
+
+  \caption[.]{\FuncSty{isUnivalent}}
+  \label{algo:isUniv}
+\end{algorithm}
+
+
 \begin{jb}
 At that point, I don't know if I should add a new algorithm with all the features I just mentioned.
 This algorithm would take a lot of space if the new deleted algorithm is detailed.
@@ -420,12 +451,11 @@ if there are not two units in $\psi$ with the same conclusion.
 \begin{proof}
 A unit $\varphi$ has exactely one active literal $\ell$. Therefore $\varphi$ is collected by
 {\LowerUnivalents} unless $\dual{\ell} \in \Delta$ or $\ell \in \Delta$. If $\dual{\ell} \in \Delta$
-all the incoming edges to $\raiz{\varphi}$ will be deleted. If $\ell \in \Delta$, all edges coming
-from a descendent of $\raiz{\varphi}$ and labeled by $\dual{\ell}$ will be deleted. In particular,
-for every edge $\n \xrightarrow{\ell} \raiz{\varphi}$ the edge $\n \xrightarrow{\dual{\ell}} \n'$ is
-deleted. Moreover, as $\ell$ is the only literal of $\varphi$'s conclusion, $\varphi$ will be
-propagated down the proof until the univalent subproof with valent literal $\dual{\ell}$ is
-reintroduced. \qed
+all the incoming edges to $\raiz{\varphi}$ are deleted. If $\ell \in \Delta$, all edges coming from
+a descendent of $\raiz{\varphi}$ and labeled by $\dual{\ell}$ are deleted. In particular, for every
+edge $\n \xrightarrow{\ell} \raiz{\varphi}$ the edge $\n \xrightarrow{\dual{\ell}} \n'$ is deleted.
+Moreover, as $\ell$ is the only literal of $\varphi$'s conclusion, $\varphi$ is propagated down the
+proof until the univalent subproof with valent literal $\dual{\ell}$ is reintroduced. \qed
 \end{proof}
 
 In the case where there are at least two units with the same conclusion in $\psi$, the resulting
