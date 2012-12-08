@@ -232,12 +232,21 @@ subproof $\varphi'$ such that $\raiz{\varphi'} \xrightarrow{\ell} \raiz{\varphi}
 \end{proof}
 
 \begin{proposition}
-\JB{ Proof: from Prop. \ref{prop:del_assoc} }
+\JB{ Probably useless. Proof: from Prop. \ref{prop:del_assoc} }
 Given a proof $\psi$ and a set $D = \{\varphi_1 \ldots \varphi_n\}$ of $\psi$'s subproofs, $\forall
 \ell \in \mathcal{L}$ s.t. $\ell$ is in the conclusion of $\dn{\psi}{D}$ but not in $\psi$'s
 conclusion, then $\exists i$ s.t. $\dual{\ell}$ is a valent literal of $\varphi_i$ in $\psi$.
 \end{proposition}
 
+\begin{definition}[Regular proof]
+A proof $\psi$ is \emph{regular} if on every path from its root to any of its axioms, each literal
+labels at most one edge. Otherwise, $\psi$ is \emph{irregular}.
+\end{definition}
+
+Any irregular proof can be converted to a regular proof with the same axioms and the same
+conclusion. But it has been proved in \cite{TODO} that such total regularization might result in a
+proof exponentialy bigger than the original. Some carefull \emph{partial regularization} algorithms
+(\cite{RP},\cite{LURPI}) achieves good compression though.
 
 
 \section{LowerUnits}
@@ -461,6 +470,42 @@ units may appear in the resulting compressed proof.
 \section{Combining {\LowerUnivalents} with {\RPI}}
 \begin{jb}
 This section has to be written.
+\end{jb}
+
+{\RPI} is a partial regularization algorithm presented in \cite{LURPI}. For any subproof $\varphi$
+of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi} \xrightarrow{\ell} \n$ if $\ell$ is a
+safe literal for $\varphi$ in $\psi$.
+
+\begin{definition}[Safe literal]
+A literal $\ell$ is \emph{safe} for a subproof $\varphi$ in a proof $\psi$ iff $\ell$ labels one
+edge on every path from $\raiz{\psi}$ to $\raiz{\varphi}$.
+\end{definition}
+
+\texttt{RecyclePivotsWithIntersection} ({\RPI}) performs two traversals. During the first one, safe
+literals are collected and edges are marked for deletion. The second traversal is the effective
+deletion similar to the $\FuncSty{delete}$ algorithm.
+
+Both sequential compositions of {\LowerUnits} with {\RPI} have been shown to achieve good
+compression ratio in reasonable delay (\cite{LURPI}). Unfortunately, neither {\LowerUnits} after
+{\RPI} (\texttt{LU.RPI}) nor {\RPI} after {\LowerUnits} (\texttt{RPI.LU}) always compress more than
+the other one. A reasonable solution is to compress using both algorithms and to choose the smallest
+compressed proof.
+
+Beside compression ratio, an advantage of {\LowerUnivalents} over {\LowerUnits} is that
+{\LowerUnivalents} can be implemented as an enhanced \FuncSty{delete} operation.  Non-sequential
+combination of {\LowerUnivalents} after {\RPI} (\texttt{LUnivRPI}) can be implemented that way by
+replacing the second traversal of {\RPI} by {\LowerUnivalents}.
+
+\begin{proposition}
+In a proof $\psi$ every edge $\n \xrightarrow{\ell} \n'$, $\ell$ is either a safe literal of $\n$ or
+a valent literal of $\n'$.
+\end{proposition}
+
+
+
+
+\begin{jb}
+What follows is garbage until the next section.
 \end{jb}
 
 {\LowerUnits} has been successfully composed with the {\RPI} algorithm presented in \cite{LURPI}.
