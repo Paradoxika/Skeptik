@@ -472,18 +472,18 @@ units may appear in the resulting compressed proof.
 This section has to be written.
 \end{jb}
 
-{\RPI} is a partial regularization algorithm presented in \cite{LURPI}. For any subproof $\varphi$
-of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi} \xrightarrow{\ell} \n$ if $\ell$ is a
-safe literal for $\varphi$ in $\psi$.
+\texttt{RecyclePivotsWithIntersection} ({\RPI}) is a partial regularization algorithm presented in
+\cite{LURPI}. For any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi}
+\xrightarrow{\ell} \n$ if $\ell$ is a safe literal for $\varphi$ in $\psi$.
 
 \begin{definition}[Safe literal]
 A literal $\ell$ is \emph{safe} for a subproof $\varphi$ in a proof $\psi$ iff $\ell$ labels one
 edge on every path from $\raiz{\psi}$ to $\raiz{\varphi}$.
 \end{definition}
 
-\texttt{RecyclePivotsWithIntersection} ({\RPI}) performs two traversals. During the first one, safe
-literals are collected and edges are marked for deletion. The second traversal is the effective
-deletion similar to the $\FuncSty{delete}$ algorithm.
+{\RPI} performs two traversals. During the first one, safe literals are collected and edges are
+marked for deletion. The second traversal is the effective deletion similar to the
+$\FuncSty{delete}$ algorithm.
 
 Both sequential compositions of {\LowerUnits} with {\RPI} have been shown to achieve good
 compression ratio in reasonable delay (\cite{LURPI}). Unfortunately, neither {\LowerUnits} after
@@ -496,10 +496,11 @@ Beside compression ratio, an advantage of {\LowerUnivalents} over {\LowerUnits} 
 combination of {\LowerUnivalents} after {\RPI} (\texttt{LUnivRPI}) can be implemented that way by
 replacing the second traversal of {\RPI} by {\LowerUnivalents}.
 
-\begin{proposition}
-In a proof $\psi$ every edge $\n \xrightarrow{\ell} \n'$, $\ell$ is either a safe literal of $\n$ or
-a valent literal of $\n'$.
+\begin{proposition} \label{prop:LunivRPI}
+In a proof $\psi$ every edge $\raiz{\varphi} \xrightarrow{\ell} \raiz{\varphi'}$, $\ell$ is either a
+safe literal of $\varphi$ or a valent literal of $\varphi'$.
 \end{proposition}
+
 
 
 
