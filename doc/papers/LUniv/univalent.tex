@@ -468,9 +468,6 @@ units may appear in the resulting compressed proof.
 
 
 \section{Combining {\LowerUnivalents} with {\RPI}}
-\begin{jb}
-This section has to be written.
-\end{jb}
 
 \texttt{RecyclePivotsWithIntersection} ({\RPI}) is a partial regularization algorithm presented in
 \cite{LURPI}. For any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi}
@@ -488,7 +485,7 @@ $\FuncSty{delete}$ algorithm.
 Both sequential compositions of {\LowerUnits} with {\RPI} have been shown to achieve good
 compression ratio in reasonable delay (\cite{LURPI}). Unfortunately, neither {\LowerUnits} after
 {\RPI} (\texttt{LU.RPI}) nor {\RPI} after {\LowerUnits} (\texttt{RPI.LU}) always compress more than
-the other one. A reasonable solution is to compress using both algorithms and to choose the smallest
+the other one. A reasonable solution is to perlform both algorithms and then to choose the smallest
 compressed proof.
 
 Beside compression ratio, an advantage of {\LowerUnivalents} over {\LowerUnits} is that
@@ -501,23 +498,38 @@ In a proof $\psi$ every edge $\raiz{\varphi} \xrightarrow{\ell} \raiz{\varphi'}$
 safe literal of $\varphi$ or a valent literal of $\varphi'$.
 \end{proposition}
 
-
-
-
-
-\begin{jb}
-What follows is garbage until the next section.
-\end{jb}
-
-{\LowerUnits} has been successfully composed with the {\RPI} algorithm presented in \cite{LURPI}.
-Both sequential compositions achieve very good compression ratio in reasonnable amount of time.
-Unfortunately, none of them is always better than the other and there is actually no heuristic to
-choose which one to apply a priori.
-\JB{ TODO: Rewrite this paragraph. }
+After the first step of {\RPI}, as all edges labeled by a safe literal has been marked for deletion,
+the remaining active literal are all valents. That means that {\LowerUnivalents} will effectively
+lower every univalent subproofs.
 
 
 
 \section{Experiments}
+
+\begin{jb}
+This section is still just a draft.
+\end{jb}
+
+{\LowerUnivalents} and {\LUnivRPI} have been implemented in the high-level functional programming
+language Scala as part of the \skeptik library. This library already contains other proof
+compression algorithms.  {\LowerUnivalents} and {\LUnivRPI} have thus been evaluated on TODO
+unsatifiability proofs produced by the \veriT solver and compared to other compression algorithms.
+Most of the experimented proofs came from SMT benchmarks : TODO list the benchmarks. They've been
+translated to propositional resolution proofs by converting every non-resolution inferences into
+axioms.
+
+It has to be noticed that \veriT already does its best to produce compact proofs. In particular,
+a forward subsuming algorithm is applied, which results in proofs not having two different subproofs
+with the same conclusion.
+
+The following algorithms have been experimented : {\LowerUnits} (LU), {\LowerUnivalents} (LUniv),
+{\RPI}, a non-sequential combination of {\RPI} after {\LowerUnits} (RPILU), a non-sequential
+combination of {\RPI} after {\LowerUnivalents} (RPILUniv), the sequential composition of
+{\LowerUnits} after {\RPI} (LURPI), {\LUnivRPI}, the \texttt{Split} algorithm presented in
+\cite{CotonSplit} and the \texttt{ReduceAndReconstruct} algorithm presented in \cite{RedRec}
+(RedRec).
+
+For each of these algorithms, 
 
 \begin{table}[ht]
   \centering
