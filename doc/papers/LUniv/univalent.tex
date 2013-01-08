@@ -82,18 +82,28 @@ detailed enough to allow easy implementation of efficient proof checkers.
 ToDo: unsat core, interpolants...
 
 With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
-compress and improve such proofs in a post-processing stage. ToDo: briefly describe and list related
-work here.
+compress and improve such proofs in a post-processing stage.
+Cotton \cite{CottonSplit} proposed an
+algorithm to compress unsat-proof by resolving proofs of $\ell$ and $\dual{\ell}$ for a randomly
+choosen literal $\ell$.
+The \texttt{ReduceAndReconstruct} algorithm \cite{RedRec} recursively
+performs atomic transformations on each resolution step. In \cite{RP} two linear time compression
+algorithms are introduced. One of them is a partial regularization algorithm called
+\texttt{RecyclePivots}.  An enhanced version of this latter algorithm, called
+\texttt{RecyclePivotsWithIntersection} ({\RPI}), is proposed in \cite{LURPI}, along with a new
+linear time algorithm called {\LowerUnits}.  This two last algorithms are complementary and achieve
+better compression ratio when sequentialy composed.
 
-In this paper...  ToDo: modify and expand the abstract here\\
- describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the compression
-of propositional resolution proofs. The generalized algorithm, here called {\LowerUnivalents}, is
-able to lower not only units but also proof nodes containing non-unit clauses, provided that their
-literals satisfy some additional conditions. A formal proof that {\LowerUnivalents} always
-compresses more than {\LowerUnits} is shown, and both algorithms are empirically compared on
-thousands of proofs produced by the SMT-Solver \veriT.
+In this paper, a new algorithm generalizing {\LowerUnits} is described. The purpose of this algorithm
+is both to compress further than {\LowerUnits} and to allow fast non-sequential combination with
+{\RPI}.
 
-ToDo: explain the organization of the paper here..
+In the next section, the propositional resolution calculus is introduced along with the notations, operations
+and some theoretical results used in the paper. Section \ref{sec:LU} briefly describes the
+{\LowerUnits} algorithm. In Sect. \ref{sec:LUniv} the new algorithm {\LowerUnivalents} is introduced and a
+formal proof it always compress more than {\LowerUnits} is shown. Section \ref{sec:LUnivRPI}
+describes the non-sequential combination of {\LowerUnivalents} and {\RPI}. Lastly,
+experiment results are discussed in Sect. \ref{sec:exp}.
 
 
 
@@ -256,7 +266,7 @@ proof exponentialy bigger than the original. Some carefull \emph{partial regular
 exists though (\cite{RP},\cite{LURPI}) which achieve good compression ratio.
 
 
-\section{LowerUnits}
+\section{LowerUnits} \label{sec:LU}
 
 When the root node of a subproof $\varphi$ as more than one child in a proof $\psi$ it might be
 convenient to factor the corresponding resolutions. Lowering $\varphi$ is such a factorisation. A
@@ -303,7 +313,7 @@ top-down traversal. The last step is the reintroduction of units.
   \label{algo:LU}
 \end{algorithm}
 
-\section{LowerUnivalents}
+\section{LowerUnivalents} \label{sec:LUniv}
 
 {\LowerUnits} obviously doesn't lower every lowerable subproofs. In particular, it doesn't take into
 account the already lowered subproofs. For instance, if a unit $\varphi_1$ proving $\{a\}$ has
@@ -475,7 +485,7 @@ units may appear in the resulting compressed proof.
 
 
 
-\section{Combining {\LowerUnivalents} with {\RPI}}
+\section{Combining {\LowerUnivalents} with {\RPI}} \label{sec:LUnivRPI}
 
 \texttt{RecyclePivotsWithIntersection} ({\RPI}) is a partial regularization algorithm presented in
 \cite{LURPI}. For any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi}
@@ -512,7 +522,7 @@ lower every univalent subproofs.
 
 
 
-\section{Experiments}
+\section{Experiments} \label{sec:exp}
 
 \begin{jb}
 This section is still just a draft.
@@ -540,7 +550,7 @@ The following algorithms have been experimented : {\LowerUnits} (LU), {\LowerUni
 {\RPI}, a non-sequential combination of {\RPI} after {\LowerUnits} (RPILU), a non-sequential
 combination of {\RPI} after {\LowerUnivalents} (RPILUniv), the sequential composition of
 {\LowerUnits} after {\RPI} (LURPI), {\LUnivRPI}, the \texttt{Split} algorithm presented in
-\cite{CotonSplit} and the \texttt{ReduceAndReconstruct} algorithm presented in \cite{RedRec}
+\cite{CottonSplit} and the \texttt{ReduceAndReconstruct} algorithm presented in \cite{RedRec}
 (RedRec).
 
 For each of these algorithms, 
