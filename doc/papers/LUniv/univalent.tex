@@ -507,12 +507,23 @@ $\FuncSty{delete}$ algorithm.
 Both sequential compositions of {\LowerUnits} with {\RPI} have been shown to achieve good
 compression ratio in reasonable delay (\cite{LURPI}). Unfortunately, neither {\LowerUnits} after
 {\RPI} (\texttt{LU.RPI}) nor {\RPI} after {\LowerUnits} (\texttt{RPI.LU}) always compress more than
-the other one. A reasonable solution is to perlform both algorithms and then to choose the smallest
+the other one. A reasonable solution is to perform both algorithms and then to choose the smallest
 compressed proof.
+
+But sequential composition is time consuming. To fasten DAG traversal, it is common to linearize the
+graph. But in case of sequential composition this costy operation has to be done twice. Moreover,
+some traversals, like deletion, are identical in both algorithms and might be share. Whereas
+implementing a non-sequential combination of {\RPI} after {\LowerUnits} is not difficult, a
+non-sequential combination of {\LowerUnits} after {\RPI} would be complicated. The difficulty
+is that {\RPI} could create some new units which would be only visible after the effective deletion.
+A solution could be to test for units during deletion. But if units are effectively lowered during
+this deletion, their deletion would cause some units to become non-units. And postponing deletions of
+units until a second deletion traversal would prevent to shared this traversal and would cause one more
+linearization to be performed because the deletion deeply transforms the DAG.
 
 Beside compression ratio, an advantage of {\LowerUnivalents} over {\LowerUnits} is that
 {\LowerUnivalents} can be implemented as an enhanced \FuncSty{delete} operation.  Non-sequential
-combination of {\LowerUnivalents} after {\RPI} (\texttt{LUnivRPI}) can be implemented that way by
+combination of {\LowerUnivalents} after {\RPI} (\texttt{LUnivRPI}) can be simply implemented that way by
 replacing the second traversal of {\RPI} by {\LowerUnivalents}.
 
 \begin{proposition} \label{prop:LunivRPI}
@@ -540,7 +551,7 @@ The details on the numbers of proofs by SMT logic are shown on Table \ref{tab:be
 proofs have been translated into UNSAT proofs by considering every non-resolution inference as an
 axiom.
 
-\begin{table}[tbh]
+\begin{table}[tb]
   \caption{Number of proofs by benchmark}
   \label{tab:benchmarks}
   \centering
@@ -590,7 +601,7 @@ by the total number of nodes in all the original proofs. The axioms compression 
 the same way. The compression speed correspond to the number of the original proof's nodes analysed
 in one millisecond.
 
-\begin{table}[tbh]
+\begin{table}[tb]
   \caption{Total compression ratios}
   \label{tab:average}
   \centering
