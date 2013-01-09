@@ -3,8 +3,8 @@
 \usepackage{xcolor}
 \usepackage{enumitem,amsmath,amssymb}
 \usepackage{stmaryrd}    % needed for \mapsfrom
+\usepackage{url}    % used for \url
 \usepackage[linesnumbered,boxed,noline,noend]{algorithm2e}
-\usepackage{bussproofs}
 \def\defaultHypSeparation{\hskip.1in}
 
 \usepackage{tikz}
@@ -528,13 +528,11 @@ lower every univalent subproofs.
 This section is still just a draft.
 \end{jb}
 
-{\LowerUnivalents} and {\LUnivRPI} have been implemented in the high-level functional programming
-language Scala as part of the \skeptik library. This library already contains some other proof
-compression algorithms our algorithms could be compared to.
-
-{\LowerUnivalents} has been implemented as a recursive \FuncSty{delete} improvement. But as the set
-membership is $\mathcal{O}(\log{n})$, {\LowerUnivalents}'s time complexity is $\mathcal{O}(n
-\log{n})$.
+{\LowerUnivalents} and {\LUnivRPI} have been implemented in the functional programming
+language Scala \footnote{\url{http://www.scala-lang.org/}} as part of the \skeptik
+library\footnote{\url{https://github.com/Paradoxika/Skeptik}}. {\LowerUnivalents} has been implemented as a
+recursive \FuncSty{delete} improvement. But as Scala's set membership is $\mathcal{O}(\log{n})$,
+{\LowerUnivalents}'s time complexity is $\mathcal{O}(n \log{n})$.
 
 {\LowerUnivalents} and {\LUnivRPI} have thus been evaluated on TODO
 unsatifiability proofs produced by the \veriT solver and compared to other compression algorithms.
@@ -602,6 +600,11 @@ For each of these algorithms,
 \include{best_charts}
 
 \section{Conclusions}
+
+\section*{Acknowledgments}
+
+The authors would like to thanks Pascal Fontaine from LORIA, France, to have provided {\veriT}'s
+proofs to experiment with.
 
 \bibliographystyle{splncs}
 \bibliography{../biblio}

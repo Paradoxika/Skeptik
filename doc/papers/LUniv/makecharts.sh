@@ -1,6 +1,6 @@
 #! /bin/bash
 
-FILE=all-new.csv
+FILE=all-final.csv
 
 PATH=../../../scripts/:$PATH
 export PERL5LIB=../../../scripts
