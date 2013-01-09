@@ -1,6 +1,6 @@
 #! /bin/bash
 
-FILE=sample.csv
+FILE=all-new.csv
 
 PATH=../../../scripts/:$PATH
 export PERL5LIB=../../../scripts
@@ -45,6 +45,5 @@ EOT
 }
 
 make_charts "Comparison between LU and LUniv" LU LUniv 6 11 >LU_charts.tex
-make_charts "Comparison between RPILU and RPILUniv" RPILU RPILUniv 16 21 >RPILU_charts.tex
-make_charts "Comparison between LURPI and LUnivRPI" LURPI LUnivRPI 26 31 >LURPI_charts.tex
-make_charts "Comparison between the LU and LUniv combinations" RPI/LU RPI/LUniv 36 41 >best_charts.tex
+make_charts "Comparison between LU.RPI and LUnivRPI" LU.RPI LUnivRPI 26 31 >LURPI_charts.tex
+make_charts "Comparison between the LU and LUniv combinations" RPI/LU RPI/LUniv 51 56 >best_charts.tex
