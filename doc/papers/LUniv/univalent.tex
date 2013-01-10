@@ -83,7 +83,7 @@ For DPLL- and CDCL-based sat-solvers, propositional resolution is an excellent p
 refutations in this system can be generated with an acceptable efficiency overhead and they are
 detailed enough to allow easy implementation of efficient proof checkers.
 
-ToDo: unsat core, interpolants...
+\BWP{ ToDo: unsat core, interpolants... }
 
 With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
 compress and improve such proofs in a post-processing stage.
@@ -91,7 +91,7 @@ Cotton \cite{CottonSplit} proposed an
 algorithm to compress unsat-proof by resolving proofs of $\ell$ and $\dual{\ell}$ for a randomly
 choosen literal $\ell$.
 The \texttt{ReduceAndReconstruct} algorithm \cite{RedRec} recursively
-performs atomic transformations on each resolution step. In \cite{RP} two linear time compression
+performs atomic transformations on each resolution step. In \cite{RP08} two linear time compression
 algorithms are introduced. One of them is a partial regularization algorithm called
 \texttt{RecyclePivots}.  An enhanced version of this latter algorithm, called
 \texttt{RecyclePivotsWithIntersection} ({\RPI}), is proposed in \cite{LURPI}, along with a new
@@ -267,7 +267,7 @@ labels at most one edge. Otherwise, $\psi$ is \emph{irregular}.
 Any irregular proof can be converted into a regular proof having the same axioms and the same
 conclusion. But it has been proved \cite{Tseitin} that such a total regularization might result in a
 proof exponentialy bigger than the original. Some carefull \emph{partial regularization} algorithms
-exists though (\cite{RP},\cite{LURPI}) which achieve good compression ratio.
+exists though (\cite{RP08},\cite{LURPI}) which achieve good compression ratio.
 
 
 \section{LowerUnits} \label{sec:LU}
@@ -317,6 +317,7 @@ during a first traversal. As this traversal is bottom-up, units are stored in a 
 could have been top-down and units stored in a stack. Units are effectively removed during a second,
 top-down traversal. The last step is the reintroduction of units.
 
+\FloatBarrier
 \section{LowerUnivalents} \label{sec:LUniv}
 
 {\LowerUnits} obviously doesn't lower every lowerable subproofs. In particular, it doesn't take into
@@ -514,17 +515,17 @@ But sequential composition is time consuming. To fasten DAG traversal, it is com
 graph. But in case of sequential composition this costy operation has to be done twice. Moreover,
 some traversals, like deletion, are identical in both algorithms and might be share. Whereas
 implementing a non-sequential combination of {\RPI} after {\LowerUnits} is not difficult, a
-non-sequential combination of {\LowerUnits} after {\RPI} would be complicated. The difficulty
-is that {\RPI} could create some new units which would be only visible after the effective deletion.
-A solution could be to test for units during deletion. But if units are effectively lowered during
-this deletion, their deletion would cause some units to become non-units. And postponing deletions of
-units until a second deletion traversal would prevent to shared this traversal and would cause one more
-linearization to be performed because the deletion deeply transforms the DAG.
+non-sequential combination of {\LowerUnits} after {\RPI} would be complicated. The difficulty is
+that {\RPI} could create some new units which would be only visible after the effective deletion.  A
+solution could be to test for units during deletion. But if units are effectively lowered during
+this deletion, their deletion would cause some units to become non-units. And postponing deletions
+of units until a second deletion traversal would prevent to shared this traversal and would cause
+one more linearization to be performed because the deletion deeply transforms the DAG.
 
 Beside compression ratio, an advantage of {\LowerUnivalents} over {\LowerUnits} is that
-{\LowerUnivalents} can be implemented as an enhanced \FuncSty{delete} operation.  Non-sequential
-combination of {\LowerUnivalents} after {\RPI} (\texttt{LUnivRPI}) can be simply implemented that way by
-replacing the second traversal of {\RPI} by {\LowerUnivalents}.
+{\LowerUnivalents} can be safely implemented as an enhanced \FuncSty{delete} operation.
+Non-sequential combination of {\LowerUnivalents} after {\RPI} (\texttt{LUnivRPI}) can be simply
+implemented that way by replacing the second traversal of {\RPI} by {\LowerUnivalents}.
 
 \begin{proposition} \label{prop:LunivRPI}
 In a proof $\psi$, for all edge $\raiz{\varphi} \xrightarrow{\ell} \raiz{\varphi'}$, $\ell$ is
