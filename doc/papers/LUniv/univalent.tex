@@ -49,7 +49,7 @@
 This paper describes a generalization of the {\LowerUnits} algorithm \cite{LURPI} for the
 compression of propositional resolution proofs.  The generalized algorithm, here called
 {\LowerUnivalents}, is able to lower not only units but also subproofs of non-unit
-conclusion, provided that they satisfy some additional conditions. 
+clauses, provided that they satisfy some additional conditions. 
 This new algorithm is particularly suited to be combined with the {\RPI} algorithm \cite{LURPI}.
 A formal proof that
 {\LowerUnivalents} always compresses more than {\LowerUnits} is shown, and both algorithms are
@@ -576,14 +576,26 @@ For each of these algorithms,
 \end{table}
 
 
-\include{LU_charts}
-\include{RPILU_charts}
-\include{LURPI_charts}
-\include{best_charts}
+%\include{LU_charts}
+%\include{RPILU_charts}
+%\include{LURPI_charts}
+%\include{best_charts}
 
 \section{Conclusions}
 
-\bibliographystyle{splncs}
+% Note from Bruno: this bibliography style (splncs) is causing bibtex to fail in my computer: 
+%LUniv$ bibtex univalent
+%This is BibTeX, Version 0.99d (TeX Live 2010)
+%The top-level auxiliary file: univalent.aux
+%I couldn't open style file splncs.bst
+%---line 54 of file univalent.aux
+%: \bibstyle{splncs
+% :                 }
+%
+% Any idea why?
+
+%\bibliographystyle{splncs}
+\bibliographystyle{plain}
 \bibliography{../biblio}
 
 \end{document}
