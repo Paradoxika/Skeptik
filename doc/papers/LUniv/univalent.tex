@@ -170,9 +170,11 @@ $$
 \SetKwFunction{Rec}{delete}
 \SetKw{Let}{let}
 
+
 \begin{algorithm}[bt]
-  \KwIn{$\varphi$ a subproof of $\psi$}
+  \KwIn{a proof $\varphi$}
   \KwIn{$D$ a set of subproofs}
+  \KwOut{a proof $\varphi'$ obtained by deleting the subproofs in $D$ from $\varphi$}
   \BlankLine
 
   \newcommand{\fixL}{\ensuremath{\varphi'_L}}
@@ -210,12 +212,10 @@ $$
 \end{algorithm}
 
 Two operations on proofs are used in this paper: the resolution operation~$\odot_\ell$ introduced
-above and the deletion of a set of subproofs from a proof. This last operation is noted
+above and the deletion of a set of subproofs from a proof. This last operation is denoted
 $\dn{\psi}{\varphi_1 \ldots \varphi_n}$ where $\psi$ is the whole proof and $\varphi_i$ are the
-deleted subproofs. Algorithm \ref{algo:del} describes precisely the deletion operation,
-$\dn{\psi}{\varphi_1 \ldots \varphi_n}$ being the result of \Rec{$\psi$,$\{\varphi_1, \ldots , \varphi_n\}$}.
-
-Both the resolution and deletion operations are considered to be left associative.
+deleted subproofs. Algorithm \ref{algo:del} describes precisely the deletion operation, with
+$\dn{\psi}{\varphi_1 \ldots \varphi_n}$ being the result of \Rec{$\psi$,$\{\varphi_1, \ldots , \varphi_n\}$}. Both the resolution and deletion operations are considered to be left associative.
 
 \begin{proposition} \label{prop:del_assoc}
 \JB{ Proof: by induction }
