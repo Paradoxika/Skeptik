@@ -323,13 +323,13 @@ $\varphi_2$ then $a$ will be introduced in the proof by the deletion.
 \begin{definition}[Univalent subproof]
 A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if
 $\varphi$ has exactly one valent literal $\ell$ in $\psi$, $\ell \notin \Delta$ and
-$\Conclusion{\varphi} \supseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the univalent
+$\Conclusion{\varphi} \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the univalent
 literal of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
 \end{definition}
 
-The principle of {\LowerUnivalents} is simply to lower every univalent subproofs. $\Delta$ is
+The principle of {\LowerUnivalents} is simply to lower all univalent subproofs. $\Delta$ is
 initialized to the empty set. Then the dual of the univalent literals are incrementaly added to
-$\Delta$. The proposition \ref{prop:LUniv} ensures that the conclusion of the resulting proof
+$\Delta$. Proposition \ref{prop:LUniv} ensures that the conclusion of the resulting proof
 subsumes the conclusion of the original one.
 
 \begin{proposition} \label{prop:LUniv}
@@ -342,10 +342,10 @@ subsumes the conclusion of $\psi$.
 \end{proposition}
 
 \begin{proof}
-The proposition will be proved by induction on $n$, along with the fact that $\dn{\psi}{U} \notin
-U$. Let suppose a subproof $\varphi_{n+1}$ of $\psi$ is univalent w.r.t. $\Delta_n$, with univalent
+The proposition is proven by induction on $n$, along with the fact that $\dn{\psi}{U} \notin
+U$. Suppose a subproof $\varphi_{n+1}$ of $\psi$ is univalent w.r.t. $\Delta_n$, with univalent
 literal $\ell_{n+1}$.  Because $\ell_{n+1} \notin \Delta_n$, there exists a subproof of
-$\dn{\psi}{U}$ which conclusion contains $\dual{\ell_{n+1}}$, therefore
+$\dn{\psi}{U}$ with conclusion containing $\dual{\ell_{n+1}}$, and therefore
 $\dn{\dn{\psi}{U}}{\varphi_{n+1}} \notin U \cup \{\varphi_{n+1}\}$.  Let $\Gamma$ be the conclusion
 of $\dn{\psi}{U}$. The conclusion of $ \psi' = \dn{\psi}{U \cup \{\varphi_{n+1}\}} =
 \dn{\dn{\psi}{U}}{\varphi_{n+1}} $ is included in $\Gamma \cup \{\dual{\ell{n+1}}\}$. The conclusion
