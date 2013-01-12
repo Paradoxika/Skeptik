@@ -266,18 +266,18 @@ exists though (\cite{RP08},\cite{LURPI}) which achieve good compression ratio.
 
 \section{LowerUnits} \label{sec:LU}
 
-When the root node of a subproof $\varphi$ as more than one child in a proof $\psi$ it might be
+When the root node of a subproof $\varphi$ has more than one child in a proof $\psi$ it might be
 convenient to factor the corresponding resolutions. Lowering $\varphi$ is such a factorisation. A
-new equivalent proof is constructed by removing $\varphi$ from $\psi$ and reintroducing it at the
-bottom of the proof. Formaly, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists
+new proof can be constructed by removing $\varphi$ from $\psi$ and reintroducing it at the
+bottom of the resulting proof. Formaly, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists
 a proof $\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
 $\Conclusion{\psi'} \subseteq \Conclusion{\psi}$.
 
-These idea has been introduce in \cite{LURPI} for the {\LowerUnits} algorithm. Units are subproofs
+This idea has been introduced in \cite{LURPI} for the {\LowerUnits} algorithm. Units are subproofs
 with a conclusion consisting of only one literal. Such a subproof can always be lowered. The
 proposed algorithm lowers every unit with more than one child. Care is taken to reintroduce units in
-an order corresponding to the ancestor relation : if a unit $\varphi_2$ is an ancestor of a unit
-$\varphi_1$ then $\varphi_2$ has to be reintroduced after (ie below) $\varphi_1$.
+an order corresponding to the ancestor relation: if a unit $\varphi_2$ is an ancestor of a unit
+$\varphi_1$ then $\varphi_2$ has to be reintroduced after (i.e. below) $\varphi_1$.
 
 \begin{algorithm}[bt]
   \KwIn {a proof $\psi$}
@@ -314,7 +314,7 @@ top-down traversal. The last step is the reintroduction of units.
 \FloatBarrier
 \section{LowerUnivalents} \label{sec:LUniv}
 
-{\LowerUnits} obviously doesn't lower every lowerable subproofs. In particular, it doesn't take into
+{\LowerUnits} doesn't lower every lowerable subproof. In particular, it doesn't take into
 account the already lowered subproofs. For instance, if a unit $\varphi_1$ proving $\{a\}$ has
 already been lowered, a subproof $\varphi_2$ with conclusion $\{\neg a,b\}$ may be lowered too and
 reintroduced above $\varphi_1$. But care must be taken, because if $\neg a$ is a valent literal of
@@ -323,7 +323,7 @@ $\varphi_2$ then $a$ will be introduced in the proof by the deletion.
 \begin{definition}[Univalent subproof]
 A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if
 $\varphi$ has exactly one valent literal $\ell$ in $\psi$, $\ell \notin \Delta$ and
-$\Conclusion{\varphi} \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the univalent
+$\Conclusion{\varphi} \supseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the univalent
 literal of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
 \end{definition}
 
