@@ -232,12 +232,12 @@ the conclusion of $\dn{\psi}{\varphi}$ but not to the conclusion of $\psi$.
 \end{definition}
 
 \begin{proposition} \label{prop:valentactive}
-In a proof $\psi$, a valent literal of a subproof $\varphi$ is an active literal of $\varphi$.
+In a proof $\psi$, every valent literal of a subproof $\varphi$ is an active literal of $\varphi$.
 \end{proposition}
 
 \begin{proof}
 Lines 2, 12, 14 and 16 from Algo. \ref{algo:del} can't introduce a new literal in the conclusion of
-the subproof being processed. Let write $\ell$ for a valent literal of $\varphi$ in $\psi$. Because
+the subproof being processed. Let $\ell$ be a valent literal of $\varphi$ in $\psi$. Because
 there is only one subproof to be deleted, $\dual{\ell}$ can only be introduced when processing a
 subproof $\varphi'$ such that $\raiz{\varphi'} \xrightarrow{\ell} \raiz{\varphi}$. \qed
 \end{proof}
