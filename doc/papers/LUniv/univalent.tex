@@ -259,11 +259,13 @@ or     $\dn{\psi}{A \cup B} = \dn{\dn{\psi}{A}}{B}$.
 In a proof $\psi$, every valent literal of a subproof $\varphi$ is an active literal of $\varphi$.
 \end{proposition}
 
+\newcommand{\pedge}[3]{\ensuremath{\raiz{#1} \xrightarrow{#2} \raiz{#3}}}
+
 \begin{proof}
 Lines 2, 12, 14 and 16 from Algo. \ref{algo:del} can't introduce a new literal in the conclusion of
 the subproof being processed. Let $\ell$ be a valent literal of $\varphi$ in $\psi$. Because
 there is only one subproof to be deleted, $\dual{\ell}$ can only be introduced when processing a
-subproof $\varphi'$ such that $\raiz{\varphi'} \xrightarrow{\ell} \raiz{\varphi}$. \qed
+subproof $\varphi'$ such that $\pedge{\varphi'}{\ell}{\varphi}$. \qed
 \end{proof}
 
 \begin{proposition}
@@ -550,8 +552,8 @@ after {\RPI} can be implemented just by replacing the second traversal of {\RPI}
 {\LowerUnivalents}.
 
 \begin{proposition} \label{prop:LunivRPI}
-In a proof $\psi$, for all edge $\raiz{\varphi} \xrightarrow{\ell} \raiz{\varphi'}$, $\ell$ is
-either a safe literal of $\varphi$ or a valent literal of $\varphi'$.
+In a proof $\psi$, for all edge $\pedge{\varphi}{\ell}{\varphi'}$, $\ell$ is either a safe literal
+of $\varphi$ or a valent literal of $\varphi'$.
 \end{proposition}
 
 After the first step of {\RPI}, as all edges labeled by a safe literal have been marked for
@@ -722,6 +724,86 @@ and for several interesting and useful discussions on this topic.
 
 \bibliographystyle{splncs}
 \bibliography{../biblio}
+
+
+
+\begin{algorithm}[bt]
+  \KwIn {a proof $\psi$}
+  \KwIn {a set $D_V$ of subproofs to delete}
+  \KwIn {a set $D_E$ of edges to delete}
+  \KwOut{the proof $\psi$ compressed in place}
+  \BlankLine
+
+  \SetKw{Push}{push}
+  \SetKw{Pop} {pop}
+  \SetKw{Add} {add}
+  \SetKw{Rep} {replace}
+
+  \SetKwData{Activ}{ActiveLiterals}
+
+  \Univ $\leftarrow \varnothing$ \;
+  $\Delta \leftarrow \varnothing$ \;
+  \BlankLine
+
+  \For{every subproof $\varphi$, in a top-down traversal  }{
+
+    \tcp{The deletion part.}
+    \If{$\varphi$ is not an axiom}{
+      \Let{$\varphi = \varphi_L \odot_\ell \varphi_R$} \;
+      \uIf{ $\varphi_L \in D_V$ or $\pedge{\varphi}{\dual{\ell}}{\varphi_L} \in D_E$ }{
+        \uIf{ $\pedge{\varphi}{\ell}{\varphi_R} \in D_E$ }{
+          \Add $\varphi$ to $D_V$ \;
+        }
+        \Else{
+          \Rep $\varphi$ by $\varphi_R$ \;
+        }
+      }
+      \ElseIf{ $\varphi_R \in D_V$ or $\pedge{\varphi}{\dual{\ell}}{\varphi_R} \in D_E$ }{
+        \uIf{ $\pedge{\varphi}{\ell}{\varphi_L} \in D_E$ }{
+          \Add $\varphi$ to $D_V$ \;
+        }
+        \Else{
+          \Rep $\varphi$ by $\varphi_L$ \;
+        }
+      }
+    }
+    \BlankLine
+    
+    \tcp{Test if $\varphi$ is univalent.}
+    \Activ $\leftarrow \varnothing$ \;
+    \For{each incoming edge $e = \n \xrightarrow{\ell} \raiz{\varphi}$, $e \notin D_E$ }{
+      \uIf{$\dual{\ell} \in \Delta$}{
+        \Add $e$ to $D_E$ \;
+      }
+      \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$  and
+              $\ell \notin \Conclusion{\psi}$ }{
+        \Add $\ell$ to \Activ \;
+      }
+    }
+    \BlankLine
+
+
+    \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
+      \Push $\dual{\ell}$ onto $\Delta$ \;
+      \Push $\varphi$     onto \Univ  \;
+    }
+  }
+  \BlankLine
+
+  \tcp{Reintroduce lowered subproofs.}
+  \While{\Univ $\neq \varnothing$}{
+    $\varphi \leftarrow$ \Pop from \Univ \;
+    $\ell \leftarrow$ \Pop from $\Delta$ \;
+    \If{$\ell \in \Conclusion{\psi}$  }{
+      \Rep $\psi$ by $\varphi \odot_\ell \psi$ \;}
+  }
+
+  \caption{\LowerUnivalents}
+  
+\end{algorithm}
+
+
+
 
 \end{document}
 
