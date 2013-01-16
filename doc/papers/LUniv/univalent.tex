@@ -542,10 +542,11 @@ And postponing deletions of units until a second deletion traversal would preven
 this traversal and would cause one more topological sorting to be performed because the deletion
 deeply transforms the structure of the DAG.
 
-Besides having an improved compression ratio, another advantage of {\LowerUnivalents} over {\LowerUnits} is that
-{\LowerUnivalents} can be safely implemented as an enhanced \FuncSty{delete} operation.
-Non-sequential combination of {\LowerUnivalents} after {\RPI} (\texttt{LUnivRPI}) can be simply
-implemented that way by replacing the second traversal of {\RPI} by {\LowerUnivalents}.
+Apart from having an improved compression ratio, another advantage of {\LowerUnivalents} over
+{\LowerUnits} is that {\LowerUnivalents} can be implemented as an enhanced \FuncSty{delete}
+operation. With such an implementation, a simple non-sequential combination of {\LowerUnivalents}
+after {\RPI} can be implemented just by replacing the second traversal of {\RPI} by
+{\LowerUnivalents}.
 
 \begin{proposition} \label{prop:LunivRPI}
 In a proof $\psi$, for all edge $\raiz{\varphi} \xrightarrow{\ell} \raiz{\varphi'}$, $\ell$ is
@@ -593,17 +594,17 @@ considering every non-resolution inference as an axiom.
 
 In order to compare our algorithms with others, the following algorithms have been experimented :
 \begin{description}
-  \item[LU]: the {\LowerUnits} algorithm from \cite{LURPI};
-  \item[LUniv]: the {\LowerUnivalents} algorithm;
-  \item[RPILU]: a non-sequential combination of {\RPI} after {\LowerUnits};
-  \item[RPILUniv]: a non-sequential combination of {\RPI} after {\LowerUnivalents};
-  \item[LU.RPI]: the sequential composition of {\LowerUnits} after {\RPI};
-  \item[LUnivRPI]: described in Sect. \ref{sec:LUnivRPI};
-  \item[RPI]: the \texttt{RecyclePivotsWithIntersection} from \cite{LURPI};
-  \item[Split]: from \cite{CottonSplit};
-  \item[RedRec]: the \texttt{ReduceAndReconstruct} algorithm from \cite{RedRec};
-  \item[Best LU/RPI]: which performs both RPILU and LU.RPI and chooses the smallest resulting compressed proof;
-  \item[Best LU/LUniv/RPI]: which performs both RPILU and LUnivRPI and chooses the smallest resulting
+  \item[LU:] the {\LowerUnits} algorithm from \cite{LURPI};
+  \item[LUniv:] the {\LowerUnivalents} algorithm;
+  \item[RPILU:] a non-sequential combination of {\RPI} after {\LowerUnits};
+  \item[RPILUniv:] a non-sequential combination of {\RPI} after {\LowerUnivalents};
+  \item[LU.RPI:] the sequential composition of {\LowerUnits} after {\RPI};
+  \item[LUnivRPI:] the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
+  \item[RPI:] the \texttt{RecyclePivotsWithIntersection} from \cite{LURPI};
+  \item[Split:] teh Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
+  \item[RedRec:] the \texttt{ReduceAndReconstruct} algorithm from \cite{RedRec};
+  \item[Best LU/RPI:] which performs both RPILU and LU.RPI and chooses the smallest resulting compressed proof;
+  \item[Best LU/LUniv/RPI:] which performs both RPILU and LUnivRPI and chooses the smallest resulting
     compressed proof.
 \end{description}
 
@@ -614,12 +615,21 @@ The experiments were executed on the Vienna Scientific
 Cluster\footnote{\url{http://vsc.ac.at/}} VSC\nobreakdash-2. Each algorithm was executed in a single core. But the amount of memory available at each cluster node (16 GB) has been
 usefull to compress the biggest proofs (with more than $10^6$ nodes).
 
-\BWP{I think it is better to write a mathematical formula than to describe this formula in natural language}
+
 The overall results of the experiments are shown on Table \ref{tab:average}. The nodes compression
-ratios on the second column is one minus the total number of nodes in all the compressed proofs divided
-by the total number of nodes in all the original proofs. The axioms compression ratios are computed
-the same way. The compression speed correspond to the number of the original proof's nodes analyzed \BWP{What do you mean by ``analyze''? Traversed nodes? Removed nodes? Could you write the formula for compression speed?}
-in one millisecond.
+ratios on the second column corresponds to the formula (\ref{eq:compression}) in which $\psi$ range
+over all the proofs in the benchmark and $\psi'$ is the corresponding compressed proof.
+\begin{equation} \label{eq:compression}
+  1 - \frac{ \sum {|\Vertices{\psi}|} }{ \sum {|\Vertices{\psi'}|} }
+\end{equation}
+The unsat core compression ratios are computed the same way, using the number of axioms intead of
+the number of nodes. The compression speed on the forth column
+correspond to the formula (\ref{eq:speed}) in which $d_{\psi}$ is the duration in miliseconds of
+$\psi$'s compression by a given algorithm.
+\begin{equation} \label{eq:speed}
+  \frac{ \sum {|\Vertices{\psi}|} }{ \sum {d_{\psi}} }
+\end{equation}
+
 
 \begin{table}[tb]
   \caption{Total compression ratios}
@@ -645,12 +655,21 @@ in one millisecond.
   \end{tabular}
 \end{table}
 
-Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. The nodes
-compression difference and the duration difference are computed using the following formula, where $v$ is TODO...
-$$ \frac {2(v_{\text{LU}} - v_{\text{LUniv}})}
-         {  v_{\text{LU}} + v_{\text{LUniv}} } $$
+\newcommand{\va}[1]{\ensuremath{v_{\text{#1}}}}
 
-%\input{LU_charts}
+Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. The compression
+ratio difference in subfigure (c) is computed using the formula (\ref{eq:histogram}) with \va{LU}
+and \va{LUniv} being the number of nodes in the proofs compressed respectively by {\LowerUnits} and
+{\LowerUnivalents}.
+\begin{equation} \label{eq:histogram}
+  \frac { 2(\va{LU} - \va{LUniv}) }{ \va{LU} + \va{LUniv} }
+\end{equation}
+The number of proof for which $\va{LU} = \va{LUniv}$ are not displayed in the histogram.
+The duration difference in subfigure (d) is computed using the same formula (\ref{eq:histogram}) but
+whith \va{LU} and \va{LUniv} being the duration of compressing a proof by {\LowerUnits} and
+{\LowerUnits} respectively.
+
+\input{LU_charts}
 
 As expected, {\LowerUnivalents} compress more than {\LowerUnits} at the expense of a longer
 computation. And even if the compression ratio gain is low on average, the subfigure (a) shows that
@@ -663,7 +682,7 @@ But as {\LowerUnivalents} lowers non-unit subproofs and performs some partial re
 achieves some unsat core reduction.
 
 The comparison of the sequential \texttt{LU.RPI} with the non-sequential {\LUnivRPI} shown on Fig.
-\ref{fig:LUnivRPI} outlines the ability of {\LowerUnivalents} to be effectively combined with other
+\ref{fig:LUnivRPI} outlines the ability of {\LowerUnivalents} to be efficiently combined with other
 algorithms. Although the implementation is not linear, {\LUnivRPI} is faster than the linear
 sequential composition for more than 80 \% of the proofs.
 
@@ -673,11 +692,11 @@ sequential composition for more than 80 \% of the proofs.
 
 
 
-\input{best_charts}
+%\input{best_charts}
 
-\input{test}
+%\input{test}
 
-\FloatBarrier
+%\FloatBarrier
 \section{Conclusions}
 
 The algorithm we have presented have been shown to compress more than {\LowerUnits} because it
