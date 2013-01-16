@@ -728,6 +728,9 @@ and for several interesting and useful discussions on this topic.
 
 
 \begin{algorithm}[bt]
+  \SetAlgoLined
+  \SetAlgoShortEnd
+
   \KwIn {a proof $\psi$}
   \KwIn {a set $D_V$ of subproofs to delete}
   \KwIn {a set $D_E$ of edges to delete}
@@ -798,7 +801,7 @@ and for several interesting and useful discussions on this topic.
       \Rep $\psi$ by $\varphi \odot_\ell \psi$ \;}
   }
 
-  \caption{\LowerUnivalents}
+  \caption{Optimized {\LowerUnivalents} as an enhanced \texttt{delete}}
   
 \end{algorithm}
 
