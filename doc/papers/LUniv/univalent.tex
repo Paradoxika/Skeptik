@@ -236,9 +236,10 @@ A special case about deletion has to be noticed. Intuitively, deleting too many 
 result in an inconsistant proof. It happens when on all path from the proof's root to each axiom,
 the root of a subproof to be deleted lies. In that case, $\dn{\psi}{D}$ is defined as belonging to
 $D$. This definition permits to propagate deletions down the proof. For instance, let's consider the
-deletion $\psi = \dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2}$.
-As $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\}$, we get
-the expected result $\psi = \dn{\varphi_3}{\varphi_1, \varphi_2}$.
+proof
+$$ \psi = \dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2}. $$
+As $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\}$,
+$\psi = \dn{\varphi_3}{\varphi_1, \varphi_2}$ holds, as expected.
 
 \begin{proposition} \label{prop:del_assoc}
 \JB{ Proof: by induction }
@@ -250,8 +251,8 @@ or     $\dn{\psi}{A \cup B} = \dn{\dn{\psi}{A}}{B}$.
 
 
 \begin{definition}[Valent literal]
-In a proof $\psi$, a literal $\ell$ is valent for the subproof $\varphi$ if $\dual{\ell}$ belongs to
-the conclusion of $\dn{\psi}{\varphi}$ but not to the conclusion of $\psi$.
+  In a proof $\psi$, a literal $\ell$ is \emph{valent} for the subproof $\varphi$ iff $\dual{\ell}$
+  belongs to the conclusion of $\dn{\psi}{\varphi}$ but not to the conclusion of $\psi$.
 \end{definition}
 
 \begin{proposition} \label{prop:valentactive}
@@ -330,10 +331,10 @@ reintroduced above $\varphi_1$. But care must be taken, because if $\neg a$ is a
 $\varphi_2$ then $a$ will be introduced in the proof by the deletion.
 
 \begin{definition}[Univalent subproof]
-A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals if
+A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals iff
 $\varphi$ has exactly one valent literal $\ell$ in $\psi$, $\ell \notin \Delta$ and
-$\Conclusion{\varphi} \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the univalent
-literal of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
+$\Conclusion{\varphi} \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the \emph{univalent
+literal} of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
 \end{definition}
 
 The principle of {\LowerUnivalents} is simply to lower all univalent subproofs. $\Delta$ is
@@ -501,7 +502,7 @@ units may appear in the resulting compressed proof.
 \section{Combining {\LowerUnivalents} with {\RPI}} \label{sec:LUnivRPI}
 
 \begin{definition}[Regular proof]
-A proof $\psi$ is \emph{regular} if on every path from its root to any of its axioms, each literal
+A proof $\psi$ is \emph{regular} iff on every path from its root to any of its axioms, each literal
 labels at most one edge. Otherwise, $\psi$ is \emph{irregular}.
 \end{definition}
 
@@ -516,8 +517,8 @@ any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi
 \n$ if $\ell$ is a safe literal for $\varphi$ in $\psi$.
 
 \begin{definition}[Safe literal]
-A literal $\ell$ is \emph{safe} for a subproof $\varphi$ in a proof $\psi$ iff $\ell$ labels one
-edge on every path from $\raiz{\psi}$ to $\raiz{\varphi}$.
+A literal $\ell$ is \emph{safe} for a subproof $\varphi$ in a proof $\psi$ iff $\ell$ labels at
+least one edge on every path from $\raiz{\psi}$ to $\raiz{\varphi}$.
 \end{definition}
 
 {\RPI} performs two traversals. During the first one, safe literals are collected and edges are
