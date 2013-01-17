@@ -239,7 +239,7 @@ $D$. This definition permits to propagate deletions down the proof. For instance
 proof
 $$ \psi = \dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2}. $$
 As $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\}$,
-$\psi = \dn{\varphi_3}{\varphi_1, \varphi_2}$ holds, as expected.
+$\psi = \dn{\varphi_3}{\varphi_1, \varphi_2}$ holds as expected.
 
 \begin{proposition} \label{prop:del_assoc}
 \JB{ Proof: by induction }
@@ -323,6 +323,9 @@ top-down traversal. The last step is the reintroduction of units.
   \label{algo:LU}
 \end{algorithm}
 
+
+
+
 %\FloatBarrier
 \section{LowerUnivalents} \label{sec:LUniv}
 
@@ -330,7 +333,7 @@ top-down traversal. The last step is the reintroduction of units.
 account the already lowered subproofs. For instance, if a unit $\varphi_1$ proving $\{a\}$ has
 already been lowered, a subproof $\varphi_2$ with conclusion $\{\neg a,b\}$ may be lowered too and
 reintroduced above $\varphi_1$. But care must be taken, because if $\neg a$ is a valent literal of
-$\varphi_2$ then $a$ will be introduced in the proof by the deletion.
+$\varphi_2$ then lowering $\varphi_2$ will introduce $a$ in the resulting proof's conclusion.
 
 \begin{definition}[Univalent subproof]
 A subproof $\varphi$ in a proof $\psi$ is \emph{univalent} w.r.t. a set $\Delta$ of literals iff
@@ -345,12 +348,13 @@ $\Delta$. Proposition \ref{prop:LUniv} ensures that the conclusion of the result
 subsumes the conclusion of the original one.
 
 \begin{proposition} \label{prop:LUniv}
-Given a proof $\psi$, if for an integer $n$ there is a sequence $U = (\varphi_1 \ldots \varphi_n)$
+Given a proof $\psi$, if 
+%for an integer $n$
+there is a sequence $U = (\varphi_1 \ldots \varphi_n)$
 of $\psi$'s subproofs and a sequence $(\ell_1 \ldots \ell_n)$ of literals such that $\forall i \in
-[1 \ldots n], \ell_i$ is the univalent literal of $\varphi_i$ w.r.t. $\Delta_{i-1} = \{\dual{\ell_1}
-\ldots \dual{\ell_{i-1}}\}$, then the conclusion of
-$$ \psi' = \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_1} \varphi_1 $$
-subsumes the conclusion of $\psi$.
+[1 \ldots n]$, $\ell_i$ is the univalent literal of $\varphi_i$ w.r.t. $\Delta_{i-1} =
+\{\dual{\ell_1} \ldots \dual{\ell_{i-1}}\}$, then the conclusion of $$ \psi' = \dn{\psi}{U}
+\odot_{\ell_n} \varphi_n \ldots \odot_{\ell_1} \varphi_1 $$ subsumes the conclusion of $\psi$.
 \end{proposition}
 
 \begin{proof}
@@ -425,50 +429,98 @@ subproof may not be reintroduced. But this is not a problem, because it can be s
 
 While verifying if a subproof could be univalent, some incoming edges might be deleted. If a
 subproof $\varphi_i$ has already been collected as univalent subproof with univalent literal
-$\ell_i$ and the subproof being considered now has $\ell_i$ as active literal, the corresponding
-incoming edges can be safely removed. Even if $\ell_i$ is valent, only $\dual{\ell_i}$ would be
-introduced and that literal would be deleted when reintroducing $\varphi_i$. A modified
-\FuncSty{delete} operation able to remove nodes and edges can easily be implemented.
+$\ell_i$ and the subproof $\varphi'$ being considered now has $\ell_i$ as active literal, the
+corresponding incoming edges can be safely removed. Even if $\ell_i$ is valent for $\varphi'$, only
+$\dual{\ell_i}$ would be introduced and that literal would be deleted when reintroducing
+$\varphi_i$. A modified \FuncSty{delete} operation able to remove nodes and edges can easily be
+implemented.
 
-Algorithm \ref{algo:isUniv} sums up the previous remarks on an efficient way of determining if a
+Algorithm \ref{algo:fullLUniv} sums up the previous remarks on an efficient way of determining if a
 subproof is univalent. As noticed above, this algorithm may consider a subproof as univalent whereas
-it is not. But if care is taken when reintroducing subproofs (as does the test at line
-\ref{line:LUniv:testreintroduce} of Algo. \ref{algo:LUniv}), the resulting conclusion still subsumes
-the original.
+it is not. But as care is taken when reintroducing subproofs (at line
+\ref{line:full:testreintroduce}), the resulting conclusion still subsumes the original.  The test
+that $\ell \in \Conclusion{\varphi}$ at line \ref{line:full:testactive} is mandatory since $\ell$
+might have been deleted from $\Conclusion{\varphi}$ by the deletion of previously collected
+subproofs.
 
-\begin{algorithm}[bt]
+\begin{algorithm}[pbt]
+  \SetAlgoLined
+  \SetAlgoShortEnd
+
   \KwIn {a proof $\psi$}
-  \KwIn {a subproof $\varphi$}
-  \KwIn {a set $\Delta$ of literal}
+  \KwIn {a set $D_V$ of subproofs to delete}
+  \KwIn {a set $D_E$ of edges to delete}
+  \KwOut{the proof $\psi$ compressed in place}
   \BlankLine
+
+  \SetKw{Push}{push}
+  \SetKw{Pop} {pop}
+  \SetKw{Add} {add}
+  \SetKw{Rep} {replace}
 
   \SetKwData{Activ}{ActiveLiterals}
-  \Activ $\leftarrow \varnothing$ \;
+
+  \Univ $\leftarrow \varnothing$ \;
+  $\Delta \leftarrow \varnothing$ \;
   \BlankLine
 
-  \For{each incoming edge $\n \xrightarrow{\ell} \raiz{\varphi}$ not marked for deletion }{
-    \uIf{$\dual{\ell} \in \Delta$}{
-      mark the edge for deletion \;
+  \For{every subproof $\varphi$, in a top-down traversal  }{
+
+    \tcp{The deletion part.}
+    \If{$\varphi$ is not an axiom}{
+      \Let{$\varphi = \varphi_L \odot_\ell \varphi_R$} \;
+      \uIf{ $\varphi_L \in D_V$ or $\pedge{\varphi}{\dual{\ell}}{\varphi_L} \in D_E$ }{
+        \uIf{ $\pedge{\varphi}{\ell}{\varphi_R} \in D_E$ }{
+          \Add $\varphi$ to $D_V$ \;
+        }
+        \Else{
+          \Rep $\varphi$ by $\varphi_R$ \;
+        }
+      }
+      \ElseIf{ $\varphi_R \in D_V$ or $\pedge{\varphi}{\dual{\ell}}{\varphi_R} \in D_E$ }{
+        \uIf{ $\pedge{\varphi}{\ell}{\varphi_L} \in D_E$ }{
+          \Add $\varphi$ to $D_V$ \;
+        }
+        \Else{
+          \Rep $\varphi$ by $\varphi_L$ \;
+        }
+      }
     }
-    \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$ \label{line:isUniv:testactive} and
-             $\ell \notin \Conclusion{\psi}$ }{
-      add $\ell$ to \Activ \;
+    \BlankLine
+    
+    \tcp{Test if $\varphi$ is univalent.}
+    \Activ $\leftarrow \varnothing$ \;
+    \For{each incoming edge $e = \n \xrightarrow{\ell} \raiz{\varphi}$, $e \notin D_E$ }{
+      \uIf{$\dual{\ell} \in \Delta$}{
+        \Add $e$ to $D_E$ \;
+      }
+      \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$ \label{line:full:testactive}
+              and $\ell \notin \Conclusion{\psi}$ }{
+        \Add $\ell$ to \Activ \;
+      }
+    }
+    \BlankLine
+
+
+    \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
+      \Push $\dual{\ell}$ onto $\Delta$ \;
+      \Push $\varphi$     onto \Univ  \;
     }
   }
   \BlankLine
 
-  \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
-    \Return{true} and \ArgSty{$\ell$} \;
+  \tcp{Reintroduce lowered subproofs.}
+  \While{\Univ $\neq \varnothing$}{
+    $\varphi \leftarrow$ \Pop from \Univ \;
+    $\ell \leftarrow$ \Pop from $\Delta$ \;
+    \If{$\ell \in \Conclusion{\psi}$ \label{line:full:testreintroduce}  }{
+      \Rep $\psi$ by $\varphi \odot_\ell \psi$ \;}
   }
-  \Else{\Return{false} \;}
 
-  \caption[.]{\FuncSty{isUnivalent}}
-  \label{algo:isUniv}
+  \caption{Optimized {\LowerUnivalents} as an enhanced \texttt{delete}}
+  \label{algo:fullLUniv}
 \end{algorithm}
 
-The test that $\ell \in \Conclusion{\varphi}$ at line \ref{line:isUniv:testactive} is mandatory
-since $\ell$ might have been deleted from $\Conclusion{\varphi}$ by the deletion of previously
-collected subproofs (at line \ref{line:LUniv:delete} of Algo. \ref{algo:LUniv}).
 
 Every node in a proof $\langle V, E, \Gamma \rangle$ has exactly two outgoing edges unless it is the
 root of an axiom. Hence the number of axioms is $|V| - \frac{1}{2}\,|E|$ and because there is at
@@ -514,7 +566,7 @@ proof exponentialy bigger than the original. Some carefull \emph{partial regular
 exists though which achieve good compression ratio.
 
 \texttt{RecyclePivotsWithIntersection} ({\RPI}), presented in \cite{LURPI}, is such a partial
-regularization algorithm, which inhances the \texttt{RecyclePivots} algorithm (\cite{RP08}).  For
+regularization algorithm, which enhances the \texttt{RecyclePivots} algorithm (\cite{RP08}).  For
 any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi} \xrightarrow{\ell}
 \n$ if $\ell$ is a safe literal for $\varphi$ in $\psi$.
 
@@ -565,7 +617,7 @@ effectively lower every univalent subproofs.
 \section{Experiments} \label{sec:exp}
 
 {\LowerUnivalents} and {\LUnivRPI} have been implemented in the functional programming
-language Scala \footnote{\url{http://www.scala-lang.org/}} as part of the \skeptik
+language Scala\footnote{\url{http://www.scala-lang.org/}} as part of the \skeptik
 library\footnote{\url{https://github.com/Paradoxika/Skeptik}}. {\LowerUnivalents} has been implemented as a
 recursive \FuncSty{delete} improvement. But as Scala's set membership is $\mathcal{O}(\log{n})$,
 {\LowerUnivalents}'s time complexity is $\mathcal{O}(n \log{n})$.
@@ -614,9 +666,10 @@ In order to compare our algorithms with others, the following algorithms have be
 For each of these algorithms, the time needed to compress the proof along with the number of nodes
 and the number of axioms have been measured. 
 
-The experiments were executed on the Vienna Scientific
-Cluster\footnote{\url{http://vsc.ac.at/}} VSC\nobreakdash-2. Each algorithm was executed in a single core. But the amount of memory available at each cluster node (16 GB) has been
-usefull to compress the biggest proofs (with more than $10^6$ nodes).
+The experiments were executed on the Vienna Scientific Cluster\footnote{\url{http://vsc.ac.at/}}
+VSC\nobreakdash-2. Each algorithm was executed in a single core. But the amount of memory available
+at each cluster node (16 GB) has been usefull to compress the biggest proofs (with more than $10^6$
+nodes).
 
 
 The overall results of the experiments are shown on Table \ref{tab:average}. The nodes compression
@@ -727,85 +780,37 @@ and for several interesting and useful discussions on this topic.
 
 
 
-\begin{algorithm}[bt]
-  \SetAlgoLined
-  \SetAlgoShortEnd
-
-  \KwIn {a proof $\psi$}
-  \KwIn {a set $D_V$ of subproofs to delete}
-  \KwIn {a set $D_E$ of edges to delete}
-  \KwOut{the proof $\psi$ compressed in place}
-  \BlankLine
-
-  \SetKw{Push}{push}
-  \SetKw{Pop} {pop}
-  \SetKw{Add} {add}
-  \SetKw{Rep} {replace}
-
-  \SetKwData{Activ}{ActiveLiterals}
-
-  \Univ $\leftarrow \varnothing$ \;
-  $\Delta \leftarrow \varnothing$ \;
-  \BlankLine
-
-  \For{every subproof $\varphi$, in a top-down traversal  }{
-
-    \tcp{The deletion part.}
-    \If{$\varphi$ is not an axiom}{
-      \Let{$\varphi = \varphi_L \odot_\ell \varphi_R$} \;
-      \uIf{ $\varphi_L \in D_V$ or $\pedge{\varphi}{\dual{\ell}}{\varphi_L} \in D_E$ }{
-        \uIf{ $\pedge{\varphi}{\ell}{\varphi_R} \in D_E$ }{
-          \Add $\varphi$ to $D_V$ \;
-        }
-        \Else{
-          \Rep $\varphi$ by $\varphi_R$ \;
-        }
-      }
-      \ElseIf{ $\varphi_R \in D_V$ or $\pedge{\varphi}{\dual{\ell}}{\varphi_R} \in D_E$ }{
-        \uIf{ $\pedge{\varphi}{\ell}{\varphi_L} \in D_E$ }{
-          \Add $\varphi$ to $D_V$ \;
-        }
-        \Else{
-          \Rep $\varphi$ by $\varphi_L$ \;
-        }
-      }
-    }
-    \BlankLine
-    
-    \tcp{Test if $\varphi$ is univalent.}
-    \Activ $\leftarrow \varnothing$ \;
-    \For{each incoming edge $e = \n \xrightarrow{\ell} \raiz{\varphi}$, $e \notin D_E$ }{
-      \uIf{$\dual{\ell} \in \Delta$}{
-        \Add $e$ to $D_E$ \;
-      }
-      \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$  and
-              $\ell \notin \Conclusion{\psi}$ }{
-        \Add $\ell$ to \Activ \;
-      }
-    }
-    \BlankLine
 
 
-    \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
-      \Push $\dual{\ell}$ onto $\Delta$ \;
-      \Push $\varphi$     onto \Univ  \;
-    }
-  }
-  \BlankLine
-
-  \tcp{Reintroduce lowered subproofs.}
-  \While{\Univ $\neq \varnothing$}{
-    $\varphi \leftarrow$ \Pop from \Univ \;
-    $\ell \leftarrow$ \Pop from $\Delta$ \;
-    \If{$\ell \in \Conclusion{\psi}$  }{
-      \Rep $\psi$ by $\varphi \odot_\ell \psi$ \;}
-  }
-
-  \caption{Optimized {\LowerUnivalents} as an enhanced \texttt{delete}}
-  
-\end{algorithm}
-
-
+%\begin{algorithm}[bt]
+%  \KwIn {a proof $\psi$}
+%  \KwIn {a subproof $\varphi$}
+%  \KwIn {a set $\Delta$ of literal}
+%  \BlankLine
+%
+%  \SetKwData{Activ}{ActiveLiterals}
+%  \Activ $\leftarrow \varnothing$ \;
+%  \BlankLine
+%
+%  \For{each incoming edge $\n \xrightarrow{\ell} \raiz{\varphi}$ not marked for deletion }{
+%    \uIf{$\dual{\ell} \in \Delta$}{
+%      mark the edge for deletion \;
+%    }
+%    \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$ \label{line:isUniv:testactive} and
+%             $\ell \notin \Conclusion{\psi}$ }{
+%      add $\ell$ to \Activ \;
+%    }
+%  }
+%  \BlankLine
+%
+%  \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
+%    \Return{true} and \ArgSty{$\ell$} \;
+%  }
+%  \Else{\Return{false} \;}
+%
+%  \caption[.]{\FuncSty{isUnivalent}}
+%  \label{algo:isUniv}
+%\end{algorithm}
 
 
 \end{document}
