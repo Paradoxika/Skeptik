@@ -85,8 +85,8 @@ detailed enough to allow easy implementation of efficient proof checkers.
 
 With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
 compress and improve such proofs in a post-processing stage.  Algebraic properties of the resolution
-operation, in particular \emph{chain resolution} as defined in \cite{bwp10}, have been exploited by
-the compression algorithms presented in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit}
+operation, especially \emph{chain resolution} as defined in \cite{bwp10}, have been used by
+the compression algorithms as in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit}
 proposed an algorithm that compresses a refutation by first splitting it into a proof of a
 heuristicaly chosen literal $\ell$ and a proof of $\dual{\ell}$, and then resolving them to form a
 new refutation. This process can be repeated.  The \texttt{ReduceAndReconstruct} algorithm
@@ -105,7 +105,7 @@ with {\RPI}. While in a sequential combination one algorithm is simply executed 
 a non-sequential combination, both algorithms are executed simultaneously when the proof is
 traversed. Therefore, fewer traversals are needed.
 
-In the next section, the propositional resolution calculus is introduced along with the notations,
+The next section introduces the propositional resolution calculus along with the notations,
 operations and some theoretical results used in the paper. Section \ref{sec:LU} briefly describes
 the {\LowerUnits} algorithm. In Sect. \ref{sec:LUniv} the new algorithm {\LowerUnivalents} is
 introduced and it is proven that it always compresses more than {\LowerUnits}. Section
@@ -162,7 +162,7 @@ If $\n_1 \xrightarrow{\ell} \n_2$, then $\n_2$ is called a \emph{premise} of $\n
 called a \emph{child} of $\n_2$. The transitive closures of the premise and child relations are,
 respectively, the \emph{ancestor} and \emph{descendent} relations. If $\psi = \varphi_L \odot
 \varphi_R$, then $\varphi_L$ and $\varphi_R$ are \emph{direct subproofs} of $\psi$. The transitive
-closure of the direct subproof relation is the \emph{subproof} relation. A subproof which have no
+closure of the direct subproof relation is the \emph{subproof} relation. A subproof which has no
 direct subproof is an \emph{axiom} of the proof.
 %
 \BWP{Before submitting, we should check which of these relations we actually use in the paper and
@@ -234,8 +234,8 @@ $\dn{\psi}{\varphi_1 \ldots \varphi_n}$ being the result of \Rec{$\psi$,$\{\varp
 
 A special case about deletion has to be noticed. Intuitively, deleting too many subproofs could
 result in an inconsistant proof. It happens when on all path from the proof's root to each axiom,
-the root of a subproof to be deleted lies. In that case, $\dn{\psi}{D}$ is defined as belonging to
-$D$. This definition permits to propagate deletions down the proof. For instance, let's consider the
+is the root of a subproof to be deleted. In that case, $\dn{\psi}{D}$ is defined as belonging to
+$D$ in order to allow the deletion to be propagated down the proof. For instance, let's consider the
 proof
 $$ \psi = \dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2}. $$
 As $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\}$,
@@ -262,7 +262,7 @@ In a proof $\psi$, every valent literal of a subproof $\varphi$ is an active lit
 \newcommand{\pedge}[3]{\ensuremath{\raiz{#1} \xrightarrow{#2} \raiz{#3}}}
 
 \begin{proof}
-Lines 2, 12, 14 and 16 from Algo. \ref{algo:del} can't introduce a new literal in the conclusion of
+Lines 2, 12, 14 and 16 from Algo. \ref{algo:del} can not introduce a new literal in the conclusion of
 the subproof being processed. Let $\ell$ be a valent literal of $\varphi$ in $\psi$. Because
 there is only one subproof to be deleted, $\dual{\ell}$ can only be introduced when processing a
 subproof $\varphi'$ such that $\pedge{\varphi'}{\ell}{\varphi}$. \qed
@@ -281,7 +281,7 @@ conclusion, then $\exists i$ s.t. $\dual{\ell}$ is a valent literal of $\varphi_
 When the root node of a subproof $\varphi$ has more than one child in a proof $\psi$ it might be
 convenient to factor the corresponding resolutions. Lowering $\varphi$ is such a factorisation. A
 new proof can be constructed by removing $\varphi$ from $\psi$ and reintroducing it at the
-bottom of the resulting proof. Formaly, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists
+bottom of the resulting proof. Formally, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists
 a proof $\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
 $\Conclusion{\psi'} \subseteq \Conclusion{\psi}$.
 
@@ -329,7 +329,7 @@ top-down traversal. The last step is the reintroduction of units.
 %\FloatBarrier
 \section{LowerUnivalents} \label{sec:LUniv}
 
-{\LowerUnits} doesn't lower every lowerable subproof. In particular, it doesn't take into
+{\LowerUnits} does not lower every lowerable subproof. In particular, it does not take into
 account the already lowered subproofs. For instance, if a unit $\varphi_1$ proving $\{a\}$ has
 already been lowered, a subproof $\varphi_2$ with conclusion $\{\neg a,b\}$ may be lowered too and
 reintroduced above $\varphi_1$. But care must be taken, because if $\neg a$ is a valent literal of
@@ -343,7 +343,7 @@ literal} of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
 \end{definition}
 
 The principle of {\LowerUnivalents} is simply to lower all univalent subproofs. $\Delta$ is
-initialized to the empty set. Then the dual of the univalent literals are incrementaly added to
+initialized to the empty set. Then the duals of the univalent literals are incrementaly added to
 $\Delta$. Proposition \ref{prop:LUniv} ensures that the conclusion of the resulting proof
 subsumes the conclusion of the original one.
 
@@ -359,7 +359,7 @@ of $\psi$'s subproofs and a sequence $(\ell_1 \ldots \ell_n)$ of literals such t
 
 \begin{proof}
 The proposition is proven by induction on $n$, along with the fact that $\dn{\psi}{U} \notin U$.
-When $n = 0$ then $U = \varnothing$ and the properties are obvious.  Suppose a subproof
+For $n = 0$, $U = \varnothing$ and the properties are obvious. Suppose a subproof
 $\varphi_{n+1}$ of $\psi$ is univalent w.r.t. $\Delta_n$, with univalent literal $\ell_{n+1}$.
 Because $\ell_{n+1} \notin \Delta_n$, there exists a subproof of $\dn{\psi}{U}$ with conclusion
 containing $\dual{\ell_{n+1}}$, and therefore $\dn{\dn{\psi}{U}}{\varphi_{n+1}} \notin U \cup
@@ -376,6 +376,8 @@ considered for lowering. Let suppose for instance that $\varphi_i, \varphi_j$ an
 been selected to be lowered, $i < j < k$, $\varphi_j$ is a subproof of $\varphi_i$, $\dual{\ell_j}
 \in \Conclusion{\varphi_k}$ and $\varphi_j$ is not a subproof of $\dn{\psi}{\varphi_i}$. In that
 case $\varphi_j$ will have one more child in the resulting proof than in the original one.
+
+JB{one child more}
 
 \SetKwData{Univ}{Univalents}
 \begin{algorithm}[bt]
@@ -412,7 +414,7 @@ case $\varphi_j$ will have one more child in the resulting proof than in the ori
   \label{algo:LUniv}
 \end{algorithm}
 
-To address this issue, {\LowerUnivalents} traverses the proof in a top-down manner and
+To solve this issue, {\LowerUnivalents} traverses the proof in a top-down manner and
 simultaneously deletes already collected univalent subproofs, as sketched in Algo. \ref{algo:LUniv}.
 Although the call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
 \ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
@@ -422,12 +424,12 @@ implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size 
 long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in constant bounded
 time.
 
-Determining if a literal is valent is expensive. But thanks to Prop. \ref{prop:valentactive},
+Determining whether a literal is valent is expensive. But thanks to Prop. \ref{prop:valentactive},
 subproofs with one active literal which is not in $\Conclusion{\psi}$ could be considered instead
 of subproofs with one valent literal.  If the active literal is not valent, the corresponding
 subproof may not be reintroduced. But this is not a problem, because it can be safely deleted.
 
-While verifying if a subproof could be univalent, some incoming edges might be deleted. If a
+While verifying if a subproof could be univalent, some edges might be deleted. If a
 subproof $\varphi_i$ has already been collected as univalent subproof with univalent literal
 $\ell_i$ and the subproof $\varphi'$ being considered now has $\ell_i$ as active literal, the
 corresponding incoming edges can be safely removed. Even if $\ell_i$ is valent for $\varphi'$, only
@@ -488,7 +490,7 @@ subproofs.
     }
     \BlankLine
     
-    \tcp{Test if $\varphi$ is univalent.}
+    \tcp{Test whether $\varphi$ is univalent.}
     \Activ $\leftarrow \varnothing$ \;
     \For{each incoming edge $e = \n \xrightarrow{\ell} \raiz{\varphi}$, $e \notin D_E$ }{
       \uIf{$\dual{\ell} \in \Delta$}{
@@ -524,10 +526,10 @@ subproofs.
 
 Every node in a proof $\langle V, E, \Gamma \rangle$ has exactly two outgoing edges unless it is the
 root of an axiom. Hence the number of axioms is $|V| - \frac{1}{2}\,|E|$ and because there is at
-least one axiom, the average number of active literals is strictly less than two.  Therefore, if
-{\LowerUnivalents} is implemented as an improved recursive \FuncSty{delete}, its time complexity
-remains linear as long as membership of literals to the set $\Delta$ can be computed in constant
-time.
+least one axiom, the average number of active literals per node is strictly less than two.
+Therefore, if {\LowerUnivalents} is implemented as an improved recursive \FuncSty{delete}, its time
+complexity remains linear as long as membership of literals to the set $\Delta$ can be computed in
+constant time.
 
 \begin{proposition}
 Given a proof $\psi$,
@@ -562,11 +564,11 @@ labels at most one edge. Otherwise, $\psi$ is \emph{irregular}.
 
 Any irregular proof can be converted into a regular proof having the same axioms and the same
 conclusion. But it has been proved \cite{Tseitin} that such a total regularization might result in a
-proof exponentialy bigger than the original. Some carefull \emph{partial regularization} algorithms
-exists though which achieve good compression ratio.
+proof exponentially bigger than the original. Some carefull \emph{partial regularization} algorithms
+which achieve good compression ratio exist though.
 
 \texttt{RecyclePivotsWithIntersection} ({\RPI}), presented in \cite{LURPI}, is such a partial
-regularization algorithm, which enhances the \texttt{RecyclePivots} algorithm (\cite{RP08}).  For
+regularization algorithm, which enhances the \texttt{RecyclePivots}~algorithm (\cite{RP08}).  For
 any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi} \xrightarrow{\ell}
 \n$ if $\ell$ is a safe literal for $\varphi$ in $\psi$.
 
@@ -586,11 +588,11 @@ the other one. A reasonable solution is to perform both algorithms and then to c
 compressed proof.
 
 But sequential composition is time consuming. To fasten DAG traversal, it is useful to topologically
-sort the nodes of the graph first. But in case of sequential composition this costy operation has to
+sort the nodes of the graph first. But in case of sequential composition this costly operation has to
 be done twice. Moreover, some traversals, like deletion, are identical in both algorithms and might
 be shared. Whereas implementing a non-sequential combination of {\RPI} after {\LowerUnits} is not
 difficult, a non-sequential combination of {\LowerUnits} after {\RPI} would be complicated. The
-difficulty is that {\RPI} could create some new units which would be only visible after the
+difficulty is that {\RPI} could create some new units which would be visible only after the
 effective deletion.  A solution could be to test for units during deletion. But if units are
 effectively lowered during this deletion, their deletion would cause some units to become non-units.
 And postponing deletions of units until a second deletion traversal would prevent the sharing of
@@ -624,7 +626,7 @@ recursive \FuncSty{delete} improvement. But as Scala's set membership is $\mathc
 
 The algorithms have been experimented on 5\,059 proofs produced by the SMT-solver
 {\veriT}\footnote{\url{http://www.verit-solver.org/}} on unsatisfiable benchmarks from the
-SMT-Lib\footnote{\url{http://www.smtlib.org/}}.  The details on the numbers of proofs by SMT logic
+SMT-Lib\footnote{\url{http://www.smtlib.org/}}.  The details on the number of proofs by SMT logic
 are shown on Table \ref{tab:benchmarks}.  The proofs were translated into pure resolution proofs by
 considering every non-resolution inference as an axiom.
 
@@ -647,7 +649,7 @@ considering every non-resolution inference as an axiom.
   \end{tabular}
 \end{table}
 
-In order to compare our algorithms with others, the following algorithms have been experimented :
+In order to compare our algorithms with others, the following algorithms have been experimented:
 \begin{description}
   \item[LU:] the {\LowerUnits} algorithm from \cite{LURPI};
   \item[LUniv:] the {\LowerUnivalents} algorithm;
@@ -656,7 +658,7 @@ In order to compare our algorithms with others, the following algorithms have be
   \item[LU.RPI:] the sequential composition of {\LowerUnits} after {\RPI};
   \item[LUnivRPI:] the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
   \item[RPI:] the \texttt{RecyclePivotsWithIntersection} from \cite{LURPI};
-  \item[Split:] teh Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
+  \item[Split:] the Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
   \item[RedRec:] the \texttt{ReduceAndReconstruct} algorithm from \cite{RedRec};
   \item[Best LU/RPI:] which performs both RPILU and LU.RPI and chooses the smallest resulting compressed proof;
   \item[Best LU/LUniv/RPI:] which performs both RPILU and LUnivRPI and chooses the smallest resulting
@@ -668,19 +670,19 @@ and the number of axioms have been measured.
 
 The experiments were executed on the Vienna Scientific Cluster\footnote{\url{http://vsc.ac.at/}}
 VSC\nobreakdash-2. Each algorithm was executed in a single core. But the amount of memory available
-at each cluster node (16 GB) has been usefull to compress the biggest proofs (with more than $10^6$
+at each cluster node (16 GB) has been useful to compress the biggest proofs (with more than $10^6$
 nodes).
 
 
 The overall results of the experiments are shown on Table \ref{tab:average}. The nodes compression
-ratios on the second column corresponds to the formula (\ref{eq:compression}) in which $\psi$ range
+ratios on the second column corresponds to the formula (\ref{eq:compression}) in which $\psi$ ranges
 over all the proofs in the benchmark and $\psi'$ is the corresponding compressed proof.
 \begin{equation} \label{eq:compression}
   1 - \frac{ \sum {|\Vertices{\psi}|} }{ \sum {|\Vertices{\psi'}|} }
 \end{equation}
-The unsat core compression ratios are computed the same way, using the number of axioms intead of
-the number of nodes. The compression speed on the forth column
-correspond to the formula (\ref{eq:speed}) in which $d_{\psi}$ is the duration in miliseconds of
+The unsat core compression ratios are computed the same way, using the number of axioms instead of
+the number of nodes. The compression speed on the fourth column
+corresponds to the formula (\ref{eq:speed}) in which $d_{\psi}$ is the duration in milliseconds of
 $\psi$'s compression by a given algorithm.
 \begin{equation} \label{eq:speed}
   \frac{ \sum {|\Vertices{\psi}|} }{ \sum {d_{\psi}} }
@@ -714,21 +716,21 @@ $\psi$'s compression by a given algorithm.
 \newcommand{\va}[1]{\ensuremath{v_{\text{#1}}}}
 
 Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. The compression
-ratio difference in subfigure (c) is computed using the formula (\ref{eq:histogram}) with \va{LU}
+ratios differences in subfigure (c) are computed using the formula (\ref{eq:histogram}) with \va{LU}
 and \va{LUniv} being the number of nodes in the proofs compressed respectively by {\LowerUnits} and
 {\LowerUnivalents}.
 \begin{equation} \label{eq:histogram}
   \frac { 2(\va{LU} - \va{LUniv}) }{ \va{LU} + \va{LUniv} }
 \end{equation}
-The number of proof for which $\va{LU} = \va{LUniv}$ are not displayed in the histogram.
-The duration difference in subfigure (d) is computed using the same formula (\ref{eq:histogram}) but
-whith \va{LU} and \va{LUniv} being the duration of compressing a proof by {\LowerUnits} and
+The number of proofs for which $\va{LU} = \va{LUniv}$ are not displayed in the histogram.
+The durations differences in subfigure (d) are computed using the same formula~(\ref{eq:histogram}) but
+with \va{LU} and \va{LUniv} being the duration of compressing a proof by {\LowerUnits} and
 {\LowerUnits} respectively.
 
 \input{LU_charts}
 
 As expected, {\LowerUnivalents} compress more than {\LowerUnits} at the expense of a longer
-computation. And even if the compression ratio gain is low on average, the subfigure (a) shows that
+computation. And even if the compression ratio's gain is low on average, the subfigure (a) shows that
 on some proofs {\LowerUnivalents} compress twice further than {\LowerUnits}.
 
 It has to be noticed that \veriT already does its best to produce compact proofs. In particular,
@@ -759,7 +761,7 @@ The algorithm we have presented have been shown to compress more than {\LowerUni
 lowers more subproofs. We suppose it might be possible to lower even more subproofs, for instance by
 finding a closer caracterisation of the univalent subproofs.
 
-Moreover, the proposed algorithm can be embeded in the deletion traversal of another algorithm.  As
+Moreover, the proposed algorithm can be embedded in the deletion traversal of another algorithm.  As
 an example, we have shown that the combination of {\LowerUnivalents} with {\RPI}, compared to the
 sequential composition of {\LowerUnits} after {\RPI}, results in a better compression ratio with few
 processing time overheads. Some other compression algorithms which delete subproofs could probably
