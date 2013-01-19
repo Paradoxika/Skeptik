@@ -85,8 +85,7 @@ detailed enough to allow easy implementation of efficient proof checkers.
 
 With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
 compress and improve such proofs in a post-processing stage.  Algebraic properties of the resolution
-operation, especially \emph{chain resolution} as defined in \cite{bwp10}, have been used by
-the compression algorithms as in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit}
+operation that might be useful for compression were theoretically investigated in \cite{bwp10}. Compression algorithms based on rearranging and sharing chains of resolution inferences have been developed in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit}
 proposed an algorithm that compresses a refutation by first splitting it into a proof of a
 heuristicaly chosen literal $\ell$ and a proof of $\dual{\ell}$, and then resolving them to form a
 new refutation. This process can be repeated.  The \texttt{ReduceAndReconstruct} algorithm
@@ -727,7 +726,7 @@ The durations differences in subfigure (d) are computed using the same formula~(
 with \va{LU} and \va{LUniv} being the duration of compressing a proof by {\LowerUnits} and
 {\LowerUnits} respectively.
 
-\input{LU_charts}
+%\input{LU_charts}
 
 As expected, {\LowerUnivalents} compress more than {\LowerUnits} at the expense of a longer
 computation. And even if the compression ratio's gain is low on average, the subfigure (a) shows that
@@ -746,7 +745,7 @@ sequential composition for more than 80 \% of the proofs.
 
 
 
-\input{LURPI_charts}
+%\input{LURPI_charts}
 
 
 
