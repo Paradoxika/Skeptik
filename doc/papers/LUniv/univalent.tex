@@ -228,14 +228,13 @@ $\dn{\psi}{\varphi_1 \ldots \varphi_n}$ being the result of \Rec{$\psi$,$\{\varp
   \label{algo:del}
 \end{algorithm}
 
-A special case about deletion has to be noticed. Intuitively, deleting too many subproofs could
-result in an inconsistant proof. It happens when on all path from the proof's root to each axiom,
-is the root of a subproof to be deleted. In that case, $\dn{\psi}{D}$ is defined as belonging to
-$D$ in order to allow the deletion to be propagated down the proof. For instance, let's consider the
-proof
-$$ \psi = \dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2}. $$
-As $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\}$,
-$\psi = \dn{\varphi_3}{\varphi_1, \varphi_2}$ holds as expected.
+The basic idea of the deletion algorithm is to traverse the proof in a top-down manner, replacing each subproof having one of its premises marked for deletion (i.e. in $D$) by its other premise. The special case when both $\varphi'_L$ and $\varphi'_R$ belong to $D$ is treated rather implicitly and deserves an explanation: in such a case, one might intuitively expect the result $\varphi'$ to be undefined and arbitrary. Furthermore, to any child of $\varphi$, $\varphi'$ ought to be seen as if it were in $D$, as if the deletion of $\varphi'_L$ and $\varphi'_R$ propagated to $\varphi'$ as well. Instead of assigning some arbitrary proof to $\varphi'$ and adding it to $D$, the algorithm arbitrarily returns (in line 8) $\varphi'_R$ (which is already in $D$) as the result $\varphi'$. In this way, the propagation of deletion is done automatically and implicitly. For instance, the following hold:
+$$
+\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} = \varphi_2
+\qquad
+\dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2} = \varphi_3 
+$$
+A side-effect of this clever implicit propagation of deletion is that the actual result of deletion is only meaningful if it is not in $D$. In the example at the left side above, as $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\} $, the actual resulting proof is meaningless. Only the information that it is a deleted subproof is relevant, as it suffices to obtain meaningful results as shown in the right side above.
 
 \begin{proposition} \label{prop:del_assoc}
 \JB{ Proof: by induction }
