@@ -727,7 +727,7 @@ The duration differences in subfigure (d) are computed using the same formula~(\
 with \va{LU} and \va{LUniv} being the duration of compressing a proof by {\LowerUnits} and
 {\LowerUnits} respectively.
 
-%\input{LU_charts}
+\input{LU_charts}
 
 As expected, {\LowerUnivalents} compresses more than {\LowerUnits} at the expense of a longer
 computation. And even if the compression gain is low on average, subfigure (a) shows that
@@ -746,7 +746,7 @@ sequential composition for more than 80 \% of the proofs.
 
 
 
-%\input{LURPI_charts}
+\input{LURPI_charts}
 
 
 
@@ -755,17 +755,14 @@ sequential composition for more than 80 \% of the proofs.
 %\input{test}
 
 %\FloatBarrier
-\section{Conclusions}
+\section{Conclusions and Future Work}
 
-The algorithm presented here has been shown to compress more than {\LowerUnits} because it
-lowers more subproofs. We suppose it might be possible to lower even more subproofs, for instance by
-finding a closer caracterisation of the univalent subproofs.
+{\LowerUnivalents}, the algorithm presented here, has been shown in the previous section to compress more than {\LowerUnits}. This is so because, as demonstrated in Theorem \ref{}, the set of subproofs it lowers is a superset of the set of subproofs lowered by {\LowerUnits}. It might be possible to lower even more subproofs, by finding a caracterisation of lowerable subproofs broader than that of univalent subproofs considered here. This direction for future work is particularly challenging, because broader classes may not be as efficiently checkable.
 
-Moreover, the proposed algorithm can be embedded in the deletion traversal of another algorithm.  As
-an example, we have shown that the combination of {\LowerUnivalents} with {\RPI}, compared to the
-sequential composition of {\LowerUnits} after {\RPI}, results in a better compression ratio with few
-processing time overheads. Some other compression algorithms which delete subproofs could probably
-benefit from being combined with {\LowerUnivalents}.
+Moreover, the proposed algorithm can be embedded in the deletion traversal of other algorithms.  As an example, it has been shown that the combination of {\LowerUnivalents} with {\RPI}, compared to the
+sequential composition of {\LowerUnits} after {\RPI}, results in a better compression ratio with only a small
+processing time overhead. Other compression algorithms that also have a subproof deletion phase could probably
+benefit from being combined with {\LowerUnivalents} too.
 
 
 
