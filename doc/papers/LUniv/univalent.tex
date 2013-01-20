@@ -253,7 +253,6 @@ proof is meaningless. Only the information that it is a deleted subproof is rele
 to obtain meaningful results as shown in the right side above.
 
 \begin{proposition} \label{prop:del_assoc}
-\JB{ Proof: by induction }
 For any proof $\psi$ and any sets $A$ and $B$ of $\psi$'s subproofs,
 either $\dn{\psi}{A \cup B}  \in A \cup B$
 and    $\dn{\dn{\psi}{A}}{B} \in A \cup B$,
@@ -642,7 +641,6 @@ library\footnote{\url{https://github.com/Paradoxika/Skeptik}}. {\LowerUnivalents
 recursive \FuncSty{delete} improvement.
 
 The algorithms have been experimented on 5\,059 proofs produced by the SMT-solver
-\BWP{Make all proofs available online}
 {\veriT}\footnote{\url{http://www.verit-solver.org/}} on unsatisfiable benchmarks from the
 SMT-Lib\footnote{\url{http://www.smtlib.org/}}.  The details on the number of proofs by SMT logic
 are shown on Table \ref{tab:benchmarks}.  The proofs were translated into pure resolution proofs by
