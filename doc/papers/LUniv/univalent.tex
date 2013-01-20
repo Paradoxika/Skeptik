@@ -496,14 +496,13 @@ subproofs.
       \uIf{$\dual{\ell} \in \Delta$}{
         \Add $e$ to $D_E$ \;
       }
-      \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$ \label{line:full:testactive}
+      \ElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$ \label{line:full:testactive}
               and $\ell \notin \Conclusion{\psi}$ }{
         \Add $\ell$ to \Activ \;
       }
     }
+
     \BlankLine
-
-
     \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
       \Push $\dual{\ell}$ onto $\Delta$ \;
       \Push $\varphi$     onto \Univ  \;
