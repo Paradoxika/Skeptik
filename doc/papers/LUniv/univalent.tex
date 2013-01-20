@@ -245,7 +245,11 @@ $$
 \dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2} =
   \dn{\varphi_3}{\varphi_1, \varphi_2}
 $$
-A side-effect of this clever implicit propagation of deletion is that the actual result of deletion is only meaningful if it is not in $D$. In the example at the left side above, as $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\} $, the actual resulting proof is meaningless. Only the information that it is a deleted subproof is relevant, as it suffices to obtain meaningful results as shown in the right side above.
+A side-effect of this clever implicit propagation of deletion is that the actual result of deletion
+is only meaningful if it is not in $D$. In the example at the left side above, as $\dn{\varphi_1
+\odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\} $, the actual resulting
+proof is meaningless. Only the information that it is a deleted subproof is relevant, as it suffices
+to obtain meaningful results as shown in the right side above.
 
 \begin{proposition} \label{prop:del_assoc}
 \JB{ Proof: by induction }
@@ -377,18 +381,30 @@ $\psi' \odot_{\ell_{n+1}} \varphi_{n+1} \ldots \odot_{\ell_1} \varphi_1$ is incl
 $\Conclusion{\psi}$. \qed
 \end{proof}
 
-For this principle to lead to proof compression, it is important to take care not only of the order in which subproofs are
-collected for lowering but also of deleting all already collected univalent subproofs from the next subproof $\psi_i$ before reintroducing it. Suppose, for instance, that $\varphi_i, \varphi_j, \varphi_k \in U$, $i < j < k$, $\varphi_j$ is a subproof of $\varphi_i$ but not a subproof of $\dn{\psi}{\varphi_i}$, and $\dual{\ell_j}
-\in \Conclusion{\varphi_k}$. $\dual{\ell_j}$. In this
-case, $\varphi_j$ will have one more child in
-$$ \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_k} \varphi_k \ldots \odot_{\ell_j} \varphi_j \ldots \odot_{\ell_i} \varphi_i \ldots \odot_{\ell_1} \varphi_1 $$ than in the original proof $\psi$. The additional child is created when $\varphi_j$ is reintroduced, and all the other children are reintroduced together with the reintroduction of $\varphi_i$, because $\varphi_j$ was not deleted from $\varphi_i$.
+For this principle to lead to proof compression, it is important to take care
+of the mutual inclusion of univalent subproofs.
+%not only of the order in which subproofs are collected for lowering but also of deleting all
+%already collected univalent subproofs from the next subproof $\psi_i$ before reintroducing it.
+Suppose, for instance, that $\varphi_i, \varphi_j, \varphi_k \in U$, $i < j < k$, $\varphi_j$ is a
+subproof of $\varphi_i$ but not a subproof of $\dn{\psi}{\varphi_i}$, and $\dual{\ell_j} \in
+\Conclusion{\varphi_k}$.  In this case, $\varphi_j$ will have one more child in
+$$
+\dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_k} \varphi_k \ldots \odot_{\ell_j} \varphi_j \ldots \odot_{\ell_i} \varphi_i \ldots \odot_{\ell_1} \varphi_1
+$$
+than in the original proof $\psi$. The additional child is created when $\varphi_j$ is reintroduced.
+All the other children are reintroduced with the reintroduction of $\varphi_i$, because
+$\varphi_j$ was not deleted from $\varphi_i$.
 
+To solve this issue, {\LowerUnivalents} traverses the proof in a top-down manner and
+simultaneously deletes already collected univalent subproofs, as sketched in Algo. \ref{algo:LUniv}.
+Although the call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
+\ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
+\ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
+as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
+implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, as
+long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in constant bounded
+time.
 
-%For this principle to lead to proof compression care must be taken of the order subproofs are
-%considered for lowering. Suppose, for instance, that $\varphi_i, \varphi_j$ and $\varphi_k$ have
-%been selected to be lowered, $i < j < k$, $\varphi_j$ is a subproof of $\varphi_i$, $\dual{\ell_j}
-%\in \Conclusion{\varphi_k}$ and $\varphi_j$ is not a subproof of $\dn{\psi}{\varphi_i}$. In that
-%case $\varphi_j$ will have one more child in the resulting proof than in the original one.
 
 
 \SetKwData{Univ}{Univalents}
@@ -425,16 +441,6 @@ $$ \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_k} \varphi_k \ldots 
   \caption{Simplified \LowerUnivalents}
   \label{algo:LUniv}
 \end{algorithm}
-
-To solve this issue, {\LowerUnivalents} traverses the proof in a top-down manner and
-simultaneously deletes already collected univalent subproofs, as sketched in Algo. \ref{algo:LUniv}.
-Although the call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
-\ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
-\ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
-as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
-implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, as
-long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in constant bounded
-time.
 
 Determining whether a literal is valent is expensive. But thanks to Prop. \ref{prop:valentactive},
 subproofs with one active literal which is not in $\Conclusion{\psi}$ could be considered instead
