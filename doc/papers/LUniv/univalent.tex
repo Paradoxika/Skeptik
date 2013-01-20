@@ -640,8 +640,7 @@ effectively lower all univalent subproofs.
 {\LowerUnivalents} and {\LUnivRPI} have been implemented in the functional programming
 language Scala\footnote{\url{http://www.scala-lang.org/}} as part of the \skeptik
 library\footnote{\url{https://github.com/Paradoxika/Skeptik}}. {\LowerUnivalents} has been implemented as a
-recursive \FuncSty{delete} improvement. But as Scala's set membership is $\mathcal{O}(\log{n})$ \cite{ToDo}\BWP{Cite something for this},
-{\LowerUnivalents}'s time complexity is $\mathcal{O}(n \log{n})$.
+recursive \FuncSty{delete} improvement.
 
 The algorithms have been experimented on 5\,059 proofs produced by the SMT-solver
 \BWP{Make all proofs and raw experimental data available online}
@@ -761,8 +760,8 @@ achieves some unsat core reduction, as noticeable in subfigure (b).
 
 The comparison of the sequential \texttt{LU.RPI} with the non-sequential {\LUnivRPI} shown on Fig.
 \ref{fig:LUnivRPI} outlines the ability of {\LowerUnivalents} to be efficiently combined with other
-algorithms. Although the implementation is not linear, {\LUnivRPI} is faster than the linear
-sequential composition for more than 80 \% of the proofs.
+algorithms. Not only compression ratios are improved but {\LUnivRPI} is faster than the sequential
+composition for more than 80 \% of the proofs.
 
 
 
