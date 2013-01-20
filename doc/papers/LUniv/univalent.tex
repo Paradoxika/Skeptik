@@ -85,18 +85,19 @@ detailed enough to allow easy implementation of efficient proof checkers.
 
 With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
 compress and improve such proofs in a post-processing stage.  Algebraic properties of the resolution
-operation that might be useful for compression were theoretically investigated in \cite{bwp10}. Compression algorithms based on rearranging and sharing chains of resolution inferences have been developed in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit}
-proposed an algorithm that compresses a refutation by first splitting it into a proof of a
-heuristicaly chosen literal $\ell$ and a proof of $\dual{\ell}$, and then resolving them to form a
-new refutation. This process can be repeated.  The \texttt{ReduceAndReconstruct} algorithm
-\cite{RedRec} searches for locally redundant subproofs that can be rewritten into subproofs of
-stronger clauses and with fewer resolution steps. In \cite{RP08} two linear time compression
-algorithms are introduced. One of them is a partial regularization algorithm called
-\texttt{RecyclePivots}.  An enhanced version of this latter algorithm, called
-\texttt{RecyclePivotsWithIntersection} ({\RPI}), is proposed in \cite{LURPI}, along with a new
-linear time algorithm called {\LowerUnits}.  These two last algorithms are complementary and better
-compression can easily be achieved by sequentialy composing them (i.e. executing one after the
-other).
+operation that might be useful for compression were theoretically investigated in \cite{bwp10}.
+Compression algorithms based on rearranging and sharing chains of resolution inferences have been
+developed in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit} proposed an algorithm that
+compresses a refutation by first splitting it into a proof of a heuristicaly chosen literal $\ell$
+and a proof of $\dual{\ell}$, and then resolving them to form a new refutation. This process can be
+repeated.  The \texttt{ReduceAndReconstruct} algorithm \cite{RedRec} searches for locally redundant
+subproofs that can be rewritten into subproofs of stronger clauses and with fewer resolution steps.
+In \cite{RP08} two linear time compression algorithms are introduced. One of them is a partial
+regularization algorithm called \texttt{RecyclePivots}.  An enhanced version of this latter
+algorithm, called \texttt{RecyclePivotsWithIntersection} ({\RPI}), is proposed in \cite{LURPI},
+along with a new linear time algorithm called {\LowerUnits}.  These two last algorithms are
+complementary and better compression can easily be achieved by sequentialy composing them (i.e.
+executing one after the other).
 
 In this paper, the new algorithm {\LowerUnivalents}, generalizing {\LowerUnits}, is described. Its
 goals are to compress more than {\LowerUnits} and to allow fast \emph{non-sequential}  combination
@@ -228,11 +229,21 @@ $\dn{\psi}{\varphi_1 \ldots \varphi_n}$ being the result of \Rec{$\psi$,$\{\varp
   \label{algo:del}
 \end{algorithm}
 
-The basic idea of the deletion algorithm is to traverse the proof in a top-down manner, replacing each subproof having one of its premises marked for deletion (i.e. in $D$) by its other premise. The special case when both $\varphi'_L$ and $\varphi'_R$ belong to $D$ is treated rather implicitly and deserves an explanation: in such a case, one might intuitively expect the result $\varphi'$ to be undefined and arbitrary. Furthermore, to any child of $\varphi$, $\varphi'$ ought to be seen as if it were in $D$, as if the deletion of $\varphi'_L$ and $\varphi'_R$ propagated to $\varphi'$ as well. Instead of assigning some arbitrary proof to $\varphi'$ and adding it to $D$, the algorithm arbitrarily returns (in line 8) $\varphi'_R$ (which is already in $D$) as the result $\varphi'$. In this way, the propagation of deletion is done automatically and implicitly. For instance, the following hold:
+The basic idea of the deletion algorithm is to traverse the proof in a top-down manner, replacing
+each subproof having one of its premises marked for deletion (i.e. in $D$) by its other premise. The
+special case when both $\varphi'_L$ and $\varphi'_R$ belong to $D$ is treated rather implicitly and
+deserves an explanation: in such a case, one might intuitively expect the result $\varphi'$ to be
+undefined and arbitrary. Furthermore, to any child of $\varphi$, $\varphi'$ ought to be seen as if
+it were in $D$, as if the deletion of $\varphi'_L$ and $\varphi'_R$ propagated to $\varphi'$ as
+well. Instead of assigning some arbitrary proof to $\varphi'$ and adding it to $D$, the algorithm
+arbitrarily returns (in line 8) $\varphi'_R$ (which is already in $D$) as the result $\varphi'$. In
+this way, the propagation of deletion is done automatically and implicitly. For instance, the
+following hold:
 $$
 \dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} = \varphi_2
 \qquad
-\dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2} = \varphi_3 
+\dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2} =
+  \dn{\varphi_3}{\varphi_1, \varphi_2}
 $$
 A side-effect of this clever implicit propagation of deletion is that the actual result of deletion is only meaningful if it is not in $D$. In the example at the left side above, as $\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\} $, the actual resulting proof is meaningless. Only the information that it is a deleted subproof is relevant, as it suffices to obtain meaningful results as shown in the right side above.
 
@@ -369,8 +380,8 @@ $\Conclusion{\psi}$. \qed
 For this principle to lead to proof compression, it is important to take care not only of the order in which subproofs are
 collected for lowering but also of deleting all already collected univalent subproofs from the next subproof $\psi_i$ before reintroducing it. Suppose, for instance, that $\varphi_i, \varphi_j, \varphi_k \in U$, $i < j < k$, $\varphi_j$ is a subproof of $\varphi_i$ but not a subproof of $\dn{\psi}{\varphi_i}$, and $\dual{\ell_j}
 \in \Conclusion{\varphi_k}$. $\dual{\ell_j}$. In this
-case, $\varphi_j$ will have one more child in $$\dn{\psi}{U}
-\odot_{\ell_n} \varphi_n \ldots \odot_{\ell_k} \varphi_k \ldots \odot_{\ell_j} \varphi_j \ldots \odot_{\ell_i} \varphi_i \ldots \odot_{\ell_1} \varphi_1 $$ than in the original proof $\psi$. The additional child is created when $\varphi_j$ is reintroduced, and all the other children are reintroduced together with the reintroduction of $\varphi_i$, because $\varphi_j$ was not deleted from $\varphi_i$.
+case, $\varphi_j$ will have one more child in
+$$ \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_k} \varphi_k \ldots \odot_{\ell_j} \varphi_j \ldots \odot_{\ell_i} \varphi_i \ldots \odot_{\ell_1} \varphi_1 $$ than in the original proof $\psi$. The additional child is created when $\varphi_j$ is reintroduced, and all the other children are reintroduced together with the reintroduction of $\varphi_i$, because $\varphi_j$ was not deleted from $\varphi_i$.
 
 
 %For this principle to lead to proof compression care must be taken of the order subproofs are
