@@ -280,7 +280,6 @@ subproof $\varphi'$ such that $\pedge{\varphi'}{\ell}{\varphi}$. \qed
 \end{proof}
 
 \begin{proposition}
-\JB{ Probably useless. Proof: from Prop. \ref{prop:del_assoc} }
 Given a proof $\psi$ and a set $D = \{\varphi_1 \ldots \varphi_n\}$ of $\psi$'s subproofs, $\forall
 \ell \in \mathcal{L}$ s.t. $\ell$ is in the conclusion of $\dn{\psi}{D}$ but not in $\psi$'s
 conclusion, then $\exists i$ s.t. $\dual{\ell}$ is a valent literal of $\varphi_i$ in $\psi$.
@@ -464,13 +463,13 @@ at line \ref{line:full:testactive} is mandatory since $\ell$ might have been del
 $\Conclusion{\varphi}$ by the deletion of previously collected subproofs.
 
 \begin{algorithm}[pbt]
-  \SetAlgoLined
+  \SetAlgoVlined
   \SetAlgoShortEnd
 
-  \KwIn {a proof $\psi$}
+  \KwData {a proof $\psi$, compressed in place}
   \KwIn {a set $D_V$ of subproofs to delete}
   \KwIn {a set $D_E$ of edges to delete}
-  \KwOut{the proof $\psi$ compressed in place}
+%  \KwOut{the proof $\psi$ compressed in place}
   \BlankLine
 
   \SetKw{Push}{push}
@@ -520,7 +519,7 @@ $\Conclusion{\varphi}$ by the deletion of previously collected subproofs.
       }
     }
 
-    \BlankLine
+%    \BlankLine
     \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
       \Push $\dual{\ell}$ onto $\Delta$ \;
       \Push $\varphi$     onto \Univ  \;
@@ -680,7 +679,7 @@ In order to compare the algorithms described here with others, the following alg
   \item[Split:] the Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
   \item[RedRec:] the \texttt{ReduceAndReconstruct} algorithm from \cite{RedRec};
   \item[Best LU/RPI:] which performs both RPILU and LU.RPI and chooses the smallest resulting compressed proof;
-  \item[Best LU/LUniv/RPI:] which performs both RPILU and LUnivRPI and chooses the smallest resulting
+  \item[Best LU/LUniv/RPI:] which performs both RPILU and LUnivRPI and then chooses the smallest resulting
     compressed proof.
 \end{description}
 
