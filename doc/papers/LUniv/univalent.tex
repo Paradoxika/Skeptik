@@ -158,12 +158,13 @@ proof of a clause $\clause$ iff it is inductively constructible according to the
 \newcommand{\Conclusion}[1]{\clause_{#1}}
 
 \noindent
-If $\n_1 \xrightarrow{\ell} \n_2$, then $\n_2$ is called a \emph{premise} of $\n_1$ and $\n_1$ is
-called a \emph{child} of $\n_2$. The transitive closures of the premise and child relations are,
-respectively, the \emph{ancestor} and \emph{descendent} relations. If $\psi = \varphi_L \odot
-\varphi_R$, then $\varphi_L$ and $\varphi_R$ are \emph{direct subproofs} of $\psi$. The transitive
-closure of the direct subproof relation is the \emph{subproof} relation. A subproof which has no
-direct subproof is an \emph{axiom} of the proof.
+%If $\n_1 \xrightarrow{\ell} \n_2$, then $\n_2$ is called a \emph{premise} of $\n_1$ and $\n_1$ is
+%called a \emph{child} of $\n_2$. The transitive closures of the premise and child relations are,
+%respectively, the \emph{ancestor} and \emph{descendent} relations.
+If $\psi = \varphi_L \odot \varphi_R$, then $\varphi_L$ and $\varphi_R$ are \emph{direct subproofs}
+of $\psi$ and $\psi$ is a \emph{child} of both $\varphi_L$ and $\varphi_R$. The transitive closure of
+the direct subproof relation is the \emph{subproof} relation. A subproof which has no direct
+subproof is an \emph{axiom} of the proof.
 %
 $\Vertices{\psi}$, $\Edges{\psi}$ and $\Conclusion{\psi}$
 denote, respectively, the nodes, edges and the proven clause (conclusion) of $\psi$.
@@ -230,15 +231,15 @@ $\dn{\psi}{\varphi_1 \ldots \varphi_n}$ being the result of \Rec{$\psi$,$\{\varp
 \end{algorithm}
 
 The basic idea of the deletion algorithm is to traverse the proof in a top-down manner, replacing
-each subproof having one of its premises marked for deletion (i.e. in $D$) by its other premise. The
-special case when both $\varphi'_L$ and $\varphi'_R$ belong to $D$ is treated rather implicitly and
-deserves an explanation: in such a case, one might intuitively expect the result $\varphi'$ to be
-undefined and arbitrary. Furthermore, to any child of $\varphi$, $\varphi'$ ought to be seen as if
-it were in $D$, as if the deletion of $\varphi'_L$ and $\varphi'_R$ propagated to $\varphi'$ as
-well. Instead of assigning some arbitrary proof to $\varphi'$ and adding it to $D$, the algorithm
-arbitrarily returns (in line 8) $\varphi'_R$ (which is already in $D$) as the result $\varphi'$. In
-this way, the propagation of deletion is done automatically and implicitly. For instance, the
-following hold:
+each subproof having one of its premises marked for deletion (i.e. in $D$) by its other direct
+subproof. The special case when both $\varphi'_L$ and $\varphi'_R$ belong to $D$ is treated rather
+implicitly and deserves an explanation: in such a case, one might intuitively expect the result
+$\varphi'$ to be undefined and arbitrary. Furthermore, to any child of $\varphi$, $\varphi'$ ought
+to be seen as if it were in $D$, as if the deletion of $\varphi'_L$ and $\varphi'_R$ propagated to
+$\varphi'$ as well. Instead of assigning some arbitrary proof to $\varphi'$ and adding it to $D$,
+the algorithm arbitrarily returns (in line 8) $\varphi'_R$ (which is already in $D$) as the result
+$\varphi'$. In this way, the propagation of deletion is done automatically and implicitly. For
+instance, the following hold:
 $$
 \dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} = \varphi_2
 \qquad
@@ -288,17 +289,17 @@ conclusion, then $\exists i$ s.t. $\dual{\ell}$ is a valent literal of $\varphi_
 
 \section{LowerUnits} \label{sec:LU}
 
-When the root node of a subproof $\varphi$ has more than one child in a proof $\psi$ it might be
-convenient to factor the corresponding resolutions. Lowering $\varphi$ is such a factorisation. A
-new proof can be constructed by removing $\varphi$ from $\psi$ and reintroducing it at the
-bottom of the resulting proof. Formally, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists
-a proof $\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
+When a subproof $\varphi$ has more than one child in a proof $\psi$ it might be convenient to factor
+the corresponding resolutions. Lowering $\varphi$ is such a factorisation. A new proof can be
+constructed by removing $\varphi$ from $\psi$ and reintroducing it at the bottom of the resulting
+proof. Formally, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists a proof
+$\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
 $\Conclusion{\psi'} \subseteq \Conclusion{\psi}$.
 
 This idea has been introduced in \cite{LURPI} for the {\LowerUnits} algorithm. Units are subproofs
 with a conclusion consisting of only one literal. Such a subproof can always be lowered. The
 proposed algorithm lowers every unit with more than one child. Care is taken to reintroduce units in
-an order corresponding to the ancestor relation: if a unit $\varphi_2$ is an ancestor of a unit
+an order corresponding to the subproof relation: if a unit $\varphi_2$ is an subproof of a unit
 $\varphi_1$ then $\varphi_2$ has to be reintroduced after (i.e. below) $\varphi_1$.
 
 A possible presentation of {\LowerUnits} is shown in Algorithm \ref{algo:LU}. Units are collected
@@ -316,7 +317,7 @@ top-down traversal. The last for-loop performs the reintroduction of units.
   \BlankLine
 
   \For{every subproof $\varphi$ in a bottom-up traversal}{
-    \If{$\varphi$ is a unit and its root has more than one child}{Enqueue $\varphi$ in \Units \; }
+    \If{$\varphi$ is a unit and has more than one child}{Enqueue $\varphi$ in \Units \; }
   }
   \BlankLine
 
@@ -558,11 +559,14 @@ if there are not two units in $\psi$ with the same conclusion.
 \begin{proof}
 A unit $\varphi$ has exactely one active literal $\ell$. Therefore $\varphi$ is collected by
 {\LowerUnivalents} unless $\dual{\ell} \in \Delta$ or $\ell \in \Delta$. If $\dual{\ell} \in \Delta$
-all the incoming edges to $\raiz{\varphi}$ are deleted. If $\ell \in \Delta$, all edges coming from
-a descendent of $\raiz{\varphi}$ and labeled by $\dual{\ell}$ are deleted. In particular, for every
-edge $\n \xrightarrow{\ell} \raiz{\varphi}$ the edge $\n \xrightarrow{\dual{\ell}} \n'$ is deleted.
-Moreover, as $\ell$ is the only literal of $\varphi$'s conclusion, $\varphi$ is propagated down the
-proof until the univalent subproof with valent literal $\dual{\ell}$ is reintroduced. \qed
+all the incoming edges to $\raiz{\varphi}$ are deleted. If $\ell \in \Delta$, every edge
+$\n \xrightarrow{\dual{\ell}} \n'$ where $\n$ is on a path from $\raiz{\psi}$ to $\raiz{\varphi}$
+is deleted.
+%coming from a descendent of $\raiz{\varphi}$ and labeled by $\dual{\ell} are deleted.
+In particular, for every edge $\n \xrightarrow{\ell} \raiz{\varphi}$ the edge $\n
+\xrightarrow{\dual{\ell}} \n'$ is deleted.  Moreover, as $\ell$ is the only literal of $\varphi$'s
+conclusion, $\varphi$ is propagated down the proof until the univalent subproof with valent literal
+$\dual{\ell}$ is reintroduced. \qed
 \end{proof}
 
 In the case where there are at least two units with the same conclusion in $\psi$, the resulting
