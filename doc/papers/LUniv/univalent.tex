@@ -88,7 +88,7 @@ compress and improve such proofs in a post-processing stage.  Algebraic properti
 operation that might be useful for compression were theoretically investigated in \cite{bwp10}.
 Compression algorithms based on rearranging and sharing chains of resolution inferences have been
 developed in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit} proposed an algorithm that
-compresses a refutation by first splitting it into a proof of a heuristicaly chosen literal $\ell$
+compresses a refutation by first splitting it into a proof of a heuristically chosen literal $\ell$
 and a proof of $\dual{\ell}$, and then resolving them to form a new refutation. This process can be
 repeated.  The \texttt{ReduceAndReconstruct} algorithm \cite{RedRec} searches for locally redundant
 subproofs that can be rewritten into subproofs of stronger clauses and with fewer resolution steps.
@@ -96,7 +96,7 @@ In \cite{RP08} two linear time compression algorithms are introduced. One of the
 regularization algorithm called \texttt{RecyclePivots}.  An enhanced version of this latter
 algorithm, called \texttt{RecyclePivotsWithIntersection} ({\RPI}), is proposed in \cite{LURPI},
 along with a new linear time algorithm called {\LowerUnits}.  These two last algorithms are
-complementary and better compression can easily be achieved by sequentialy composing them (i.e.
+complementary and better compression can easily be achieved by sequentially composing them (i.e.
 executing one after the other).
 
 In this paper, the new algorithm {\LowerUnivalents}, generalizing {\LowerUnits}, is described. Its
@@ -108,7 +108,7 @@ traversed. Therefore, fewer traversals are needed.
 The next section introduces the propositional resolution calculus along with the notations,
 operations and some theoretical results used in the paper. Section \ref{sec:LU} briefly describes
 the {\LowerUnits} algorithm. In Sect. \ref{sec:LUniv} the new algorithm {\LowerUnivalents} is
-introduced and it is proven that it always compresses more than {\LowerUnits}. Section
+introduced and it is proved that it always compresses more than {\LowerUnits}. Section
 \ref{sec:LUnivRPI} describes the non-sequential combination of {\LowerUnivalents} and {\RPI}.
 Lastly, experimental results are discussed in Sect. \ref{sec:exp}.
 
@@ -167,7 +167,7 @@ the direct subproof relation is the \emph{subproof} relation. A subproof which h
 subproof is an \emph{axiom} of the proof.
 %
 $\Vertices{\psi}$, $\Edges{\psi}$ and $\Conclusion{\psi}$
-denote, respectively, the nodes, edges and the proven clause (conclusion) of $\psi$.
+denote, respectively, the nodes, edges and the proved clause (conclusion) of $\psi$.
 
 \newcommand{\Active}[2]{A_{#2}(#1)}
 \begin{definition}[Active literals]
@@ -288,7 +288,7 @@ conclusion, then $\exists i$ s.t. $\dual{\ell}$ is a valent literal of $\varphi_
 \section{LowerUnits} \label{sec:LU}
 
 When a subproof $\varphi$ has more than one child in a proof $\psi$ it might be convenient to factor
-the corresponding resolutions. Lowering $\varphi$ is such a factorisation. A new proof can be
+the corresponding resolutions. Lowering $\varphi$ is such a factorization. A new proof can be
 constructed by removing $\varphi$ from $\psi$ and reintroducing it at the bottom of the resulting
 proof. Formally, a subproof $\varphi$ in a proof $\psi$ can be lowered if there exists a proof
 $\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
@@ -352,7 +352,7 @@ literal} of $\varphi$ in $\psi$ w.r.t.  $\Delta$.
 \end{definition}
 
 The principle of {\LowerUnivalents} is simply to lower all univalent subproofs. $\Delta$ is
-initialized to the empty set. Then the duals of the univalent literals are incrementaly added to
+initialized to the empty set. Then the duals of the univalent literals are incrementally added to
 $\Delta$. Proposition \ref{prop:LUniv} ensures that the conclusion of the resulting proof
 subsumes the conclusion of the original one.
 
@@ -555,7 +555,7 @@ if there are not two units in $\psi$ with the same conclusion.
 \end{proposition}
 
 \begin{proof}
-A unit $\varphi$ has exactely one active literal $\ell$. Therefore $\varphi$ is collected by
+A unit $\varphi$ has exactly one active literal $\ell$. Therefore $\varphi$ is collected by
 {\LowerUnivalents} unless $\dual{\ell} \in \Delta$ or $\ell \in \Delta$. If $\dual{\ell} \in \Delta$
 all the incoming edges to $\raiz{\varphi}$ are deleted. If $\ell \in \Delta$, every edge
 $\n \xrightarrow{\dual{\ell}} \n'$ where $\n$ is on a path from $\raiz{\psi}$ to $\raiz{\varphi}$
@@ -610,7 +610,8 @@ sort the nodes of the graph first. But in case of sequential composition this co
 be done twice. Moreover, some traversals, like deletion, are identical in both algorithms and might
 be shared. Whereas implementing a non-sequential combination of {\RPI} after {\LowerUnits} is not
 difficult, a non-sequential combination of {\LowerUnits} after {\RPI} would be complicated. The
-difficulty is that {\RPI} could create some new units which would be visible only after the deletion phase.  A solution could be to test for units during deletion. But if units are
+difficulty is that {\RPI} could create some new units which would be visible only after the deletion
+phase.  A solution could be to test for units during deletion. But if units are
 effectively lowered during this deletion, their deletion would cause some units to become non-units.
 And postponing deletions of units until a second deletion traversal would prevent the sharing of
 this traversal and would cause one more topological sorting to be performed because the deletion phase
@@ -781,7 +782,7 @@ composition for more than 80 \% of the proofs.
 {\LowerUnivalents}, the algorithm presented here, has been shown in the previous section to compress
 more than {\LowerUnits}. This is so because, as demonstrated in Prop. \ref{prop:compression}, the
 set of subproofs it lowers is a superset of the set of subproofs lowered by {\LowerUnits}. It might
-be possible to lower even more subproofs, by finding a caracterisation of lowerable subproofs
+be possible to lower even more subproofs, by finding a characterization of lowerable subproofs
 broader than that of univalent subproofs considered here. This direction for future work is
 particularly challenging, because broader classes may not be as efficiently checkable.
 
