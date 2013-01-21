@@ -677,8 +677,8 @@ In order to compare the algorithms described here with others, the following alg
   \item[RPI:] the \texttt{RecyclePivotsWithIntersection} from \cite{LURPI};
   \item[Split:] the Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
   \item[RedRec:] the \texttt{ReduceAndReconstruct} algorithm from \cite{RedRec};
-  \item[Best LU/RPI:] which performs both RPILU and LU.RPI and chooses the smallest resulting compressed proof;
-  \item[Best LU/LUniv/RPI:] which performs both RPILU and LUnivRPI and then chooses the smallest resulting
+  \item[Best RPILU/LU.RPI:] which performs both RPILU and LU.RPI and chooses the smallest resulting compressed proof;
+  \item[Best RPILU/LUnivRPI:] which performs both RPILU and LUnivRPI and then chooses the smallest resulting
     compressed proof.
 \end{description}
 
@@ -727,8 +727,8 @@ been fixed so that the compression speed is about 3 nodes per millisecond.
     RPI               & 17.8 \% &  3.1 \% & 31.3 n/ms \\
     Split             & 21.0 \% &  0.8 \% &  2.9 n/ms \\
     RedRec            & 26.4 \% &  0.4 \% &  2.9 n/ms \\
-    Best LU/RPI       & 22.0 \% &  3.7 \% &  5.0 n/ms \\
-    Best LU/LUniv/RPI & 22.2 \% &  3.7 \% &  5.2 n/ms \\
+    Best RPILU/LU.RPI       & 22.0 \% &  3.7 \% &  5.0 n/ms \\
+    Best RPILU/LUnivRPI & 22.2 \% &  3.7 \% &  5.2 n/ms \\
     \bottomrule
   \end{tabular}
 \end{table}
