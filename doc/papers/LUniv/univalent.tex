@@ -736,18 +736,15 @@ been fixed so that the compression speed is about 3 nodes per millisecond.
 \newcommand{\va}[1]{\ensuremath{v_{\text{#1}}}}
 
 Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. Subfigures (a) and (b) are scatter plots where each dot represents a single benchmark proof. 
-Subfigure (c) and (d) are histograms showing the proportion of proofs 
-
-The compression
-ratio differences in subfigure (c) are computed using formula (\ref{eq:histogram}) with \va{LU}
-and \va{LUniv} being the number of nodes in the proofs compressed respectively by {\LowerUnits} and
+Subfigure (c) is a histogram showing, in the vertical axis, the proportion of proofs having \emph{compression ratio difference} within the intervals showed in the horizontal axis. This difference is computed using formula (\ref{eq:histogram}) with \va{LU}
+and \va{LUniv} being the compression ratios obtained respectively by {\LowerUnits} and
 {\LowerUnivalents}.
 \begin{equation} \label{eq:histogram}
   \frac { 2(\va{LU} - \va{LUniv}) }{ \va{LU} + \va{LUniv} }
 \end{equation}
 The number of proofs for which $\va{LU} = \va{LUniv}$ are not displayed in the histogram.
 The duration differences in subfigure (d) are computed using the same formula~(\ref{eq:histogram}) but
-with \va{LU} and \va{LUniv} being the duration of compressing a proof by {\LowerUnits} and
+with \va{LU} and \va{LUniv} being the time taken to compress the proof by {\LowerUnits} and
 {\LowerUnits} respectively.
 
 \input{LU_charts}
@@ -781,16 +778,15 @@ composition for more than 80 \% of the proofs.
 
 {\LowerUnivalents}, the algorithm presented here, has been shown in the previous section to compress
 more than {\LowerUnits}. This is so because, as demonstrated in Prop. \ref{prop:compression}, the
-set of subproofs it lowers is a superset of the set of subproofs lowered by {\LowerUnits}. It might
-be possible to lower even more subproofs, by finding a characterization of lowerable subproofs
-broader than that of univalent subproofs considered here. This direction for future work is
-particularly challenging, because broader classes may not be as efficiently checkable.
+set of subproofs it lowers is aalways a superset of the set of subproofs lowered by {\LowerUnits}. It might
+be possible to lower even more subproofs, by finding a characterization of (efficiently) lowerable subproofs
+broader than that of univalent subproofs considered here. This direction for future work promises to be challenging, though, as evidenced by the non-triviality of the optimizations discussed in Section \ref{sec:LUniv} for obtaining a linear-time implementation of {\LowerUnivalents}.
 
-Moreover, the proposed algorithm can be embedded in the deletion traversal of other algorithms.  As
+As discussed in Section \ref{sec:LUnivRPI}, the proposed algorithm can be embedded in the deletion traversal of other algorithms.  As
 an example, it has been shown that the combination of {\LowerUnivalents} with {\RPI}, compared to
 the sequential composition of {\LowerUnits} after {\RPI}, results in a better compression ratio with
 only a small processing time overhead. Other compression algorithms that also have a subproof
-deletion phase could probably benefit from being combined with {\LowerUnivalents} too.
+deletion phase (e.g. {\Split} and {\ReduceReconstruct}) could probably benefit from being combined with {\LowerUnivalents} too.
 
 
 
