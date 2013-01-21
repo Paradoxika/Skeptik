@@ -779,14 +779,14 @@ composition for more than 80 \% of the proofs.
 {\LowerUnivalents}, the algorithm presented here, has been shown in the previous section to compress
 more than {\LowerUnits}. This is so because, as demonstrated in Prop. \ref{prop:compression}, the
 set of subproofs it lowers is aalways a superset of the set of subproofs lowered by {\LowerUnits}. It might
-be possible to lower even more subproofs, by finding a characterization of (efficiently) lowerable subproofs
+be possible to lower even more subproofs by finding a characterization of (efficiently) lowerable subproofs
 broader than that of univalent subproofs considered here. This direction for future work promises to be challenging, though, as evidenced by the non-triviality of the optimizations discussed in Section \ref{sec:LUniv} for obtaining a linear-time implementation of {\LowerUnivalents}.
 
 As discussed in Section \ref{sec:LUnivRPI}, the proposed algorithm can be embedded in the deletion traversal of other algorithms.  As
 an example, it has been shown that the combination of {\LowerUnivalents} with {\RPI}, compared to
 the sequential composition of {\LowerUnits} after {\RPI}, results in a better compression ratio with
-only a small processing time overhead. Other compression algorithms that also have a subproof
-deletion phase (e.g. {\Split} and {\ReduceReconstruct}) could probably benefit from being combined with {\LowerUnivalents} too.
+only a small processing time overhead (Figure \ref{fig:LUnivRPI}). Other compression algorithms that also have a subproof
+deletion or reconstruction phase could probably benefit from being combined with {\LowerUnivalents} too.
 
 
 
