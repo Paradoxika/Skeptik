@@ -683,13 +683,11 @@ In order to compare the algorithms described here with others, the following alg
 \end{description}
 
 For each of these algorithms, the time needed to compress the proof along with the number of nodes
-and the number of axioms have been measured. Raw data of the experiment can be downloaded on the
-Internet\footnote{\url{https://github.com/Paradoxika/Skeptik/raw/develop/doc/papers/LUniv/all-final.csv}}.
+and the number of axioms have been measured. Raw data of the experiment can be downloaded from {\skeptik}'s repository\footnote{\url{https://raw.github.com/Paradoxika/Skeptik/master/doc/papers/LUniv/all-final.csv}}.
 
 The experiments were executed on the Vienna Scientific Cluster\footnote{\url{http://vsc.ac.at/}}
 VSC\nobreakdash-2. Each algorithm was executed in a single core. But the amount of memory available
-at each cluster node (16 GB) has been useful to compress the biggest proofs (with more than $10^6$
-nodes).
+at each cluster node (16 GB) has been useful to compress the biggest proofs (with more than $10^6$ nodes).
 
 
 The overall results of the experiments are shown on Table \ref{tab:average}. The compression ratios
@@ -699,16 +697,16 @@ proofs.
 \begin{equation} \label{eq:compression}
   1 - \frac{ \sum {|\Vertices{\psi'}|} }{ \sum {|\Vertices{\psi}|} }
 \end{equation}
-The unsat core compression ratios are computed the same way, using the number of axioms instead of
-the number of nodes. The compression speeds on the fourth column are computed to formula
+The unsat core compression ratios are computed in the same way, but using the number of axioms instead of
+the number of nodes. The compression speeds on the fourth column are computed according to formula
 (\ref{eq:speed}) in which $d_{\psi}$ is the duration in milliseconds of $\psi$'s compression by a
 given algorithm.
 \begin{equation} \label{eq:speed}
   \frac{ \sum {|\Vertices{\psi}|} }{ \sum {d_{\psi}} }
 \end{equation}
 
-For the \texttt{Split} and \texttt{RedRec} algorithms which have to be repeated, the timeout has
-been fixed such that the compression speed is about 3 nodes per millisecond. 
+For the \texttt{Split} and \texttt{RedRec} algorithms, which must be repeated, a timeout has
+been fixed so that the compression speed is about 3 nodes per millisecond. 
 
 
 \begin{table}[tb]
@@ -737,7 +735,10 @@ been fixed such that the compression speed is about 3 nodes per millisecond.
 
 \newcommand{\va}[1]{\ensuremath{v_{\text{#1}}}}
 
-Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. The compression
+Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. Subfigures (a) and (b) are scatter plots where each dot represents a single benchmark proof. 
+Subfigure (c) and (d) are histograms showing the proportion of proofs 
+
+The compression
 ratio differences in subfigure (c) are computed using formula (\ref{eq:histogram}) with \va{LU}
 and \va{LUniv} being the number of nodes in the proofs compressed respectively by {\LowerUnits} and
 {\LowerUnivalents}.
@@ -751,9 +752,8 @@ with \va{LU} and \va{LUniv} being the duration of compressing a proof by {\Lower
 
 \input{LU_charts}
 
-As expected, {\LowerUnivalents} compresses more than {\LowerUnits} at the expense of a longer
-computation. And even if the compression gain is low on average, subfigure (a) shows that
-on some proofs {\LowerUnivalents} compresses twice more than {\LowerUnits}.
+As expected, {\LowerUnivalents} always compresses more than {\LowerUnits} (subfigure (a)) at the expense of a longer
+computation (subfigure d). And even if the compression gain is low on average (as noticeable in Table \ref{tab:average}), subfigure (a) shows that {\LowerUnivalents} compresses some proofs significantly more than {\LowerUnits}.
 
 It has to be noticed that \veriT already does its best to produce compact proofs. In particular,
 a forward subsuming algorithm is applied, which results in proofs not having two different subproofs
