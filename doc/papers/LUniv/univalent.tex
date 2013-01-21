@@ -73,7 +73,7 @@ into various other automated deduction tools that target problems described in m
 logics. The most prominent examples are SMT-solvers \cite{veriT}, for checking satisfiability modulo
 theories for equality, linear arithmetic, bit-vectors, arrays and others. But more recently,
 interactive proof assistants \cite{isabelle-blanchette-boehme} and automated first-order
-(\cite{spassT}, \cite{iProver}, \cite{Vampire}) and even higher-order \cite{satallax} theorem provers have
+(\cite{iProver}) and even higher-order \cite{satallax} theorem provers have
 taken advantage of embedding sat-solvers too.
 
 In such a scenario, it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
@@ -402,7 +402,9 @@ Although the call to \FuncSty{delete} inside the first loop (line \ref{line:LUni
 as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
 implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, as
 long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in constant bounded
-time.
+time. 
+
+%This and other optimizations are shown in the more detailed Algo. \ref{algo:fullLUniv}. 
 
 
 
@@ -455,8 +457,8 @@ $\varphi_i$. A modified \FuncSty{delete} operation able to remove nodes and edge
 implemented.
 
 Algorithm \ref{algo:fullLUniv} sums up the previous remarks on an efficient way of implementing
-{\LowerUnivalents}. As noticed above, this algorithm may consider a subproof as univalent whereas it
-is not. But as care is taken when reintroducing subproofs (at line \ref{line:full:testreintroduce}),
+{\LowerUnivalents}. As noticed above, sometimes this algorithm may consider a subproof as univalent when it
+is actually not. But as care is taken when reintroducing subproofs (at line \ref{line:full:testreintroduce}),
 the resulting conclusion still subsumes the original.  The test that $\ell \in \Conclusion{\varphi}$
 at line \ref{line:full:testactive} is mandatory since $\ell$ might have been deleted from
 $\Conclusion{\varphi}$ by the deletion of previously collected subproofs.
@@ -648,7 +650,7 @@ are shown on Table \ref{tab:benchmarks}.  The proofs were translated into pure r
 considering every non-resolution inference as an axiom.
 
 \begin{table}[tb]
-  \caption{Number of proofs by benchmark}
+  \caption{Number of proofs per benchmark category}
   \label{tab:benchmarks}
   \centering
   \begin{tabular}{lr}
@@ -778,7 +780,7 @@ composition for more than 80 \% of the proofs.
 
 {\LowerUnivalents}, the algorithm presented here, has been shown in the previous section to compress
 more than {\LowerUnits}. This is so because, as demonstrated in Prop. \ref{prop:compression}, the
-set of subproofs it lowers is aalways a superset of the set of subproofs lowered by {\LowerUnits}. It might
+set of subproofs it lowers is always a superset of the set of subproofs lowered by {\LowerUnits}. It might
 be possible to lower even more subproofs by finding a characterization of (efficiently) lowerable subproofs
 broader than that of univalent subproofs considered here. This direction for future work promises to be challenging, though, as evidenced by the non-triviality of the optimizations discussed in Section \ref{sec:LUniv} for obtaining a linear-time implementation of {\LowerUnivalents}.
 
@@ -786,7 +788,7 @@ As discussed in Section \ref{sec:LUnivRPI}, the proposed algorithm can be embedd
 an example, it has been shown that the combination of {\LowerUnivalents} with {\RPI}, compared to
 the sequential composition of {\LowerUnits} after {\RPI}, results in a better compression ratio with
 only a small processing time overhead (Figure \ref{fig:LUnivRPI}). Other compression algorithms that also have a subproof
-deletion or reconstruction phase could probably benefit from being combined with {\LowerUnivalents} too.
+deletion or reconstruction phase (e.g \ReduceReconstruct) could probably benefit from being combined with {\LowerUnivalents} too.
 
 
 
