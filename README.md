@@ -52,7 +52,7 @@ or add the following lines to your pom.xml file, if you are using [Maven](http:/
             <artifactId>skeptik_2.10</artifactId>
             <version>1.0</version>
         </dependency>
-``
+```
 
 
 
