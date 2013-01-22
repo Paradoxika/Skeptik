@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <description>Skeptik</description>
     <url>http://github.com/Paradoxika/Skeptik</url>
-    <version>0.2-SNAPSHOT</version>
+    <version>1.0</version>
     <licenses>
         <license>
             <name>GNU GPL v3</name>

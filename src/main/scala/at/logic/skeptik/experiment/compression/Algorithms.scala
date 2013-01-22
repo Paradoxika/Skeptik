@@ -78,7 +78,7 @@ class TimeOutAlgorithm (name: String, val algo: CompressorAlgorithm[SequentProof
 extends WrappedAlgorithm(name) {
   def apply(result: Result) = {
     val guard = new InnerGuard {
-      def decide(p: Proof[SequentProofNode]) = duration < (result.proof.size + result.axiomsSize).toDouble
+      def decide(p: Proof[SequentProofNode]) = duration < result.proof.size.toDouble / 4.0
     }
     guard.proceed(result)
   }

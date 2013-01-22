@@ -1,6 +1,8 @@
 package at.logic.skeptik.judgment
 package immutable
 
+import language.implicitConversions
+
 import at.logic.skeptik.expression.E
 import collection.mutable.Stack
 import at.logic.skeptik.expression.formula.Neg
@@ -46,9 +48,8 @@ class SeqSequent(val ant: Seq[E], val suc: Seq[E]) extends Sequent with SequentL
 
 object SeqSequent {
   def apply(ant:E*)(suc:E*) = new SeqSequent(ant, suc)
-  
-  @deprecated  //ToDo: this should be transformed into an implicit conversion
-  def apply(s: TraversableOnce[E]) = {
+ 
+  implicit def fromTraversable(s: TraversableOnce[E]) = {
     val ant = new Stack[E]; val suc = new Stack[E];
     for (f <- s) f match {
       case Neg(g) => ant.push(g)

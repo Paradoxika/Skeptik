@@ -24,7 +24,7 @@ extends JavaTokenParsers with RegexParsers {
     case name: String => map(name)
   }
   def input: Parser[SequentProofNode] = "{" ~> repsep(literal,",") <~ "}" ^^ {
-    list => new Axiom(Sequent(list))
+    list => new Axiom(list)
   }
   def resolvent: Parser[SequentProofNode] = "(" ~> subproof ~ "." ~ subproof <~ ")" ^^ {
     case ~(~(left,_),right) => CutIC(left,right)
