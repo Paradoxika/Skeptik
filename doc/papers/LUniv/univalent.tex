@@ -738,14 +738,14 @@ been fixed so that the compression speed is about 3 nodes per millisecond.
 \newcommand{\va}[1]{\ensuremath{v_{\text{#1}}}}
 
 Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. Subfigures (a) and (b) are scatter plots where each dot represents a single benchmark proof. 
-Subfigure (c) is a histogram showing, in the vertical axis, the proportion of proofs having \emph{compression ratio difference} within the intervals showed in the horizontal axis. This difference is computed using formula (\ref{eq:histogram}) with \va{LU}
+Subfigure (c) is a histogram showing, in the vertical axis, the proportion of proofs having \emph{(normalized) compression ratio difference} within the intervals showed in the horizontal axis. This difference is computed using formula (\ref{eq:histogram}) with \va{LU}
 and \va{LUniv} being the compression ratios obtained respectively by {\LowerUnits} and
 {\LowerUnivalents}.
 \begin{equation} \label{eq:histogram}
   \frac { 2(\va{LU} - \va{LUniv}) }{ \va{LU} + \va{LUniv} }
 \end{equation}
 The number of proofs for which $\va{LU} = \va{LUniv}$ are not displayed in the histogram.
-The duration differences in subfigure (d) are computed using the same formula~(\ref{eq:histogram}) but
+The \emph{(normalized) duration differences} in subfigure (d) are computed using the same formula~(\ref{eq:histogram}) but
 with \va{LU} and \va{LUniv} being the time taken to compress the proof by {\LowerUnits} and
 {\LowerUnits} respectively.
 
