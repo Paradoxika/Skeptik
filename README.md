@@ -1,6 +1,6 @@
 Skeptik is a collection of data structures and algorithms focused especially on the compression of formal proofs. 
 
-Resolution proofs, in particular, are used by various sat-solvers, smt-solvers and first-order theorem provers, as certificates of correctness for the answers they provide.
+Resolution proofs, in particular, are used by various sat-solvers, smt-solvers and automated theorem provers, as certificates of correctness for the answers they provide.
 These automated deduction tools have a wide range of application areas, from mathematics to software and hardware verification.
 
 By providing smaller resolution proofs that are easier and faster to check, Skeptik aims at improving the reliability of these automated deduction tools and at facilitating the exchange of information between them.
@@ -8,7 +8,7 @@ By providing smaller resolution proofs that are easier and faster to check, Skep
 
 ###Usage Instructions###
 
-You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) (version >= 0.11.3) installed. 
+You must have [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) (version >= 0.12.1) installed. 
 Then go to Skeptik's root directory using the terminal and simply execute:
 
 ```
@@ -20,19 +20,31 @@ Then go to Skeptik's root directory using the terminal and simply execute:
 (you may increase the value after -Xmx, if you need or want to provide more memory to the JVM)
 
 Further instructions, such as necessary command-line arguments, will be shown to you.
+
 If you face any difficulty, do not hesitate to contact us.
+
+
+
+###Usage Example###
+
+The following command will run the proof compression algorithm 'RecyclePivotsWithIntersection' on the proof 'eq_diamond8.smt2' :
+
+```
+  sbt run -experiment --compression -a RPI ./examples/proofs/VeriT/eq_diamond8.smt2
+```
+
 
 
 ###Importing Skeptik###
 
 To import Skeptik as a library in your own Java or Scala projects, 
-add the following line to your build.sbt file, if you are using SBT to manage your library dependencies:
+add the following line to your build.sbt file, if you are using [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) to manage your library dependencies:
 
 ```
    libraryDependencies += "at.logic" %% "skeptik" % "1.0"
 ```
 
-or add the following lines to your pom.xml file, if you are using Maven instead:
+or add the following lines to your pom.xml file, if you are using [Maven](http://maven.apache.org/) instead:
 
 ```
         <dependency>
@@ -43,10 +55,13 @@ or add the following lines to your pom.xml file, if you are using Maven instead:
 ``
 
 
+
 ###Stats###
 
 * [![Build Status](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/badge/icon)](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/)
 * [Ohloh](https://www.ohloh.net/p/Skeptik)
+
+
 
 
 ###Development Policy###
@@ -59,10 +74,13 @@ Skeptik developers and contributors are encouraged to:
 
 Using the git flow model can be easier with the [gitflow extension for git](https://github.com/nvie/gitflow).
 
+
+
 ###Developers and Contributors###
 
  * [Bruno Woltzenlogel Paleo](https://github.com/Ceilican/Skeptik)
  * [Joseph Boudou](https://github.com/Jogo27/ResK-GSoC)
+
 
 
 ###Websites and Forums###
@@ -70,6 +88,7 @@ Using the git flow model can be easier with the [gitflow extension for git](http
  * [Skeptik's Main Website](http://paradoxika.github.com/Skeptik/)
  * [Skeptik's Mailinglist for Developers](https://groups.google.com/forum/?fromgroups#!forum/skeptik-dev)
  
+
 
 ###Support###
  
