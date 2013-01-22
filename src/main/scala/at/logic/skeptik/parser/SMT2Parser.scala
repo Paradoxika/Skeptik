@@ -27,7 +27,7 @@ extends JavaTokenParsers with RegexParsers {
     list => list.tail.foldLeft(list.head) { (left,right) => CutIC(left,right) }
   }
   def input: Parser[SequentProofNode] = name ~> opt(clauses) ~> conclusion ^^ {
-    list => new Axiom(Sequent(list))
+    list => new Axiom(list)
   }
 
   def clauses: Parser[List[SequentProofNode]] = ":clauses (" ~> rep(name) <~ ")" ^^ {
