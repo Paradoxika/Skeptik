@@ -88,26 +88,19 @@ object Experimenter {
 
   addTimeOutAlgorithm("RPI[3]LU", IdempotentThreePassLowerUnits)
 
-  addTimeOutAlgorithm("LUniv",    LowerUnivalentsOpt)
-  addTimeOutAlgorithm("LUnivRPI",IdempotentLowerUnivalentsAfterRecyclePivotsOpt)
+  addTimeOutAlgorithm("LUniv",       LowerUnivalents)
+  addTimeOutAlgorithm("LUnivRPI",    IdempotentLowerUnivalentsAfterRecyclePivots)
   addTimeOutAlgorithm("RPI[3]LUniv", IdempotentLowerUnivalentsBeforeRecyclePivots)
 
   addTimeOutAlgorithm("RednRec", ReduceAndReconstruct)
 
-  addTimeOutAlgorithm("Split",   Split)
+  addTimeOutAlgorithm("Split",    Split)
   addTimeOutAlgorithm("TSplit R", TerminatingSplitRandom)
   addTimeOutAlgorithm("TSplit D", TerminatingSplitDeterministic)
 
   for (i <- 1 to 8) addTimeOutAlgorithm("MSplit" + i, new MultiSplit(i) with RandomChoice)
 
   addTimeOutAlgorithm("DAG",  DAGification)
-
-  // Test for practical idempotency (outdated)
-  addTimeOutAlgorithm("RPI R",      RecyclePivotsWithIntersection)
-  addTimeOutAlgorithm("RPILU R",    RepeatableWhileCompressingAlgorithm(RecyclePivotsWithIntersection, NewUnitLowering))
-  addTimeOutAlgorithm("LURPI R",    RepeatableWhileCompressingAlgorithm(NewUnitLowering, RecyclePivotsWithIntersection))
-  addTimeOutAlgorithm("RPILUniv R", LowerUnivalentsBeforeRecyclePivots)
-  addTimeOutAlgorithm("LUnivRPI R", LowerUnivalentsAfterRecyclePivots)
 
   def getProofNodeFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
     case Some(".proof") => Result ( { (new SimplePropositionalResolutionProofNodeFormatParser(filename)).getProofNode } )
