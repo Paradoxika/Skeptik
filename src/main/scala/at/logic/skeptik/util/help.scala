@@ -19,9 +19,9 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 // A collection of functions to analyse proofs and differences between proofs.
 object help {
 
-  def ProofToMap(pnc: Proof[SequentProofNode]) =
-    pnc.foldLeft(Map[Sequent, List[(Sequent,Sequent)]]()) { (map,p) => p match {
-      case CutIC(left,right,_,_) => map + (p.conclusion -> ((left.conclusion,right.conclusion)::(map.getOrElse(p.conclusion,Nil))))
+  def proofToMap(proof: Proof[SequentProofNode]) =
+    proof.foldLeft(Map[Sequent,List[Sequent]]()) { (map,node) => node match {
+      case CutIC(left,right,_,_) => map + (node.conclusion -> ((left.conclusion)::((right.conclusion)::(map.getOrElse(node.conclusion,Nil)))))
       case _ => map
     }
   }
@@ -95,6 +95,7 @@ object help {
     out.close()
   }
 
+  import scala.language.existentials
   def makeMapOfChildren(node: SequentProofNode, nodeCollection: Proof[SequentProofNode]) = {
     class Wrap(val n: SequentProofNode) {
       override def equals(other: Any):Boolean = other match {

@@ -20,12 +20,12 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
     def visit(node: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = if (unitsSafeLiterals contains node) {
-        edgesToDelete.deleteNode(node)
+          edgesToDelete.deleteNode(node)
 //        println("Unit " + node.conclusion)
-        unitsSafeLiterals(node)
-      }
-      else if (childrensSafeLiterals == Nil) rootSafeLiterals
-      else computeSafeLiterals(node, childrensSafeLiterals, edgesToDelete)
+          unitsSafeLiterals(node)
+        }
+        else if (childrensSafeLiterals == Nil) rootSafeLiterals
+        else computeSafeLiterals(node, childrensSafeLiterals, edgesToDelete)
 
       node match {
         case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) =>
