@@ -7,14 +7,10 @@ use version; BEGIN { our $VERSION = qv('0.0') }
 use Charts qw( :all );
 
 ############################################################
-# Constants
-############################################################
-use Readonly;
-
-############################################################
 # Globals
 ############################################################
 my $max = 0;
+my @data;
 
 ############################################################
 # Arguments
@@ -69,7 +65,6 @@ my $factor = square_size() / (ceil($max / $opt_divStep) * $opt_divStep);
 draw_x($opt_h{name}, $opt_divStep, $factor, square_size(), square_size());
 draw_y($opt_v{name}, $opt_divStep, $factor, square_size(), square_size());
 
-print '\foreach \pos in {'."\n";
 $csv = Parse::CSV->new( file => $opt_csvfile );
 while (my $csv_row = $csv->fetch ) {
   my $h = $csv_row->[$opt_h{col}];
@@ -81,7 +76,35 @@ while (my $csv_row = $csv->fetch ) {
     $h *= $opt_factor;
     $v *= $opt_factor;
   }
-  printf "\t(%f, %f),\n", $h * $factor, $v * $factor;
+  $h *= $factor;
+  $v *= $factor;
+  push @data, [$h, $v, sqrt(($h ** 2) + ($v ** 2))];
+}
+
+############################################################
+# Filter data
+############################################################
+@data = sort {$a->[2] cmp $b->[2]} @data;
+my $i = 1;
+FILTER: while ($i < scalar @data) {
+  my $j = $i - 1;
+  while (($j >= 0) && (($data[$i][2] - $data[$j][2]) < 0.006)) {
+    if ((($data[$i][0] - $data[$j][0]) ** 2) + (($data[$i][1] - $data[$j][1]) ** 2) < 0.000036) {
+      splice @data, $i, 1;
+      next FILTER;
+    }
+    $j -= 1;
+  }
+  $i += 1;
+}
+
+
+############################################################
+# Draw
+############################################################
+print '\foreach \pos in {'."\n";
+for my $d (@data) {
+  printf "\t(%f, %f),\n", $d->[0], $d->[1];
 }
 
 ############################################################
