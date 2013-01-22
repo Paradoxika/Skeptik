@@ -23,6 +23,25 @@ Further instructions, such as necessary command-line arguments, will be shown to
 If you face any difficulty, do not hesitate to contact us.
 
 
+###Importing Skeptik###
+
+To import Skeptik as a library in your own Java or Scala projects, 
+add the following line to your build.sbt file, if you are using SBT to manage your library dependencies:
+
+```
+   libraryDependencies += "at.logic" %% "skeptik" % "1.0"
+```
+
+or add the following lines to your pom.xml file, if you are using Maven instead:
+
+```
+        <dependency>
+            <groupId>at.logic</groupId>
+            <artifactId>skeptik_2.10</artifactId>
+            <version>1.0</version>
+        </dependency>
+``
+
 
 ###Stats###
 
