@@ -7,10 +7,6 @@ use version; BEGIN { our $VERSION = qv('0.0') }
 use Charts qw( :all );
 
 
-############################################################
-# Constants
-############################################################
-use Readonly;
 
 
 ############################################################
@@ -61,7 +57,7 @@ while (1)  {
     $max_x = $k if ($k > $max_x);
   };
 
-  last if (($max_x - $min_x) < (16*$opt_precision));
+  last if (($max_x - $min_x) < (17*$opt_precision));
 
   if (($data{$min_x} + $cumul_rm_min) < ($data{$max_x} + $cumul_rm_max)) {
     $cumul_rm_min += $data{$min_x};
@@ -87,12 +83,22 @@ print "\\begin{tikzpicture}\n";
 
     print "\\draw[->] (-0.25,-0.2) -- (-0.25,$height);\n";
 
-    my $step = ($total * $factor / 10) - 0.001;
-    for my $i (1..($height / $step)) {
-      my $pos = $i * $step;
-      print '\node [anchor=south east] at (-0.25,' . $pos . ') {\small ' . ($i * 0.1) . "};\n";
-      print '\draw (-0.3,' . $pos . ') -- (-0.2,' . $pos . ");\n";
+    my $step_y;
+    my $step_v;
+    if ($total * $factor < 2 * $height) {
+      $step_y = ($total * $factor / 5) - 0.001;
+      $step_v = 0.2;
+    }
+    else {
+      $step_y = ($total * $factor / 10) - 0.001;
+      $step_v = 0.1;
+    }
+
+    for my $i (1..($height / $step_y)) {
+      my $pos = $i * $step_y;
       print "\\draw [style=help lines] ($min_x,$pos) -- ($max_x,$pos);\n";
+      print '\node [anchor=east,fill=white] at ('. $min_x .','. $pos . ') {\small ' . ($i * $step_v) . "};\n";
+      print '\draw (-0.3,' . $pos . ') -- (-0.2,' . $pos . ");\n";
     }
 
     print "\\draw[->] ($min_x,-0.07) -- ($max_x,-0.07);\n";
