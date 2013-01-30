@@ -90,6 +90,7 @@ Using the git flow model can be easier with the [gitflow extension for git](http
  
 
 
+
 ###Support###
  
  * Skeptik's development is currently funded by the Austrian Science Fund ([Project P24300](http://www.fwf.ac.at/en/projects/projekt_datenbank.asp))
