@@ -1,3 +1,5 @@
+Just a test to check buildhive configuration
+
 Skeptik is a collection of data structures and algorithms focused especially on the compression of formal proofs. 
 
 Resolution proofs, in particular, are used by various sat-solvers, smt-solvers and automated theorem provers, as certificates of correctness for the answers they provide.
