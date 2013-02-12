@@ -18,7 +18,7 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-actors" % "2.10.0-RC3"
 )
 
-licenses := Seq("GNU GPL v3" -> url("http://www.gnu.org/licenses/gpl.html"))
+licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
 
 homepage := Some(url("http://github.com/Paradoxika/Skeptik"))
 
