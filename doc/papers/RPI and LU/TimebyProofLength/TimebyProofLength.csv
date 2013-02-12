@@ -1,0 +1,13 @@
+"Benchmark","Proof","Length","LowerUnits","RecyclePivots","RPI","RPI(LU(p))","LU(RPI(p))"
+"SoftwareVerification/Babic","dspam_dump_vc972",956,0.009,0.015,0.016,0.022,0.019
+"SoftwareVerification/Nec","11-U-7061",1706,0.134,0.129,0.077,0.104,0.119
+"SoftwareVerification/Nec","25-U-7061",2124,0.034,0.041,0.04,0.093,0.057
+"Manolios","c10ni_s",7995,0.076,0.349,0.376,0.465,0.41
+"SoftwareVerification/Nec","2-U-10652",17983,0.613,1.065,1.29,3.608,1.705
+"HardwareVerification/IBM",45,22856,1.593,5.728,5.539,7.879,6.157
+"SoftwareVerification/Nec","7-U-10652",114054,9.711,72.23,77.661,120.951,111.827
+"Manolios","c8idw_s",122397,4.012,6.937,8.057,12.329,9.406
+"SoftwareVerification/Nec","0-U-7061",192641,17.192,83.228,117.293,147.423,128.579
+"Manolios","f6bid",202853,14.372,19.764,34.345,83.691,36.375
+"SoftwareVerification/Nec","13-U-9007",230723,102.174,176.557,246.758,316.326,276.049
+"HardwareVerification/IBM",100,637356,190.355,134.543,272.552,446.291,363.683
