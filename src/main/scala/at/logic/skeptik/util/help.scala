@@ -6,8 +6,6 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression._
-import at.logic.skeptik.proof.oldResolution.defs._
-import at.logic.skeptik.proof.oldResolution.typeAliases._
 
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
 
@@ -53,26 +51,6 @@ object help {
     private var next = 0
     def trans(exp: E) = if (map.contains(exp)) map(exp) else { map += (exp -> Var("#" + next,o)) ; next += 1 ; map(exp) }
     def apply(seq: Sequent) = new Sequent(seq.ant.map(trans _), seq.suc.map(trans _))
-  }
-
-  def convertToSequent(clause: Clause) = {
-    var ant: List[E] = Nil
-    var suc: List[E] = Nil
-    clause.foreach { l => if (l.polarity) ant = Var(l.atom.toString,o)::ant else suc = Var(l.atom.toString,o)::suc }
-    new Sequent(ant, suc)
-  }
-
-  def convertToSequentProofNode(p: proof.oldResolution.ProofNode) = {
-    val toSequent = collection.mutable.HashMap[proof.oldResolution.ProofNode,SequentProofNode]()
-    def recursive(p: proof.oldResolution.ProofNode):SequentProofNode = if (toSequent contains p) toSequent(p) else {
-      val seq = p match {
-        case proof.oldResolution.Resolvent(left,right) => CutIC(recursive(left), recursive(right))
-        case proof.oldResolution.Input(clause) => Axiom(convertToSequent(clause))
-      }
-      toSequent.update(p, seq)
-      seq
-    }
-    recursive(p)
   }
 
   def printDigraph[A](filename: String, in: Map[A,List[A]]) = {
