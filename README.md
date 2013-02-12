@@ -77,10 +77,7 @@ Using the git flow model can be easier with the [gitflow extension for git](http
 
 
 
-###Developers and Contributors###
-
- * [Bruno Woltzenlogel Paleo](https://github.com/Ceilican/Skeptik)
- * [Joseph Boudou](https://github.com/Jogo27/ResK-GSoC)
+###Documentation###
 
 
 
@@ -88,8 +85,20 @@ Using the git flow model can be easier with the [gitflow extension for git](http
 
  * [Skeptik's Main Website](http://paradoxika.github.com/Skeptik/)
  * [Skeptik's Mailinglist for Developers](https://groups.google.com/forum/?fromgroups#!forum/skeptik-dev)
- 
 
+
+
+
+###Developers and Contributors###
+
+ * [Bruno Woltzenlogel Paleo](https://github.com/Ceilican/Skeptik)
+ * [Joseph Boudou](https://github.com/Jogo27/ResK-GSoC)
+
+
+###Job Opportunities###
+
+ * If you would like to do a project, M.Sc. or Ph.D. at [TU-Wien](http://www.tuwien.ac.at/en/tuwien_home/) related to Skeptik, please contact [Bruno Woltzenlogel Paleo](http://www.logic.at/people/bruno)
+ * If you would like to code for Skeptik during the summer of 2013, please apply for a grant from the [Google Summer of Code program](https://github.com/Paradoxika/Skeptik/wiki/GSoC-Instructions). 
 
 
 ###Support###
@@ -97,3 +106,9 @@ Using the git flow model can be easier with the [gitflow extension for git](http
  * Skeptik's development is currently funded by the Austrian Science Fund ([Project P24300](http://www.fwf.ac.at/en/projects/projekt_datenbank.asp))
  * Skeptik was supported by [Google Summer of Code 2012](http://www.google-melange.com/gsoc/project/google/gsoc2012/josephboudou/17001)
  * [YourKit](http://www.yourkit.com/) is an excellent profiler for Scala applications. It supports our open-source project with a free license.
+ 
+ 
+ 
+ ###License###
+ 
+ 
