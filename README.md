@@ -1,4 +1,9 @@
-![Logo](https://raw.github.com/Paradoxika/Skeptik/develop/logo.png)
+<img style="float:right; width:200px; height:200px" src="https://raw.github.com/Paradoxika/Skeptik/develop/res/logo.png" />
+
+Skeptik is a collection of data structures and algorithms focused especially on the compression of formal proofs. 
+
+Resolution proofs, in particular, are used by various sat-solvers, smt-solvers and automated theorem provers, as certificates of correctness for the answers they provide.
+These automated deduction tools have a wide range of application areas, from mathematics to software and hardware verification.
 
 Skeptik is a collection of data structures and algorithms focused especially on the compression of formal proofs. 
 
