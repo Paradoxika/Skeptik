@@ -577,13 +577,13 @@ units may appear in the resulting compressed proof.
 
 \section{Combining {\LowerUnivalents} with {\RPI}} \label{sec:LUnivRPI}
 
-\begin{definition}[Regular proof]
+\begin{definition}[Regular proof \cite{Tseitin}]
 A proof $\psi$ is \emph{regular} iff on every path from its root to any of its axioms, each literal
 labels at most one edge. Otherwise, $\psi$ is \emph{irregular}.
 \end{definition}
 
 Any irregular proof can be converted into a regular proof having the same axioms and the same
-conclusion. But it has been proved \cite{Tseitin} that such a total regularization might result in a
+conclusion. But it has been proved \cite{Goerdt} that such a total regularization might result in a
 proof exponentially bigger than the original. Some careful \emph{partial regularization} algorithms
 which achieve good compression ratio exist though.
 
