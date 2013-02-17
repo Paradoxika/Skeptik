@@ -59,8 +59,8 @@ or add the following lines to your pom.xml file, if you are using [Maven](http:/
 
 ###Stats###
 
-* [![Build Status](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/badge/icon)](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/)
-* [Ohloh](https://www.ohloh.net/p/Skeptik) <script type="text/javascript" src="http://www.ohloh.net/p/603361/widgets/project_thin_badge.js"></script>
+[![Build Status](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/badge/icon)](https://buildhive.cloudbees.com/job/Paradoxika/job/Skeptik/)
+[![Ohloh](https://www.ohloh.net/p/Skeptik/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/Skeptik)
 
 
 
