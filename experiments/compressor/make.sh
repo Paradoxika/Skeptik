@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#ToDo: Relative paths should be used here
 PATH=/home/jogo/gsoc/git/scripts/:$PATH
 export PERL5LIB=/home/jogo/gsoc/git/scripts
 cd /home/jogo/gsoc/git/experiments/compressor
