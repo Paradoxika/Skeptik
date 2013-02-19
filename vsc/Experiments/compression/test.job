@@ -1,10 +1,10 @@
-#$ -N SkeptikComp         # declares job name                
-#$ -pe mpich 16           # requests 16 cores
-#$ -V                     # imports all environment variables
-#$ -M jogo@matabio.net    # email address to be notified
-#$ -m beas                # notifies of job's beginning, end, abortion and rescheduling
-# -l mem_free=10G        # allow to run on 16G memory nodes
-#$ -l h_rt=24:00:00       # runs job for a maximum time of hh:mm:ss
+#$ -N SkeptikComp                     # declares job name                
+#$ -pe mpich 16                       # requests 16 cores
+#$ -V                                 # imports all environment variables
+#$ -M skeptik-dev@googlegroups.com    # email address to be notified
+#$ -m beas                            # notifies of job's beginning, end, abortion and rescheduling
+#$ -l mem_free=10G                    # allows to run on 16G memory nodes
+#$ -l h_rt=24:00:00                   # runs job for a maximum time of hh:mm:ss
 
 SLICE=$( printf 'slice.%02d' $SGE_TASK_ID )
 
