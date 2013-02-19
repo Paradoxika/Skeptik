@@ -5,7 +5,7 @@ import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
-import at.logic.skeptik.expression._
+//import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.compressor.guard._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map

@@ -15,9 +15,6 @@ object Main {
       } 
       else help()
     }
-    else if (args(0) == "-prove") {
-      
-    }
     else if (args(0) == "-compress") {
       
     }
@@ -33,9 +30,6 @@ object Main {
     -experiment    : runs pre-defined experiment
       --NDc          : contextual natural deduction experiment
       --compression  : proof compression experiment
-  
-    -prove         : proves theorem
-      [not implemented yet]
   
     -compress      : compresses proof
       [not implemented yet]
