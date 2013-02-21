@@ -68,7 +68,7 @@ my @columns = split /,/, (shift @ARGV);
 ############################################################
 # Globals
 ############################################################
-my @old = map { $initial_value } @columns;
+my @old = map { eval $initial_value } @columns;
 
 
 ############################################################
@@ -105,7 +105,7 @@ __END__
 
 =head1 NAME
 
-csvaggregate - 
+csvaggregate - Compute aggregate function on a CSV file
 
 =head1 SYNOPSIS
 
@@ -113,7 +113,12 @@ csvaggregate -
 
 =head1 DESCRIPTION
 
+Compute some user defined aggregate function on a CSV file.
 
+A persistent value called old is maintained for each column of the file. On each line of the CSV file,
+a new value for each cell is computed based on the old value, the current value in the cell and any other
+value on the current line. At last, a final computation may be proceeded. The result is writen as a CSV line
+on standart output.
 
 =head1 REQUIRED ARGUMENTS
 
@@ -121,9 +126,15 @@ csvaggregate -
 
 =item <csvfile>
 
+The name of the CSV file to read from.
+
 =item <formula>
 
+The formula to apply on each cell.
+
 =item <columns>
+
+The columns to take into account, separated by colons.
 
 =back
 
@@ -133,28 +144,51 @@ csvaggregate -
 
 =item -i[nitial] <initial_value>
 
+The value to put into old before the first line is proceeded. Default to 0.
+
 =for Euclid:
   initial_value.type: number
   initial_value.default: 0
 
 =item -l <formula>
 
-Apply the formula at last and remove the first row.
+Apply the formula at last and remove the first column.
 
 =back
 
-=head1 DIAGNOSTICS
+=head1 FORMULA
+
+The formula may be any valid Perl expression. The following placeholder have special meaning.
 
 =over
 
-=item 
+=item %o
+
+The old value.
+
+=item %_
+
+The current cell value.
+
+=item %<n>
+
+The value in at the current line and at the nth column.
 
 =back
 
+=head1 EXAMPLES
+
+The sum of the five first columns :
+
+csvaggregate file.csv '%o+%_' 0,1,2,3,4
+
+The average of the five first columns :
+
+csvaggregate -i '[0,0]' -l '%o[1]/%o[0]' file.csv '[%o[0]+1, %o[1]+%_]' 0,0,1,2,3,4
 
 =head1 DEPENDENCIES
 
-L<>
+L<Parse::CSV>
 
 =head1 BUGS AND LIMITATIONS
 
@@ -168,9 +202,9 @@ Joseph Boudou, C<< <jogo@matabio.net> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright 2009 Joseph Boudou.
+Copyright 2012 Joseph Boudou.
 
-This module is free software; you can redistribute it and/or
+This script is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
 
 This program is distributed in the hope that it will be useful,
