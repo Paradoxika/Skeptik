@@ -24,7 +24,7 @@ package lowerableUnivalent {
       (literals.ant.size, literals.suc.size) match {
         case (1,0) => isTheOnlyValentLiteral(Left(literals.ant.head),  newNode, loweredPivots)
         case (0,1) => isTheOnlyValentLiteral(Right(literals.suc.head), newNode, loweredPivots)
-        case _ => println(newNode.conclusion + " no valent")
+        case _ => // println(newNode.conclusion + " no valent")
           None
       }
     }
@@ -91,10 +91,10 @@ package lowerableUnivalent {
           case Left (v) => v =+: loweredPivots
           case Right(v) => loweredPivots += v
         }
-        println(node.conclusion + " lowered");
+        // println(node.conclusion + " lowered");
         Some(remainingLiteral)
       } else {
-        println(node.conclusion + " not included in Delta");
+        // println(node.conclusion + " not included in Delta");
         None
       }
     }
