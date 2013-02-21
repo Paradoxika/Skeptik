@@ -17,7 +17,6 @@ experiments/compressor/slice*
 *.toc
 *.pdf
 *.lst
-vsc/Experiments/compression/slice.*
 *.log
 *.bbl
 *.blg
