@@ -1,0 +1,841 @@
+\section{Benchmarks}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by number of irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by DAG degree}
+  \end{subfigure}
+\caption{Repartition of proofs from the \emph{full} set}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by number of irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by DAG degree}
+  \end{subfigure}
+\caption{Repartition of proofs from the \emph{medium} set}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+  \caption{Repartition of proofs by DAG degree}
+  \end{subfigure}
+\caption{Repartition of proofs from the \emph{light} set}
+\end{figure}
+\section{Reimplementing algorithms}
+\begin{table}[hbt]
+  \centering
+  \caption{Averages for Reimplemented Algorithms}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Total Compression Ratio for Reimplemented Algorithms}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{LU}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{RPI}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LU and RPI}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RP and RPI}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RPI and RPI-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Average nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Total nodes compression}
+  \end{subfigure}
+  \caption{Comparison of LU, RP and RPI}
+\end{figure}
+\begin{table}[hbt]
+  \centering
+  \caption{Comparison of LU, RP and RPI}
+\end{table}
+\section{Combining RPI and LU}
+\begin{table}[hbt]
+  \centering
+  \caption{Averages for Combined Algorithms}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Total Compression Ratio for Combined Algorithms}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{LURPI}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{RPILU}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LURPI and RPILU}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{LURPI-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{RPILU-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LURPI-R and RPILU-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LURPI and IU-Reg}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RPILU and IU-Low}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Average nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Total nodes compression}
+  \end{subfigure}
+  \caption{Irregular Units Algorithms Comparison}
+\end{figure}
+\begin{table}[hbt]
+  \centering
+  \caption{Irregular Units Algorithms Comparison}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LURPI and RI-Reg}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RPILU and RI-Low}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LURPI and RI-alReg}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RPILU and RI-Quad}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Average nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Total nodes compression}
+  \end{subfigure}
+  \caption{Regularization Informations Algorithms Comparison}
+\end{figure}
+\begin{table}[hbt]
+  \centering
+  \caption{Regularization Informations Algorithms Comparison}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RPILU and 3pass-LU}
+\end{figure}
+\section{Lowering Univalents}
+\begin{table}[hbt]
+  \centering
+  \caption{Averages for Lowering Univalents Algorithms}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Total Compression Ratio for Lowering Univalents Algorithms}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{LUniv}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LU and LUniv}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{LUnivRPI}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LURPI and LUnivRPI}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{RPILUniv}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RPILU and RPILUniv}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{LUnivRPI-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LUnivRPI and LUnivRPI-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \caption{RPILUniv-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing RPILUniv and RPILUniv-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LUnivRPI and RPILUniv}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LUnivRPI-R and RPILUniv-R}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Duration in seconds}
+  \end{subfigure}
+  \caption{Comparing LUnivRPI and 3pass-LU}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Average nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Total nodes compression}
+  \end{subfigure}
+  \caption{Comparing LUniv with others}
+\end{figure}
+\begin{table}[hbt]
+  \centering
+  \caption{Comparing LUniv with others}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Average nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Total nodes compression}
+  \end{subfigure}
+  \caption{Comparing combined algorithms}
+\end{figure}
+\begin{table}[hbt]
+  \centering
+  \caption{Comparing combined algorithms}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Average nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Total nodes compression}
+  \end{subfigure}
+  \caption{Comparing combined repeating algorithms}
+\end{figure}
+\begin{table}[hbt]
+  \centering
+  \caption{Comparing combined repeating algorithms}
+\end{table}
+\section{Repeatable Algorithms}
+\begin{table}[hbt]
+  \centering
+  \caption{Averages for Repeatable Algorithms}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Total Compression Ratio for Repeatable Algorithms}
+\end{table}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. number of iterations}
+  \end{subfigure}
+  \caption{ReduceAndReconstruct}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. proof size}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. irregular nodes}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. DAG degree}
+  \end{subfigure}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \caption{Compression ratio w.r.t. number of iterations}
+  \end{subfigure}
+  \caption{Split}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Number of iterations}
+  \end{subfigure}
+  \caption{Comparing Split and ReduceAndReconstruct}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Number of iterations}
+  \end{subfigure}
+  \caption{Comparing TSPlit-Random and TSplit-Deterministic}
+\end{figure}
+\begin{figure}[hbt]
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Nodes compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Axioms compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Variables compression}
+  \end{subfigure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \caption{Number of iterations}
+  \end{subfigure}
+  \caption{Comparing Split and MSplit2}
+\end{figure}
+\begin{table}[hbt]
+  \centering
+  \caption{Comparison of Split algorithms}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Comparison of some repeatable algorithms}
+\end{table}
+\section{Global overview}
+\begin{table}[hbt]
+  \centering
+  \caption{Averages for all Algorithms}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Total Compression Ratio for all Algorithms}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Overview of nodes compression ratio}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Overview of unSAT core compression}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Overview of nodes compression ratio}
+\end{table}
+\begin{table}[hbt]
+  \centering
+  \caption{Overview of unSAT core compression}
+\end{table}
