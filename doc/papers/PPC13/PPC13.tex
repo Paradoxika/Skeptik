@@ -37,17 +37,17 @@ Sat-solvers are among the most efficient automated deduction tools available tod
 %Despite the theoretical difficulty associated with NP
 %problems, state-of-the-art sat-solving techniques perform surprisingly well in practice.
 Leveraging this efficiency, sat-solvers have been embedded
-into various other automated deduction tools
+into various other automated deduction tools,
 %that target problems described in more expressivelogics.
 %The most prominent examples are SMT-solvers.
 %, for checking satisfiability modulo
 %theories for equality, linear arithmetic, bit-vectors, arrays and others.
 %More recently, 
-like interactive proof assistants and automated first-order
+such as SMT-solvers, interactive proof assistants and automated first-order
 and even higher-order theorem provers.
 %have taken advantage of embedding sat-solvers too.
-In such a scenario, proofs of unsastifiability produced by the sat-solver are analysed by the frontend tools. The quality and
-size of this proofs has thus become of critical importance.
+In such a scenario, proofs of unsastifiability produced by the sat-solver must be analysed by the frontend tools, and therefore the quality and
+size of proofs has become of critical importance.
 
 %it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
 %answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability).
@@ -58,28 +58,26 @@ size of this proofs has thus become of critical importance.
 
 %With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
 %compress such proofs in a post-processing stage.
-Techniques to compress propositional resolution proofs in a post-procecession stage have been
+Techniques to compress propositional resolution proofs in a post-processing stage have recently been
 proposed.
-\RecyclePivotsIntersection and \LowerUnits \cite{LURPI} are such proofs
+\RecyclePivotsIntersection and \LowerUnits \cite{LURPI} are two examples of such proof
 compression algorithms. They both achieve good compression ratio in linear time w.r.t. the number of
-resolution steps. The former reduces proofs' irregularity as described by Tseitin \cite{Tseitin}. The
-latter extends the concept of irregularity to redundances between branches and reduces
-this \emph{horizontal irregularity} by lowering subproofs of a single literal (called units).
-Experiments showed \cite{LURPI} that sequentialy composing this two algorithms leverages their
-efficiency.
+resolution steps. The former reduces irregularity, as defined by Tseitin \cite{Tseitin}. The
+latter extends the concept of irregularity to redundancies across branches (\emph{horizontal irregularity}) and reduces it
+ by lowering subproofs of units (i.e. clauses with a single literal).
+Experiments showed \cite{LURPI} that sequentialy composing these two algorithms combines their proof compression power.
 
-In this talk, we'll describe a new proof compression algorithm, called \LowerUnivalents~\footnote{An article describing
-this algorithm has just been submitted to the CADE 23 conference.}, which extends \LowerUnits. Its
-purposes are twofold. First, it compress further than \LowerUnits by lowering
-more subproofs. Second, a non-sequential combination of \LowerUnivalents after
-\RecyclePivotsIntersection may be easily implemented. This combination is both faster and more
-efficient than the sequential composition of \LowerUnits after \RecyclePivotsIntersection.
+In this talk, we will describe a new proof compression algorithm, called \LowerUnivalents~\footnote{A full article describing
+this algorithm has just been submitted to a conference and is available at \url{https://github.com/Paradoxika/Skeptik/tree/develop/doc/papers/LUniv}.}, which extends \LowerUnits. It achieves two goals. Firstly, by lowering
+more subproofs, it is able to compress more than \LowerUnits. Secondly, it makes it easier to implement a non-sequential combination of \LowerUnivalents after
+\RecyclePivotsIntersection, which is both faster and more
+compressing than the sequential composition of \LowerUnits after \RecyclePivotsIntersection.
 
 The principle of \LowerUnivalents is to take already lowered subproofs into account in order to
 allow more proofs to be lowered. For instance, if a subproof of $p$ has already been selected for
 lowering, a subproof of $\neg p, q$ may be lowered above the previous subproofs, provided its
-lowering would not introduce unwanted literals in the conclusion. The formal properties for such
-lowering will be exposed along with practical optimizations which make the algorithm reduce both
+lowering would not introduce unwanted literals in the conclusion. In the talk, the formal conditions for such
+lowering will be exposed along with practical optimizations that allow the algorithm to reduce both
 traditional and horizontal irregularities.
 
 
