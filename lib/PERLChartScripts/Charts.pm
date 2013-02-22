@@ -109,7 +109,7 @@ __END__
 
 =head1 NAME
 
-scripts/Charts.pm - 
+Charts.pm - Producing TiKZ charts
 
 =head1 SYNOPSIS
 
@@ -117,24 +117,12 @@ scripts/Charts.pm -
 
 =head1 DESCRIPTION
 
-
-
-=head1 Functions
-
-=head3
-
-=head1 DIAGNOSTICS
-
-=over
-
-=item 
-
-=back
+This module gives some basic procedure and default values to produce charts in the TiKZ format.
 
 
 =head1 DEPENDENCIES
 
-L<>
+None
 
 =head1 BUGS AND LIMITATIONS
 
@@ -148,7 +136,7 @@ Joseph Boudou, C<< <jogo@matabio.net> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright 2009 Joseph Boudou.
+Copyright 2012 Joseph Boudou.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.

@@ -78,7 +78,9 @@ addcombinedcolumns -
 
 =head1 DESCRIPTION
 
-
+This script simulates the run of a "combined" algorithm. A combined algorithm is one which run two other algorithms in turn
+and output the best compressed proof among the two produced by the algorithms. Such a combined algorithm is simulated by
+summing duration time and copying the other values from the algorithm wich produces the best compressed proof.
 
 =head1 REQUIRED ARGUMENTS
 
@@ -86,30 +88,18 @@ addcombinedcolumns -
 
 =item <csvfile>
 
+The CSV file to read from and write to.
+
 =back
 
 
 =head1 OPTIONS
 
-=over 5
-
-=item 
-
-=back
-
-
-=head1 DIAGNOSTICS
-
-=over
-
-=item 
-
-=back
-
+Unfortunately this script has to be modified in order to be adapted.
 
 =head1 DEPENDENCIES
 
-L<>
+L<Readonly>, L<Getopt::Euclid>, L<Parse::CSV>
 
 =head1 BUGS AND LIMITATIONS
 
@@ -123,9 +113,9 @@ Joseph Boudou, C<< <jogo@matabio.net> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright 2009 Joseph Boudou.
+Copyright 2012 Joseph Boudou.
 
-This module is free software; you can redistribute it and/or
+This script is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
 
 This program is distributed in the hope that it will be useful,
