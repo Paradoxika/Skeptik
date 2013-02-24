@@ -46,8 +46,8 @@ into various other automated deduction tools,
 such as SMT-solvers, interactive proof assistants and automated first-order
 and even higher-order theorem provers.
 %have taken advantage of embedding sat-solvers too.
-In such a scenario, proofs of unsastifiability produced by the sat-solver must be analysed by the frontend tools, and therefore the quality and
-size of proofs has become of critical importance.
+In such a scenario, proofs of unsastifiability produced by the sat-solver must be analysed by the
+frontend tools, and therefore the quality and size of proofs has become of critical importance.
 
 %it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
 %answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability).
@@ -59,26 +59,28 @@ size of proofs has become of critical importance.
 %With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
 %compress such proofs in a post-processing stage.
 Techniques to compress propositional resolution proofs in a post-processing stage have recently been
-proposed.
-\RecyclePivotsIntersection and \LowerUnits \cite{LURPI} are two examples of such proof
-compression algorithms. They both achieve good compression ratios in linear time w.r.t. the number of
-resolution steps. The former reduces irregularity, as defined by Tseitin \cite{Tseitin}. The
-latter extends the concept of irregularity to redundancies across branches (\emph{horizontal irregularity}) and reduces it
- by lowering subproofs of units (i.e. clauses with a single literal).
-Experiments showed \cite{LURPI} that sequentialy composing these two algorithms combines their proof compression power.
+proposed.  \RecyclePivotsIntersection and \LowerUnits \cite{LURPI} are two examples of such proof
+compression algorithms. They both achieve good compression ratios in linear time w.r.t. the number
+of resolution steps. The former reduces irregularity, as defined by Tseitin~\cite{Tseitin}. The
+latter extends the concept of irregularity to redundancies across branches (\emph{horizontal
+irregularity}) and reduces it by lowering subproofs of units (i.e. clauses with a single literal).
+Experiments \cite{LURPI} showed that sequentialy composing these two algorithms combines their proof
+compression power.
 
-In this talk, we will describe a new proof compression algorithm, called \LowerUnivalents~\footnote{A full article describing
-this algorithm is available at \url{https://github.com/Paradoxika/Skeptik/tree/develop/doc/papers/LUniv} and has just been submitted to a conference.}, which extends \LowerUnits. It achieves two goals. Firstly, by lowering
-more subproofs, it is able to compress more than \LowerUnits. Secondly, it makes it easier to implement a non-sequential combination of \LowerUnivalents after
-\RecyclePivotsIntersection, which is both faster and more
+In this talk, we will describe a new proof compression algorithm, called
+\LowerUnivalents~\footnote{A full article describing this algorithm is available at
+\url{http://www.matabio.net/univalent.pdf} and has just been submitted to a conference.}, which
+extends \LowerUnits. It achieves two goals. Firstly, by lowering more subproofs, it is able to
+compress more than \LowerUnits. Secondly, it makes it possible to implement a non-sequential
+combination of \LowerUnivalents after \RecyclePivotsIntersection, which is both faster and more
 compressing than the sequential composition of \LowerUnits after \RecyclePivotsIntersection.
 
 The principle of \LowerUnivalents is to take already lowered subproofs into account in order to
 allow more proofs to be lowered. For instance, if a subproof of $p$ has already been selected for
 lowering, a subproof of $\neg p, q$ may be lowered above the previous subproofs, provided its
-lowering would not introduce unwanted literals in the conclusion. In the talk, the formal conditions for such
-lowering will be exposed along with practical optimizations that allow the algorithm to reduce both
-traditional and horizontal irregularities.
+lowering would not introduce unwanted literals in the conclusion. In the talk, the formal conditions
+for such lowering will be exposed along with practical optimizations that allow the algorithm to
+reduce both traditional and horizontal irregularities.
 
 
 \bibliographystyle{plain}
