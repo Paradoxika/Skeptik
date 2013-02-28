@@ -141,7 +141,7 @@ __END__
 
 =head1 NAME
 
-mkbarcomparison - 
+mkbarcomparison - Draw comparison histogram 
 
 =head1 SYNOPSIS
 
@@ -149,7 +149,10 @@ mkbarcomparison -
 
 =head1 DESCRIPTION
 
-
+Output an histogram in TiKZ. This chart compares two columns of a CSV file.
+For each row, the difference 2*(va-vb)/(va+vb) is computed and stored. Each bar
+on the graph correspond to the proportion of difference in a given interval.
+Nul differences are counted but not displayed.
 
 =head1 REQUIRED ARGUMENTS
 
@@ -159,7 +162,13 @@ mkbarcomparison -
 
 =item -f[irst] <first>
 
+Column's indice for the first value. If this value is greater than the other one,
+the difference will be accounted on a bar on the right of the chart.
+
 =item -s[econd] <second>
+
+Column's indice for the second value. If this value is greater than the other one,
+the difference will be accounted on a bar on the left of the chart.
 
 =back
 
@@ -170,24 +179,17 @@ mkbarcomparison -
 
 =item -p[recision] <precision>
 
+The size of the interval corresponding to the width of each bar. Default to 0.01.
+
 =for Euclid:
   precision.default = 0.01
 
 =back
 
 
-=head1 DIAGNOSTICS
-
-=over
-
-=item 
-
-=back
-
-
 =head1 DEPENDENCIES
 
-L<>
+L<Charts>, L<Getopt::Euclid>, L<Parse::CSV>
 
 =head1 BUGS AND LIMITATIONS
 
@@ -201,9 +203,9 @@ Joseph Boudou, C<< <jogo@matabio.net> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright 2009 Joseph Boudou.
+Copyright 2012 Joseph Boudou.
 
-This module is free software; you can redistribute it and/or
+This script is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
 
 This program is distributed in the hope that it will be useful,
