@@ -1,0 +1,213 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+use Charts qw( :all );
+
+
+
+
+############################################################
+# Data
+############################################################
+
+my %data;
+my $total = 0;
+my $max_y = 0;
+my $max_x = 0;
+my $min_x = 0;
+
+############################################################
+# Arguments
+############################################################
+use Getopt::Euclid qw( :vars<opt_> );
+
+
+############################################################
+# Parsing
+############################################################
+use Parse::CSV;
+use POSIX qw( floor ceil );
+
+my $csv = Parse::CSV->new( file => $opt_csvfile );
+while (my $csv_row = $csv->fetch ) {
+  $total += 1;
+  my $f = $csv_row->[$opt_first];
+  my $s = $csv_row->[$opt_second];
+  next if ($f == $s);
+  my $v = floor(2 * ($f - $s) / ($s + $f) / $opt_precision) * $opt_precision;
+  $data{$v} += 1;
+}
+
+#use Data::Dump qw(dump);
+#dump(\%data);
+
+my $cumul_rm_min = 0;
+my $cumul_rm_max = 0;
+while (1)  {
+  $min_x = 1000;
+  $max_x = -1000;
+
+  for my $k (keys %data) {
+    my $v = $data{$k};
+    $max_y = $v if ($v > $max_y);
+    $min_x = $k if ($k < $min_x);
+    $max_x = $k if ($k > $max_x);
+  };
+
+  last if (($max_x - $min_x) < (17*$opt_precision));
+
+  if (($data{$min_x} + $cumul_rm_min) < ($data{$max_x} + $cumul_rm_max)) {
+    $cumul_rm_min += $data{$min_x};
+    delete $data{$min_x};
+  } else {
+    $cumul_rm_max += $data{$max_x};
+    delete $data{$max_x};
+  }
+}
+
+my $height = 2;
+my $factor = $height / ($max_y + ($total / 50));
+
+
+############################################################
+# Header
+############################################################
+
+$min_x = ($min_x * 0.5 / $opt_precision) - 0.3;
+$max_x = ($max_x * 0.5 / $opt_precision) + 0.3;
+
+print "\\begin{tikzpicture}\n";
+
+    print "\\draw[->] (-0.25,-0.2) -- (-0.25,$height);\n";
+
+    my $step_y;
+    my $step_v;
+    if ($total * $factor < 2 * $height) {
+      $step_y = ($total * $factor / 5) - 0.001;
+      $step_v = 0.2;
+    }
+    else {
+      $step_y = ($total * $factor / 10) - 0.001;
+      $step_v = 0.1;
+    }
+
+    for my $i (1..($height / $step_y)) {
+      my $pos = $i * $step_y;
+      print "\\draw [style=help lines] ($min_x,$pos) -- ($max_x,$pos);\n";
+      print '\node [anchor=east,fill=white] at ('. $min_x .','. $pos . ') {\small ' . ($i * $step_v) . "};\n";
+      print '\draw (-0.3,' . $pos . ') -- (-0.2,' . $pos . ");\n";
+    }
+
+    print "\\draw[->] ($min_x,-0.07) -- ($max_x,-0.07);\n";
+
+    for (my $i = ceil($min_x / 2.5) * 2.5; $i <= (floor($max_x / 2.5) * 2.5); $i += 2.5) {
+      my $pos = $i - 0.25;
+      print '\node [anchor=north] at (' . $pos . ', -0.1) {\small ' . ($i * 2 * $opt_precision) . "};\n";
+      print '\draw (' . $pos . ',-0.17) -- (' . $pos . ",-0.03);\n";
+    }
+
+
+print <<'EOT';
+
+\draw[fill=white] plot[ybar] coordinates {
+EOT
+
+
+############################################################
+# Draw
+############################################################
+
+for my $k (keys %data) {
+  printf "\t(%f, %f)\n", $k * 0.5 / $opt_precision, $data{$k} * $factor;
+}
+
+
+############################################################
+# Footer
+############################################################
+
+print "};\n";
+
+
+print <<'EOT';
+
+\end{tikzpicture}
+EOT
+
+__END__
+
+=head1 NAME
+
+mkbarcomparison - Draw comparison histogram 
+
+=head1 SYNOPSIS
+
+    mkbarcomparison [options] -f[irst] <first> -s[econd] <second> <csvfile>
+
+=head1 DESCRIPTION
+
+Output an histogram in TiKZ. This chart compares two columns of a CSV file.
+For each row, the difference 2*(va-vb)/(va+vb) is computed and stored. Each bar
+on the graph correspond to the proportion of difference in a given interval.
+Nul differences are counted but not displayed.
+
+=head1 REQUIRED ARGUMENTS
+
+=over 5
+
+=item <csvfile>
+
+=item -f[irst] <first>
+
+Column's indice for the first value. If this value is greater than the other one,
+the difference will be accounted on a bar on the right of the chart.
+
+=item -s[econd] <second>
+
+Column's indice for the second value. If this value is greater than the other one,
+the difference will be accounted on a bar on the left of the chart.
+
+=back
+
+
+=head1 OPTIONS
+
+=over 5
+
+=item -p[recision] <precision>
+
+The size of the interval corresponding to the width of each bar. Default to 0.01.
+
+=for Euclid:
+  precision.default = 0.01
+
+=back
+
+
+=head1 DEPENDENCIES
+
+L<Charts>, L<Getopt::Euclid>, L<Parse::CSV>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2012 Joseph Boudou.
+
+This script is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
