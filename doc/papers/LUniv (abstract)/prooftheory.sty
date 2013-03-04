@@ -1,0 +1,43 @@
+% Basic proof operations
+\newcommand{\f}[1]{\langle #1 \rangle}     %  fixing a proof #1
+\newcommand{\dn}[2]{#1 \setminus (#2)}       %  deleting a subproof #2 from a proof #1
+\newcommand{\rn}[3]{#1[#2 \mapsfrom #3] }  %  replacing a subproof #2 by a proof #3 in a proof #1
+
+% Proof transformation algorithms
+\newcommand{\LowerUnits}{\texttt{LowerUnits}\xspace}
+\newcommand{\LowerUnivalents}{\texttt{LowerUnivalents}\xspace}
+\newcommand{\RPI}{\texttt{RPI}\xspace}
+\newcommand{\LUnivRPI}{\texttt{LUnivRPI}\xspace}
+\newcommand{\RecyclePivots}{\texttt{RecyclePivots}\xspace}
+\newcommand{\RecyclePivotsIntersection}{\texttt{RecyclePivotsWithIntersection}\xspace}
+\newcommand{\Split}{\texttt{Split}\xspace}
+\newcommand{\ReduceReconstruct}{\texttt{Reduce{\&}Reconstruct}\xspace}
+
+
+% Propositional Resolution Proofs as Graphs
+\newcommand{\clause}{\Gamma}   % clause of a node
+
+
+% Logical symbols
+\newcommand{\imp}{\rightarrow}
+\newcommand{\biimp}{\leftrightarrow}
+\newcommand{\all}{\forall}
+\newcommand{\ex}{\exists}
+\newcommand{\seq}{\vdash}
+
+
+% Propositional logic
+
+\newcommand{\dual}[1]{\overline{#1}}   %  the dual of literal #1
+
+
+% Names of calculi
+\newcommand{\LK}{\mathbf{LK}}
+\newcommand{\LJ}{\mathbf{LJ}}
+
+% Proof measures
+\newcommand{\prooflength}[1]{\mathit{length}(#1)}
+
+
+% Formula transformations
+\newcommand{\subst}[3]{\ensuremath{#1\{#2\leftarrow #3\}}}
