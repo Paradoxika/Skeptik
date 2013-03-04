@@ -3,7 +3,7 @@
 #$ -V                                 # imports all environment variables
 #$ -M skeptik-dev@googlegroups.com    # email address to be notified
 #$ -m beas                            # notifies of job's beginning, end, abortion and rescheduling
-#$ -l h_rt=36:00:00                   # runs job for a maximum time of hh:mm:ss
+#$ -l h_rt=00:30:00                   # runs job for a maximum time of hh:mm:ss
 
 SLICE=$( printf 'slice.%02d' $SGE_TASK_ID )
 
