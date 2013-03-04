@@ -4,7 +4,7 @@ organization := "at.logic"
 
 version := "1.0"
 
-scalaVersion := "2.10.0"
+scalaVersion := "2.10.1-RC2"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
@@ -12,10 +12,10 @@ scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 
 libraryDependencies ++= Seq(
-  "org.specs2" % "specs2_2.10.0-RC5" % "1.12.3",
+  "org.specs2" % "specs2_2.10.1-RC1" % "1.13",
   "junit" % "junit" % "4.11" % "test",
   "commons-lang" % "commons-lang" % "2.6",
-  "org.scala-lang" % "scala-actors" % "2.10.0"
+  "org.scala-lang" % "scala-actors" % "2.10.1-RC2"
 )
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
