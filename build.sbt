@@ -12,7 +12,7 @@ scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 
 libraryDependencies ++= Seq(
-  "org.specs2" % "_2.10.0-RC5" % "1.12.3",
+  "org.specs2" % "specs2_2.10.0-RC5" % "1.12.3",
   "junit" % "junit" % "4.11" % "test",
   "commons-lang" % "commons-lang" % "2.6",
   "org.scala-lang" % "scala-actors" % "2.10.0"
