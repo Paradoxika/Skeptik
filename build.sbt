@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "1.12.3",
   "junit" % "junit" % "4.11" % "test",
   "commons-lang" % "commons-lang" % "2.6",
-  "org.scala-lang" % "scala-actors" % "2.10.0-RC3"
+  "org.scala-lang" % "scala-actors" % "2.10.0"
 )
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
