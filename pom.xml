@@ -9,8 +9,8 @@
     <version>1.0</version>
     <licenses>
         <license>
-            <name>GNU GPL v3</name>
-            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <name>CC BY-NC-SA</name>
+            <url>http://creativecommons.org/licenses/by-nc-sa/3.0/</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -83,12 +83,12 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.10.0-RC3</version>
+            <version>2.10.1-RC2</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
-            <version>1.12.3</version>
+            <artifactId>specs2_2.10.1-RC1</artifactId>
+            <version>1.13</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -104,7 +104,7 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-actors</artifactId>
-            <version>2.10.0-RC3</version>
+            <version>2.10.1-RC2</version>
         </dependency>
     </dependencies>
 </project>
