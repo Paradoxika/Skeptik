@@ -1,14 +1,14 @@
 package at.logic.skeptik.exporter
 
 import at.logic.skeptik.proof.Proof
-import at.logic.skeptik.proof.sequent.{SequentProofNode => ProofNode}
+import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom}
 import java.io.FileWriter
 
 
 
-object VeriTProofExporter {
-  def writeProofToFile(proof:Proof[ProofNode], filename: String) = {
+object ProofExporterVeriT {
+  def writeProofToFile(proof:Proof[Node], filename: String) = {
     val writer = new FileWriter(filename)
     
     var counter = 0
