@@ -10,12 +10,15 @@ scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
 scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
+//TaskKey[Unit]("compress") := runTask(fullClasspath, "at.logic.skeptik.Main", runner in run)
+
 
 libraryDependencies ++= Seq(
   "org.specs2" % "specs2_2.10.1-RC1" % "1.13",
   "junit" % "junit" % "4.11" % "test",
   "commons-lang" % "commons-lang" % "2.6",
-  "org.scala-lang" % "scala-actors" % "2.10.1-RC2"
+  "org.scala-lang" % "scala-actors" % "2.10.1-RC2",
+  "com.github.scopt" %% "scopt" % "2.1.0"
 )
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
@@ -100,5 +103,9 @@ pomExtra := (
 	</reporting>
 )
 
+
 // OneJar Settings
+
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+
+mainClass in oneJar := Some("at.logic.skeptik.Main")

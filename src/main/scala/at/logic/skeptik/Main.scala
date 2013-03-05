@@ -30,9 +30,6 @@ object Main {
     -experiment    : runs pre-defined experiment
       --NDc          : contextual natural deduction experiment
       --compression  : proof compression experiment
-  
-    -compress      : compresses proof
-      [not implemented yet]
     
   """   
 }

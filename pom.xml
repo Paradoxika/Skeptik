@@ -106,5 +106,10 @@
             <artifactId>scala-actors</artifactId>
             <version>2.10.1-RC2</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_2.10</artifactId>
+            <version>2.1.0</version>
+        </dependency>
     </dependencies>
 </project>
