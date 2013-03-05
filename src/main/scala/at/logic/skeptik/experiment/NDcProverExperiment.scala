@@ -1,31 +1,32 @@
-package at.logic.skeptik.experiment.proving
+package at.logic.skeptik.experiment
+
+import scala.language.implicitConversions
 
 import at.logic.skeptik.algorithm.generator.FormulaGenerator
 import at.logic.skeptik.expression.E
-import at.logic.skeptik.expression.formula.Imp
-import at.logic.skeptik.expression.o
 import at.logic.skeptik.proof.ProofNode
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.natural.Assumption
 import at.logic.skeptik.proof.natural.{ImpElim => ImpE}
 import at.logic.skeptik.proof.natural.ImpElimC
 import at.logic.skeptik.proof.natural.{ImpIntro => ImpI}
-import at.logic.skeptik.proof.natural.{ImpIntroC,ImpIntroCK}
-import at.logic.skeptik.judgment.{Judgment, NamedE, NaturalSequent}
+import at.logic.skeptik.proof.natural.ImpIntroCK
+import at.logic.skeptik.judgment.NaturalSequent
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.prover.SimpleProver
 import collection.mutable.{Map => MMap}
 import at.logic.skeptik.util.time._
-import language.implicitConversions
-
 import java.io.{File,PrintWriter}
-
 import java.util.Calendar
 import java.text.SimpleDateFormat
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
+import at.logic.skeptik.proof.natural.{ImpElim => ImpE}
+import at.logic.skeptik.proof.natural.{ImpIntro => ImpI}
+import scala.collection.mutable.{Map => MMap}
 
-object ProverExperiment {
+object NDcProverExperiment {
 
-  def run(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     
     val ndProver = new SimpleProver(Seq(Assumption,ImpI,ImpE))
     //val ndcProver = new SimpleProver2(Seq(Assumption,ImpIntroC,ImpElimC))

@@ -11,8 +11,8 @@ import at.logic.skeptik.expression.{E,Var,o}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
 object ProofParserVeriT extends VeriTParsers {
-  def parse(fileReader: FileReader) : Proof[Node] = {
-    parse(proof, fileReader) match {
+  def read(filename: String) : Proof[Node] = {
+    parse(proof, new FileReader(filename)) match {
       case Success(p,_) => p // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception("Failure: " + message)
       case Error(message,_) => throw new Exception("Error: " + message)
@@ -39,28 +39,28 @@ extends JavaTokenParsers with RegexParsers {
   }
 
   def inference: Parser[Node] = (resolution | input)
-  def resolution: Parser[Node] = "resolution" ~> clauses <~ conclusion ^^ {(
-    list => list.tail.foldLeft(list.head) { ((left, right) => CutIC(left, right)) })
+  def resolution: Parser[Node] = "resolution" ~> clauses <~ conclusion ^^ {
+    list => list.tail.foldLeft(list.head) { ((left, right) => CutIC(left, right)) }
   }
-  def input: Parser[Node] = name ~> opt(clauses) ~> conclusion ^^ {(
-    list => new Axiom(list))
+  def input: Parser[Node] = name ~> opt(clauses) ~> conclusion ^^ {
+    list => new Axiom(list)
   }
 
-  def clauses: Parser[List[Node]] = ":clauses (" ~> rep(name) <~ ")" ^^ {(
-    list => list.map(proofMap))
+  def clauses: Parser[List[Node]] = ":clauses (" ~> rep(name) <~ ")" ^^ {
+    list => list.map(proofMap)
   }
   def conclusion: Parser[List[E]] = ":conclusion (" ~> rep(expression) <~ ")"
 
   def expression: Parser[E] = (assignmentE | simpleE)
-  def assignmentE: Parser[E] = name<~ ":" <~ simpleE ^^ {(
-    n => exprMap.getOrElseUpdate(n, Var(n, o)))
+  def assignmentE: Parser[E] = name<~ ":" <~ simpleE ^^ {
+    n => exprMap.getOrElseUpdate(n, Var(n, o))
   }
   def simpleE: Parser[E] = (posE | negE | otherE)
   def posE: Parser[E] = name ^^ {
     n => exprMap.getOrElseUpdate(n, Var(n,o))
   }
-  def negE: Parser[E] = "(not" ~> expression <~ ")" ^^ {(
-    e => Neg(e))
+  def negE: Parser[E] = "(not" ~> expression <~ ")" ^^ {
+    e => Neg(e)
   }
   def otherE: Parser[E] = "(" ~> otherOther ~ rep(otherOther) <~ ")" ^^ {
     case ~(op, l) => Var(l.foldLeft(op) { ((left,right) => left + right) }, o)

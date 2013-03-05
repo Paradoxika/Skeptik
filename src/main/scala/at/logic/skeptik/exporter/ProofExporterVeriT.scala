@@ -5,10 +5,15 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom}
 import java.io.FileWriter
 
-
+// ToDo: This is almost VeriT's proof format. 
+// Conclusion from resolutions is omitted.
+// Clauses (Sequents) are just output with their toString method.
+// Premises are not given as a left-associative list, but as parenthesized tree. 
+// It is not worth making it perfect now, 
+// because VeriT's format will most likely change significantly in the future.
 
 object ProofExporterVeriT {
-  def writeProofToFile(proof:Proof[Node], filename: String) = {
+  def write(proof:Proof[Node], filename: String) = {
     val writer = new FileWriter(filename)
     
     var counter = 0

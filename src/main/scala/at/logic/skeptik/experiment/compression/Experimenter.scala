@@ -104,7 +104,7 @@ object Experimenter {
   addTimeOutAlgorithm("DAG",  DAGification)
 
   def getProofNodeFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
-    case Some(".smt2")  => Result ( { ProofParserVeriT.parse(new FileReader(filename)) } )
+    case Some(".smt2")  => Result ( { ProofParserVeriT.read(filename) } )
     case _ => throw new Exception("Unknown format for " + filename)
   }
 
@@ -174,7 +174,7 @@ object Experimenter {
     println("------------------------------------------------------------------------")
   }
 
-  def run(args: Array[String]): Unit =
+  def main(args: Array[String]): Unit =
   {
     val mapOptions = Map(
       "a" -> "algos",
