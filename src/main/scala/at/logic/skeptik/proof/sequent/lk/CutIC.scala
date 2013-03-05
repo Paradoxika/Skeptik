@@ -53,7 +53,7 @@ object CutIC {
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
       case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
       case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
-      case _ => throw new AuxiliaryFormulaNotFoundException
+      case _ => throw new Exception("Auxiliary formulas not found.")
     } 
   
   def apply(premise1:SequentProofNode, premise2:SequentProofNode) = {

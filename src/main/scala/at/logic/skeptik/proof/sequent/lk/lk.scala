@@ -12,7 +12,6 @@ import at.logic.skeptik.prover.InferenceRule
 class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProofNode
 with Nullary with NoImplicitContraction {
   override def mainFormulas = Sequent(mainLeft)(mainRight)
-  override def activeAncestry(f: E, premise: SequentProofNode) = throw new Exception("Active formulas in axioms have no ancestors.")
 }
 
 
