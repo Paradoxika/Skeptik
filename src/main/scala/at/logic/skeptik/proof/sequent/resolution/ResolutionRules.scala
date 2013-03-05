@@ -26,11 +26,6 @@ with NoMainFormula {
                     rightPremise.conclusion.suc.map(e=>descendant(e,rightPremise,Sequent()(e)))
     new Sequent(antecedent, succedent)
   }
-  override def contextAncestry(f:E,premise:SequentProofNode) = {
-    require((conclusion.ant contains f) || (conclusion.suc contains f))
-    require(premises contains premise)
-    ancestryMap.getOrElse((f,premise),Sequent()())
-  }
 }
 
 
