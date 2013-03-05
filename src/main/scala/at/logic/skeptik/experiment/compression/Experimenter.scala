@@ -1,12 +1,13 @@
 package at.logic.skeptik.experiment.compression
 
+import java.io.FileReader
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import collection.immutable.{HashSet => ISet}
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.compressor.combinedRPILU._
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
-import at.logic.skeptik.parser._
+import at.logic.skeptik.parser.ProofParserVeriT
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
 
@@ -103,8 +104,7 @@ object Experimenter {
   addTimeOutAlgorithm("DAG",  DAGification)
 
   def getProofNodeFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
-    case Some(".proof") => Result ( { (new SimplePropositionalResolutionProofNodeFormatParser(filename)).getProofNode } )
-    case Some(".smt2")  => Result ( { (new SMT2Parser(filename)).getProofNode } )
+    case Some(".smt2")  => Result ( { ProofParserVeriT.parse(new FileReader(filename)) } )
     case _ => throw new Exception("Unknown format for " + filename)
   }
 
