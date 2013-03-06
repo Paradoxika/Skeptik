@@ -71,13 +71,13 @@ object Experimenter {
   def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProofNode]) =
     algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-11.11s",name), algo)
 
-  addTimeOutAlgorithm("LU", NewUnitLowering)
+  addTimeOutAlgorithm("LU", LowerUnits)
 
   addTimeOutAlgorithm("RP",  RecyclePivots)
   addTimeOutAlgorithm("RPI", IdempotentRecyclePivotsWithIntersection)
 
-  addTimeOutAlgorithm("RPI.LU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, NewUnitLowering))
-  addTimeOutAlgorithm("LU.RPI", IdempotentAlgorithm(NewUnitLowering, IdempotentRecyclePivotsWithIntersection))
+  addTimeOutAlgorithm("RPI.LU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, LowerUnits))
+  addTimeOutAlgorithm("LU.RPI", IdempotentAlgorithm(LowerUnits, IdempotentRecyclePivotsWithIntersection))
 
   addTimeOutAlgorithm("IU Reg", IdempotentIrregularUnitsRegularize)
   addTimeOutAlgorithm("IU Low", IdempotentIrregularUnitsLower)

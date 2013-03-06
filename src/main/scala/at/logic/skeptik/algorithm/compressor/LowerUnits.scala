@@ -6,7 +6,7 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{Queue, HashMap => MMap}
 import at.logic.skeptik.proof.Proof
 
-object NewUnitLowering
+object LowerUnits
 extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentProofNode] {
 
   private def collectUnits(proof: Proof[SequentProofNode]) = {
