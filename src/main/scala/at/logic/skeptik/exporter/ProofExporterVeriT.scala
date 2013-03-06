@@ -2,7 +2,7 @@ package at.logic.skeptik.exporter
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom}
+import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom, UncheckedInference}
 import java.io.FileWriter
 
 // ToDo: This is almost VeriT's proof format. 
@@ -40,6 +40,13 @@ object ProofExporterVeriT {
               writer.write(line, 0, line.length)
               name
             }
+          }
+          case UncheckedInference(infName, premises, conclusion) => {
+            val name = ".c" + counter
+            counter += 1
+            val line = "(set " + name + " (" + infName + " :clauses " + premiseResults.mkString(" ") + " :conclusion " + conclusion + "))\n"
+            writer.write(line, 0, line.length)
+            name
           }
         }  
       } 
