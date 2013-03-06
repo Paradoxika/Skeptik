@@ -5,7 +5,7 @@ import collection.mutable.{HashMap => MMap}
 import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom}
+import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom, UncheckedInference}
 import at.logic.skeptik.expression.formula.{Neg}
 import at.logic.skeptik.expression.{E,Var,o}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -29,12 +29,17 @@ extends JavaTokenParsers with RegexParsers {
     case x => throw new Exception("Wrong line " + x)
   }
 
-  def inference: Parser[Node] = (resolution | input)
+  def inference: Parser[Node] = (resolution | axiom | unchecked)
   def resolution: Parser[Node] = "resolution" ~> clauses <~ conclusion ^^ {
-    list => list.tail.foldLeft(list.head) { ((left, right) => CutIC(left, right)) }
+    list => (list.head /: list.tail) { ((left, right) => CutIC(left, right)) }
   }
-  def input: Parser[Node] = name ~> opt(clauses) ~> conclusion ^^ {
+  def axiom: Parser[Node] = "input" ~> conclusion ^^ {
     list => new Axiom(list)
+  }
+  def unchecked: Parser[Node] = name ~ opt(clauses) ~ conclusion ^^ {
+    //case ~(~(name, None), list) => new UncheckedInference(name,Seq(),list)
+    //case ~(~(name, Some(premises)), list) => new UncheckedInference(name,premises,list)
+    case ~(~(_,_), list) => new Axiom(list)
   }
 
   def clauses: Parser[List[Node]] = ":clauses (" ~> rep(name) <~ ")" ^^ {
