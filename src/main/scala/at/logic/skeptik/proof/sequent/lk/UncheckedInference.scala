@@ -17,7 +17,9 @@ extends SequentProofNode {
 }
 
 object UncheckedInference {
-  def apply(conclusion: Sequent) = new Axiom(conclusion)
+  def apply(name: String, 
+            premises: Seq[SequentProofNode], 
+            conclusion: Sequent) = new UncheckedInference(name, premises, conclusion)
   def unapply(p: SequentProofNode) = p match {
     case p: UncheckedInference => Some(p.name, p.premises, p.conclusion)
     case _ => None
