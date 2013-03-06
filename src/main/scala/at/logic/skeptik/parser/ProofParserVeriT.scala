@@ -30,19 +30,19 @@ extends JavaTokenParsers with RegexParsers {
   }
 
   def inference: Parser[Node] = (resolution | axiom | unchecked)
-  def resolution: Parser[Node] = "resolution" ~> clauses <~ conclusion ^^ {
+  def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ {
     list => (list.head /: list.tail) { ((left, right) => CutIC(left, right)) }
   }
   def axiom: Parser[Node] = "input" ~> conclusion ^^ {
     list => new Axiom(list)
   }
-  def unchecked: Parser[Node] = name ~ opt(clauses) ~ conclusion ^^ {
+  def unchecked: Parser[Node] = name ~ opt(premises) ~ conclusion ^^ {
     //case ~(~(name, None), list) => new UncheckedInference(name,Seq(),list)
     //case ~(~(name, Some(premises)), list) => new UncheckedInference(name,premises,list)
     case ~(~(_,_), list) => new Axiom(list)
   }
 
-  def clauses: Parser[List[Node]] = ":clauses (" ~> rep(name) <~ ")" ^^ {
+  def premises: Parser[List[Node]] = ":clauses (" ~> rep(name) <~ ")" ^^ {
     list => list.map(proofMap)
   }
   def conclusion: Parser[List[E]] = ":conclusion (" ~> rep(expression) <~ ")"

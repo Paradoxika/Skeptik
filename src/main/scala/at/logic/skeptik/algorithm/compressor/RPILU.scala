@@ -120,8 +120,8 @@ extends CompressorAlgorithm[SequentProofNode] {
 abstract class AbstractRPIAlgorithm
 extends AbstractRPILUAlgorithm {
 
-  protected def safeLiteralsFromChild (childWithSafeLiterals: (SequentProofNode, IClause),
-                                       parent: SequentProofNode, edgesToDelete: EdgesToDelete) =
+  protected def safeLiteralsFromChild(childWithSafeLiterals: (SequentProofNode, IClause),
+                                      parent: SequentProofNode, edgesToDelete: EdgesToDelete) =
     childWithSafeLiterals match {
       case (child @ CutIC(left,right,_,auxR), safeLiterals) if left  == parent => 
         if (edgesToDelete.isMarked(child,right)) safeLiterals else (safeLiterals + auxR)
@@ -164,7 +164,6 @@ extends AbstractRPILUAlgorithm {
     val fixMap = MMap[SequentProofNode,SequentProofNode]()
     def visit (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
       val result = fixProofNodes(edgesToDelete)(p, fixedPremises)
-//      if (proofsToMap contains p) { fixMap.update(p, result) ; println(p.conclusion + " => " + result.conclusion) }
       if (proofsToMap contains p) fixMap.update(p, result)
       result
     }
