@@ -10,17 +10,6 @@ import at.logic.skeptik.expression.formula.{Neg}
 import at.logic.skeptik.expression.{E,Var,o}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
-
-//object ProofParserVeriT extends VeriTParsers {
-//  def read(filename: String) : Proof[Node] = {
-//    parse(proof, new FileReader(filename)) match {
-//      case Success(p,_) => p // returns proof whose root is in the last line of the proof file
-//      case Failure(message,_) => throw new Exception("Failure: " + message)
-//      case Error(message,_) => throw new Exception("Error: " + message)
-//    }
-//  }
-//}
-
 object ProofParserVeriT extends ProofParser[Node] with VeriTParsers
 
 trait VeriTParsers
