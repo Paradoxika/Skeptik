@@ -18,15 +18,14 @@ extends JavaTokenParsers with RegexParsers {
   private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[String,E]
 
-  def proof: Parser[Proof[Node]] = nodes ^^ { list => 
+  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
     val p = Proof(list.last)
     proofMap = new MMap[String,Node]
     exprMap = new MMap[String,E]
     p
   }
-  def nodes: Parser[List[Node]] = rep(line)
   def line: Parser[Node] = "(set"  ~> name ~ "(" ~ inference <~ "))" ^^ {
-    case ~(~(n, _), p) => proofMap+= ((n )-> p); p
+    case ~(~(n, _), p) => proofMap += (n -> p); p
     case x => throw new Exception("Wrong line " + x)
   }
 
