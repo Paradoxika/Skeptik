@@ -37,9 +37,9 @@ extends JavaTokenParsers with RegexParsers {
     list => new Axiom(list)
   }
   def unchecked: Parser[Node] = name ~ opt(premises) ~ conclusion ^^ {
-    //case ~(~(name, None), list) => new UncheckedInference(name,Seq(),list)
-    //case ~(~(name, Some(premises)), list) => new UncheckedInference(name,premises,list)
-    case ~(~(_,_), list) => new Axiom(list)
+    case ~(~(name, None), list) => new UncheckedInference(name,Seq(),list)
+    case ~(~(name, Some(premises)), list) => new UncheckedInference(name,premises,list)
+    // Unchecked Inf case ~(~(_,_), list) => new Axiom(list)
   }
 
   def premises: Parser[List[Node]] = ":clauses (" ~> rep(name) <~ ")" ^^ {

@@ -108,11 +108,14 @@ extends CompressorAlgorithm[SequentProofNode] {
       case CutIC(left,right,_,_) if edgesToDelete.isMarked(p,right) =>
         fixedLeft
 
-      // If premises haven't been changed, we keep the proof as is (memory optimisation)
+      // If premises haven't been changed, we keep the proof as is (memory optimization)
       case CutIC(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
 
       // Main case (rebuild a resolution)
       case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
+      
+      // When the inference is not CutIC, nothing is done 
+      case _ => p
     }
   }
 }
@@ -127,7 +130,8 @@ extends AbstractRPILUAlgorithm {
         if (edgesToDelete.isMarked(child,right)) safeLiterals else (safeLiterals + auxR)
       case (child @ CutIC(left,right,auxL,_), safeLiterals) if right == parent =>
         if (edgesToDelete.isMarked(child,left))  safeLiterals else (auxL +: safeLiterals)
-      case _ => throw new Exception("Unknown or impossible inference rule")
+      case (_,safeLiterals) => safeLiterals
+      // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
     }
 
   protected def computeSafeLiterals(proof: SequentProofNode,
