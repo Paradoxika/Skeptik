@@ -85,7 +85,7 @@ extends AbstractSplit {
         case CutIC(_,_,aux,_) if aux == selectedVariable => (fixedLeftPos, fixedRightNeg)
 
         case CutIC(left,right,aux,_) if (fixedLeftPos eq fixedLeftNeg) && (fixedRightPos eq fixedRightNeg) =>
-          // I think this case is redondant with the following one and then useless :
+          // I think this case is redundant with the following one and then useless :
           // Neg and Pos being equals implies they're equals to node's premises.
           // Keep the println until it shows something.
           val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node
@@ -95,6 +95,8 @@ extends AbstractSplit {
         case CutIC(left,right,aux,_) =>
           ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else CutIC(fixedLeftPos, fixedRightPos, _ == aux, true),
             if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else CutIC(fixedLeftNeg, fixedRightNeg, _ == aux, true) )
+        
+        case _ => (node, node)
       }
     }
     val (pos,neg) = proof.foldDown(visit)
@@ -103,7 +105,8 @@ extends AbstractSplit {
 }
 
 abstract class Split
-extends CottonSplit with RandomCompressionRepeatableAlgorithm[SequentProofNode] {
+extends CottonSplit 
+with RandomCompressionRepeatableAlgorithm[SequentProofNode] {
   def apply(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
     val selectedVariable = chooseAVariable(literalAdditivity, totalAdditivity)
