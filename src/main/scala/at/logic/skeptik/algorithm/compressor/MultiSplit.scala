@@ -129,6 +129,7 @@ extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProofNode
       node match {
         case Axiom(_) => Splitter(node, variableList)
         case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
+        case _ => Splitter(node, variableList)
       }
     val result = proof.foldDown(visit)
     result.merge(variableList)

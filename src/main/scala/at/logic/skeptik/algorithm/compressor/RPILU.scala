@@ -12,36 +12,41 @@ import collection.Map
 abstract class AbstractRPILUAlgorithm
 extends ProofCompressor[SequentProofNode] {
 
-  protected sealed abstract  class DeletedSide
-  protected object NoDS    extends DeletedSide
-  protected object LeftDS  extends DeletedSide
-  protected object RightDS extends DeletedSide
-  protected object BothDS  extends DeletedSide
+
 
   class EdgesToDelete {
+    
+        protected sealed abstract  class DeletedSide
+    protected case object NoDS    extends DeletedSide
+    protected case object LeftDS  extends DeletedSide
+    protected case object RightDS extends DeletedSide
+    protected case object BothDS  extends DeletedSide
 
     val edges = MMap[SequentProofNode,(DeletedSide,Boolean)]()
 
-    private def otherSide(side: DeletedSide) =
-      side match {
-        case LeftDS => RightDS
-        case RightDS => LeftDS
-        case _ => NoDS
-      }
+    private def otherSide(side: DeletedSide) = side match {
+      case LeftDS => RightDS
+      case RightDS => LeftDS
+      case _ => NoDS
+    }
 
-    def markEdge(node: SequentProofNode, premiseSide: DeletedSide) =
+    def markEdge(node: SequentProofNode, premiseSide: DeletedSide) = {
       edges(node) = edges.get(node) match {
         case None => (premiseSide, false)
         case Some((BothDS,_)) => (BothDS, true)
         case Some((side,_)) if side == otherSide(premiseSide) => (BothDS, true)
         case Some((_,del)) => (premiseSide, del)
       }
+    }
 
     def markEdge(child: SequentProofNode, premise: SequentProofNode):Unit =
       markEdge(child, sideOf(premise, child))
 
-    def markBothEdges(node: SequentProofNode) =
-      edges(node) = (BothDS, true)
+    def markBothEdges(node: SequentProofNode) = { edges(node) = (BothDS, true) }
+    
+    def markLeftEdge(node: SequentProofNode) = markEdge(node, LeftDS)
+    
+    def markRightEdge(node: SequentProofNode) = markEdge(node, RightDS)
     
     def deleteNode(node: SequentProofNode) =
       edges(node) = (edges.getOrElse(node,(NoDS,true))._1, true)
@@ -55,14 +60,16 @@ extends ProofCompressor[SequentProofNode] {
 
     def isEmpty = edges.isEmpty
 
-    def isMarked(node: SequentProofNode, premise: SequentProofNode):Boolean =
+    def isMarked(node: SequentProofNode, premise: SequentProofNode):Boolean = {
       (edges.get(node) match {
         case None => false
         case Some((BothDS,_)) => true
+        case Some((NoDS,true)) => false
         case Some((side,_)) => side == sideOf(premise, node)
       }) || nodeIsMarked(premise)
+    }
 
-    def nodeIsMarked(node: SequentProofNode):Boolean =
+    def nodeIsMarked(node: SequentProofNode):Boolean = {
       // may be optimized (edgesToDelete contains node is checked 3 times)
       node match {
         case _ if ((edges contains node) && edges(node)._2) => true
@@ -72,15 +79,18 @@ extends ProofCompressor[SequentProofNode] {
           true
         case _ => false
       }
+    }
+    
+    protected def sideOf(parent: SequentProofNode, child: SequentProofNode) = child match {
+      case CutIC(left, right, _,_) => if (parent == left) LeftDS
+                                      else if (parent == right) RightDS
+                                      else throw new Exception("Unable to find parent in child")
+      case _ => throw new Exception("This function should never be called with child not being a CutIC")
+    }
+
   }
 
   // Utility functions
-
-  protected def sideOf(parent: SequentProofNode, child: SequentProofNode) = child match {
-    case CutIC(left, right, _,_) if parent == left  => LeftDS
-    case CutIC(left, right, _,_) if parent == right => RightDS
-    case _ => throw new Exception("Unable to find parent in child")
-  }
 
   protected def isUnit(proof: SequentProofNode, nodeCollection: Proof[SequentProofNode]) =
     (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
@@ -149,8 +159,8 @@ extends AbstractRPIAlgorithm {
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
-        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markEdge(p, RightDS)
-        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markEdge(p, LeftDS)
+        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markRightEdge(p)
+        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
         case _ =>
       }
       (p, safeLiterals)

@@ -33,11 +33,15 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-      def regularize(position: DeletedSide) = 
-        if (isUnitToLower(p)) lower() else {
-          edgesToDelete.markEdge(p, position)
+      def regularize(markEdge: => Unit) = {
+        if (isUnitToLower(p)) lower() 
+        else {
+          markEdge
           (p, safeLiterals)
         }
+      }
+      def regularizeLeft() = regularize(edgesToDelete.markLeftEdge(p))
+      def regularizeRight() = regularize(edgesToDelete.markRightEdge(p))
       def lower() = {
         units.enqueue(p)
         edgesToDelete.deleteNode(p)
@@ -47,8 +51,8 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
           (p, new IClause(Set[E](), Set(p.conclusion.suc(0))))
       }
       p match {
-        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => regularize(LeftDS)
-        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => regularize(RightDS)
+        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => regularizeLeft()
+        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => regularizeRight()
         case p => if (isTrueUnit(p)) lower() else (p, safeLiterals)
       }
     }
