@@ -68,7 +68,7 @@ object Experimenter {
 
   val algorithms = MMap[String, WrappedAlgorithm]()
 
-  def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProofNode]) =
+  def addTimeOutAlgorithm(name: String, algo: ProofCompressor[SequentProofNode]) =
     algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-11.11s",name), algo)
 
   addTimeOutAlgorithm("LU", LowerUnits)

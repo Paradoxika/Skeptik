@@ -7,7 +7,7 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.{HashMap => MMap}
 
 object DAGify
-extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentProofNode] {
+extends ProofCompressor[SequentProofNode] with IdempotentAlgorithm[SequentProofNode] {
   def apply(proof: Proof[SequentProofNode]) = {
     val nodeMap = MMap[Sequent,SequentProofNode]()
 

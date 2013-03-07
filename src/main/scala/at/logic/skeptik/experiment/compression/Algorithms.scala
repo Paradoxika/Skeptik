@@ -52,7 +52,7 @@ object Result {
 
 abstract class WrappedAlgorithm (val name: String)
 extends Function1[Result,Result] {
-  val algo: CompressorAlgorithm[SequentProofNode]
+  val algo: ProofCompressor[SequentProofNode]
 
   protected abstract class InnerGuard
   extends Guard[SequentProofNode] {
@@ -74,7 +74,7 @@ extends Function1[Result,Result] {
 
 }   
 
-class TimeOutAlgorithm (name: String, val algo: CompressorAlgorithm[SequentProofNode])
+class TimeOutAlgorithm (name: String, val algo: ProofCompressor[SequentProofNode])
 extends WrappedAlgorithm(name) {
   def apply(result: Result) = {
     val guard = new InnerGuard {

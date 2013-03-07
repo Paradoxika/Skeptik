@@ -11,7 +11,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractReduceAndReconstruct
-extends CompressorAlgorithm[SequentProofNode] with RepeatableAlgorithm[SequentProofNode] {
+extends ProofCompressor[SequentProofNode] with RepeatableAlgorithm[SequentProofNode] {
 
   protected def reduce(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
       (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode):SequentProofNode =

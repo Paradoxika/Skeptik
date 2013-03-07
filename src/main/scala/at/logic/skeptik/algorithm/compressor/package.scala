@@ -17,12 +17,12 @@ package object compressor {
    * some implicit conversion are provided.
    */
 
-  /* AbstratcCompressorAlgorithm to (Proof[P] => Proof[P]) */
-  implicit def compressorAlgorithmToFunctionProof[P <: ProofNode[_,P]](a: CompressorAlgorithm[P]) =
+  /* AbstratcProofCompressor to (Proof[P] => Proof[P]) */
+  implicit def compressorAlgorithmToFunctionProof[P <: ProofNode[_,P]](a: ProofCompressor[P]) =
     { (p: Proof[P]) => a(p) }
 
-  /* AbstratcCompressorAlgorithm to ((Proof[P], Guard[P]) => Proof[P]) */
-  implicit def compressorAlgorithmToFunctionProofWithGuard[P <: ProofNode[_,P]](a: CompressorAlgorithm[P]) =
+  /* AbstratcProofCompressor to ((Proof[P], Guard[P]) => Proof[P]) */
+  implicit def compressorAlgorithmToFunctionProofWithGuard[P <: ProofNode[_,P]](a: ProofCompressor[P]) =
     { (p: Proof[P], g: Guard[P]) => a(p,g) }
 
 }
