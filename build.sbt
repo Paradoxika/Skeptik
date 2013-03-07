@@ -10,9 +10,6 @@ scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
 scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
-//TaskKey[Unit]("compress") := runTask(fullClasspath, "at.logic.skeptik.Main", runner in run)
-
-
 libraryDependencies ++= Seq(
   "org.specs2" % "specs2_2.10.1-RC1" % "1.13",
   "junit" % "junit" % "4.11" % "test",
@@ -102,6 +99,14 @@ pomExtra := (
 		</plugins>
 	</reporting>
 )
+
+
+// Custom RunTasks
+
+fullRunInputTask(InputKey[Unit]("compress"), Runtime, "at.logic.skeptik.ProofCompressionCLI")
+
+fullRunInputTask(InputKey[Unit]("compress-test"), Runtime, "at.logic.skeptik.ProofCompressionCLI", "-a", "RPI", "examples/proofs/VeriT/eq_diamond4.smt2" )
+
 
 
 // OneJar Settings
