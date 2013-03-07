@@ -50,7 +50,7 @@ extends CompressorAlgorithm[P] {
 
 }
 
-/* Algorithms which does compress the proof during a finite number of iterations
+/* Algorithms that compress the proof during a finite number of iterations
  * but become idempotent thereafter.
  */
 trait RepeatableWhileCompressingAlgorithm [P <: ProofNode[_,P]]

@@ -11,7 +11,7 @@ object Algorithms {
     "LUniv" -> LowerUnivalents,
     "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI[3]LUniv" -> IdempotentLowerUnivalentsBeforeRecyclePivots,
-    "R&Re" -> ReduceAndReconstruct,
+    "R&R" -> ReduceAndReconstruct,
     "Split" -> Split
   )
 }
