@@ -12,6 +12,7 @@ object Algorithms {
     "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI[3]LUniv" -> IdempotentLowerUnivalentsBeforeRecyclePivots,
     "R&R" -> ReduceAndReconstruct,
-    "Split" -> Split
+    "Split" -> Split,
+    "DAGify" -> DAGify
   )
 }

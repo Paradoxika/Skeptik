@@ -101,7 +101,7 @@ object Experimenter {
 
   for (i <- 1 to 8) addTimeOutAlgorithm("MSplit" + i, new MultiSplit(i) with RandomChoice)
 
-  addTimeOutAlgorithm("DAG",  DAGification)
+  addTimeOutAlgorithm("DAG",  DAGify)
 
   def getProofNodeFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
     case Some(".smt2")  => Result ( { ProofParserVeriT.read(filename) } )
