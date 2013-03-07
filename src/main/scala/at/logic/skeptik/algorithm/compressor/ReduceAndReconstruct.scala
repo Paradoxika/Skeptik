@@ -73,21 +73,23 @@ extends ProofCompressor[SequentProofNode] with RepeatableAlgorithm[SequentProofN
     case _ => node
   }
 
-  protected def reconstruct(node: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode) = node match {
-    case Axiom(conclusion) => Axiom(conclusion)
-    case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
-  }
+//  protected def reconstruct(node: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode) = node match {
+//    case Axiom(conclusion) => Axiom(conclusion)
+//    case CutIC(left,right,pivot,_) => 
+//  }
 
   protected def reduceAndReconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode) = {
     def hasOnlyOneChild(p: SequentProofNode) = proof.childrenOf(p) match {
-        case _::Nil => true
-        case _ => false
+      case _::Nil => true
+      case _ => false
     }
     { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
-      val fixedNode = fixedPremises match {
-        case Nil => node
-        case left::right::Nil => reconstruct(node, left, right)
-        case _ => throw new Exception("Wrong number of premises")
+      val fixedNode = (node, fixedPremises) match {
+        case (CutIC(_,_,pivot,_), left::right::Nil) => CutIC(left, right, _ == pivot, true)
+        case _ => node
+        //case premise::Nil => node // does nothing in the case of unary UncheckedInferences
+        
+        //case _ => throw new Exception("Wrong number of premises")
       }
       node match {
         case CutIC(left, right, _, _) => reduce(fixedNode, hasOnlyOneChild(left), hasOnlyOneChild(right))(fallback)
