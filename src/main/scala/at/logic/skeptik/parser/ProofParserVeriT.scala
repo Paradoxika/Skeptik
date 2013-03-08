@@ -75,14 +75,14 @@ extends JavaTokenParsers with RegexParsers {
   
   def namedExpr: Parser[E] = exprName ^^ { exprMap(_) }
   
-  def expr: Parser[E] = (atom | app)
+  def expr: Parser[E] = (variable | app)
 
   // ToDo: this parser is not distinguishing formulas and terms.
-  // Terms are wrongly given type o.
+  // Terms are (wrongly) given type o.
   // As long as theory inferences are parsed as UncheckedInferences,
   // this will not be a problem.
   
-  def atom: Parser[E] = name ^^ { Var(_,o) }
+  def variable: Parser[E] = name ^^ { Var(_,o) }
  
   private val predefinedBigSymbols = Map(
     "and" -> bigAndC ,
@@ -96,8 +96,6 @@ extends JavaTokenParsers with RegexParsers {
   
   def app: Parser[E] = "(" ~> name ~ rep(expression) <~ ")" ^^ {
     case ~(functionSymbol, args) => {
-//      val function = predefinedSymbols.getOrElse(functionSymbol, 
-//                     Var(functionSymbol, (args :\ (o: T)) {(a, t) => (o -> t)}))
       val function = predefinedBigSymbols.get(functionSymbol) match {
         case None => predefinedSymbols.get(functionSymbol) match {
           case None => Var(functionSymbol, (args :\ (o: T)) {(a, t) => (o -> t)})
@@ -105,23 +103,9 @@ extends JavaTokenParsers with RegexParsers {
         }
         case Some(c) => c(args.length)
       } 
-                     
-      println(function)
-      println(function.t)
-      for (a <- args) println("   " + a)
-      println()
       ((function: E) /: args)((e,a) => App(e,a))
     }
   } 
-  
-//  def neg: Parser[E] = "(not" ~> expression <~ ")" ^^ {
-//    e => Neg(e)
-//  }
-//  def and: Parser[E] = "(and" ~> rep(expression) <~ ")" ^^ {
-//    conjuncts => Var(l.foldLeft(op) { ((left,right) => left + right) }, o)
-//  }
-//
-//  def otherOther: Parser[String] = ( expression ^^ (_.toString) | name )
   
   def name: Parser[String] = """[^ ():]+""".r
 }

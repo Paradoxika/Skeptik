@@ -8,7 +8,7 @@ package object formula {
   def booleanFunctionType(arity: Int): T = if (arity == 0) o 
                                            else (o -> booleanFunctionType(arity - 1)) 
   
-  class BigConnective(symbol: String) {def apply(arity: Int) = new Var(symbol, booleanFunctionType(arity))}                                           
+  class BigConnective(symbol: String) {def apply(arity: Int) = new Var(symbol, booleanFunctionType(arity))}                                         
                                            
   val andS = unicodeOrElse("\u2227","&") // "∧"
   val andC = new Var(andS, o -> (o -> o)) with Infix
