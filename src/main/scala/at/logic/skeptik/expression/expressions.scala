@@ -53,4 +53,21 @@ case class App(val function: E, val argument: E) extends E {
   }
 }
 
+object AppRec {
+  def apply(p: E, args: List[E]) = (p /: args)((p,a) => App(p,a))
+  def unapply(e:E) = e match {
+    case e: Var => Some((e,Nil))
+    case e: App => Some(unapplyRec(e))
+    case _ => None
+  }
+  private def unapplyRec(e: App): (E,List[E]) = e.function match {
+    case a : App => {
+        val (function, firstArgs) = unapplyRec(a)
+        return (function, firstArgs ::: (e.argument::Nil))
+    }
+    case _ => return (e.function, e.argument::Nil) 
+  } 
+}
+
+trait MaxArity extends Var
 trait Infix extends Var

@@ -81,6 +81,7 @@ extends JavaTokenParsers with RegexParsers {
   // Terms are (wrongly) given type o.
   // As long as theory inferences are parsed as UncheckedInferences,
   // this will not be a problem.
+  // Let expressions are not supported yet.
   
   def variable: Parser[E] = name ^^ { Var(_,o) }
  
