@@ -92,7 +92,8 @@ extends JavaTokenParsers with RegexParsers {
     
   private val predefinedSymbols = Map(
     "imp" -> impC ,
-    "not" -> negC
+    "not" -> negC ,
+    "=" -> eqC(o)
   ) 
   
   def app: Parser[E] = "(" ~> name ~ rep(expression) <~ ")" ^^ {

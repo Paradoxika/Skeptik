@@ -8,7 +8,10 @@ package object formula {
   def booleanFunctionType(arity: Int): T = if (arity == 0) o 
                                            else (o -> booleanFunctionType(arity - 1)) 
   
-  class BigConnective(symbol: String) {def apply(arity: Int) = new Var(symbol, booleanFunctionType(arity))}                                         
+  class BigConnective(symbol: String) {
+    def apply(arity: Int) = if (arity == 2) new Var(symbol, booleanFunctionType(arity)) with Infix
+                            else new Var(symbol, booleanFunctionType(arity))
+  }                                         
                                            
   val andS = unicodeOrElse("\u2227","&") // "∧"
   val andC = new Var(andS, o -> (o -> o)) with Infix
@@ -29,6 +32,9 @@ package object formula {
   
   val negS = unicodeOrElse("\u00AC","-")
   val negC = Var(negS, o -> o)
+  
+  val eqS = "="
+  def eqC(t:T) = new Var(eqS, (t -> (t -> o))) with Infix 
   
   def isLogicalConnective(c:E) = c match {
     case Var(n,_) if (n == andS || n == orS || n == impS || 
