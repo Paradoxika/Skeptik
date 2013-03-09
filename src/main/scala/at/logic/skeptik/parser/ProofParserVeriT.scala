@@ -48,24 +48,6 @@ extends JavaTokenParsers with RegexParsers {
 
   def proofName: Parser[Int] = ".c" ~> """\d+""".r ^^ { _.toInt }
   
-//  def expression: Parser[E] = (assignmentE | simpleE)
-//  def assignmentE: Parser[E] = name<~ ":" <~ simpleE ^^ {
-//    n => exprMap.getOrElseUpdate(n, Var(n, o))
-//  }
-//  def simpleE: Parser[E] = (posE | negE | otherE)
-//  def posE: Parser[E] = name ^^ {
-//    n => exprMap.getOrElseUpdate(n, Var(n,o))
-//  }
-//  def negE: Parser[E] = "(not" ~> expression <~ ")" ^^ {
-//    e => Neg(e)
-//  }
-//  def otherE: Parser[E] = "(" ~> otherOther ~ rep(otherOther) <~ ")" ^^ {
-//    case ~(op, l) => Var(l.foldLeft(op) { ((left,right) => left + right) }, o)
-//  }
-//  def otherOther: Parser[String] = ( expression ^^ (_.toString) | name )
-
-
-  
   def expression: Parser[E] = (assignment | namedExpr | expr)
   def assignment: Parser[E] = exprName ~ ":" ~ expr ^^ {
     case ~(~(n,_),e) => exprMap += (n -> e); e
