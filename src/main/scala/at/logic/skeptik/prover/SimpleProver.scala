@@ -4,7 +4,7 @@ import at.logic.skeptik.proof.ProofNode
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.util.debug._
-import at.logic.skeptik.util.argMin
+import at.logic.skeptik.util.math.argMin
 import reflect.ClassTag
 
 // ToDo: (B) Use futures and Map from (goal, inference) to future to create DAG-proof!
