@@ -5,7 +5,7 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom, UncheckedInference}
 import java.io.FileWriter
 
-object ProofExporterSkeptik {
+object ProofExporterSkeptik extends ProofExporter[Node] {
   def write(proof:Proof[Node], filename: String) = {
     val writer = new FileWriter(filename)
     

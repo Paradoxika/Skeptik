@@ -12,7 +12,7 @@ import java.io.FileWriter
 // It is not worth making it perfect now, 
 // because VeriT's format will most likely change significantly in the future.
 
-object ProofExporterVeriT {
+object ProofExporterVeriT extends ProofExporter[Node] {
   def write(proof:Proof[Node], filename: String) = {
     val writer = new FileWriter(filename)
     
