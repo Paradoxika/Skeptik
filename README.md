@@ -16,7 +16,9 @@ Then go to Skeptik's root directory using the terminal and simply execute:
 ```
   export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Xmx512m -XX:MaxPermSize=256m"
 
-  sbt run
+  sbt
+  
+  compress
 ```
 
 (you may increase the value after -Xmx, if you need or want to provide more memory to the JVM)
@@ -29,10 +31,12 @@ If you face any difficulty, do not hesitate to contact us.
 
 ###Usage Example###
 
-The following command will run the proof compression algorithm 'RecyclePivotsWithIntersection' on the proof 'eq_diamond8.smt2' :
+The following command will run the proof compression algorithm 'RecyclePivotsWithIntersection' on the proof 'eq_diamond8.smt2' (written in VeriT's proof format) and write the compressed proof in 'output.skeptik' (using Skeptik's proof format):
 
 ```
-  sbt run -experiment --compression -a RPI ./examples/proofs/VeriT/eq_diamond8.smt2
+  sbt 
+  
+  compress ./examples/proofs/VeriT/eq_diamond8.smt2 -a RPI -o output.skeptik
 ```
 
 
