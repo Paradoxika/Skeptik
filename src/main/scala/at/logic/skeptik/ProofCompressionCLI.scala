@@ -9,7 +9,7 @@ import at.logic.skeptik.algorithm.compressor.Algorithms
 object ProofCompressionCLI {
 
   case class Config(input: String = "",
-                    algorithm: String = "RPI", 
+                    algorithm: String = "", 
                     output: String = "")                
       
   def unknownFormat(filename: String) = "Unknown format for " + filename + ". Supported formats are '.smt2' and '.skeptik'"                 
@@ -23,27 +23,33 @@ object ProofCompressionCLI {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { config =>
       
+      // Reading the proof
       println("Reading proof...")
-      val proof = ("""\.[^\.]+$""".r findFirstIn config.input) match {
-        case Some(".smt2")  => ProofParserVeriT.read(config.input)
-        case Some(".skeptik")  => ProofParserSkeptik.read(config.input)
+      val proofParser = ("""\.[^\.]+$""".r findFirstIn config.input) match {
+        case Some(".smt2")  => ProofParserVeriT
+        case Some(".skeptik")  => ProofParserSkeptik
         case _ => throw new Exception(unknownFormat(config.input))
       }
+      val proof = proofParser.read(config.input)
       
-      println("Compressing proof...")
-      val compressedProof = Algorithms.get(config.algorithm)(proof)
+      // Compressing the proof
+      val outputProof = if (config.algorithm != "") {
+                          println("Compressing proof...")
+                          Algorithms.get(config.algorithm)(proof)
+                        }
+                        else proof
       
+      // Writing the compressed proof
       if (config.output != "") {
         println("Writing compressed proof...")
-        ("""\.[^\.]+$""".r findFirstIn config.output) match {
-          case Some(".smt2") => ProofExporterVeriT.write(compressedProof, config.output)
-          case Some(".skeptik") => ProofExporterSkeptik.write(compressedProof, config.output)
+        val proofWriter = ("""\.[^\.]+$""".r findFirstIn config.output) match {
+          case Some(".smt2") => ProofExporterVeriT
+          case Some(".skeptik") => ProofExporterSkeptik
           case _ => throw new Exception(unknownFormat(config.output))
         }
-        
+        proofWriter.write(outputProof, config.output)
       }
-       
-      
+           
     } getOrElse { } // arguments are bad, usage message will have been displayed
   }
 }
