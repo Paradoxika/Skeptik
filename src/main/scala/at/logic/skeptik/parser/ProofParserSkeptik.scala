@@ -19,15 +19,14 @@ extends JavaTokenParsers with RegexParsers {
   private var proofMap = new MMap[Int,Node]
   private var exprMap = new MMap[Int,E]
 
-  def proof: Parser[Proof[Node]] = rep(log(line)("line")) ^^ { list => 
-    for (p <- list) println(p)
+  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
     val p = Proof(list.last)
     proofMap = new MMap[Int,Node]
     exprMap = new MMap[Int,E]
     p
   }
-  def line: Parser[Node] = proofName ~ "=" ~ log(subproof)("subproof") ^^ {
-    case ~(~(n, _), p) => proofMap += (n -> p); println(n); p
+  def line: Parser[Node] = proofName ~ "=" ~ subproof ^^ {
+    case ~(~(n, _), p) => proofMap += (n -> p); p
     case wl => throw new Exception("Wrong line " + wl)
   }
 
@@ -49,10 +48,9 @@ extends JavaTokenParsers with RegexParsers {
   def premises: Parser[List[Node]] = "(" ~> rep(proofName) <~ ")" ^^ {
     list => list map proofMap
   }
-  def conclusion: Parser[Sequent] = "{" ~> log(cedent)("cedent") ~ "⊢" ~ log(cedent)("cedent") <~ "}" ^^ {
+  def conclusion: Parser[Sequent] = "{" ~> cedent ~ "⊢" ~ cedent <~ "}" ^^ {
     case ~(~(ant,_),suc) => Sequent(ant:_*)(suc:_*)
   }
-//  def cedent: Parser[Seq[E]] = ("" ^^ {_ => Seq()} | repsep(expression,","))
   def cedent: Parser[Seq[E]] = repsep(expression,",")
   
   def proofName: Parser[Int] = """\d+""".r ^^ { _.toInt }
