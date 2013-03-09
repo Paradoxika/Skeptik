@@ -2,6 +2,7 @@ package at.logic.skeptik
 
 import at.logic.skeptik.parser.ProofParserVeriT
 import at.logic.skeptik.exporter.ProofExporterVeriT
+import at.logic.skeptik.parser.ProofParserSkeptik
 import at.logic.skeptik.exporter.ProofExporterSkeptik
 import at.logic.skeptik.algorithm.compressor.Algorithms
 
@@ -25,6 +26,7 @@ object ProofCompressionCLI {
       println("Reading proof...")
       val proof = ("""\.[^\.]+$""".r findFirstIn config.input) match {
         case Some(".smt2")  => ProofParserVeriT.read(config.input)
+        case Some(".skeptik")  => ProofParserSkeptik.read(config.input)
         case _ => throw new Exception(unknownFormat(config.input))
       }
       
