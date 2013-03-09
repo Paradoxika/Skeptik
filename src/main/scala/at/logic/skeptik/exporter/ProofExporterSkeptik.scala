@@ -17,7 +17,7 @@ object ProofExporterSkeptik {
           case Axiom(clause) => {
               val name = counter.toString
               counter += 1
-              val line = name + " = " + "axiom() : " + clause + "\n"
+              val line = name + " = " + "axiom(){ " + clause + " }\n"
               writer.write(line, 0, line.length)
               name
           }
@@ -29,7 +29,7 @@ object ProofExporterSkeptik {
               val name = counter.toString
               counter += 1
               val subproof = "(" + premiseResults.head + " [" + pivot + "] " + premiseResults.last + ")"
-              val line = name + " = " + subproof + " : " + n.conclusion + "\n"
+              val line = name + " = " + subproof + "{ " + n.conclusion + " }\n"
               writer.write(line, 0, line.length)
               name
             }
@@ -37,7 +37,7 @@ object ProofExporterSkeptik {
           case UncheckedInference(infName, premises, conclusion) => {
             val name = counter.toString
             counter += 1
-            val line = name + " = " + infName + "(" + premiseResults.mkString(" ") + ") : " + conclusion + "\n"
+            val line = name + " = " + infName + "(" + premiseResults.mkString(" ") + "){ " + conclusion + " }\n"
             writer.write(line, 0, line.length)
             name
           }
