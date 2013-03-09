@@ -108,6 +108,11 @@ fullRunInputTask(InputKey[Unit]("compress"), Runtime, "at.logic.skeptik.ProofCom
 fullRunInputTask(InputKey[Unit]("compress-test"), Runtime, "at.logic.skeptik.ProofCompressionCLI", "-a", "RPI", "examples/proofs/VeriT/eq_diamond4.smt2" )
 
 
+//  Tasks
+
+
+//prepareVSC <<= (version, scalaVersion) { (v, s) => println(" " + v + " " + s) }
+
 
 // OneJar Settings
 
