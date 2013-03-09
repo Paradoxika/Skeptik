@@ -1,19 +1,20 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.proof.sequent._
+import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.{Axiom,CutIC}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{Queue, HashMap => MMap}
 import at.logic.skeptik.proof.Proof
 
-object NewUnitLowering
-extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentProofNode] {
+object LowerUnits
+extends ProofCompressor[SequentProofNode] with IdempotentAlgorithm[SequentProofNode] {
 
   private def collectUnits(proof: Proof[SequentProofNode]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
-    proof.foldRight(Nil:List[SequentProofNode])((node, acc) =>
-      if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) node::acc else acc
-    );
+    (proof :\ (Nil:List[SequentProofNode])) { (node, acc) =>
+      if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) 
+        node::acc else acc
+    }
   }
 
   private def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode]) = {
@@ -27,6 +28,7 @@ extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentPr
         case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
         case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
         case CutIC(left,right,aux,_) => CutIC(fixedLeft, fixedRight, _ == aux)
+        case _ => node
       }
       if (node == proof.root || unitsSet.contains(node)) fixMap.update(node, fixedP)
       fixedP
@@ -37,7 +39,6 @@ extends CompressorAlgorithm[SequentProofNode] with IdempotentAlgorithm[SequentPr
 
   def apply(proof: Proof[SequentProofNode]) = {
     val units   = collectUnits(proof)
-//    println(units.length + " units")
     val fixMap  = fixProofNodes(units.toSet, proof)
     val root = units.map(fixMap).foldLeft(fixMap(proof.root))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
     Proof(root)

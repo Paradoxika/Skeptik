@@ -29,9 +29,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
 
       node match {
         case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) =>
-          edgesToDelete.markEdge(node, LeftDS)
+          edgesToDelete.markLeftEdge(node)
         case CutIC(left ,_,auxL,_) if (safeLiterals.suc contains auxL) =>
-          edgesToDelete.markEdge(node, RightDS)
+          edgesToDelete.markRightEdge(node)
         case _ =>
       }
 

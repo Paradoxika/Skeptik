@@ -3,23 +3,26 @@ package at.logic.skeptik.algorithm.compressor
 import at.logic.skeptik.proof._
 import at.logic.skeptik.algorithm.compressor.guard._
 
-
-/* Base trait. Every concrete algorithm must extend it.
+// ToDo: should check the possibility/desirability of making ProofCompressor inherit from Function1
+/* Base class. Every concrete algorithm must extend it.
  */
-trait CompressorAlgorithm [P <: ProofNode[_,P]]
+abstract class ProofCompressor [P <: ProofNode[_,P]]
 {
 
   def apply(proof: Proof[P]):Proof[P]
 
   def apply(proof: Proof[P], guard: Guard[P]):Proof[P]
 
+  def *(a: ProofCompressor[P]) = {} // ToDo: should return a sequential composition
+  
+  def ~(a: ProofCompressor[P]) = {} // ToDo: should run both and return the best proof produced
 }
 
 /* Every algorithm that should never be called iteratively should inherit this
  * trait.
  */
 trait IdempotentAlgorithm [P <: ProofNode[_,P]]
-extends CompressorAlgorithm[P] {
+extends ProofCompressor[P] {
 
   def apply(proof: Proof[P], guard: Guard[P]):Proof[P] = {
     val compressedProof = apply(proof)
@@ -30,7 +33,7 @@ extends CompressorAlgorithm[P] {
 }
 
 object IdempotentAlgorithm {
-  def apply[P <: ProofNode[_,P]](algos: CompressorAlgorithm[P]*) = new IdempotentAlgorithm[P] {
+  def apply[P <: ProofNode[_,P]](algos: ProofCompressor[P]*) = new IdempotentAlgorithm[P] {
     def apply(proof: Proof[P]) = algos.foldRight(proof) { (fct, result) => fct(result,once) }
   }
 }
@@ -38,7 +41,7 @@ object IdempotentAlgorithm {
 /* Every algorithm that could be called iteratively should inherit that trait.
  */
 trait RepeatableAlgorithm [P <: ProofNode[_,P]]
-extends CompressorAlgorithm[P] {
+extends ProofCompressor[P] {
 
   def apply(proof: Proof[P], guard: Guard[P]):Proof[P] = {
     var currentProofNode = proof
@@ -50,7 +53,7 @@ extends CompressorAlgorithm[P] {
 
 }
 
-/* Algorithms which does compress the proof during a finite number of iterations
+/* Algorithms that compress the proof during a finite number of iterations
  * but become idempotent thereafter.
  */
 trait RepeatableWhileCompressingAlgorithm [P <: ProofNode[_,P]]
@@ -67,7 +70,7 @@ extends RepeatableAlgorithm[P] {
 }
 
 object RepeatableWhileCompressingAlgorithm {
-  def apply[P <: ProofNode[_,P]](algos: CompressorAlgorithm[P]*) = new RepeatableWhileCompressingAlgorithm[P] {
+  def apply[P <: ProofNode[_,P]](algos: ProofCompressor[P]*) = new RepeatableWhileCompressingAlgorithm[P] {
     def apply(proof: Proof[P]) = algos.foldRight(proof) { (fct, result) => fct(result,once) }
   }
 }

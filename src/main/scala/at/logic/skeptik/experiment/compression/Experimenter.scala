@@ -68,16 +68,16 @@ object Experimenter {
 
   val algorithms = MMap[String, WrappedAlgorithm]()
 
-  def addTimeOutAlgorithm(name: String, algo: CompressorAlgorithm[SequentProofNode]) =
+  def addTimeOutAlgorithm(name: String, algo: ProofCompressor[SequentProofNode]) =
     algorithms(name.replace(' ','_')) = new TimeOutAlgorithm(String.format("%-11.11s",name), algo)
 
-  addTimeOutAlgorithm("LU", NewUnitLowering)
+  addTimeOutAlgorithm("LU", LowerUnits)
 
   addTimeOutAlgorithm("RP",  RecyclePivots)
   addTimeOutAlgorithm("RPI", IdempotentRecyclePivotsWithIntersection)
 
-  addTimeOutAlgorithm("RPI.LU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, NewUnitLowering))
-  addTimeOutAlgorithm("LU.RPI", IdempotentAlgorithm(NewUnitLowering, IdempotentRecyclePivotsWithIntersection))
+  addTimeOutAlgorithm("RPI.LU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, LowerUnits))
+  addTimeOutAlgorithm("LU.RPI", IdempotentAlgorithm(LowerUnits, IdempotentRecyclePivotsWithIntersection))
 
   addTimeOutAlgorithm("IU Reg", IdempotentIrregularUnitsRegularize)
   addTimeOutAlgorithm("IU Low", IdempotentIrregularUnitsLower)
@@ -101,7 +101,7 @@ object Experimenter {
 
   for (i <- 1 to 8) addTimeOutAlgorithm("MSplit" + i, new MultiSplit(i) with RandomChoice)
 
-  addTimeOutAlgorithm("DAG",  DAGification)
+  addTimeOutAlgorithm("DAG",  DAGify)
 
   def getProofNodeFromFile(filename: String) = ("""\.[^\.]+$""".r findFirstIn filename) match {
     case Some(".smt2")  => Result ( { ProofParserVeriT.read(filename) } )

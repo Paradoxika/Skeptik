@@ -55,25 +55,13 @@ object Ex extends QuantifierFormula(exC)
 
 object Atom extends Formula {
   def apply(p: E, args: List[E]) = {
-    val atom = (p /: args)((p,a) => App(p,a))
+    val atom = AppRec(p,args)
     require(atom.t == o)
     atom
   }
   def unapply(e:E) = e match {
-    case e: Var if e.t == o => Some((e,Nil))
-    case e: App if e.t == o => {
-      val r @ (p,args) = unapplyRec(e)
-      if (isLogicalConnective(p)) None 
-      else Some(r)
-    }
+    case AppRec(f,args) if (e.t == o && !isLogicalConnective(f)) => Some((f,args))
     case _ => None
   }
-  private def unapplyRec(e: App): (E,List[E]) = e.function match {
-    case a : App => {
-        val (predicate, firstArgs) = unapplyRec(a)
-        return (predicate, firstArgs ::: (e.argument::Nil))
-    }
-    case _ => return (e.function, e.argument::Nil) 
-  } 
 }
 
