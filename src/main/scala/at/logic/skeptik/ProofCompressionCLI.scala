@@ -1,10 +1,13 @@
 package at.logic.skeptik
 
-import at.logic.skeptik.parser.ProofParserVeriT
-import at.logic.skeptik.exporter.ProofExporterVeriT
-import at.logic.skeptik.parser.ProofParserSkeptik
-import at.logic.skeptik.exporter.ProofExporterSkeptik
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik}
+import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik}
 import at.logic.skeptik.algorithm.compressor.Algorithms
+import at.logic.skeptik.judgment.Judgment
+import at.logic.skeptik.proof.{Proof, ProofNode}
+import at.logic.skeptik.proof.measure
+import at.logic.skeptik.util.time._
+import at.logic.skeptik.util.pretty._
 
 object ProofCompressionCLI {
 
@@ -24,31 +27,59 @@ object ProofCompressionCLI {
     parser.parse(args, Config()) map { config =>
       
       // Reading the proof
-      println("Reading proof...")
+      print("Reading and checking proof...")
       val proofParser = ("""\.[^\.]+$""".r findFirstIn config.input) match {
         case Some(".smt2")  => ProofParserVeriT
         case Some(".skeptik")  => ProofParserSkeptik
         case _ => throw new Exception(unknownFormat(config.input))
       }
-      val proof = proofParser.read(config.input)
+      import at.logic.skeptik.proof.sequent.SequentProofNode
+      import at.logic.skeptik.judgment.Sequent
+      val Timed(proof, tRead) = timed { proofParser.read(config.input) }
+      def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"
+      println(completedIn(tRead))
+      
+      print(table(Seq(Seq(1,2,345),
+                      Seq(53,1,9))
+                  ))
+      
       
       // Compressing the proof
       val outputProof = if (config.algorithm != "") {
-                          println("Compressing proof...")
-                          Algorithms.get(config.algorithm)(proof)
+                          print("Compressing proof...")
+                          val algorithm = Algorithms.get(config.algorithm)
+                          val Timed(p, t) = timed { algorithm(proof) }
+                          println(completedIn(t))
+                          p
                         }
                         else proof
+                        
       
       // Writing the compressed proof
       if (config.output != "") {
-        println("Writing compressed proof...")
+        print("Writing compressed proof...")
         val proofWriter = ("""\.[^\.]+$""".r findFirstIn config.output) match {
           case Some(".smt2") => ProofExporterVeriT
           case Some(".skeptik") => ProofExporterSkeptik
           case _ => throw new Exception(unknownFormat(config.output))
         }
-        proofWriter.write(outputProof, config.output)
+        val Timed(_,t) = timed { proofWriter.write(outputProof, config.output) }
+        println(completedIn(t))
       }
+      
+      // Displaying proof measurements
+      println("Proof measurements:")
+      val mIProof = measure(proof)
+      println("  Input proof  : " + mIProof)
+      if (! (proof eq outputProof)) {
+        val mOProof = measure(outputProof)
+        println("  Output proof : " + mOProof)
+        val compressions = Seq("length", "width", "height") zip (mIProof.toSeq zip mOProof.toSeq) map {case (m,(i,o)) => 
+                             m + " = " + (Math.round(1000.0*(i-o)/i)/10.0) + "%"
+                           }
+        
+        println("  Compression  : " + compressions.mkString(" , "))
+      } 
            
     } getOrElse { } // arguments are bad, usage message will have been displayed
   }
