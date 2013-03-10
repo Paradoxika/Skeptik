@@ -1,8 +1,8 @@
 package at.logic.skeptik.util
 
+import scala.actors.Futures.{awaitAll, future}
+
 object time {
-  import scala.actors.Futures.{awaitAll, future}
-  
   def timeout[R](time: Long)(f: => R): Option[R] = awaitAll(time, future { f }).head.asInstanceOf[Option[R]]
 
   def timeout[R](time: Long, default: R)(f: => R): R = timeout(time)(f).getOrElse(default)
@@ -16,7 +16,7 @@ object time {
     Timed(result, time)
   }
   def timed[R](repetitions: Int)(f: => R): Timed[R] = {
-    val Timed(r,t) = timed { f }
+    val Timed(r,t) = timed { f } 
     val averageTime = (for (i <- 1 to repetitions - 1) yield timed(f).time).foldLeft(t)(_+_) / repetitions
     Timed(r, averageTime)
   }
