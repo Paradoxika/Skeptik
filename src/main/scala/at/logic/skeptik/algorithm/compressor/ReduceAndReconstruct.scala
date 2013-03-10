@@ -1,11 +1,10 @@
 package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.Proof
-import at.logic.skeptik.proof.sequent._
-import at.logic.skeptik.proof.sequent.lk._
+import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.proof.sequent.lk.CutIC
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
-//import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.compressor.guard._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
@@ -99,39 +98,15 @@ extends ProofCompressor[SequentProofNode] with RepeatableAlgorithm[SequentProofN
   }
 }
 
-class ReduceAndReconstruct
+object ReduceAndReconstruct
 extends AbstractReduceAndReconstruct with RepeatableAlgorithm[SequentProofNode] {
 
   def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, a2)))
 
 }
 
-object ReduceAndReconstruct
-extends ReduceAndReconstruct
 
-class RRWithA2OnChild
-extends AbstractReduceAndReconstruct {
-  private def a2recursive(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
-    // A2 (recursive)
-    case CutIC(left,right,r,_) =>
-      val nLeft  = if (leftPremiseHasOneChild)  a2(left,true,true)  else left
-      val nRight = if (rightPremiseHasOneChild) a2(right,true,true) else right
-      val cLeft  = nLeft  ne left
-      val cRight = nRight ne right
-      if (cLeft || cRight) {
-        val nNode = CutIC(nLeft, nRight, _ == r)
-        val reduced = reduce(nNode, cLeft || leftPremiseHasOneChild, cRight || rightPremiseHasOneChild){ (node,_,_) => node }
-        if (nNode ne reduced) reduced else node
-      }
-      else node
-
-    case _ => node
-  }
-
-  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, a2recursive)))
-}
-
-class RRWithoutA2
+object RRWithoutA2
 extends AbstractReduceAndReconstruct {
 
   def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, { (n,_,_) => n })))
