@@ -4,8 +4,9 @@ import scala.util.parsing.combinator._
 
 import java.io.FileReader
 import at.logic.skeptik.proof.{Proof,ProofNode}
+import at.logic.skeptik.judgment.Judgment
 
-abstract class ProofParser[N <: ProofNode[_,N]] extends RegexParsers {
+abstract class ProofParser[N <: ProofNode[Judgment,N]] extends RegexParsers {
   def proof : Parser[Proof[N]]
   
   def read(filename: String) : Proof[N] = {
