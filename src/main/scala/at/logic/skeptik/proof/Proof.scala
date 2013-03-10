@@ -5,6 +5,7 @@ import annotation.tailrec
 
 // ProofNode tree is rotated clockwise. That means that traversing "left" is bottom-up.
 // Traversing "right" is top-down and we ensure that premises of a proof are processed before that proof.
+// ToDo: The underscore type parameter seems to be causing problems.
 class Proof[P <: ProofNode[_,P]] private(nodes: IndexedSeq[P], val childrenOf: collection.Map[P,Seq[P]])
 extends Iterable[P]
 {
