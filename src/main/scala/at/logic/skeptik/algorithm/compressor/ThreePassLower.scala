@@ -1,5 +1,4 @@
 package at.logic.skeptik.algorithm.compressor
-package combinedRPILU
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._

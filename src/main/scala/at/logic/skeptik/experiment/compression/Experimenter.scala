@@ -4,7 +4,6 @@ import java.io.FileReader
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import collection.immutable.{HashSet => ISet}
 import at.logic.skeptik.algorithm.compressor._
-import at.logic.skeptik.algorithm.compressor.combinedRPILU._
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.parser.ProofParserVeriT
@@ -78,14 +77,6 @@ object Experimenter {
 
   addTimeOutAlgorithm("RPI.LU", IdempotentAlgorithm(IdempotentRecyclePivotsWithIntersection, LowerUnits))
   addTimeOutAlgorithm("LU.RPI", IdempotentAlgorithm(LowerUnits, IdempotentRecyclePivotsWithIntersection))
-
-  addTimeOutAlgorithm("IU Reg", IdempotentIrregularUnitsRegularize)
-  addTimeOutAlgorithm("IU Low", IdempotentIrregularUnitsLower)
-
-  addTimeOutAlgorithm("RI Reg",   IdempotentRegularizationInformationRegularizationChoice)
-  addTimeOutAlgorithm("RI Low",   IdempotentRegularizationEvaluationLoweringChoice)
-  addTimeOutAlgorithm("RI alReg", IdempotentRegularizationEvaluationRegularizeIfPossible)
-  addTimeOutAlgorithm("RI Quad",  IdempotentRegularizationEvaluationQuadraticHeuristic)
 
   addTimeOutAlgorithm("RPI[3]LU", IdempotentThreePassLowerUnits)
 

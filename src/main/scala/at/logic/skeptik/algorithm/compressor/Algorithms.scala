@@ -1,7 +1,5 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.algorithm.compressor.combinedRPILU._
-
 object Algorithms {
   val get = Map( 
     "LU" -> LowerUnits,
