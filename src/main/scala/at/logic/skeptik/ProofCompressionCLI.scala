@@ -39,10 +39,6 @@ object ProofCompressionCLI {
       def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"
       println(completedIn(tRead))
       
-      print(table(Seq(Seq(1,2,345),
-                      Seq(53,1,9))
-                  ))
-      
       
       // Compressing the proof
       val outputProof = if (config.algorithm != "") {
@@ -80,7 +76,19 @@ object ProofCompressionCLI {
         
         println("  Compression  : " + compressions.mkString(" , "))
       } 
-           
+      
+//      val header = Seq("Proof", "Length", "Width", "Height")
+//      val input = Seq("input proof") ++ mIProof.toSeq
+//      val outputs = if (! (outputProof eq proof)) Seq(Seq("output proof") ++ measure(outputProof).toSeq)
+//                    else Seq()
+//      
+//      val data = Seq(header,
+//                      input) ++
+//                 outputs
+//                  
+//      println()
+//      print(prettyTable(data))
+                    
     } getOrElse { } // arguments are bad, usage message will have been displayed
   }
 }
