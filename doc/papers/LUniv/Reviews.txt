@@ -1,0 +1,198 @@
+Dear Bruno,
+
+on behalf of the Program Committee of CADE-24 I regret to inform you that your paper was not accepted for inclusion in the conference program and proceedings. We received many very good papers and we had to make several very difficult choices. We trust that the attached reviews will be useful to continue your research. Thank you very much for your interest in CADE-24! We all hope to see you at the conference this summer in Lake Placid.
+
+Best regards,
+Maria Paola
+
+---------------------------
+Maria Paola Bonacina
+(Program Chair of CADE-24)
+
+
+----------------------- REVIEW 1 ---------------------
+PAPER: 38
+TITLE: Compression of Propositional Resolution Proofs by Lowering Subproofs
+AUTHORS: Bruno Woltzenlogel Paleo and Joseph Boudou
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 3 (medium)
+Originality and significance: 3 (good)
+Technical quality and completeness: 3 (good)
+Comparison with related work and completeness of references: 3 (good)
+Quality of presentation, clarity, readability: 2 (fair)
+
+----------- REVIEW -----------
+Compressing propositional proofs after finding them can be important.  This paper introduces some new approaches for this.
+
+The way the methods are presented, they are difficult to understand.  Perhaps some diagrams of uncompressed and compressed proofs would help the presentation.
+
+The results are not easy to interpret, but it seems that the new approaches, including LUniv and its combinations, either compress more than existing methods or do better compressing the unsat core.  However, none of the methods compress the unsat core very much.
+
+Considering that the work reported in this paper builds on top of previous work presented at CADE 2011, the authors may want to consider a journal submission, instead of a second conference submission, in order to give a full account of their research on this topic.
+
+Specific comments:
+
+page 2 bottom -- there is an extra right brace
+
+Definition 2 -- a graph would help a lot here
+
+Section 5 near middle:  fasten -- speed up
+
+Section 5 -- some more explanation of exactly what is the unsat core and its significance, would help.    Also, some verbal explanation of the ratios (1) and (2) would be helpful.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 38
+TITLE: Compression of Propositional Resolution Proofs by Lowering Subproofs
+AUTHORS: Bruno Woltzenlogel Paleo and Joseph Boudou
+
+OVERALL EVALUATION: -1 (weak reject)
+REVIEWER'S CONFIDENCE: 4 (high)
+Originality and significance: 2 (fair)
+Technical quality and completeness: 4 (very good)
+Comparison with related work and completeness of references: 4 (very good)
+Quality of presentation, clarity, readability: 2 (fair)
+
+----------- REVIEW -----------
+For an unsatisfiable problem, a SAT solver can return a resolution refutation.  This information can be useful, but it may be very large.  A smaller proof may be easier to handle.  The purpose of this paper is to give techniques to shorten resolution refutations in propositional logic. It builds on work in reference [10], which was a paper on how to compress resolution refutations.  
+
+Reference [10] contained two compression teachniques.  The first one is called LowerUnits (LU), which moves proofs of unit clauses to the beginning or the refutation. The second technique is called ReecyclePivotsWithIntersection (RPI) which attempts to turn a proof into a regular proof.  Both of these techniques have been shown experimentally to shorten refutations, but when performing them together sequentially is not any more powerful than one of them alone.
+
+The current paper develops a new compression technique called LowerUnivalents(LUniv) which is strictly more general than the LU strategy.  It moves so-called valents to the beginning of the refutation.  They prove in this paper that LUniv will compress the proof more than LU.  In addition, the sequential composition of LUniv with RPI, in either order can compress the proof more than just performing one of those strategies, as opposed to LU and RPI where the sequential composition has no advantages.  
+
+The paper has three contributions over [15]
+
+1. The invention of LUniv
+2. The fact that the sequential composition of LUniv with RPI can be better than both of them
+3. The ability to combine LUniv and RPI together in a non-sequential combination which is not possible with LU and RPI.
+
+The paper gives experimental results of LUniv and RPI and their combinations, and compares them with experimental results of LU and RPI and their combinations.  
+
+The experimental results are not very promising.  The compression ratio and compression speed are only slightly better under the new techniques.  The only promising results are that there are certain examples where they are significantly better and there are some examples where the unsatisfiable core becomes smaller. 
+
+The paper is very complete in the sense that it proposes a new technique, proves correctness results about it and gives experimental results that compare it with previous techniques.  The weak point of the paper is that the new technique is only a slight variation of existing techniques and the experimental results and not too promising.  Another criticism is about the presentation of the paper.  There are no examples in the entire paper to help understand the definitions and techniques.  Based on this, I slightly lean toward rejection of the paper.
+
+Some detailed comments follow:
+
+Page 1 talks about the theoretical difficulty associated with NP problems.  I believe what is meant is NP-complete problems.  
+
+On Page 3, is psi a child of Phi_L and phi_R or vice versa.  
+
+There is an algorithm given for delete.   Can delete be formally defined.
+
+On Page 3 you talk about the left side above and the right side above.  But I don't know what you are referring to.
+
+How about giving a motivation for the defintion of valent.  It is a key concept.
+
+Page 5: "an subproof"
+
+Page 7: Explain better what happens when the literal is not valent.
+
+On Page 6 you say that LowerUnivalents has a linear complexity "as long as the univalent test can be performed in constant bounded time." On Page 7 you say that Lower Univalents is linear "as long as membership of the literals to the set delta can be performed in constant time." I don't understand the meaning of "as long as".
+
+Page 9: What do you mean by "reasonable delay".
+
+Page 9: What does "fasten" mean.
+
+Page 10: "on Table 1" should be "in Table 1".  Also on next page for Table 2, and on Page 13 for Figure 2.
+
+Page 10: "the Cotton's Split algorithm" should be "Cotton's Split algorithm"
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 38
+TITLE: Compression of Propositional Resolution Proofs by Lowering Subproofs
+AUTHORS: Bruno Woltzenlogel Paleo and Joseph Boudou
+
+OVERALL EVALUATION: 2 (accept)
+REVIEWER'S CONFIDENCE: 3 (medium)
+Originality and significance: 3 (good)
+Technical quality and completeness: 4 (very good)
+Comparison with related work and completeness of references: 4 (very good)
+Quality of presentation, clarity, readability: 4 (very good)
+
+----------- REVIEW -----------
+***Outline***
+The authors present a new method for decreasing the size 
+of a resolution proof by "lowering" subproofs.  Lowering 
+means deferring the use of a particular clause until the 
+final stage of the proof.  A method of lowering unit clauses, 
+called LowerUnits is recalled from a previous paper, and a 
+generalization called LowerUnivalents is presented that allows 
+further reduction of proof size.
+
+A complementary method of proof size reduction called 
+RecyclePivotsWithItersection (RPI) is recalled from a 
+previous paper, and then in the experimental section, 
+many combinations of the presented proof-shrinking
+methods are described and compared.
+
+***Items***
+pg 1, line 5 --- Remove "And, nevertheless," and capitalize "despite"
+pg 1, line 11 --- Remove "But," capitalize "more"
+pg 1, line 13 --- replace "too" with "as well".  "too" is a little informal.
+pg 1, 3rd line from bottom --- replace "refutations in this system" with "resolution refutations"
+pg 1, 2nd line from bottom --- remove "they" 
+pg 6, in paragraph beginning "To solve this issue" --- replace "Algo." with "Algorithm"
+pg 9, At "For any subproof $\phi$ of a proof $\psi$, RPI removes..." ---  edge removal as described may result in a graph which is not a resolution proof.  Is this an error?
+pg 9, at paragraph beginning "But sequential composition is time-consuming."  --- Use "speed up" instead of "fasten" for "to make faster". "Fasten" has another meaning in English. 
+pg 14, line 3 --- Change "Prop." to "Proposition"
+
+***General Criticism***
+The notation that the authors present for manipulating resolution
+proofs is very compact and has some nice intuitive properties. 
+One such property is that the proof subtraction operator, $\setminus$,
+is roughly an inverse of the resolution operator, which expressed 
+in a multiplicative notation using $\odot$.  This notation 
+allows the notation of relatively complicated proof transformations
+in a small space.  
+
+The disadvantage here is that the brevity sometimes 
+obscures subtleties of how these transformations are actually accomplished.  
+In particular, it took me a little while to realize how LowerUnits
+guarantees a reduction in proof size. However, I think ultimately
+the notation of resolution and proof subtraction 
+contributes to the novelty and intuitive thrust of the paper,
+and so is an overall plus.
+
+You say "dual of $\ell$" for $\bar{\ell}$.  
+This is nonstandard terminology in boolean 
+logic, as the dual of a constant-free formula 
+F is F with all instances of $\wedge$ and $\vee$ 
+interchanged.  Thus in typical terminology, 
+the dual of $\ell$ is $\ell$.  Please use 
+the more standard "complement" to refer to $\bar{\ell}$.
+
+What is the significance of the traversal order in 
+LowerUnits? Is there a restriction on proof 
+containment in the order of lowering? 
+
+The usage of "top-down" traversal along with the terminology of "lowering" 
+is confusing.  By "top-down", I assume you mean traversal from the root, 
+or conclusion node, of the proof, which you call the "bottom" on page 4.  
+Also, your terminology of "child" is counter to the typical graph-theoretic 
+notion --- you have the resolvent as the child of its resolvands, which 
+normally would imply that edges go from resolvands to the resolvent.  
+However, in your formalism, the edges go from resolvent to resolvands.   
+I assume that the edges are directed in this way because this is the direction
+of recursion.  But in that case, wouldn't it make even more sense to 
+have the conclusion be the "parent" and the resolvands the "children"?  
+These difficulties are an unfortunate outgrowth of your choice of 
+proving downwards, as opposed to proving upwards, which would 
+avoid this clash of terminology.
+
+***Final Comments***
+I had fun reading this paper, and modulo a few dings for 
+terminology and some simple edits, I believe I can 
+recommend it for publication.
+
+I am not very familiar with the literature of resolution proof 
+size reduction, so I am not really able to validate that 
+the operation of LowerUnivalents is novel within the literature. 
+However, the paper is well-written and the experiments are extensive 
+and well-presented.  The paper appears to show significant progress towards
+a goal that I know to be important not just in theoretical circles, 
+but also to those working in industry on model checking verification system.
+
+Thus I recommend this paper for publication in CADE 24.
