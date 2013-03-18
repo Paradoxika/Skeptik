@@ -1,12 +1,13 @@
 package at.logic.skeptik.algorithm.compressor
 
+import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof._
 import at.logic.skeptik.algorithm.compressor.guard._
 
 // ToDo: should check the possibility/desirability of making ProofCompressor inherit from Function1
 /* Base class. Every concrete algorithm must extend it.
  */
-abstract class ProofCompressor [P <: ProofNode[_,P]]
+abstract class ProofCompressor [P <: ProofNode[Judgment,P]]
 {
 
   def apply(proof: Proof[P]):Proof[P]
@@ -21,7 +22,7 @@ abstract class ProofCompressor [P <: ProofNode[_,P]]
 /* Every algorithm that should never be called iteratively should inherit this
  * trait.
  */
-trait IdempotentAlgorithm [P <: ProofNode[_,P]]
+trait IdempotentAlgorithm [P <: ProofNode[Judgment,P]]
 extends ProofCompressor[P] {
 
   def apply(proof: Proof[P], guard: Guard[P]):Proof[P] = {
@@ -33,14 +34,14 @@ extends ProofCompressor[P] {
 }
 
 object IdempotentAlgorithm {
-  def apply[P <: ProofNode[_,P]](algos: ProofCompressor[P]*) = new IdempotentAlgorithm[P] {
+  def apply[P <: ProofNode[Judgment,P]](algos: ProofCompressor[P]*) = new IdempotentAlgorithm[P] {
     def apply(proof: Proof[P]) = algos.foldRight(proof) { (fct, result) => fct(result,once) }
   }
 }
 
 /* Every algorithm that could be called iteratively should inherit that trait.
  */
-trait RepeatableAlgorithm [P <: ProofNode[_,P]]
+trait RepeatableAlgorithm [P <: ProofNode[Judgment,P]]
 extends ProofCompressor[P] {
 
   def apply(proof: Proof[P], guard: Guard[P]):Proof[P] = {
@@ -56,7 +57,7 @@ extends ProofCompressor[P] {
 /* Algorithms that compress the proof during a finite number of iterations
  * but become idempotent thereafter.
  */
-trait RepeatableWhileCompressingAlgorithm [P <: ProofNode[_,P]]
+trait RepeatableWhileCompressingAlgorithm [P <: ProofNode[Judgment,P]]
 extends RepeatableAlgorithm[P] {
 
   private def internalGuard(initialProofNode: Proof[P]) = new Guard[P] {
@@ -70,7 +71,7 @@ extends RepeatableAlgorithm[P] {
 }
 
 object RepeatableWhileCompressingAlgorithm {
-  def apply[P <: ProofNode[_,P]](algos: ProofCompressor[P]*) = new RepeatableWhileCompressingAlgorithm[P] {
+  def apply[P <: ProofNode[Judgment,P]](algos: ProofCompressor[P]*) = new RepeatableWhileCompressingAlgorithm[P] {
     def apply(proof: Proof[P]) = algos.foldRight(proof) { (fct, result) => fct(result,once) }
   }
 }
@@ -79,7 +80,7 @@ object RepeatableWhileCompressingAlgorithm {
 /* Non-deterministic algorithms which might produce proof bigger than the
  * original.
  */
-trait RandomCompressionRepeatableAlgorithm [P <: ProofNode[_,P]]
+trait RandomCompressionRepeatableAlgorithm [P <: ProofNode[Judgment,P]]
 extends RepeatableAlgorithm[P] {
 
   override def apply(initialProofNode: Proof[P], guard: Guard[P]):Proof[P] = {

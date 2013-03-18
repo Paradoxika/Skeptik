@@ -209,7 +209,7 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals with CollectUniv
 object IdempotentLowerUnivalentsAfterRecyclePivots
 extends LowerUnivalentsAfterRecyclePivots with IdempotentAlgorithm[SequentProofNode]
 
-// Flu
+
 
 abstract class LowerUnivalentsBeforeRecyclePivots
 extends AbstractThreePassLower {

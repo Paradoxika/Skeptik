@@ -15,8 +15,12 @@ object ProofCompressionCLI {
                     algorithm: String = "", 
                     output: String = "")                
       
-  def unknownFormat(filename: String) = "Unknown format for " + filename + ". Supported formats are '.smt2' and '.skeptik'"                 
-                    
+  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2' and '.skeptik'"                 
+  
+  def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
+  
+  def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
+  
   def main(args: Array[String]): Unit = {  
     val parser = new scopt.immutable.OptionParser[Config]("compress", "\n\nSkeptik's Command Line Interface for Proof Compression\n\n") { def options = Seq(
       opt("a", "algorithm", "the algorithm to be used for compressing the proof") { (v: String, c: Config) => c.copy(algorithm = v) },
@@ -25,6 +29,10 @@ object ProofCompressionCLI {
     ) }
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { config =>
+      
+      println()
+      
+      // ToDo: should not throw exception when the error is due to the user.
       
       // Reading the proof
       print("Reading and checking proof...")
@@ -35,8 +43,7 @@ object ProofCompressionCLI {
       }
       import at.logic.skeptik.proof.sequent.SequentProofNode
       import at.logic.skeptik.judgment.Sequent
-      val Timed(proof, tRead) = timed { proofParser.read(config.input) }
-      def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"
+      val Timed(proof, tRead) = timed { proofParser.read(config.input) }   
       println(completedIn(tRead))
       
       
@@ -64,31 +71,36 @@ object ProofCompressionCLI {
       }
       
       // Displaying proof measurements
-      println("Proof measurements:")
+      println()
+      println("Proof measurements:")     
+      val header = Seq("Proof", "Length", "Width", "Height")
       val mIProof = measure(proof)
-      println("  Input proof  : " + mIProof)
-      if (! (proof eq outputProof)) {
+      val input = Seq("input") ++ mIProof.toSeq
+      val outputRows = if (! (outputProof eq proof)) {
         val mOProof = measure(outputProof)
-        println("  Output proof : " + mOProof)
-        val compressions = Seq("length", "width", "height") zip (mIProof.toSeq zip mOProof.toSeq) map {case (m,(i,o)) => 
-                             m + " = " + (Math.round(1000.0*(i-o)/i)/10.0) + "%"
-                           }
-        
-        println("  Compression  : " + compressions.mkString(" , "))
-      } 
+        val compressions = (mIProof.toSeq zip mOProof.toSeq) map {case (i,o) => 
+                             (Math.round(1000.0*o/i)/10.0) + "%"
+                           }  
+        Seq(Seq("output") ++ ((mOProof.toSeq zip compressions) map {case (o,c) => o + " (" + c + ")"})) 
+      }
+      else Seq()
       
-//      val header = Seq("Proof", "Length", "Width", "Height")
-//      val input = Seq("input proof") ++ mIProof.toSeq
-//      val outputs = if (! (outputProof eq proof)) Seq(Seq("output proof") ++ measure(outputProof).toSeq)
-//                    else Seq()
-//      
-//      val data = Seq(header,
-//                      input) ++
-//                 outputs
-//                  
-//      println()
-//      print(prettyTable(data))
+      val data = Seq(header, input) ++ outputRows
+                  
+      println()
+      print(prettyTable(data))
+      
+      print(
+""" 
+  where:           
+    Length = number of inferences in the proof
+    Width = number of axioms in the proof
+    Height = length of longest path from leaf to root
+          
+""")
                     
-    } getOrElse { } // arguments are bad, usage message will have been displayed
+    } getOrElse { // arguments are bad 
+      
+    } 
   }
 }

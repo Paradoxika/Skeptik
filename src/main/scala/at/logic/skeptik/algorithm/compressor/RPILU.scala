@@ -16,7 +16,7 @@ extends ProofCompressor[SequentProofNode] {
 
   class EdgesToDelete {
     
-        protected sealed abstract  class DeletedSide
+    protected sealed abstract  class DeletedSide
     protected case object NoDS    extends DeletedSide
     protected case object LeftDS  extends DeletedSide
     protected case object RightDS extends DeletedSide
@@ -106,7 +106,7 @@ extends ProofCompressor[SequentProofNode] {
     p match {
       case Axiom(conclusion) => p
 
-      // If we've got a proof of false, we progate it down the proof
+      // If we've got a proof of false, we propagate it down the proof
       case CutIC(_,_,_,_) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) =>
         fixedLeft
       case CutIC(_,_,_,_) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) =>
