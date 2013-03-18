@@ -8,7 +8,7 @@ object Algorithms {
     "RPI[3]LU" -> IdempotentThreePassLowerUnits,
     "LUniv" -> LowerUnivalents,
     "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
-    "RPI[3]LUniv" -> IdempotentLowerUnivalentsBeforeRecyclePivots,
+    "RPI[3]LUniv" -> LowerUnivalentsBeforeRecyclePivots,
     "R&R" -> ReduceAndReconstruct,
     "Split" -> Split,
     "DAGify" -> DAGify

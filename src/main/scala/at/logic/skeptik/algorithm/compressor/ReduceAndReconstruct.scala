@@ -10,7 +10,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractReduceAndReconstruct
-extends ProofCompressor[SequentProofNode] with RepeatableAlgorithm[SequentProofNode] {
+extends ProofCompressor[SequentProofNode] {
 
   protected def reduce(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
       (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode):SequentProofNode =
@@ -99,7 +99,7 @@ extends ProofCompressor[SequentProofNode] with RepeatableAlgorithm[SequentProofN
 }
 
 object ReduceAndReconstruct
-extends AbstractReduceAndReconstruct with RepeatableAlgorithm[SequentProofNode] {
+extends AbstractReduceAndReconstruct {
 
   def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, a2)))
 

@@ -250,8 +250,7 @@ extends AbstractSplit {
 }
 
 abstract class Split
-extends CottonSplit 
-with RandomCompressionRepeatableAlgorithm[SequentProofNode] {
+extends CottonSplit  {
   def apply(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
     val selectedVariable = chooseAVariable(literalAdditivity, totalAdditivity)
@@ -263,7 +262,7 @@ object Split
 extends Split with RandomChoice
 
 abstract class TerminatingSplit
-extends CottonSplit with RepeatableWhileCompressingAlgorithm[SequentProofNode] {
+extends CottonSplit {
   def apply(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
     def repeat(sum: Long):Proof[SequentProofNode] = {

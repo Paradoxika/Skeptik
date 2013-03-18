@@ -14,7 +14,7 @@ import scala.collection.mutable.{HashMap => MMap}
   * subproofs.
   */
 abstract class MultiSplit (nbVariables: Int)
-extends AbstractSplit with RandomCompressionRepeatableAlgorithm[SequentProofNode] {
+extends AbstractSplit {
 
   /** Binary tree to store partial proofs.
     *

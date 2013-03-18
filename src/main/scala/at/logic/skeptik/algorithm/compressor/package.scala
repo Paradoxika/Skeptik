@@ -14,16 +14,4 @@ package object compressor {
     case _::_ => 2
   }
 
-  /* Scala forbids to inherit from different function traits. As a workaround,
-   * some implicit conversion are provided.
-   */
-
-  /* AbstratcProofCompressor to (Proof[P] => Proof[P]) */
-  implicit def compressorAlgorithmToFunctionProof[P <: ProofNode[Judgment,P]](a: ProofCompressor[P]) =
-    { (p: Proof[P]) => a(p) }
-
-  /* AbstratcProofCompressor to ((Proof[P], Guard[P]) => Proof[P]) */
-  implicit def compressorAlgorithmToFunctionProofWithGuard[P <: ProofNode[Judgment,P]](a: ProofCompressor[P]) =
-    { (p: Proof[P], g: Guard[P]) => a(p,g) }
-
 }
