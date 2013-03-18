@@ -5,7 +5,7 @@ import at.logic.skeptik.util.math.max
 
 
 package object proof {
-  def measure[N <: ProofNode[_,N]](p: Proof[N]) = {
+  def measure[N <: ProofNode[Judgment,N]](p: Proof[N]) = {
     var length = 0
     var width = 0
     val height =

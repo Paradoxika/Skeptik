@@ -1,5 +1,6 @@
 package at.logic.skeptik.algorithm
 
+import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof._
 import at.logic.skeptik.algorithm.compressor.guard._
 import language.implicitConversions
@@ -18,11 +19,11 @@ package object compressor {
    */
 
   /* AbstratcProofCompressor to (Proof[P] => Proof[P]) */
-  implicit def compressorAlgorithmToFunctionProof[P <: ProofNode[_,P]](a: ProofCompressor[P]) =
+  implicit def compressorAlgorithmToFunctionProof[P <: ProofNode[Judgment,P]](a: ProofCompressor[P]) =
     { (p: Proof[P]) => a(p) }
 
   /* AbstratcProofCompressor to ((Proof[P], Guard[P]) => Proof[P]) */
-  implicit def compressorAlgorithmToFunctionProofWithGuard[P <: ProofNode[_,P]](a: ProofCompressor[P]) =
+  implicit def compressorAlgorithmToFunctionProofWithGuard[P <: ProofNode[Judgment,P]](a: ProofCompressor[P]) =
     { (p: Proof[P], g: Guard[P]) => a(p,g) }
 
 }

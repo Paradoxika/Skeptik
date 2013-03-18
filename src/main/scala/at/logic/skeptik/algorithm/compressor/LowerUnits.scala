@@ -12,8 +12,7 @@ extends ProofCompressor[SequentProofNode] with IdempotentAlgorithm[SequentProofN
   private def collectUnits(proof: Proof[SequentProofNode]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
     (proof :\ (Nil:List[SequentProofNode])) { (node, acc) =>
-      if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) 
-        node::acc else acc
+      if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) node::acc else acc
     }
   }
 
