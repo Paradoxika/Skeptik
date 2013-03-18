@@ -153,7 +153,7 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 abstract class AbstractSplit
-extends ProofCompressor[SequentProofNode] {
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   
   protected def computeAdditivities(proof: Proof[SequentProofNode]) = {
     var totalAdditivity = 0.toLong

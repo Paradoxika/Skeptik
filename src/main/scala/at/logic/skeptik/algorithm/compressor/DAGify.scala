@@ -6,7 +6,9 @@ import at.logic.skeptik.proof.sequent.lk.{Axiom, CutIC}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.{HashMap => MMap}
 
-object DAGify extends ProofCompressor[SequentProofNode] {
+
+object DAGify 
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   def apply(proof: Proof[SequentProofNode]) = {
     val nodeMap = MMap[Sequent,SequentProofNode]()
 

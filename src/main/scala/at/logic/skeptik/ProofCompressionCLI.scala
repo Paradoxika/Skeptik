@@ -56,8 +56,8 @@ object ProofCompressionCLI {
                           p
                         }
                         else proof
-                        
-      
+         
+
       // Writing the compressed proof
       if (config.output != "") {
         print("Writing compressed proof...")

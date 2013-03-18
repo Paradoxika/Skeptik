@@ -6,7 +6,8 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{Queue, HashMap => MMap}
 import at.logic.skeptik.proof.Proof
 
-object LowerUnits extends ProofCompressor[SequentProofNode] {
+object LowerUnits 
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
   private def collectUnits(proof: Proof[SequentProofNode]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1

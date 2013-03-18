@@ -10,7 +10,7 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import collection.Map
 
 abstract class AbstractRPILUAlgorithm
-extends ProofCompressor[SequentProofNode] {
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
 
 
