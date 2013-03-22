@@ -66,15 +66,15 @@ empirically compared on thousands of proofs produced by the SMT-Solver \veriT.
 Sat-solvers are among the most successful automated deduction tools available today. As standalone
 tools, they can already be applied to a wide range of problems, especially considering that, due to
 the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a
-propositional formula. And, nevertheless, despite the theoretical difficulty associated with NP
+propositional formula. Despite the theoretical difficulty associated with NP
 problems, state-of-the-art sat-solving techniques perform surprisingly well in practice
 \cite{sat-competition}. With the aim of leveraging this efficiency, sat-solvers have been embedded
 into various other automated deduction tools that target problems described in more expressive
 logics. The most prominent examples are SMT-solvers \cite{veriT}, for checking satisfiability modulo
-theories for equality, linear arithmetic, bit-vectors, arrays and others. But more recently,
+theories for equality, linear arithmetic, bit-vectors, arrays and others. More recently,
 interactive proof assistants \cite{isabelle-blanchette-boehme} and automated first-order
 (\cite{iProver}) and even higher-order \cite{satallax} theorem provers have
-taken advantage of embedding sat-solvers too.
+taken advantage of embedding sat-solvers as well.
 
 In such a scenario, it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
 answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability).
@@ -135,7 +135,7 @@ proof of a clause $\clause$ iff it is inductively constructible according to the
 %
 \begin{enumerate}
   \item If $\Gamma$ is a clause, $\axiom{\Gamma}$ denotes some proof $\langle \{ \n \}, \varnothing,
-    \Gamma \} \rangle$, where $\n$ is a new node.
+    \Gamma \rangle$, where $\n$ is a new node.
   \item If $\psi_L$ is a proof $\langle V_L, E_L, \clause_L \rangle$ and
     $\psi_R$ is a proof $\langle V_R, E_R, \clause_R \rangle$ and $\ell$ is a literal such that
     $\dual{\ell} \in \clause_L$ and $\ell \in \clause_R$, then
@@ -297,7 +297,7 @@ $\Conclusion{\psi'} \subseteq \Conclusion{\psi}$.
 This idea has been introduced in \cite{LURPI} for the {\LowerUnits} algorithm. Units are subproofs
 with a conclusion consisting of only one literal. Such a subproof can always be lowered. The
 proposed algorithm lowers every unit with more than one child. Care is taken to reintroduce units in
-an order corresponding to the subproof relation: if a unit $\varphi_2$ is an subproof of a unit
+an order corresponding to the subproof relation: if a unit $\varphi_2$ is a subproof of a unit
 $\varphi_1$ then $\varphi_2$ has to be reintroduced after (i.e. below) $\varphi_1$.
 
 A possible presentation of {\LowerUnits} is shown in Algorithm \ref{algo:LU}. Units are collected
@@ -340,7 +340,7 @@ top-down traversal. The last for-loop performs the reintroduction of units.
 
 {\LowerUnits} does not lower every lowerable subproof. In particular, it does not take into
 account the already lowered subproofs. For instance, if a unit $\varphi_1$ proving $\{a\}$ has
-already been lowered, a subproof $\varphi_2$ with conclusion $\{\neg a,b\}$ may be lowered too and
+already been lowered, a subproof $\varphi_2$ with conclusion $\{\neg a,b\}$ may be lowered as well and
 reintroduced above $\varphi_1$. But care must be taken, because if $\neg a$ is a valent literal of
 $\varphi_2$ then lowering $\varphi_2$ will introduce $a$ in the resulting proof's conclusion.
 
@@ -394,15 +394,14 @@ than in the original proof $\psi$. The additional child is created when $\varphi
 All the other children are reintroduced with the reintroduction of $\varphi_i$, because
 $\varphi_j$ was not deleted from $\varphi_i$.
 
-To solve this issue, {\LowerUnivalents} traverses the proof in a top-down manner and
-simultaneously deletes already collected univalent subproofs, as sketched in Algo. \ref{algo:LUniv}.
-Although the call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
+To solve this issue, {\LowerUnivalents} traverses the proof in a top-down manner and simultaneously
+deletes already collected univalent subproofs, as sketched in Algo. \ref{algo:LUniv}.  Although the
+call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
 \ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
 \ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
 as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
-implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, as
-long as the univalent test (at line \ref{line:LUniv:lunivtest}) can be performed in constant bounded
-time. 
+implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof if the
+univalent test (at line \ref{line:LUniv:lunivtest}) is performed in constant bounded time. 
 
 %This and other optimizations are shown in the more detailed Algo. \ref{algo:fullLUniv}. 
 
@@ -545,8 +544,8 @@ Every node in a proof $\langle V, E, \Gamma \rangle$ has exactly two outgoing ed
 root of an axiom. Hence the number of axioms is $|V| - \frac{1}{2}\,|E|$ and because there is at
 least one axiom, the average number of active literals per node is strictly less than two.
 Therefore, if {\LowerUnivalents} is implemented as an improved recursive \FuncSty{delete}, its time
-complexity remains linear as long as membership of literals to the set $\Delta$ can be computed in
-constant time.
+complexity remains linear if membership of literals to the set $\Delta$ is computed in constant
+time.
 
 \begin{proposition} \label{prop:compression}
 Given a proof $\psi$,
@@ -607,7 +606,7 @@ compression ratio in reasonable delay (\cite{LURPI}). Unfortunately, neither {\L
 the other one. A reasonable solution is to perform both algorithms and then to choose the smallest
 compressed proof.
 
-But sequential composition is time consuming. To fasten DAG traversal, it is useful to topologically
+But sequential composition is time consuming. To speed up DAG traversal, it is useful to topologically
 sort the nodes of the graph first. But in case of sequential composition this costly operation has to
 be done twice. Moreover, some traversals, like deletion, are identical in both algorithms and might
 be shared. Whereas implementing a non-sequential combination of {\RPI} after {\LowerUnits} is not
@@ -646,7 +645,7 @@ recursive \FuncSty{delete} improvement.
 The algorithms have been experimented on 5\,059 proofs produced by the SMT-solver
 {\veriT}\footnote{\url{http://www.verit-solver.org/}} on unsatisfiable benchmarks from the
 SMT-Lib\footnote{\url{http://www.smtlib.org/}}.  The details on the number of proofs per SMT category
-are shown on Table \ref{tab:benchmarks}.  The proofs were translated into pure resolution proofs by
+are shown in Table \ref{tab:benchmarks}.  The proofs were translated into pure resolution proofs by
 considering every non-resolution inference as an axiom.
 
 \begin{table}[tb]
@@ -677,7 +676,7 @@ In order to compare the algorithms described here with others, the following alg
   \item[LU.RPI:] the sequential composition of {\LowerUnits} after {\RPI};
   \item[LUnivRPI:] the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
   \item[RPI:] the \texttt{RecyclePivotsWithIntersection} from \cite{LURPI};
-  \item[Split:] the Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
+  \item[Split:] Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
   \item[RedRec:] the \texttt{ReduceAndReconstruct} algorithm from \cite{RedRec};
   \item[Best RPILU/LU.RPI:] which performs both \texttt{RPILU} and \texttt{LU.RPI} and chooses the smallest resulting compressed proof;
   \item[Best RPILU/LUnivRPI:] which performs \texttt{RPILU} and \texttt{LUnivRPI} and chooses the smallest resulting
@@ -692,7 +691,7 @@ VSC\nobreakdash-2. Each algorithm was executed in a single core. But the amount 
 at each cluster node (16 GB) has been useful to compress the biggest proofs (with more than $10^6$ nodes).
 
 
-The overall results of the experiments are shown on Table \ref{tab:average}. The compression ratios
+The overall results of the experiments are shown in Table \ref{tab:average}. The compression ratios
 in the second column are computed according to formula (\ref{eq:compression}), in which $\psi$
 ranges over all the proofs in the benchmark and $\psi'$ ranges over the corresponding compressed
 proofs.
@@ -760,7 +759,7 @@ with the same conclusion. This results in {\LowerUnits} being unable to reduce u
 But as {\LowerUnivalents} lowers non-unit subproofs and performs some partial regularization, it
 achieves some unsat core reduction, as noticeable in subfigure (b).
 
-The comparison of the sequential \texttt{LU.RPI} with the non-sequential {\LUnivRPI} shown on Fig.
+The comparison of the sequential \texttt{LU.RPI} with the non-sequential {\LUnivRPI} shown in Fig.
 \ref{fig:LUnivRPI} outlines the ability of {\LowerUnivalents} to be efficiently combined with other
 algorithms. Not only compression ratios are improved but {\LUnivRPI} is faster than the sequential
 composition for more than 80 \% of the proofs.
@@ -788,7 +787,8 @@ As discussed in Section \ref{sec:LUnivRPI}, the proposed algorithm can be embedd
 an example, it has been shown that the combination of {\LowerUnivalents} with {\RPI}, compared to
 the sequential composition of {\LowerUnits} after {\RPI}, results in a better compression ratio with
 only a small processing time overhead (Figure \ref{fig:LUnivRPI}). Other compression algorithms that also have a subproof
-deletion or reconstruction phase (e.g. \ReduceReconstruct) could probably benefit from being combined with {\LowerUnivalents} too.
+deletion or reconstruction phase (e.g. \ReduceReconstruct) could probably benefit from being
+combined with {\LowerUnivalents} as well.
 
 
 
