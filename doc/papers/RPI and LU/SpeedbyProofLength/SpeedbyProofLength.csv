@@ -1,0 +1,13 @@
+"Benchmark","Proof","Length","LU(p)","RP(p)","RPI(p)","RPI(LU(p))","LU(RPI(p))"
+"SoftwareVerification/Babic","dspam_dump_vc972",956,3111,267,313,2000,1421
+"SoftwareVerification/Nec","11-U-7061",1706,903,186,312,1163,1017
+"SoftwareVerification/Nec","25-U-7061",2124,3735,2317,2375,2118,3456
+"Manolios","c10ni_s",7995,1184,926,920,903,1005
+"SoftwareVerification/Nec","2-U-10652",17983,4295,420,347,840,1777
+"HardwareVerification/IBM",45,22856,1121,494,530,538,533
+"SoftwareVerification/Nec","7-U-10652",114054,1104,59,65,130,56
+"Manolios","c8idw_s",122397,991,566,676,613,779
+"SoftwareVerification/Nec","0-U-7061",192641,558,263,347,314,319
+"Manolios","f6bid",202853,846,1250,1070,528,1019
+"SoftwareVerification/Nec","13-U-9007",230723,510,323,305,288,274
+"HardwareVerification/IBM",100,637356,74,682,628,396,471

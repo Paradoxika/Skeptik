@@ -4,7 +4,7 @@ import at.logic.skeptik.proof._
 import at.logic.skeptik.algorithm.compressor.guard._
 
 
-/* Base trait. Every concrete algorithm must extends it.
+/* Base trait. Every concrete algorithm must extend it.
  */
 trait CompressorAlgorithm [P <: ProofNode[_,P]]
 {
@@ -15,16 +15,16 @@ trait CompressorAlgorithm [P <: ProofNode[_,P]]
 
 }
 
-/* Every algorithm that should never be called iteratively should inherit that
+/* Every algorithm that should never be called iteratively should inherit this
  * trait.
  */
 trait IdempotentAlgorithm [P <: ProofNode[_,P]]
 extends CompressorAlgorithm[P] {
 
   def apply(proof: Proof[P], guard: Guard[P]):Proof[P] = {
-    val compressedProofNode = apply(proof)
-    guard(compressedProofNode)
-    compressedProofNode
+    val compressedProof = apply(proof)
+    guard(compressedProof)
+    compressedProof
   }
 
 }

@@ -1,0 +1,212 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+
+
+############################################################
+# Constants
+############################################################
+use Readonly;
+
+############################################################
+# DSL
+############################################################
+sub compile {
+    # Type  : 
+    # Descr : Translate DSL to Perl
+    # Params: DSL
+    # Return: Perl
+    # Throws: 
+    my ($dsl) = @_;
+
+    $dsl =~ s'%o'$old[$i]'g;
+    $dsl =~ s'%_'$csv_row->[$col]'g;
+    $dsl =~ s/%(\d+)/\$csv_row->[$1]/g;
+
+    return $dsl;
+}
+
+sub compile_last {
+    # Type  : 
+    # Descr : Translate DSL to Perl
+    # Params: DSL
+    # Return: Perl
+    # Throws: 
+    my ($dsl) = @_;
+
+    $dsl =~ s'%[_o]'$old[$i]'g;
+    $dsl =~ s/%(\d+)/\$old[$1]/g;
+
+    return $dsl;
+}
+
+
+############################################################
+# Arguments
+############################################################
+my $initial_value = 0;
+my $last_function;
+while ($ARGV[0] =~ /^-/) {
+  if ($ARGV[0] eq '-i') {
+    $initial_value = $ARGV[1];
+    splice @ARGV, 0, 2;
+  }
+  elsif ($ARGV[0] eq '-l') {
+    $last_function = compile_last($ARGV[1]);
+    splice @ARGV, 0, 2;
+  }
+}
+my $csvfile = shift @ARGV;
+my $function = compile(shift @ARGV);
+my @columns = split /,/, (shift @ARGV);
+
+#print STDERR "function : $function\n";
+
+############################################################
+# Globals
+############################################################
+my @old = map { eval $initial_value } @columns;
+
+
+############################################################
+# Main
+############################################################
+
+use Parse::CSV;
+
+# Parse
+my $csv = Parse::CSV->new( file => $csvfile );
+while (my $csv_row = $csv->fetch ) {
+  for my $i (0..$#columns) {
+    my $col = $columns[$i];
+    $old[$i] = eval $function;
+    die $@ if ($@);
+  }
+}
+
+# Last
+if (defined $last_function) {
+  for my $i (1..$#columns) {
+    $old[$i] = eval $last_function;
+    die $@ if ($@);
+  }
+  splice @old, 0, 1;
+}
+
+#Output
+print join(',', @old) . "\n";
+
+
+
+__END__
+
+=head1 NAME
+
+csvaggregate - Compute aggregate function on a CSV file
+
+=head1 SYNOPSIS
+
+    csvaggregate [options] <csvfile> <formula> <columns>
+
+=head1 DESCRIPTION
+
+Compute some user defined aggregate function on a CSV file.
+
+A persistent value called old is maintained for each column of the file. On each line of the CSV file,
+a new value for each cell is computed based on the old value, the current value in the cell and any other
+value on the current line. At last, a final computation may be proceeded. The result is writen as a CSV line
+on standart output.
+
+=head1 REQUIRED ARGUMENTS
+
+=over
+
+=item <csvfile>
+
+The name of the CSV file to read from.
+
+=item <formula>
+
+The formula to apply on each cell.
+
+=item <columns>
+
+The columns to take into account, separated by colons.
+
+=back
+
+=head1 OPTIONAL ARGUMENTS
+
+=over
+
+=item -i[nitial] <initial_value>
+
+The value to put into old before the first line is proceeded. Default to 0.
+
+=for Euclid:
+  initial_value.type: number
+  initial_value.default: 0
+
+=item -l <formula>
+
+Apply the formula at last and remove the first column.
+
+=back
+
+=head1 FORMULA
+
+The formula may be any valid Perl expression. The following placeholder have special meaning.
+
+=over
+
+=item %o
+
+The old value.
+
+=item %_
+
+The current cell value.
+
+=item %<n>
+
+The value in at the current line and at the nth column.
+
+=back
+
+=head1 EXAMPLES
+
+The sum of the five first columns :
+
+csvaggregate file.csv '%o+%_' 0,1,2,3,4
+
+The average of the five first columns :
+
+csvaggregate -i '[0,0]' -l '%o[1]/%o[0]' file.csv '[%o[0]+1, %o[1]+%_]' 0,0,1,2,3,4
+
+=head1 DEPENDENCIES
+
+L<Parse::CSV>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2012 Joseph Boudou.
+
+This script is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

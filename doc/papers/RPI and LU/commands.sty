@@ -1,0 +1,313 @@
+%\theoremstyle{definition} \newtheorem{definition}{Definition}[section]
+%\theoremstyle{definition} \newtheorem{lemma}[definition]{Lemma}
+%\theoremstyle{definition} \newtheorem{theorem}[definition]{Theorem}
+%\theoremstyle{definition} \newtheorem{algorithm}[definition]{Algorithm}
+%\theoremstyle{definition}      \newtheorem{example}[definition]{Example}
+%\theoremstyle{definition}      \newtheorem{remark}[definition]{Remark}
+
+\newenvironment{pfsketch}{\par\noindent\textit{Proof sketch.}\ \ }{\par\medskip\noindent}
+\newenvironment{pf}{\par\noindent\textit{Proof sketch.}\ \ }{}
+\newcommand{\fun}{\rightarrow}
+\newcommand{\QED}{\ensuremath{\Box}}
+
+\newcommand{\verit}{{\sf veriT}\xspace}
+
+\newcommand{\RName}[1]{\RightLabel{#1}}
+\newcommand{\p}[1]{\hat{#1}}
+\newcommand{\ub}[2]{\underbrace{#1}_{#2}}
+
+\newcommand{\TraceFunction}{\mathbf{T}}
+\newcommand{\Trace}[1]{\mathbf{T}(#1)}
+\newcommand{\TraceInverse}[1]{\mathbf{T}^{-1}(#1)}
+
+\newcommand{\RGraphFunction}{\mathbf{G}}
+\newcommand{\RGraph}[1]{\mathbf{G}(#1)}
+
+\newcommand{\traceEvaluation}[1]{\langle#1\rangle}
+\newcommand{\traceLink}[1]{\eta[#1]}
+\newcommand{\proofLink}[1]{\eta[#1]}
+
+
+\newcommand{\atoms}{\mathcal{L^+}}
+\newcommand{\literals}{\mathcal{L}}
+\newcommand{\clauses}{\mathcal{C}}
+\newcommand{\clausesNonTaut}{\mathcal{C}_{\circ}}
+\newcommand{\clausesWithTop}{\mathcal{C}_{\circ}^{\top}}
+\newcommand{\traces}{\mathcal{T}}
+\newcommand{\proofs}{\mathcal{P}}
+\newcommand{\graphs}{\mathcal{G}}
+
+\newcommand{\tRes}{\odot}
+\newcommand{\tResFact}{\otimes}
+\newcommand{\tResChain}{\ominus}
+\newcommand{\tResStar}{\circledast}
+%\newcommand{\tFact}[2]{\widehat{#1}^{#2}}
+\newcommand{\tFact}[2]{\lceil #1 \rceil^{#2}}
+
+\newcommand{\labelE}{\beta_e}
+\newcommand{\labelV}{\beta_v}
+\newcommand{\epo}{\prec} % Partial Order for Edges
+\newcommand{\nepo}{\nprec} % Partial Order for Edges
+
+\newcommand{\multiplicity}[2]{\mathbf{1}_{#2}(#1)}
+
+
+
+\newcommand{\RRes}{\mathbf{r}}
+\newcommand{\RResChain}{\mathbf{\tilde{r}}}
+\newcommand{\RResStar}{\mathbf{r^{\star}}}
+\newcommand{\RFact}{\mathbf{f}}
+\newcommand{\RResFact}{\mathbf{r^f}}
+
+\newcommand{\K}{\kappa}
+\newcommand{\dual}[1]{\overline{#1}}
+\newcommand{\prop}[1]{|#1|}
+
+\newcommand{\topOne}{\top_1}
+\newcommand{\topZero}{\top_0}
+\newcommand{\tautNorm}[1]{\mathrm{t}(#1)}
+\newcommand{\tautNormFunction}{\mathrm{t}}
+
+\newcommand{\deleteLiteralOnce}[2]{#2\setminus \{ #1 \} }
+\newcommand{\deleteLiteralAll}[2]{#2\setminus \{ #1,\ldots, #1 \} }
+\newcommand{\deleteLiteralN}[3]{#2\setminus \{ \overbrace{#1,\ldots, #1}^{#3} \} }
+
+% Meta-Notation
+\newcommand{\defEq}{\doteq}
+
+% Content Presentation
+\newcommand{\ontop}[2]{\begin{array}{c}{#1}\\ {#2}\end{array}}
+\newcommand{\overb}[2]{\overbrace{#1}^{#2}}
+\newcommand{\underb}[2]{\underbrace{#1}_{#2}}
+
+% Logical Symbols
+\newcommand{\imp}{\rightarrow}
+\newcommand{\biimp}{\leftrightarrow}
+\newcommand{\all}{\forall}
+\newcommand{\ex}{\exists}
+\newcommand{\seq}{\vdash}
+
+% Names of Calculi
+\newcommand{\LK}{\mathbf{LK}}
+\newcommand{\LKP}{\mathbf{LK^P}}
+
+% Proof Sizes
+\newcommand{\prooflength}[1]{\mathit{length}(#1)}
+\newcommand{\proofsizeSymbol}[1]{|#1|}
+\newcommand{\proofsizeAtomic}[1]{|#1|_a}
+\newcommand{\proofsizeLiteral}[1]{|#1|_{\ell}}
+
+% Formula Transformations
+\newcommand{\subst}[2]{\ensuremath{\{#1\leftarrow #2\}}}
+
+
+% CERes Methods
+\newcommand{\CERes}{\mathrm{CERes}}
+\newcommand{\CEResS}{\mathrm{CERes}_S}
+\newcommand{\CEResSS}{\mathrm{CERes}^S_S}
+\newcommand{\CEResSO}{\mathrm{CERes}^O_S}
+\newcommand{\CEResSwap}{{\mathrm{CERes}_W}}
+\newcommand{\CEResSwapO}{{\mathrm{CERes}^O_W}}
+\newcommand{\CEResP}{\mathrm{CERes}_P}
+\newcommand{\CEResPS}{\mathrm{CERes}^S_P}
+\newcommand{\CEResPO}{\mathrm{CERes}^O_P}
+\newcommand{\CEResD}{\mathrm{CERes}_D}
+\newcommand{\CEResDD}{\mathrm{CERes}^D_D}
+\newcommand{\CEResDSwap}{\mathrm{CERes}_{DW}}
+\newcommand{\CEResDSwapDSwap}{\mathrm{CERes}^{DW}_{DW}}
+
+% CERes Normalization
+\newcommand{\CEResNF}[2]{\mathrm{CERes}(#1,#2)}
+\newcommand{\CEResNFSS}[2]{\mathrm{CERes}^S_S(#1,#2)}
+\newcommand{\CEResNFSO}[2]{\mathrm{CERes}^O_S(#1,#2)}
+\newcommand{\CEResNFSwapS}[2]{\mathrm{CERes}^S_W(#1,#2)}
+\newcommand{\CEResNFSwapO}[2]{\mathrm{CERes}^O_W(#1,#2)}
+\newcommand{\CEResNFPS}[2]{\mathrm{CERes}^S_P(#1,#2)}
+\newcommand{\CEResNFPO}[2]{\mathrm{CERes}^O_P(#1,#2)}
+\newcommand{\CEResNFDD}[2]{\mathrm{CERes}^D_D(#1,#2)}
+\newcommand{\CEResNFDSwapDSwap}[2]{\mathrm{CERes}^{DW}_{DW}(#1,#2)}
+\newcommand{\CEResNFComplex}[2]{\mathrm{CCERes}(#1,#2)}
+\newcommand{\CEResNFComplexSwapO}[2]{\mathrm{CCERes}^O_W(#1,#2)}
+\newcommand{\CEResQuant}{\mathrm{QCERes}}
+\newcommand{\CEResNFQuant}[2]{\mathrm{QCERes}(#1,#2)}
+
+% CIRes Method and Normalization
+\newcommand{\CIRes}{\mathrm{CIRes}}
+\newcommand{\CIResNF}[2]{\mathrm{CIRes}(#1,#2)}
+\newcommand{\CIResNFSwapO}[2]{\mathrm{CIRes}^O_W(#1,#2)}
+
+
+\newcommand{\occCutPert}[1]{\Omega_{CP}(#1)}   % Cut-pertinent occurrences of a proof. Argument: proof.
+\newcommand{\occCutImpert}[1]{\Omega_{CI}(#1)}   % Cut-impertinent occurrences of a proof. Argument: proof.
+\newcommand{\occAxLinked}[2]{\Omega_{#2}(#1)} % Axiom-linkage Relation
+\newcommand{\occInference}[2]{\Omega_{#2}(#1)}
+
+\newcommand{\structdual}{\neg}
+\newcommand{\structtimes}{\otimes}
+\newcommand{\structplus}{\oplus}
+\newcommand{\structtimesEmpty}{\epsilon_{\structtimes}}
+\newcommand{\structplusEmpty}{\epsilon_{\structplus}}
+\newcommand{\structplusBig}{\bigoplus}
+\newcommand{\structtimesBig}{\bigotimes}
+
+\newcommand{\pertstruct}[2]{\mathcal{S}_{#1}^{#2}} % Pertinent Structure of a proof with respect to a set of occurrences. Argument: proof; set of occurrences.
+\newcommand{\cutpertstruct}[1]{\mathcal{S}_{#1}} % Cut Pertinent Structure of a proof. Argument: proof; set of occurrences.
+
+\newcommand{\normalizePlusTimesStandard}{\leadsto_{\structplus\structtimes}}
+\newcommand{\normalizePlusTimesProfile}{\leadsto_{\structplus\structtimes_{P}}}
+\newcommand{\normalizePlusTimesSwap}{\leadsto_{\structplus\structtimes_{W}}}
+\newcommand{\clausify}[1]{\textrm{cl}(#1)}
+\newcommand{\clauseset}[1]{\mathcal{C}_{#1}}
+\newcommand{\clausesetStandard}[1]{\mathcal{C}^S_{#1}}
+\newcommand{\clausesetSwap}[2]{\mathcal{C}^W_{#1|#2}}
+\newcommand{\clausesetSwapUnique}[1]{\mathcal{C}^{W}_{#1}}
+\newcommand{\clausesetProfile}[1]{\mathcal{C}^{P}_{#1}}
+\newcommand{\clausesetDefinitional}[1]{\mathcal{C}^{D}_{#1}}
+\newcommand{\clausesetSwappedDefinitional}[2]{\mathcal{C}^{D}_{#1|#2}}
+\newcommand{\clausesetSwappedDefinitionalUnique}[1]{\mathcal{C}^{D}_{#1}}
+
+\newcommand{\projectionS}[2]{\lfloor #1 \rfloor^S_{#2}}
+\newcommand{\projectionO}[2]{\lfloor #1 \rfloor_{#2}^O }
+\newcommand{\projectionDDefinitional}[2]{\lfloor #1 \rfloor_{#2}^{D_D} }
+\newcommand{\projectionDProper}[2]{\lfloor #1 \rfloor_{#2}^{D_P} }
+\newcommand{\projectionDWDefinitional}[2]{\lfloor #1 \rfloor_{#2}^{DW_D}}
+\newcommand{\projectionDWPure}[2]{\lfloor #1 \rfloor_{#2}^{DW_P}}
+\newcommand{\projectionDWMixed}[2]{\lfloor #1 \rfloor_{#2}^{DW_M}}
+
+\newcommand{\replacePert}[2]{Y_{\structplus}^{#2}(#1)}
+\newcommand{\replaceImpert}[2]{Y_{\structtimes}^{#2}(#1)}
+
+\newcommand{\axlink}{\multimapdotboth} % Axiom-linkage Relation
+
+\newcommand{\partialProof}[2]{\llparenthesis#1\rrparenthesis_{#2}}
+\newcommand{\slice}[2]{\lbag#1\rbag_{\{#2\}}}
+\newcommand{\WFix}[1]{W_{\mathrm{fix}}(#1)}
+\newcommand{\EliminateY}[1]{\llbracket #1 \rrbracket}
+
+
+% CERes System
+\newcommand{\CEResSystem}{\textbf{CERes}}
+\newcommand{\ProofTool}{\textbf{ProofTool}}
+\newcommand{\HLK}{\textbf{HLK}}
+
+% Reductive Cut-Elimination
+\newcommand{\cutred}{\rhd}
+\newcommand{\cutredProp}{\cutred_p}
+\newcommand{\cutredPropAnd}{\cutred_{p_{\wedge}}}
+\newcommand{\cutredPropOr}{\cutred_{p_{\vee}}}
+\newcommand{\cutredPropImp}{\cutred_{p_{\imp}}}
+\newcommand{\cutredPropNeg}{\cutred_{p_{\neg}}}
+\newcommand{\cutredQuant}{\cutred_q}
+\newcommand{\cutredQuantAll}{\cutred_{q_{\all}}}
+\newcommand{\cutredQuantEx}{\cutred_{q_{\ex}}}
+\newcommand{\cutredDef}{\cutred_{d}}
+\newcommand{\cutredNonAxiom}{\cutred_{\overline{a}}}
+\newcommand{\cutredNonAxiomWeakContr}{\cutred_{\tilde{a}}}
+\newcommand{\cutredAxiom}{\cutred_a}
+\newcommand{\cutredWeak}{\cutred_w}
+\newcommand{\cutredWeakNonAtomic}{\cutred_{w_{\scriptscriptstyle{\mathit{non-atomic}}}}}
+\newcommand{\cutredContr}{\cutred_c}
+\newcommand{\cutredContrNonAtomic}{\cutred_{c_{\scriptscriptstyle{\mathit{non-atomic}}}}}
+\newcommand{\cutredRank}{\cutred_r}
+\newcommand{\cutredRankNonAtomic}{\cutred_{r_{\scriptscriptstyle{\mathit{non-atomic}}}}}
+\newcommand{\cutredRankUnary}{\cutred_{r_1}}
+\newcommand{\cutredRankBinary}{\cutred_{r_2}}
+
+
+% Various Functions
+\newcommand{\argmin}[1]{\underset{#1}{\operatorname{argmin}}\;}
+
+
+% Colors
+\usepackage{color}
+
+\definecolor{greenyellow}   {cmyk}{0.15, 0   , 0.69, 0   }
+\definecolor{yellow}        {cmyk}{0   , 0   , 1   , 0   }
+\definecolor{goldenrod}     {cmyk}{0   , 0.10, 0.84, 0   }
+\definecolor{dandelion}     {cmyk}{0   , 0.29, 0.84, 0   }
+\definecolor{apricot}       {cmyk}{0   , 0.32, 0.52, 0   }
+\definecolor{peach}         {cmyk}{0   , 0.50, 0.70, 0   }
+\definecolor{melon}         {cmyk}{0   , 0.46, 0.50, 0   }
+\definecolor{yelloworange}  {cmyk}{0   , 0.42, 1   , 0   }
+\definecolor{orange}        {cmyk}{0   , 0.61, 0.87, 0   }
+\definecolor{burntorange}   {cmyk}{0   , 0.51, 1   , 0   }
+\definecolor{bittersweet}   {cmyk}{0   , 0.75, 1   , 0.24}
+\definecolor{redorange}     {cmyk}{0   , 0.77, 0.87, 0   }
+\definecolor{mahogany}      {cmyk}{0   , 0.85, 0.87, 0.35}
+\definecolor{maroon}        {cmyk}{0   , 0.87, 0.68, 0.32}
+\definecolor{brickred}      {cmyk}{0   , 0.89, 0.94, 0.28}
+\definecolor{red}           {cmyk}{0   , 1   , 1   , 0   }
+\definecolor{orangered}     {cmyk}{0   , 1   , 0.50, 0   }
+\definecolor{rubinered}     {cmyk}{0   , 1   , 0.13, 0   }
+\definecolor{wildstrawberry}{cmyk}{0   , 0.96, 0.39, 0   }
+\definecolor{salmon}        {cmyk}{0   , 0.53, 0.38, 0   }
+\definecolor{carnationpink} {cmyk}{0   , 0.63, 0   , 0   }
+\definecolor{magenta}       {cmyk}{0   , 1   , 0   , 0   }
+\definecolor{violetred}     {cmyk}{0   , 0.81, 0   , 0   }
+\definecolor{rhodamine}     {cmyk}{0   , 0.82, 0   , 0   }
+\definecolor{mulberry}      {cmyk}{0.34, 0.90, 0   , 0.02}
+\definecolor{redviolet}     {cmyk}{0.07, 0.90, 0   , 0.34}
+\definecolor{fuchsia}       {cmyk}{0.47, 0.91, 0   , 0.08}
+\definecolor{lavender}      {cmyk}{0   , 0.48, 0   , 0   }
+\definecolor{thistle}       {cmyk}{0.12, 0.59, 0   , 0   }
+\definecolor{orchid}        {cmyk}{0.32, 0.64, 0   , 0   }
+\definecolor{darkorchid}    {cmyk}{0.40, 0.80, 0.20, 0   }
+\definecolor{purple}        {cmyk}{0.45, 0.86, 0   , 0   }
+\definecolor{plum}          {cmyk}{0.50, 1   , 0   , 0   }
+\definecolor{violet}        {cmyk}{0.79, 0.88, 0   , 0   }
+\definecolor{royalpurple}   {cmyk}{0.75, 0.90, 0   , 0   }
+\definecolor{blueviolet}    {cmyk}{0.86, 0.91, 0   , 0.04}
+\definecolor{periwinkle}    {cmyk}{0.57, 0.55, 0   , 0   }
+\definecolor{cadetblue}     {cmyk}{0.62, 0.57, 0.23, 0   }
+\definecolor{cornflowerblue}{cmyk}{0.65, 0.13, 0   , 0   }
+\definecolor{midnightblue}  {cmyk}{0.98, 0.13, 0   , 0.43}
+\definecolor{navyblue}      {cmyk}{0.94, 0.54, 0   , 0   }
+\definecolor{royalblue}     {cmyk}{1   , 0.50, 0   , 0   }
+\definecolor{blue}          {cmyk}{1   , 1   , 0   , 0   }
+\definecolor{cerulean}      {cmyk}{0.94, 0.11, 0   , 0   }
+\definecolor{cyan}          {cmyk}{1   , 0   , 0   , 0   }
+\definecolor{processblue}   {cmyk}{0.96, 0   , 0   , 0   }
+\definecolor{skyblue}       {cmyk}{0.62, 0   , 0.12, 0   }
+\definecolor{turquoise}     {cmyk}{0.85, 0   , 0.20, 0   }
+\definecolor{tealblue}      {cmyk}{0.86, 0   , 0.34, 0.02}
+\definecolor{aquamarine}    {cmyk}{0.82, 0   , 0.30, 0   }
+\definecolor{bluegreen}     {cmyk}{0.85, 0   , 0.33, 0   }
+\definecolor{emerald}       {cmyk}{1   , 0   , 0.50, 0   }
+\definecolor{junglegreen}   {cmyk}{0.99, 0   , 0.52, 0   }
+\definecolor{seagreen}      {cmyk}{0.69, 0   , 0.50, 0   }
+\definecolor{green}         {cmyk}{1   , 0   , 1   , 0   }
+\definecolor{forestgreen}   {cmyk}{0.91, 0   , 0.88, 0.12}
+\definecolor{pinegreen}     {cmyk}{0.92, 0   , 0.59, 0.25}
+\definecolor{limegreen}     {cmyk}{0.50, 0   , 1   , 0   }
+\definecolor{yellowgreen}   {cmyk}{0.44, 0   , 0.74, 0   }
+\definecolor{springgreen}   {cmyk}{0.26, 0   , 0.76, 0   }
+\definecolor{olivegreen}    {cmyk}{0.64, 0   , 0.95, 0.40}
+\definecolor{rawsienna}     {cmyk}{0   , 0.72, 1   , 0.45}
+\definecolor{sepia}         {cmyk}{0   , 0.83, 1   , 0.70}
+\definecolor{brown}         {cmyk}{0   , 0.81, 1   , 0.60}
+\definecolor{tan}           {cmyk}{0.14, 0.42, 0.56, 0   }
+\definecolor{gray}          {cmyk}{0   , 0   , 0   , 0.50}
+\definecolor{black}         {cmyk}{0   , 0   , 0   , 1   }
+\definecolor{white}         {cmyk}{0   , 0   , 0   , 0   } 
+
+\newcommand{\hA}[1]{{\color{brickred} #1}}
+\newcommand{\hB}[1]{{\color{royalblue} #1}}
+\newcommand{\hC}[1]{{\color{orange} #1}}
+\newcommand{\hD}[1]{{\color{violet} #1}}
+\newcommand{\hE}[1]{{\color{green} #1}}
+\newcommand{\hF}[1]{{\color{olivegreen} #1}}
+\newcommand{\hG}[1]{{\color{brown} #1}}
+\newcommand{\hAa}[1]{{\color{rubinered} #1}}
+\newcommand{\hAb}[1]{{\color{brickred} #1}}
+\newcommand{\hBa}[1]{{\color{royalblue} #1}}
+\newcommand{\hBb}[1]{{\color{cadetblue} #1}}
+\newcommand{\hCa}[1]{{\color{orange} #1}}
+\newcommand{\hCb}[1]{{\color{burntorange} #1}}
+\newcommand{\hDa}[1]{{\color{violet} #1}}
+\newcommand{\hDb}[1]{{\color{blueviolet} #1}}
+\newcommand{\hEa}[1]{{\color{green} #1}}
+\newcommand{\hEb}[1]{{\color{magenta} #1}}
+\newcommand{\hFa}[1]{{\color{olivegreen} #1}}
+\newcommand{\hFb}[1]{{\color{bluegreen} #1}}
+\newcommand{\hGa}[1]{{\color{brown} #1}}
+\newcommand{\hGb}[1]{{\color{tan} #1}}

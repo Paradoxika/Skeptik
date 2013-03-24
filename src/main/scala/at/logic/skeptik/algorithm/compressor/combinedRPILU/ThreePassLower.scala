@@ -7,7 +7,7 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
-import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.mutable.{HashMap => MMap, HashSet => MSet, Stack}
 import collection.Map
 
 abstract class AbstractThreePassLower
@@ -48,7 +48,7 @@ abstract class ThreePassLowerUnits
 extends AbstractThreePassLower {
   protected def collectLowerables(proof: Proof[SequentProofNode]) = {
     val unitsSafeLiterals = MMap[SequentProofNode,IClause]()
-    val orderedUnits = scala.collection.mutable.Stack[SequentProofNode]()
+    val orderedUnits = Stack[SequentProofNode]()
     val rootSafeLiterals = proof.foldRight (IClause()) { (node, safeLiterals) =>
       (fakeSize(node.conclusion.ant), fakeSize(node.conclusion.suc), fakeSize(proof.childrenOf(node))) match {
         case (1,0,2) =>
@@ -71,8 +71,6 @@ extends AbstractThreePassLower {
 
     // First pass
     val (rootSafeLiterals, orderedUnits, unitsSafeLiterals) = collectLowerables(proof)
-//    val nbUnitChildren = orderedUnits.foldLeft(0) { (acc,node) => acc + proof.childrenOf(node).length }
-//    println(orderedUnits.length + " orderedUnits with " + nbUnitChildren + " children" )
 
     // Second pass
     val edgesToDelete = collectEdgesToDelete(proof, rootSafeLiterals, unitsSafeLiterals)

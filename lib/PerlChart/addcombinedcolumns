@@ -1,0 +1,123 @@
+#! /usr/bin/perl
+
+use strict;
+use warnings;
+
+use version; BEGIN { our $VERSION = qv('0.0') }
+
+
+############################################################
+# Constants
+############################################################
+use Readonly;
+
+############################################################
+# Globals
+############################################################
+my $csv_row;
+
+############################################################
+# Functions
+############################################################
+
+sub add_comp {
+  # Type  : 
+  # Descr : Add a set of column choosing the best algo
+  # Params: first col of the first algo, first col of the
+  #         second algo
+  # Return: nothing (use $csv_row global)
+  # Throws: 
+  my ($fcol, $scol) = @_;
+
+  # Sum of time
+  push @$csv_row, ($csv_row->[$fcol] + $csv_row->[$scol]);
+
+  # best compression for each measure
+  for my $i (1..4) {
+    push @$csv_row,
+      ($csv_row->[$fcol + $i] < $csv_row->[$scol + $i]
+        ? $csv_row->[$fcol + $i]
+        : $csv_row->[$scol + $i]);
+    }
+}
+
+############################################################
+# Arguments
+############################################################
+use Getopt::Euclid qw( :vars<opt_> );
+
+
+############################################################
+# Main
+############################################################
+use Parse::CSV;
+use POSIX qw( floor ceil );
+
+use IO::Handle;
+my $io = new IO::Handle;
+$io->fdopen(fileno(STDOUT),"w") or die "Unable to open STDOUT";
+
+my $csv = Parse::CSV->new( file => $opt_csvfile, eol => "\n" );
+while ($csv_row = $csv->fetch ) {
+  $csv_row->[0] =~ s:/home/lv70340/.*/Proofs/::;
+  add_comp(26,16);
+  add_comp(31,16);
+  $csv->print($io, $csv_row);
+}
+
+
+__END__
+
+=head1 NAME
+
+addcombinedcolumns - 
+
+=head1 SYNOPSIS
+
+    addcombinedcolumns [options] <csvfile>
+
+=head1 DESCRIPTION
+
+This script simulates the run of a "combined" algorithm. A combined algorithm is one which run two other algorithms in turn
+and output the best compressed proof among the two produced by the algorithms. Such a combined algorithm is simulated by
+summing duration time and copying the other values from the algorithm wich produces the best compressed proof.
+
+=head1 REQUIRED ARGUMENTS
+
+=over 5
+
+=item <csvfile>
+
+The CSV file to read from and write to.
+
+=back
+
+
+=head1 OPTIONS
+
+Unfortunately this script has to be modified in order to be adapted.
+
+=head1 DEPENDENCIES
+
+L<Readonly>, L<Getopt::Euclid>, L<Parse::CSV>
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to C<< <jogo@matabio.net> >>.
+
+=head1 AUTHOR
+
+Joseph Boudou, C<< <jogo@matabio.net> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright 2012 Joseph Boudou.
+
+This script is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

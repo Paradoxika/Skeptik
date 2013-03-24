@@ -1,0 +1,91 @@
+\documentclass{easychair}
+
+\usepackage{xspace}
+
+\usepackage{prooftheory}
+
+\title{Compression of Propositional Resolution Proofs by Lowering Subproofs}
+\titlerunning{Compression of Propositional Resolution Proofs}
+
+\author{
+  Joseph Boudou\inst{1}
+  \thanks{Supported by the Google Summer of Code 2012 program.}
+  \and 
+  Bruno Woltzenlogel Paleo\inst{2}
+  \thanks{Supported by the Austrian Science Fund, project P24300.}
+}
+
+\authorrunning{J.\~Boudou \and B.\~Woltzenlogel Paleo}
+
+\institute{
+  Universit\'e Paul Sabatier, Toulouse \\
+  \email{joseph.boudou@matabio.net}
+  \and 
+  Vienna University of Technology \\
+  \email{bruno@logic.at}
+}
+
+\begin{document}
+
+\maketitle
+
+Sat-solvers are among the most efficient automated deduction tools available today.
+%As standalone tools, they can already be applied to a wide range of problems.
+%, especially considering that, due to
+%the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a
+%propositional formula.
+%Despite the theoretical difficulty associated with NP
+%problems, state-of-the-art sat-solving techniques perform surprisingly well in practice.
+Leveraging this efficiency, sat-solvers have been embedded
+into various other automated deduction tools,
+%that target problems described in more expressivelogics.
+%The most prominent examples are SMT-solvers.
+%, for checking satisfiability modulo
+%theories for equality, linear arithmetic, bit-vectors, arrays and others.
+%More recently, 
+such as SMT-solvers, interactive proof assistants and automated first-order
+and even higher-order theorem provers.
+%have taken advantage of embedding sat-solvers too.
+In such a scenario, proofs of unsastifiability produced by the sat-solver must be analysed by the
+frontend tools, and therefore the quality and size of proofs has become of critical importance.
+
+%it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
+%answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability).
+%For DPLL- and CDCL-based sat-solvers, propositional resolution is an excellent proof system, since
+%refutations in this system can be generated with an acceptable efficiency overhead and they are
+%detailed enough to allow easy implementation of efficient proof checkers.
+
+
+%With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
+%compress such proofs in a post-processing stage.
+Techniques to compress propositional resolution proofs in a post-processing stage have recently been
+proposed.  \RecyclePivotsIntersection and \LowerUnits \cite{LURPI} are two examples of such proof
+compression algorithms. They both achieve good compression ratios in linear time w.r.t. the number
+of resolution steps. The former reduces irregularity, as defined by Tseitin~\cite{Tseitin}. The
+latter extends the concept of irregularity to redundancies across branches (\emph{horizontal
+irregularity}) and reduces it by lowering subproofs of units (i.e. clauses with a single literal).
+Experiments \cite{LURPI} showed that sequentialy composing these two algorithms combines their proof
+compression power.
+
+In this talk, we will describe a new proof compression algorithm, called
+\LowerUnivalents~\footnote{A full article describing this algorithm is available at
+\url{http://www.matabio.net/univalent.pdf} and has just been submitted to a conference.}, which
+extends \LowerUnits. It achieves two goals. Firstly, by lowering more subproofs, it is able to
+compress more than \LowerUnits. Secondly, it makes it possible to implement a non-sequential
+combination of \LowerUnivalents after \RecyclePivotsIntersection, which is both faster and more
+compressing than the sequential composition of \LowerUnits after \RecyclePivotsIntersection.
+
+The principle of \LowerUnivalents is to take already lowered subproofs into account in order to
+allow more proofs to be lowered. For instance, if a subproof of $p$ has already been selected for
+lowering, a subproof of $\neg p, q$ may be lowered above the previous subproofs, provided its
+lowering would not introduce unwanted literals in the conclusion. In the talk, the formal conditions
+for such lowering will be exposed along with practical optimizations that allow the algorithm to
+reduce both traditional and horizontal irregularities.
+
+
+\bibliographystyle{plain}
+\bibliography{../biblio}
+
+\end{document}
+
+% vim: tw=100

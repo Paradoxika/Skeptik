@@ -2,9 +2,9 @@ name := "Skeptik"
 
 organization := "at.logic"
 
-version := "0.2-SNAPSHOT"
+version := "1.0"
 
-scalaVersion := "2.10.0-RC3"
+scalaVersion := "2.10.0"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
@@ -12,21 +12,15 @@ scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 
 libraryDependencies ++= Seq(
-//  "org.scalatest" %% "scalatest" % "1.9-2.10.0-M7-B1",
   "org.specs2" %% "specs2" % "1.12.3",
-//  "org.scalacheck" %% "scalacheck" % "1.10.0",
   "junit" % "junit" % "4.11" % "test",
   "commons-lang" % "commons-lang" % "2.6",
   "org.scala-lang" % "scala-actors" % "2.10.0-RC3"
 )
 
-// Uncomment the following line to use one-jar (https://github.com/sbt/sbt-onejar)
-// seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
-
-licenses := Seq("GNU GPL v3" -> url("http://www.gnu.org/licenses/gpl.html"))
+licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
 
 homepage := Some(url("http://github.com/Paradoxika/Skeptik"))
-
 
 publishMavenStyle := true
 
@@ -105,3 +99,6 @@ pomExtra := (
 		</plugins>
 	</reporting>
 )
+
+// OneJar Settings
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)

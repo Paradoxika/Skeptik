@@ -4,5 +4,5 @@
 
 cd ..
 sbt make-pom 
-cp target/scala-2.10/skeptik_2.10-0.2-SNAPSHOT.pom pom.xml
+cp target/scala-2.10/skeptik_2.10-1.0.pom pom.xml
 cd admin
