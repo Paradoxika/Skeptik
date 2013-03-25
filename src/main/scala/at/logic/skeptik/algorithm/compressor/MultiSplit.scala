@@ -14,7 +14,7 @@ import scala.collection.mutable.{HashMap => MMap}
   * subproofs.
   */
 abstract class MultiSplit (nbVariables: Int)
-extends AbstractSplit {
+extends Split with AdditivityHeuristic {
 
   /** Binary tree to store partial proofs.
     *
@@ -66,9 +66,6 @@ extends AbstractSplit {
       case t::q => CutIC(pos.merge(q), neg.merge(q), _ == t, true)
       case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
     }
-
-//    override def toString = "(" + pos.toString + " : " + neg.toString + ")"
-//    def debugDepth = 1 + pos.debugDepth
   }
 
   private case class SplitterLeaf (node: SequentProofNode)
@@ -76,9 +73,6 @@ extends AbstractSplit {
     def pos = throw new Exception("Traversing beyond leaves")
     def neg = pos
     def merge(variableList: List[E]) = node
-
-//    override def toString = "{" + node.conclusion.toString + "}"
-//    def debugDepth = 0
   }
 
   private object Splitter {
@@ -140,13 +134,13 @@ extends AbstractSplit {
     var sum = totalAdditivity
     val variableList = {
       def selectVariables(variableList: List[E], left: Int):List[E] = if (left < 1 || sum < 1) variableList else {
-        val selected = chooseAVariable(literalAdditivity, sum)
+        val selected = chooseVariable(literalAdditivity, sum)
         sum -= literalAdditivity(selected)
         literalAdditivity.remove(selected)
         selectVariables(selected::variableList, left - 1)
       }
       selectVariables(List(), nbVariables)
     }
-    Proof(split(proof, variableList))
+    split(proof, variableList)
   }
 }
