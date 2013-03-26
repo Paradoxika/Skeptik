@@ -400,7 +400,7 @@ call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin}
 \ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
 \ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
 as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
-implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof if the
+implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, assuming the
 univalent test (at line \ref{line:LUniv:lunivtest}) is performed in constant bounded time. 
 
 %This and other optimizations are shown in the more detailed Algo. \ref{algo:fullLUniv}. 
@@ -544,7 +544,7 @@ Every node in a proof $\langle V, E, \Gamma \rangle$ has exactly two outgoing ed
 root of an axiom. Hence the number of axioms is $|V| - \frac{1}{2}\,|E|$ and because there is at
 least one axiom, the average number of active literals per node is strictly less than two.
 Therefore, if {\LowerUnivalents} is implemented as an improved recursive \FuncSty{delete}, its time
-complexity remains linear if membership of literals to the set $\Delta$ is computed in constant
+complexity remains linear, assuming membership of literals to the set $\Delta$ is computed in constant
 time.
 
 \begin{proposition} \label{prop:compression}
