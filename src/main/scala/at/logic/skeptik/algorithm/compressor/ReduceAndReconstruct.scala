@@ -73,32 +73,27 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
 
   
-  protected def reconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode) = {
-    { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
+  protected def reconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+                           (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
 
-      val fixedNode = (node, fixedPremises) match {
-        case (CutIC(_,_,pivot,_), left::right::Nil) => CutIC(left, right, _ == pivot, true)
-        case _ => node
-      }
-      node match {
-        case CutIC(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
-        case _ => fixedNode
-      }
-    }}
+    val fixedNode = (node, fixedPremises) match {
+      case (CutIC(_,_,pivot,_), left::right::Nil) => CutIC(left, right, _ == pivot, true)
+      case _ => node
+    }
+    node match {
+      case CutIC(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
+      case _ => fixedNode
+    }
   }
 }
 
 class ReduceAndReconstruct(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
-
   def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, a2))
-
 }
 
 
 class RRWithoutA2(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
-
   def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, { (n,_,_) => n }))
-
 }
