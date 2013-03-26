@@ -6,6 +6,8 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
+import at.logic.skeptik.algorithm.compressor.split.Split
+import at.logic.skeptik.algorithm.compressor.split.AdditivityHeuristic
 
 
 /** Extended Split compression algorithm

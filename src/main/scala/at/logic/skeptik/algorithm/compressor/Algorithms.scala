@@ -1,5 +1,11 @@
 package at.logic.skeptik.algorithm.compressor
 
+import at.logic.skeptik.algorithm.compressor.split.RandomBoudouSplit
+
+import at.logic.skeptik.algorithm.compressor.split.DeterministicBoudouSplit
+
+import at.logic.skeptik.algorithm.compressor.split.CottonSplit
+
 object Algorithms {
   val get = Map( 
     "LU" -> LowerUnits,
