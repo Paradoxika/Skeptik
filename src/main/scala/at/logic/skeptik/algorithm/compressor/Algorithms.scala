@@ -10,7 +10,9 @@ object Algorithms {
     "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI[3]LUniv" -> LowerUnivalentsBeforeRecyclePivots,
     "R&R" -> ReduceAndReconstruct,
-    "Split" -> Split,
+    "CottonSplit" -> new CottonSplit(30000),
+    "RandomBoudouSplit" -> new RandomBoudouSplit(30000),
+    "DeterministicBoudouSplit" -> new DeterministicBoudouSplit(30000),
     "DAGify" -> DAGify
   )
 }

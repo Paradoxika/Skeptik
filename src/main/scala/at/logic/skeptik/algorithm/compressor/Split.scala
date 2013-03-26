@@ -7,6 +7,18 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
+trait Timeout {
+  def timeout: Int // in milliseconds
+  def applyOnce(p: Proof[N]): Proof[N]
+  def apply(p: Proof[N]): Proof[N] = {
+    val start = System.nanoTime()
+    var result = p
+    while ((System.nanoTime() - start)/1000000 < timeout) result = applyOnce(result)
+    return result
+  }
+}
+
+
 abstract class Split
 extends (Proof[N] => Proof[N]) {
   
@@ -70,8 +82,8 @@ extends Split  {
   }
 }
 
-object CottonSplit
-extends Split with AdditivityHeuristic with RandomChoice
+class CottonSplit(val timeout: Int)
+extends Split with AdditivityHeuristic with RandomChoice with Timeout
 
 abstract class BoudouSplit
 extends Split with AdditivityHeuristic {
@@ -94,11 +106,11 @@ extends Split with AdditivityHeuristic {
   }
 }
 
-object DeterministicBoudouSplit
-extends BoudouSplit with DeterministicChoice
+class DeterministicBoudouSplit(val timeout: Int)
+extends BoudouSplit with DeterministicChoice with Timeout
 
-object RandomBoudouSplit
-extends BoudouSplit with RandomChoice
+class RandomBoudouSplit(val timeout: Int)
+extends BoudouSplit with RandomChoice with Timeout
 
 
 
