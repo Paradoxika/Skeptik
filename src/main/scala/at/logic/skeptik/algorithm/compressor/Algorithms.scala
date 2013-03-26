@@ -15,7 +15,7 @@ object Algorithms {
     "LUniv" -> LowerUnivalents,
     "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI[3]LUniv" -> LowerUnivalentsBeforeRecyclePivots,
-    "R&R" -> ReduceAndReconstruct,
+    "R&R" -> new ReduceAndReconstruct(5000),
     "CottonSplit" -> new CottonSplit(30000),
     "RandomBoudouSplit" -> new RandomBoudouSplit(30000),
     "DeterministicBoudouSplit" -> new DeterministicBoudouSplit(30000),

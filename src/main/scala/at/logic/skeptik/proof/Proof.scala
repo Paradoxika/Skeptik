@@ -14,13 +14,13 @@ extends Iterable[P]
 {
   def initialize() = {
     val nodes = Stack[P]()
-    val children = MMap[P,Seq[P]](root -> Seq())
+    val children = MMap[P,IndexedSeq[P]](root -> IndexedSeq())
     val visited = MSet[P]()
     def visit(p:P):Unit = if (!visited(p)){
       visited += p
       p.premises.foreach(premise => {
         visit(premise)
-        children(premise) = p +: children.getOrElse(premise,Seq())
+        children(premise) = p +: children.getOrElse(premise,IndexedSeq())
       })
       nodes.push(p)
     }

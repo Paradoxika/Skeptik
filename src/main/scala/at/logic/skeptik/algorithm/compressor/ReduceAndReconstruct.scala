@@ -71,43 +71,34 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     case _ => node
   }
 
-//  protected def reconstruct(node: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode) = node match {
-//    case Axiom(conclusion) => Axiom(conclusion)
-//    case CutIC(left,right,pivot,_) => 
-//  }
 
-  protected def reduceAndReconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode) = {
-    def hasOnlyOneChild(p: SequentProofNode) = proof.childrenOf(p) match {
-      case _::Nil => true
-      case _ => false
-    }
+  
+  protected def reconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode) = {
     { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
+
       val fixedNode = (node, fixedPremises) match {
         case (CutIC(_,_,pivot,_), left::right::Nil) => CutIC(left, right, _ == pivot, true)
         case _ => node
-        //case premise::Nil => node // does nothing in the case of unary UncheckedInferences
-        
-        //case _ => throw new Exception("Wrong number of premises")
       }
       node match {
-        case CutIC(left, right, _, _) => reduce(fixedNode, hasOnlyOneChild(left), hasOnlyOneChild(right))(fallback)
+        case CutIC(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
         case _ => fixedNode
       }
     }}
   }
 }
 
-object ReduceAndReconstruct
-extends AbstractReduceAndReconstruct {
+class ReduceAndReconstruct(val timeout: Int)
+extends AbstractReduceAndReconstruct with Timeout {
 
-  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, a2)))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, a2))
 
 }
 
 
-object RRWithoutA2
-extends AbstractReduceAndReconstruct {
+class RRWithoutA2(val timeout: Int)
+extends AbstractReduceAndReconstruct with Timeout {
 
-  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, { (n,_,_) => n })))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, { (n,_,_) => n }))
 
 }
