@@ -16,6 +16,7 @@
 \usepackage{prooftheory}
 \usepackage{comment}
 \usepackage{mathenvironments}
+\usepackage{drawproof}
 
 \renewcommand{\topfraction}{0.85}
 \renewcommand{\textfraction}{0.1}
@@ -403,8 +404,43 @@ as a recursive function extending a recursive implementation of \FuncSty{delete}
 implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, assuming the
 univalent test (at line \ref{line:LUniv:lunivtest}) is performed in constant bounded time. 
 
-%This and other optimizations are shown in the more detailed Algo. \ref{algo:fullLUniv}. 
 
+Figure \ref{fig:exluniv} gives an example of a compression performed by \LowerUnivalents. It is
+assumed the unit with conclusion $\{a\}$ is marked for lowering first. When the subproof with
+conclusion $\{\dual{a},b\}$ is considered, $\Delta = \{\dual{a}\}$. As this subproof has only one
+valent literal $b \notin \Delta$ and $\{\dual{a},b\} \subseteq \Delta \cup \{b\}$, the subproof is
+marked for lowering. The resulting proof has one resolution less than the original.
+
+\begin{figure}[htb]
+  \centering
+  \subfloat[Original proof]{
+    \centering
+    \begin{tikzpicture}
+
+      \rootnode;
+      \withchildren{root} {r0}{\dual{a}}  {unit}{a};
+      \withchildren{r0}   {r1}{\dual{a},c} {r2}{\dual{a},\dual{c}};
+      \withchildren{r1}   {a0}{\dual{b},c} {low}{\dual{a},b};
+
+      \proofnode[above right of=r2] {a1} {\dual{a},\dual{b},\dual{c}};
+      \drawchildren {r2} {low} {a1};
+
+    \end{tikzpicture}
+  } \qquad
+  \centering
+  \subfloat[Compressed proof]{
+    \centering
+    \begin{tikzpicture}
+
+      \rootnode;
+      \withchildren{root} {r0}{\dual{a}}          {unit}{a};
+      \withchildren{r0}   {r1}{\dual{a},\dual{b}} {low}{\dual{a},b};
+      \withchildren{r1}   {a0}{\dual{b},c}        {a1}{\dual{a},\dual{b},\dual{c}};
+
+    \end{tikzpicture}
+  }
+  \caption{Example of proof crompression by \LowerUnivalents} \label{fig:exluniv}
+\end{figure}
 
 
 \SetKwData{Univ}{Univalents}
