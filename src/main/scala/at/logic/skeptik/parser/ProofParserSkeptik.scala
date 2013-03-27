@@ -35,7 +35,7 @@ extends JavaTokenParsers with RegexParsers {
   def resolutionTree: Parser[Node] = subTree <~ conclusion 
   def subTree: Parser[Node] = (namedProof | resolution)
   def resolution: Parser[Node] = "(" ~> subTree ~ "[" ~ expression ~ "]" ~ subTree <~ ")" ^^ {
-    case ~(~(~(~(left,_),pivot),_),right) => R(left, right, _ == pivot)
+    case ~(~(~(~(left,_),pivot),_),right) => R(left, right, pivot)
   } 
   
   def axiom: Parser[Node] = "axiom()" ~> conclusion ^^ {

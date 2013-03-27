@@ -57,7 +57,7 @@ extends AdditivityHeuristic {
   private case class SplitterNode (pos: Splitter, neg: Splitter)
   extends Splitter {
     def merge(variableList: List[E]) = variableList match {
-      case t::q => R(pos.merge(q), neg.merge(q), _ == t, true)
+      case t::q => R(pos.merge(q), neg.merge(q), t, true)
       case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
     }
   }
@@ -81,7 +81,7 @@ extends AdditivityHeuristic {
 
         // Real leaf case : simple resolution
         case (SplitterLeaf(proofLeft), SplitterLeaf(proofRight)) =>
-          SplitterLeaf(R(proofLeft, proofRight, _ == pivot, true))
+          SplitterLeaf(R(proofLeft, proofRight, pivot, true))
 
         // Split case : the pivot matches the variable
         case (l, r) if pivot == variable =>

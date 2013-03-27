@@ -26,7 +26,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
         case Axiom(conclusion) => node
         case R(left,right,_,_) if unitsSet contains left => fixedRight
         case R(left,right,_,_) if unitsSet contains right => fixedLeft
-        case R(left,right,aux,_) => R(fixedLeft, fixedRight, _ == aux)
+        case R(left,right,pivot,_) => R(fixedLeft, fixedRight, pivot)
         case _ => node
       }
       if (node == proof.root || unitsSet.contains(node)) fixMap.update(node, fixedP)

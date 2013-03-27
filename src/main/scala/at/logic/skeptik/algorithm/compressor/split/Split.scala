@@ -19,19 +19,19 @@ extends (Proof[N] => Proof[N]) {
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last;
       node match {
         case Axiom(conclusion) => (node,node)
-        case R(_,_,aux,_) if aux == selectedVariable => (fixedLeftPos, fixedRightNeg)
+        case R(_,_,pivot,_) if pivot == selectedVariable => (fixedLeftPos, fixedRightNeg)
 
-        case R(left,right,aux,_) if (fixedLeftPos eq fixedLeftNeg) && (fixedRightPos eq fixedRightNeg) =>
+        case R(left,right,pivot,_) if (fixedLeftPos eq fixedLeftNeg) && (fixedRightPos eq fixedRightNeg) =>
           // I think this case is redundant with the following one and then useless :
           // Neg and Pos being equals implies they're equals to node's premises.
           // Keep the println until it shows something.
           val newNode = if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node
-                        else { println("yooups") ; R(fixedLeftPos, fixedRightPos, _ == aux, true) }
+                        else { println("yooups") ; R(fixedLeftPos, fixedRightPos, pivot, true) }
           (newNode, newNode)
 
-        case R(left,right,aux,_) =>
-          ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else R(fixedLeftPos, fixedRightPos, _ == aux, true),
-            if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else R(fixedLeftNeg, fixedRightNeg, _ == aux, true) )
+        case R(left,right,pivot,_) =>
+          ( if ((left eq fixedLeftPos) && (right eq fixedRightPos)) node else R(fixedLeftPos, fixedRightPos, pivot, true),
+            if ((left eq fixedLeftNeg) && (right eq fixedRightNeg)) node else R(fixedLeftNeg, fixedRightNeg, pivot, true) )
         
         case _ => (node, node)
       }
@@ -41,7 +41,7 @@ extends (Proof[N] => Proof[N]) {
   def applyOnce(p: Proof[N]): Proof[N] = {
     val selectedVariable = selectVariable(p)
     val (left, right) = split(p, selectedVariable)
-    val compressedProof: Proof[N] = R(left, right, _ == selectedVariable)
+    val compressedProof: Proof[N] = R(left, right, selectedVariable)
     if (compressedProof.size < p.size) compressedProof else p
   }
 }

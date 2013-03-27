@@ -78,9 +78,9 @@ extends AbstractThreePassLower {
       val fixMap = mapFixedProofNodes(orderedUnits.toSet + proof.root, edgesToDelete, proof)
       orderedUnits.foldLeft(fixMap(proof.root)) { (root, unit) =>
         if (unit.conclusion.ant.isEmpty)
-          R(fixMap(unit), root, _ == unit.conclusion.suc.head, true)
+          R(fixMap(unit), root, unit.conclusion.suc.head, true)
         else
-          R(root, fixMap(unit), _ == unit.conclusion.ant.head, true)
+          R(root, fixMap(unit), unit.conclusion.ant.head, true)
       }
     }
   }

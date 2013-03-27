@@ -122,7 +122,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
       case R(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
 
       // Main case (rebuild a resolution)
-      case R(left,right,pivot,_) => R(fixedLeft, fixedRight, _ == pivot, true)
+      case R(left,right,pivot,_) => R(fixedLeft, fixedRight, pivot, true)
       
       // When the inference is not R, nothing is done 
       case _ => p

@@ -15,11 +15,11 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     Proof(proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
       case _ if nodeMap.contains(node.conclusion) => nodeMap(node.conclusion)
       case Axiom(conclusion) => nodeMap += (conclusion -> node) ; node
-      case R(left, right, aux, _) => {
+      case R(left, right, pivot, _) => {
         val fixedLeft  = fixedPremises.head
         val fixedRight = fixedPremises.last
         val newNode = if ((left eq fixedLeft) && (right eq fixedRight)) node 
-                      else R(fixedLeft, fixedRight, _ == aux)
+                      else R(fixedLeft, fixedRight, pivot)
         nodeMap += (newNode.conclusion -> newNode)
         newNode
       }

@@ -250,9 +250,9 @@ extends AbstractThreePassLower {
       orderedUnivalents.foldLeft(fixMap(proof.root)) { (root, univalent) =>
         univalentsValentLiteral(univalent) match {
           case Left(l) =>
-            R(root, fixMap(univalent), _ == l, true)
+            R(root, fixMap(univalent), l, true)
           case Right(l) =>
-            R(fixMap(univalent), root, _ == l, true)
+            R(fixMap(univalent), root, l, true)
           }
       }
     })

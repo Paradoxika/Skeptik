@@ -14,7 +14,7 @@ extends Split with AdditivityHeuristic {
     def repeat(sum: Long):Proof[N] = {
       val selectedVariable = chooseVariable(literalAdditivity, sum)
       val (left, right) = split(proof, selectedVariable)
-      val compressedProof: Proof[N] = R(left, right, _ == selectedVariable)
+      val compressedProof: Proof[N] = R(left, right, selectedVariable)
       if (compressedProof.size < proof.size) compressedProof
       else {
         val newSum = sum - literalAdditivity(selectedVariable)
