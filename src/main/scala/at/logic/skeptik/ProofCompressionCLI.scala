@@ -23,7 +23,7 @@ object ProofCompressionCLI {
   
   def main(args: Array[String]): Unit = {  
     val parser = new scopt.immutable.OptionParser[Config]("compress", "\n\nSkeptik's Command Line Interface for Proof Compression\n\n") { def options = Seq(
-      opt("a", "algorithm", "the algorithm to be used for compressing the proof") { (v: String, c: Config) => c.copy(algorithm = v) },
+      opt("a", "algorithm", "<algorithm>", "the algorithm to be used for compressing the proof") { (v: String, c: Config) => c.copy(algorithm = v) },
       opt("o", "output", "<output file>", "file to store the compressed proof") { (v: String, c: Config) => c.copy(output = v) },
       arg("<input file>", "file containing the proof to be compressed") { (v: String, c: Config) => c.copy(input = v) }
     ) }
