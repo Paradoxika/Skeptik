@@ -1,13 +1,10 @@
 package at.logic.skeptik.algorithm.compressor
+package split
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap}
-import at.logic.skeptik.algorithm.compressor.split.Split
-import at.logic.skeptik.algorithm.compressor.split.AdditivityHeuristic
 
 
 /** Extended Split compression algorithm
@@ -15,8 +12,8 @@ import at.logic.skeptik.algorithm.compressor.split.AdditivityHeuristic
   * A arbitrary number of variables are selected and the proof is split in 2^n
   * subproofs.
   */
-abstract class MultiSplit (nbVariables: Int)
-extends Split with AdditivityHeuristic {
+abstract class MultiSplit(numberOfVariables: Int)
+extends AdditivityHeuristic {
 
   /** Binary tree to store partial proofs.
     *
@@ -25,12 +22,12 @@ extends Split with AdditivityHeuristic {
     * I've choose to not include those variables in the structure.  At first I
     * thought that including them would increase memory consumption. But later I
     * added a depth which would have been useless with a variable list. A better
-    * reason is the symetry between leaves' depth and nodes' depth. If depth is
+    * reason is the symmetry between leaves' depth and nodes' depth. If depth is
     * replaced by a variable list, an empty list would be allowed for leaves but
-    * not for nodes. It would introduce complication for the optimization case of
-    * Split.apply. Another reason to not include variables in Splitter is what
-    * I've understand about "referencial transparency". The variable list doesn't
-    * have to be handled by Splitter but by the code which use it.
+    * not for nodes. It would introduce complication for the optimization case.
+    * Another reason to not include variables in Splitter is what
+    * I've understood about "referencial transparency": the variable list doesn't
+    * have to be handled by Splitter but by the code that uses it.
     *
     * An alternative implementation would be to add a
     *    case class Trunk(branch: Split, depth: Int)
@@ -42,9 +39,6 @@ extends Split with AdditivityHeuristic {
     def merge(variableList: List[E]):SequentProofNode
 
     def deepen(amount: Int = 1) = if (amount == 0) this else SplitterTrunk(this, amount)
-
-    // to debug only
-//    def debugDepth:Int
   }
 
   private case class SplitterTrunk (branch: Splitter, depth: Int = 1)
@@ -58,8 +52,6 @@ extends Split with AdditivityHeuristic {
       val newDepth = depth + amount
       if (newDepth > 0) SplitterTrunk(branch, newDepth) else branch.deepen(newDepth)
     }
-
-//    def debugDepth = depth + branch.debugDepth
   }
 
   private case class SplitterNode (pos: Splitter, neg: Splitter)
@@ -83,11 +75,9 @@ extends Split with AdditivityHeuristic {
       if (pos == neg) pos.deepen() else SplitterNode(pos, neg)
 
     def apply(pivot: E, left: Splitter, right: Splitter, variableList: List[E]):Splitter = {
-//      println("split " + left + " and " + right + " on " + pivot + " with " + variableList)
-//      if (left.debugDepth != right.debugDepth) throw new Exception(left + " and " + right + " don't have same depth")
       lazy val variable = variableList.head // might throw an exception
       lazy val variableTail = variableList.tail
-      val ret = (left, right) match {
+      val result = (left, right) match {
 
         // Real leaf case : simple resolution
         case (SplitterLeaf(proofLeft), SplitterLeaf(proofRight)) =>
@@ -97,7 +87,7 @@ extends Split with AdditivityHeuristic {
         case (l, r) if pivot == variable =>
           Splitter(l.pos, r.neg)
 
-        // Optimization case : if both premises have non-nul depth we can remove some variables from the list
+        // Optimization case : if both premises have non-null depth we can remove some variables from the list
         case (left @ SplitterTrunk(_, depthLeft), right @ SplitterTrunk(_, depthRight)) =>
           val depthMax = depthLeft min depthRight
           val (depthDiff, variables) = {
@@ -111,9 +101,7 @@ extends Split with AdditivityHeuristic {
         case (l, r) =>
           Splitter(Splitter(pivot, l.pos, r.pos, variableTail), Splitter(pivot, l.neg, r.neg, variableTail))
       }
-//      println("split " + left + " and " + right + " on " + pivot + " with " + variableList + " gives " + ret)
-//      if (ret.debugDepth != left.debugDepth) throw new Exception("Bug on split")
-      ret
+      result
     }
 
     def apply(axiom: SequentProofNode, variableList: List[E]):Splitter = SplitterTrunk(SplitterLeaf(axiom), variableList.length)
@@ -127,22 +115,25 @@ extends Split with AdditivityHeuristic {
         case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
         case _ => Splitter(node, variableList)
       }
-    val result = proof.foldDown(visit)
-    result.merge(variableList)
+    proof foldDown {visit}
   }
 
-  override def apply(proof: Proof[SequentProofNode]) = {
+  override def applyOnce(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
     var sum = totalAdditivity
     val variableList = {
-      def selectVariables(variableList: List[E], left: Int):List[E] = if (left < 1 || sum < 1) variableList else {
+      def selectVariables(variableList: List[E], remaining: Int):List[E] = if (remaining < 1 || sum < 1) variableList else {
         val selected = chooseVariable(literalAdditivity, sum)
         sum -= literalAdditivity(selected)
         literalAdditivity.remove(selected)
-        selectVariables(selected::variableList, left - 1)
+        selectVariables(selected::variableList, remaining - 1)
       }
-      selectVariables(List(), nbVariables)
+      selectVariables(List(), numberOfVariables)
     }
-    split(proof, variableList)
+    val compressedProof: Proof[SequentProofNode] = split(proof, variableList).merge(variableList)
+    if (compressedProof.size < proof.size) compressedProof else proof
   }
 }
+
+class TimeoutMultiSplit(numberOfVariables: Int, val timeout: Int)
+extends MultiSplit(numberOfVariables) with DeterministicChoice with Timeout

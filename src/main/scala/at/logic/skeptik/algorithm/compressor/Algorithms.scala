@@ -1,10 +1,6 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.algorithm.compressor.split.RandomBoudouSplit
-
-import at.logic.skeptik.algorithm.compressor.split.DeterministicBoudouSplit
-
-import at.logic.skeptik.algorithm.compressor.split.CottonSplit
+import at.logic.skeptik.algorithm.compressor.split._
 
 object Algorithms {
   val get = Map( 
@@ -19,6 +15,9 @@ object Algorithms {
     "CottonSplit" -> new CottonSplit(30000),
     "RandomBoudouSplit" -> new RandomBoudouSplit(30000),
     "DeterministicBoudouSplit" -> new DeterministicBoudouSplit(30000),
+    "MultiSplit2" -> new TimeoutMultiSplit(2,5000),
+    "MultiSplit3" -> new TimeoutMultiSplit(3,5000),
+    "MultiSplit4" -> new TimeoutMultiSplit(4,5000),
     "DAGify" -> DAGify
   )
 }
