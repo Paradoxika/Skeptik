@@ -20,7 +20,6 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
     def visit(node: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = if (unitsSafeLiterals contains node) {
           edgesToDelete.deleteNode(node)
-//        println("Unit " + node.conclusion)
           unitsSafeLiterals(node)
         }
         else if (childrensSafeLiterals == Nil) rootSafeLiterals
@@ -48,17 +47,17 @@ extends AbstractThreePassLower {
   protected def collectLowerables(proof: Proof[SequentProofNode]) = {
     val unitsSafeLiterals = MMap[SequentProofNode,IClause]()
     val orderedUnits = Stack[SequentProofNode]()
-    val rootSafeLiterals = proof.foldRight (IClause()) { (node, safeLiterals) =>
-      (fakeSize(node.conclusion.ant), fakeSize(node.conclusion.suc), fakeSize(proof.childrenOf(node))) match {
-        case (1,0,2) =>
+    val rootSafeLiterals = proof.foldRight(IClause()) { (node, safeLiterals) =>
+      (node.conclusion.ant.length, node.conclusion.suc.length, proof.childrenOf(node).length) match {
+        case (1,0,s) if s >= 2 =>
           val literal = node.conclusion.ant(0)
           orderedUnits.push(node)
-          unitsSafeLiterals.update(node, literal +: safeLiterals)
+          unitsSafeLiterals(node) = (literal +: safeLiterals)
           safeLiterals + literal
-        case (0,1,2) =>
+        case (0,1,s) if s >= 2 =>
           val literal = node.conclusion.suc(0)
           orderedUnits.push(node)
-          unitsSafeLiterals.update(node, safeLiterals + literal)
+          unitsSafeLiterals(node) = (safeLiterals + literal)
           literal +: safeLiterals
         case _ => safeLiterals
       }
@@ -75,7 +74,7 @@ extends AbstractThreePassLower {
     val edgesToDelete = collectEdgesToDelete(proof, rootSafeLiterals, unitsSafeLiterals)
 
     // Third pass
-    if (edgesToDelete.isEmpty) proof else Proof({
+    if (edgesToDelete.isEmpty) proof else {
       val fixMap = mapFixedProofNodes(orderedUnits.toSet + proof.root, edgesToDelete, proof)
       orderedUnits.foldLeft(fixMap(proof.root)) { (root, unit) =>
         if (unit.conclusion.ant.isEmpty)
@@ -83,10 +82,7 @@ extends AbstractThreePassLower {
         else
           CutIC(root, fixMap(unit), _ == unit.conclusion.ant.head, true)
       }
-    })
+    }
   }
 
 }
-
-//object IdempotentThreePassLowerUnits
-//extends ThreePassLowerUnits

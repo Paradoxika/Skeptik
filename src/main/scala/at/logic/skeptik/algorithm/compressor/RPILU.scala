@@ -93,8 +93,8 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   // Utility functions
 
   protected def isUnit(proof: SequentProofNode, nodeCollection: Proof[SequentProofNode]) =
-    (fakeSize(proof.conclusion.ant) + fakeSize(proof.conclusion.suc) == 1) &&
-    (fakeSize(nodeCollection.childrenOf(proof)) > 1)
+    (proof.conclusion.ant.length + proof.conclusion.suc.length == 1) &&
+    (nodeCollection.childrenOf(proof).length > 1)
 
 
   // Main functions
@@ -176,12 +176,11 @@ extends AbstractRPILUAlgorithm {
                      edgesToDelete: EdgesToDelete,
                      nodeCollection: Proof[SequentProofNode]) = {
     val fixMap = MMap[SequentProofNode,SequentProofNode]()
-    def visit (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+    nodeCollection foldDown { (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
       val result = fixProofNodes(edgesToDelete)(p, fixedPremises)
       if (proofsToMap contains p) fixMap.update(p, result)
-      result
-    }
-    nodeCollection.foldDown(visit)
+      result 
+    }}
     fixMap
   }
 }
