@@ -41,6 +41,7 @@ extends (Proof[N] => Proof[N]) {
   def applyOnce(p: Proof[N]): Proof[N] = {
     val selectedVariable = selectVariable(p)
     val (left, right) = split(p, selectedVariable)
-    CutIC(left, right, _ == selectedVariable)
+    val compressedProof: Proof[N] = CutIC(left, right, _ == selectedVariable)
+    if (compressedProof.size < p.size) compressedProof else p
   }
 }
