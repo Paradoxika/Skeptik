@@ -2,7 +2,7 @@ package at.logic.skeptik.exporter
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom, UncheckedInference}
+import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 import java.io.FileWriter
 
 // ToDo: This is almost VeriT's proof format. 
@@ -28,7 +28,7 @@ object ProofExporterVeriT extends ProofExporter[Node] {
               writer.write(line, 0, line.length)
               name
           }
-          case CutIC(left,right,_,_) => {
+          case R(left,right,_,_) => {
             if (proof.childrenOf(n).length == 1) {
               "(" + premiseResults(0) + " " + premiseResults(1) + ")"
             }

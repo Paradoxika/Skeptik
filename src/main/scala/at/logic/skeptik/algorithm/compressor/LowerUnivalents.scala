@@ -38,10 +38,10 @@ package lowerableUnivalent {
       val result = MClause()
       children.foreach { (child) =>
           child match {
-          case CutIC(left, right, aux, _) if left  == oldNode =>
+          case R(left, right, aux, _) if left  == oldNode =>
             if (loweredPivots.suc contains aux) delete(child,left)
             else if ((!(loweredPivots.ant contains aux)) && (newNode.conclusion.suc contains aux)) result += aux
-          case CutIC(left, right, aux, _) if right == oldNode =>
+          case R(left, right, aux, _) if right == oldNode =>
             if (loweredPivots.ant contains aux) delete(child,right)
             else if ((!(loweredPivots.suc contains aux)) && (newNode.conclusion.ant contains aux)) aux =+: result
           case _ =>
@@ -58,16 +58,16 @@ package lowerableUnivalent {
       // Search first valent literal
       while (it.hasNext && result.isEmpty)
         it.next match {
-          case CutIC(left,  _, aux, _) if (left  == node) && (!(loweredPivots.suc contains aux)) => result = Some(Right(aux))
-          case CutIC(_, right, aux, _) if (right == node) && (!(loweredPivots.ant contains aux)) => result = Some(Left (aux))
+          case R(left,  _, aux, _) if (left  == node) && (!(loweredPivots.suc contains aux)) => result = Some(Right(aux))
+          case R(_, right, aux, _) if (right == node) && (!(loweredPivots.ant contains aux)) => result = Some(Left (aux))
           case _ =>
         }
 
       // Ensure it's the only one
       while (it.hasNext && !result.isEmpty)
         it.next match {
-          case CutIC(left,  _, aux, _) if (left  == node) && (!(loweredPivots.suc contains aux)) && (Right(aux) != result.get) => result = None
-          case CutIC(_, right, aux, _) if (right == node) && (!(loweredPivots.ant contains aux)) && (Left (aux) != result.get) => result = None
+          case R(left,  _, aux, _) if (left  == node) && (!(loweredPivots.suc contains aux)) && (Right(aux) != result.get) => result = None
+          case R(_, right, aux, _) if (right == node) && (!(loweredPivots.ant contains aux)) && (Left (aux) != result.get) => result = None
           case _ =>
         }
 
@@ -121,13 +121,13 @@ package lowerableUnivalent {
       def loop(guard: () => Boolean, valentAction: (Either[E,E]) => Unit = (_:Either[E,E]) => Unit) = {
         if (it.hasNext) do {
           it.next match {
-            case child @ CutIC(left, right, aux, _) if left  == oldNode =>
+            case child @ R(left, right, aux, _) if left  == oldNode =>
               if (loweredPivots.suc contains aux) {
                 delete(child,left) ; result = None
               }
               else valentAction(Right(aux))
 
-            case child @ CutIC(left, right, aux, _) if right == oldNode =>
+            case child @ R(left, right, aux, _) if right == oldNode =>
               if (loweredPivots.ant contains aux) {
                 delete(child,right) ; result = None
               }
@@ -177,7 +177,7 @@ extends AbstractRPILUAlgorithm {
      * tautological and that all non-valent literal of a lowered node have
      * their dual in the lowered pivots clause.                              */
     univalents.foldLeft(pseudoRoot) { (left,right) =>
-      try {CutIC(left, right)} catch {case e:Exception => left}
+      try {R(left, right)} catch {case e:Exception => left}
     }
   }
 
@@ -250,9 +250,9 @@ extends AbstractThreePassLower {
       orderedUnivalents.foldLeft(fixMap(proof.root)) { (root, univalent) =>
         univalentsValentLiteral(univalent) match {
           case Left(l) =>
-            CutIC(root, fixMap(univalent), _ == l, true)
+            R(root, fixMap(univalent), _ == l, true)
           case Right(l) =>
-            CutIC(fixMap(univalent), root, _ == l, true)
+            R(fixMap(univalent), root, _ == l, true)
           }
       }
     })

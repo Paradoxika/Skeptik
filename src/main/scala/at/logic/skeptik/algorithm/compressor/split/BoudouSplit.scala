@@ -3,7 +3,7 @@ package split
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
-import at.logic.skeptik.proof.sequent.lk.CutIC
+import at.logic.skeptik.proof.sequent.lk.R
 import at.logic.skeptik.algorithm.compressor.Timeout
 
 
@@ -14,7 +14,7 @@ extends Split with AdditivityHeuristic {
     def repeat(sum: Long):Proof[N] = {
       val selectedVariable = chooseVariable(literalAdditivity, sum)
       val (left, right) = split(proof, selectedVariable)
-      val compressedProof: Proof[N] = CutIC(left, right, _ == selectedVariable)
+      val compressedProof: Proof[N] = R(left, right, _ == selectedVariable)
       if (compressedProof.size < proof.size) compressedProof
       else {
         val newSum = sum - literalAdditivity(selectedVariable)

@@ -26,9 +26,9 @@ extends AbstractRPIAlgorithm with UnitsCollectingBeforeFixing with Intersection 
         else computeSafeLiterals(node, childrensSafeLiterals, edgesToDelete)
 
       node match {
-        case CutIC(_,right,_,auxR) if (safeLiterals.ant contains auxR) =>
+        case R(_,right,_,auxR) if (safeLiterals.ant contains auxR) =>
           edgesToDelete.markLeftEdge(node)
-        case CutIC(left ,_,auxL,_) if (safeLiterals.suc contains auxL) =>
+        case R(left ,_,auxL,_) if (safeLiterals.suc contains auxL) =>
           edgesToDelete.markRightEdge(node)
         case _ =>
       }
@@ -78,9 +78,9 @@ extends AbstractThreePassLower {
       val fixMap = mapFixedProofNodes(orderedUnits.toSet + proof.root, edgesToDelete, proof)
       orderedUnits.foldLeft(fixMap(proof.root)) { (root, unit) =>
         if (unit.conclusion.ant.isEmpty)
-          CutIC(fixMap(unit), root, _ == unit.conclusion.suc.head, true)
+          R(fixMap(unit), root, _ == unit.conclusion.suc.head, true)
         else
-          CutIC(root, fixMap(unit), _ == unit.conclusion.ant.head, true)
+          R(root, fixMap(unit), _ == unit.conclusion.ant.head, true)
       }
     }
   }

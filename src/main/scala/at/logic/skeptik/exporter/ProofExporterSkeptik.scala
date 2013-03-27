@@ -2,7 +2,7 @@ package at.logic.skeptik.exporter
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom, UncheckedInference}
+import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 import java.io.FileWriter
 
 object ProofExporterSkeptik extends ProofExporter[Node] {
@@ -21,7 +21,7 @@ object ProofExporterSkeptik extends ProofExporter[Node] {
               writer.write(line, 0, line.length)
               name
           }
-          case CutIC(left,right,pivot,_) => {
+          case R(left,right,pivot,_) => {
             if (proof.childrenOf(n).length == 1) {
               "(" + premiseResults.head + " [" + pivot + "] " + premiseResults.last + ")"
             }

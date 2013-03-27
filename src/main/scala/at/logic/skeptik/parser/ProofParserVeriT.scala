@@ -5,7 +5,7 @@ import collection.mutable.{HashMap => MMap}
 import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{CutIC, Axiom, UncheckedInference}
+import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -31,7 +31,7 @@ extends JavaTokenParsers with RegexParsers {
 
   def inference: Parser[Node] = (resolution | axiom | unchecked)
   def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ {
-    list => (list.head /: list.tail) { ((left, right) => CutIC(left, right)) }
+    list => (list.head /: list.tail) { ((left, right) => R(left, right)) }
   }
   def axiom: Parser[Node] = "input" ~> conclusion ^^ {
     list => new Axiom(list)

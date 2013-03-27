@@ -73,7 +73,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
       // may be optimized (edgesToDelete contains node is checked 3 times)
       node match {
         case _ if ((edges contains node) && edges(node)._2) => true
-        case CutIC(left,right,_,_) if (isMarked(node, left) && isMarked(node,right)) =>
+        case R(left,right,_,_) if (isMarked(node, left) && isMarked(node,right)) =>
 //          println("Case B")
           deleteNode(node)
           true
@@ -82,10 +82,10 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     }
     
     protected def sideOf(parent: SequentProofNode, child: SequentProofNode) = child match {
-      case CutIC(left, right, _,_) => if (parent == left) LeftDS
+      case R(left, right, _,_) => if (parent == left) LeftDS
                                       else if (parent == right) RightDS
                                       else throw new Exception("Unable to find parent in child")
-      case _ => throw new Exception("This function should never be called with child not being a CutIC")
+      case _ => throw new Exception("This function should never be called with child not being a R")
     }
 
   }
@@ -107,24 +107,24 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
       case Axiom(conclusion) => p
 
       // If we've got a proof of false, we propagate it down the proof
-      case CutIC(_,_,_,_) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) =>
+      case R(_,_,_,_) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) =>
         fixedLeft
-      case CutIC(_,_,_,_) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) =>
+      case R(_,_,_,_) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) =>
         fixedRight
 
       // Delete nodes and edges
-      case CutIC(left,right,_,_) if edgesToDelete.isMarked(p,left) =>
+      case R(left,right,_,_) if edgesToDelete.isMarked(p,left) =>
         fixedRight
-      case CutIC(left,right,_,_) if edgesToDelete.isMarked(p,right) =>
+      case R(left,right,_,_) if edgesToDelete.isMarked(p,right) =>
         fixedLeft
 
       // If premises haven't been changed, we keep the proof as is (memory optimization)
-      case CutIC(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
+      case R(left,right,_,_) if (left eq fixedLeft) && (right eq fixedRight) => p
 
       // Main case (rebuild a resolution)
-      case CutIC(left,right,pivot,_) => CutIC(fixedLeft, fixedRight, _ == pivot, true)
+      case R(left,right,pivot,_) => R(fixedLeft, fixedRight, _ == pivot, true)
       
-      // When the inference is not CutIC, nothing is done 
+      // When the inference is not R, nothing is done 
       case _ => p
     }
   }
@@ -136,9 +136,9 @@ extends AbstractRPILUAlgorithm {
   protected def safeLiteralsFromChild(childWithSafeLiterals: (SequentProofNode, IClause),
                                       parent: SequentProofNode, edgesToDelete: EdgesToDelete) =
     childWithSafeLiterals match {
-      case (child @ CutIC(left,right,_,auxR), safeLiterals) if left  == parent => 
+      case (child @ R(left,right,_,auxR), safeLiterals) if left  == parent => 
         if (edgesToDelete.isMarked(child,right)) safeLiterals else (safeLiterals + auxR)
-      case (child @ CutIC(left,right,auxL,_), safeLiterals) if right == parent =>
+      case (child @ R(left,right,auxL,_), safeLiterals) if right == parent =>
         if (edgesToDelete.isMarked(child,left))  safeLiterals else (auxL +: safeLiterals)
       case (_,safeLiterals) => safeLiterals
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
@@ -159,8 +159,8 @@ extends AbstractRPIAlgorithm {
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
-        case CutIC(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markRightEdge(p)
-        case CutIC(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
+        case R(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markRightEdge(p)
+        case R(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
         case _ =>
       }
       (p, safeLiterals)

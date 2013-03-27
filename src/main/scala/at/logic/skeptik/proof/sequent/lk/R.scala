@@ -6,7 +6,7 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression.E
 
 // ToDo: This class should eventually use SetSequent instead of SeqSequent.
-class CutIC(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E) 
+class R(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E) 
 extends AbstractCut {
   // Requirements only necessary because inefficient requirement in SequentProofNode was commented out 
   require(leftPremise.conclusion.suc contains auxL)
@@ -25,8 +25,8 @@ extends AbstractCut {
 }
 
 
-object CutIC {
-  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL:E, auxR:E) = new CutIC(leftPremise,rightPremise,auxL,auxR)
+object R {
+  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL:E, auxR:E) = new R(leftPremise,rightPremise,auxL,auxR)
   
   def apply(leftPremise: SequentProofNode, 
             rightPremise: SequentProofNode, 
@@ -34,7 +34,7 @@ object CutIC {
             returnPremiseOnfailure: Boolean = false,
             choosePremise: ((SequentProofNode, SequentProofNode) => SequentProofNode) = (l,r) => l) = 
     (leftPremise.conclusion.suc.find(isPivot), rightPremise.conclusion.ant.find(isPivot)) match {
-      case (Some(auxL), Some(auxR)) => new CutIC(leftPremise, rightPremise, auxL, auxR)
+      case (Some(auxL), Some(auxR)) => new R(leftPremise, rightPremise, auxL, auxR)
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
       case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
       case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
@@ -47,15 +47,15 @@ object CutIC {
       return None
     }
     findPivots(premise1,premise2) match {
-      case Some((auxL,auxR)) => new CutIC(premise1,premise2,auxL,auxR)
+      case Some((auxL,auxR)) => new R(premise1,premise2,auxL,auxR)
       case None => findPivots(premise2,premise1) match {
-        case Some((auxL,auxR)) => new CutIC(premise2,premise1,auxL,auxR)
+        case Some((auxL,auxR)) => new R(premise2,premise1,auxL,auxR)
         case None => throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
       }
     }
   }
   def unapply(p: SequentProofNode) = p match {
-    case p: CutIC => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
+    case p: R => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
     case _ => None
   }
 }

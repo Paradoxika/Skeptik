@@ -2,7 +2,7 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
-import at.logic.skeptik.proof.sequent.lk.CutIC
+import at.logic.skeptik.proof.sequent.lk.R
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
@@ -16,57 +16,57 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   node match {
 
     // B2
-    case CutIC(CutIC(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
-         CutIC(CutIC(beta, alpha, _ == t), gamma, _ == s)
-    case CutIC(CutIC(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
-         CutIC(gamma, CutIC(beta, alpha, _ == t), _ == s)
-    case CutIC(alpha,CutIC(beta,gamma,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
-         CutIC(CutIC(alpha, beta, _ == t), gamma, _ == s)
-    case CutIC(alpha,CutIC(gamma,beta,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
-         CutIC(gamma, CutIC(alpha, beta, _ == t), _ == s)
+    case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
+         R(R(beta, alpha, _ == t), gamma, _ == s)
+    case R(R(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
+         R(gamma, R(beta, alpha, _ == t), _ == s)
+    case R(alpha,R(beta,gamma,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
+         R(R(alpha, beta, _ == t), gamma, _ == s)
+    case R(alpha,R(gamma,beta,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
+         R(gamma, R(alpha, beta, _ == t), _ == s)
 
     // B3
-    case CutIC(CutIC(beta,gamma,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
+    case R(R(beta,gamma,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
          gamma
-    case CutIC(CutIC(gamma,beta,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
+    case R(R(gamma,beta,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
          gamma
-    case CutIC(alpha,CutIC(beta,gamma,s,_),t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
+    case R(alpha,R(beta,gamma,s,_),t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
          gamma
-    case CutIC(alpha,CutIC(gamma,beta,s,_),t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
+    case R(alpha,R(gamma,beta,s,_),t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
          gamma
 
     // B2'/B1
-    case CutIC(CutIC(beta,_,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && (beta.conclusion.suc contains t) =>
-         CutIC(beta, alpha, _ == t)
-    case CutIC(CutIC(_,beta,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && (beta.conclusion.suc contains t) =>
-         CutIC(beta, alpha, _ == t)
-    case CutIC(alpha,CutIC(beta,_,s,_),t,_) if (alpha.conclusion.suc contains s) && (beta.conclusion.ant contains t) =>
-         CutIC(alpha, beta, _ == t)
-    case CutIC(alpha,CutIC(_,beta,s,_),t,_) if (alpha.conclusion.ant contains s) && (beta.conclusion.ant contains t) =>
-         CutIC(alpha, beta, _ == t)
+    case R(R(beta,_,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && (beta.conclusion.suc contains t) =>
+         R(beta, alpha, _ == t)
+    case R(R(_,beta,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && (beta.conclusion.suc contains t) =>
+         R(beta, alpha, _ == t)
+    case R(alpha,R(beta,_,s,_),t,_) if (alpha.conclusion.suc contains s) && (beta.conclusion.ant contains t) =>
+         R(alpha, beta, _ == t)
+    case R(alpha,R(_,beta,s,_),t,_) if (alpha.conclusion.ant contains s) && (beta.conclusion.ant contains t) =>
+         R(alpha, beta, _ == t)
 
     // A1'
-    case CutIC(CutIC(beta1,gamma1,t1,_),CutIC(beta2,gamma2,t2,_),s,_) if leftPremiseHasOneChild && rightPremiseHasOneChild &&
+    case R(R(beta1,gamma1,t1,_),R(beta2,gamma2,t2,_),s,_) if leftPremiseHasOneChild && rightPremiseHasOneChild &&
                                                                          (t1 == t2) && (gamma1.conclusion == beta2.conclusion) &&
                                                                          (beta1.conclusion.suc contains s) && (gamma2.conclusion.ant contains s) =>
-         CutIC(CutIC(beta1,gamma2, _ == s), gamma1, _ == t1)
+         R(R(beta1,gamma2, _ == s), gamma1, _ == t1)
 
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
   def a2(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
-    case CutIC(CutIC(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild &&
+    case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild &&
                                                    !(alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
-         CutIC(CutIC(beta,alpha, _ == t), gamma, _ == s)
-    case CutIC(CutIC(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild &&
+         R(R(beta,alpha, _ == t), gamma, _ == s)
+    case R(R(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild &&
                                                    !(alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
-         CutIC(gamma, CutIC(beta,alpha, _ == t), _ == s)
-    case CutIC(alpha,CutIC(beta,gamma,s,_),t,_) if rightPremiseHasOneChild &&
+         R(gamma, R(beta,alpha, _ == t), _ == s)
+    case R(alpha,R(beta,gamma,s,_),t,_) if rightPremiseHasOneChild &&
                                                    !(alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
-         CutIC(CutIC(alpha,beta, _ == t), gamma, _ == s)
-    case CutIC(alpha,CutIC(gamma,beta,s,_),t,_) if rightPremiseHasOneChild &&
+         R(R(alpha,beta, _ == t), gamma, _ == s)
+    case R(alpha,R(gamma,beta,s,_),t,_) if rightPremiseHasOneChild &&
                                                    !(alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
-         CutIC(gamma, CutIC(alpha,beta, _ == t), _ == s)
+         R(gamma, R(alpha,beta, _ == t), _ == s)
 
     case _ => node
   }
@@ -77,11 +77,11 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
                            (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
 
     val fixedNode = (node, fixedPremises) match {
-      case (CutIC(_,_,pivot,_), left::right::Nil) => CutIC(left, right, _ == pivot, true)
+      case (R(_,_,pivot,_), left::right::Nil) => R(left, right, _ == pivot, true)
       case _ => node
     }
     node match {
-      case CutIC(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
+      case R(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
       case _ => fixedNode
     }
   }

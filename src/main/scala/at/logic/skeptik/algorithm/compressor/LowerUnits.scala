@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.sequent.SequentProofNode
-import at.logic.skeptik.proof.sequent.lk.{Axiom,CutIC}
+import at.logic.skeptik.proof.sequent.lk.{Axiom,R}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{Queue, HashMap => MMap}
 import at.logic.skeptik.proof.Proof
@@ -24,9 +24,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
       lazy val fixedRight = fixedPremises.last;
       val fixedP = node match {
         case Axiom(conclusion) => node
-        case CutIC(left,right,_,_) if unitsSet contains left => fixedRight
-        case CutIC(left,right,_,_) if unitsSet contains right => fixedLeft
-        case CutIC(left,right,aux,_) => CutIC(fixedLeft, fixedRight, _ == aux)
+        case R(left,right,_,_) if unitsSet contains left => fixedRight
+        case R(left,right,_,_) if unitsSet contains right => fixedLeft
+        case R(left,right,aux,_) => R(fixedLeft, fixedRight, _ == aux)
         case _ => node
       }
       if (node == proof.root || unitsSet.contains(node)) fixMap.update(node, fixedP)
@@ -39,7 +39,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   def apply(proof: Proof[SequentProofNode]) = {
     val units   = collectUnits(proof)
     val fixMap  = fixProofNodes(units.toSet, proof)
-    val root = units.map(fixMap).foldLeft(fixMap(proof.root))((left,right) => try {CutIC(left,right)} catch {case e:Exception => left})
+    val root = units.map(fixMap).foldLeft(fixMap(proof.root))((left,right) => try {R(left,right)} catch {case e:Exception => left})
     Proof(root)
   }
 

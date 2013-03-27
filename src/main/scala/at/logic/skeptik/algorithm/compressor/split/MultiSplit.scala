@@ -57,7 +57,7 @@ extends AdditivityHeuristic {
   private case class SplitterNode (pos: Splitter, neg: Splitter)
   extends Splitter {
     def merge(variableList: List[E]) = variableList match {
-      case t::q => CutIC(pos.merge(q), neg.merge(q), _ == t, true)
+      case t::q => R(pos.merge(q), neg.merge(q), _ == t, true)
       case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
     }
   }
@@ -81,7 +81,7 @@ extends AdditivityHeuristic {
 
         // Real leaf case : simple resolution
         case (SplitterLeaf(proofLeft), SplitterLeaf(proofRight)) =>
-          SplitterLeaf(CutIC(proofLeft, proofRight, _ == pivot, true))
+          SplitterLeaf(R(proofLeft, proofRight, _ == pivot, true))
 
         // Split case : the pivot matches the variable
         case (l, r) if pivot == variable =>
@@ -112,7 +112,7 @@ extends AdditivityHeuristic {
     def visit(node: SequentProofNode, premises: Seq[Splitter]) =
       node match {
         case Axiom(_) => Splitter(node, variableList)
-        case CutIC(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
+        case R(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
         case _ => Splitter(node, variableList)
       }
     proof foldDown {visit}
