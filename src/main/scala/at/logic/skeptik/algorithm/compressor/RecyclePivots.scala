@@ -31,10 +31,10 @@ extends AbstractRPIAlgorithm {
 }
 
 object RecyclePivots
-extends RecyclePivots with outIntersection with IdempotentAlgorithm[SequentProofNode]
+extends RecyclePivots with outIntersection
 
 object RecyclePivotsWithIntersection
-extends RecyclePivots with Intersection with RepeatableWhileCompressingAlgorithm[SequentProofNode]
+extends RecyclePivots with Intersection
 
-object IdempotentRecyclePivotsWithIntersection
-extends RecyclePivots with Intersection with IdempotentAlgorithm[SequentProofNode]
+//object IdempotentRecyclePivotsWithIntersection
+//extends RecyclePivots with Intersection with IdempotentAlgorithm[SequentProofNode]

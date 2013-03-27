@@ -5,12 +5,11 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.CutIC
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
-import at.logic.skeptik.algorithm.compressor.guard._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 
 abstract class AbstractReduceAndReconstruct
-extends ProofCompressor[SequentProofNode] with RepeatableAlgorithm[SequentProofNode] {
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
   protected def reduce(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
       (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode):SequentProofNode =
@@ -72,43 +71,29 @@ extends ProofCompressor[SequentProofNode] with RepeatableAlgorithm[SequentProofN
     case _ => node
   }
 
-//  protected def reconstruct(node: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode) = node match {
-//    case Axiom(conclusion) => Axiom(conclusion)
-//    case CutIC(left,right,pivot,_) => 
-//  }
 
-  protected def reduceAndReconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode) = {
-    def hasOnlyOneChild(p: SequentProofNode) = proof.childrenOf(p) match {
-      case _::Nil => true
-      case _ => false
+  
+  protected def reconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+                           (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+
+    val fixedNode = (node, fixedPremises) match {
+      case (CutIC(_,_,pivot,_), left::right::Nil) => CutIC(left, right, _ == pivot, true)
+      case _ => node
     }
-    { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
-      val fixedNode = (node, fixedPremises) match {
-        case (CutIC(_,_,pivot,_), left::right::Nil) => CutIC(left, right, _ == pivot, true)
-        case _ => node
-        //case premise::Nil => node // does nothing in the case of unary UncheckedInferences
-        
-        //case _ => throw new Exception("Wrong number of premises")
-      }
-      node match {
-        case CutIC(left, right, _, _) => reduce(fixedNode, hasOnlyOneChild(left), hasOnlyOneChild(right))(fallback)
-        case _ => fixedNode
-      }
-    }}
+    node match {
+      case CutIC(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
+      case _ => fixedNode
+    }
   }
 }
 
-object ReduceAndReconstruct
-extends AbstractReduceAndReconstruct with RepeatableAlgorithm[SequentProofNode] {
-
-  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, a2)))
-
+class ReduceAndReconstruct(val timeout: Int)
+extends AbstractReduceAndReconstruct with Timeout {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, a2))
 }
 
 
-object RRWithoutA2
-extends AbstractReduceAndReconstruct {
-
-  def apply(proof: Proof[SequentProofNode]) = Proof(proof.foldDown(reduceAndReconstruct(proof, { (n,_,_) => n })))
-
+class RRWithoutA2(val timeout: Int)
+extends AbstractReduceAndReconstruct with Timeout {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, { (n,_,_) => n }))
 }
