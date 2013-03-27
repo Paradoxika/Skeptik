@@ -66,7 +66,7 @@ empirically compared on thousands of proofs produced by the SMT-Solver \veriT.
 Sat-solvers are among the most successful automated deduction tools available today. As standalone
 tools, they can already be applied to a wide range of problems, especially considering that, due to
 the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a
-propositional formula. Despite the theoretical difficulty associated with NP
+propositional formula. Despite the theoretical difficulty associated with NP-complete
 problems, state-of-the-art sat-solving techniques perform surprisingly well in practice
 \cite{sat-competition}. With the aim of leveraging this efficiency, sat-solvers have been embedded
 into various other automated deduction tools that target problems described in more expressive
@@ -400,7 +400,7 @@ call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin}
 \ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
 \ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
 as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
-implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof if the
+implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, assuming the
 univalent test (at line \ref{line:LUniv:lunivtest}) is performed in constant bounded time. 
 
 %This and other optimizations are shown in the more detailed Algo. \ref{algo:fullLUniv}. 
@@ -544,7 +544,7 @@ Every node in a proof $\langle V, E, \Gamma \rangle$ has exactly two outgoing ed
 root of an axiom. Hence the number of axioms is $|V| - \frac{1}{2}\,|E|$ and because there is at
 least one axiom, the average number of active literals per node is strictly less than two.
 Therefore, if {\LowerUnivalents} is implemented as an improved recursive \FuncSty{delete}, its time
-complexity remains linear if membership of literals to the set $\Delta$ is computed in constant
+complexity remains linear, assuming membership of literals to the set $\Delta$ is computed in constant
 time.
 
 \begin{proposition} \label{prop:compression}
@@ -601,7 +601,7 @@ marked for deletion. The second traversal is the effective deletion similar to t
 $\FuncSty{delete}$ algorithm.
 
 Both sequential compositions of {\LowerUnits} with {\RPI} have been shown to achieve good
-compression ratio in reasonable delay (\cite{LURPI}). Unfortunately, neither {\LowerUnits} after
+compression ratio (\cite{LURPI}). Unfortunately, neither {\LowerUnits} after
 {\RPI} (\texttt{LU.RPI}) nor {\RPI} after {\LowerUnits} (\texttt{RPI.LU}) always compresses more than
 the other one. A reasonable solution is to perform both algorithms and then to choose the smallest
 compressed proof.
