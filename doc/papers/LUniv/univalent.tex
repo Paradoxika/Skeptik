@@ -790,7 +790,7 @@ As expected, {\LowerUnivalents} always compresses more than {\LowerUnits} (subfi
 computation (subfigure d). And even if the compression gain is low on average (as noticeable in Table \ref{tab:average}), subfigure (a) shows that {\LowerUnivalents} compresses some proofs significantly more than {\LowerUnits}.
 
 It has to be noticed that \veriT already does its best to produce compact proofs. In particular,
-a forward subsuming algorithm is applied, which results in proofs not having two different subproofs
+a forward subsumption algorithm is applied, which results in proofs not having two different subproofs
 with the same conclusion. This results in {\LowerUnits} being unable to reduce unsat core.
 But as {\LowerUnivalents} lowers non-unit subproofs and performs some partial regularization, it
 achieves some unsat core reduction, as noticeable in subfigure (b).
