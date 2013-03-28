@@ -295,7 +295,7 @@ proof. Formally, a subproof $\varphi$ in a proof $\psi$ can be lowered if there 
 $\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
 $\Conclusion{\psi'} \subseteq \Conclusion{\psi}$.
 
-This idea has been introduced in \cite{LURPI} for the {\LowerUnits} algorithm. Units are subproofs
+This idea has been introduced in \cite{LURPI} by the {\LowerUnits} algorithm. Units are subproofs
 with a conclusion consisting of only one literal. Such a subproof can always be lowered. The
 proposed algorithm lowers every unit with more than one child. Care is taken to reintroduce units in
 an order corresponding to the subproof relation: if a unit $\varphi_2$ is a subproof of a unit
