@@ -272,7 +272,7 @@ In a proof $\psi$, every valent literal of a subproof $\varphi$ is an active lit
 \newcommand{\pedge}[3]{\ensuremath{\raiz{#1} \xrightarrow{#2} \raiz{#3}}}
 
 \begin{proof}
-Lines 2, 12, 14 and 16 from Algo. \ref{algo:del} can not introduce a new literal in the conclusion of
+Lines 2, 12, 14 and 16 from Algorithm \ref{algo:del} can not introduce a new literal in the conclusion of
 the subproof being processed. Let $\ell$ be a valent literal of $\varphi$ in $\psi$. Because
 there is only one subproof to be deleted, $\dual{\ell}$ can only be introduced when processing a
 subproof $\varphi'$ such that $\pedge{\varphi'}{\ell}{\varphi}$. \qed
@@ -294,7 +294,7 @@ proof. Formally, a subproof $\varphi$ in a proof $\psi$ can be lowered if there 
 $\psi'$ and a literal $\ell$ such that $\psi' = \dn{\psi}{\varphi} \odot_a \varphi$ and
 $\Conclusion{\psi'} \subseteq \Conclusion{\psi}$.
 
-This idea has been introduced in \cite{LURPI} for the {\LowerUnits} algorithm. Units are subproofs
+This idea has been introduced in \cite{LURPI} by the {\LowerUnits} algorithm. Units are subproofs
 with a conclusion consisting of only one literal. Such a subproof can always be lowered. The
 proposed algorithm lowers every unit with more than one child. Care is taken to reintroduce units in
 an order corresponding to the subproof relation: if a unit $\varphi_2$ is a subproof of a unit
@@ -395,7 +395,7 @@ All the other children are reintroduced with the reintroduction of $\varphi_i$, 
 $\varphi_j$ was not deleted from $\varphi_i$.
 
 To solve this issue, {\LowerUnivalents} traverses the proof in a top-down manner and simultaneously
-deletes already collected univalent subproofs, as sketched in Algo. \ref{algo:LUniv}.  Although the
+deletes already collected univalent subproofs, as sketched in Algorithm \ref{algo:LUniv}.  Although the
 call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
 \ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
 \ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
@@ -477,7 +477,7 @@ marked for lowering. The resulting proof has one resolution less than the origin
   \label{algo:LUniv}
 \end{algorithm}
 
-Determining whether a literal is valent is expensive. But thanks to Prop. \ref{prop:valentactive},
+Determining whether a literal is valent is expensive. But thanks to Proposition \ref{prop:valentactive},
 subproofs with one active literal which is not in $\Conclusion{\psi}$ could be considered instead
 of subproofs with one valent literal.  If the active literal is not valent, the corresponding
 subproof might not be reintroduceable. But this is not a problem, because then it can be safely deleted.
@@ -789,7 +789,7 @@ As expected, {\LowerUnivalents} always compresses more than {\LowerUnits} (subfi
 computation (subfigure d). And even if the compression gain is low on average (as noticeable in Table \ref{tab:average}), subfigure (a) shows that {\LowerUnivalents} compresses some proofs significantly more than {\LowerUnits}.
 
 It has to be noticed that \veriT already does its best to produce compact proofs. In particular,
-a forward subsuming algorithm is applied, which results in proofs not having two different subproofs
+a forward subsumption algorithm is applied, which results in proofs not having two different subproofs
 with the same conclusion. This results in {\LowerUnits} being unable to reduce unsat core.
 But as {\LowerUnivalents} lowers non-unit subproofs and performs some partial regularization, it
 achieves some unsat core reduction, as noticeable in subfigure (b).
@@ -813,7 +813,7 @@ composition for more than 80 \% of the proofs.
 \section{Conclusions and Future Work}
 
 {\LowerUnivalents}, the algorithm presented here, has been shown in the previous section to compress
-more than {\LowerUnits}. This is so because, as demonstrated in Prop. \ref{prop:compression}, the
+more than {\LowerUnits}. This is so because, as demonstrated in Proposition \ref{prop:compression}, the
 set of subproofs it lowers is always a superset of the set of subproofs lowered by {\LowerUnits}. It might
 be possible to lower even more subproofs by finding a characterization of (efficiently) lowerable subproofs
 broader than that of univalent subproofs considered here. This direction for future work promises to be challenging, though, as evidenced by the non-triviality of the optimizations discussed in Section \ref{sec:LUniv} for obtaining a linear-time implementation of {\LowerUnivalents}.
