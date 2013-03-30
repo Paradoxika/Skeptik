@@ -241,17 +241,16 @@ $\varphi'$ as well. Instead of assigning some arbitrary proof to $\varphi'$ and 
 the algorithm arbitrarily returns (in line 8) $\varphi'_R$ (which is already in $D$) as the result
 $\varphi'$. In this way, the propagation of deletion is done automatically and implicitly. For
 instance, the following hold:
-$$
-\dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} = \varphi_2
-\qquad
-\dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2} =
-  \dn{\varphi_3}{\varphi_1, \varphi_2}
-$$
+\begin{align}
+  \dn{\varphi_1 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} &= \varphi_2 \label{eq:exampledel1} \\
+\dn{\varphi_1 \odot_\ell \varphi_2 \odot_{\ell'} \varphi_3}{\varphi_1, \varphi_2} &=
+  \dn{\varphi_3}{\varphi_1, \varphi_2} \label{eq:exampledel2}
+\end{align}
 A side-effect of this clever implicit propagation of deletion is that the actual result of deletion
-is only meaningful if it is not in $D$. In the example at the left side above, as $\dn{\varphi_1
+is only meaningful if it is not in $D$. In the example (\ref{eq:exampledel1}), as $\dn{\varphi_1
 \odot_\ell \varphi_2}{\varphi_1, \varphi_2} \in \{\varphi_1, \varphi_2\} $, the actual resulting
 proof is meaningless. Only the information that it is a deleted subproof is relevant, as it suffices
-to obtain meaningful results as shown in the right side above.
+to obtain meaningful results as shown in (\ref{eq:exampledel2}).
 
 \begin{proposition} \label{prop:del_assoc}
 For any proof $\psi$ and any sets $A$ and $B$ of $\psi$'s subproofs,
