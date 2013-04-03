@@ -2,7 +2,6 @@
 
 \usepackage{xcolor}
 \usepackage{enumitem,amsmath,amssymb}
-\usepackage{stmaryrd}    % needed for \mapsfrom
 \usepackage{url}    % used for \url
 \usepackage[linesnumbered,boxed,noline,noend]{algorithm2e}
 \def\defaultHypSeparation{\hskip.1in}
@@ -438,8 +437,10 @@ marked for lowering. The resulting proof has one resolution less than the origin
 
     \end{tikzpicture}
   }
-  \caption{Example of proof crompression by \LowerUnivalents} \label{fig:exluniv}
+\caption{Example of proof crompression by \LowerUnivalents} 
+\label{fig:exluniv}
 \end{figure}
+
 
 
 \SetKwData{Univ}{Univalents}
@@ -480,7 +481,7 @@ marked for lowering. The resulting proof has one resolution less than the origin
 Determining whether a literal is valent is expensive. But thanks to Proposition \ref{prop:valentactive},
 subproofs with one active literal which is not in $\Conclusion{\psi}$ could be considered instead
 of subproofs with one valent literal.  If the active literal is not valent, the corresponding
-subproof might not be reintroduceable. But this is not a problem, because then it can be safely deleted.
+subproof will simply not be reintroduced later (i.e. the condition in line 28 of Algorithm \ref{algo:fullLUniv} will fail).
 
 While verifying if a subproof could be univalent, some edges might be deleted. If a
 subproof $\varphi_i$ has already been collected as univalent subproof with univalent literal
