@@ -394,52 +394,7 @@ All the other children are reintroduced with the reintroduction of $\varphi_i$, 
 $\varphi_j$ was not deleted from $\varphi_i$.
 
 To solve this issue, {\LowerUnivalents} traverses the proof in a top-down manner and simultaneously
-deletes already collected univalent subproofs, as sketched in Algorithm \ref{algo:LUniv}.  Although the
-call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
-\ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
-\ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
-as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
-implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, assuming the
-univalent test (at line \ref{line:LUniv:lunivtest}) is performed in constant bounded time. 
-
-
-Figure \ref{fig:exluniv} shows an example proof and the result of compressing it with \LowerUnivalents. Edges are directed from children (resolvents) to their parents (premises). This is contrary to the usual graph and proof theoretic conventions, but is closer to the actual implementation of the data structures used by \LowerUnivalents. The top-down traversal starts with the leaves (axioms) and only visits a child when all its parents have already been visited. Assuming the unit with conclusion $\{a\}$ is the first visited leaf, it passes the univalent test in line \ref{line:LUniv:lunivtest}, is marked for lowering (line \ref{line:LUniv:step1end}) and the dual of its univalent literal is pushed onto $\Delta$ (line \ref{line:LUniv:pushDelta}). When the subproof with
-conclusion $\{\dual{a},b\}$ is considered, $\Delta = \{\dual{a}\}$. As this subproof has only one
-valent literal $b \notin \Delta$ and $\{\dual{a},b\} \subseteq \Delta \cup \{b\}$, it is
-marked for lowering as well. At this point, $\Delta = \{\dual{a}, \dual{b}\}$, \texttt{Univalents} contains the two subproofs marked for lowering and $\psi'$ is the subproof with conclusion $\{\dual{a}, \dual{b}\}$ shown in Subfig. (b) (i.e. the result of deleting the two marked subproofs from the original proof in Subfig. (a)). No other subproof is univalent; no other subproof is marked for lowering. The final compressed proof (Subfig. (b)) is obtained by reintroducing the two univalent subproofs that had been marked (lines \ref{line:LUniv:reintroducebegin} -- \ref{line:LUniv:testreintroduce}). It has one resolution less than the original. This is so because the subproof with conclusion $\{\dual{a},b\}$ had been used (resolved) twice in the original proof, but lowering delays its use and then a single use is sufficient.
-
-\begin{figure}[htb]
-  \centering
-  \subfloat[Original proof]{
-    \centering
-    \begin{tikzpicture}
-
-      \rootnode;
-      \withchildren{root} {r0}{\dual{a}}  {unit}{a};
-      \withchildren{r0}   {r1}{\dual{a},c} {r2}{\dual{a},\dual{c}};
-      \withchildren{r1}   {a0}{\dual{b},c} {low}{\dual{a},b};
-
-      \proofnode[above right of=r2] {a1} {\dual{a},\dual{b},\dual{c}};
-      \drawchildren {r2} {low} {a1};
-
-    \end{tikzpicture}
-  } \qquad
-  \centering
-  \subfloat[Compressed proof]{
-    \centering
-    \begin{tikzpicture}
-
-      \rootnode;
-      \withchildren{root} {r0}{\dual{a}}          {unit}{a};
-      \withchildren{r0}   {r1}{\dual{a},\dual{b}} {low}{\dual{a},b};
-      \withchildren{r1}   {a0}{\dual{b},c}        {a1}{\dual{a},\dual{b},\dual{c}};
-
-    \end{tikzpicture}
-  }
-\caption{Example of proof crompression by \LowerUnivalents} 
-\label{fig:exluniv}
-\end{figure}
-
+deletes already collected univalent subproofs, as sketched in Algorithm \ref{algo:LUniv}.  
 
 
 \SetKwData{Univ}{Univalents}
@@ -476,6 +431,56 @@ marked for lowering as well. At this point, $\Delta = \{\dual{a}, \dual{b}\}$, \
   \caption{Simplified \LowerUnivalents}
   \label{algo:LUniv}
 \end{algorithm}
+
+
+Figure \ref{fig:exluniv} shows an example proof and the result of compressing it with \LowerUnivalents. Edges are directed from children (resolvents) to their parents (premises). This is contrary to the usual graph and proof theoretic conventions, but is closer to the actual implementation of the data structures used by \LowerUnivalents. The top-down traversal starts with the leaves (axioms) and only visits a child when all its parents have already been visited. Assuming the unit with conclusion $\{a\}$ is the first visited leaf, it passes the univalent test in line \ref{line:LUniv:lunivtest}, is marked for lowering (line \ref{line:LUniv:step1end}) and the dual of its univalent literal is pushed onto $\Delta$ (line \ref{line:LUniv:pushDelta}). When the subproof with
+conclusion $\{\dual{a},b\}$ is considered, $\Delta = \{\dual{a}\}$. As this subproof has only one
+valent literal $b \notin \Delta$ and $\{\dual{a},b\} \subseteq \Delta \cup \{b\}$, it is
+marked for lowering as well. At this point, $\Delta = \{\dual{a}, \dual{b}\}$, \texttt{Univalents} contains the two subproofs marked for lowering and $\psi'$ is the subproof with conclusion $\{\dual{a}, \dual{b}\}$ shown in Subfig. (b) (i.e. the result of deleting the two marked subproofs from the original proof in Subfig. (a)). No other subproof is univalent; no other subproof is marked for lowering. The final compressed proof (Subfig. (b)) is obtained by reintroducing the two univalent subproofs that had been marked (lines \ref{line:LUniv:reintroducebegin} -- \ref{line:LUniv:testreintroduce}). It has one resolution less than the original. This is so because the subproof with conclusion $\{\dual{a},b\}$ had been used (resolved) twice in the original proof, but lowering delays its use so that a single use is sufficient.
+
+\begin{figure}[htb]
+  \centering
+  \subfloat[Original proof]{
+    \centering
+    \begin{tikzpicture}
+
+      \rootnode;
+      \withchildren{root} {r0}{\dual{a}}  {unit}{a};
+      \withchildren{r0}   {r1}{\dual{a},c} {r2}{\dual{a},\dual{c}};
+      \withchildren{r1}   {a0}{\dual{b},c} {low}{\dual{a},b};
+
+      \proofnode[above right of=r2] {a1} {\dual{a},\dual{b},\dual{c}};
+      \drawchildren {r2} {low} {a1};
+
+    \end{tikzpicture}
+  } \qquad
+  \centering
+  \subfloat[Compressed proof]{
+    \centering
+    \begin{tikzpicture}
+
+      \rootnode;
+      \withchildren{root} {r0}{\dual{a}}          {unit}{a};
+      \withchildren{r0}   {r1}{\dual{a},\dual{b}} {low}{\dual{a},b};
+      \withchildren{r1}   {a0}{\dual{b},c}        {a1}{\dual{a},\dual{b},\dual{c}};
+
+    \end{tikzpicture}
+  }
+\caption{Example of proof crompression by \LowerUnivalents} 
+\label{fig:exluniv}
+\end{figure}
+
+
+% Discussion of optimizations follow
+
+Although the
+call to \FuncSty{delete} inside the first loop (line \ref{line:LUniv:step1begin} to
+\ref{line:LUniv:step1end}) suggests quadratic time complexity, this loop (line
+\ref{line:LUniv:step1begin} to \ref{line:LUniv:step1end}) can be (and has been) actually implemented
+as a recursive function extending a recursive implementation of \FuncSty{delete}. With such an
+implementation, {\LowerUnivalents} has a time complexity linear w.r.t. the size of the proof, assuming the
+univalent test (at line \ref{line:LUniv:lunivtest}) is performed in constant bounded time. 
+
 
 Determining whether a literal is valent is expensive. But thanks to Proposition \ref{prop:valentactive},
 subproofs with one active literal which is not in $\Conclusion{\psi}$ could be considered instead
