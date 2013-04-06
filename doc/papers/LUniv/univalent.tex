@@ -63,34 +63,17 @@ empirically compared on thousands of proofs produced by the SMT-Solver \veriT.
 
 \section{Introduction}
 
-Sat-solvers are among the most successful automated deduction tools available today. As standalone
-tools, they can already be applied to a wide range of problems, especially considering that, due to
-the NP-completeness of propositional satisfiability \cite{cook}, any NP problem can be encoded as a
-propositional formula. Despite the theoretical difficulty associated with NP-complete
-problems, state-of-the-art sat-solving techniques perform surprisingly well in practice
-\cite{sat-competition}. With the aim of leveraging this efficiency, sat-solvers have been embedded
-into various other automated deduction tools that target problems described in more expressive
-logics. The most prominent examples are SMT-solvers \cite{veriT}, for checking satisfiability modulo
-theories for equality, linear arithmetic, bit-vectors, arrays and others. More recently,
-interactive proof assistants \cite{isabelle-blanchette-boehme} and automated first-order
-(\cite{iProver}) and even higher-order \cite{satallax} theorem provers have
-taken advantage of embedding sat-solvers as well.
+Propositional resolution is among the most successful proof calculi for automated deduction in propositional logic available today. It provides the foundation for DPLL- and CDCL-based Sat/SMT-solvers \cite{veriT}, which perform surprisingly well in practice \cite{sat-competition}, despite the NP-completeness of propositional satisfiability \cite{cook} and the theoretical difficulty associated with NP-complete problems. 
 
-In such a scenario, it is essential that sat-solvers output not only a \emph{yes} or \emph{no}
-answer, but also a model (in case of satisfiability) or a refutation (in case of unsatisfiability).
-For DPLL- and CDCL-based sat-solvers, propositional resolution is an excellent proof system, since
-refutations in this system can be generated with an acceptable efficiency overhead and are detailed
-enough to allow easy implementation of efficient proof checkers.
+Resolution refutations can also be output by Sat/SMT-solvers with an acceptable efficiency overhead and are detailed enough to allow easy implementation of efficient proof checkers. They can, therefore, be used as certificates of correctness for the answers provided by these tools in case of unsatisfiability.
 
-
-With the increase in the demand for proofs from sat-solvers, there has been a surge of techniques to
-compress and improve such proofs in a post-processing stage.  Algebraic properties of the resolution
-operation that might be useful for compression were theoretically investigated in \cite{bwp10}.
+However, as the refutations found by Sat/SMT-solvers are often redundant, techniques for
+compressing and improving resolution proofs in a post-processing stage have flourished.  Algebraic properties of the resolution
+operation that might be useful for compression were investigated in \cite{bwp10}.
 Compression algorithms based on rearranging and sharing chains of resolution inferences have been
 developed in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit} proposed an algorithm that
-compresses a refutation by first splitting it into a proof of a heuristically chosen literal $\ell$
-and a proof of $\dual{\ell}$, and then resolving them to form a new refutation. This process can be
-repeated.  The \texttt{ReduceAndReconstruct} algorithm \cite{RedRec} searches for locally redundant
+compresses a refutation by repeteadly splitting it into a proof of a heuristically chosen literal $\ell$
+and a proof of $\dual{\ell}$, and then resolving them to form a new refutation.  The \texttt{ReduceAndReconstruct} algorithm \cite{RedRec} searches for locally redundant
 subproofs that can be rewritten into subproofs of stronger clauses and with fewer resolution steps.
 In \cite{RP08} two linear time compression algorithms are introduced. One of them is a partial
 regularization algorithm called \texttt{RecyclePivots}.  An enhanced version of this latter
@@ -99,7 +82,7 @@ along with a new linear time algorithm called {\LowerUnits}.  These two last alg
 complementary and better compression can easily be achieved by sequentially composing them (i.e.
 executing one after the other).
 
-In this paper, the new algorithm {\LowerUnivalents}, generalizing {\LowerUnits}, is described. Its
+In this paper, the new algorithm {\LowerUnivalents}, generalizing {\LowerUnits}, is described. Its achieved
 goals are to compress more than {\LowerUnits} and to allow fast \emph{non-sequential}  combination
 with {\RPI}. While in a sequential combination one algorithm is simply executed after the other, in
 a non-sequential combination, both algorithms are executed simultaneously when the proof is
