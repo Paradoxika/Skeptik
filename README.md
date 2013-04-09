@@ -36,7 +36,7 @@ The following command will run the proof compression algorithm 'RecyclePivotsWit
 ```
   sbt 
   
-  compress ./examples/proofs/VeriT/eq_diamond8.smt2 -a RPI -o output.skeptik
+  compress examples/proofs/VeriT/eq_diamond8.smt2 -a RPI -o output.skeptik
 ```
 
 

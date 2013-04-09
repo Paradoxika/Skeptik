@@ -22,7 +22,7 @@ object ProofCompressionCLI {
   def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
   
   def main(args: Array[String]): Unit = {  
-    val parser = new scopt.immutable.OptionParser[Config]("compress", "\n\nSkeptik's Command Line Interface for Proof Compression\n\n") { def options = Seq(
+    val parser = new scopt.immutable.OptionParser[Config]("Skeptik's Command Line Interface for Proof Compression", "\n\n") { def options = Seq(
       opt("a", "algorithm", "<algorithm>", "the algorithm to be used for compressing the proof") { (v: String, c: Config) => c.copy(algorithm = v) },
       opt("o", "output", "<output file>", "file to store the compressed proof") { (v: String, c: Config) => c.copy(output = v) },
       arg("<input file>", "file containing the proof to be compressed") { (v: String, c: Config) => c.copy(input = v) }
@@ -100,7 +100,18 @@ object ProofCompressionCLI {
 """)
                     
     } getOrElse { // arguments are bad 
-      
+      print(
+"""Example: The following command will run the proof 
+  compression algorithm 'RecyclePivotsWithIntersection' 
+  on the proof 'eq_diamond8.smt2' (written in VeriT's proof format) 
+  and write the compressed proof in 'output.skeptik' 
+  (using Skeptik's proof format):
+
+    compress examples/proofs/VeriT/eq_diamond8.smt2 --algorithm RPI --output output.skeptik
+    
+Available algorithms:
+  """ + (for (a <- at.logic.skeptik.algorithm.compressor.Algorithms.get) yield a._1).mkString("\n  ") + "\n\n"    
+      )      
     } 
   }
 }
