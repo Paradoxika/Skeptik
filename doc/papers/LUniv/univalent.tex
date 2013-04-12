@@ -664,7 +664,7 @@ considering every non-resolution inference as an axiom.
   \end{tabular}
 \end{table}
 
-In order to compare the algorithms described here with others, the following algorithms have been experimented:
+The experiment compared the following algorithms:
 \begin{description}
   \item[LU:] the {\LowerUnits} algorithm from \cite{LURPI};
   \item[LUniv:] the {\LowerUnivalents} algorithm;
@@ -681,11 +681,10 @@ In order to compare the algorithms described here with others, the following alg
 \end{description}
 
 For each of these algorithms, the time needed to compress the proof along with the number of nodes
-and the number of axioms have been measured. Raw data of the experiment can be downloaded from {\skeptik}'s repository\footnote{\url{https://raw.github.com/Paradoxika/Skeptik/master/doc/papers/LUniv/all-final.csv}}.
+and the number of axioms (i.e. \emph{unsat core} size) have been measured. Raw data of the experiment can be downloaded from {\skeptik}'s repository\footnote{\url{https://raw.github.com/Paradoxika/Skeptik/master/doc/papers/LUniv/all-final.csv}}.
 
 The experiments were executed on the Vienna Scientific Cluster\footnote{\url{http://vsc.ac.at/}}
-VSC\nobreakdash-2. Each algorithm was executed in a single core. But the amount of memory available
-at each cluster node (16 GB) has been useful to compress the biggest proofs (with more than $10^6$ nodes).
+VSC\nobreakdash-2. Each algorithm was executed in a single core and had up to 16 GB of memory available. This amount of memory has been useful to compress the biggest proofs (with more than $10^6$ nodes).
 
 
 The overall results of the experiments are shown in Table \ref{tab:average}. The compression ratios
@@ -696,7 +695,7 @@ proofs.
   1 - \frac{ \sum {|\Vertices{\psi'}|} }{ \sum {|\Vertices{\psi}|} }
 \end{equation}
 The unsat core compression ratios are computed in the same way, but using the number of axioms instead of
-the number of nodes. The compression speeds on the fourth column are computed according to formula
+the number of nodes. The speeds on the fourth column are computed according to formula
 (\ref{eq:speed}) in which $d_{\psi}$ is the duration in milliseconds of $\psi$'s compression by a
 given algorithm.
 \begin{equation} \label{eq:speed}
@@ -704,7 +703,7 @@ given algorithm.
 \end{equation}
 
 For the \texttt{Split} and \texttt{RedRec} algorithms, which must be repeated, a timeout has
-been fixed so that the compression speed is about 3 nodes per millisecond. 
+been fixed so that the speed is about 3 nodes per millisecond. 
 
 
 \begin{table}[tb]
@@ -713,8 +712,8 @@ been fixed so that the compression speed is about 3 nodes per millisecond.
   \centering
   \begin{tabular}{lrrr}
     \toprule
-    \multirow{2}{*}{Algorithm} & Compression & Unsat core  & Compression \\
-                               &       Ratio & compression &       Speed \\
+    \multirow{2}{*}{Algorithm} & \multirow{2}{*}{Compression} & Unsat Core    & \phantom{.........}\multirow{2}{*}{Speed} \\
+                                             &                                               & \phantom{...}Compression &        \\
     \midrule
     LU                &  7.5 \% &  0.0 \% & 22.4 n/ms \\
     LUniv             &  8.0 \% &  0.8 \% & 20.4 n/ms \\
@@ -738,12 +737,12 @@ Subfigure (c) is a histogram showing, in the vertical axis, the proportion of pr
 and \va{LUniv} being the compression ratios obtained respectively by {\LowerUnits} and
 {\LowerUnivalents}.
 \begin{equation} \label{eq:histogram}
-  \frac { 2(\va{LU} - \va{LUniv}) }{ \va{LU} + \va{LUniv} }
+  \frac { \va{LU} - \va{LUniv} }{ \frac{\va{LU} + \va{LUniv}}{2} }
 \end{equation}
 The number of proofs for which $\va{LU} = \va{LUniv}$ is not displayed in the histogram.
 The \emph{(normalized) duration differences} in subfigure (d) are computed using the same formula~(\ref{eq:histogram}) but
 with \va{LU} and \va{LUniv} being the time taken to compress the proof by {\LowerUnits} and
-{\LowerUnits} respectively.
+{\LowerUnivalents} respectively.
 
 \input{LU_charts}
 
