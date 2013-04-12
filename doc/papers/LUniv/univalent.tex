@@ -589,7 +589,7 @@ compressed proof depends on the order in which the units are collected. For both
 
 
 
-\section{Combining {\LowerUnivalents} with {\RPI}} \label{sec:LUnivRPI}
+\section{Remarks about Combining {\LowerUnivalents} with {\RPI}} \label{sec:LUnivRPI}
 
 \begin{definition}[Regular proof \cite{Tseitin}]
 A proof $\psi$ is \emph{regular} iff on every path from its root to any of its axioms, each literal
@@ -598,13 +598,11 @@ labels at most one edge. Otherwise, $\psi$ is \emph{irregular}.
 
 Any irregular proof can be converted into a regular proof having the same axioms and the same
 conclusion. But it has been proved \cite{Goerdt} that such a total regularization might result in a
-proof exponentially bigger than the original. Some careful \emph{partial regularization} algorithms
-which achieve good compression ratio exist though.
+proof exponentially bigger than the original. 
 
-\texttt{RecyclePivotsWithIntersection} ({\RPI}), presented in \cite{LURPI}, is such a partial
-regularization algorithm, which enhances the \texttt{RecyclePivots}~algorithm (\cite{RP08}).  For
+Nevertheless, \emph{partial} regularization algorithms, such as \texttt{RecyclePivots} \cite{RP08} and \texttt{RecyclePivotsWithIntersection} ({\RPI}) \cite{LURPI}, carefully avoid the worst case of total regularization and do efficiently compress proofs.  For
 any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi} \xrightarrow{\ell}
-\n$ if $\ell$ is a safe literal for $\varphi$ in $\psi$.
+\n$ if $\ell$ is a safe literal for $\varphi$.
 
 \begin{definition}[Safe literal]
 A literal $\ell$ is \emph{safe} for a subproof $\varphi$ in a proof $\psi$ iff $\ell$ labels at
@@ -616,37 +614,21 @@ marked for deletion. The second traversal is the effective deletion similar to t
 $\FuncSty{delete}$ algorithm.
 
 Both sequential compositions of {\LowerUnits} with {\RPI} have been shown to achieve good
-compression ratio (\cite{LURPI}). Unfortunately, neither {\LowerUnits} after
-{\RPI} (\texttt{LU.RPI}) nor {\RPI} after {\LowerUnits} (\texttt{RPI.LU}) always compresses more than
-the other one. A reasonable solution is to perform both algorithms and then to choose the smallest
-compressed proof.
-
-But sequential composition is time consuming. To speed up DAG traversal, it is useful to topologically
-sort the nodes of the graph first. But in case of sequential composition this costly operation has to
-be done twice. Moreover, some traversals, like deletion, are identical in both algorithms and might
-be shared. Whereas implementing a non-sequential combination of {\RPI} after {\LowerUnits} is not
-difficult, a non-sequential combination of {\LowerUnits} after {\RPI} would be complicated. The
-difficulty is that {\RPI} could create some new units which would be visible only after the deletion
+compression ratio \cite{LURPI}. However, the best combination order ({\LowerUnits} after
+{\RPI} (\texttt{LU.RPI}) or {\RPI} after {\LowerUnits} (\texttt{RPI.LU})) depends on the input proof. A reasonable solution is to perform both combinations and then to choose the smallest
+compressed proof, but sequential composition is time consuming. To speed up DAG traversal, it is useful to topologically sort the nodes of the graph first. But in case of sequential composition this costly operation has to be done twice. Moreover, some traversals, like deletion, are identical in both algorithms and might be shared. Whereas implementing a non-sequential combination of {\RPI} after {\LowerUnits} is not difficult, a non-sequential combination of {\LowerUnits} after {\RPI} would be complicated. 
+The difficulty is that {\RPI} could create some new units which would be visible only after the deletion
 phase.  A solution could be to test for units during deletion. But if units are
 effectively lowered during this deletion, their deletion would cause some units to become non-units.
 And postponing deletions of units until a second deletion traversal would prevent the sharing of
-this traversal and would cause one more topological sorting to be performed because the deletion phase
-significantly transforms the structure of the DAG.
+this traversal and would cause one more topological sorting to be performed, because the deletion phase significantly transforms the structure of the DAG.
 
 Apart from having an improved compression ratio, another advantage of {\LowerUnivalents} over
 {\LowerUnits} is that {\LowerUnivalents} can be implemented as an enhanced \FuncSty{delete}
 operation. With such an implementation, a simple non-sequential combination of {\LowerUnivalents}
 after {\RPI} can be implemented just by replacing the second traversal of {\RPI} by
-{\LowerUnivalents}.
-
-\begin{proposition} \label{prop:LunivRPI}
-In a proof $\psi$, for every edge $\pedge{\varphi}{\ell}{\varphi'}$, $\ell$ is either a safe literal
-of $\varphi$ or a valent literal of $\varphi'$.
-\end{proposition}
-
-After the first step of {\RPI}, as all edges labeled by a safe literal have been marked for
-deletion, the remaining active literals are all valent. That means that {\LowerUnivalents} will
-effectively lower all univalent subproofs.
+{\LowerUnivalents}. After the first traversal of {\RPI}, as all edges labeled by a safe literal have been marked for deletion, the remaining active literals are all valent, because for every edge $\pedge{\varphi}{\ell}{\varphi'}$, $\ell$ is either a safe literal
+of $\varphi$ or a valent literal of $\varphi'$.  Therefore, in the second traversal of the non-sequential combination (deletion enhanced by {\LowerUnivalents}), all univalent subproofs are lowered.
 
 
 
