@@ -674,7 +674,7 @@ The experiment compared the following algorithms:
   \item[LUnivRPI:] the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
   \item[RPI:] the \texttt{RecyclePivotsWithIntersection} from \cite{LURPI};
   \item[Split:] Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
-  \item[RedRec:] the \texttt{ReduceAndReconstruct} algorithm from \cite{RedRec};
+  \item[RedRec:] the {\ReduceReconstruct} algorithm from \cite{RedRec};
   \item[Best RPILU/LU.RPI:] which performs both \texttt{RPILU} and \texttt{LU.RPI} and chooses the smallest resulting compressed proof;
   \item[Best RPILU/LUnivRPI:] which performs \texttt{RPILU} and \texttt{LUnivRPI} and chooses the smallest resulting
     compressed proof.
@@ -747,7 +747,7 @@ with \va{LU} and \va{LUniv} being the time taken to compress the proof by {\Lowe
 \input{LU_charts}
 
 As expected, {\LowerUnivalents} always compresses more than {\LowerUnits} (subfigure (a)) at the expense of a longer
-computation (subfigure d). And even if the compression gain is low on average (as noticeable in Table \ref{tab:average}), subfigure (a) shows that {\LowerUnivalents} compresses some proofs significantly more than {\LowerUnits}.
+computation (subfigure (d)). And even if the compression gain is low on average (as noticeable in Table \ref{tab:average}), subfigure (a) shows that {\LowerUnivalents} compresses some proofs significantly more than {\LowerUnits}.
 
 It has to be noticed that \veriT already does its best to produce compact proofs. In particular,
 a forward subsumption algorithm is applied, which results in proofs not having two different subproofs
@@ -766,11 +766,6 @@ composition for more than 80 \% of the proofs.
 
 
 
-%\input{best_charts}
-
-%\input{test}
-
-%\FloatBarrier
 \section{Conclusions and Future Work}
 
 {\LowerUnivalents}, the algorithm presented here, has been shown in the previous section to compress
@@ -798,40 +793,6 @@ and for several interesting and useful discussions on this topic.
 
 \bibliographystyle{splncs}
 \bibliography{../biblio}
-
-
-
-
-
-%\begin{algorithm}[bt]
-%  \KwIn {a proof $\psi$}
-%  \KwIn {a subproof $\varphi$}
-%  \KwIn {a set $\Delta$ of literal}
-%  \BlankLine
-%
-%  \SetKwData{Activ}{ActiveLiterals}
-%  \Activ $\leftarrow \varnothing$ \;
-%  \BlankLine
-%
-%  \For{each incoming edge $\n \xrightarrow{\ell} \raiz{\varphi}$ not marked for deletion }{
-%    \uIf{$\dual{\ell} \in \Delta$}{
-%      mark the edge for deletion \;
-%    }
-%    \uElseIf{$\ell \notin \Delta$, $\ell \in \Conclusion{\varphi}$ \label{line:isUniv:testactive} and
-%             $\ell \notin \Conclusion{\psi}$ }{
-%      add $\ell$ to \Activ \;
-%    }
-%  }
-%  \BlankLine
-%
-%  \If{\Activ $= \{\ell\}$ and $\Conclusion{\varphi} \subseteq \Delta \cup \{\ell\}$ }{
-%    \Return{true} and \ArgSty{$\ell$} \;
-%  }
-%  \Else{\Return{false} \;}
-%
-%  \caption[.]{\FuncSty{isUnivalent}}
-%  \label{algo:isUniv}
-%\end{algorithm}
 
 
 \end{document}
