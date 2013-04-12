@@ -471,8 +471,8 @@ corresponding incoming edges can be removed. Even if $\ell_i$ is valent for $\va
 $\dual{\ell_i}$ would be introduced, and it would be resolved away when reintroducing
 $\varphi_i$. The \FuncSty{delete} operation can be easily modified to remove both nodes and edges.
 
-Algorithm \ref{algo:fullLUniv} sums up the previous remarks on how to implement
-{\LowerUnivalents} efficiently. As noticed above, sometimes this algorithm may consider a subproof as univalent when it
+Algorithm \ref{algo:fullLUniv} sums up the previous remarks for an efficient implementation of
+{\LowerUnivalents}. As noticed above, sometimes this algorithm may consider a subproof as univalent when it
 is actually not. But as care is taken when reintroducing subproofs (at line \ref{line:full:testreintroduce}),
 the resulting conclusion still subsumes the original.  The test that $\ell \in \Conclusion{\varphi}$
 at line \ref{line:full:testactive} is mandatory since $\ell$ might have been deleted from
