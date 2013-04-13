@@ -1,5 +1,7 @@
 \documentclass[compress]{beamer}
-\useoutertheme[footline=authortitle,subsection=false]{miniframes}
+\setbeamercovered{transparent}
+%\useoutertheme{infolines}
+%\useoutertheme[footline=authortitle,subsection=false]{miniframes}
 \setbeamertemplate{navigation symbols}{}
 
 \definecolor{vertmoyen}{HTML}{A9CB60}
@@ -11,10 +13,84 @@
 \usecolortheme[named=vertfonce]{structure}
 
 \setbeamercolor{section in head/foot}{fg=vertfonce,bg=vertmoyen}
-\setbeamercolor{author in head/foot}{fg=white}
+\setbeamercolor{subsection in head/foot}{bg=vertclair}
+
+\setbeamercolor{author in head/foot}{fg=vertfonce, bg=vertclair}
+\setbeamercolor{title in head/foot}{fg=vertfonce, bg=vertmoyen}
+\setbeamercolor{date in head/foot}{fg=vertfonce, bg=vertclair}
+
+\setbeamercolor{separation line}{bg=vertfonce}
+
+
 \setbeamercolor{titlelike}{bg=vertclair}
-\setbeamertemplate{mini frame in other subsection}[default][0!white!100]
-\setbeamertemplate{section in head/foot shaded}[default][0!white!100]
+\setbeamerfont{frametitle}{size=\normalsize}
+
+\makeatletter
+
+\defbeamertemplate*{frametitle}{jogo theme}
+{
+  \ifbeamercolorempty[bg]{frametitle}{}{\nointerlineskip}%
+  \ifx\insertsectionhead\@empty\usebeamerfont{headline}\vspace{-3.45ex}\fi%
+  \@tempdima=\textwidth%
+  \advance\@tempdima by\beamer@leftmargin%
+  \advance\@tempdima by\beamer@rightmargin%
+  \begin{beamercolorbox}[left,wd=\the\@tempdima]{frametitle}
+    \usebeamerfont{frametitle}%
+%    \vbox{}\vskip-0.5ex%
+%    \if@tempswa\else\csname beamer@fte#1\endcsname\fi%
+    \strut\hspace{1em}\insertframetitle\strut\par%
+    {%
+      \ifx\insertframesubtitle\@empty%
+      \else%
+      {\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}\insertframesubtitle\strut\par}%
+      \fi
+    }%
+%    \vskip-1ex%
+%    \if@tempswa\else\vskip-.3cm\fi% set inside beamercolorbox... evil here...
+  \end{beamercolorbox}%
+}
+
+\defbeamertemplate*{headline}{jogo theme}
+{
+    \leavevmode%
+  \ifx\insertsectionhead\@empty\vspace{3.45ex}%
+  \else%
+  {%
+    \hbox{%
+    \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,right]{section in head/foot}%
+      \usebeamerfont{section in head/foot}\insertsectionhead\hspace*{2ex}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,left]{subsection in head/foot}%
+      \usebeamerfont{subsection in head/foot}\hspace*{2ex}\insertsubsectionhead
+    \end{beamercolorbox}%
+    }%
+    \vskip0pt%
+    \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
+    \end{beamercolorbox}
+  }%
+  \fi
+}
+
+\defbeamertemplate*{footline}{jogo theme}
+{
+  \leavevmode%
+    \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
+    \end{beamercolorbox}
+  \hbox{%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,left]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\makeatother
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -38,6 +114,8 @@
 \newcommand<>{\singleline}[1]{\begin{block}{\only#2#1}\end{block}}
 
 \usepackage{bussproofs}
+\newcommand{\Resolution}[2]{\RightLabel{\footnotesize{$#1$}} \BinaryInfC{$#2$}}
+
 \usepackage[vlined]{algorithm2e}
 
 \usepackage{multicol}
@@ -78,6 +156,10 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \proofnode[#1]{root}{$\bot$}
 }
 
+\newcommand<>{\edgewithlabel}[3]{
+  \draw#4 [proof edge, color=vertfonce] (#1) -- (#2) node [above, pos=0.3] {\footnotesize #3}
+}
+
 \newcommand<>{\drawchildren}[3]{
   \draw#4 [proof edge] (#1) -- (#2);
   \draw#4 [proof edge] (#1) -- (#3)
@@ -105,8 +187,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \node#4 [anchor=west,color=vertfonce,#1] at (#2.mid) {\hspace{0.2em} \scriptsize $\left\{#3\right\}$};
 }
 
-\title{Compression of Propositional Resolution Proofs by Lowering Subproofs}
-\author{
+\title[Compression of Propositional Resolution Proofs]{Compression of Propositional Resolution Proofs by Lowering Subproofs}
+\author[J. Boudou, B. Woltzenlogel Paleo]{
   Joseph Boudou\inst{1}
   \and 
   Bruno Woltzenlogel Paleo\inst{2}
@@ -116,7 +198,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \and 
   \inst{2}Vienna University of Technology
 }
-\date{PCC Workshop, 2013}
+\date[PCC 2013]{PCC Workshop, 2013}
 
 \includeonly{}
 %%%%%%%%%%%%%%%%%%
@@ -124,7 +206,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 %%%%%%%%%%%%%%%%%%
 \begin{document}
 
-\begin{frame}
+\begin{frame}[plain]
 \titlepage
 \end{frame}
 
@@ -133,9 +215,11 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{frame}
 
 \section{Introduction}
-\subsection{Propositional resolution calculus, proofs as DAGs, operators}
 
-\begin{frame}{Conjonctive Normal Form}
+\subsection{Propositional resolution calculus}
+
+
+\begin{frame}
 \begin{subpart}{Literals}
   \item A \emph{literal} is an atomic formula or the negation of an atomic formula.
   \item The dual of a literal $\ell$, denoted by $\dual{\ell}$, is such that
@@ -143,50 +227,48 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{subpart}
 \begin{subpart}{Clauses}
   \item A \emph{clause} is a disjonctive set of literals.
-  \item The empty clause corresponds to false and is denoted by $\bot$.
+  \item The empty clause corresponds to false.% and is denoted by $\bot$.
   \item Tautologies contain both a literal $\ell$ and its dual $\dual{\ell}$.
 \end{subpart}
 %\begin{subpart}{Instance}
 %  \item An \emph{instance} is a conjonctive set of clauses.
 %\end{subpart}
-\end{frame}
-
-\newcommand{\Resolution}[2]{\RightLabel{\footnotesize{$#1$}} \BinaryInfC{$#2$}}
-
-\begin{frame}{Inferences}
+%  \begin{subpart}{SAT context}
+%    \item Axioms are instance's clauses.
+%    \item Proofs of unsatisfiability.
+%    \item Tautologies are prohibited.
+%  \end{subpart}
   \begin{block}{Robinson's Resolution Principle}
+    \vspace{-.5em}
     \begin{prooftree}
       \AxiomC{$\Gamma, \dual{\ell}$}
       \AxiomC{$\ell, \Delta$}
       \Resolution{\ell}{\Gamma, \Delta}
     \end{prooftree}
   \end{block}
-%  \begin{subpart}{SAT context}
-%    \item Axioms are instance's clauses.
-%    \item Proofs of unsatisfiability.
-%    \item Tautologies are prohibited.
-%  \end{subpart}
-  \begin{example}
-    \vspace{-1em}
-    \only<2>{\begin{multicols}{2}}
-      \begin{prooftree}
-        \only<2>{\def\ScoreOverhang{2pt}}
-        \only<2>{\def\defaultHypSeparation{\hskip .1in}}
-        \AxiomC{$\dual{b}, c$}
-        \AxiomC{$\dual{a}, b$}
-        \Resolution{b}{\dual{a}, c}
-        \AxiomC{$\dual{a}, b$}
-        \AxiomC{$\dual{a}, \dual{b}, \dual{c}$}
-        \Resolution{\dual{b}}{\dual{a}, \dual{c}}
-        \Resolution{\dual{c}}{\dual{a}}
-        \AxiomC{$a$}
-        \Resolution{a}{\bot}
-      \end{prooftree}
-      \only<1>{\vspace{2em}}
-      \begin{onlyenv}<2>
-%      \begin{visibleenv}<2>
+\end{frame}
+
+\subsection{Proofs as DAG}
+
+\begin{frame}
+  \begin{block}{Proof as a tree}
+    \vspace{-.5em}
+    \begin{prooftree}
+      \AxiomC{$\dual{b}, c$}
+      \AxiomC{$\dual{a}, b$}
+      \Resolution{b}{\dual{a}, c}
+      \AxiomC{$\dual{a}, b$}
+      \AxiomC{$\dual{a}, \dual{b}, \dual{c}$}
+      \Resolution{\dual{b}}{\dual{a}, \dual{c}}
+      \Resolution{\dual{c}}{\dual{a}}
+      \AxiomC{$a$}
+      \Resolution{a}{\bot}
+    \end{prooftree}
+  \end{block}
+  \begin{block}{Proof as a directed acyclic graph (DAG)}
+    \vspace{.5em}
       \centering
-      \begin{tikzpicture}
+      \begin{tikzpicture}[node distance=1.2cm]
         \rootnode;
         \withchildren{root} {r0}{\dual{a}}  {unit}{a};
         \withchildren{r0}   {r1}{\dual{a},c} {r2}{\dual{a},\dual{c}};
@@ -194,21 +276,62 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
         \proofnode[above right of=r2] {a1} {\dual{a},\dual{b},\dual{c}};
         \drawchildren {r2} {low} {a1};
       \end{tikzpicture}
-%      \end{visibleenv}
-      \end{onlyenv}
-      \only<2>{\end{multicols}}
-  \end{example}
+  \end{block}
 \end{frame}
 
 \newcommand{\edge}[3]{\ensuremath{#1 \xrightarrow{#2} #3}}
 
+\begin{frame}
+  \begin{definition}[Proof]
+    A graph $\varphi = \langle V, E, L \rangle$ where $V$ is a set of node,
+    $E \subset V \times \mathcal{L} \times V$ a set of edges labeled by literals and $L: V
+    \longrightarrow 2^\mathcal{L}$ an edge labeling function, is a proof of $\Gamma$ iff either : \begin{itemize}
+    \item $v$ is a new node, $V=\{v\}$, $E=\varnothing$ and $L=\{ v \longmapsto \Gamma \}$;
+    \item $\varphi_L = \langle V_L, E_L, L_L \rangle$ is a proof of $\Gamma_L$, $\varphi_R = \langle V_R, E_R, L_R \rangle$
+      is a proof of $\Gamma_R$, $\ell$ is a literal s.t. $\dual{\ell} \in \Gamma_L$ and $\ell \in
+      \Gamma_R$, $v$ is a new node and \begin{align*}
+        V &= V_L \cup V_R \cup \{v\} \\
+        E &= E_L \cup E_R \cup
+             \{ \edge{v}{\dual{\ell}}{\rho(\varphi_L)}, \edge{v}{\ell}{\rho(\varphi_R)} \} \\
+        L &= L_L \cup L_R \cup \{v \longmapsto \Gamma\} \\
+   \Gamma &= \left( \Gamma_L \setminus \{\dual{\ell}\} \right) \cup
+             \left( \Gamma_R \setminus \{\ell\} \right)
+      \end{align*} where $\rho(\varphi)$ denotes the root of $\varphi$.
+    \end{itemize}
+  \end{definition}
+\end{frame}
+
+\begin{frame}
+  \begin{definition}[Directed Acyclic Graph with root]
+    A graph $\gamma = \langle V, E, L \rangle$ where $V$ is a set of node,
+    $E \subset V \times X \times V$ a set of labeled directed edges and $L: V
+    \longrightarrow Y$ a node labeling function, is a directed acyclic graph with root iff
+    there exists a node $\rho(\gamma)$ such that each other node is reachable from $\rho(\gamma)$
+    but $\rho(\gamma)$ is not reachable from any node.
+  \end{definition}
+
+  \begin{definition}[Proof]
+    A directed acyclic graph $\langle V, E, L \rangle$ where $V$ is a set of node,
+    $E \subset V \times \mathcal{L} \times V$ a set of edges labeled by literals and $L: V
+    \longrightarrow 2^\mathcal{L}$ an edge labeling function, is a proof iff it is inductively
+    constructible according to the following cases : \begin{itemize}
+    \item if $\Gamma$ is a clause then $\langle \{v\}, \varnothing, v \longmapsto \Gamma \rangle$ is a
+      proof for any new $v$;
+    \item if $\langle V_L, E_L, L_L \rangle$ and $\langle V_R, E_R, L_R \rangle$ are proofs and
+      for a given literal $\ell$, $\ell \in L$
+    \end{itemize}
+  \end{definition}
+\end{frame}
+
+
 \begin{frame}{Proof as DAG}
   \begin{definition}[Proof]
-    A proof is a tuple $\langle V, E, \lambda_V, \lambda_E, \rho \rangle$ s.t. : \begin{itemize}
+    A proof is a tuple $\langle V, E, \lambda_V, \lambda_E, \rho \rangle$ s.t.: \begin{itemize}
     \item $\langle V, E \rangle$ is a directed acyclic graph (DAG);
     \item $\lambda_V$ is a function labeling nodes with clauses;
     \item $\lambda_E$ is a function labeling edges with literals;
     \item $\rho \in V$ and $\forall \eta \in V \setminus \{\rho\}$, a path exists from $\rho$ to $\eta$;
+    \item for each incoming edge $\edge{\eta'}{\ell}{\eta}$, $\ell \in \lambda_V(\eta)$;
     \item a node $\eta \in V$ without any outgoing edge is called an axiom;
     \item a node $\eta$ with exactely two outgoing edges $\edge{\eta}{\ell_L}{\eta_L}$ and
           $\edge{\eta}{\ell_R}{\eta_R}$ is called a resolution step and is s.t. $\dual{\ell_L} = \ell_R$ and
@@ -220,16 +343,120 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{frame}
     
 
+\begin{frame}{Subproofs}
+  \begin{definition}[Subproof]
+    A proof $\psi' = \langle V', E', \lambda_V', \lambda_E', \rho' \rangle$ is a subproof of a proof
+    $\psi = \langle V, E, \lambda_V, \lambda_E, \rho \rangle$ iff there exists an injective
+    function $f$ from $V'$ to $V$ such that: \begin{itemize}
+    \item $\forall \eta' \in V',~ \lambda_V'(\eta') = \lambda_V(f(\eta'))$;
+    \item $\forall (\eta_F', \eta_T') \in E',~ (f(\eta_F'), f(\eta_T')) \in E$ and
+          $\lambda_E'(\eta_F', \eta_T') = \lambda_E(f(\eta_F'), f(\eta_T'))$;
+    \end{itemize}
+  \end{definition}
+  \begin{subpart}{Properties}
+    \item Subproof is a partial order relation on proofs, noted $\sqsubseteq$.
+    \item The relation $\equiv$ such that
+          $\psi' \equiv \psi \Leftrightarrow \psi' \sqsubseteq \psi \wedge \psi \sqsubseteq \psi'$
+          is an equivalence relation on proofs.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}{Resolution operator}
+  \begin{definition}
+    TODO
+  \end{definition}
+\end{frame}
+
+\section{Redundancies and corresponding algorithms}
+
+\frame{\tableofcontents[sectionstyle=show/shaded,subsectionstyle=show/show/hide]}
+
+\subsection{Vertical redundancy}
 
 \begin{frame}{Regular proof}
-\begin{definition}[Regular proof]
-  A proof is said to be regular if on every path from its root to any of its axiom, each pivot appears only once.
+\begin{definition}[Tseitin 1970]
+  A proof is regular iff on every path from its root to any of its axiom, any literal
+  appears at most once as edge label.
 \end{definition}
-\begin{theorem}<2->[Tseitin]
+\begin{theorem}[Goerdt 1990]
   Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentialy bigger
   than the smallest irregular proof of $\Gamma$.
 \end{theorem}
 \end{frame}
+
+\begin{frame}{RecyclePivotsWithIntersection (RPI)}
+  \begin{subpart}{Partial Regularization}
+    \item Delete an outgoing edge labeled with $\ell$ iff $\dual{\ell}$ appears on \textbf{every} path from the root to the node.
+  \end{subpart}
+  \begin{definition}[Safe literal]
+    A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing proof's conclusion.
+  \end{definition}
+  \begin{subpart}{Two traversals}
+    \bottomup Collect safe literals and mark edges to delete.
+    \topdown Delete edges and fix the proof.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}
+  \begin{columns}
+    \alt<3->{\column{0.5\textwidth}}{\column{1\textwidth}}
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.5cm]
+
+      \rootnode;
+      \addchildren{root} {a4}{$\dual{c}$} {r2}{$c$};
+      \draw [proof edge] (root) -- (a4);
+      \draw<1> [proof edge] (root) -- (r2);
+      \edgewithlabel<2->{root}{r2}{$c$};
+
+      \withchildren{r2} {r0}{$b$} {r1}{$\dual{b},c$};
+
+      \withchildren{r0} {a0}{$\dual{a},b$} {iu}{$a$};
+
+      \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{$a,c$};
+      \draw [proof edge] (iu) -- (a2);
+      \draw<1> [proof edge] (iu) -- (a1);
+      \edgewithlabel<2->{iu}{a1}{$c$};
+
+      \proofnode[above right of=r1]{a3}{$\dual{a},\dual{b},c$};
+      \draw [proof edge] (r1) -- (a3);
+      \draw [proof edge] (r1) -- (iu);
+    \end{tikzpicture}
+    \only<3->{Original proof}
+    \end{center}
+%    \begin{onlyenv}<3->
+    \only<3->{
+    \column{0.5\textwidth}
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.5cm]
+
+      \rootnode;
+      \withchildren{root} {a4}{$\dual{c}$} {r2}{$c$};
+
+      \withchildren{r2} {r0}{\alt<4>{$b,c$}{$b$}} {r1}{$\dual{b},c$};
+
+      \withchildren{r0} {a0}{$\dual{a},b$} {iu}{\alt<4>{$a,c$}{$a$}};
+
+      \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{\alt<4>{$a$}{$a,c$}};
+      \draw<3> [deleted edge] (iu) -- (a2);
+      \draw<3> [proof edge] (iu) -- (a1);
+
+      \proofnode[above right of=r1]{a3}{$\dual{a},\dual{b},c$};
+      \draw [proof edge] (r1) -- (a3);
+      \draw [proof edge] (r1) -- (iu);
+
+      \crossnode<4>{a2}
+      \crossnode<4>{a1}
+    \end{tikzpicture}
+    Compressed proof
+    \end{center}
+  }
+%    \end{onlyenv}
+  \end{columns}
+\end{frame}
+
+
+\subsection{Horizontal redundancy}
 
 \begin{frame}{Extending Irregularity}
 \begin{definition}[Fully regular proof]
@@ -239,19 +466,6 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \item Usual irregularities are called \emph{vertical irregularities}.
   \item Other irregularities are called \emph{horizontal irregularities}.
 \end{subpart}
-\end{frame}
-
-\begin{frame}{RecyclePivotsWithIntersection (RPI)}
-  \begin{subpart}{Partial Vertical Regularization}
-    \item Delete a branch only if the pivot appears on \textbf{every} path from the root to the node.
-  \end{subpart}
-  \begin{definition}[Safe literal]
-    A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing the proof's conclusion (root's clause).
-  \end{definition}
-  \begin{subpart}{Two traversals}
-    \bottomup Collect safe literals and mark edges to delete.
-    \topdown Delete edges and fix the proof.
-  \end{subpart}
 \end{frame}
 
 \begin{frame}{LowerUnits (LU)}
@@ -507,3 +721,4 @@ one of $\eta$'s child.
 \end{frame}
 
 \end{document}
+% vim: tw=100
