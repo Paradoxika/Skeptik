@@ -77,15 +77,15 @@
     \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
     \end{beamercolorbox}
   \hbox{%
-  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,left]{author in head/foot}%
-    \usebeamerfont{author in head/foot}\insertshortauthor
+  \begin{beamercolorbox}[wd=.26\paperwidth,ht=2.25ex,dp=1ex,left]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\hspace*{1ex}\insertshortauthor
   \end{beamercolorbox}%
-  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+  \begin{beamercolorbox}[wd=.48\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
     \usebeamerfont{title in head/foot}\insertshorttitle
   \end{beamercolorbox}%
-  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
-    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
-    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex} 
+  \begin{beamercolorbox}[wd=.26\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{},
+    \insertframenumber{} / \inserttotalframenumber\hspace*{1ex} 
   \end{beamercolorbox}}%
   \vskip0pt%
 }
@@ -435,18 +435,22 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
       \withchildren{r2} {r0}{\alt<4>{$b,c$}{$b$}} {r1}{$\dual{b},c$};
 
-      \withchildren{r0} {a0}{$\dual{a},b$} {iu}{\alt<4>{$a,c$}{$a$}};
+      \addchildren{r0} {a0}{$\dual{a},b$} {iu}{$a$};
+      \draw [proof edge] (r0) -- (a0);
+      \draw<3>[proof edge] (r0) -- (iu);
+      \draw<4->[proof edge] (r0) .. controls (iu.south east) .. (a1);
 
-      \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{\alt<4>{$a$}{$a,c$}};
+      \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{$a,c$};
       \draw<3> [deleted edge] (iu) -- (a2);
       \draw<3> [proof edge] (iu) -- (a1);
 
       \proofnode[above right of=r1]{a3}{$\dual{a},\dual{b},c$};
       \draw [proof edge] (r1) -- (a3);
-      \draw [proof edge] (r1) -- (iu);
+      \draw<3>[proof edge] (r1) -- (iu);
+      \draw<4->[proof edge] (r1) -- (a1);
 
       \crossnode<4>{a2}
-      \crossnode<4>{a1}
+      \crossnode<4>{iu}
     \end{tikzpicture}
     Compressed proof
     \end{center}
