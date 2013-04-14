@@ -74,8 +74,8 @@
 \defbeamertemplate*{footline}{jogo theme}
 {
   \leavevmode%
-    \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
-    \end{beamercolorbox}
+%    \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
+%    \end{beamercolorbox}
   \hbox{%
   \begin{beamercolorbox}[wd=.26\paperwidth,ht=2.25ex,dp=1ex,left]{author in head/foot}%
     \usebeamerfont{author in head/foot}\hspace*{1ex}\insertshortauthor
@@ -282,10 +282,37 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \newcommand{\edge}[3]{\ensuremath{#1 \xrightarrow{#2} #3}}
 
 \begin{frame}
+%  \begin{definition}[Directed Acyclic Graph with root]
+%    A DAG with root is a tuple $\gamma = \langle V, E, L \rangle$ s.t. : \begin{itemize}
+%      \item $V$ is a set of node,
+%      \item $E \subset V \times X \times V$ a set of labeled directed edges
+%      \item $L: V \longrightarrow Y$ a node labeling function,
+%      \item $\rho(\gamma) \in V$ is a root.
+%    \end{itemize}
+%  \end{definition}
+
+  \begin{definition}[Proof]
+    A proof is a DAG $\varphi = \langle V, E, L \rangle$ with root $\rho(\varphi)$, which is either : \begin{itemize}
+    \item an axiom $\langle \{v\}, \varnothing, v \longmapsto \Gamma \rangle$ for any clause
+      $\Gamma$ and any new $v$;
+    \item the resolution $\varphi_L \odot_\ell \varphi_R$ of proofs $\varphi_L = \langle V_L, E_L,
+      L_L \rangle$ with $\dual{\ell} \in L_L(\rho(\varphi_L))$ and $\varphi_R = \langle V_R, E_R,
+      L_R \rangle$ with $\ell \in L_R(\rho(\varphi_R))$ such that
+      \begin{align*}
+        V &= V_L \cup V_R \cup \{v\} \\
+        E &= E_L \cup E_R \cup
+             \{ \edge{v}{\dual{\ell}}{\rho(\varphi_L)}, \edge{v}{\ell}{\rho(\varphi_R)} \} \\
+        L &= L_L \cup L_R \cup \{v \longmapsto \Gamma\}
+      \end{align*} for any new $v$.
+    \end{itemize}
+  \end{definition}
+\end{frame}
+
+\begin{frame}
   \begin{definition}[Proof]
     A graph $\varphi = \langle V, E, L \rangle$ where $V$ is a set of node,
     $E \subset V \times \mathcal{L} \times V$ a set of edges labeled by literals and $L: V
-    \longrightarrow 2^\mathcal{L}$ an edge labeling function, is a proof of $\Gamma$ iff either : \begin{itemize}
+    \longrightarrow 2^\mathcal{L}$ a function labeling nodes with clauses, is a proof of $\Gamma$ iff either : \begin{itemize}
     \item $v$ is a new node, $V=\{v\}$, $E=\varnothing$ and $L=\{ v \longmapsto \Gamma \}$;
     \item $\varphi_L = \langle V_L, E_L, L_L \rangle$ is a proof of $\Gamma_L$, $\varphi_R = \langle V_R, E_R, L_R \rangle$
       is a proof of $\Gamma_R$, $\ell$ is a literal s.t. $\dual{\ell} \in \Gamma_L$ and $\ell \in
@@ -367,21 +394,24 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \end{definition}
 \end{frame}
 
+
+
 \section{Redundancies and corresponding algorithms}
 
 \frame{\tableofcontents[sectionstyle=show/shaded,subsectionstyle=show/show/hide]}
 
+
 \subsection{Vertical redundancy}
 
 \begin{frame}{Regular proof}
-\begin{definition}[Tseitin 1970]
-  A proof is regular iff on every path from its root to any of its axiom, any literal
-  appears at most once as edge label.
-\end{definition}
-\begin{theorem}[Goerdt 1990]
-  Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentialy bigger
-  than the smallest irregular proof of $\Gamma$.
-\end{theorem}
+  \begin{definition}[Tseitin 1970]
+    A proof is regular iff on every path from its root to any of its axiom, any literal
+    appears at most once as edge label.
+  \end{definition}
+  \begin{theorem}[Goerdt 1990]
+    Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentialy bigger
+    than the smallest irregular proof of $\Gamma$.
+  \end{theorem}
 \end{frame}
 
 \begin{frame}{RecyclePivotsWithIntersection (RPI)}
@@ -409,16 +439,16 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
       \draw<1> [proof edge] (root) -- (r2);
       \edgewithlabel<2->{root}{r2}{$c$};
 
-      \withchildren{r2} {r0}{$b$} {r1}{$\dual{b},c$};
+      \withchildren{r2} {r1}{$\dual{b},c$} {r0}{$b$};
 
-      \withchildren{r0} {a0}{$\dual{a},b$} {iu}{$a$};
+      \withchildren{r0} {iu}{$a$} {a0}{$\dual{a},b$};
 
       \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{$a,c$};
       \draw [proof edge] (iu) -- (a2);
       \draw<1> [proof edge] (iu) -- (a1);
       \edgewithlabel<2->{iu}{a1}{$c$};
 
-      \proofnode[above right of=r1]{a3}{$\dual{a},\dual{b},c$};
+      \proofnode[above left of=r1]{a3}{$\dual{a},\dual{b},c$};
       \draw [proof edge] (r1) -- (a3);
       \draw [proof edge] (r1) -- (iu);
     \end{tikzpicture}
@@ -433,21 +463,21 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
       \rootnode;
       \withchildren{root} {a4}{$\dual{c}$} {r2}{$c$};
 
-      \withchildren{r2} {r0}{\alt<4>{$b,c$}{$b$}} {r1}{$\dual{b},c$};
+      \withchildren{r2} {r1}{$\dual{b},c$} {r0}{\alt<4>{$b,c$}{$b$}};
 
-      \addchildren{r0} {a0}{$\dual{a},b$} {iu}{$a$};
+      \addchildren{r0} {iu}{$a$} {a0}{$\dual{a},b$};
       \draw [proof edge] (r0) -- (a0);
       \draw<3>[proof edge] (r0) -- (iu);
-      \draw<4->[proof edge] (r0) .. controls (iu.south east) .. (a1);
+      \draw<4->[proof edge] (r0) -- (a1);
 
       \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{$a,c$};
       \draw<3> [deleted edge] (iu) -- (a2);
       \draw<3> [proof edge] (iu) -- (a1);
 
-      \proofnode[above right of=r1]{a3}{$\dual{a},\dual{b},c$};
+      \proofnode[above left of=r1]{a3}{$\dual{a},\dual{b},c$};
       \draw [proof edge] (r1) -- (a3);
       \draw<3>[proof edge] (r1) -- (iu);
-      \draw<4->[proof edge] (r1) -- (a1);
+      \draw<4->[proof edge] (r1) .. controls (iu.south east) .. (a1);
 
       \crossnode<4>{a2}
       \crossnode<4>{iu}
@@ -462,24 +492,50 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \subsection{Horizontal redundancy}
 
-\begin{frame}{Extending Irregularity}
-\begin{definition}[Fully regular proof]
-  A proof is fully regular if for each variable there is at most one resolution node with this variable as pivot.
-\end{definition}
-\begin{subpart}{Conventions}
-  \item Usual irregularities are called \emph{vertical irregularities}.
-  \item Other irregularities are called \emph{horizontal irregularities}.
-\end{subpart}
+\begin{frame}
+  \begin{definition}
+    A node $v$ in a proof $\varphi$ is an horizontal redundancy iff it has at least two incoming
+    edges labeled with the same literal.
+  \end{definition}
+  \begin{subpart}{Reducing horizontal redundancy}
+    \item postponing resolution until resolvents are resolved.
+  \end{subpart}
+  \begin{example} \vspace{-.7em} \begin{columns}
+    \column{0.5\textwidth}
+    \begin{center} \begin{tikzpicture}[node distance=1.3cm]
+      \rootnode;
+      \withchildren{root} {a0}{$\dual{c}$} {r0}{$c$};
+
+      \withchildren{r0} {r2}{$\dual{b},c$} {r1}{$b,c$};
+
+      \addchildren{r2} {a2}{$\dual{a},\dual{b},c$} {ln}{$a,c$};
+      \draw [proof edge] (r2) -- (a2);
+      \edgewithlabel{r2}{ln}{$a$};
+
+      \proofnode[above right of=r1]{a1}{$\dual{a},b$};
+      \edgewithlabel{r1}{ln}{$a$};
+      \draw [proof edge] (r1) -- (a1);
+    \end{tikzpicture} \end{center}
+    \column{0.5\textwidth}
+    \begin{center} \begin{tikzpicture}[node distance=1.3cm]
+      \rootnode;
+      \withchildren{root} {a0}{$\dual{c}$} {r0}{$c$};
+
+      \withchildren{r0} {r1}{$\dual{a},c$} {ln}{$a,c$};
+
+      \withchildren{r1} {a2}{$\dual{a},\dual{b},c$} {a1}{$\dual{a},b$};
+    \end{tikzpicture} \end{center}
+  \end{columns} \end{example}
 \end{frame}
 
+
 \begin{frame}{LowerUnits (LU)}
-  \begin{subpart}{Lowering}
-    \item Moving a node down the proof to resolve it only once.
-  \end{subpart}
-  \begin{subpart}{Lowering Units}
-    \item Units can always be lowered.
-    \item Reduces horizontal irregularities.
-  \end{subpart}
+  \begin{definition}[Unit]
+    A unit is a subproof which conclusion clause has exactely one literal.
+  \end{definition}
+  \begin{theorem}
+    A unit can always be lowered.
+  \end{theorem}
   \begin{subpart}{Two traversals}
     \anydir Collect units with more than one child.
     \topdown Delete units, fix the proof and then reintroduce the units at the bottom of the proof.
