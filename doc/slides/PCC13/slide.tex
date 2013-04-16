@@ -99,7 +99,10 @@
 
 \usepackage{amsmath}
 
+\newcommand{\recalltoc}{\frame{\tableofcontents[sectionstyle=show/shaded,subsectionstyle=show/show/hide]}}
+
 \newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
+\newcommand{\dn}[2]{#1 \setminus (#2)}
 
 \newcommand{\set}[2]{\ensuremath{\left\{#1\mid#2\right\}}}
 
@@ -370,25 +373,25 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{frame}
     
 
-\begin{frame}{Subproofs}
-  \begin{definition}[Subproof]
-    A proof $\psi' = \langle V', E', \lambda_V', \lambda_E', \rho' \rangle$ is a subproof of a proof
-    $\psi = \langle V, E, \lambda_V, \lambda_E, \rho \rangle$ iff there exists an injective
-    function $f$ from $V'$ to $V$ such that: \begin{itemize}
-    \item $\forall \eta' \in V',~ \lambda_V'(\eta') = \lambda_V(f(\eta'))$;
-    \item $\forall (\eta_F', \eta_T') \in E',~ (f(\eta_F'), f(\eta_T')) \in E$ and
-          $\lambda_E'(\eta_F', \eta_T') = \lambda_E(f(\eta_F'), f(\eta_T'))$;
-    \end{itemize}
-  \end{definition}
-  \begin{subpart}{Properties}
-    \item Subproof is a partial order relation on proofs, noted $\sqsubseteq$.
-    \item The relation $\equiv$ such that
-          $\psi' \equiv \psi \Leftrightarrow \psi' \sqsubseteq \psi \wedge \psi \sqsubseteq \psi'$
-          is an equivalence relation on proofs.
-  \end{subpart}
-\end{frame}
+%\begin{frame}{Subproofs}
+%  \begin{definition}[Subproof]
+%    A proof $\psi' = \langle V', E', \lambda_V', \lambda_E', \rho' \rangle$ is a subproof of a proof
+%    $\psi = \langle V, E, \lambda_V, \lambda_E, \rho \rangle$ iff there exists an injective
+%    function $f$ from $V'$ to $V$ such that: \begin{itemize}
+%    \item $\forall \eta' \in V',~ \lambda_V'(\eta') = \lambda_V(f(\eta'))$;
+%    \item $\forall (\eta_F', \eta_T') \in E',~ (f(\eta_F'), f(\eta_T')) \in E$ and
+%          $\lambda_E'(\eta_F', \eta_T') = \lambda_E(f(\eta_F'), f(\eta_T'))$;
+%    \end{itemize}
+%  \end{definition}
+%  \begin{subpart}{Properties}
+%    \item Subproof is a partial order relation on proofs, noted $\sqsubseteq$.
+%    \item The relation $\equiv$ such that
+%          $\psi' \equiv \psi \Leftrightarrow \psi' \sqsubseteq \psi \wedge \psi \sqsubseteq \psi'$
+%          is an equivalence relation on proofs.
+%  \end{subpart}
+%\end{frame}
 
-\begin{frame}{Resolution operator}
+\begin{frame}{Deletion}
   \begin{definition}
     TODO
   \end{definition}
@@ -398,8 +401,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \section{Redundancies and corresponding algorithms}
 
-\frame{\tableofcontents[sectionstyle=show/shaded,subsectionstyle=show/show/hide]}
-
+\recalltoc
 
 \subsection{Vertical redundancy}
 
@@ -542,17 +544,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \end{subpart}
 \end{frame}
 
-\begin{frame}{Sequential Composition}
-\centering
-\charttitle{\compC}
-\include{composition-chart}
-\end{frame}
-
-
-\section{Difficulties}
-\subsection{to find a combined algorithm always at least as good as both compositions}
-
-\begin{frame}{Irregular Units}
+\begin{frame}
+  TODO: adapt to LU only
   \begin{center}
 \begin{tikzpicture}[node distance=1.3cm]
   \proofnode[color=addcolor]{luroot}{\only<4>{$\bot$}};
@@ -598,153 +591,101 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{center}
 \end{frame}
 
-\begin{frame}{Root and Units Safe Literals}
-\begin{subpart}{In RPI.LU, after LU :}
-  \item the proof is of the form $\eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_n} \eta_n$ ;
-  \item $\set{\dual{a}_i}{i \leq n}$ is the safe literals for $\eta$ : \emph{the root's safe literals} ;
-  \item $\forall i < n$, $\set{\dual{a}_j}{i < j \leq n}$ is the safe literals for $\eta_i$.
-\end{subpart}
-\begin{overlayarea}{\textwidth}{2em}
-  \singleline<2->{\asGoodRPILU}
-\end{overlayarea}
-\end{frame}
-
-\begin{frame}{Units introduced by RPI}
-\begin{center}
-\vspace{-3em}
-\begin{tikzpicture}[node distance=1.3cm,scale=0.93]
-  \rootnode;
-  \addchildren{root} {n0}{\alt<3->{$\bot$}{$d$}} {a0}{$\dual{d}$};
-  \draw<-2> [proof edge] (root) -- (n0);
-  \draw     [proof edge] (root) -- (a0);
-  \withchildren{n0} {n1}{\alt<3->{$e$}{$d e$}} {n2}{\alt<3->{$\dual{e}$}{$d \dual{e}$}};
-
-  \withchildren{n1} {a1}{$\dual{b} e$} {u0}{\alt<3->{\alert<3>{$b$}}{$d b$}};
-  \proofnode[above right of=n2]{a2}{$\dual{b} \dual{e}$};
-  \drawchildren{n2} {u0} {a2};
-
-  \withchildren{u0} {n3}{$a b d$} {a3}{$\dual{a} b$};
-  \addchildren{n3} {n4}{$b d c$} {a4}{$\dual{c} a$};
-  \draw    [proof edge]   (n3) -- (n4);
-  \draw<-2>[proof edge]   (n3) -- (a4);
-  \addchildren{n4} {a5}{$a b$}   {a6}{$\dual{a} d c$};
-  \draw    [proof edge]   (n4) -- (a5);
-  \draw<1> [proof edge]   (n4) -- (a6);
-  \draw<2> [deleted edge] (n4) -- (a6);
-
-  \pivot<2>{u0} {$a$}
-  \pivot<2>{n4} {$a$}
-  \crossnode<3->{a6}
-
-  \crossnode<3->{n4}
-  \crossnode<3->{n3}
-  \crossnode<3->{a4}
-  \crossnode<3->{root}
-  \crossnode<3->{a0}
-\end{tikzpicture}
-\vspace{-2.2em}
-\end{center}
-\begin{overlayarea}{\textwidth}{1em}
-  \singleline<4>{\asGoodLURPI}
-\end{overlayarea}
-\end{frame}
-
-
-\section{Combined Equivalents}
-\subsection{to both sequential compositions}
-
-\begin{frame}{RPI[3]LU}
-\singleline{\asGoodRPILU}
-\begin{subpart}{Three traversals}
-  \topdown  collect units and compute root and units safe literals ;
-  \bottomup compute safe literals and mark edges to be deleted ;
-  \topdown  fix the proof and reintroduce units.
-\end{subpart}
-\end{frame}
-
-\begin{frame}{RPI[3]LU vs RPI.LU}
-\centering
-\only<+>{\charttitle{\compC} \include{3pass-compress}}
-\only<+>{\charttitle{\timeC} \include{3pass-time}}
-\end{frame}
-
-\begin{frame}{LUnivRPI}
-\begin{subpart}{\asGoodLURPI}
-  \item Collect units during fixing (top-down traversal).
-\end{subpart}
-\addtocounter{beamerpauses}{1}
-\begin{subpart}{Problems}<+->
-  \item<.-> If a unit $\{a\}$ depends on a unit $\{b\}$ it'll be seen as $\left\{a, \dual{b}\right\}$.
-  \item<+-> What to do if we find $\left\{a, \dual{b}\right\}$ after $\{b\}$ ?
-  \item<+-> A new algorithm extending LU is needed.
-\end{subpart}
-\end{frame}
 
 \section{LowerUnivalents}
-\subsection{A new algorithm extending LU}
 
-\begin{frame}{Lowering a node}
-  \begin{subpart}{The (generalized) problem}
-    \item Given $\psi[\eta] \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_{n-1}} \eta_{n-1}$
-    \item is $\text{Fix}\left(\psi[]\right) \odot_a \eta \odot_{a_0} \eta_0 \odot_{a_1} \cdots \odot_{a_{n-1}} \eta_{n-1}$ equivalent ?
+\recalltoc
+
+\subsection{Principles}
+
+\begin{frame}
+  \begin{subpart}{Goals}
+    \item Lower more subproofs.
+    \item Allow fast combination after RPI.
   \end{subpart}
-  \begin{subpart}{Two steps}
-    \item Deleting the node : $\text{Fix}\left(\psi[]\right)$ ;
-    \item Reintroducing it : $\odot_a \eta$.
-  \end{subpart}
-  \begin{subpart}{Beware of introduced literals}
-    \item $\Delta = \set{\dual{a}_i}{i < n}$ is the safe literals of $\text{Fix}\left(\psi[]\right) \odot_a \eta$.
+  \begin{subpart}{Idea}
+    \item If a unit with conclusion clause $\{a\}$ is already marked for lowering, a subproof with
+      conclusion clause $\{\dual{a}, b\}$ may be lowerable too.
   \end{subpart}
 \end{frame}
 
-\begin{frame}{Conditions}
-\begin{subpart}{Literals introduced by reintroducing the node}
-  \item Let $\Gamma_+$ be $\eta$'s clause,
-  \item $\Gamma \setminus \Delta = \{a\}$.
-\end{subpart}
-\begin{definition}[Active literal]
-Let's consider a node $\eta$ with clause $\Gamma_+$. A literal $a$ from
-$\Gamma_+$ is said to be an active literal of $\eta$ iff $a$ is the pivot of
-one of $\eta$'s child.
-\end{definition}
-\begin{subpart}{Literals introduced by deleting the node}
-  \item Let $\Gamma_-$ be the set of the duals of $\eta$'s active literals,
-  \item $\Gamma_- \setminus \Delta = \{\dual{a}\}$.
-\end{subpart}
+\begin{frame}
+  TODO: Example and counterexample
 \end{frame}
 
-\begin{frame}{Partial regularization}
-\begin{subpart}{Deletable node \uncover<3->{(implemented)}}
-  \item If $\Gamma_- \setminus \Delta = \varnothing$ then delete $\eta$.
-\end{subpart}
-\begin{subpart}<2->{Partial regularization \uncover<3->{(not implemented)}}
-  \item If the dual of any of $\eta$'s active literal belongs to $\Delta$ then delete the edge.
-\end{subpart}
+\begin{frame}
+%  \begin{definition}[Active literals]
+%    In a proof $\psi$, the set of active literals of a subproof $\varphi$ are the labels of edges
+%    coming into $\varphi$'s root.
+%  \end{definition}
+  \begin{definition}[Valent literal]
+    In a proof $\psi$, a literal $\ell$ is \emph{valent} for the subproof $\varphi$ iff $\dual{\ell}$
+    belongs to the conclusion of $\dn{\psi}{\varphi}$ but not to the conclusion of $\psi$.
+  \end{definition}
+  \begin{definition}[Univalent subproof]
+    A subproof $\varphi$ with conclusion $\Gamma$ is \emph{univalent} w.r.t. a set $\Delta$ of
+    literals iff $\varphi$ has exactly one valent literal $\ell$, $\ell \notin \Delta$ and $\Gamma
+    \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the \emph{univalent literal} of
+    $\varphi$ w.r.t.  $\Delta$.
+  \end{definition}
+  \begin{theorem}
+    Given a proof $\psi$, if there is a sequence $U = (\varphi_1 \ldots \varphi_n)$ of $\psi$'s
+    subproofs and a sequence $(\ell_1 \ldots \ell_n)$ of literals such that
+    $\forall i \in [1 \ldots n]$, $\ell_i$ is the univalent literal of $\varphi_i$ w.r.t.
+    $\Delta_{i-1} = \{\dual{\ell_1} \ldots \dual{\ell_{i-1}}\}$, then the conclusion of
+    $$ \psi' = \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_1} \varphi_1 $$
+    subsumes the conclusion of $\psi$.
+  \end{theorem}
 \end{frame}
 
-\begin{frame}{Algorithm}
-  \SetKw{aElseIf}{else if}
-  \SetKwFor{And}{and}{then}{endif}
+\subsection{Algorithm and implementation}
+
+\begin{frame}
+  \SetKwData{Univ}{Univalents}
+  \SetKwFunction{delete}{delete}
+  \SetKw{Let}{let}
   \begin{algorithm}[H]
+    \KwIn {a proof $\psi$}
+    \KwOut{a compressed proof $\psi'$}
+    \BlankLine
+
+    \SetKw{Push}{push}
+    \SetKw{Pop} {pop}
+
+    \Univ $\leftarrow \varnothing$ \;
     $\Delta \leftarrow \varnothing$ \;
-    \For{every node $\eta$ in a top-down traversal}{
-      Fix $\eta$ \;
-      Compute $\Gamma_- \setminus \Delta$ \;
-      \uIf{$\Gamma_- \setminus \Delta = \varnothing$}{Delete $\eta$ \;}
-    \aElseIf{$\Gamma_- \setminus \Delta = \left\{\dual{a}\right\}$}
-    \And{$\Gamma_+ \setminus \Delta = \{a\}$}{
-        Lower $\eta$ \;
-        $\Delta \leftarrow \Delta \cup \{ a \}$ \;
+    \BlankLine
+
+    \For{every subproof $\varphi$, in a top-down traversal \label{line:LUniv:step1begin} }{
+      $\psi' \leftarrow \varphi \setminus$\Univ \label{line:LUniv:delete} \;
+      \If{$\psi'$ is univalent w.r.t. $\Delta$ \label{line:LUniv:lunivtest} }{
+        \Let{$\ell$} be the univalent literal \;
+        \Push $\dual{\ell}$ onto $\Delta$ \label{line:LUniv:pushDelta} \;
+        \Push $\psi'$     onto \Univ \label{line:LUniv:step1end} \;
       }
-     }
+    }
+    \BlankLine
+
+    \tcp{At this point, $\psi' = \psi \setminus \Univ$}
+    \While{\Univ $\neq \varnothing$}{ \label{line:LUniv:reintroducebegin}
+      $\varphi \leftarrow$ \Pop from \Univ \;
+      $\ell \leftarrow$ \Pop from $\Delta$ \;
+      \lIf{$\ell$ in the conclusion of $\psi'$ \label{line:LUniv:testreintroduce} }{
+      $\psi' \leftarrow \varphi \odot_\ell \psi'$ \;}
+    }
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{Comparison with LU}
-\centering
-\only<+>{\charttitle{\compC} \include{LUniv-compress}}
-\only<+>{\charttitle{\axioC} \include{LUniv-axiom}}
-\only<+>{\charttitle{\timeC} \include{LUniv-time}}
+\begin{frame}{In practice}
+  \begin{itemize}
+    \item TODO: populate this list
+  \end{itemize}
+\end{frame}
+
+\subsection{Experiments}
+
+\begin{frame}
+  TODO: experimental results
 \end{frame}
 
 \appendix
