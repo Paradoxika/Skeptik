@@ -1,0 +1,725 @@
+\documentclass[compress]{beamer}
+\setbeamercovered{transparent}
+%\useoutertheme{infolines}
+%\useoutertheme[footline=authortitle,subsection=false]{miniframes}
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{vertmoyen}{HTML}{A9CB60}
+\definecolor{vertclair}{HTML}{D3F192}
+\definecolor{vertfonce}{HTML}{347003}
+\definecolor{deletecol}{HTML}{3B8A13}
+\definecolor{addcolor} {HTML}{9E0270}
+
+\usecolortheme[named=vertfonce]{structure}
+
+\setbeamercolor{section in head/foot}{fg=vertfonce,bg=vertmoyen}
+\setbeamercolor{subsection in head/foot}{bg=vertclair}
+
+\setbeamercolor{author in head/foot}{fg=vertfonce, bg=vertclair}
+\setbeamercolor{title in head/foot}{fg=vertfonce, bg=vertmoyen}
+\setbeamercolor{date in head/foot}{fg=vertfonce, bg=vertclair}
+
+\setbeamercolor{separation line}{bg=vertfonce}
+
+
+\setbeamercolor{titlelike}{bg=vertclair}
+\setbeamerfont{frametitle}{size=\normalsize}
+
+\makeatletter
+
+\defbeamertemplate*{frametitle}{jogo theme}
+{
+  \ifbeamercolorempty[bg]{frametitle}{}{\nointerlineskip}%
+  \ifx\insertsectionhead\@empty\usebeamerfont{headline}\vspace{-3.45ex}\fi%
+  \@tempdima=\textwidth%
+  \advance\@tempdima by\beamer@leftmargin%
+  \advance\@tempdima by\beamer@rightmargin%
+  \begin{beamercolorbox}[left,wd=\the\@tempdima]{frametitle}
+    \usebeamerfont{frametitle}%
+%    \vbox{}\vskip-0.5ex%
+%    \if@tempswa\else\csname beamer@fte#1\endcsname\fi%
+    \strut\hspace{1em}\insertframetitle\strut\par%
+    {%
+      \ifx\insertframesubtitle\@empty%
+      \else%
+      {\usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}\insertframesubtitle\strut\par}%
+      \fi
+    }%
+%    \vskip-1ex%
+%    \if@tempswa\else\vskip-.3cm\fi% set inside beamercolorbox... evil here...
+  \end{beamercolorbox}%
+}
+
+\defbeamertemplate*{headline}{jogo theme}
+{
+    \leavevmode%
+  \ifx\insertsectionhead\@empty\vspace{3.45ex}%
+  \else%
+  {%
+    \hbox{%
+    \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,right]{section in head/foot}%
+      \usebeamerfont{section in head/foot}\insertsectionhead\hspace*{2ex}
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,left]{subsection in head/foot}%
+      \usebeamerfont{subsection in head/foot}\hspace*{2ex}\insertsubsectionhead
+    \end{beamercolorbox}%
+    }%
+    \vskip0pt%
+    \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
+    \end{beamercolorbox}
+  }%
+  \fi
+}
+
+\defbeamertemplate*{footline}{jogo theme}
+{
+  \leavevmode%
+%    \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
+%    \end{beamercolorbox}
+  \hbox{%
+  \begin{beamercolorbox}[wd=.26\paperwidth,ht=2.25ex,dp=1ex,left]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\hspace*{1ex}\insertshortauthor
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.48\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.26\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{},
+    \insertframenumber{} / \inserttotalframenumber\hspace*{1ex} 
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+
+\makeatother
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{kpfonts}
+
+\usepackage{amsmath}
+
+\newcommand{\recalltoc}{\frame{\tableofcontents[sectionstyle=show/shaded,subsectionstyle=show/show/hide]}}
+
+\newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
+\newcommand{\dn}[2]{#1 \setminus (#2)}
+
+\newcommand{\set}[2]{\ensuremath{\left\{#1\mid#2\right\}}}
+
+\newenvironment<>{subpart}[1]
+{ \begin{block}#2{#1}
+  \begin{itemize}
+}{
+  \end{itemize}
+  \end{block}
+}
+
+\newcommand<>{\singleline}[1]{\begin{block}{\only#2#1}\end{block}}
+
+\usepackage{bussproofs}
+\newcommand{\Resolution}[2]{\RightLabel{\footnotesize{$#1$}} \BinaryInfC{$#2$}}
+
+\usepackage[vlined]{algorithm2e}
+
+\usepackage{multicol}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+\newcommand{\basecharttitle}[1]{{\color{vertfonce}#1}\vspace{-0.8em}}
+\makeatletter
+\newcommand{\charttitle}{\@ifstar\charttitlestar\charttitleplain}
+\makeatother
+\newcommand{\charttitleplain}[1]{\hspace{2em}\basecharttitle{#1}}
+\newcommand{\charttitlestar}[1]{\centering\basecharttitle{#1}}
+
+\newcommand{\compC}{Compression ratio comparison}
+\newcommand{\timeC}{Compression time comparison \scriptsize (in seconds)}
+\newcommand{\axioC}{Axiom compression ratio comparison}
+
+\newcommand{\asGoodRPILU}{For a combined algorithm to be always at least as
+good as RPI.LU it has to compute root and units safe literals.}
+\newcommand{\asGoodLURPI}{For a combined algorithm to be always at least as
+good as LU.RPI it has to be able to lower units introduced by RPI.}
+
+\newcommand{\bottomup}{\item[$\uparrow$]}
+\newcommand{\topdown} {\item[$\downarrow$]}
+\newcommand{\anydir}  {\item[$\updownarrow$]}
+
+\newcommand{\chartscale}{1}
+
+\tikzstyle{proof edge}=[->,thick,cap=round]
+\tikzstyle{deleted edge}=[proof edge, dashed, color=deletecol]
+
+\newcommand{\proofnode}[3][]{
+  \node [anchor=mid, #1] (#2) {#3}
+}
+
+\newcommand{\rootnode}[1][]{
+  \proofnode[#1]{root}{$\bot$}
+}
+
+\newcommand<>{\edgewithlabel}[3]{
+  \draw#4 [proof edge, color=vertfonce] (#1) -- (#2) node [above, pos=0.3] {\footnotesize #3}
+}
+
+\newcommand<>{\drawchildren}[3]{
+  \draw#4 [proof edge] (#1) -- (#2);
+  \draw#4 [proof edge] (#1) -- (#3)
+}
+
+\newcommand{\addchildren}[5]{
+  \proofnode[above left  of=#1]{#2}{#3};
+  \proofnode[above right of=#1]{#4}{#5}
+}
+
+\newcommand{\withchildren}[5]{
+  \addchildren{#1}{#2}{#3}{#4}{#5};
+  \drawchildren{#1}{#2}{#4}
+}
+
+\newcommand<>{\crossnode}[2][]{
+  \draw#3 [color=deletecol,thick,cap=round,#1] (#2.mid) ++(10:0.3) -- ++(190:0.6);
+}
+
+\newcommand<>{\pivot}[3][]{
+  \node#4 [anchor=base,color=vertfonce,#1] at (#2.north) {\scriptsize #3};
+}
+
+\newcommand<>{\safelit}[3][]{
+  \node#4 [anchor=west,color=vertfonce,#1] at (#2.mid) {\hspace{0.2em} \scriptsize $\left\{#3\right\}$};
+}
+
+\title[Compression of Propositional Resolution Proofs]{Compression of Propositional Resolution Proofs by Lowering Subproofs}
+\author[J. Boudou, B. Woltzenlogel Paleo]{
+  Joseph Boudou\inst{1}
+  \and 
+  Bruno Woltzenlogel Paleo\inst{2}
+}
+\institute{
+  \inst{1}Universit\'e Paul Sabatier, Toulouse
+  \and 
+  \inst{2}Vienna University of Technology
+}
+\date[PCC 2013]{PCC Workshop, 2013}
+
+\includeonly{}
+%%%%%%%%%%%%%%%%%%
+% Begin Document %
+%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\begin{frame}{Overview}
+\tableofcontents
+\end{frame}
+
+\section{Introduction}
+
+\subsection{Propositional resolution calculus}
+
+
+\begin{frame}
+\begin{subpart}{Literals}
+  \item A \emph{literal} is an atomic formula or the negation of an atomic formula.
+  \item The dual of a literal $\ell$, denoted by $\dual{\ell}$, is such that
+        $\dual{p} = \neg p$ and $\dual{\neg p} = p$.
+\end{subpart}
+\begin{subpart}{Clauses}
+  \item A \emph{clause} is a disjonctive set of literals.
+  \item The empty clause corresponds to false.% and is denoted by $\bot$.
+  \item Tautologies contain both a literal $\ell$ and its dual $\dual{\ell}$.
+\end{subpart}
+%\begin{subpart}{Instance}
+%  \item An \emph{instance} is a conjonctive set of clauses.
+%\end{subpart}
+%  \begin{subpart}{SAT context}
+%    \item Axioms are instance's clauses.
+%    \item Proofs of unsatisfiability.
+%    \item Tautologies are prohibited.
+%  \end{subpart}
+  \begin{block}{Robinson's Resolution Principle}
+    \vspace{-.5em}
+    \begin{prooftree}
+      \AxiomC{$\Gamma, \dual{\ell}$}
+      \AxiomC{$\ell, \Delta$}
+      \Resolution{\ell}{\Gamma, \Delta}
+    \end{prooftree}
+  \end{block}
+\end{frame}
+
+\subsection{Proofs as DAG}
+
+\begin{frame}
+  \begin{block}{Proof as a tree}
+    \vspace{-.5em}
+    \begin{prooftree}
+      \AxiomC{$\dual{b}, c$}
+      \AxiomC{$\dual{a}, b$}
+      \Resolution{b}{\dual{a}, c}
+      \AxiomC{$\dual{a}, b$}
+      \AxiomC{$\dual{a}, \dual{b}, \dual{c}$}
+      \Resolution{\dual{b}}{\dual{a}, \dual{c}}
+      \Resolution{\dual{c}}{\dual{a}}
+      \AxiomC{$a$}
+      \Resolution{a}{\bot}
+    \end{prooftree}
+  \end{block}
+  \begin{block}{Proof as a directed acyclic graph (DAG)}
+    \vspace{.5em}
+      \centering
+      \begin{tikzpicture}[node distance=1.2cm]
+        \rootnode;
+        \withchildren{root} {r0}{\dual{a}}  {unit}{a};
+        \withchildren{r0}   {r1}{\dual{a},c} {r2}{\dual{a},\dual{c}};
+        \withchildren{r1}   {a0}{\dual{b},c} {low}{\dual{a},b};
+        \proofnode[above right of=r2] {a1} {\dual{a},\dual{b},\dual{c}};
+        \drawchildren {r2} {low} {a1};
+      \end{tikzpicture}
+  \end{block}
+\end{frame}
+
+\newcommand{\edge}[3]{\ensuremath{#1 \xrightarrow{#2} #3}}
+
+\begin{frame}
+%  \begin{definition}[Directed Acyclic Graph with root]
+%    A DAG with root is a tuple $\gamma = \langle V, E, L \rangle$ s.t. : \begin{itemize}
+%      \item $V$ is a set of node,
+%      \item $E \subset V \times X \times V$ a set of labeled directed edges
+%      \item $L: V \longrightarrow Y$ a node labeling function,
+%      \item $\rho(\gamma) \in V$ is a root.
+%    \end{itemize}
+%  \end{definition}
+
+  \begin{definition}[Proof]
+    A proof is a DAG $\varphi = \langle V, E, L \rangle$ with root $\rho(\varphi)$, which is either : \begin{itemize}
+    \item an axiom $\langle \{v\}, \varnothing, v \longmapsto \Gamma \rangle$ for any clause
+      $\Gamma$ and any new $v$;
+    \item the resolution $\varphi_L \odot_\ell \varphi_R$ of proofs $\varphi_L = \langle V_L, E_L,
+      L_L \rangle$ with $\dual{\ell} \in L_L(\rho(\varphi_L))$ and $\varphi_R = \langle V_R, E_R,
+      L_R \rangle$ with $\ell \in L_R(\rho(\varphi_R))$ such that
+      \begin{align*}
+        V &= V_L \cup V_R \cup \{v\} \\
+        E &= E_L \cup E_R \cup
+             \{ \edge{v}{\dual{\ell}}{\rho(\varphi_L)}, \edge{v}{\ell}{\rho(\varphi_R)} \} \\
+        L &= L_L \cup L_R \cup \{v \longmapsto \Gamma\}
+      \end{align*} for any new $v$.
+    \end{itemize}
+  \end{definition}
+\end{frame}
+
+\begin{frame}
+  \begin{definition}[Proof]
+    A graph $\varphi = \langle V, E, L \rangle$ where $V$ is a set of node,
+    $E \subset V \times \mathcal{L} \times V$ a set of edges labeled by literals and $L: V
+    \longrightarrow 2^\mathcal{L}$ a function labeling nodes with clauses, is a proof of $\Gamma$ iff either : \begin{itemize}
+    \item $v$ is a new node, $V=\{v\}$, $E=\varnothing$ and $L=\{ v \longmapsto \Gamma \}$;
+    \item $\varphi_L = \langle V_L, E_L, L_L \rangle$ is a proof of $\Gamma_L$, $\varphi_R = \langle V_R, E_R, L_R \rangle$
+      is a proof of $\Gamma_R$, $\ell$ is a literal s.t. $\dual{\ell} \in \Gamma_L$ and $\ell \in
+      \Gamma_R$, $v$ is a new node and \begin{align*}
+        V &= V_L \cup V_R \cup \{v\} \\
+        E &= E_L \cup E_R \cup
+             \{ \edge{v}{\dual{\ell}}{\rho(\varphi_L)}, \edge{v}{\ell}{\rho(\varphi_R)} \} \\
+        L &= L_L \cup L_R \cup \{v \longmapsto \Gamma\} \\
+   \Gamma &= \left( \Gamma_L \setminus \{\dual{\ell}\} \right) \cup
+             \left( \Gamma_R \setminus \{\ell\} \right)
+      \end{align*} where $\rho(\varphi)$ denotes the root of $\varphi$.
+    \end{itemize}
+  \end{definition}
+\end{frame}
+
+\begin{frame}
+  \begin{definition}[Directed Acyclic Graph with root]
+    A graph $\gamma = \langle V, E, L \rangle$ where $V$ is a set of node,
+    $E \subset V \times X \times V$ a set of labeled directed edges and $L: V
+    \longrightarrow Y$ a node labeling function, is a directed acyclic graph with root iff
+    there exists a node $\rho(\gamma)$ such that each other node is reachable from $\rho(\gamma)$
+    but $\rho(\gamma)$ is not reachable from any node.
+  \end{definition}
+
+  \begin{definition}[Proof]
+    A directed acyclic graph $\langle V, E, L \rangle$ where $V$ is a set of node,
+    $E \subset V \times \mathcal{L} \times V$ a set of edges labeled by literals and $L: V
+    \longrightarrow 2^\mathcal{L}$ an edge labeling function, is a proof iff it is inductively
+    constructible according to the following cases : \begin{itemize}
+    \item if $\Gamma$ is a clause then $\langle \{v\}, \varnothing, v \longmapsto \Gamma \rangle$ is a
+      proof for any new $v$;
+    \item if $\langle V_L, E_L, L_L \rangle$ and $\langle V_R, E_R, L_R \rangle$ are proofs and
+      for a given literal $\ell$, $\ell \in L$
+    \end{itemize}
+  \end{definition}
+\end{frame}
+
+
+\begin{frame}{Proof as DAG}
+  \begin{definition}[Proof]
+    A proof is a tuple $\langle V, E, \lambda_V, \lambda_E, \rho \rangle$ s.t.: \begin{itemize}
+    \item $\langle V, E \rangle$ is a directed acyclic graph (DAG);
+    \item $\lambda_V$ is a function labeling nodes with clauses;
+    \item $\lambda_E$ is a function labeling edges with literals;
+    \item $\rho \in V$ and $\forall \eta \in V \setminus \{\rho\}$, a path exists from $\rho$ to $\eta$;
+    \item for each incoming edge $\edge{\eta'}{\ell}{\eta}$, $\ell \in \lambda_V(\eta)$;
+    \item a node $\eta \in V$ without any outgoing edge is called an axiom;
+    \item a node $\eta$ with exactely two outgoing edges $\edge{\eta}{\ell_L}{\eta_L}$ and
+          $\edge{\eta}{\ell_R}{\eta_R}$ is called a resolution step and is s.t. $\dual{\ell_L} = \ell_R$ and
+          $ \lambda_V(\eta) = \left( \lambda_V(\eta_L) \setminus \{ \ell_L \} \right)
+                         \cup \left( \lambda_V(\eta_R) \setminus \{ \ell_R \} \right) $;
+    \item each node $\eta \in V$ is either an axiom or a resolution step.
+    \end{itemize}
+  \end{definition}
+\end{frame}
+    
+
+%\begin{frame}{Subproofs}
+%  \begin{definition}[Subproof]
+%    A proof $\psi' = \langle V', E', \lambda_V', \lambda_E', \rho' \rangle$ is a subproof of a proof
+%    $\psi = \langle V, E, \lambda_V, \lambda_E, \rho \rangle$ iff there exists an injective
+%    function $f$ from $V'$ to $V$ such that: \begin{itemize}
+%    \item $\forall \eta' \in V',~ \lambda_V'(\eta') = \lambda_V(f(\eta'))$;
+%    \item $\forall (\eta_F', \eta_T') \in E',~ (f(\eta_F'), f(\eta_T')) \in E$ and
+%          $\lambda_E'(\eta_F', \eta_T') = \lambda_E(f(\eta_F'), f(\eta_T'))$;
+%    \end{itemize}
+%  \end{definition}
+%  \begin{subpart}{Properties}
+%    \item Subproof is a partial order relation on proofs, noted $\sqsubseteq$.
+%    \item The relation $\equiv$ such that
+%          $\psi' \equiv \psi \Leftrightarrow \psi' \sqsubseteq \psi \wedge \psi \sqsubseteq \psi'$
+%          is an equivalence relation on proofs.
+%  \end{subpart}
+%\end{frame}
+
+\begin{frame}{Deletion}
+  \begin{definition}
+    TODO
+  \end{definition}
+\end{frame}
+
+
+
+\section{Redundancies and corresponding algorithms}
+
+\recalltoc
+
+\subsection{Vertical redundancy}
+
+\begin{frame}{Regular proof}
+  \begin{definition}[Tseitin 1970]
+    A proof is regular iff on every path from its root to any of its axiom, any literal
+    appears at most once as edge label.
+  \end{definition}
+  \begin{theorem}[Goerdt 1990]
+    Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentialy bigger
+    than the smallest irregular proof of $\Gamma$.
+  \end{theorem}
+\end{frame}
+
+\begin{frame}{RecyclePivotsWithIntersection (RPI)}
+  \begin{subpart}{Partial Regularization}
+    \item Delete an outgoing edge labeled with $\ell$ iff $\dual{\ell}$ appears on \textbf{every} path from the root to the node.
+  \end{subpart}
+  \begin{definition}[Safe literal]
+    A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing proof's conclusion.
+  \end{definition}
+  \begin{subpart}{Two traversals}
+    \bottomup Collect safe literals and mark edges to delete.
+    \topdown Delete edges and fix the proof.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}
+  \begin{columns}
+    \alt<3->{\column{0.5\textwidth}}{\column{1\textwidth}}
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.5cm]
+
+      \rootnode;
+      \addchildren{root} {a4}{$\dual{c}$} {r2}{$c$};
+      \draw [proof edge] (root) -- (a4);
+      \draw<1> [proof edge] (root) -- (r2);
+      \edgewithlabel<2->{root}{r2}{$c$};
+
+      \withchildren{r2} {r1}{$\dual{b},c$} {r0}{$b$};
+
+      \withchildren{r0} {iu}{$a$} {a0}{$\dual{a},b$};
+
+      \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{$a,c$};
+      \draw [proof edge] (iu) -- (a2);
+      \draw<1> [proof edge] (iu) -- (a1);
+      \edgewithlabel<2->{iu}{a1}{$c$};
+
+      \proofnode[above left of=r1]{a3}{$\dual{a},\dual{b},c$};
+      \draw [proof edge] (r1) -- (a3);
+      \draw [proof edge] (r1) -- (iu);
+    \end{tikzpicture}
+    \only<3->{Original proof}
+    \end{center}
+%    \begin{onlyenv}<3->
+    \only<3->{
+    \column{0.5\textwidth}
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.5cm]
+
+      \rootnode;
+      \withchildren{root} {a4}{$\dual{c}$} {r2}{$c$};
+
+      \withchildren{r2} {r1}{$\dual{b},c$} {r0}{\alt<4>{$b,c$}{$b$}};
+
+      \addchildren{r0} {iu}{$a$} {a0}{$\dual{a},b$};
+      \draw [proof edge] (r0) -- (a0);
+      \draw<3>[proof edge] (r0) -- (iu);
+      \draw<4->[proof edge] (r0) -- (a1);
+
+      \addchildren{iu} {a2}{$a,\dual{c}$} {a1}{$a,c$};
+      \draw<3> [deleted edge] (iu) -- (a2);
+      \draw<3> [proof edge] (iu) -- (a1);
+
+      \proofnode[above left of=r1]{a3}{$\dual{a},\dual{b},c$};
+      \draw [proof edge] (r1) -- (a3);
+      \draw<3>[proof edge] (r1) -- (iu);
+      \draw<4->[proof edge] (r1) .. controls (iu.south east) .. (a1);
+
+      \crossnode<4>{a2}
+      \crossnode<4>{iu}
+    \end{tikzpicture}
+    Compressed proof
+    \end{center}
+  }
+%    \end{onlyenv}
+  \end{columns}
+\end{frame}
+
+
+\subsection{Horizontal redundancy}
+
+\begin{frame}
+  \begin{definition}
+    A node $v$ in a proof $\varphi$ is an horizontal redundancy iff it has at least two incoming
+    edges labeled with the same literal.
+  \end{definition}
+  \begin{subpart}{Reducing horizontal redundancy}
+    \item postponing resolution until resolvents are resolved.
+  \end{subpart}
+  \begin{example} \vspace{-.7em} \begin{columns}
+    \column{0.5\textwidth}
+    \begin{center} \begin{tikzpicture}[node distance=1.3cm]
+      \rootnode;
+      \withchildren{root} {a0}{$\dual{c}$} {r0}{$c$};
+
+      \withchildren{r0} {r2}{$\dual{b},c$} {r1}{$b,c$};
+
+      \addchildren{r2} {a2}{$\dual{a},\dual{b},c$} {ln}{$a,c$};
+      \draw [proof edge] (r2) -- (a2);
+      \edgewithlabel{r2}{ln}{$a$};
+
+      \proofnode[above right of=r1]{a1}{$\dual{a},b$};
+      \edgewithlabel{r1}{ln}{$a$};
+      \draw [proof edge] (r1) -- (a1);
+    \end{tikzpicture} \end{center}
+    \column{0.5\textwidth}
+    \begin{center} \begin{tikzpicture}[node distance=1.3cm]
+      \rootnode;
+      \withchildren{root} {a0}{$\dual{c}$} {r0}{$c$};
+
+      \withchildren{r0} {r1}{$\dual{a},c$} {ln}{$a,c$};
+
+      \withchildren{r1} {a2}{$\dual{a},\dual{b},c$} {a1}{$\dual{a},b$};
+    \end{tikzpicture} \end{center}
+  \end{columns} \end{example}
+\end{frame}
+
+
+\begin{frame}{LowerUnits (LU)}
+  \begin{definition}[Unit]
+    A unit is a subproof which conclusion clause has exactely one literal.
+  \end{definition}
+  \begin{theorem}
+    A unit can always be lowered.
+  \end{theorem}
+  \begin{subpart}{Two traversals}
+    \anydir Collect units with more than one child.
+    \topdown Delete units, fix the proof and then reintroduce the units at the bottom of the proof.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}
+  TODO: adapt to LU only
+  \begin{center}
+\begin{tikzpicture}[node distance=1.3cm]
+  \proofnode[color=addcolor]{luroot}{\only<4>{$\bot$}};
+
+  \proofnode[above left of=luroot]{root}{\alt<3-4>{$\dual{a}$}{$\bot$}};
+  \withchildren{root} {r2}{\alt<3-4>{$\dual{a} c$}{$c$}} {a4}{$\dual{c}$};
+  \withchildren{r2} {r0}{\alt<8>{$b c$}{$b$}} {r1}{$\dual{b} c$};
+
+  \addchildren{r0} {a0}{$\dual{a} b$} {iu}{$a$};
+  \draw [proof edge] (r0) -- (a0);
+  \only<1,5->{\draw [proof edge] (r0) -- (iu);}
+  \only<2>{\draw [deleted edge] (r0) -- (iu);}
+
+  \addchildren{iu} {a1}{$a c$} {a2}{$a \dual{c}$};
+  \draw [proof edge] (iu) -- (a1);
+  \only<1-6>{\draw [proof edge] (iu) -- (a2);}
+  \only<7>{\draw [deleted edge] (iu) -- (a2);}
+
+  \proofnode[above right of=r1]{a3}{$\dual{a} \dual{b} c$};
+  \draw [proof edge] (r1) -- (a3);
+  \only<1,5->{\draw [proof edge] (r1) -- (iu);}
+  \only<2>{\draw [deleted edge] (r1) -- (iu);}
+
+  \crossnode<3-4>{r0}
+  \crossnode<3-4>{r1}
+  \only<4>{
+    \draw [proof edge,color=addcolor] (luroot) -- (root);
+    \draw [proof edge,color=addcolor] (luroot) .. controls ++(1.2,1.5) .. (iu);
+  }
+
+  \pivot<6>{iu}{$c$}
+  \pivot<6>{root}{$c$}
+  \safelit<7>{root}{}
+  \safelit<7>{r2}{c}
+  \safelit<7>{r0}{b,c}
+  \safelit<7>{r1}{\dual{b},c}
+  \safelit<7>{iu}{a,c}
+  \crossnode<8>{a2}
+  \crossnode<8>{iu}
+
+  \draw (luroot) ++(1.2,-0.5) node {};
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+
+\section{LowerUnivalents}
+
+\recalltoc
+
+\subsection{Principles}
+
+\begin{frame}
+  \begin{subpart}{Goals}
+    \item Lower more subproofs.
+    \item Allow fast combination after RPI.
+  \end{subpart}
+  \begin{subpart}{Idea}
+    \item If a unit with conclusion clause $\{a\}$ is already marked for lowering, a subproof with
+      conclusion clause $\{\dual{a}, b\}$ may be lowerable too.
+  \end{subpart}
+\end{frame}
+
+\begin{frame}
+  TODO: Example and counterexample
+\end{frame}
+
+\begin{frame}
+%  \begin{definition}[Active literals]
+%    In a proof $\psi$, the set of active literals of a subproof $\varphi$ are the labels of edges
+%    coming into $\varphi$'s root.
+%  \end{definition}
+  \begin{definition}[Valent literal]
+    In a proof $\psi$, a literal $\ell$ is \emph{valent} for the subproof $\varphi$ iff $\dual{\ell}$
+    belongs to the conclusion of $\dn{\psi}{\varphi}$ but not to the conclusion of $\psi$.
+  \end{definition}
+  \begin{definition}[Univalent subproof]
+    A subproof $\varphi$ with conclusion $\Gamma$ is \emph{univalent} w.r.t. a set $\Delta$ of
+    literals iff $\varphi$ has exactly one valent literal $\ell$, $\ell \notin \Delta$ and $\Gamma
+    \subseteq \Delta \cup \left\{ \ell \right\}$. $\ell$ is called the \emph{univalent literal} of
+    $\varphi$ w.r.t.  $\Delta$.
+  \end{definition}
+  \begin{theorem}
+    Given a proof $\psi$, if there is a sequence $U = (\varphi_1 \ldots \varphi_n)$ of $\psi$'s
+    subproofs and a sequence $(\ell_1 \ldots \ell_n)$ of literals such that
+    $\forall i \in [1 \ldots n]$, $\ell_i$ is the univalent literal of $\varphi_i$ w.r.t.
+    $\Delta_{i-1} = \{\dual{\ell_1} \ldots \dual{\ell_{i-1}}\}$, then the conclusion of
+    $$ \psi' = \dn{\psi}{U} \odot_{\ell_n} \varphi_n \ldots \odot_{\ell_1} \varphi_1 $$
+    subsumes the conclusion of $\psi$.
+  \end{theorem}
+\end{frame}
+
+\subsection{Algorithm and implementation}
+
+\begin{frame}
+  \SetKwData{Univ}{Univalents}
+  \SetKwFunction{delete}{delete}
+  \SetKw{Let}{let}
+  \begin{algorithm}[H]
+    \KwIn {a proof $\psi$}
+    \KwOut{a compressed proof $\psi'$}
+    \BlankLine
+
+    \SetKw{Push}{push}
+    \SetKw{Pop} {pop}
+
+    \Univ $\leftarrow \varnothing$ \;
+    $\Delta \leftarrow \varnothing$ \;
+    \BlankLine
+
+    \For{every subproof $\varphi$, in a top-down traversal \label{line:LUniv:step1begin} }{
+      $\psi' \leftarrow \varphi \setminus$\Univ \label{line:LUniv:delete} \;
+      \If{$\psi'$ is univalent w.r.t. $\Delta$ \label{line:LUniv:lunivtest} }{
+        \Let{$\ell$} be the univalent literal \;
+        \Push $\dual{\ell}$ onto $\Delta$ \label{line:LUniv:pushDelta} \;
+        \Push $\psi'$     onto \Univ \label{line:LUniv:step1end} \;
+      }
+    }
+    \BlankLine
+
+    \tcp{At this point, $\psi' = \psi \setminus \Univ$}
+    \While{\Univ $\neq \varnothing$}{ \label{line:LUniv:reintroducebegin}
+      $\varphi \leftarrow$ \Pop from \Univ \;
+      $\ell \leftarrow$ \Pop from $\Delta$ \;
+      \lIf{$\ell$ in the conclusion of $\psi'$ \label{line:LUniv:testreintroduce} }{
+      $\psi' \leftarrow \varphi \odot_\ell \psi'$ \;}
+    }
+  \end{algorithm}
+\end{frame}
+
+\begin{frame}{In practice}
+  \begin{itemize}
+    \item TODO: populate this list
+  \end{itemize}
+\end{frame}
+
+\subsection{Experiments}
+
+\begin{frame}
+  TODO: experimental results
+\end{frame}
+
+\appendix
+
+\begin{frame}{Conclusion}
+\charttitle*{Compression ratio comparison}
+\renewcommand{\chartscale}{0.85}
+\begin{columns}
+
+  \column{0.45\textwidth}
+  \centering
+  \include{composition-chart}
+
+  \column{0.55\textwidth}
+  \centering
+  \only<+>{\include{combination-chart}}
+  \only<+>{\include{combluniv-chart}}
+  
+\end{columns}
+\end{frame}
+
+\begin{frame}{References}
+
+\begin{subpart}{Skeptik}
+\item http://github.com/Paradoxika/Skeptik
+\end{subpart}
+
+\begin{subpart}{Bibliography}
+\item Fontaine, P., Merz, S., Woltzenlogel Paleo, B.: Compression of
+  propositional resolution proofs via partial regularization. In: CADE. Lecture
+  Notes in Computer Science, vol. 6803, pp. 237--251. Springer (2011)
+\end{subpart}
+
+\end{frame}
+
+\end{document}
+% vim: tw=100
