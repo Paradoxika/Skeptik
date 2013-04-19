@@ -36,7 +36,7 @@
   \thanks{Supported by the Austrian Science Fund, project P24300.}
 }
 
-\authorrunning{J. Boudou \and B. Woltzenlogel Paleo}
+\authorrunning{Boudou and Woltzenlogel Paleo}
 
 \institute{
   Universit\'e Paul Sabatier, Toulouse \\
@@ -68,11 +68,9 @@ empirically compared on thousands of proofs produced by the SMT-Solver \veriT.
 
 \section{Introduction}
 
-Propositional resolution is among the most successful proof calculi for automated deduction in propositional logic available today. It provides the foundation for DPLL- and CDCL-based Sat/SMT-solvers \cite{veriT}, which perform surprisingly well in practice \cite{sat-competition}, despite the NP-completeness of propositional satisfiability \cite{cook} and the theoretical difficulty associated with NP-complete problems. 
+The resolution calculus provides the foundation for propositional reasoning in SMT-solvers. Resolution refutations can be output by SMT-solvers with an acceptable efficiency overhead \cite{veriT} and are detailed enough to allow easy implementation of efficient proof checkers. Therefore, they can be used as certificates of correctness for the answers provided by these tools.
 
-Resolution refutations can also be output by Sat/SMT-solvers with an acceptable efficiency overhead and are detailed enough to allow easy implementation of efficient proof checkers. They can, therefore, be used as certificates of correctness for the answers provided by these tools in case of unsatisfiability.
-
-However, as the refutations found by Sat/SMT-solvers are often redundant, techniques for
+However, as the refutations found by SMT-solvers are often redundant, techniques for
 compressing and improving resolution proofs in a post-processing stage have flourished.  Algebraic properties of the resolution
 operation that might be useful for compression were investigated in \cite{bwp10}.
 Compression algorithms based on rearranging and sharing chains of resolution inferences have been
@@ -97,8 +95,7 @@ The next section introduces the propositional resolution calculus along with the
 operations and some theoretical results used in the paper. Section \ref{sec:LU} briefly describes
 the {\LowerUnits} algorithm. In Sect. \ref{sec:LUniv} the new algorithm {\LowerUnivalents} is
 introduced and it is proved that it always compresses more than {\LowerUnits}. Section
-\ref{sec:LUnivRPI} describes the non-sequential combination of {\LowerUnivalents} and {\RPI}.
-Lastly, experimental results are discussed in Sect. \ref{sec:exp}.
+\ref{sec:LUnivRPI} describes the non-sequential combination of {\LowerUnivalents} and {\RPI}. Experimental results are discussed in Sect. \ref{sec:exp}.
 
 
 
@@ -647,8 +644,21 @@ recursive \FuncSty{delete} improvement.
 The algorithms have been experimented on 5\,059 proofs produced by the SMT-solver
 {\veriT}\footnote{\url{http://www.verit-solver.org/}} on unsatisfiable benchmarks from the
 SMT-Lib\footnote{\url{http://www.smtlib.org/}}.  The details on the number of proofs per SMT category
-are shown in Table \ref{tab:benchmarks}.  The proofs were translated into pure resolution proofs by
-considering every non-resolution inference as an axiom.
+are shown in Table \ref{tab:benchmarks}.  The experiment compared the following algorithms:
+\begin{description}
+  \item[LU:] the {\LowerUnits} algorithm from \cite{LURPI};
+  \item[LUniv:] the {\LowerUnivalents} algorithm;
+  \item[RPILU:] a non-sequential combination of {\RPI} after {\LowerUnits};
+  \item[RPILUniv:] a non-sequential combination of {\RPI} after {\LowerUnivalents};
+  \item[LU.RPI:] the sequential composition of {\LowerUnits} after {\RPI};
+  \item[LUnivRPI:] the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
+  \item[RPI:] the {\RecyclePivotsIntersection} from \cite{LURPI};
+  \item[Split:] Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
+  \item[RedRec:] the {\ReduceReconstruct} algorithm from \cite{RedRec};
+  \item[Best RPILU/LU.RPI:] which performs both \texttt{RPILU} and \texttt{LU.RPI} and chooses the smallest resulting compressed proof;
+  \item[Best RPILU/LUnivRPI:] which performs \texttt{RPILU} and \texttt{LUnivRPI} and chooses the smallest resulting
+    compressed proof.
+\end{description}
 
 \begin{table}[tb]
   \caption{Number of proofs per benchmark category}
@@ -669,21 +679,7 @@ considering every non-resolution inference as an axiom.
   \end{tabular}
 \end{table}
 
-The experiment compared the following algorithms:
-\begin{description}
-  \item[LU:] the {\LowerUnits} algorithm from \cite{LURPI};
-  \item[LUniv:] the {\LowerUnivalents} algorithm;
-  \item[RPILU:] a non-sequential combination of {\RPI} after {\LowerUnits};
-  \item[RPILUniv:] a non-sequential combination of {\RPI} after {\LowerUnivalents};
-  \item[LU.RPI:] the sequential composition of {\LowerUnits} after {\RPI};
-  \item[LUnivRPI:] the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
-  \item[RPI:] the {\RecyclePivotsIntersection} from \cite{LURPI};
-  \item[Split:] Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
-  \item[RedRec:] the {\ReduceReconstruct} algorithm from \cite{RedRec};
-  \item[Best RPILU/LU.RPI:] which performs both \texttt{RPILU} and \texttt{LU.RPI} and chooses the smallest resulting compressed proof;
-  \item[Best RPILU/LUnivRPI:] which performs \texttt{RPILU} and \texttt{LUnivRPI} and chooses the smallest resulting
-    compressed proof.
-\end{description}
+
 
 For each of these algorithms, the time needed to compress the proof along with the number of nodes
 and the number of axioms (i.e. \emph{unsat core} size) have been measured. Raw data of the experiment can be downloaded from {\skeptik}'s repository\footnote{\url{https://raw.github.com/Paradoxika/Skeptik/master/doc/papers/LUniv/all-final.csv}}.
@@ -738,18 +734,9 @@ been fixed so that the speed is about 3 nodes per millisecond.
 \newcommand{\va}[1]{\ensuremath{v_{\text{#1}}}}
 
 Figure \ref{fig:LU} shows the comparison of {\LowerUnits} with {\LowerUnivalents}. Subfigures (a) and (b) are scatter plots where each dot represents a single benchmark proof. 
-Subfigure (c) is a histogram showing, in the vertical axis, the proportion of proofs having \emph{(normalized) compression ratio difference} within the intervals showed in the horizontal axis. This difference is computed using formula (\ref{eq:histogram}) with \va{LU}
-and \va{LUniv} being the compression ratios obtained respectively by {\LowerUnits} and
-{\LowerUnivalents}.
-\begin{equation} \label{eq:histogram}
-  \frac { \va{LU} - \va{LUniv} }{ \frac{\va{LU} + \va{LUniv}}{2} }
-\end{equation}
-The number of proofs for which $\va{LU} = \va{LUniv}$ is not displayed in the histogram.
-The \emph{(normalized) duration differences} in subfigure (d) are computed using the same formula~(\ref{eq:histogram}) but
-with \va{LU} and \va{LUniv} being the time taken to compress the proof by {\LowerUnits} and
-{\LowerUnivalents} respectively.
 
-\input{LU_charts}
+
+\input{LU_scatter_charts}
 
 As expected, {\LowerUnivalents} always compresses more than {\LowerUnits} (subfigure (a)) at the expense of a longer
 computation (subfigure (d)). And even if the compression gain is low on average (as noticeable in Table \ref{tab:average}), subfigure (a) shows that {\LowerUnivalents} compresses some proofs significantly more than {\LowerUnits}.
@@ -767,7 +754,7 @@ composition for more than 80 \% of the proofs.
 
 
 
-\input{LURPI_charts}
+\input{LURPI_scatter_charts}
 
 
 
