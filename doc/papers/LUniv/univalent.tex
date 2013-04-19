@@ -73,11 +73,11 @@ operation that might be useful for compression were investigated in \cite{bwp10}
 Compression algorithms based on rearranging and sharing chains of resolution inferences have been
 developed in \cite{Amjad07} and \cite{Sinz}.  Cotton \cite{CottonSplit} proposed an algorithm that
 compresses a refutation by repeteadly splitting it into a proof of a heuristically chosen literal $\ell$
-and a proof of $\dual{\ell}$, and then resolving them to form a new refutation.  The \texttt{ReduceAndReconstruct} algorithm \cite{RedRec} searches for locally redundant
+and a proof of $\dual{\ell}$, and then resolving them to form a new refutation.  The {\ReduceReconstruct} algorithm \cite{RedRec} searches for locally redundant
 subproofs that can be rewritten into subproofs of stronger clauses and with fewer resolution steps.
 In \cite{RP08} two linear time compression algorithms are introduced. One of them is a partial
-regularization algorithm called \texttt{RecyclePivots}.  An enhanced version of this latter
-algorithm, called \texttt{RecyclePivotsWithIntersection} ({\RPI}), is proposed in \cite{LURPI},
+regularization algorithm called {\RecyclePivots}.  An enhanced version of this latter
+algorithm, called {\RecyclePivotsIntersection} ({\RPI}), is proposed in \cite{LURPI},
 along with a new linear time algorithm called {\LowerUnits}.  These two last algorithms are
 complementary and better compression can easily be achieved by sequentially composing them (i.e.
 executing one after the other).
@@ -600,7 +600,7 @@ Any irregular proof can be converted into a regular proof having the same axioms
 conclusion. But it has been proved \cite{Goerdt} that such a total regularization might result in a
 proof exponentially bigger than the original. 
 
-Nevertheless, \emph{partial} regularization algorithms, such as \texttt{RecyclePivots} \cite{RP08} and \texttt{RecyclePivotsWithIntersection} ({\RPI}) \cite{LURPI}, carefully avoid the worst case of total regularization and do efficiently compress proofs.  For
+Nevertheless, \emph{partial} regularization algorithms, such as {\RecyclePivots} \cite{RP08} and {\RecyclePivotsIntersection} ({\RPI}) \cite{LURPI}, carefully avoid the worst case of total regularization and do efficiently compress proofs.  For
 any subproof $\varphi$ of a proof $\psi$, {\RPI} removes the edge $\raiz{\varphi} \xrightarrow{\ell}
 \n$ if $\ell$ is a safe literal for $\varphi$.
 
@@ -672,7 +672,7 @@ The experiment compared the following algorithms:
   \item[RPILUniv:] a non-sequential combination of {\RPI} after {\LowerUnivalents};
   \item[LU.RPI:] the sequential composition of {\LowerUnits} after {\RPI};
   \item[LUnivRPI:] the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
-  \item[RPI:] the \texttt{RecyclePivotsWithIntersection} from \cite{LURPI};
+  \item[RPI:] the {\RecyclePivotsIntersection} from \cite{LURPI};
   \item[Split:] Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
   \item[RedRec:] the {\ReduceReconstruct} algorithm from \cite{RedRec};
   \item[Best RPILU/LU.RPI:] which performs both \texttt{RPILU} and \texttt{LU.RPI} and chooses the smallest resulting compressed proof;
