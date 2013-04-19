@@ -473,7 +473,7 @@ corresponding incoming edges can be removed. Even if $\ell_i$ is valent for $\va
 $\dual{\ell_i}$ would be introduced, and it would be resolved away when reintroducing
 $\varphi_i$. The \FuncSty{delete} operation can be easily modified to remove both nodes and edges.
 
-Algorithm \ref{algo:fullLUniv} sums up the previous remarks for an efficient implementation of
+Algorithm \ref{algo:fullLUniv} sums up the previous remarks on how to efficiently implement
 {\LowerUnivalents}. As noticed above, sometimes this algorithm may consider a subproof as univalent when it
 is actually not. But as care is taken when reintroducing subproofs (at line \ref{line:full:testreintroduce}),
 the resulting conclusion still subsumes the original.  The test that $\ell \in \Conclusion{\varphi}$
@@ -568,7 +568,7 @@ time.
 \begin{proposition} \label{prop:compression}
 Given a proof $\psi$,
 {\LowerUnits\unskip\FuncSty{(}$\psi$\FuncSty{)}}
-has at least as many nodes as 
+has at least as many nodes as \\
 {\LowerUnivalents\unskip\FuncSty{(}$\psi$\FuncSty{)}}
 if there are no two units in $\psi$ with the same conclusion.
 \end{proposition}
@@ -621,11 +621,11 @@ SMT-Lib\footnote{\url{http://www.smtlib.org/}}.
 The experiment compared the following algorithms:
   \textbf{LU}, the {\LowerUnits} algorithm from \cite{LURPI};
   \textbf{LUniv}, the {\LowerUnivalents} algorithm;
+  \textbf{RPI}, the {\RecyclePivotsIntersection} from \cite{LURPI};
   \textbf{RPILU}, a non-sequential combination of {\RPI} after {\LowerUnits};
   \textbf{RPILUniv}, a non-sequential combination of {\RPI} after {\LowerUnivalents};
   \textbf{LU.RPI}, the sequential composition of {\LowerUnits} after {\RPI};
   \textbf{LUnivRPI}, the non-sequential combination of {\LowerUnivalents} after {\RPI} as described in Sect. \ref{sec:LUnivRPI};
-  \textbf{RPI}, the {\RecyclePivotsIntersection} from \cite{LURPI};
   \textbf{Split}, Cotton's \texttt{Split} algorithm (\cite{CottonSplit});
   \textbf{RedRec}, the {\ReduceReconstruct} algorithm from \cite{RedRec};
   \textbf{Best RPILU/LU.RPI}, which performs both \texttt{RPILU} and \texttt{LU.RPI} and chooses the smallest resulting compressed proof;
