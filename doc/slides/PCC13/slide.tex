@@ -282,96 +282,37 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \end{block}
 \end{frame}
 
-\newcommand{\edge}[3]{\ensuremath{#1 \xrightarrow{#2} #3}}
-
-\begin{frame}
-%  \begin{definition}[Directed Acyclic Graph with root]
-%    A DAG with root is a tuple $\gamma = \langle V, E, L \rangle$ s.t. : \begin{itemize}
-%      \item $V$ is a set of node,
-%      \item $E \subset V \times X \times V$ a set of labeled directed edges
-%      \item $L: V \longrightarrow Y$ a node labeling function,
-%      \item $\rho(\gamma) \in V$ is a root.
-%    \end{itemize}
-%  \end{definition}
-
+\begin{frame}{Proof}
   \begin{definition}[Proof]
-    A proof is a DAG $\varphi = \langle V, E, L \rangle$ with root $\rho(\varphi)$, which is either : \begin{itemize}
-    \item an axiom $\langle \{v\}, \varnothing, v \longmapsto \Gamma \rangle$ for any clause
-      $\Gamma$ and any new $v$;
-    \item the resolution $\varphi_L \odot_\ell \varphi_R$ of proofs $\varphi_L = \langle V_L, E_L,
-      L_L \rangle$ with $\dual{\ell} \in L_L(\rho(\varphi_L))$ and $\varphi_R = \langle V_R, E_R,
-      L_R \rangle$ with $\ell \in L_R(\rho(\varphi_R))$ such that
-      \begin{align*}
-        V &= V_L \cup V_R \cup \{v\} \\
-        E &= E_L \cup E_R \cup
-             \{ \edge{v}{\dual{\ell}}{\rho(\varphi_L)}, \edge{v}{\ell}{\rho(\varphi_R)} \} \\
-        L &= L_L \cup L_R \cup \{v \longmapsto \Gamma\}
-      \end{align*} for any new $v$.
+    A proof $\psi$ is a directed acyclic graph
+    \begin{itemize}
+      \item having a root noted $\rho(\psi)$;
+      \item with nodes labeled with clauses;
+      \item with edges oriented from the resolvent to the antecendent;
+      \item with edges labeled with the antecedent's literal removed in the resolvent;
+      \item which is either an axiom or a resolution.
     \end{itemize}
   \end{definition}
-\end{frame}
-
-\begin{frame}
-  \begin{definition}[Proof]
-    A graph $\varphi = \langle V, E, L \rangle$ where $V$ is a set of node,
-    $E \subset V \times \mathcal{L} \times V$ a set of edges labeled by literals and $L: V
-    \longrightarrow 2^\mathcal{L}$ a function labeling nodes with clauses, is a proof of $\Gamma$ iff either : \begin{itemize}
-    \item $v$ is a new node, $V=\{v\}$, $E=\varnothing$ and $L=\{ v \longmapsto \Gamma \}$;
-    \item $\varphi_L = \langle V_L, E_L, L_L \rangle$ is a proof of $\Gamma_L$, $\varphi_R = \langle V_R, E_R, L_R \rangle$
-      is a proof of $\Gamma_R$, $\ell$ is a literal s.t. $\dual{\ell} \in \Gamma_L$ and $\ell \in
-      \Gamma_R$, $v$ is a new node and \begin{align*}
-        V &= V_L \cup V_R \cup \{v\} \\
-        E &= E_L \cup E_R \cup
-             \{ \edge{v}{\dual{\ell}}{\rho(\varphi_L)}, \edge{v}{\ell}{\rho(\varphi_R)} \} \\
-        L &= L_L \cup L_R \cup \{v \longmapsto \Gamma\} \\
-   \Gamma &= \left( \Gamma_L \setminus \{\dual{\ell}\} \right) \cup
-             \left( \Gamma_R \setminus \{\ell\} \right)
-      \end{align*} where $\rho(\varphi)$ denotes the root of $\varphi$.
-    \end{itemize}
+  \begin{definition}[Axiom]
+    An axiom is a proof with only one node.
   \end{definition}
 \end{frame}
+  
+\subsection{Proofs' operations}
 
-\begin{frame}
-  \begin{definition}[Directed Acyclic Graph with root]
-    A graph $\gamma = \langle V, E, L \rangle$ where $V$ is a set of node,
-    $E \subset V \times X \times V$ a set of labeled directed edges and $L: V
-    \longrightarrow Y$ a node labeling function, is a directed acyclic graph with root iff
-    there exists a node $\rho(\gamma)$ such that each other node is reachable from $\rho(\gamma)$
-    but $\rho(\gamma)$ is not reachable from any node.
-  \end{definition}
-
-  \begin{definition}[Proof]
-    A directed acyclic graph $\langle V, E, L \rangle$ where $V$ is a set of node,
-    $E \subset V \times \mathcal{L} \times V$ a set of edges labeled by literals and $L: V
-    \longrightarrow 2^\mathcal{L}$ an edge labeling function, is a proof iff it is inductively
-    constructible according to the following cases : \begin{itemize}
-    \item if $\Gamma$ is a clause then $\langle \{v\}, \varnothing, v \longmapsto \Gamma \rangle$ is a
-      proof for any new $v$;
-    \item if $\langle V_L, E_L, L_L \rangle$ and $\langle V_R, E_R, L_R \rangle$ are proofs and
-      for a given literal $\ell$, $\ell \in L$
-    \end{itemize}
-  \end{definition}
+\begin{frame}{Resolution}
+  Given two proofs $\varphi_L$ and $\varphi_R$ with conclusion $\Gamma_L$ and $\Gamma_R$ and a
+  literal $\ell$ s.t. $\dual{\ell} \in \Gamma_L$ and $\ell \in \Gamma_R$, the resolution proof
+  $\psi$ of $\varphi_L$ and $\varphi_R$ on $\ell$, noted $\psi = \varphi_L \odot_\ell \varphi_R$, is
+  such that:
+  \begin{itemize}
+    \item $\psi$'s nodes are the union of $\varphi_L$ and $\varphi_R$ nodes plus a new root node;
+    \item there is an edge from $\rho(\psi)$ to $\rho(\varphi_L)$ labeled with $\dual{\ell}$;
+    \item there is an edge from $\rho(\psi)$ to $\rho(\varphi_R)$ labeled with $\ell$;
+    \item $\psi$'s conclusion is $\left( \Gamma_L \setminus \{\dual{\ell}\} \right) \cup
+                                  \left( \Gamma_R \setminus \{\ell\} \right)$.
+  \end{itemize}
 \end{frame}
-
-
-\begin{frame}{Proof as DAG}
-  \begin{definition}[Proof]
-    A proof is a tuple $\langle V, E, \lambda_V, \lambda_E, \rho \rangle$ s.t.: \begin{itemize}
-    \item $\langle V, E \rangle$ is a directed acyclic graph (DAG);
-    \item $\lambda_V$ is a function labeling nodes with clauses;
-    \item $\lambda_E$ is a function labeling edges with literals;
-    \item $\rho \in V$ and $\forall \eta \in V \setminus \{\rho\}$, a path exists from $\rho$ to $\eta$;
-    \item for each incoming edge $\edge{\eta'}{\ell}{\eta}$, $\ell \in \lambda_V(\eta)$;
-    \item a node $\eta \in V$ without any outgoing edge is called an axiom;
-    \item a node $\eta$ with exactely two outgoing edges $\edge{\eta}{\ell_L}{\eta_L}$ and
-          $\edge{\eta}{\ell_R}{\eta_R}$ is called a resolution step and is s.t. $\dual{\ell_L} = \ell_R$ and
-          $ \lambda_V(\eta) = \left( \lambda_V(\eta_L) \setminus \{ \ell_L \} \right)
-                         \cup \left( \lambda_V(\eta_R) \setminus \{ \ell_R \} \right) $;
-    \item each node $\eta \in V$ is either an axiom or a resolution step.
-    \end{itemize}
-  \end{definition}
-\end{frame}
-    
 
 %\begin{frame}{Subproofs}
 %  \begin{definition}[Subproof]
