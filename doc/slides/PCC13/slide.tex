@@ -182,13 +182,10 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \draw#3 [color=deletecol,thick,cap=round,#1] (#2.mid) ++(10:0.3) -- ++(190:0.6);
 }
 
-\newcommand<>{\pivot}[3][]{
-  \node#4 [anchor=base,color=vertfonce,#1] at (#2.north) {\scriptsize #3};
+\newcommand<>{\marknode}[1]{
+  \draw#2 [color=vertclair,line width=1pt] (#1) ellipse (.33cm and .29cm);
 }
 
-\newcommand<>{\safelit}[3][]{
-  \node#4 [anchor=west,color=vertfonce,#1] at (#2.mid) {\hspace{0.2em} \scriptsize $\left\{#3\right\}$};
-}
 
 \title[Compression of Propositional Resolution Proofs]{Compression of Propositional Resolution Proofs by Lowering Subproofs}
 \author[J. Boudou, B. Woltzenlogel Paleo]{
@@ -372,7 +369,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \begin{frame}
   \begin{columns}
-    \alt<3->{\column{0.5\textwidth}}{\column{1\textwidth}}
+  \column{0.5\textwidth}
     \begin{center}
     \begin{tikzpicture}[node distance=1.5cm]
 
@@ -395,11 +392,12 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
       \draw [proof edge] (r1) -- (a3);
       \draw [proof edge] (r1) -- (iu);
     \end{tikzpicture}
-    \only<3->{Original proof}
+    \visible<3->{Original proof} \\
+    \visible<4>{\small 4 resolutions}
     \end{center}
-%    \begin{onlyenv}<3->
-    \only<3->{
+
     \column{0.5\textwidth}
+    \only<3->{
     \begin{center}
     \begin{tikzpicture}[node distance=1.5cm]
 
@@ -425,10 +423,10 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
       \crossnode<4>{a2}
       \crossnode<4>{iu}
     \end{tikzpicture}
-    Compressed proof
+    \uncover<4>{Compressed proof} \\
+    \visible<4>{\small 3 resolutions}
     \end{center}
-  }
-%    \end{onlyenv}
+    }
   \end{columns}
 \end{frame}
 
@@ -486,50 +484,77 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{frame}
 
 \begin{frame}
-  TODO: adapt to LU only
-  \begin{center}
-\begin{tikzpicture}[node distance=1.3cm]
-  \proofnode[color=addcolor]{luroot}{\only<4>{$\bot$}};
+  \begin{columns}
+  \column{0.5\textwidth}
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.33cm]
 
-  \proofnode[above left of=luroot]{root}{\alt<3-4>{$\dual{a}$}{$\bot$}};
-  \withchildren{root} {r2}{\alt<3-4>{$\dual{a} c$}{$c$}} {a4}{$\dual{c}$};
-  \withchildren{r2} {r0}{\alt<8>{$b c$}{$b$}} {r1}{$\dual{b} c$};
+      \rootnode;
+      \withchildren{root} {r0}{$\dual{c}$} {r1}{$c$};
 
-  \addchildren{r0} {a0}{$\dual{a} b$} {iu}{$a$};
-  \draw [proof edge] (r0) -- (a0);
-  \only<1,5->{\draw [proof edge] (r0) -- (iu);}
-  \only<2>{\draw [deleted edge] (r0) -- (iu);}
+      \withchildren{r0} {r2}{$\dual{b},\dual{c}$} {u0}{$b$};
 
-  \addchildren{iu} {a1}{$a c$} {a2}{$a \dual{c}$};
-  \draw [proof edge] (iu) -- (a1);
-  \only<1-6>{\draw [proof edge] (iu) -- (a2);}
-  \only<7>{\draw [deleted edge] (iu) -- (a2);}
+      \proofnode[above right of=r1]{a0}{$\dual{b},c$};
+      \drawchildren{r1} {u0}{a0};
 
-  \proofnode[above right of=r1]{a3}{$\dual{a} \dual{b} c$};
-  \draw [proof edge] (r1) -- (a3);
-  \only<1,5->{\draw [proof edge] (r1) -- (iu);}
-  \only<2>{\draw [deleted edge] (r1) -- (iu);}
+      \withchildren{r2} {a1}{$a,\dual{b},\dual{c}$} {u1}{$\dual{a}$};
 
-  \crossnode<3-4>{r0}
-  \crossnode<3-4>{r1}
-  \only<4>{
-    \draw [proof edge,color=addcolor] (luroot) -- (root);
-    \draw [proof edge,color=addcolor] (luroot) .. controls ++(1.2,1.5) .. (iu);
-  }
+      \proofnode[above right of=u0]{a2}{$a,b$};
+      \drawchildren{u0} {u1}{a2};
 
-  \pivot<6>{iu}{$c$}
-  \pivot<6>{root}{$c$}
-  \safelit<7>{root}{}
-  \safelit<7>{r2}{c}
-  \safelit<7>{r0}{b,c}
-  \safelit<7>{r1}{\dual{b},c}
-  \safelit<7>{iu}{a,c}
-  \crossnode<8>{a2}
-  \crossnode<8>{iu}
+    \end{tikzpicture}
+    \visible<2->{Original proof} \\
+    \visible<8>{\small 5 resolutions}
+    \end{center}
 
-  \draw (luroot) ++(1.2,-0.5) node {};
-\end{tikzpicture}
-\end{center}
+    \column{0.5\textwidth}
+    \only<2->{
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.33cm]
+
+      \proofnode {root} {\alt<-2,8>{$\bot$}{\temporal<5>{$\dual{b}$}{$a,\dual{b}$}{}}};
+      \addchildren{root} {r0}{\temporal<6>{$\dual{c}$}{}{$a$}} {r1}{\alt<-5>{$c$}{$\dual{a}$}};
+      \drawchildren<2,8>{root} {r0}{r1};
+      \draw<3-4>[proof edge] (root) .. controls (r0.south west) .. (r2);
+      \draw<5>[proof edge] (root) .. controls (r0.south west) and (r2.south west) .. (a1);
+      \draw<3-5>[proof edge] (root) .. controls (r1.south east) .. (a0);
+
+      \addchildren{r0} {r2}{\alt<-5>{$\dual{b},\dual{c}$}{$a,\dual{b}$}} {u0}{\alt<-5>{$b$}{$a,b$}};
+      \draw<2>[proof edge] (r0) -- (r2);
+      \draw<2>[deleted edge] (r0) -- (u0);
+      \drawchildren<7->{r0} {r2}{u0};
+
+      \proofnode[above right of=r1]{a0}{\only<-5>{$\dual{b},c$}};
+      \draw<2>[deleted edge] (r1) -- (u0);
+      \draw<2>[proof edge] (r1) -- (a0);
+
+      \addchildren{r2} {a1}{$a,\dual{b},\dual{c}$} {u1}{\alt<-5>{$\dual{a}$}{$\dual{b},c$}};
+      \draw<-4,6->[proof edge] (r2) -- (a1);
+      \draw<-3,6->[proof edge] (r2) -- (u1);
+      \draw<4>[deleted edge] (r2) -- (u1);
+
+      \proofnode[above right of=u0]{a2}{\only<-5>{$a,b$}};
+      \draw<-3>[proof edge] (u0) -- (u1);
+      \draw<4>[deleted edge] (u0) -- (u1);
+      \draw<-4>[proof edge] (u0) -- (a2);
+
+      \crossnode<3-5>{r0};
+      \crossnode<3-5>{r1};
+      \crossnode<5>{r2};
+      \crossnode<5>{u0};
+  
+      \marknode<2-4,6>{u0};
+      \marknode<5>{a2};
+
+      \marknode<4-5>{u1};
+      \marknode<6-7>{r1}
+
+    \end{tikzpicture}
+    \uncover<8>{Compressed proof} \\
+    \visible<8>{\small 3 resolutions}
+    \end{center}
+    }
+  \end{columns}
 \end{frame}
 
 
@@ -629,7 +654,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   TODO: experimental results
 \end{frame}
 
-\appendix
+\section{Conclusion}
 
 \begin{frame}{Conclusion}
 \charttitle*{Compression ratio comparison}
@@ -648,18 +673,18 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{columns}
 \end{frame}
 
-\begin{frame}{References}
-
-\begin{subpart}{Skeptik}
-\item http://github.com/Paradoxika/Skeptik
-\end{subpart}
-
-\begin{subpart}{Bibliography}
-\item Fontaine, P., Merz, S., Woltzenlogel Paleo, B.: Compression of
-  propositional resolution proofs via partial regularization. In: CADE. Lecture
-  Notes in Computer Science, vol. 6803, pp. 237--251. Springer (2011)
-\end{subpart}
-
+\begin{frame}
+  \vskip0pt plus 1filll
+  \begin{minipage}{\textwidth}
+    \singleline{\centering Thank you for your attention.}
+    \singleline{\centering Any question ?}
+  \end{minipage}
+  \vskip0pt plus 1filll
+  \begin{minipage}{\textwidth}
+    \begin{subpart}{Skeptik}
+      \item http://github.com/Paradoxika/Skeptik
+    \end{subpart}
+  \end{minipage}
 \end{frame}
 
 \end{document}
