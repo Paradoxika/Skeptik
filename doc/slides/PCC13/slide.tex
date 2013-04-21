@@ -1,4 +1,6 @@
 \documentclass[compress]{beamer}
+\usepackage{etex}
+
 \setbeamercovered{transparent}
 %\useoutertheme{infolines}
 %\useoutertheme[footline=authortitle,subsection=false]{miniframes}
@@ -121,7 +123,6 @@
 
 \usepackage[vlined]{algorithm2e}
 
-\usepackage{multicol}
 
 \usepackage{tikz}
 \usetikzlibrary{positioning}
@@ -186,6 +187,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \draw#2 [color=vertclair,line width=1pt] (#1) ellipse (.33cm and .29cm);
 }
 
+\usepackage{booktabs}
 
 \title[Compression of Propositional Resolution Proofs]{Compression of Propositional Resolution Proofs by Lowering Subproofs}
 \author[J. Boudou, B. Woltzenlogel Paleo]{
@@ -330,9 +332,18 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 %\end{frame}
 
 \begin{frame}{Deletion}
-  \begin{definition}
-    TODO
-  \end{definition}
+  \begin{subpart}{Deletion of an edge}
+    \item The resovent is replaced by the other antecedent.
+    \item Some subsequent resolutions may have to be deleted as well.
+  \end{subpart}
+  \begin{subpart}{Deletion of a subproof $\varphi$}
+    \item Deletion of every edge coming to $\rho(\varphi)$.
+    \item The operation is commutative and associative.
+  \end{subpart}
+  \begin{block}{Notation}
+    $\dn{\psi}{\varphi_1, \ldots, \varphi_n}$ denotes the deletions of subproofs $\varphi_1, \ldots,
+    \varphi_n$ from the proof $\psi$.
+  \end{block}
 \end{frame}
 
 
@@ -456,6 +467,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
       \proofnode[above right of=r1]{a1}{$\dual{a},b$};
       \edgewithlabel{r1}{ln}{$a$};
       \draw [proof edge] (r1) -- (a1);
+
+      \marknode{ln};
     \end{tikzpicture} \end{center}
     \column{0.5\textwidth}
     \begin{center} \begin{tikzpicture}[node distance=1.3cm]
@@ -465,6 +478,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
       \withchildren{r0} {r1}{$\dual{a},c$} {ln}{$a,c$};
 
       \withchildren{r1} {a2}{$\dual{a},\dual{b},c$} {a1}{$\dual{a},b$};
+
+      \marknode{ln};
     \end{tikzpicture} \end{center}
   \end{columns} \end{example}
 \end{frame}
@@ -651,26 +666,40 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \subsection{Experiments}
 
 \begin{frame}
-  TODO: experimental results
+  \begin{subpart}{Configuration}
+    \item Algorithms implemented in Scala for the Skeptik library.
+    \item 5\,000 SMT proofs produced by the VeriT solver.
+    \item Experiements performed on the Vienna Scientific Cluster.
+  \end{subpart}
+  \begin{block}{Results}
+    \vspace{1em}
+    \centering
+    \begin{tabular}{lcc}
+      \toprule
+      Algorithm              & Compression & Speed   \\
+      \midrule
+      LowerUnits               &  7.5 \% & 22.4 n/ms \\
+      LowerUnivalents          &  8.0 \% & 20.4 n/ms \\
+      LU composed after RPI    & 21.7 \% & 15.1 n/ms \\
+      LUniv combined after RPI & 22.0 \% & 17.8 n/ms \\    
+      \bottomrule
+    \end{tabular}
+  \end{block}
 \end{frame}
 
 \section{Conclusion}
 
 \begin{frame}{Conclusion}
-\charttitle*{Compression ratio comparison}
-\renewcommand{\chartscale}{0.85}
-\begin{columns}
-
-  \column{0.45\textwidth}
-  \centering
-  \include{composition-chart}
-
-  \column{0.55\textwidth}
-  \centering
-  \only<+>{\include{combination-chart}}
-  \only<+>{\include{combluniv-chart}}
-  
-\end{columns}
+  \begin{subpart}{Goals achieved}
+    \item LowerUnivalents compresses more than LowerUnits.
+    \item LowerUnivalents combines efficiently after RPI.
+  \end{subpart}
+  \begin{subpart}{Further works}
+    \item Combine LowerUnivalents after other algorithms.
+    \item Get rid of order dependancy.
+    \item Lower subproofs just until resolvents are all resolved.
+    \item Explore other kind of redundancies.
+  \end{subpart}
 \end{frame}
 
 \begin{frame}
