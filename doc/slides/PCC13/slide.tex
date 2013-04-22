@@ -228,12 +228,12 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
         $\dual{p} = \neg p$ and $\dual{\neg p} = p$.
 \end{subpart}
 \begin{subpart}{Clauses}
-  \item A \emph{clause} is a disjonctive set of literals.
+  \item A \emph{clause} is a disjunctive set of literals.
   \item The empty clause corresponds to false.% and is denoted by $\bot$.
   \item Tautologies contain both a literal $\ell$ and its dual $\dual{\ell}$.
 \end{subpart}
 %\begin{subpart}{Instance}
-%  \item An \emph{instance} is a conjonctive set of clauses.
+%  \item An \emph{instance} is a conjunctive set of clauses.
 %\end{subpart}
 %  \begin{subpart}{SAT context}
 %    \item Axioms are instance's clauses.
@@ -287,9 +287,9 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     \begin{itemize}
       \item having a root noted $\rho(\psi)$;
       \item with nodes labeled with clauses;
-      \item with edges oriented from the resolvent to the antecendent;
+      \item with edges oriented from the resolvent to the antecedent;
       \item with edges labeled with the antecedent's literal removed in the resolvent;
-      \item which is either an axiom or a resolution.
+      \item which is either an axiom or a resolution proof.
     \end{itemize}
   \end{definition}
   \begin{definition}[Axiom]
@@ -333,8 +333,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \begin{frame}{Deletion}
   \begin{subpart}{Deletion of an edge}
-    \item The resovent is replaced by the other antecedent.
-    \item Some subsequent resolutions may have to be deleted as well.
+    \item The resolvent is replaced by the other antecedent.
+    \item Some subsequent resolutions may have to be deleted too.
   \end{subpart}
   \begin{subpart}{Deletion of a subproof $\varphi$}
     \item Deletion of every edge coming to $\rho(\varphi)$.
@@ -360,21 +360,22 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     appears at most once as edge label.
   \end{definition}
   \begin{theorem}[Goerdt 1990]
-    Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentialy bigger
+    Given a set of axioms and a clause $\Gamma$, the smallest regular proof of $\Gamma$ might be exponentially bigger
     than the smallest irregular proof of $\Gamma$.
   \end{theorem}
 \end{frame}
 
 \begin{frame}{RecyclePivotsWithIntersection (RPI)}
   \begin{subpart}{Partial Regularization}
-    \item Delete an outgoing edge labeled with $\ell$ iff $\dual{\ell}$ appears on \textbf{every} path from the root to the node.
+    \item Delete an outgoing edge labeled with $\ell$ iff $\dual{\ell}$ appears on \textbf{every}
+          path from the root to the node.
   \end{subpart}
   \begin{definition}[Safe literal]
     A literal is safe for a node $\eta$ if it can be added to $\eta$'s clause without changing proof's conclusion.
   \end{definition}
   \begin{subpart}{Two traversals}
-    \bottomup Collect safe literals and mark edges to delete.
-    \topdown Delete edges and fix the proof.
+    \bottomup Collect safe literals and mark edges to be deleted.
+    \topdown Delete edges.
   \end{subpart}
 \end{frame}
 
@@ -446,8 +447,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \begin{frame}
   \begin{definition}
-    A node $v$ in a proof $\varphi$ is an horizontal redundancy iff it has at least two incoming
-    edges labeled with the same literal.
+    A node is an horizontal redundancy iff it has at least two incoming edges labeled with the same
+    literal.
   \end{definition}
   \begin{subpart}{Reducing horizontal redundancy}
     \item postponing resolution until resolvents are resolved.
@@ -487,14 +488,14 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \begin{frame}{LowerUnits (LU)}
   \begin{definition}[Unit]
-    A unit is a subproof which conclusion clause has exactely one literal.
+    A unit is a subproof with a conclusion clause having exactly one literal.
   \end{definition}
   \begin{theorem}
     A unit can always be lowered.
   \end{theorem}
   \begin{subpart}{Two traversals}
-    \anydir Collect units with more than one child.
-    \topdown Delete units, fix the proof and then reintroduce the units at the bottom of the proof.
+    \anydir Collect units with more than one resolvent.
+    \topdown Delete units and reintroduce them at the bottom of the proof.
   \end{subpart}
 \end{frame}
 
@@ -586,7 +587,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \end{subpart}
   \begin{subpart}{Idea}
     \item If a unit with conclusion clause $\{a\}$ is already marked for lowering, a subproof with
-      conclusion clause $\{\dual{a}, b\}$ may be lowerable too.
+      conclusion clause $\{\dual{a}, b\}$ may be lowered too.
   \end{subpart}
 \end{frame}
 
@@ -669,7 +670,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \begin{subpart}{Configuration}
     \item Algorithms implemented in Scala for the Skeptik library.
     \item 5\,000 SMT proofs produced by the VeriT solver.
-    \item Experiements performed on the Vienna Scientific Cluster.
+    \item Experiments performed on the Vienna Scientific Cluster.
   \end{subpart}
   \begin{block}{Results}
     \vspace{1em}
@@ -694,9 +695,9 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     \item LowerUnivalents compresses more than LowerUnits.
     \item LowerUnivalents combines efficiently after RPI.
   \end{subpart}
-  \begin{subpart}{Further works}
+  \begin{subpart}{Future works}
     \item Combine LowerUnivalents after other algorithms.
-    \item Get rid of order dependancy.
+    \item Get rid of order dependency.
     \item Lower subproofs just until resolvents are all resolved.
     \item Explore other kind of redundancies.
   \end{subpart}
