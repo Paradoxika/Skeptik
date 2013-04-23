@@ -2,8 +2,6 @@
 \usepackage{etex}
 
 \setbeamercovered{transparent}
-%\useoutertheme{infolines}
-%\useoutertheme[footline=authortitle,subsection=false]{miniframes}
 \setbeamertemplate{navigation symbols}{}
 
 \definecolor{vertmoyen}{HTML}{A9CB60}
@@ -53,11 +51,12 @@
 }
 
 \defbeamertemplate*{headline}{jogo theme}
-{
+{%
     \leavevmode%
-  \ifx\insertsectionhead\@empty\vspace{3.45ex}%
+  \ifx\insertsectionhead\@empty\vspace{3.35ex}%
   \else%
   {%
+    \vspace{0.1ex}%
     \hbox{%
     \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,right]{section in head/foot}%
       \usebeamerfont{section in head/foot}\insertsectionhead\hspace*{2ex}
@@ -66,7 +65,7 @@
       \usebeamerfont{subsection in head/foot}\hspace*{2ex}\insertsubsectionhead
     \end{beamercolorbox}%
     }%
-    \vskip0pt%
+    \vskip-.1ex%
     \begin{beamercolorbox}[wd=\paperwidth,colsep=.05ex]{separation line}
     \end{beamercolorbox}
   }%
@@ -86,7 +85,7 @@
     \usebeamerfont{title in head/foot}\insertshorttitle
   \end{beamercolorbox}%
   \begin{beamercolorbox}[wd=.26\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
-    \usebeamerfont{date in head/foot}\insertshortdate{},
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace{2em}
     \insertframenumber{} / \inserttotalframenumber\hspace*{1ex} 
   \end{beamercolorbox}}%
   \vskip0pt%
@@ -105,7 +104,6 @@
 
 \newcommand{\dual}[1]{\ensuremath{\bar{#1}}}
 \newcommand{\dn}[2]{#1 \setminus (#2)}
-
 \newcommand{\set}[2]{\ensuremath{\left\{#1\mid#2\right\}}}
 
 \newenvironment<>{subpart}[1]
@@ -118,6 +116,10 @@
 
 \newcommand<>{\singleline}[1]{\begin{block}{\only#2#1}\end{block}}
 
+\newcommand{\bottomup}{\item[$\uparrow$]}
+\newcommand{\topdown} {\item[$\downarrow$]}
+\newcommand{\anydir}  {\item[$\updownarrow$]}
+
 \usepackage{bussproofs}
 \newcommand{\Resolution}[2]{\RightLabel{\footnotesize{$#1$}} \BinaryInfC{$#2$}}
 
@@ -126,28 +128,6 @@
 
 \usepackage{tikz}
 \usetikzlibrary{positioning}
-
-\newcommand{\basecharttitle}[1]{{\color{vertfonce}#1}\vspace{-0.8em}}
-\makeatletter
-\newcommand{\charttitle}{\@ifstar\charttitlestar\charttitleplain}
-\makeatother
-\newcommand{\charttitleplain}[1]{\hspace{2em}\basecharttitle{#1}}
-\newcommand{\charttitlestar}[1]{\centering\basecharttitle{#1}}
-
-\newcommand{\compC}{Compression ratio comparison}
-\newcommand{\timeC}{Compression time comparison \scriptsize (in seconds)}
-\newcommand{\axioC}{Axiom compression ratio comparison}
-
-\newcommand{\asGoodRPILU}{For a combined algorithm to be always at least as
-good as RPI.LU it has to compute root and units safe literals.}
-\newcommand{\asGoodLURPI}{For a combined algorithm to be always at least as
-good as LU.RPI it has to be able to lower units introduced by RPI.}
-
-\newcommand{\bottomup}{\item[$\uparrow$]}
-\newcommand{\topdown} {\item[$\downarrow$]}
-\newcommand{\anydir}  {\item[$\updownarrow$]}
-
-\newcommand{\chartscale}{1}
 
 \tikzstyle{proof edge}=[->,thick,cap=round]
 \tikzstyle{deleted edge}=[proof edge, dashed, color=deletecol]
@@ -183,11 +163,13 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \draw#3 [color=deletecol,thick,cap=round,#1] (#2.mid) ++(10:0.3) -- ++(190:0.6);
 }
 
-\newcommand<>{\marknode}[1]{
-  \draw#2 [color=vertclair,line width=1pt] (#1) ellipse (.33cm and .29cm);
+\newcommand<>{\marknode}[2][.33cm and .29cm]{
+  \draw#3 [color=vertclair,line width=1pt] (#2) ellipse (#1);
 }
 
 \usepackage{booktabs}
+
+
 
 \title[Compression of Propositional Resolution Proofs]{Compression of Propositional Resolution Proofs by Lowering Subproofs}
 \author[J. Boudou, B. Woltzenlogel Paleo]{
@@ -202,7 +184,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 }
 \date[PCC 2013]{PCC Workshop, 2013}
 
-\includeonly{}
+
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
 %%%%%%%%%%%%%%%%%%
@@ -216,30 +198,31 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \tableofcontents
 \end{frame}
 
+
+
 \section{Introduction}
 
 \subsection{Propositional resolution calculus}
 
-
 \begin{frame}
-\begin{subpart}{Literals}
-  \item A \emph{literal} is an atomic formula or the negation of an atomic formula.
-  \item The dual of a literal $\ell$, denoted by $\dual{\ell}$, is such that
-        $\dual{p} = \neg p$ and $\dual{\neg p} = p$.
-\end{subpart}
+%\begin{subpart}{Literals}
+%  \item A \emph{literal} is an atomic formula or the negation of an atomic formula.
+%  \item The dual of a literal $\ell$, denoted by $\dual{\ell}$, is such that
+%        $\dual{p} = \neg p$ and $\dual{\neg p} = p$.
+%\end{subpart}
 \begin{subpart}{Clauses}
   \item A \emph{clause} is a disjunctive set of literals.
   \item The empty clause corresponds to false.% and is denoted by $\bot$.
   \item Tautologies contain both a literal $\ell$ and its dual $\dual{\ell}$.
 \end{subpart}
 %\begin{subpart}{Instance}
-%  \item An \emph{instance} is a conjunctive set of clauses.
 %\end{subpart}
-%  \begin{subpart}{SAT context}
+  \begin{subpart}{SAT context}
 %    \item Axioms are instance's clauses.
-%    \item Proofs of unsatisfiability.
-%    \item Tautologies are prohibited.
-%  \end{subpart}
+    \item Proofs of unsatisfiability.
+    \item Tautologies are prohibited.
+%    \item An \emph{instance} is a conjunctive set of clauses.
+  \end{subpart}
   \begin{block}{Robinson's Resolution Principle}
     \vspace{-.5em}
     \begin{prooftree}
@@ -287,8 +270,8 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     \begin{itemize}
       \item having a root noted $\rho(\psi)$;
       \item with nodes labeled with clauses;
-      \item with edges oriented from the resolvent to the antecedent;
-      \item with edges labeled with the antecedent's literal removed in the resolvent;
+      \item with edges oriented from the resolvent to the premise;
+      \item with edges labeled with the premise's literal removed in the resolvent;
       \item which is either an axiom or a resolution proof.
     \end{itemize}
   \end{definition}
@@ -333,7 +316,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 
 \begin{frame}{Deletion}
   \begin{subpart}{Deletion of an edge}
-    \item The resolvent is replaced by the other antecedent.
+    \item The resolvent is replaced by the other premise.
     \item Some subsequent resolutions may have to be deleted too.
   \end{subpart}
   \begin{subpart}{Deletion of a subproof $\varphi$}
@@ -574,6 +557,7 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
 \end{frame}
 
 
+
 \section{LowerUnivalents}
 
 \recalltoc
@@ -589,10 +573,6 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
     \item If a unit with conclusion clause $\{a\}$ is already marked for lowering, a subproof with
       conclusion clause $\{\dual{a}, b\}$ may be lowered too.
   \end{subpart}
-\end{frame}
-
-\begin{frame}
-  TODO: Example and counterexample
 \end{frame}
 
 \begin{frame}
@@ -658,10 +638,69 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \end{algorithm}
 \end{frame}
 
-\begin{frame}{In practice}
-  \begin{itemize}
-    \item TODO: populate this list
-  \end{itemize}
+\begin{frame}
+  $$ \Delta = \temporal<2>{\varnothing}{\{\dual{a}\}}{\{\dual{a},\dual{b}\}} $$
+  \vspace{-1em}
+  \begin{columns}
+  \column{0.5\textwidth}
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.5cm]
+
+      \rootnode;
+      \withchildren{root} {r0}{$\dual{a}$} {u0}{$a$};
+
+      \withchildren{r0} {r1}{$\dual{a},\dual{c}$} {r2}{$\dual{a},c$};
+
+      \withchildren{r1} {a0}{$\dual{a},\dual{b},\dual{c}$} {u1}{$\dual{a},b$};
+
+      \proofnode[above right of=r2]{a1}{$\dual{b},c$};
+      \drawchildren{r2} {u1}{a1};
+
+    \end{tikzpicture}
+    Original proof \\
+    \visible<10>{\small 4 resolutions}
+    \end{center}
+
+    \column{0.5\textwidth}
+    \begin{center}
+    \begin{tikzpicture}[node distance=1.5cm]
+
+      \proofnode{root} {\only<-7,10>{$\bot$}};
+      \addchildren{root} {r0}{\alt<-5,9->{$\dual{a}$}{\only<6-7>{$\dual{a},\dual{b}$}}}
+                         {u0}{$a$};
+      \draw<-6,10>[proof edge] (root) -- (r0);
+      \draw<1,10> [proof edge] (root) -- (u0);
+      \draw<2-6>[deleted edge] (root) -- (u0);
+
+      \addchildren{r0} {r1}{\alt<-7>{$\dual{a},\dual{c}$}{$\dual{a},\dual{b}$}}
+                       {r2}{\alt<-7>{$\dual{a},c$}{$\dual{a},b$}};
+      \drawchildren<-3,9->{r0} {r1}{r2};
+      \draw<4-7>[proof edge] (r0) .. controls (r1.south west) .. (a0);
+      \draw<4>  [proof edge] (r0) -- (r2);
+      \draw<5-7>[proof edge] (r0) .. controls (r2.south east) .. (a1);
+
+      \addchildren{r1} {a0}{$\dual{a},\dual{b},\dual{c}$} {u1}{\alt<-7>{$\dual{a},b$}{$\dual{b},c$}};
+      \draw<-3,8->[proof edge] (r1) -- (a0);
+      \draw<-2,8->[proof edge] (r1) -- (u1);
+      \draw<3>  [deleted edge] (r1) -- (u1);
+
+      \proofnode[above right of=r2]{a1}{\only<-7>{$\dual{b},c$}};
+      \draw<-2>   [proof edge] (r2) -- (u1);
+      \draw<3,4>[deleted edge] (r2) -- (u1);
+      \draw<-4>   [proof edge] (r2) -- (a2);
+
+      \marknode<2-> [.31cm and .27cm]{u0};
+      \marknode<3-7>[.35cm and .3cm]{u1};
+      \marknode<8-> [.35cm and .3cm]{r2};
+
+      \crossnode<4-7>{r1};
+      \crossnode<5-7>{r2};
+      \crossnode<7>{root};
+    \end{tikzpicture}
+    \uncover<10>{Compressed proof} \\
+    \visible<10>{\small 3 resolutions}
+    \end{center}
+  \end{columns}
 \end{frame}
 
 \subsection{Experiments}
@@ -688,9 +727,11 @@ good as LU.RPI it has to be able to lower units introduced by RPI.}
   \end{block}
 \end{frame}
 
+
+
 \section{Conclusion}
 
-\begin{frame}{Conclusion}
+\begin{frame}
   \begin{subpart}{Goals achieved}
     \item LowerUnivalents compresses more than LowerUnits.
     \item LowerUnivalents combines efficiently after RPI.
