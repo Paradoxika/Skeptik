@@ -1,8 +1,8 @@
 package at.logic.skeptik
 
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik}
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser}
 import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik}
-import at.logic.skeptik.algorithm.compressor.Algorithms
+import at.logic.skeptik.algorithm.compressor.algorithms
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.{Proof, ProofNode}
 import at.logic.skeptik.proof.measure
@@ -41,8 +41,6 @@ object ProofCompressionCLI {
         case Some(".skeptik")  => ProofParserSkeptik
         case _ => throw new Exception(unknownFormat(config.input))
       }
-      import at.logic.skeptik.proof.sequent.SequentProofNode
-      import at.logic.skeptik.judgment.Sequent
       val Timed(proof, tRead) = timed { proofParser.read(config.input) }   
       println(completedIn(tRead))
       
@@ -50,7 +48,7 @@ object ProofCompressionCLI {
       // Compressing the proof
       val outputProof = if (config.algorithm != "") {
                           print("Compressing proof...")
-                          val algorithm = Algorithms.get(config.algorithm)
+                          val algorithm = AlgorithmParser.parse(config.algorithm)
                           val Timed(p, t) = timed { algorithm(proof) }
                           println(completedIn(t))
                           p
@@ -110,7 +108,7 @@ object ProofCompressionCLI {
     compress examples/proofs/VeriT/eq_diamond8.smt2 --algorithm RPI --output output.skeptik
     
 Available algorithms:
-  """ + (for (a <- at.logic.skeptik.algorithm.compressor.Algorithms.get) yield a._1).mkString("\n  ") + "\n\n"    
+  """ + (for (a <- algorithms) yield a._1).mkString("\n  ") + "\n\n"    
       )      
     } 
   }

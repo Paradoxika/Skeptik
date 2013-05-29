@@ -17,3 +17,4 @@ abstract class ProofParser[N <: ProofNode[Judgment,N]] extends RegexParsers {
     }
   }
 }
+

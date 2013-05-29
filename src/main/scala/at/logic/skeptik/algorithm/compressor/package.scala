@@ -1,17 +1,20 @@
-package at.logic.skeptik.algorithm.compressor
+package at.logic.skeptik.algorithm
 
 import at.logic.skeptik.algorithm.compressor.split._
 
-object Algorithms {
-  val get = Map( 
+// Algorithm names should contain only alphanumeric characters
+// otherwise, the command line parser does not work.
+
+package object compressor {
+  val algorithms = Map(
+    "RPI" -> RecyclePivotsWithIntersection,
     "LU" -> LowerUnits,
     "RP" -> RecyclePivots,
-    "RPI" -> RecyclePivotsWithIntersection,
-    "RPI[3]LU" -> IdempotentThreePassLowerUnits,
+    "RPI3LU" -> IdempotentThreePassLowerUnits,
     "LUniv" -> LowerUnivalents,
     "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
-    "RPI[3]LUniv" -> LowerUnivalentsBeforeRecyclePivots,
-    "R&R" -> new ReduceAndReconstruct(5000),
+    "RPI3LUniv" -> LowerUnivalentsBeforeRecyclePivots,
+    "RedRec" -> new ReduceAndReconstruct(5000),
     "CottonSplit" -> new CottonSplit(30000),
     "RandomBoudouSplit" -> new RandomBoudouSplit(30000),
     "DeterministicBoudouSplit" -> new DeterministicBoudouSplit(30000),
