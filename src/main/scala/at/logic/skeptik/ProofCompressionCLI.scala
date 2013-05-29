@@ -25,7 +25,7 @@ object ProofCompressionCLI {
   def main(args: Array[String]): Unit = {  
     val parser = new scopt.immutable.OptionParser[Config]("Skeptik's Command Line Interface for Proof Compression", "\n\n") { def options = Seq(
       opt("a", "algorithms", "<algorithms>", "the algorithms to be used for compressing the proof") { (v: String, c: Config) => c.copy(algorithms = v) },
-      opt("o", "output format", "<output format>", "proof format to be used for the compressed proofs") { (v: String, c: Config) => c.copy(output = v) },
+      opt("o", "outputformat", "<output format>", "proof format to be used for the compressed proofs") { (v: String, c: Config) => c.copy(output = v) },
       arg("<input file>", "file containing the proof to be compressed") { (v: String, c: Config) => c.copy(input = v) }
     ) }
     // parser.parse returns Option[C]
@@ -106,16 +106,35 @@ object ProofCompressionCLI {
                     
     } getOrElse { // arguments are bad 
       print(
-"""Example: The following command will run the proof 
-  compression algorithm 'RecyclePivotsWithIntersection' 
-  on the proof 'eq_diamond8.smt2' (written in VeriT's proof format) 
-  and write the compressed proof in 'output.skeptik' 
-  (using Skeptik's proof format):
+"""Simple example: the following command will run the proof 
+compression algorithm 'RecyclePivotsWithIntersection' 
+on the proof 'eq_diamond8.smt2' (written in VeriT's proof format) 
+and write the compressed proof in 'eq_diamond8-RPI.skeptik' 
+(using Skeptik's proof format):
 
-    compress examples/proofs/VeriT/eq_diamond8.smt2 --algorithm RPI --output output.skeptik
+    compress -a RPI -o skeptik examples/proofs/VeriT/eq_diamond8.smt2
     
-Available algorithms:
-  """ + (for (a <- algorithms) yield a._1).mkString("\n  ") + "\n\n"    
+Available atomic algorithms:
+  """ + (for (a <- algorithms) yield a._1).mkString("\n  ") + "\n\n" +
+"""
+Algorithms can be sequentially composed. 
+In the following command, the algorithms 
+'LU', 'RPI' and 'DAGify' will be executed 
+one after the other in this order:
+    
+    compress -a (DAGify.RPI.LU) examples/proofs/VeriT/eq_diamond8.smt2  
+  
+  
+To experiment and compare several algorithms, 
+they should be separated by commas. 
+The following command executes '(RPI.LU)', '(LU.RPI)' and 'RP',
+and outputs the results to 'eq_diamond8-(RPI.LU).smt2',
+'eq_diamond8-(LU.RPI).smt2' and 'eq_diamond8-RP.smt2'
+using VeriT's proof format:
+  
+    compress -a (RPI.LU),(LU.RPI),RP -o smt2 examples/proofs/VeriT/eq_diamond8.smt2
+  
+"""
       )      
     } 
   }
