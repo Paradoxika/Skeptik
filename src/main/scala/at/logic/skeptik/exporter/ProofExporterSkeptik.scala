@@ -7,7 +7,7 @@ import java.io.FileWriter
 
 object ProofExporterSkeptik extends ProofExporter[Node] {
   def write(proof:Proof[Node], filename: String) = {
-    val writer = new FileWriter(filename)
+    val writer = new FileWriter(filename + ".skeptik")
     
     var counter = 0
     

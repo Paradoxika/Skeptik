@@ -12,7 +12,7 @@ object AlgorithmParser extends RegexParsers {
   type P = Proof[N]
   type A = P => P
   
-  //def algorithms: Parser[List[A]] = repsep(algorithm,",") 
+  def algos: Parser[List[A]] = repsep(algo,",") 
   
   def algo : Parser[A] = (atomicAlgo | composedAlgo)
   
@@ -31,6 +31,14 @@ object AlgorithmParser extends RegexParsers {
   
   def parse(s: String) : A = {
     parse(algo, s) match {
+      case Success(a,_) => a // returns proof whose root is in the last line of the proof file
+      case Failure(message,_) => throw new Exception("Failure: " + message)
+      case Error(message,_) => throw new Exception("Error: " + message)
+    }
+  }
+  
+  def parseMany(s: String) : List[A] = {
+    parse(algos, s) match {
       case Success(a,_) => a // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception("Failure: " + message)
       case Error(message,_) => throw new Exception("Error: " + message)

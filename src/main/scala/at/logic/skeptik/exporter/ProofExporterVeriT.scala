@@ -14,7 +14,7 @@ import java.io.FileWriter
 
 object ProofExporterVeriT extends ProofExporter[Node] {
   def write(proof:Proof[Node], filename: String) = {
-    val writer = new FileWriter(filename)
+    val writer = new FileWriter(filename + ".smt2")
     
     var counter = 0
     

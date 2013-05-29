@@ -4,7 +4,8 @@ import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,
 import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik}
 import at.logic.skeptik.algorithm.compressor.algorithms
 import at.logic.skeptik.judgment.Judgment
-import at.logic.skeptik.proof.{Proof, ProofNode}
+import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof.measure
 import at.logic.skeptik.util.time._
 import at.logic.skeptik.util.pretty._
@@ -12,7 +13,7 @@ import at.logic.skeptik.util.pretty._
 object ProofCompressionCLI {
 
   case class Config(input: String = "",
-                    algorithm: String = "", 
+                    algorithms: String = "", 
                     output: String = "")                
       
   def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2' and '.skeptik'"                 
@@ -23,8 +24,8 @@ object ProofCompressionCLI {
   
   def main(args: Array[String]): Unit = {  
     val parser = new scopt.immutable.OptionParser[Config]("Skeptik's Command Line Interface for Proof Compression", "\n\n") { def options = Seq(
-      opt("a", "algorithm", "<algorithm>", "the algorithm to be used for compressing the proof") { (v: String, c: Config) => c.copy(algorithm = v) },
-      opt("o", "output", "<output file>", "file to store the compressed proof") { (v: String, c: Config) => c.copy(output = v) },
+      opt("a", "algorithms", "<algorithms>", "the algorithms to be used for compressing the proof") { (v: String, c: Config) => c.copy(algorithms = v) },
+      opt("o", "output format", "<output format>", "proof format to be used for the compressed proofs") { (v: String, c: Config) => c.copy(output = v) },
       arg("<input file>", "file containing the proof to be compressed") { (v: String, c: Config) => c.copy(input = v) }
     ) }
     // parser.parse returns Option[C]
@@ -32,56 +33,55 @@ object ProofCompressionCLI {
       
       println()
       
-      // ToDo: should not throw exception when the error is due to the user.
-      
       // Reading the proof
-      print("Reading and checking proof...")
-      val proofParser = ("""\.[^\.]+$""".r findFirstIn config.input) match {
-        case Some(".smt2")  => ProofParserVeriT
-        case Some(".skeptik")  => ProofParserSkeptik
-        case _ => throw new Exception(unknownFormat(config.input))
+      print("Reading and checking proof '"+ config.input +"' ...")
+      val proofFormat = ("""\.[^\.]+$""".r findFirstIn config.input) getOrElse { throw new Exception(unknownFormat(config.input)) }
+      val proofName = config.input.split(proofFormat)(0)
+      val proofParser = proofFormat match {
+        case ".smt2"  => ProofParserVeriT
+        case ".skeptik"  => ProofParserSkeptik
       }
       val Timed(proof, tRead) = timed { proofParser.read(config.input) }   
       println(completedIn(tRead))
       
       
-      // Compressing the proof
-      val outputProof = if (config.algorithm != "") {
-                          print("Compressing proof...")
-                          val algorithm = AlgorithmParser.parse(config.algorithm)
-                          val Timed(p, t) = timed { algorithm(proof) }
-                          println(completedIn(t))
-                          p
-                        }
-                        else proof
-         
-
-      // Writing the compressed proof
-      if (config.output != "") {
-        print("Writing compressed proof...")
-        val proofWriter = ("""\.[^\.]+$""".r findFirstIn config.output) match {
-          case Some(".smt2") => ProofExporterVeriT
-          case Some(".skeptik") => ProofExporterSkeptik
-          case _ => throw new Exception(unknownFormat(config.output))
+      val writeProof =  {
+        config.output match {
+          case "smt2" => (p: Proof[N]) => ProofExporterVeriT.write(p, proofName)
+          case "skeptik" => (p: Proof[N]) => ProofExporterSkeptik.write(p, proofName)
+          case "" =>  (p: Proof[N]) => { }
         }
-        val Timed(_,t) = timed { proofWriter.write(outputProof, config.output) }
-        println(completedIn(t))
       }
+      
+      // Compressing the proof
+      val algorithmNames = config.algorithms.split(",")
+      val outputProofs = {
+        val algorithms = AlgorithmParser.parseMany(config.algorithms)
+        for ((a,n) <- algorithms zip algorithmNames) yield {
+          print("Compressing with algorithm: " + n + "...")
+          val Timed(p, t) = timed { a(proof) }
+          println(completedIn(t))
+          print("Writing compressed proof...")
+          val Timed(_,w) = timed { writeProof(p) }
+          println(completedIn(w))
+          p  
+        }            
+      }
+                         
       
       // Displaying proof measurements
       println()
       println("Proof measurements:")     
       val header = Seq("Proof", "Length", "Width", "Height")
       val mIProof = measure(proof)
-      val input = Seq("input") ++ mIProof.toSeq
-      val outputRows = if (! (outputProof eq proof)) {
-        val mOProof = measure(outputProof)
-        val compressions = (mIProof.toSeq zip mOProof.toSeq) map {case (i,o) => 
+      val input = Seq(proofName) ++ mIProof.toSeq
+      val outputRows = for ((p,n) <- outputProofs zip algorithmNames) yield {
+        val mOProof = measure(p)
+        val compressions = (mIProof.toSeq zip mOProof.toSeq) map { case (i,o) => 
                              (Math.round(1000.0*o/i)/10.0) + "%"
                            }  
-        Seq(Seq("output") ++ ((mOProof.toSeq zip compressions) map {case (o,c) => o + " (" + c + ")"})) 
+        Seq(proofName + "-" + n) ++ ((mOProof.toSeq zip compressions) map {case (o,c) => o + " (" + c + ")"}) 
       }
-      else Seq()
       
       val data = Seq(header, input) ++ outputRows
                   
