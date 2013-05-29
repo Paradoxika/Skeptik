@@ -44,27 +44,36 @@ object ProofCompressionCLI {
       val Timed(proof, tRead) = timed { proofParser.read(config.input) }   
       println(completedIn(tRead))
       
+      // Measuring the input Proof
+      print("Measuring '"+ proofName +"' ...")
+      val Timed(mIProof,tMIProof) = timed { measure(proof) }
+      println(completedIn(tMIProof))
+      
       
       val writeProof =  {
         config.output match {
-          case "smt2" => (p: Proof[N]) => ProofExporterVeriT.write(p, proofName)
-          case "skeptik" => (p: Proof[N]) => ProofExporterSkeptik.write(p, proofName)
-          case "" =>  (p: Proof[N]) => { }
+          case "smt2" => (p: Proof[N], name: String) => ProofExporterVeriT.write(p, name)
+          case "skeptik" => (p: Proof[N], name: String) => ProofExporterSkeptik.write(p, name)
+          case "" =>  (p: Proof[N], name: String) => { }
         }
       }
       
       // Compressing the proof
       val algorithmNames = config.algorithms.split(",")
-      val outputProofs = {
+      val oProofNamesMeasures = {
         val algorithms = AlgorithmParser.parseMany(config.algorithms)
         for ((a,n) <- algorithms zip algorithmNames) yield {
           print("Compressing with algorithm: " + n + "...")
           val Timed(p, t) = timed { a(proof) }
           println(completedIn(t))
-          print("Writing compressed proof...")
-          val Timed(_,w) = timed { writeProof(p) }
+          val oProofName = proofName + "-" + n
+          print("Writing compressed proof '" + oProofName + "'...")
+          val Timed(_,w) = timed { writeProof(p, oProofName) }
           println(completedIn(w))
-          p  
+          print("Measuring '"+ oProofName +"' ...")
+          val Timed(mOProof,tMOProof) = timed { measure(p) }
+          println(completedIn(tMOProof))
+          (oProofName, mOProof) 
         }            
       }
                          
@@ -73,14 +82,12 @@ object ProofCompressionCLI {
       println()
       println("Proof measurements:")     
       val header = Seq("Proof", "Length", "Width", "Height")
-      val mIProof = measure(proof)
       val input = Seq(proofName) ++ mIProof.toSeq
-      val outputRows = for ((p,n) <- outputProofs zip algorithmNames) yield {
-        val mOProof = measure(p)
+      val outputRows = for ((name,mOProof) <- oProofNamesMeasures) yield {
         val compressions = (mIProof.toSeq zip mOProof.toSeq) map { case (i,o) => 
                              (Math.round(1000.0*o/i)/10.0) + "%"
                            }  
-        Seq(proofName + "-" + n) ++ ((mOProof.toSeq zip compressions) map {case (o,c) => o + " (" + c + ")"}) 
+        Seq(name) ++ ((mOProof.toSeq zip compressions) map {case (o,c) => o + " (" + c + ")"}) 
       }
       
       val data = Seq(header, input) ++ outputRows
