@@ -75,7 +75,7 @@ or add the following lines to your pom.xml file, if you are using [Maven](http:/
 Developers are encouraged to:
  
  1. fork from [Paradoxika/Skeptik](https://github.com/Paradoxika/Skeptik), 
- 2. program according to the [usual Scala style conventions](http://www.codecommit.com/scala-style-guide.pdf),
+ 2. program according to the [usual Scala style conventions](http://docs.scala-lang.org/style/),
  3. follow the [git flow](http://nvie.com/posts/a-successful-git-branching-model/) branching model in their own forks, 
  4. make pull requests when they have finished a feature or hotfix branch.
 
