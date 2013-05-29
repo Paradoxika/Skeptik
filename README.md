@@ -23,7 +23,7 @@ Then go to Skeptik's root directory using the terminal and simply execute:
 
 (you may increase the value after -Xmx, if you need or want to provide more memory to the JVM)
 
-Further instructions, such as necessary command-line arguments, will be shown to you.
+Further instructions, such as possible command-line arguments, will be shown to you.
 
 If you face any difficulty, do not hesitate to contact us.
 
@@ -36,7 +36,7 @@ The following command will run the proof compression algorithm 'RecyclePivotsWit
 ```
   sbt 
   
-  compress examples/proofs/VeriT/eq_diamond8.smt2 -a RPI -o output.skeptik
+  compress -a RPI -o skeptik examples/proofs/VeriT/eq_diamond8.smt2
 ```
 
 
