@@ -15,6 +15,7 @@ import java.io.FileWriter
 object ProofExporterVeriT extends ProofExporter[Node] {
   def write(proof:Proof[Node], filename: String) = {
     val writer = new FileWriter(filename + ".smt2")
+    def write(s: String) = writer.write(s, 0, s.length)
     
     var counter = 0
     
@@ -24,8 +25,7 @@ object ProofExporterVeriT extends ProofExporter[Node] {
           case Axiom(clause) => {
               val name = ".c" + counter
               counter += 1
-              val line = "(set " + name + " (input :conclusion " + clause + "))\n"
-              writer.write(line, 0, line.length)
+              write("(set " + name + " (input :conclusion " + clause + "))\n")
               name
           }
           case R(left,right,_,_) => {
@@ -36,22 +36,20 @@ object ProofExporterVeriT extends ProofExporter[Node] {
               val name = ".c" + counter
               counter += 1
               val subproof = "(" + premiseResults(0) + " " + premiseResults(1) + ")"
-              val line = "(set " + name + " (resolution :clauses " + subproof + "))\n"
-              writer.write(line, 0, line.length)
+              write("(set " + name + " (resolution :clauses " + subproof + "))\n")
               name
             }
           }
           case UncheckedInference(infName, premises, conclusion) => {
             val name = ".c" + counter
             counter += 1
-            val line = "(set " + name + " (" + infName + " :clauses " + premiseResults.mkString(" ") + " :conclusion " + conclusion + "))\n"
-            writer.write(line, 0, line.length)
+            write("(set " + name + " (" + infName + " :clauses " + premiseResults.mkString(" ") + " :conclusion " + conclusion + "))\n")
             name
           }
         }  
       } 
     }
  
-    writer.close
+    writer.close()
   }
 }

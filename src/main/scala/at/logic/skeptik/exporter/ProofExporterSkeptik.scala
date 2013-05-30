@@ -45,6 +45,6 @@ object ProofExporterSkeptik extends ProofExporter[Node] {
       } 
     }
  
-    writer.close
+    writer.close()
   }
 }
