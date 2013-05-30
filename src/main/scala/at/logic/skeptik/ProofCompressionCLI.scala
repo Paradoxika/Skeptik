@@ -75,7 +75,7 @@ object ProofCompressionCLI {
         measurementTable = measurementTable ++ Seq(inputRow)
         
         // Adding measurements to csv file
-        writeToCSV(proofName + "\t,")
+        writeToCSV(proofName + ",\t")
         writeToCSV(mIProof.toSeq.mkString("\t",",\t", ","))
         
         
