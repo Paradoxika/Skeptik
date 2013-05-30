@@ -31,12 +31,13 @@ If you face any difficulty, do not hesitate to contact us.
 
 ###Usage Example###
 
-The following command will run the proof compression algorithm 'RecyclePivotsWithIntersection' on the proof 'eq_diamond8.smt2' (written in VeriT's proof format) and write the compressed proof in 'output.skeptik' (using Skeptik's proof format):
+The following command processes the proof 'eq_diamond9.smt2' using the algorithms 'RP' and the sequential composition of 'DAGify', 'RPI' and 'LU'. The compressed proofs are written using 'skeptik' proof format, and a csv file containing compression statistics is produced.
+  
 
 ```
   sbt 
   
-  compress -a RPI -o skeptik examples/proofs/VeriT/eq_diamond8.smt2
+  compress -csv -a RP,(DAGify*RPI*LU) -o skeptik examples/proofs/VeriT/eq_diamond9.smt2
 ```
 
 

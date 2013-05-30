@@ -25,8 +25,8 @@ object ProofCompressionCLI {
   def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
   
   def main(args: Array[String]): Unit = {  
-    val parser = new scopt.immutable.OptionParser[Config]("Skeptik's Command Line Interface for Proof Compression", "\n\n") { def options = Seq(
-      opt("a", "algorithms", "<algorithms>", "the algorithms to be used for compressing the proof") { 
+    val parser = new scopt.immutable.OptionParser[Config]("Skeptik's Command Line Interface for Proof Compression", "\n") { def options = Seq(
+      opt("a", "algorithms", "<algorithms>", "comma-separated list of algorithms to be used for compressing the proof") { 
         (v: String, c: Config) => c.copy(algorithms = v.split(",")) 
       },
       opt("o", "outputformat", "<output format>", "proof format to be used for the compressed proofs") { 
@@ -49,7 +49,7 @@ object ProofCompressionCLI {
       var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Width", "Height")) 
       
       // convenient method for writing compression statistics in a csv file
-      val csvWriter = if (config.csv) Some(new FileWriter(config.algorithms.mkString("-") + ".csv"))
+      val csvWriter = if (config.csv) Some(new FileWriter(config.algorithms.mkString(",") + ".csv"))
                       else None
       def writeToCSV(s: String) = for (w <- csvWriter) w.write(s,0,s.length)
       
@@ -139,33 +139,21 @@ object ProofCompressionCLI {
                     
     } getOrElse { // arguments are bad 
       print(
-"""Simple example: the following command will run the proof 
-compression algorithm 'RecyclePivotsWithIntersection' 
-on the proof 'eq_diamond8.smt2' (written in VeriT's proof format) 
-and write the compressed proof in 'eq_diamond8-RPI.skeptik' 
-(using Skeptik's proof format):
-
-    compress -a RPI -o skeptik examples/proofs/VeriT/eq_diamond8.smt2
-    
-Available atomic algorithms:
-  """ + (for (a <- at.logic.skeptik.algorithm.compressor.algorithms) yield a._1).mkString("\n  ") + "\n\n" +
 """
-Algorithms can be sequentially composed. 
-In the following command, the algorithms 
-'LU', 'RPI' and 'DAGify' will be executed 
-one after the other in this order:
-    
-    compress -a (DAGify.RPI.LU) examples/proofs/VeriT/eq_diamond8.smt2  
+Available algorithms are the following, as well as their sequential compositions:
+""" + (for (a <- at.logic.skeptik.algorithm.compressor.algorithms) yield a._1).mkString(",  ") + "\n" +
+"""
+Available proof formats are:
+  smt2    - VeriT's proof format
+  skeptik - Skeptik's proof format
+
+Example:
+  The following command processes the proof 'eq_diamond9.smt2' using the
+  algorithms 'RP' and the sequential composition of 'DAGify', 'RPI' and 'LU'.
+  The compressed proofs are written using 'skeptik' proof format.
+  And a csv file containing compression statistics is produced.
   
-  
-To experiment and compare several algorithms, 
-they should be separated by commas. 
-The following command executes '(RPI.LU)', '(LU.RPI)' and 'RP',
-and outputs the results to 'eq_diamond8-(RPI.LU).smt2',
-'eq_diamond8-(LU.RPI).smt2' and 'eq_diamond8-RP.smt2'
-using VeriT's proof format:
-  
-    compress -a (RPI.LU),(LU.RPI),RP -o smt2 examples/proofs/VeriT/eq_diamond8.smt2
+  compress -csv -a RP,(DAGify*RPI*LU) -o skeptik examples/proofs/VeriT/eq_diamond9.smt2
   
 """
       )      
