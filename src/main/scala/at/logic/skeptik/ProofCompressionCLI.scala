@@ -15,7 +15,8 @@ object ProofCompressionCLI {
 
   case class Config(inputs: Seq[String] = Seq(),
                     algorithms: Seq[String] = Seq(), 
-                    outputformat: String = "")                
+                    outputformat: String = "",
+                    csv: Boolean = false)                
       
   def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2' and '.skeptik'"                 
   
@@ -31,6 +32,9 @@ object ProofCompressionCLI {
       opt("o", "outputformat", "<output format>", "proof format to be used for the compressed proofs") { 
         (v: String, c: Config) => c.copy(outputformat = v) 
       },
+      flag("csv", "csv", "activates output of proof compression statistics to a csv file") { 
+        (c: Config) => c.copy(csv = true) 
+      },
       arg("<input files>", "comma-separated filenames of the files containing the proofs to be compressed") { 
         (v: String, c: Config) => c.copy(inputs = v.split(",")) }
     ) }
@@ -44,9 +48,10 @@ object ProofCompressionCLI {
       // and the table is displayed to the user at the end
       var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Width", "Height")) 
       
-      // fileWriter for writing compression statistics in a csv file
-      val csvWriter = new FileWriter(config.algorithms.mkString("-") + ".csv")
-      def writeToCSV(s: String) = csvWriter.write(s,0,s.length)
+      // convenient method for writing compression statistics in a csv file
+      val csvWriter = if (config.csv) Some(new FileWriter(config.algorithms.mkString("-") + ".csv"))
+                      else None
+      def writeToCSV(s: String) = for (w <- csvWriter) w.write(s,0,s.length)
       
       for (filename <- config.inputs) {
         // Reading the proof
@@ -115,7 +120,7 @@ object ProofCompressionCLI {
         writeToCSV("\n")
       } // end of 'for (filename <- config.inputs)'
                            
-      csvWriter.close()
+      for (w <- csvWriter) w.close()
       
       // Displaying proof measurements
       println()
