@@ -38,16 +38,15 @@ object ProofCompressionCLI {
     parser.parse(args, Config()) map { config =>
       
       println()
-      
-      
+        
       // measurement table initialized with its header only
-      // rows with data about every input or output proof are added later 
+      // rows with data for every input or output proof are added during execution 
       // and the table is displayed to the user at the end
       var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Width", "Height")) 
       
       // fileWriter for writing compression statistics in a csv file
       val csvWriter = new FileWriter(config.algorithms.mkString("-") + ".csv")
-      
+      def writeToCSV(s: String) = csvWriter.write(s,0,s.length)
       
       for (filename <- config.inputs) {
         // Reading the proof
@@ -70,6 +69,10 @@ object ProofCompressionCLI {
         val inputRow = (Seq(proofName) ++ mIProof.toSeq)
         measurementTable = measurementTable ++ Seq(inputRow)
         
+        // Adding measurements to csv file
+        writeToCSV(proofName + "\t,")
+        writeToCSV(mIProof.toSeq.mkString("\t",",\t", ","))
+        
         
         
         val writeProof =  {
@@ -86,13 +89,20 @@ object ProofCompressionCLI {
           print("Compressing with algorithm: " + a + "...")
           val Timed(p, t) = timed { algorithm(proof) }
           println(completedIn(t))
+          
           val oProofName = proofName + "-" + a
           print("Writing compressed proof '" + oProofName + "'...")
           val Timed(_,w) = timed { writeProof(p, oProofName) }
           println(completedIn(w))
+          
           print("Measuring '"+ oProofName +"' ...")
           val Timed(mOProof,tMOProof) = timed { measure(p) }
           println(completedIn(tMOProof))
+          
+          // Adding measurements to csv file
+          writeToCSV(mOProof.toSeq.mkString("\t",",\t", ","))
+          
+          // Adding measurements to measurement table
           val outputRow = {
             val compressions = (mIProof.toSeq zip mOProof.toSeq) map { case (i,o) => 
               (Math.round(1000.0*o/i)/10.0) + "%"
@@ -101,7 +111,8 @@ object ProofCompressionCLI {
           }
           measurementTable ++= Seq(outputRow)
         }            
-                
+         
+        writeToCSV("\n")
       } // end of 'for (filename <- config.inputs)'
                            
       csvWriter.close()
