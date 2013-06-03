@@ -35,8 +35,8 @@ object ProofCompressionCLI {
       flag("csv", "csv", "activates output of proof compression statistics to a csv file") { 
         (c: Config) => c.copy(csv = true) 
       },
-      arg("<input files>", "comma-separated filenames of the files containing the proofs to be compressed") { 
-        (v: String, c: Config) => c.copy(inputs = v.split(",")) }
+      arglist("<input files>", "space-separated filenames of the files containing the proofs to be compressed") { 
+        (v: String, c: Config) => c.copy(inputs = c.inputs ++ Seq(v)) }
     ) }
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { config =>
