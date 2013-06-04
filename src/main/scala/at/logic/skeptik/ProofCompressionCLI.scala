@@ -25,8 +25,8 @@ object ProofCompressionCLI {
   def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
   
   def main(args: Array[String]): Unit = {  
-    val parser = new scopt.immutable.OptionParser[Config]("Skeptik's Command Line Interface for Proof Compression", "\n") { def options = Seq(
-      opt("a", "algorithms", "<algorithms>", "comma-separated list of algorithms to be used for compressing the proof") { 
+    val parser = new scopt.immutable.OptionParser[Config]("compress","- Skeptik's Command Line Interface for Proof Compression") { def options = Seq(
+      opt("a", "algorithms", "<algorithms>", "comma-separated list of algorithms to be used for compressing the proof - sequential composition of algorithms is denoted by \"(Alg1*Alg2*...*Alg_n)\"") { 
         (v: String, c: Config) => c.copy(algorithms = v.split(",")) 
       },
       opt("o", "outputformat", "<output format>", "proof format to be used for the compressed proofs") { 
