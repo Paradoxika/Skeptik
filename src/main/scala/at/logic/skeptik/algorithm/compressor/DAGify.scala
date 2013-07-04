@@ -12,7 +12,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   def apply(proof: Proof[SequentProofNode]) = {
     val nodeMap = MMap[Sequent,SequentProofNode]()
 
-    Proof(proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
+    proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
       case _ if nodeMap.contains(node.conclusion) => nodeMap(node.conclusion)
       case Axiom(conclusion) => nodeMap += (conclusion -> node) ; node
       case R(left, right, pivot, _) => {
@@ -24,7 +24,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
         newNode
       }
       case _ => node
-    }})
+    }}
   }
 }
 
