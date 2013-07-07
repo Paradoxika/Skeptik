@@ -1,3 +1,5 @@
+package at.logic.skeptik.algorithm.compressor
+
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
@@ -7,19 +9,19 @@ import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.algorithm.compressor.{ForwardSubsumption => FWS}
 
-object MyTest {
+import org.junit.runner.RunWith
+import org.specs2.mutable.SpecificationWithJUnit
+import org.specs2.runner.JUnitRunner
+import at.logic.skeptik.expression.Var
 
-  def main(args: Array[String]):Unit = {
-    val a = new Var("a",i)
+@RunWith(classOf[JUnitRunner])
+class ForwardSubsumptionSpecification extends SpecificationWithJUnit {
+	val a = new Var("a",i)
     val b = new Var("b",i)
     val c = new Var("c",i)
     val d = new Var("d",i)
     val e = new Var("e",i)
-//    val small:Sequent = new Sequent(Seq(a,b),Seq(c))
-//    val big:Sequent = new Sequent(Seq(a,b,d),Seq(c))
-//    println(small)
-//    println(big)
-//    println((big diff small))
+
     val sq1 = new Sequent(Seq(a,d),Seq())
     val sq2 = new Sequent(Seq(a,b),Seq(d))
     val sq3 = new Sequent(Seq(e),Seq(b))
@@ -46,10 +48,10 @@ object MyTest {
     
     val proof = Proof(r6:ProofNode[Sequent,SequentProofNode])
     
-    println(proof)
-    
-    val compproof = FWS.apply(r6)
-    
-    println(compproof)
-  }
+    "Forward Subsumption" should {
+      "compress the proof" in {
+        val compproof = FWS.apply(r6)
+        proof.size must beGreaterThan(compproof.size)
+      }
+	}
 }

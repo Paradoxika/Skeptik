@@ -21,6 +21,7 @@ package object compressor {
     "MultiSplit2" -> new TimeoutMultiSplit(2,5000),
     "MultiSplit3" -> new TimeoutMultiSplit(3,5000),
     "MultiSplit4" -> new TimeoutMultiSplit(4,5000),
-    "DAGify" -> DAGify
+    "DAGify" -> DAGify,
+    "ForwardSubsumption" -> ForwardSubsumption
   )
 }
