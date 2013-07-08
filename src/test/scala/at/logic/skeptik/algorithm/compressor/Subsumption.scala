@@ -7,7 +7,6 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent._
-import at.logic.skeptik.algorithm.compressor.{ForwardSubsumption => FWS}
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
@@ -52,6 +51,10 @@ class ForwardSubsumptionSpecification extends SpecificationWithJUnit {
       "compress the proof" in {
         val compproof = FWS.apply(r6)
         proof.size must beGreaterThan(compproof.size)
+      }
+      "conclude the empty clause" in {
+        val compproof = FWS.apply(r6)
+        compproof.root.conclusion.isEmpty must beTrue
       }
 	}
 }

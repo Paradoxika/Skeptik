@@ -10,30 +10,31 @@ import scala.collection.mutable.{HashMap => MMap}
 abstract class AbstractSubsumption 
 extends (Proof[SequentProofNode] => Proof[SequentProofNode])
 
-object ForwardSubsumption extends AbstractSubsumption {
+object FWS extends AbstractSubsumption {
   
   def apply(proof: Proof[SequentProofNode]) = {
     val nodeMap = new MMap[Sequent,SequentProofNode]
 
-    Proof(proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
-      case Axiom(conclusion) => nodeMap += (conclusion -> node) ; node
-      case R(left, right, pivot, _) => {
-        //check the visited nodes if there is a subsuming one
+    Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
         val subsumer = nodeMap.find( A => A._1.subsequentOf(node.conclusion))
         val subsMap = subsumer.map(a => a._2)
         
         subsMap.getOrElse({
-            val fixedLeft  = fixedPremises.head
-	        val fixedRight = fixedPremises.last
-	        val newNode = 
-	          if ((left eq fixedLeft) && (right eq fixedRight)) node 
-	          else R(fixedLeft,fixedRight,pivot,true)
-	        nodeMap += (newNode.conclusion -> newNode)
-	        newNode
-        }
-        )
-      }
-      case _ => node
-    }})
+          node match {
+            case Axiom(conclusion) => nodeMap += (conclusion -> node) ; node
+            case R(left, right, pivot, _) => {
+	          val fixedLeft  = fixedPremises.head
+		      val fixedRight = fixedPremises.last
+		      val newNode = 
+		        if ((left eq fixedLeft) && (right eq fixedRight)) node 
+		        else R(fixedLeft,fixedRight,pivot,true)
+		        nodeMap += (newNode.conclusion -> newNode)
+		        newNode
+	        }
+            case _ => node
+          }
+        })
+      })
+    })
   }
 }
