@@ -16,8 +16,9 @@ import language.implicitConversions
 trait SequentLike[+Repr <: SequentLike[Repr]] {
   def ant: Iterable[E]
   def suc: Iterable[E]  
- 
-  def size = ant.size + suc.size + 1
+
+  def width = ant.size + suc.size
+  def size = width + 1
   def logicalSize = ((ant ++ suc).map(_.logicalSize) :\ 0)(_ + _ + 1) 
  
   def isEmpty = ant.isEmpty || suc.isEmpty
