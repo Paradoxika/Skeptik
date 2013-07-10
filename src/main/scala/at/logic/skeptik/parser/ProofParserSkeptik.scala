@@ -19,7 +19,7 @@ extends JavaTokenParsers with RegexParsers {
   private var proofMap = new MMap[Int,Node]
   private var exprMap = new MMap[Int,E]
 
-  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
+  def proof: Parser[Proof[Node]] = rep1(line) ^^ { list => 
     val p = Proof(list.last)
     proofMap = new MMap[Int,Node]
     exprMap = new MMap[Int,E]
@@ -30,15 +30,20 @@ extends JavaTokenParsers with RegexParsers {
     case wl => throw new Exception("Wrong line " + wl)
   }
 
-  def subproof: Parser[Node] = (resolutionTree | axiom | unchecked)
+  def subproof: Parser[Node] = (resolutionTree | axiom | simpleResolution | unchecked)
   
-  def resolutionTree: Parser[Node] = subTree <~ conclusion 
-  def subTree: Parser[Node] = (namedProof | resolution)
+  def resolutionTree: Parser[Node] = resolution <~ opt(conclusion)
+  def subTree: Parser[Node] = (namedProof | axiom | resolution | simpleResolution)
   def resolution: Parser[Node] = "(" ~> subTree ~ "[" ~ expression ~ "]" ~ subTree <~ ")" ^^ {
     case ~(~(~(~(left,_),pivot),_),right) => R(left, right, pivot)
-  } 
+  }
+  def simpleResolution: Parser[Node] = "(" ~> subTree ~ "." ~ subTree <~ ")" ^^ {
+    case ~(~(left, _), right) =>
+      print("Resolving " + left.conclusion + " and " + right.conclusion)
+      R(left, right)
+  }
   
-  def axiom: Parser[Node] = "axiom()" ~> conclusion ^^ {
+  def axiom: Parser[Node] = opt("axiom()") ~> conclusion ^^ {
     c => new Axiom(c)
   }
   def unchecked: Parser[Node] = name ~ premises ~ conclusion ^^ {
@@ -115,5 +120,5 @@ extends JavaTokenParsers with RegexParsers {
     }
   } 
   
-  def name: Parser[String] = """[^ (){}:⊢]+""".r
+  def name: Parser[String] = """[^ (){}:⊢,]+""".r
 }
