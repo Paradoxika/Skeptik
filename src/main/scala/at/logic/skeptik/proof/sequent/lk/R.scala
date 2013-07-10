@@ -32,7 +32,7 @@ object R {
             rightPremise: SequentProofNode, 
             pivot: E,
             returnPremiseOnfailure: Boolean = false,
-            choosePremise: ((SequentProofNode, SequentProofNode) => SequentProofNode) = (l,r) => l) = 
+            choosePremise: ((SequentProofNode, SequentProofNode) => SequentProofNode) = (l,r) => if (l.conclusion.width < r.conclusion.width) l else r ) = 
     (leftPremise.conclusion.suc.find(_ == pivot), rightPremise.conclusion.ant.find(_ == pivot)) match {
       case (Some(auxL), Some(auxR)) => new R(leftPremise, rightPremise, auxL, auxR)
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
