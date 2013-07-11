@@ -1,33 +1,37 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.expression.E
+import at.logic.skeptik.proof._
+import at.logic.skeptik.judgment.SequentLike
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashSet => MSet}
 
 object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   
+  def isUnit[P <: ProofNode[Sequent,P]](n: P) = n.conclusion.width == 1
+  
+  
   def apply(proof: Proof[SequentProofNode]) = {
     val descUnits = new MMap[SequentProofNode,MSet[SequentProofNode]]
-    val units = new MSet[SequentProofNode]
+    val units = new MMap[E,MSet[SequentProofNode]]
     
     
     def collectUnits(node: SequentProofNode, children: Seq[SequentProofNode]):SequentProofNode = {
       //collect seen units from children nodes
-      val descChild = children.foldLeft(new MSet[SequentProofNode])((l1,l2) =>
-          descUnits.get(l2) match {
-            case Some(u) => l1 union u
-            case None => l1
-          }
+      val descChild = (new MSet[SequentProofNode] /: children)( (l1,l2) =>
+        l1 union descUnits(l2)
       )
       //add unit clause to global set
-      if (node.conclusion.size == 2) units += node
+      if (isUnit(node)) {
+        node.conclusion.ant.foreach(l => units(l) = units.getOrElse(l, new MSet[SequentProofNode]) += node )
+        node.conclusion.suc.foreach(l => units(l) = units.getOrElse(l, new MSet[SequentProofNode]) += node )
+      }
       
       //add unit clause to seen units for this node
-      descUnits += (node -> (if (node.conclusion.size == 2) descChild + node else descChild))
+      descUnits += (node -> (if (isUnit(node)) descChild + node else descChild))
       node
     }
 
@@ -37,19 +41,16 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
       case R(left, right, pivot, _) => {
         val fixedLeft  = fixedPremises.head
 		val fixedRight = fixedPremises.last
-        units.find(u => {
-          val notancestor = descUnits.get(node).forall(units => !units.contains(u))
-          notancestor && u.conclusion.contains(pivot) }) match {
+		units.getOrElse(pivot,new MSet[SequentProofNode]).find(u => ! descUnits(node).contains(u)) match {
           case None => {
 		    if ((left eq fixedLeft) && (right eq fixedRight)) node 
 		    else R(fixedLeft,fixedRight,pivot,true)
           }
           case Some(u) => {
-            if (u.conclusion.ant.contains(pivot)) R(u,fixedRight,pivot)
-            else R(fixedLeft,u,pivot)
+            if (u.conclusion.suc.contains(pivot)) R(u,fixedRight,pivot,true)
+            else R(fixedLeft,u,pivot,true)
           }
         }
-        
       }
       case _ => node
     })})

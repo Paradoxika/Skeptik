@@ -4,7 +4,6 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import scala.collection.mutable.{HashMap => MMap}
 
 abstract class AbstractSubsumption 
