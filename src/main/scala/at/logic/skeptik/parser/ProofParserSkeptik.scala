@@ -30,17 +30,16 @@ extends JavaTokenParsers with RegexParsers {
     case wl => throw new Exception("Wrong line " + wl)
   }
 
-  def subproof: Parser[Node] = (resolutionTree | axiom | simpleResolution | unchecked)
+  def subproof: Parser[Node] = (resolutionTree | axiom | unchecked)
   
   def resolutionTree: Parser[Node] = resolution <~ opt(conclusion)
-  def subTree: Parser[Node] = (namedProof | axiom | resolution | simpleResolution)
-  def resolution: Parser[Node] = "(" ~> subTree ~ "[" ~ expression ~ "]" ~ subTree <~ ")" ^^ {
-    case ~(~(~(~(left,_),pivot),_),right) => R(left, right, pivot)
+  def subTree: Parser[Node] = (namedProof | axiom | resolution)
+  def resolution: Parser[Node] = "(" ~> subTree ~ pivot ~ subTree <~ ")" ^^ {
+    case ~(~(left,Some(p)),right) => R(left, right, p)
+    case ~(~(left,None),   right) => R(left, right)
   }
-  def simpleResolution: Parser[Node] = "(" ~> subTree ~ "." ~ subTree <~ ")" ^^ {
-    case ~(~(left, _), right) =>
-      R(left, right)
-  }
+  def pivot: Parser[Option[E]] = ( "[" ~> expression <~  "]" ^^ { case p => Some(p) }
+                                 | "." ^^ { case _ => None } )
   
   def axiom: Parser[Node] = opt("axiom()") ~> conclusion ^^ {
     c => new Axiom(c)
