@@ -15,6 +15,16 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
       (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode):SequentProofNode =
   node match {
 
+    // Added rule
+    case R(R(alpha,_,_,s),R(beta,_,_,t),u,_) if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) =>
+         R(alpha,beta)
+    case R(R(_,alpha,s,_),R(beta,_,_,t),u,_) if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) =>
+         R(alpha,beta)
+    case R(R(alpha,_,_,s),R(_,beta,t,_),u,_) if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) =>
+         R(alpha,beta)
+    case R(R(_,alpha,s,_),R(_,beta,t,_),u,_) if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) =>
+         R(alpha,beta)
+
     // B2
     case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
          R(R(beta, alpha, t), gamma, s)
