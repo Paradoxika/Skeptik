@@ -16,12 +16,12 @@ object ProofParserSkeptik extends ProofParser[Node] with SkeptikParsers
 trait SkeptikParsers
 extends JavaTokenParsers with RegexParsers {
   
-  private var proofMap = new MMap[Int,Node]
+  private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[Int,E]
 
   def proof: Parser[Proof[Node]] = rep1(line) ^^ { list => 
     val p = Proof(list.last)
-    proofMap = new MMap[Int,Node]
+    proofMap = new MMap[String,Node]
     exprMap = new MMap[Int,E]
     p
   }
@@ -39,7 +39,6 @@ extends JavaTokenParsers with RegexParsers {
   }
   def simpleResolution: Parser[Node] = "(" ~> subTree ~ "." ~ subTree <~ ")" ^^ {
     case ~(~(left, _), right) =>
-      print("Resolving " + left.conclusion + " and " + right.conclusion)
       R(left, right)
   }
   
@@ -58,7 +57,8 @@ extends JavaTokenParsers with RegexParsers {
   }
   def cedent: Parser[Seq[E]] = repsep(expression,",")
   
-  def proofName: Parser[Int] = """\d+""".r ^^ { _.toInt }
+//  def proofName: Parser[Int] = """\d+""".r ^^ { _.toInt }
+  def proofName: Parser[String] = name
 
   def namedProof: Parser[Node] = proofName ^^ { proofMap(_) }
   
@@ -120,5 +120,5 @@ extends JavaTokenParsers with RegexParsers {
     }
   } 
   
-  def name: Parser[String] = """[^ (){}:⊢,]+""".r
+  def name: Parser[String] = """[^ (){}:⊢,.]+""".r
 }
