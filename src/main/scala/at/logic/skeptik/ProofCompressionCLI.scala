@@ -100,7 +100,7 @@ object ProofCompressionCLI {
           val Timed(_,w) = timed { writeProof(p, oProofName) }
           println(completedIn(w))
           
-          print("Measuring '"+ oProofName +"' ...")
+          print("Measuring '"+ oProofName +"'...")
           val Timed(mOProof,tMOProof) = timed { measure(p) }
           println(completedIn(tMOProof))
           
@@ -131,7 +131,7 @@ object ProofCompressionCLI {
       print(
 """ 
   where:           
-    Length = number of inferences in the proof
+    Length = number of nodes in the proof
     Width = number of axioms in the proof
     Height = length of longest path from leaf to root
           
