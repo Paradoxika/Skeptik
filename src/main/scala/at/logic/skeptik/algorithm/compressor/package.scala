@@ -23,6 +23,8 @@ package object compressor {
     "MultiSplit4" -> new TimeoutMultiSplit(4,5000),
     "DAGify" -> DAGify,
     "FWS" -> FWS,
-    "RU" -> RecycleUnits
+    "BWS" -> BWS,
+    "RU" -> RecycleUnits,
+    "RPC" -> RecyclePivotsWithConclusionSequent
   )
 }

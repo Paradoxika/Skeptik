@@ -2,7 +2,6 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.proof._
@@ -45,8 +44,10 @@ class ForwardSubsumptionSpecification extends SpecificationWithJUnit {
     val r5 = R.apply(r4,ax6)
     val r6 = R.apply(r5,ax7)
     
-    val proof = Proof(r6:ProofNode[Sequent,SequentProofNode])
+    val proof = Proof(r6:SequentProofNode)
     
+    proof bottomUp({ ((node: SequentProofNode, children: Seq[SequentProofNode]) => { print(node.conclusion + " XX " ) ; children.foreach(f => print(f.conclusion)) ; print("\n") ; node } ) } )
+	
     "Forward Subsumption" should {
       "compress the proof" in {
         val compproof = FWS.apply(r6)
