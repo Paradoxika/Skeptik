@@ -119,6 +119,14 @@ class BackwardSubsumptionSpecification extends SpecificationWithJUnit {
 	}
     val proof = Proof(concseq:SequentProofNode)
     
+    def visit(node: SequentProofNode, results: Seq[Unit]):Unit = {
+      println(node.conclusion)
+    }
+    
+    proof foldDown(visit)
+    
+    proof bottomUp(visit)
+    
     "Backward Subsumption" should {
       "compress the proof" in {
         val compproof = BWS.apply(concseq)

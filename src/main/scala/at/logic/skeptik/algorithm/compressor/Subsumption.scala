@@ -46,8 +46,9 @@ object BWS extends AbstractSubsumption {
     val antNodes = new MMap[SequentProofNode,MSet[SequentProofNode]]
     val replaceNodes = new MMap[SequentProofNode,SequentProofNode]
     
-    def collect(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
-      val antPremises = (new MSet[SequentProofNode] /: fixedPremises)( (l1,l2) =>
+    def collect(node: SequentProofNode, results: Seq[Unit]):Unit = {
+      val premises = node.premises
+      val antPremises = (new MSet[SequentProofNode] /: premises)( (l1,l2) =>
         l1 union antNodes(l2)
       )
       antNodes += (node -> (antPremises + node))
@@ -61,9 +62,8 @@ object BWS extends AbstractSubsumption {
         }})
 
       node match {
-        case Axiom(conclusion) => nodeMap += (conclusion -> node); node
-        case R(_,_,_,_) => nodeMap += (node.conclusion -> node); node
-        case _ => node
+        case Axiom(conclusion) => nodeMap += (conclusion -> node)
+        case R(_,_,_,_) => nodeMap += (node.conclusion -> node)
       }
     }
     

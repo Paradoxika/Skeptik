@@ -8,7 +8,7 @@ import at.logic.skeptik.proof.Proof
 
 object LowerUnits 
 extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
-
+  // ToDo: optimize this by interlacing collectUnits and fixProofNodes
   private def collectUnits(proof: Proof[SequentProofNode]) = {
     def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
     (proof :\ (Nil:List[SequentProofNode])) { (node, acc) =>
