@@ -16,12 +16,12 @@ object ProofParserSkeptik extends ProofParser[Node] with SkeptikParsers
 trait SkeptikParsers
 extends JavaTokenParsers with RegexParsers {
   
-  private var proofMap = new MMap[Int,Node]
+  private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[Int,E]
 
-  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
+  def proof: Parser[Proof[Node]] = rep1(line) ^^ { list => 
     val p = Proof(list.last)
-    proofMap = new MMap[Int,Node]
+    proofMap = new MMap[String,Node]
     exprMap = new MMap[Int,E]
     p
   }
@@ -32,13 +32,16 @@ extends JavaTokenParsers with RegexParsers {
 
   def subproof: Parser[Node] = (resolutionTree | axiom | unchecked)
   
-  def resolutionTree: Parser[Node] = subTree <~ conclusion 
-  def subTree: Parser[Node] = (namedProof | resolution)
-  def resolution: Parser[Node] = "(" ~> subTree ~ "[" ~ expression ~ "]" ~ subTree <~ ")" ^^ {
-    case ~(~(~(~(left,_),pivot),_),right) => R(left, right, pivot)
-  } 
+  def resolutionTree: Parser[Node] = resolution <~ opt(conclusion)
+  def subTree: Parser[Node] = (namedProof | axiom | resolution)
+  def resolution: Parser[Node] = "(" ~> subTree ~ pivot ~ subTree <~ ")" ^^ {
+    case ~(~(left,Some(p)),right) => R(left, right, p)
+    case ~(~(left,None),   right) => R(left, right)
+  }
+  def pivot: Parser[Option[E]] = ( "[" ~> expression <~  "]" ^^ { case p => Some(p) }
+                                 | "." ^^ { case _ => None } )
   
-  def axiom: Parser[Node] = "axiom()" ~> conclusion ^^ {
+  def axiom: Parser[Node] = opt("axiom()") ~> conclusion ^^ {
     c => new Axiom(c)
   }
   def unchecked: Parser[Node] = name ~ premises ~ conclusion ^^ {
@@ -53,7 +56,8 @@ extends JavaTokenParsers with RegexParsers {
   }
   def cedent: Parser[Seq[E]] = repsep(expression,",")
   
-  def proofName: Parser[Int] = """\d+""".r ^^ { _.toInt }
+//  def proofName: Parser[Int] = """\d+""".r ^^ { _.toInt }
+  def proofName: Parser[String] = name
 
   def namedProof: Parser[Node] = proofName ^^ { proofMap(_) }
   
@@ -115,5 +119,5 @@ extends JavaTokenParsers with RegexParsers {
     }
   } 
   
-  def name: Parser[String] = """[^ (){}:⊢]+""".r
+  def name: Parser[String] = """[^ (){}:⊢,.]+""".r
 }
