@@ -24,7 +24,8 @@ package object compressor {
     "DAGify" -> DAGify,
     "EliminateTautologies" -> EliminateTautologies,
     "FWS" -> FWS,
-    "BWS" -> BWS,
+    "BWSt" -> BWSt,
+    "BWSm" -> BWSm,
     "RU" -> RecycleUnits,
     "RPC" -> RecyclePivotsWithConclusionSequent
   )
