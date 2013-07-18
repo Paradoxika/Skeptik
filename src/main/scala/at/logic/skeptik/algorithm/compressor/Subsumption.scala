@@ -64,6 +64,7 @@ object BWS extends AbstractSubsumption {
       node match {
         case Axiom(conclusion) => nodeMap += (conclusion -> node)
         case R(_,_,_,_) => nodeMap += (node.conclusion -> node)
+        case _ => Unit
       }
     }
     
