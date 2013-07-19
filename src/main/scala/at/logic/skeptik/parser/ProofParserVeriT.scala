@@ -17,6 +17,7 @@ extends JavaTokenParsers with RegexParsers {
   
   private var proofMap = new MMap[Int,Node]
   private var exprMap = new MMap[Int,E]
+  private var bindMap = new MMap[String,E]
 
   def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
     val p = Proof(list.last)
@@ -57,15 +58,23 @@ extends JavaTokenParsers with RegexParsers {
   
   def namedExpr: Parser[E] = exprName ^^ { exprMap(_) }
   
-  def expr: Parser[E] = (variable | app)
+  def expr: Parser[E] = (variable | app | let)
+
+  def let: Parser[E] = "(" ~> "let" ~> "(" ~> rep(binding) ~> ")" ~> expression <~ ")" ^^ { e =>
+    bindMap = new MMap[String,E]
+    e
+  }
+
+  def binding: Parser[Any] = "(" ~> name ~ expression <~ ")" ^^ {
+    case ~(sym, exp) => bindMap += (sym -> exp) ; ()
+  }
 
   // ToDo: this parser is not distinguishing formulas and terms.
   // Terms are (wrongly) given type o.
   // As long as theory inferences are parsed as UncheckedInferences,
   // this will not be a problem.
-  // Let expressions are not supported yet.
   
-  def variable: Parser[E] = name ^^ { Var(_,o) }
+  def variable: Parser[E] = name ^^ { v => bindMap.getOrElse(v, Var(v,o)) }
  
   private val predefinedBigSymbols = Map(
     "and" -> bigAndC ,
