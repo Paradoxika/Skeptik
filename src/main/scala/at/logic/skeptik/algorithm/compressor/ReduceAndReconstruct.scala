@@ -11,11 +11,11 @@ import scala.collection.Map
 abstract class AbstractReduceAndReconstruct
 extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
-  protected def reduce(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
-      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode):SequentProofNode =
+  protected def lowerMiddle
+      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
   node match {
 
-    // Added rule
     case R(R(alpha,_,_,s),R(beta,_,_,t),u,_) if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) =>
          R(alpha,beta)
     case R(R(_,alpha,s,_),R(beta,_,_,t),u,_) if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) =>
@@ -24,6 +24,14 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
          R(alpha,beta)
     case R(R(_,alpha,s,_),R(_,beta,t,_),u,_) if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) =>
          R(alpha,beta)
+
+    case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+  }
+
+  protected def reduce
+      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  node match {
 
     // B2
     case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
@@ -83,7 +91,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
 
   
-  protected def reconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+  protected def reconstruct(proof: Proof[SequentProofNode], function: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
                            (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
 
     val fixedNode = (node, fixedPremises) match {
@@ -91,7 +99,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
       case _ => node
     }
     node match {
-      case R(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
+      case R(left, right, _, _) => function(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)
       case _ => fixedNode
     }
   }
@@ -99,11 +107,11 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
 class ReduceAndReconstruct(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, a2))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(a2)))
 }
 
 
 class RRWithoutA2(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, { (n,_,_) => n }))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce({ (n,_,_) => n })))
 }
