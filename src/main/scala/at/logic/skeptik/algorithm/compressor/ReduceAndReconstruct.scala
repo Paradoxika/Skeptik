@@ -93,14 +93,10 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   
   protected def reconstruct(proof: Proof[SequentProofNode], function: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
                            (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
-
-    val fixedNode = (node, fixedPremises) match {
-      case (R(_,_,pivot,_), left::right::Nil) => R(left, right, pivot, true)
+    (node, fixedPremises) match {
+      case (R(o_left,o_right,pivot,_), n_left::n_right::Nil) =>
+        function(R(n_left, n_right, pivot, true), proof.childrenOf(o_left).length == 1, proof.childrenOf(o_right).length == 1)
       case _ => node
-    }
-    node match {
-      case R(left, right, _, _) => function(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)
-      case _ => fixedNode
     }
   }
 }
