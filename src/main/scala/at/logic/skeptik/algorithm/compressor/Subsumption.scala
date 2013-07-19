@@ -100,6 +100,11 @@ object BWSt extends BWS {
 
 object BWSm extends BWS {
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
-    !(node eq ancestor) && node.premises.forall(pr => notAncestor(pr,ancestor))
+    var isAnc = false;
+    def visitAncestor(node: SequentProofNode, children: Seq[Unit]):Unit = {
+      isAnc = (node eq ancestor) || isAnc
+    }
+    Proof(node).bottomUp(visitAncestor)
+    !isAnc
   }
 }
