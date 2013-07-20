@@ -1,7 +1,7 @@
 package at.logic.skeptik.proof
 
 import annotation.tailrec
-import collection.mutable.{HashSet => MSet}
+import collection.mutable.{HashSet => MSet, Stack}
 
 import at.logic.skeptik.judgment.Judgment
 
@@ -16,16 +16,31 @@ abstract class ProofNode[+J <: Judgment, +P <: ProofNode[J,P]]
   def existsAmongAncestors(predicate: (P) => Boolean): Boolean = {
     val visited = MSet(self)
 
-    def visit(node: P): Boolean = {
-      if (visited contains node)
-        false
-      else
-        visited += node
-        predicate(node) || (node.premises exists visit)
-    }
+    // As tail recursion is impossible, the fastest solution is to implement our own stack
+    val todo = new Stack[P]()
 
-    premises exists visit
+    def pushPremises(node: P): Unit = 
+      for (prem <- node.premises if !visited(prem)) {
+        visited += prem
+        todo.push(prem)
+      }
+    pushPremises(self)
+
+    @tailrec def visit(): Boolean =
+      if (todo.isEmpty)
+        false
+      else {
+        val node = todo.pop
+        if (predicate(node))
+          true
+        else {
+          pushPremises(node)
+          visit()
+        }
+      }
+    visit()
   }
+      
 }
 
 trait GenNullary[+J <: Judgment, +P <: ProofNode[J,P]] extends ProofNode[J,P] { def premises = Seq() }
