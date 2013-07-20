@@ -19,7 +19,7 @@ object AlgorithmParser extends RegexParsers {
   def atomicAlgo : Parser[A] = """[a-zA-Z0-9]+""".r flatMap { name => 
     algorithms.get(name) match {
       case Some(a) => success(a)
-      case None => failure("There is no algorithm with name '" + name + "'")
+      case None => failure("There is no algorithm with name + '" + name + "'")
     }
   }
   
