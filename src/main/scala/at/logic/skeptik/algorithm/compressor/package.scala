@@ -16,6 +16,7 @@ package object compressor {
     "RPI3LUniv" -> LowerUnivalentsBeforeRecyclePivots,
     "RedRec" -> new ReduceAndReconstruct(5000),
     "RRlm" -> new RRWithLowerMiddle(5000),
+    "lmA2" -> new LowerMiddleA2(5000),
     "CottonSplit" -> new CottonSplit(30000),
     "RandomBoudouSplit" -> new RandomBoudouSplit(30000),
     "DeterministicBoudouSplit" -> new DeterministicBoudouSplit(30000),

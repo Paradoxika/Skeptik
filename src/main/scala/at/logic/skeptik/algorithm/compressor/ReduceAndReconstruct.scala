@@ -18,19 +18,19 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion subsequentOf o2.conclusion) =>
-         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+//         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion subsequentOf o1.conclusion) =>
-         print("Case 2 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+//         print("Case 2 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion subsequentOf o2.conclusion) =>
-         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+//         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion subsequentOf o1.conclusion) =>
-         print("Case 4 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+//         print("Case 4 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
 
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
@@ -124,5 +124,11 @@ extends AbstractReduceAndReconstruct with Timeout {
 class RRWithLowerMiddle(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
   def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, lowerMiddle(reduce(a2))))
+}
+
+
+class LowerMiddleA2(val timeout: Int)
+extends AbstractReduceAndReconstruct with Timeout {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, lowerMiddle(a2)))
 }
 

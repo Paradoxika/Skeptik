@@ -10,7 +10,9 @@ trait Timeout {
   def apply(p: Proof[N]): Proof[N] = {
     val start = System.nanoTime()
     var result = p
-    while ((System.nanoTime() - start)/1000000 < timeout) result = applyOnce(result)
+    var count = 0
+    while ((System.nanoTime() - start)/1000000 < timeout) { count += 1 ; result = applyOnce(result) }
+    print("("+count+" times)")
     return result
   }
 }
