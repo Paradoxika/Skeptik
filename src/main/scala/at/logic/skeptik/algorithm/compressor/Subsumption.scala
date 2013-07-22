@@ -5,7 +5,9 @@ import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.immutable.{HashMap => IMap}
 import scala.collection.mutable.{HashSet => MSet}
+import scala.collection.immutable.{HashSet => ISet}
 
 abstract class AbstractSubsumption 
 extends (Proof[SequentProofNode] => Proof[SequentProofNode])
@@ -84,27 +86,21 @@ abstract class BWS extends AbstractSubsumption {
 }
 
 object BWSt extends BWS {
-  val ancestors = new MMap[SequentProofNode,MSet[SequentProofNode]]
+  val ancestors = new MMap[SequentProofNode,ISet[SequentProofNode]]
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
-    !(ancestors.getOrElse(node, computeAncestors(node)) contains ancestor)
+    !(ancestors.getOrElseUpdate(node, computeAncestors(node)) contains ancestor)
   }
-  def computeAncestors(node: SequentProofNode):MSet[SequentProofNode] = {
+  def computeAncestors(node: SequentProofNode):ISet[SequentProofNode] = {
     val premises = node.premises
-    val ancPremises = (new MSet[SequentProofNode] /: premises){ (l1,l2) =>
-      l1 union ancestors.getOrElse(l2, {new MSet[SequentProofNode] + l2})
+    val ancPremises = (new ISet[SequentProofNode] /: premises){ (l1,l2) =>
+      l1 union ancestors.getOrElse(l2, MSet(l2))
     }
-    ancestors += (node -> (ancPremises + node))
-    ancestors(node)
+    (ancPremises + node)
   }
 }
 
 object BWSm extends BWS {
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
-    var isAnc = false;
-    def visitAncestor(node: SequentProofNode, children: Seq[Unit]):Unit = {
-      isAnc = (node eq ancestor) || isAnc
-    }
-    Proof(node).bottomUp(visitAncestor)
-    !isAnc
+    !(node existsAmongAncestors {_ eq ancestor})
   }
 }
