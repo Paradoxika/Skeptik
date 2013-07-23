@@ -11,8 +11,34 @@ import scala.collection.Map
 abstract class AbstractReduceAndReconstruct
 extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
-  protected def reduce(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean)
-      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode):SequentProofNode =
+  protected def lowerMiddle
+      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  node match {
+
+    case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
+    if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion subsequentOf o2.conclusion) =>
+//         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+         R(R(alpha,beta), o1)
+    case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
+    if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion subsequentOf o1.conclusion) =>
+//         print("Case 2 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+         R(R(alpha,beta), o2)
+    case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
+    if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion subsequentOf o2.conclusion) =>
+//         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+         R(R(alpha,beta), o1)
+    case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
+    if s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion subsequentOf o1.conclusion) =>
+//         print("Case 4 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+         R(R(alpha,beta), o2)
+
+    case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+  }
+
+  protected def reduce
+      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
   node match {
 
     // B2
@@ -73,27 +99,36 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
 
   
-  protected def reconstruct(proof: Proof[SequentProofNode], fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+  protected def reconstruct(proof: Proof[SequentProofNode], function: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
                            (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
-
-    val fixedNode = (node, fixedPremises) match {
-      case (R(_,_,pivot,_), left::right::Nil) => R(left, right, pivot, true)
+    (node, fixedPremises) match {
+      case (R(o_left,o_right,pivot,_), n_left::n_right::Nil) =>
+        function(R(n_left, n_right, pivot, true), proof.childrenOf(o_left).length == 1, proof.childrenOf(o_right).length == 1)
       case _ => node
-    }
-    node match {
-      case R(left, right, _, _) => reduce(fixedNode, proof.childrenOf(left).length == 1, proof.childrenOf(right).length == 1)(fallback)
-      case _ => fixedNode
     }
   }
 }
 
 class ReduceAndReconstruct(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, a2))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(a2)))
 }
 
 
 class RRWithoutA2(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, { (n,_,_) => n }))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce({ (n,_,_) => n })))
 }
+
+
+class RRWithLowerMiddle(val timeout: Int)
+extends AbstractReduceAndReconstruct with Timeout {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, lowerMiddle(reduce(a2))))
+}
+
+
+class LowerMiddleA2(val timeout: Int)
+extends AbstractReduceAndReconstruct with Timeout {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, lowerMiddle(a2)))
+}
+
