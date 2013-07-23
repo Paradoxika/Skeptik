@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.11" % "test",
   "commons-lang" % "commons-lang" % "2.6",
   "org.scala-lang" % "scala-actors" % "2.10.1-RC2",
-  "com.github.scopt" %% "scopt" % "2.1.0"
+  "com.github.scopt" %% "scopt" % "3.1.0"
 )
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))

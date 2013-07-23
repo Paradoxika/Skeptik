@@ -10,6 +10,7 @@ import at.logic.skeptik.util.time._
 import at.logic.skeptik.util.pretty._
 
 import java.io.FileWriter
+import scala.io.Source.fromFile
 
 object ProofCompressionCLI {
 
@@ -25,19 +26,29 @@ object ProofCompressionCLI {
   def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
   
   def main(args: Array[String]): Unit = {  
-    val parser = new scopt.immutable.OptionParser[Config]("compress","- Skeptik's Command Line Interface for Proof Compression") { def options = Seq(
-      opt("a", "algorithms", "<algorithms>", "comma-separated list of algorithms to be used for compressing the proof - sequential composition of algorithms is denoted by \"(Alg1*Alg2*...*Alg_n)\"") { 
-        (v: String, c: Config) => c.copy(algorithms = v.split(",")) 
-      },
-      opt("o", "outputformat", "<output format>", "proof format to be used for the compressed proofs") { 
-        (v: String, c: Config) => c.copy(outputformat = v) 
-      },
-      flag("csv", "csv", "activates output of proof compression statistics to a csv file") { 
-        (c: Config) => c.copy(csv = true) 
-      },
-      arglist("<input files>", "space-separated filenames of the files containing the proofs to be compressed") { 
-        (v: String, c: Config) => c.copy(inputs = c.inputs ++ Seq(v)) }
-    ) }
+    val parser = new scopt.OptionParser[Config]("compress"){
+      head("- Skeptik's Command Line Interface for Proof Compression") 
+
+      opt[String]('a', "algorithms") action { (v, c) => 
+        c.copy(algorithms = v.split(",")) 
+      } text("comma-separated list of algorithms to be used for compressing the proof - sequential composition of algorithms is denoted by \"(Alg1*Alg2*...*Alg_n)\"")
+      
+      opt[String]('o', "outputformat") action { (v, c) => 
+        c.copy(outputformat = v) 
+      } text("proof format to be used for the compressed proofs")
+      
+      opt[Unit]("csv") action { (_, c) =>
+        c.copy(csv = true) 
+      } text("activates output of proof compression statistics to a csv file")
+      
+      opt[String]('b', "batch") action { (v, c) => 
+        c.copy(inputs = c.inputs ++ fromFile(v).getLines) 
+      } text("file containing one proof filename per line")
+      
+      arg[String]("<file>...") unbounded() optional() action { (v, c) =>
+        c.copy(inputs = c.inputs ++ Seq(v)) 
+      } text("filenames of the proof files")
+    }
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { config =>
       
@@ -46,7 +57,7 @@ object ProofCompressionCLI {
       // measurement table initialized with its header only
       // rows with data for every input or output proof are added during execution 
       // and the table is displayed to the user at the end
-      var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Width", "Height")) 
+      var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Core", "Height")) 
       
       // convenient method for writing compression statistics in a csv file
       val csvWriter = if (config.csv) Some(new FileWriter(config.algorithms.mkString(",") + ".csv"))
@@ -132,7 +143,7 @@ object ProofCompressionCLI {
 """ 
   where:           
     Length = number of inferences in the proof
-    Width = number of axioms in the proof
+    Core = number of axioms in the proof
     Height = length of longest path from leaf to root
           
 """)
