@@ -118,4 +118,4 @@ fullRunInputTask(InputKey[Unit]("compress-test"), Runtime, "at.logic.skeptik.Pro
 
 seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
-mainClass in oneJar := Some("at.logic.skeptik.Main")
+mainClass in oneJar := Some("at.logic.skeptik.ProofCompressionCLI")
