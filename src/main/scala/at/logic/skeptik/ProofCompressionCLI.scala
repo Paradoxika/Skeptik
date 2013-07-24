@@ -127,18 +127,20 @@ object ProofCompressionCLI {
         var lengths = Array.fill[Int](algcount+1)(0)
        
         // read off last written total lengths
-        if (config.cr && csvCR.exists) {
+        if (config.cr && csvCR.length() > 0) {
           val lines = fromFile(csvCRfileName).getLines
           val lineseq = lines.toSeq
           val lastline = lineseq.last
           val last = lastline.split(",")
-          lengths(0) = last(0).toInt
-          widths(0) = last(1).toInt
-          heights(0) = last(2).toInt
-          for (i <- 1 to algcount) {
-            lengths(i) = last(3+(i-1)*6).toInt
-            widths(i) = last(4+(i-1)*6).toInt
-            heights(i) = last(5+(i-1)*6).toInt
+          if (last.length >= 3 + algcount*6) {
+            if (last(0).isInstanceOf[Int]) lengths(0) = last(0).toInt
+            if (last(1).isInstanceOf[Int]) widths(0) = last(1).toInt
+            if (last(2).isInstanceOf[Int]) heights(0) = last(2).toInt
+            for (i <- 1 to algcount) {
+              if (last(3+(i-1)*6).isInstanceOf[Int]) lengths(i) = last(3+(i-1)*6).toInt
+              if (last(4+(i-1)*6).isInstanceOf[Int]) widths(i) = last(4+(i-1)*6).toInt
+              if (last(5+(i-1)*6).isInstanceOf[Int]) heights(i) = last(5+(i-1)*6).toInt
+            }
           }
         }
         
