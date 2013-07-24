@@ -15,6 +15,7 @@ import scala.io.Source.fromFile
 object ProofCompressionCLI {
 
   case class Config(inputs: Seq[String] = Seq(),
+                    directory: String = "",
                     algorithms: Seq[String] = Seq(), 
                     outputformat: String = "",
                     csv: Boolean = false)                
@@ -35,10 +36,6 @@ object ProofCompressionCLI {
         c.copy(algorithms = c.algorithms ++ Seq(v))
       } text("use <alg> to compress proofs") valueName("<alg>")
       
-      opt[String]("algorithms") action { (v, c) => 
-        c.copy(algorithms = c.algorithms ++ fromFile(v).getLines) 
-      } text("use algorithms listed in <file>\n") valueName("<file>")
-   
       note(
       """
         <alg> can be any of the following atomic algorithms:
@@ -48,6 +45,14 @@ object ProofCompressionCLI {
         or a sequential composition denoted by '(alg1*alg2*...*algN)'
       """    
       )  
+      
+      opt[String]("algorithms") action { (v, c) => 
+        c.copy(algorithms = c.algorithms ++ fromFile(v).getLines) 
+      } text("use algorithms listed in <file>\n") valueName("<file>")
+      
+      opt[String]('d', "directory") unbounded() action { (v, c) => 
+        c.copy(directory = v)
+      } text("set working directory to <dir>") valueName("<dir>")
       
       opt[String]('o', "output") action { (v, c) => 
         c.copy(outputformat = v) 
