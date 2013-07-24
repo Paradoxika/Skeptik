@@ -119,5 +119,5 @@ extends JavaTokenParsers with RegexParsers {
     }
   } 
   
-  def name: Parser[String] = """[^ (){}:⊢,.]+""".r
+  def name: Parser[String] = """[^ (){}:⊢,.=]+""".r
 }
