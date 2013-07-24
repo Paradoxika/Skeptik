@@ -10,7 +10,9 @@ import at.logic.skeptik.util.time._
 import at.logic.skeptik.util.pretty._
 
 import java.io.FileWriter
+import java.io.File
 import scala.io.Source.fromFile
+
 
 object ProofCompressionCLI {
 
@@ -18,7 +20,9 @@ object ProofCompressionCLI {
                     directory: String = "",
                     algorithms: Seq[String] = Seq(), 
                     outputformat: String = "",
-                    csv: Boolean = false)                
+                    csv: Boolean = false,
+                    cr: Boolean = false)                
+
     
   val supportedProofFormats = Seq("smt2", "skeptik")
   
@@ -40,7 +44,7 @@ object ProofCompressionCLI {
       """
         <alg> can be any of the following atomic algorithms:
       """ + 
-      (for (a <- at.logic.skeptik.algorithm.compressor.algorithms) yield a._1).mkString(",  ") + "\n" + 
+      (for (a <- at.logic.skeptik.algorithm.compressor.algorithms) yield a._1).mkString(",") + "\n" + 
       """
         or a sequential composition denoted by '(alg1*alg2*...*algN)'
       """    
@@ -73,6 +77,10 @@ object ProofCompressionCLI {
         c.copy(csv = true) 
       } text("output statistics to a csv file\n")
       
+      opt[Unit]("cr") action { (_, c) =>
+        c.copy(cr = true) 
+      } text("activates logging of proof compression ratio in a csv file")
+      
       opt[String]('p', "proofs") action { (v, c) => 
         c.copy(inputs = c.inputs ++ fromFile(v).getLines) 
       } text("compress proofs from files listed in <file>\n") valueName("<file>")
@@ -92,28 +100,87 @@ object ProofCompressionCLI {
         And a csv file containing compression statistics is produced.
   
         compress -csv -a RP -a (DAGify*RPI*LU) -o skeptik examples/proofs/VeriT/eq_diamond9.smt2
+        """)
+      }
   
-      """)
-    }
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { config =>
       
+
       println()
          
       if (config.inputs.isEmpty) parser.showUsage
       else {
-        
+
         // measurement table initialized with its header only
         // rows with data for every input or output proof are added during execution 
         // and the table is displayed to the user at the end
         var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Core", "Height")) 
+
         
-        // convenient method for writing statistics in a csv file
-        val csvWriter = if (config.csv) Some(new FileWriter(config.algorithms.mkString(",") + ".csv"))
+        val csvStat = new File(config.algorithms.mkString(",") + ".csv")
+        
+        val csvCRfileName = config.algorithms.mkString(",") + "-CR.csv"
+        val csvCR = new File(csvCRfileName)
+        
+        val algcount = config.algorithms.size
+        // initialise last written parameter sums of algorithms & uncompressed proofs with 0
+        var heights = Array.fill[Int](algcount+1)(0)
+        var widths = Array.fill[Int](algcount+1)(0)
+        var lengths = Array.fill[Int](algcount+1)(0)
+       
+        // read off last written total lengths
+        if (config.cr && csvCR.exists) {
+          val lines = fromFile(csvCRfileName).getLines
+          val lineseq = lines.toSeq
+          val lastline = lineseq.last
+          val last = lastline.split(",")
+          lengths(0) = last(0).toInt
+          widths(0) = last(1).toInt
+          heights(0) = last(2).toInt
+          for (i <- 1 to algcount) {
+            lengths(i) = last(3+(i-1)*6).toInt
+            widths(i) = last(4+(i-1)*6).toInt
+            heights(i) = last(5+(i-1)*6).toInt
+          }
+        }
+        
+        // convenient method for writing compression statistics in a csv file
+        val csvWriter = if (config.csv) Some(new FileWriter(csvStat,true)) //true for appending
                         else None
         def writeToCSV(s: String) = for (w <- csvWriter) w.write(s,0,s.length)
         
+        // method for writing to the CR file
+        val crWriter = if (config.cr) Some(new FileWriter(csvCR))
+                        else None
+        def writeToCR(s: String) = for (w <- crWriter) w.write(s,0,s.length)
+
+        // header is only written in empty file
+        if (config.csv && csvStat.length == 0) writeCSVHeader
         
+        def writeCSVHeader = {
+          writeToCSV("\tProof,Uncompressed,\t,\t,")
+          config.algorithms.foreach(a => writeToCSV(a+",\t,\t,"))
+          writeToCSV("\n\t,")
+          writeToCSV("\tLength,\tWidth,\tHeight,")
+          for (i <- 1 to algcount) writeToCSV("\tLength,\tWidth,\tHeight,")
+          writeToCSV("\n")
+        }
+        
+        // CR file overwrites instead of appending, therefore header is always written if cr is set to true
+        if (config.cr) writeCRHeader
+        
+
+        def writeCRHeader = {
+          writeToCR("\tUncompressed,\t,\t,")
+          config.algorithms.foreach(a => writeToCR("\t"+a+",\t,\t,\t,\t,\t,"))
+          writeToCR("\n")
+          writeToCR("\tLength,\tWidth,\tHeight,")
+          for (i <- 1 to algcount) writeToCR("\tLength,\tWidth,\tHeight,\tCR - length,\tCR - width,\tCR - height,")
+          writeToCR("\n")
+        }
+        
+
         for (filename <- config.inputs) {
           // Reading the proof
           print("Reading and checking proof '"+ filename +"' ...")
@@ -138,7 +205,15 @@ object ProofCompressionCLI {
           // Adding measurements to csv file
           writeToCSV(proofName + ",\t")
           writeToCSV(mIProof.toSeq.mkString("\t",",\t", ","))
-                 
+
+          
+          // compute and write new values to CR file
+          lengths(0) = lengths(0)+mIProof.toSeq(0)
+          widths(0) = widths(0)+mIProof.toSeq(1)
+          heights(0) = heights(0)+mIProof.toSeq(2)
+          writeToCR(lengths(0)+","+widths(0)+ ","+heights(0)+",")
+          
+          
           val writeProof =  {
             config.outputformat match {
               case "smt2" => (p: Proof[N], name: String) => ProofExporterVeriT.write(p, name)
@@ -146,7 +221,9 @@ object ProofCompressionCLI {
               case "" =>  (p: Proof[N], name: String) => { }
             }
           }
-          
+
+        
+          var alg = 1
           // Compressing the proof
           for (a <- config.algorithms) yield {
             val algorithm = AlgorithmParser.parse(a)
@@ -165,6 +242,17 @@ object ProofCompressionCLI {
             
             // Adding measurements to csv file
             writeToCSV(mOProof.toSeq.mkString("\t",",\t", ","))
+
+            // compute and write new values to CR file
+            lengths(alg) = lengths(alg)+mOProof.toSeq(0)
+            widths(alg) = widths(alg)+mOProof.toSeq(1)
+            heights(alg) = heights(alg)+mOProof.toSeq(2)
+          
+            writeToCR(lengths(alg)+","+widths(alg)+ ","+heights(alg)+",")
+            writeToCR((100 - Math.round(1000.0*lengths(alg)/lengths(0))/10.0)+"%,")
+            writeToCR((100 - Math.round(1000.0*widths(alg)/widths(0))/10.0)+"%,")
+            writeToCR((100 - Math.round(1000.0*heights(alg)/heights(0))/10.0)+"%,")
+          
             
             // Adding measurements to measurement table
             val outputRow = {
@@ -174,12 +262,19 @@ object ProofCompressionCLI {
               Seq(oProofName) ++ ((mOProof.toSeq zip compressions) map {case (o,c) => o + " (" + c + ")"}) 
             }
             measurementTable ++= Seq(outputRow)
+
+            alg = alg + 1
           }            
-           
+          //write results for this proof
+          for (w <- csvWriter) w.flush()
+          for (w <- crWriter) w.flush()
           writeToCSV("\n")
+          writeToCR("\n")
         } // end of 'for (filename <- config.inputs)'
         
         for (w <- csvWriter) w.close()
+        for (w <- crWriter) w.close()
+
         
         // Displaying proof measurements   
         println()
