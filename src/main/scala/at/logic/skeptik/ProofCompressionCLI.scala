@@ -116,7 +116,11 @@ object ProofCompressionCLI {
         // rows with data for every input or output proof are added during execution 
         // and the table is displayed to the user at the end
         var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Core", "Height")) 
-
+        def appendAtMeasurementTable(row: Seq[Any]) = measurementTable ++= Seq(row)
+        def showMeasurementTable() = {
+          println()
+          print(prettyTable(measurementTable))
+        }
         
         val algcount = config.algorithms.size
         // initialize last written parameter sums of algorithms and uncompressed proofs with 0
@@ -188,18 +192,17 @@ object ProofCompressionCLI {
           
           // Adding measurements to measurement table
           val inputRow = (Seq(proofName) ++ mIProof.toSeq)
-          measurementTable = measurementTable ++ Seq(inputRow)
+          appendAtMeasurementTable(inputRow)
           
           // Adding measurements to csv file
-          writeToCSV(proofName + ",\t")
-          writeToCSV(mIProof.toSeq.mkString("",",", ","))
+          writeToCSV(proofName + mIProof.toSeq.mkString(",",",", ","))
 
           
           // compute and write new values to CR file
-          lengths(0) = lengths(0)+mIProof.toSeq(0)
-          widths(0) = widths(0)+mIProof.toSeq(1)
-          heights(0) = heights(0)+mIProof.toSeq(2)
-          writeToCR(lengths(0)+","+widths(0)+ ","+heights(0)+",")
+          lengths(0) += mIProof.toSeq(0)
+          widths(0) += mIProof.toSeq(1)
+          heights(0) += mIProof.toSeq(2)
+          writeToCR(lengths(0) + "," + widths(0) + "," + heights(0) + ",")
           
           
           val writeProof =  {
@@ -232,9 +235,9 @@ object ProofCompressionCLI {
             writeToCSV(mOProof.toSeq.mkString("",",", ","))
 
             // compute and write new values to CR file
-            lengths(alg) = lengths(alg)+mOProof.toSeq(0)
-            widths(alg) = widths(alg)+mOProof.toSeq(1)
-            heights(alg) = heights(alg)+mOProof.toSeq(2)
+            lengths(alg) += mOProof.toSeq(0)
+            widths(alg) += mOProof.toSeq(1)
+            heights(alg) += mOProof.toSeq(2)
           
             writeToCR(lengths(alg)+","+widths(alg)+ ","+heights(alg)+",")
             writeToCR((100 - Math.round(1000.0*lengths(alg)/lengths(0))/10.0)+"%,")
@@ -249,24 +252,23 @@ object ProofCompressionCLI {
               }  
               Seq(oProofName) ++ ((mOProof.toSeq zip compressions) map {case (o,c) => o + " (" + c + ")"}) 
             }
-            measurementTable ++= Seq(outputRow)
+            appendAtMeasurementTable(outputRow)
 
             alg = alg + 1
-          }            
+          } 
+          writeToCSV("\n")
+          writeToCR("\n")
           //write results for this proof
           for (w <- csvWriter) w.flush()
           for (w <- crWriter) w.flush()
-          writeToCSV("\n")
-          writeToCR("\n")
         } // end of 'for (filename <- config.inputs)'
         
         for (w <- csvWriter) w.close()
         for (w <- crWriter) w.close()
 
         
-        // Displaying proof measurements   
-        println()
-        print(prettyTable(measurementTable))
+        // Displaying proof measurements  
+        showMeasurementTable()
         
         print(""" 
           where:           

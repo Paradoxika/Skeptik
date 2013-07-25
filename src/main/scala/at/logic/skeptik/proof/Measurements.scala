@@ -1,9 +1,9 @@
 package at.logic.skeptik.proof
 
-case class Measurements(length:Int, width:Int, height: Int) {
+case class Measurements(length:Int, core:Int, height: Int) {
   override def toString = "length = " + length + " , " +
-                          "width = " + width + " , " +
+                          "core = " + core + " , " +
                           "height = " + height + "  "
   
-  def toSeq = Seq(length, width, height)
+  def toSeq = Seq(length, core, height)
 }
