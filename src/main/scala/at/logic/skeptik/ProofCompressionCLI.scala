@@ -19,7 +19,6 @@ object ProofCompressionCLI {
                     algorithms: Seq[String] = Seq(), 
                     outputformat: String = "",
                     csv: Option[Seekable] = None,
-                    cr: Option[Seekable] = None,
                     verbose: Boolean = true)                
 
     
@@ -76,10 +75,6 @@ object ProofCompressionCLI {
         c.copy(csv = Some(Resource.fromFile(c.directory + c.algorithms.mkString(",") + ".csv"))) 
       } text("output statistics to a csv file\n")
       
-      opt[Unit]("cr") action { (_, c) =>
-        c.copy(cr = Some(Resource.fromFile(c.directory + c.algorithms.mkString(",") + "-CR.csv"))) 
-      } text("output compression ratios to a csv file")
-      
       opt[Unit]("silent") action { (_, c) =>
         c.copy(verbose = false) 
       } text("switch off verbosity")
@@ -132,31 +127,9 @@ object ProofCompressionCLI {
               Height = length of longest path from leaf to root         
           """ + "\n")
         }
-        
-        val algcount = config.algorithms.size
-        // initialize last written parameter sums of algorithms and uncompressed proofs with 0
-        var heights = Array.fill[Int](algcount+1)(0)
-        var widths = Array.fill[Int](algcount+1)(0)
-        var lengths = Array.fill[Int](algcount+1)(0)
-       
-        // read off last written total lengths
-//        for (f <- config.cr if f.exists) { 
-//          val lastline = fromFile(f).getLines.toSeq.last
-//          val last = lastline.split(",")
-//          lengths(0) = last(0).toInt
-//          widths(0) = last(1).toInt
-//          heights(0) = last(2).toInt
-//          for (i <- 1 to algcount) {
-//            lengths(i) = last(3+(i-1)*6).toInt
-//            widths(i) = last(4+(i-1)*6).toInt
-//            heights(i) = last(5+(i-1)*6).toInt
-//          }
-//        }
                 
         def append(ow: Option[Seekable])(s: String) = ow map { _.append(s)}
         
-//        // method for writing to the CR file
-//        val crWriter = config.cr map { f => new FileWriter(f,true)}
 
         // writing header if file is empty 
 //        for (f <- config.csv if f.length == 0) {
@@ -168,15 +141,6 @@ object ProofCompressionCLI {
 //          writeToCSV("\n")
 //        }
         
-        // CR file overwrites instead of appending, therefore header is always written if cr is set to true
-        for (f <- config.cr) {
-          append(config.cr)("\tUncompressed,\t,\t,")
-          config.algorithms.foreach(a => append(config.cr)("\t"+a+",\t,\t,\t,\t,\t,"))
-          append(config.cr)("\n")
-          append(config.cr)("\tLength,\tWidth,\tHeight,")
-          for (i <- 1 to algcount) append(config.cr)("\tLength,\tWidth,\tHeight,\tCR - length,\tCR - width,\tCR - height,")
-          append(config.cr)("\n")
-        }
         
 
         for (filename <- config.inputs) {
@@ -204,12 +168,6 @@ object ProofCompressionCLI {
           append(config.csv)(proofName + mIProof.toSeq.mkString(",",",", ","))
 
           
-          // compute and write new values to CR file
-          lengths(0) += mIProof.toSeq(0)
-          widths(0) += mIProof.toSeq(1)
-          heights(0) += mIProof.toSeq(2)
-          append(config.cr)(lengths(0) + "," + widths(0) + "," + heights(0) + ",")
-          
           
           val writeProof =  {
             config.outputformat match {
@@ -219,8 +177,6 @@ object ProofCompressionCLI {
             }
           }
 
-        
-          var alg = 1
           // Compressing the proof
           for (a <- config.algorithms) yield {
             val algorithm = AlgorithmParser.parse(a)
@@ -239,17 +195,6 @@ object ProofCompressionCLI {
             
             // Adding measurements to csv file
             append(config.csv)(mOProof.toSeq.mkString("",",", ","))
-
-            // compute and write new values to CR file
-            lengths(alg) += mOProof.toSeq(0)
-            widths(alg) += mOProof.toSeq(1)
-            heights(alg) += mOProof.toSeq(2)
-          
-            append(config.cr)(lengths(alg)+","+widths(alg)+ ","+heights(alg)+",")
-            append(config.cr)((100 - Math.round(1000.0*lengths(alg)/lengths(0))/10.0)+"%,")
-            append(config.cr)((100 - Math.round(1000.0*widths(alg)/widths(0))/10.0)+"%,")
-            append(config.cr)((100 - Math.round(1000.0*heights(alg)/heights(0))/10.0)+"%,")
-          
             
             // Adding measurements to measurement table
             val outputRow = {
@@ -260,10 +205,8 @@ object ProofCompressionCLI {
             }
             appendAtMeasurementTable(outputRow)
 
-            alg = alg + 1
           } 
           append(config.csv)("\n")
-          append(config.cr)("\n")
         } // end of 'for (filename <- config.inputs)'
         
         // Displaying proof measurements  
