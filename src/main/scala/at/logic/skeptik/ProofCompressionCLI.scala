@@ -19,7 +19,8 @@ object ProofCompressionCLI {
                     algorithms: Seq[String] = Seq(), 
                     outputformat: String = "",
                     csv: Option[Seekable] = None,
-                    cr: Option[Seekable] = None)                
+                    cr: Option[Seekable] = None,
+                    verbose: Boolean = true)                
 
     
   val supportedProofFormats = Seq("smt2", "skeptik")
@@ -79,6 +80,10 @@ object ProofCompressionCLI {
         c.copy(cr = Some(Resource.fromFile(c.directory + c.algorithms.mkString(",") + "-CR.csv"))) 
       } text("output compression ratios to a csv file")
       
+      opt[Unit]("silent") action { (_, c) =>
+        c.copy(verbose = false) 
+      } text("switch off verbosity")
+      
       opt[String]('p', "proofs") action { (v, c) => 
         c.copy(inputs = c.inputs ++ (Resource.fromFile(c.directory + v).lines() map {c.directory + _})) 
       } text("compress proofs from files listed in <file>\n") valueName("<file>")
@@ -104,8 +109,10 @@ object ProofCompressionCLI {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { config =>
       
+      
+      def log(s: Any) = if (config.verbose) print(s)
 
-      println()
+      log("\n")
          
       if (config.inputs.isEmpty) parser.showUsage
       else {
@@ -116,8 +123,14 @@ object ProofCompressionCLI {
         var measurementTable: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "Core", "Height")) 
         def appendAtMeasurementTable(row: Seq[Any]) = measurementTable ++= Seq(row)
         def showMeasurementTable() = {
-          println()
-          print(prettyTable(measurementTable))
+          log("\n")
+          log(prettyTable(measurementTable))
+          log(""" 
+            where:           
+              Length = number of inferences in the proof
+              Core = number of axioms in the proof
+              Height = length of longest path from leaf to root         
+          """ + "\n")
         }
         
         val algcount = config.algorithms.size
@@ -168,7 +181,7 @@ object ProofCompressionCLI {
 
         for (filename <- config.inputs) {
           // Reading the proof
-          print("Reading and checking proof '"+ filename +"' ...")
+          log("Reading and checking proof '"+ filename +"' ...")
           val proofFormat = ("""\.[^\.]+$""".r findFirstIn filename) getOrElse { throw new Exception(unknownFormat(filename)) }
           val proofName = filename.split(proofFormat)(0) // filename without extension
           val proofParser = proofFormat match {
@@ -176,12 +189,12 @@ object ProofCompressionCLI {
             case ".skeptik"  => ProofParserSkeptik
           }
           val Timed(proof, tRead) = timed { proofParser.read(filename) }   
-          println(completedIn(tRead))
+          log(completedIn(tRead) + "\n")
           
           // Measuring the input Proof
-          print("Measuring '"+ proofName +"' ...")
+          log("Measuring '"+ proofName +"' ...")
           val Timed(mIProof,tMIProof) = timed { measure(proof) }
-          println(completedIn(tMIProof))
+          log(completedIn(tMIProof) + "\n")
           
           // Adding measurements to measurement table
           val inputRow = (Seq(proofName) ++ mIProof.toSeq)
@@ -211,18 +224,18 @@ object ProofCompressionCLI {
           // Compressing the proof
           for (a <- config.algorithms) yield {
             val algorithm = AlgorithmParser.parse(a)
-            print("Compressing with algorithm: " + a + "...")
+            log("Compressing with algorithm: " + a + "...")
             val Timed(p, t) = timed { algorithm(proof) }
-            println(completedIn(t))
+            log(completedIn(t) + "\n")
             
             val oProofName = proofName + "-" + a
-            print("Writing compressed proof '" + oProofName + "'...")
+            log("Writing compressed proof '" + oProofName + "'...")
             val Timed(_,w) = timed { writeProof(p, oProofName) }
-            println(completedIn(w))
+            log(completedIn(w) + "\n")
             
-            print("Measuring '"+ oProofName +"' ...")
+            log("Measuring '"+ oProofName +"' ...")
             val Timed(mOProof,tMOProof) = timed { measure(p) }
-            println(completedIn(tMOProof))
+            log(completedIn(tMOProof) + "\n")
             
             // Adding measurements to csv file
             append(config.csv)(mOProof.toSeq.mkString("",",", ","))
@@ -255,13 +268,6 @@ object ProofCompressionCLI {
         
         // Displaying proof measurements  
         showMeasurementTable()
-        
-        print(""" 
-          where:           
-            Length = number of inferences in the proof
-            Core = number of axioms in the proof
-            Height = length of longest path from leaf to root         
-        """ + "\n")
       } // end of else of 'if (config.inputs.isEmpty)'
             
     } getOrElse { // arguments are bad 
