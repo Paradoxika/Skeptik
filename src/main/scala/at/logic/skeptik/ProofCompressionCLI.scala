@@ -18,7 +18,8 @@ object ProofCompressionCLI {
                     directory: String = "",
                     algorithms: Seq[String] = Seq(), 
                     outputformat: String = "",
-                    csv: Option[Seekable] = None,
+                    measureOut: Option[Seekable] = None,
+                    measureHeader: Boolean = true,
                     verbose: Boolean = true)                
 
     
@@ -71,8 +72,12 @@ object ProofCompressionCLI {
       """
       )
 
-      opt[Unit]("csv") action { (_, c) =>
-        c.copy(csv = Some(Resource.fromFile(c.directory + c.algorithms.mkString(",") + ".csv"))) 
+      opt[String]("out") action { (v, c) =>
+        c.copy(measureOut = Some(Resource.fromFile(c.directory + v + ".csv"))) 
+      } text("append proof measurements to <file>\n") valueName("<file>")
+      
+      opt[Unit]("disable-header") action { (_, c) =>
+        c.copy(measureHeader = false) 
       } text("output statistics to a csv file\n")
       
       opt[Unit]("silent") action { (_, c) =>
@@ -102,16 +107,16 @@ object ProofCompressionCLI {
       }
   
     // parser.parse returns Option[C]
-    parser.parse(args, Config()) map { config =>
+    parser.parse(args, Config()) map { c =>
       
       
-      def log(s: Any) = if (config.verbose) print(s)
+      def log(s: Any) = if (c.verbose) print(s)
 
-      log("\n")
          
-      if (config.inputs.isEmpty) parser.showUsage
+      if (c.inputs.isEmpty) parser.showUsage
       else {
-
+        log("\n")
+        
         // measurement table initialized with its header only
         // rows with data for every input or output proof are added during execution 
         // and the table is displayed to the user at the end
@@ -128,30 +133,30 @@ object ProofCompressionCLI {
           """ + "\n")
         }
                 
-        def append(ow: Option[Seekable])(s: String) = ow map { _.append(s)}
+        def write(ow: Option[Seekable])(s: String) = ow map { _.append(s)}
         
 
         // writing header if file is empty 
-//        for (f <- config.csv if f.length == 0) {
-//          writeToCSV("\tProof,Uncompressed,\t,\t,")
-//          config.algorithms.foreach(a => writeToCSV(a+",\t,\t,"))
-//          writeToCSV("\n\t,")
-//          writeToCSV("\tLength,\tWidth,\tHeight,")
-//          for (i <- 1 to algcount) writeToCSV("\tLength,\tWidth,\tHeight,")
-//          writeToCSV("\n")
-//        }
+        for (f <- c.measureOut if f.lines().isEmpty && c.measureHeader) {
+          write(c.measureOut){ 
+            "Proof,Uncompressed,,," + (""/:(for (a <- c.algorithms) yield a+",,,")){_ + _} + "\n" +
+            ",Length,Width,Height," + (""/:(for (a <- c.algorithms) yield "Length,Width,Height,")){_ + _} + "\n"
+          }
+        }
         
         
 
-        for (filename <- config.inputs) {
-          // Reading the proof
-          log("Reading and checking proof '"+ filename +"' ...")
+        for (filename <- c.inputs) {
+          
           val proofFormat = ("""\.[^\.]+$""".r findFirstIn filename) getOrElse { throw new Exception(unknownFormat(filename)) }
           val proofName = filename.split(proofFormat)(0) // filename without extension
           val proofParser = proofFormat match {
             case ".smt2"  => ProofParserVeriT
             case ".skeptik"  => ProofParserSkeptik
           }
+          
+          // Reading the proof
+          log("Reading and checking proof '"+ filename +"' ...")
           val Timed(proof, tRead) = timed { proofParser.read(filename) }   
           log(completedIn(tRead) + "\n")
           
@@ -165,12 +170,12 @@ object ProofCompressionCLI {
           appendAtMeasurementTable(inputRow)
           
           // Adding measurements to csv file
-          append(config.csv)(proofName + mIProof.toSeq.mkString(",",",", ","))
+          write(c.measureOut)(proofName + mIProof.toSeq.mkString(",",",", ","))
 
           
           
           val writeProof =  {
-            config.outputformat match {
+            c.outputformat match {
               case "smt2" => (p: Proof[N], name: String) => ProofExporterVeriT.write(p, name)
               case "skeptik" => (p: Proof[N], name: String) => ProofExporterSkeptik.write(p, name)
               case "" =>  (p: Proof[N], name: String) => { }
@@ -178,7 +183,7 @@ object ProofCompressionCLI {
           }
 
           // Compressing the proof
-          for (a <- config.algorithms) yield {
+          for (a <- c.algorithms) yield {
             val algorithm = AlgorithmParser.parse(a)
             log("Compressing with algorithm: " + a + "...")
             val Timed(p, t) = timed { algorithm(proof) }
@@ -194,7 +199,7 @@ object ProofCompressionCLI {
             log(completedIn(tMOProof) + "\n")
             
             // Adding measurements to csv file
-            append(config.csv)(mOProof.toSeq.mkString("",",", ","))
+            write(c.measureOut)(mOProof.toSeq.mkString("",",", ","))
             
             // Adding measurements to measurement table
             val outputRow = {
@@ -206,7 +211,7 @@ object ProofCompressionCLI {
             appendAtMeasurementTable(outputRow)
 
           } 
-          append(config.csv)("\n")
+          write(c.measureOut)("\n")
         } // end of 'for (filename <- config.inputs)'
         
         // Displaying proof measurements  
