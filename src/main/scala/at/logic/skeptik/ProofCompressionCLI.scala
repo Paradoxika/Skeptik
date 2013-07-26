@@ -7,7 +7,6 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof.measure
 import at.logic.skeptik.util.time._
-import at.logic.skeptik.util.pretty._
 import at.logic.skeptik.util.io.{Input,Output,NoOutput,StandardOutput,FileOutput}
 
 import collection.mutable.{HashMap=>MMap}
@@ -115,11 +114,26 @@ object ProofCompressionCLI {
       // measurement table initialized with its header only
       // rows with data for every input or output proof are added during execution 
       // and the table is displayed to the user (to hout) at the end
-      object measurementTable {
+      object prettyTable {
         var t: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "CoreSize", "Height"))
-        def append(row: Seq[Any]) = t ++= Seq(row)
+        var currentInputMeasurements: Seq[Int] = null
+        private def append(name: String, data: Seq[Any]) = {
+          val row = Seq(name) ++ data
+          t ++= Seq(row)
+        }
+        def appendInput(name: String, measurements: Seq[Int]) = {
+          currentInputMeasurements = measurements
+          append(name, measurements)
+        }
+        def appendOutput(name: String, measurements: Seq[Int]) = {
+          val data = (currentInputMeasurements zip measurements) map { case (i,o) => 
+            ""+ o + " (" + (Math.round(1000.0*o/i)/10.0) + "%)"
+          }  
+          append(name, data)
+        }
+        
         override def toString = {
-          "\n" + prettyTable(t) + """ 
+          "\n" + at.logic.skeptik.util.pretty.prettyTable(t) + """ 
           where:           
             Length = number of inferences in the proof
             CoreSize = number of axioms in the proof
@@ -158,8 +172,7 @@ object ProofCompressionCLI {
         cumulativeLength("inputs") += mIProof.length
         
         // Adding measurements to measurement table
-        val inputRow = (Seq(proofName) ++ mIProof.toSeq)
-        measurementTable.append(inputRow)
+        prettyTable.appendInput(proofName, mIProof.toSeq)
         
         // Adding measurements to csv file
         c.mout.write(proofName + mIProof.toSeq.mkString(",",",", ","))
@@ -196,18 +209,18 @@ object ProofCompressionCLI {
           c.mout.write(mOProof.toSeq.mkString("",",", ","))
           
           // Adding measurements to measurement table
-          val outputRow = Seq(oProofName) ++ (mIProof zipWith mOProof) { (i,o) => 
+          val outputRow = (mIProof zipWith mOProof) { (i,o) => 
             ""+ o + " (" + (Math.round(1000.0*o/i)/10.0) + "%)"
           }  
              
-          measurementTable.append(outputRow)
+          prettyTable.appendOutput(oProofName, mOProof.toSeq)
         }  // end of 'for (a <- algorithms)'
         
         c.mout.write("\n")
       } // end of 'for (filename <- config.inputs)'
       
       // Displaying proof measurements  
-      c.hout.write(measurementTable)
+      c.hout.write(prettyTable)
       
       // Displaying overall statistics
       print(cumulativeLength)
