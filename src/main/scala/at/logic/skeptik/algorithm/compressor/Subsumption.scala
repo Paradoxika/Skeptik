@@ -72,12 +72,12 @@ abstract class BWS extends AbstractSubsumption {
         node match {
           case R(left, right, pivot, _) => {
             val fixedLeft  = fixedPremises.head
-	        val fixedRight = fixedPremises.last
-	        val newNode = 
-	          if ((left eq fixedLeft) && (right eq fixedRight)) node 
-	          else R(fixedLeft,fixedRight,pivot,true)
+	          val fixedRight = fixedPremises.last
+	          val newNode = 
+	            if ((left eq fixedLeft) && (right eq fixedRight)) node 
+	            else R(fixedLeft,fixedRight,pivot,true)
 	          newNode
-            }
+          }
           case _ => node
         }
       })
