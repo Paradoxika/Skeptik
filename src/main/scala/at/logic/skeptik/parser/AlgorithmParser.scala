@@ -30,7 +30,7 @@ object AlgorithmParser extends RegexParsers {
   }
   
   def parse(s: String) : A = {
-    parse(algo, s) match {
+    parseAll(algo, s) match {
       case Success(a,_) => a // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception("Failure: " + message)
       case Error(message,_) => throw new Exception("Error: " + message)
@@ -38,7 +38,7 @@ object AlgorithmParser extends RegexParsers {
   }
   
   def parseMany(s: String) : List[A] = {
-    parse(algos, s) match {
+    parseAll(algos, s) match {
       case Success(a,_) => a // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception("Failure: " + message)
       case Error(message,_) => throw new Exception("Error: " + message)
