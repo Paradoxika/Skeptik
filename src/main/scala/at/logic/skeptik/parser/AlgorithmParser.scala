@@ -12,8 +12,6 @@ object AlgorithmParser extends RegexParsers {
   type P = Proof[N]
   type A = P => P
   
-  def algos: Parser[List[A]] = repsep(algo,",") 
-  
   def algo : Parser[A] = (atomicAlgo | composedAlgo)
   
   def atomicAlgo : Parser[A] = """[a-zA-Z0-9]+""".r flatMap { name => 
@@ -31,14 +29,6 @@ object AlgorithmParser extends RegexParsers {
   
   def parse(s: String) : A = {
     parseAll(algo, s) match {
-      case Success(a,_) => a // returns proof whose root is in the last line of the proof file
-      case Failure(message,_) => throw new Exception("Failure: " + message)
-      case Error(message,_) => throw new Exception("Error: " + message)
-    }
-  }
-  
-  def parseMany(s: String) : List[A] = {
-    parseAll(algos, s) match {
       case Success(a,_) => a // returns proof whose root is in the last line of the proof file
       case Failure(message,_) => throw new Exception("Failure: " + message)
       case Error(message,_) => throw new Exception("Error: " + message)
