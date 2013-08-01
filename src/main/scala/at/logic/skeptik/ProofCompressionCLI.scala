@@ -113,7 +113,7 @@ object ProofCompressionCLI {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { c =>
       
-      val measures = Seq("length","coreSize","height")
+      val measures = Seq("length","coreSize","height","time")
       
       val prettyTable = new HumanReadableTable(measures)
       val stats = new CumulativeStats(measures, c.algorithms)
@@ -146,10 +146,10 @@ object ProofCompressionCLI {
         val Timed(mIProof,tMIProof) = timed { measure(proof) }
         c.hout.write(completedIn(tMIProof) + "\n\n")
         
-        stats.processInput(proofName, mIProof)
+        val measurements = mIProof + ("time" -> Math.round(tRead).toInt)
         
-        // Adding measurements to measurement table
-        prettyTable.processInput(proofName, mIProof)
+        stats.processInput(proofName, measurements)
+        prettyTable.processInput(proofName, measurements)
         
         // Adding measurements to csv file
         c.mout.write(proofName + mIProof.toSeq.mkString(",",",", ","))
@@ -178,12 +178,15 @@ object ProofCompressionCLI {
           val Timed(mOProof,tMOProof) = timed { measure(p) }
           c.hout.write(completedIn(tMOProof) + "\n\n")
           
-          stats.processOutput(oProofName, a, mOProof)
+          val measurements = mOProof + ("time" -> Math.round(t).toInt)
+          
+          stats.processOutput(oProofName, a, measurements)
+          prettyTable.processOutput(oProofName, a, measurements)
           
           // Adding measurements to csv file
           c.mout.write(mOProof.toSeq.mkString("",",", ","))
              
-          prettyTable.processOutput(oProofName, a, mOProof)
+          
         }  // end of 'for (a <- algorithms)'
         
         c.mout.write("\n")
