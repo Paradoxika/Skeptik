@@ -101,23 +101,3 @@ pomExtra := (
 		</plugins>
 	</reporting>
 )
-
-
-// Custom RunTasks
-
-fullRunInputTask(InputKey[Unit]("compress"), Runtime, "at.logic.skeptik.ProofCompressionCLI")
-
-fullRunInputTask(InputKey[Unit]("compress-test"), Runtime, "at.logic.skeptik.ProofCompressionCLI", "-a", "RPI", "examples/proofs/VeriT/eq_diamond4.smt2" )
-
-
-//  Tasks
-
-
-//prepareVSC <<= (version, scalaVersion) { (v, s) => println(" " + v + " " + s) }
-
-
-// OneJar Settings
-
-seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
-
-mainClass in oneJar := Some("at.logic.skeptik.ProofCompressionCLI")
