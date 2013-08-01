@@ -113,8 +113,10 @@ object ProofCompressionCLI {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { c =>
       
-      val prettyTable = new HumanReadableTable
-      val stats = new CumulativeStats(c.algorithms)
+      val measures = Seq("length","coreSize","height")
+      
+      val prettyTable = new HumanReadableTable(measures)
+      val stats = new CumulativeStats(measures, c.algorithms)
       
       // writing header if file is empty 
       if (c.moutHeader && c.mout.isInstanceOf[FileOutput] && c.mout.asInstanceOf[FileOutput].isEmpty) c.mout.write { 
@@ -144,10 +146,10 @@ object ProofCompressionCLI {
         val Timed(mIProof,tMIProof) = timed { measure(proof) }
         c.hout.write(completedIn(tMIProof) + "\n\n")
         
-        stats.processInput(proofName, mIProof.toSeq)
+        stats.processInput(proofName, mIProof)
         
         // Adding measurements to measurement table
-        prettyTable.processInput(proofName, mIProof.toSeq)
+        prettyTable.processInput(proofName, mIProof)
         
         // Adding measurements to csv file
         c.mout.write(proofName + mIProof.toSeq.mkString(",",",", ","))
@@ -176,12 +178,12 @@ object ProofCompressionCLI {
           val Timed(mOProof,tMOProof) = timed { measure(p) }
           c.hout.write(completedIn(tMOProof) + "\n\n")
           
-          stats.processOutput(oProofName, a, mOProof.toSeq)
+          stats.processOutput(oProofName, a, mOProof)
           
           // Adding measurements to csv file
           c.mout.write(mOProof.toSeq.mkString("",",", ","))
              
-          prettyTable.processOutput(oProofName, a, mOProof.toSeq)
+          prettyTable.processOutput(oProofName, a, mOProof)
         }  // end of 'for (a <- algorithms)'
         
         c.mout.write("\n")
@@ -198,48 +200,47 @@ object ProofCompressionCLI {
     } 
   }
   
+  type M = Map[String, Int]
+  
   abstract class DataAggregator {
-    def processInput(name:String, measurements: Seq[Int])
-    def processOutput(name:String, a: String, measurements: Seq[Int])
+    def processInput(name:String, measurements: M)
+    def processOutput(name:String, a: String, measurements: M)
   }
       
   // measurement table initialized with its header only
   // rows with data for every input or output proof are added during execution 
   // and the table is displayed to the user (to hout) at the end
-  class HumanReadableTable extends DataAggregator {
-    private var t: Seq[Seq[Any]] = Seq(Seq("Proof", "Length", "CoreSize", "Height"))
-    private var currentInputMeasurements: Seq[Int] = null
+  class HumanReadableTable(measures: Seq[String]) extends DataAggregator {
+    private var t: Seq[Seq[Any]] = Seq(Seq("Proof") ++ measures)
+    private var currentInputMeasurements: M = null
     private def append(name: String, data: Seq[Any]) = {
       val row = Seq(name) ++ data
       t ++= Seq(row)
     }
-    def processInput(name: String, measurements: Seq[Int]) = {
+    def processInput(name: String, measurements: M) = {
       currentInputMeasurements = measurements
-      append(name, measurements)
+      append(name, for (m <- measures) yield measurements(m))
     }
-    def processOutput(name: String, a: String, measurements: Seq[Int]) = {
-      val data = (currentInputMeasurements zip measurements) map { case (i,o) => 
+    def processOutput(name: String, a: String, measurements: M) = {
+      val data = for (m <- measures) yield {
+        val o = measurements(m)
+        val i = currentInputMeasurements(m)
         ""+ o + " (" + (Math.round(1000.0*o/i)/10.0) + "%)"
-      }  
+      } 
       append(name, data)
     }
     
     override def toString = {
-      "\n" + at.logic.skeptik.util.pretty.prettyTable(t) + """ 
-      where:           
-        Length = number of inferences in the proof
-        CoreSize = number of axioms in the proof
-        Height = length of longest path from leaf to root         
-      """ + "\n"
+      "\n" + at.logic.skeptik.util.pretty.prettyTable(t) + "\n"
     }
   }
 
-  class CumulativeStats(algorithms: Seq[String]) extends DataAggregator {
+  class CumulativeStats(measures: Seq[String], algorithms: Seq[String]) extends DataAggregator {
     private val m = MMap( ("id"::(algorithms.toList)) map { (_ -> Seq(0,0,0)) } :_* )
     
-    def processInput(name: String, measurements: Seq[Int]) = append("id", measurements) 
+    def processInput(name: String, measurements: M) = append("id", for (m <- measures) yield measurements(m)) 
     
-    def processOutput(name: String, a: String, measurements: Seq[Int]) = append(a, measurements)
+    def processOutput(name: String, a: String, measurements: M) = append(a, for (m <- measures) yield measurements(m))
     
     private def append(a: String, d: Seq[Int]) = m(a) = (m(a) zip d) map { case (x,y) => x+y }
     
