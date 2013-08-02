@@ -19,22 +19,22 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   node match {
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion.width <= o2.conclusion.width) =>
+       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o1.conclusion.suc contains u) =>
 //         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion.width <= o1.conclusion.width) =>
+       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o2.conclusion.ant contains u) =>
 //         print("Case 2 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion.width <= o2.conclusion.width) =>
+       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o1.conclusion.suc contains u) =>
 //         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion.width <= o1.conclusion.width) =>
+       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o2.conclusion.ant contains u) =>
 //         print("Case 4 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
 
