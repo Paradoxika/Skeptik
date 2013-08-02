@@ -23,6 +23,7 @@ package object compressor {
     "RRlm" -> new RRWithLowerMiddleTimeout(5000),
     "RRST" -> ReduceAndReconstructSimpleTermination,
     "RRlmST" -> RRWithLowerMiddleSimpleTermination,
+    "RRHST" -> RRWithHelsinkiSimpleTermination,
     "Split" -> new CottonSplit(30000),
     "RBSplit" -> new RandomBoudouSplit(30000),
     "DBSplit" -> new DeterministicBoudouSplit(30000),
