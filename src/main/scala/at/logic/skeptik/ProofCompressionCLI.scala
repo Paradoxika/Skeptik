@@ -10,7 +10,7 @@ import at.logic.skeptik.util.time._
 import at.logic.skeptik.util.io.{Input,Output,NoOutput,StandardOutput,FileOutput}
 
 import collection.mutable.{HashMap=>MMap}
-
+import language.postfixOps
 
 object ProofCompressionCLI {
 
@@ -117,14 +117,8 @@ object ProofCompressionCLI {
       
       val prettyTable = new HumanReadableTable(measures)
       val stats = new CumulativeStats(measures, c.algorithms)
-      
-      // writing header if file is empty 
-      if (c.moutHeader && c.mout.isInstanceOf[FileOutput] && c.mout.asInstanceOf[FileOutput].isEmpty) c.mout.write { 
-        "Proof,Uncompressed,,," + (""/:(for (a <- c.algorithms) yield a+",,,")){_ + _} + "\n" +
-        ",Length,Width,Height," + (""/:(for (a <- c.algorithms) yield "Length,CoreSize,Height,")){_ + _} + "\n"
-      }
-  
-
+      val csv = new CSV(measures, c.algorithms, c.moutHeader, c.mout)
+     
       c.hout.write("\n")
       
       for (filename <- c.inputs) {
@@ -150,9 +144,7 @@ object ProofCompressionCLI {
         
         stats.processInput(proofName, measurements)
         prettyTable.processInput(proofName, measurements)
-        
-        // Adding measurements to csv file
-        c.mout.write(proofName + mIProof.toSeq.mkString(",",",", ","))
+        csv.processInput(proofName, measurements)
   
         val writeProof =  {
           c.format match {
@@ -182,14 +174,8 @@ object ProofCompressionCLI {
           
           stats.processOutput(oProofName, a, measurements)
           prettyTable.processOutput(oProofName, a, measurements)
-          
-          // Adding measurements to csv file
-          c.mout.write(mOProof.toSeq.mkString("",",", ","))
-             
-          
+          csv.processOutput(oProofName, a, measurements)        
         }  // end of 'for (a <- algorithms)'
-        
-        c.mout.write("\n")
       } // end of 'for (filename <- config.inputs)'
       
       // Displaying proof measurements  
@@ -251,6 +237,25 @@ object ProofCompressionCLI {
     
     override def toString = {
       ("" /: m.keys) { (s, k) => s + "Cumulatives stats for " + k + ": " + normalize(k).mkString("", "%, ", "%") + "\n" }
+    }
+    
+  }
+  
+  class CSV(measures: Seq[String], algorithms: Seq[String], header: Boolean, out: Output) extends DataAggregator {
+    // writing header if file is empty 
+    if (header && (!out.isInstanceOf[FileOutput] || (out.isInstanceOf[FileOutput] && out.asInstanceOf[FileOutput].isEmpty))) out.write {
+      val emptyColumns = ("" /: measures){(acc,m) => acc + ","} // n commas for n measures
+      val measureHeaders = measures.mkString("",",",",")
+      "Proof,Uncompressed" + emptyColumns + (""/:(for (a <- algorithms) yield a + emptyColumns )){_ + _} + "\n" +
+      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _}
+    }
+    
+    def processInput(name: String, measurements: M) = {
+      out.write("\n" + name + (for (m <- measures) yield measurements(m)).mkString(",",",", ","))
+    }
+    
+    def processOutput(name: String, a: String, measurements: M) = {
+      out.write((for (m <- measures) yield measurements(m)).mkString("",",", ","))
     }
     
   }
