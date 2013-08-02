@@ -5,8 +5,10 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.R
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
+import at.logic.skeptik.util.math.max
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
+import annotation.tailrec
 
 abstract class AbstractReduceAndReconstruct
 extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
@@ -117,35 +119,60 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
   
   protected def reconstruct(proof: Proof[SequentProofNode], function: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
-                           (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+                           (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =
     (node, fixedPremises) match {
       case (R(o_left,o_right,pivot,_), n_left::n_right::Nil) =>
         function(R(n_left, n_right, pivot, true), proof.childrenOf(o_left).length == 1, proof.childrenOf(o_right).length == 1)
       case _ => node
     }
-  }
 }
 
-class ReduceAndReconstruct(val timeout: Int)
+
+class ReduceAndReconstructTimeout(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
   def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(a1p(a2))))
 }
 
-
-class RRWithoutA2(val timeout: Int)
-extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(a1p({ (n,_,_) => n }))))
-}
-
-
-class RRWithLowerMiddle(val timeout: Int)
+class RRWithLowerMiddleTimeout(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
   def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(lowerMiddle(a2))))
 }
 
+trait SimpleTermination
+extends AbstractReduceAndReconstruct {
+  protected def reconstructH(proof: Proof[SequentProofNode], function: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+                           (node: SequentProofNode, fixedPremises: Seq[(Int,SequentProofNode)]) =
+    (node, fixedPremises) match {
+      case (R(o_left,o_right,pivot,_), (hl,n_left)::(hr,n_right)::Nil) =>
+        ((if (hl > hr) hl else hr) + 1,
+         function(R(n_left, n_right, pivot, true), proof.childrenOf(o_left).length == 1, proof.childrenOf(o_right).length == 1))
+      case (n, l) => (max(l, { x:(Int,SequentProofNode) => x._1}, 0) + 1, n)
+    }
 
-class LowerMiddleA2(val timeout: Int)
-extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, a1p(a2)))
+  def applyOnce(proof: Proof[SequentProofNode]): (Int, SequentProofNode)
+
+  def apply(proof: Proof[SequentProofNode]) = {
+    @tailrec
+    def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
+      val (height, root) = applyOnce(before)
+      val after = Proof(root)
+      if (count < height)
+        aux(after, count+1)
+      else {
+        print("("+count+" times)")
+        after
+      }
+    }
+    aux(proof,1)
+  }
 }
 
+object ReduceAndReconstructSimpleTermination
+extends AbstractReduceAndReconstruct with SimpleTermination {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(a1p(a2))))
+}
+
+object RRWithLowerMiddleSimpleTermination
+extends AbstractReduceAndReconstruct with SimpleTermination {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(lowerMiddle(a2))))
+}
