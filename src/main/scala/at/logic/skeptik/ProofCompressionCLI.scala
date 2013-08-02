@@ -39,13 +39,13 @@ object ProofCompressionCLI {
       c.copy(algorithms = c.algorithms ++ Seq(v))
     } text("use <alg> to compress proofs") valueName("<alg>")
     
-    note(
+    note("""
+        <alg> can be any of the following atomic algorithms:""" + "\n" +  
+        at.logic.skeptik.util.pretty.mkStringMultiLine(
+           at.logic.skeptik.algorithm.compressor.algorithms.keys,
+           10,60,"   ") + 
     """
-      <alg> can be any of the following atomic algorithms:
-    """ + 
-    (for (a <- at.logic.skeptik.algorithm.compressor.algorithms) yield a._1).mkString(",") + "\n" + 
-    """
-      or a sequential composition denoted by '(alg1*alg2*...*algN)'
+        or a sequential composition denoted by '(alg1*alg2*...*algN)'
     """    
     )  
     
@@ -55,22 +55,15 @@ object ProofCompressionCLI {
     
     opt[String]('d', "directory") unbounded() action { (v, c) => 
       c.copy(directory = v)
-    } text("set working directory to <dir>") valueName("<dir>")
+    } text("set working directory to <dir>\n") valueName("<dir>")
     
-    opt[String]('o', "output") action { (v, c) => 
+    opt[String]('f', "format") action { (v, c) => 
       c.copy(format = v) 
     } validate { v =>
       if (supportedProofFormats contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> to output compressed proofs") valueName("<format>")
+    } text("use <format> (either 'smt2' or 'skeptik') to output compressed proofs\n") valueName("<format>")
  
-      note(
-      """
-      <format> can be:
-        smt2    - VeriT's proof format
-        skeptik - Skeptik's proof format
-    """
-    )
 
     opt[String]('m', "mout") action { (v, c) =>
       c.copy(mout = Output(c.directory + v)) 
@@ -82,16 +75,16 @@ object ProofCompressionCLI {
     
     opt[String]('h', "hout") action { (v, c) =>
       c.copy(hout = Output(c.directory + v)) 
-    } text("output human readable measurements to <file>") valueName("<file>")
-    
-    opt[String]('p', "proofs") action { (v, c) => 
-      c.copy(inputs = c.inputs ++ (Input(c.directory + v).lines map {c.directory + _})) 
-    } text("compress proofs from files listed in <file>\n") valueName("<file>")
-    
+    } text("output human readable measurements to <file>\n") valueName("<file>")
+ 
     arg[String]("<proof-file>...") unbounded() optional() action { (v, c) =>
       c.copy(inputs = c.inputs ++ Seq(c.directory + v)) 
     } text("compress proof from <proof-file>\n")
     
+    opt[String]('p', "proofs") action { (v, c) => 
+      c.copy(inputs = c.inputs ++ (Input(c.directory + v).lines map {c.directory + _})) 
+    } text("compress proofs from files listed in <file>\n") valueName("<file>")
+     
     help("help") text("print this usage text")
     
     note(
@@ -100,9 +93,8 @@ object ProofCompressionCLI {
       The following command processes the proof 'eq_diamond9.smt2' using the
       algorithms 'RP' and the sequential composition of 'DAGify', 'RPI' and 'LU'.
       The compressed proofs are written using 'skeptik' proof format.
-      And a csv file containing compression statistics is produced.
 
-      compress -csv -a RP -a (DAGify*RPI*LU) -o skeptik examples/proofs/VeriT/eq_diamond9.smt2
+      compress -a RP -a (DAGify*RPI*LU) -f skeptik examples/proofs/VeriT/eq_diamond9.smt2
       """)
   }
   
@@ -236,7 +228,7 @@ object ProofCompressionCLI {
     private def normalize(a: String) = (m(a) zip m("id")) map {case (o,i) => (Math.round(1000.0*o/i)/10.0)}
     
     override def toString = {
-      ("" /: m.keys) { (s, k) => s + "Cumulatives stats for " + k + ": " + normalize(k).mkString("", "%, ", "%") + "\n" }
+      ("" /: m.keys) { (s, k) => s + "Cumulative stats for " + k + ": " + normalize(k).mkString("", "%, ", "%") + "\n" }
     }
     
   }

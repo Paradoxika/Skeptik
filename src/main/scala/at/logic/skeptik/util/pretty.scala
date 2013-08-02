@@ -4,6 +4,24 @@ import at.logic.skeptik.util.math._
 import annotation.tailrec
 
 object pretty {
+  def blankString(length: Int): String = repString(" ", "", length)
+  
+  def mkStringMultiLine(c:Iterable[Any], leftMargin: Int, width: Int, sep: String) = {
+    val margin = blankString(leftMargin)
+    var counter = margin.length
+    var paragraph = margin
+    for (w <- c) {
+      paragraph += w + sep
+      counter += w.toString.length + sep.length
+      if (counter > width) {
+        paragraph += "\n" + margin
+        counter = margin.length
+      }
+    }
+    paragraph
+  }
+  
+  
   def prettyTable[A](t: Seq[Seq[A]], sep: String = "   ", header: Boolean = true) = {
     val tTrans = t.transpose
     val widths: Seq[Seq[Int]] = t map {r => r map {e => e.toString.length}}
@@ -29,8 +47,6 @@ object pretty {
     }
     else ("" /: (fixedWidthTable map { row => row.mkString("", sep, "\n") })) {_ + _}
   }
-  
-  def blankString(length: Int): String = repString(" ", "", length)
    
   @tailrec def repString(rep: String, s: String, length: Int): String = {
     if (length <= 0) s
