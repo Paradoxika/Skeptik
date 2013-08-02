@@ -11,8 +11,8 @@ object io {
     def write(s: Any): Unit
   }
   object Output {
-    def apply(path: String) = if (path == "//stdout") StandardOutput
-                    else if (path == "//none") NoOutput
+    def apply(path: String) = if (path contains "stdout://") StandardOutput
+                    else if (path contains "void://") NoOutput
                     else new FileOutput(path)
   }
   
