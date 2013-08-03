@@ -22,6 +22,7 @@ package object compressor {
     "RR" -> new ReduceAndReconstructTimeout(5000),
     "RRlm" -> new RRWithLowerMiddleTimeout(5000),
     "RRST" -> ReduceAndReconstructSimpleTermination,
+    "RRCST" -> RRC1PSimpleTermination,
     "RRlmST" -> RRWithLowerMiddleSimpleTermination,
     "RRHST" -> RRWithHelsinkiSimpleTermination,
     "Split" -> new CottonSplit(30000),

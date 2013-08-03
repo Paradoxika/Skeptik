@@ -71,7 +71,26 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
-  protected def a1p
+  protected def s1p
+      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  node match {
+
+    case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
+    if leftPremiseHasOneChild && rightPremiseHasOneChild &&
+       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1 eq o2) =>
+//         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+         R(R(alpha,beta), o1)
+    case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
+    if leftPremiseHasOneChild && rightPremiseHasOneChild &&
+       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1 eq o2) =>
+//         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
+         R(R(alpha,beta), o1)
+
+    case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+  }
+
+  protected def c1p
       (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
       (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
   node match {
@@ -159,7 +178,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
 class ReduceAndReconstructTimeout(val timeout: Int)
 extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(a1p(a2))))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(s1p(a2))))
 }
 
 class RRWithLowerMiddleTimeout(val timeout: Int)
@@ -198,7 +217,12 @@ extends AbstractReduceAndReconstruct {
 
 object ReduceAndReconstructSimpleTermination
 extends AbstractReduceAndReconstruct with SimpleTermination {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(a1p(a2))))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(s1p(a2))))
+}
+
+object RRC1PSimpleTermination
+extends AbstractReduceAndReconstruct with SimpleTermination {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(c1p(a2))))
 }
 
 object RRWithLowerMiddleSimpleTermination
