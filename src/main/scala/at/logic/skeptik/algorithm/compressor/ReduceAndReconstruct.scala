@@ -10,12 +10,13 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.Map
 import annotation.tailrec
 
-abstract class AbstractReduceAndReconstruct
-extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
+object r {
+  type Fun = ((SequentProofNode,Boolean,Boolean) => SequentProofNode)
+  type Rule = Fun => Fun
 
-  protected def helsinki
-      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
-      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  def helsinki
+      (fallback: Fun) =
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
@@ -42,9 +43,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
   }
 
 
-  protected def lowerMiddle
-      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
-      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  def lowerMiddle
+      (fallback: Fun) =
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
 
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
@@ -71,9 +72,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
-  protected def s1p
-      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
-      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  def s1p
+      (fallback: Fun) =
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
 
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
@@ -90,9 +91,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
-  protected def c1p
-      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
-      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  def c1p
+      (fallback: Fun) =
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
 
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
@@ -109,9 +110,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
-  protected def reduce
-      (fallback: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
-      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean):SequentProofNode =
+  def reduce
+      (fallback: Fun) =
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
 
     // B2
@@ -147,7 +148,8 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
-  def a2(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
+  def a2
+    (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
     case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild &&
                                                    !(alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
          R(R(beta,alpha, t), gamma, s)
@@ -163,10 +165,32 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
     case _ => node
   }
+}
+import r._
+
+abstract class AbstractReduceAndReconstruct(val rules: Seq[Rule])
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
+  def mergeRules(default: Fun) = (rules :\ default){ _(_) }
+}
+
+abstract class ReduceAndReconstruct
+extends AbstractReduceAndReconstruct(Seq(reduce,s1p))
+
+abstract class ReduceAndReconstructC1P
+extends AbstractReduceAndReconstruct(Seq(reduce,c1p))
+
+abstract class ReduceAndReconstructLowerMiddle
+extends AbstractReduceAndReconstruct(Seq(reduce,lowerMiddle))
+
+abstract class ReduceAndReconstructHelsinki
+extends AbstractReduceAndReconstruct(Seq(reduce,helsinki))
 
 
-  
-  protected def reconstruct(proof: Proof[SequentProofNode], function: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+
+trait Reconstruct
+extends AbstractReduceAndReconstruct
+{
+  protected def reconstruct(proof: Proof[SequentProofNode], function: Fun)
                            (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =
     (node, fixedPremises) match {
       case (R(o_left,o_right,pivot,_), n_left::n_right::Nil) =>
@@ -175,20 +199,23 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     }
 }
 
+trait RRTimeout
+extends Reconstruct with Timeout {
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, mergeRules(a2)))
+}
 
 class ReduceAndReconstructTimeout(val timeout: Int)
-extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(s1p(a2))))
-}
+extends ReduceAndReconstruct with RRTimeout
 
 class RRWithLowerMiddleTimeout(val timeout: Int)
-extends AbstractReduceAndReconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce(lowerMiddle(a2))))
-}
+extends ReduceAndReconstructLowerMiddle with RRTimeout
 
-trait SimpleTermination
-extends AbstractReduceAndReconstruct {
-  protected def reconstructH(proof: Proof[SequentProofNode], function: (SequentProofNode,Boolean,Boolean) => SequentProofNode)
+
+
+trait ReconstructWithHeight
+extends AbstractReduceAndReconstruct
+{
+  protected def reconstruct(proof: Proof[SequentProofNode], function: Fun)
                            (node: SequentProofNode, fixedPremises: Seq[(Int,SequentProofNode)]) =
     (node, fixedPremises) match {
       case (R(o_left,o_right,pivot,_), (hl,n_left)::(hr,n_right)::Nil) =>
@@ -196,8 +223,12 @@ extends AbstractReduceAndReconstruct {
          function(R(n_left, n_right, pivot, true), proof.childrenOf(o_left).length == 1, proof.childrenOf(o_right).length == 1))
       case (n, l) => (max(l, { x:(Int,SequentProofNode) => x._1}, 0) + 1, n)
     }
+}
 
-  def applyOnce(proof: Proof[SequentProofNode]): (Int, SequentProofNode)
+trait SimpleTermination
+extends AbstractReduceAndReconstruct with ReconstructWithHeight {
+
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, mergeRules(a2)))
 
   def apply(proof: Proof[SequentProofNode]) = {
     @tailrec
@@ -216,21 +247,72 @@ extends AbstractReduceAndReconstruct {
 }
 
 object ReduceAndReconstructSimpleTermination
-extends AbstractReduceAndReconstruct with SimpleTermination {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(s1p(a2))))
-}
+extends ReduceAndReconstruct with SimpleTermination
 
 object RRC1PSimpleTermination
-extends AbstractReduceAndReconstruct with SimpleTermination {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(c1p(a2))))
-}
+extends ReduceAndReconstructC1P with SimpleTermination
 
 object RRWithLowerMiddleSimpleTermination
-extends AbstractReduceAndReconstruct with SimpleTermination {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(lowerMiddle(a2))))
-}
+extends ReduceAndReconstructLowerMiddle with SimpleTermination
 
 object RRWithHelsinkiSimpleTermination
-extends AbstractReduceAndReconstruct with SimpleTermination {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstructH(proof, reduce(helsinki(a2))))
+extends ReduceAndReconstructHelsinki with SimpleTermination
+
+
+trait CheckA2
+extends AbstractReduceAndReconstruct with ReconstructWithHeight {
+  var check = 0
+
+  def applyOnce(proof: Proof[SequentProofNode]) = {
+    check = 0
+//    print(" ")
+    def post(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
+//      print("-")
+      check -= 1
+      a2(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+    }
+    val mr = mergeRules(post)
+    def pre(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
+//      print("+")
+      check += 1
+      mr(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+    }
+    proof.foldDown(reconstruct(proof, pre))
+  }
 }
+
+trait OverTermination
+extends AbstractReduceAndReconstruct with CheckA2 {
+  
+  def apply(proof: Proof[SequentProofNode]) = {
+    @tailrec
+    def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
+//      print("_"+count)
+      val (height, root) = applyOnce(before)
+      val after = Proof(root)
+//      print("/"+check)
+//      print("h"+height)
+
+      if (check > 0)
+        aux(after, 1)
+      else // only A2 rule has been applied
+        if (count < height)
+          aux(after, count+1)
+        else
+          after
+    }
+    aux(proof,1)
+  }
+}
+
+object ReduceAndReconstructOverTermination
+extends ReduceAndReconstruct with OverTermination
+
+object RRC1POverTermination
+extends ReduceAndReconstructC1P with OverTermination
+
+object RRWithLowerMiddleOverTermination
+extends ReduceAndReconstructLowerMiddle with OverTermination
+
+object RRWithHelsinkiOverTermination
+extends ReduceAndReconstructHelsinki with OverTermination
