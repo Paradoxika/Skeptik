@@ -13,10 +13,17 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
   
   def isUnit[P <: ProofNode[Sequent,P]](n: P) = n.conclusion.width == 1
   
+  def fixNode[P <: ProofNode[Sequent,P]](node: SequentProofNode, pivot: E, left: P, right: P, fixedLeft: SequentProofNode, fixedRight: SequentProofNode):SequentProofNode = {
+    if ((left eq fixedLeft) && (right eq fixedRight)) node 
+    else R(fixedLeft,fixedRight,pivot,true)
+  }
   
   def apply(proof: Proof[SequentProofNode]) = {
+    //stores the unit descendend unit nodes of all proof nodes
     val descUnits = new MMap[SequentProofNode,MSet[SequentProofNode]]
+    //stores occuring unit nodes in the proof for pivot elements
     val units = new MMap[E,MSet[SequentProofNode]]
+    
     
     
     def collectUnits(node: SequentProofNode, children: Seq[SequentProofNode]):SequentProofNode = {
@@ -38,20 +45,24 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
     proof.bottomUp(collectUnits)
        
     Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
-      case R(left, right, pivot, _) => {
-        val fixedLeft  = fixedPremises.head
-		val fixedRight = fixedPremises.last
-		units.getOrElse(pivot,new MSet[SequentProofNode]).find(u => ! descUnits(node).contains(u)) match {
-          case None => {
-		    if ((left eq fixedLeft) && (right eq fixedRight)) node 
-		    else R(fixedLeft,fixedRight,pivot,true)
-          }
-          case Some(u) => {
-            if (u.conclusion.suc.contains(pivot)) R(u,fixedRight,pivot,true)
-            else R(fixedLeft,u,pivot,true)
-          }
+    case R(left, right, pivot, _) => {
+      val fixedLeft  = fixedPremises.head
+  		val fixedRight = fixedPremises.last
+  		//find unit nodes with the current pivot element which are not ancestors of the current node
+  		units.getOrElse(pivot,new MSet[SequentProofNode]).find(u => ! descUnits(node).contains(u)) match {
+        //in case there are no such units -> update the node if needed
+        case None => {
+          fixNode(node,pivot,left,right,fixedLeft,fixedRight)
         }
-      }
+        //there is a not ancestor unit in the proof using the current pivot
+        case Some(u) => {
+          //println(u.conclusion + " contains " + pivot + " suc c: " + u.conclusion.suc.contains(pivot))
+          //pivot is negative
+          if (u.conclusion.suc.contains(pivot)) fixNode(node,pivot,left,right,u,fixedRight)
+          //pivot is positive
+          else fixNode(node,pivot,left,right,fixedLeft,u)
+        }
+      }}
       case _ => node
     })})
   }

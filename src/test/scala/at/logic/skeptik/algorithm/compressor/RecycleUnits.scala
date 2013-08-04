@@ -39,10 +39,15 @@ class RecycleUnitsSpecification extends SpecificationWithJUnit {
     val c9 = R.apply(c7,c8)
     
     val proof = Proof(c9:SequentProofNode)
+    
+    println(proof)
   
+    val compproof = RecycleUnits.apply(proof)
+    println(compproof)
+    
     "RecycleUnits" should {
       "compress the proof" in {
-        val compproof = RecycleUnits.apply(proof)
+        
         proof.size must beGreaterThan(compproof.size)
       }
 	}

@@ -25,16 +25,16 @@ object FWS extends AbstractSubsumption {
           node match {
             case Axiom(conclusion) => nodeMap += (conclusion -> node) ; node
             case R(left, right, pivot, _) => {
-	          val fixedLeft  = fixedPremises.head
-		      val fixedRight = fixedPremises.last
-		      val newNode = 
-		        if ((left eq fixedLeft) && (right eq fixedRight)) node 
-		        else R(fixedLeft,fixedRight,pivot,true)
-		        nodeMap += (newNode.conclusion -> newNode)
-		        newNode
-	        }
-            case _ => node
-          }
+  	          val fixedLeft  = fixedPremises.head
+              val fixedRight = fixedPremises.last
+              val newNode = 
+    		        if ((left eq fixedLeft) && (right eq fixedRight)) node 
+    		        else R(fixedLeft,fixedRight,pivot,true)
+  		        nodeMap += (newNode.conclusion -> newNode)
+  		        newNode
+  	        }
+              case _ => node
+            }
         })
       })
     })
@@ -77,7 +77,7 @@ abstract class BWS extends AbstractSubsumption {
 	          if ((left eq fixedLeft) && (right eq fixedRight)) node 
 	          else R(fixedLeft,fixedRight,pivot,true)
 	          newNode
-            }
+          }
           case _ => node
         }
       })

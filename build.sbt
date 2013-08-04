@@ -15,7 +15,9 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.11" % "test",
   "commons-lang" % "commons-lang" % "2.6",
   "org.scala-lang" % "scala-actors" % "2.10.2",
-  "com.github.scopt" % "scopt_2.10" % "3.1.0"
+  "com.github.scopt" % "scopt_2.10" % "3.1.0",
+  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
+  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 )
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
@@ -99,23 +101,3 @@ pomExtra := (
 		</plugins>
 	</reporting>
 )
-
-
-// Custom RunTasks
-
-fullRunInputTask(InputKey[Unit]("compress"), Runtime, "at.logic.skeptik.ProofCompressionCLI")
-
-fullRunInputTask(InputKey[Unit]("compress-test"), Runtime, "at.logic.skeptik.ProofCompressionCLI", "-a", "RPI", "examples/proofs/VeriT/eq_diamond4.smt2" )
-
-
-//  Tasks
-
-
-//prepareVSC <<= (version, scalaVersion) { (v, s) => println(" " + v + " " + s) }
-
-
-// OneJar Settings
-
-seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
-
-mainClass in oneJar := Some("at.logic.skeptik.ProofCompressionCLI")

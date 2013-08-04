@@ -7,7 +7,7 @@ import at.logic.skeptik.judgment.Judgment
 
 abstract class ProofNode[+J <: Judgment, +P <: ProofNode[J,P]] 
 {
-  def name = {val fullName = getClass.getName; fullName.substring(fullName.lastIndexOf('.' : Int))}
+  def name = {val fullName = getClass.getName; fullName.substring(fullName.lastIndexOf('.' : Int) + 1)}
   private val self = asInstanceOf[P]
   def premises: Seq[P]
   def conclusion : J

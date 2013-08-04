@@ -32,7 +32,7 @@ extends Iterable[P]
     
   override def iterator:Iterator[P] = nodes.iterator
   override def isEmpty:Boolean = nodes.isEmpty
-  override val size:Int = nodes.length // ToDo: nodes is IndexedSeq, and nodes.length should take constant time. Therefore it might be ok to make this a def instead of a val
+  override lazy val size:Int = nodes.length // ToDo: nodes is IndexedSeq, and nodes.length should take constant time. Therefore it might be ok to make this a def instead of a val
 
 
   def foldDown[X](f: (P, Seq[X]) => X): X = {
@@ -64,7 +64,7 @@ extends Iterable[P]
     var counter = 0; var result = "";
     foldDown { (n:P, r:Seq[Int]) =>
       counter += 1
-      result += counter.toString + ": {" + n.conclusion + "} \t:" +
+      result += counter.toString + ": {" + n.conclusion + "} \t: " +
                 n.name + "(" + r.mkString(", ") + ")[" + n.parameters.mkString(", ") + "]\n"
       counter
     }
