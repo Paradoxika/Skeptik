@@ -28,8 +28,8 @@ package object compressor {
     "MSplit2" -> new TimeoutMultiSplit(2,5000),
     "MSplit3" -> new TimeoutMultiSplit(3,5000),
     "MSplit4" -> new TimeoutMultiSplit(4,5000),
-    "FWS" -> FWS,
-    "BWSt" -> BWSt,
-    "BWSm" -> BWSm
+    "TDLRS" -> TopDownLeftRightSubsumption,
+    "BURLSt" -> BottomUpRightLeftSubsumptionTime,
+    "BURLSm" -> BottomUpRightLeftSubsumptionMemory
   )
 }

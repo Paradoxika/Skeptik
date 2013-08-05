@@ -12,7 +12,7 @@ import scala.collection.immutable.{HashSet => ISet}
 abstract class AbstractSubsumption 
 extends (Proof[SequentProofNode] => Proof[SequentProofNode])
 
-object FWS extends AbstractSubsumption {
+object TopDownLeftRightSubsumption extends AbstractSubsumption {
   
   def apply(proof: Proof[SequentProofNode]) = {
     val nodeMap = new MMap[Sequent,SequentProofNode]
@@ -41,7 +41,7 @@ object FWS extends AbstractSubsumption {
   }
 }
 
-abstract class BWS extends AbstractSubsumption {
+abstract class BottomUpRightLeftSubsumption extends AbstractSubsumption {
   val nodeMap = new MMap[Sequent,SequentProofNode]
   val replaceNodes = new MMap[SequentProofNode,SequentProofNode]
   
@@ -58,7 +58,7 @@ abstract class BWS extends AbstractSubsumption {
   
     node match {
       case Axiom(conclusion) => nodeMap += (conclusion -> node)
-      case R(_,_,_,_) => nodeMap += (node.conclusion -> node)
+      case R(_, _, _, _) => nodeMap += (node.conclusion -> node)
       case _ => Unit
     }
   }
@@ -85,7 +85,7 @@ abstract class BWS extends AbstractSubsumption {
   }
 }
 
-object BWSt extends BWS {
+object BottomUpRightLeftSubsumptionTime extends BottomUpRightLeftSubsumption {
   val ancestors = new MMap[SequentProofNode,ISet[SequentProofNode]]
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
     !(ancestors.getOrElseUpdate(node, computeAncestors(node)) contains ancestor)
@@ -99,7 +99,7 @@ object BWSt extends BWS {
   }
 }
 
-object BWSm extends BWS {
+object BottomUpRightLeftSubsumptionMemory extends BottomUpRightLeftSubsumption {
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
     !(node existsAmongAncestors {_ eq ancestor})
   }
