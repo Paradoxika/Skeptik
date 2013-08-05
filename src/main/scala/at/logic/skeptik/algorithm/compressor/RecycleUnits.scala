@@ -9,14 +9,9 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashSet => MSet}
 
-object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
+object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with fixNodes {
   
   def isUnit[P <: ProofNode[Sequent,P]](n: P) = n.conclusion.width == 1
-  
-  def fixNode[P <: ProofNode[Sequent,P]](node: SequentProofNode, pivot: E, left: P, right: P, fixedLeft: SequentProofNode, fixedRight: SequentProofNode):SequentProofNode = {
-    if ((left eq fixedLeft) && (right eq fixedRight)) node 
-    else R(fixedLeft,fixedRight,pivot,true)
-  }
   
   def apply(proof: Proof[SequentProofNode]) = {
     //stores the unit descendend unit nodes of all proof nodes

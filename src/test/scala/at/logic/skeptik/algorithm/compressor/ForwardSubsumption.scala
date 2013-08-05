@@ -50,11 +50,11 @@ class ForwardSubsumptionSpecification extends SpecificationWithJUnit {
 	
     "Forward Subsumption" should {
       "compress the proof" in {
-        val compproof = FWS.apply(r6)
+        val compproof = TopDownLeftRightSubsumption.apply(r6)
         proof.size must beGreaterThan(compproof.size)
       }
       "conclude the empty clause" in {
-        val compproof = FWS.apply(r6)
+        val compproof = TopDownLeftRightSubsumption.apply(r6)
         compproof.root.conclusion.isEmpty must beTrue
       }
 	}

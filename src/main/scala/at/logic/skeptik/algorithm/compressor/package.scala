@@ -1,6 +1,11 @@
 package at.logic.skeptik.algorithm
 
 import at.logic.skeptik.algorithm.compressor.split._
+import at.logic.skeptik.expression.E
+import at.logic.skeptik.proof.ProofNode
+import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.judgment.Sequent
+import at.logic.skeptik.proof.sequent.lk.R
 
 // Algorithm names should contain only alphanumeric characters
 
@@ -30,6 +35,20 @@ package object compressor {
     "MSplit4" -> new TimeoutMultiSplit(4,5000),
     "TDLRS" -> TopDownLeftRightSubsumption,
     "BURLSt" -> BottomUpRightLeftSubsumptionTime,
-    "BURLSm" -> BottomUpRightLeftSubsumptionMemory
+    "BURLSm" -> BottomUpRightLeftSubsumptionMemory,
+    "FAS" -> ForwardAxiomSubsumption
   )
+  trait fixNodes {
+    def fixNode[P <: ProofNode[Sequent,P]](node: SequentProofNode, pivot: E, left: P, right: P, fixedLeft: SequentProofNode, fixedRight: SequentProofNode):SequentProofNode = {
+      if ((left eq fixedLeft) && (right eq fixedRight)) node 
+      else R(fixedLeft,fixedRight,pivot,true)
+    }
+      def fixNode[P <: ProofNode[Sequent,P]](node: SequentProofNode, pivot: E, left: P, right: P, fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
+        val fixedLeft  = fixedPremises.head
+        val fixedRight = fixedPremises.last
+        fixNode(node,pivot,left,right,fixedLeft,fixedRight)
+    }
+  }
 }
+
+

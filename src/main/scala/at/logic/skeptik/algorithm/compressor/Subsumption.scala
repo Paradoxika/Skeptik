@@ -1,6 +1,7 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.expression.E
+import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -10,7 +11,7 @@ import scala.collection.mutable.{HashSet => MSet}
 import scala.collection.immutable.{HashSet => ISet}
 
 abstract class AbstractSubsumption 
-extends (Proof[SequentProofNode] => Proof[SequentProofNode])
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with fixNodes
 
 object TopDownLeftRightSubsumption extends AbstractSubsumption {
   
@@ -25,16 +26,12 @@ object TopDownLeftRightSubsumption extends AbstractSubsumption {
           node match {
             case Axiom(conclusion) => nodeMap += (conclusion -> node) ; node
             case R(left, right, pivot, _) => {
-  	          val fixedLeft  = fixedPremises.head
-              val fixedRight = fixedPremises.last
-              val newNode = 
-    		        if ((left eq fixedLeft) && (right eq fixedRight)) node 
-    		        else R(fixedLeft,fixedRight,pivot,true)
+  	          val newNode = fixNode(node,pivot,left,right,fixedPremises)
   		        nodeMap += (newNode.conclusion -> newNode)
   		        newNode
   	        }
-              case _ => node
-            }
+            case _ => node
+          }
         })
       })
     })
@@ -70,14 +67,7 @@ abstract class BottomUpRightLeftSubsumption extends AbstractSubsumption {
     	
       replaceNodes.getOrElse(node,{
         node match {
-          case R(left, right, pivot, _) => {
-            val fixedLeft  = fixedPremises.head
-	        val fixedRight = fixedPremises.last
-	        val newNode = 
-	          if ((left eq fixedLeft) && (right eq fixedRight)) node 
-	          else R(fixedLeft,fixedRight,pivot,true)
-	          newNode
-          }
+          case R(left, right, pivot, _) => fixNode(node,pivot,left,right,fixedPremises)
           case _ => node
         }
       })
@@ -102,5 +92,20 @@ object BottomUpRightLeftSubsumptionTime extends BottomUpRightLeftSubsumption {
 object BottomUpRightLeftSubsumptionMemory extends BottomUpRightLeftSubsumption {
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
     !(node existsAmongAncestors {_ eq ancestor})
+  }
+}
+
+object ForwardAxiomSubsumption extends AbstractSubsumption {
+  def apply(proof: Proof[SequentProofNode]) = {
+    val axioms = MMap[Sequent,SequentProofNode]()
+    proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
+      case Axiom(conclusion) => {
+        val subsumed = axioms.find(A => A._1 subsequentOf conclusion)
+        val subsMap = subsumed.map(A => A._2)
+        subsMap.getOrElse({axioms += (conclusion -> node); node})
+      }
+      case R(left, right, pivot, _) => fixNode(node,pivot,left,right,fixedPremises)
+      case _ => node
+    }}
   }
 }
