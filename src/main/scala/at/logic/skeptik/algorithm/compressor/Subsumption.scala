@@ -11,11 +11,21 @@ import scala.collection.mutable.{HashSet => MSet}
 import scala.collection.immutable.{HashSet => ISet}
 
 abstract class AbstractSubsumption 
-extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with fixNodes
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with fixNodes {
+  def setTraverseOrder(proof: Proof[SequentProofNode]):Proof[SequentProofNode]
+}
 
-object TopDownLeftRightSubsumption extends AbstractSubsumption {
+trait LeftRight {
+  def setTraverseOrder(proof: Proof[SequentProofNode]):Proof[SequentProofNode] = proof
+}
+trait RightLeft {
+  def setTraverseOrder(proof: Proof[SequentProofNode]):Proof[SequentProofNode] = new Proof(proof.root,false)
+}
+
+abstract class TopDownSubsumption extends AbstractSubsumption {
   
-  def apply(proof: Proof[SequentProofNode]) = {
+  def apply(inputproof: Proof[SequentProofNode]) = {
+    val proof = setTraverseOrder(inputproof)
     val nodeMap = new MMap[Sequent,SequentProofNode]
 
     Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
@@ -38,7 +48,11 @@ object TopDownLeftRightSubsumption extends AbstractSubsumption {
   }
 }
 
-abstract class BottomUpRightLeftSubsumption extends AbstractSubsumption {
+object TopDownLeftRightSubsumption extends TopDownSubsumption with LeftRight
+
+object TopDownRightLeftSubsumption extends TopDownSubsumption with RightLeft
+
+abstract class BottomUpSubsumption extends AbstractSubsumption {
   val nodeMap = new MMap[Sequent,SequentProofNode]
   val replaceNodes = new MMap[SequentProofNode,SequentProofNode]
   
@@ -60,7 +74,8 @@ abstract class BottomUpRightLeftSubsumption extends AbstractSubsumption {
     }
   }
   
-  def apply(proof: Proof[SequentProofNode]) = {
+  def apply(inputproof: Proof[SequentProofNode]) = {
+    val proof = setTraverseOrder(inputproof)
     proof.foldDown(collect)
     
     Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
@@ -75,7 +90,7 @@ abstract class BottomUpRightLeftSubsumption extends AbstractSubsumption {
   }
 }
 
-object BottomUpRightLeftSubsumptionTime extends BottomUpRightLeftSubsumption {
+abstract class BottomUpSubsumptionTime extends BottomUpSubsumption {
   val ancestors = new MMap[SequentProofNode,ISet[SequentProofNode]]
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
     !(ancestors.getOrElseUpdate(node, computeAncestors(node)) contains ancestor)
@@ -89,14 +104,21 @@ object BottomUpRightLeftSubsumptionTime extends BottomUpRightLeftSubsumption {
   }
 }
 
-object BottomUpRightLeftSubsumptionMemory extends BottomUpRightLeftSubsumption {
+object BottomUpLeftRightSubsumptionTime extends BottomUpSubsumptionTime with LeftRight
+object BottomUpRightLeftSubsumptionTime extends BottomUpSubsumptionTime with RightLeft
+
+abstract class BottomUpSubsumptionMemory extends BottomUpSubsumption {
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
     !(node existsAmongAncestors {_ eq ancestor})
   }
 }
 
-object ForwardAxiomSubsumption extends AbstractSubsumption {
-  def apply(proof: Proof[SequentProofNode]) = {
+object BottomUpLeftRightSubsumptionMemory extends BottomUpSubsumptionMemory with LeftRight
+object BottomUpRightLeftSubsumptionMemory extends BottomUpSubsumptionMemory with RightLeft
+
+abstract class AxiomSubsumption extends AbstractSubsumption {
+  def apply(inputproof: Proof[SequentProofNode]) = {
+    val proof = setTraverseOrder(inputproof)
     val axioms = MMap[Sequent,SequentProofNode]()
     proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
       case Axiom(conclusion) => {
@@ -109,3 +131,6 @@ object ForwardAxiomSubsumption extends AbstractSubsumption {
     }}
   }
 }
+
+object LeftRightAxiomSubsumption extends AxiomSubsumption with LeftRight
+object RightLeftAxiomSubsumption extends AxiomSubsumption with RightLeft

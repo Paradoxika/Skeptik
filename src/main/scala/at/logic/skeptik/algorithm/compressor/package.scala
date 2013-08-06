@@ -34,9 +34,12 @@ package object compressor {
     "MSplit3" -> new TimeoutMultiSplit(3,5000),
     "MSplit4" -> new TimeoutMultiSplit(4,5000),
     "TDLRS" -> TopDownLeftRightSubsumption,
+    "TDRLS" -> TopDownRightLeftSubsumption,
+    "TDLRS" -> TopDownLeftRightSubsumption,
     "BURLSt" -> BottomUpRightLeftSubsumptionTime,
     "BURLSm" -> BottomUpRightLeftSubsumptionMemory,
-    "FAS" -> ForwardAxiomSubsumption
+    "LRAS" -> LeftRightAxiomSubsumption,
+    "RLAS" -> RightLeftAxiomSubsumption
   )
   trait fixNodes {
     def fixNode[P <: ProofNode[Sequent,P]](node: SequentProofNode, pivot: E, left: P, right: P, fixedLeft: SequentProofNode, fixedRight: SequentProofNode):SequentProofNode = {

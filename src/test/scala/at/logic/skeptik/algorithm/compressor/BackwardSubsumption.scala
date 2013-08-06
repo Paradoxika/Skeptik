@@ -129,7 +129,7 @@ class BackwardSubsumptionSpecification extends SpecificationWithJUnit {
 //    
 //    proof bottomUp(visit)
 //  println(proof)
-   val compproof = BWSm.apply(concseq)
+   val compproof = BottomUpRightLeftSubsumptionMemory(concseq)
 // println(compproof)
   
   "Backward Subsumption" should {

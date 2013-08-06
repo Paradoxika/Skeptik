@@ -31,7 +31,7 @@ object SkeptikBuild extends Build {
   val compress = InputKey[Unit]("compress", "bla")
   val compressSettings = Seq(fullRunInputTask(compress,Runtime,"at.logic.skeptik.ProofCompressionCLI"),
                              trapExit in compress := true ,
-                             fork in compress := true, 
+                             fork in compress := false, 
                              traceLevel in compress := 0)
   
   

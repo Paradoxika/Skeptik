@@ -9,16 +9,19 @@ import at.logic.skeptik.judgment.Judgment
 
 // ProofNode tree is rotated clockwise. That means that traversing "left" is bottom-up.
 // Traversing "right" is top-down and we ensure that premises of a proof are processed before that proof.
-class Proof[P <: ProofNode[Judgment,P]](val root: P)
+class Proof[P <: ProofNode[Judgment,P]](val root: P, val leftRight: Boolean)
 extends Iterable[P]
 {
+  def this(root: P) = this(root,true)
+  
   def initialize() = {
     val nodes = Stack[P]()
     val children = MMap[P,IndexedSeq[P]](root -> IndexedSeq())
     val visited = MSet[P]()
     def visit(p:P):Unit = if (!visited(p)){
       visited += p
-      p.premises.foreach(premise => {
+      val pr = if (leftRight) p.premises else p.premises.reverse
+      pr.foreach(premise => {
         visit(premise)
         children(premise) = p +: children.getOrElse(premise,IndexedSeq())
       })
