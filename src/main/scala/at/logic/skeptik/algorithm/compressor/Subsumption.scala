@@ -63,8 +63,8 @@ abstract class BottomUpSubsumption extends AbstractSubsumption {
     val subsMap = subsumed.map(a => a._2)
     subsMap.foreach(u => {
       replaceNodes.get(u) match {
-        case Some(v) => if (v.conclusion.size > node.conclusion.size) replaceNodes(u) = node
-        case None => replaceNodes += (u -> node)
+        case Some(v) => if (v.conclusion.size > node.conclusion.size) replaceNodes(node) = u
+        case None => replaceNodes += (node -> u)
       }})
   
     node match {
