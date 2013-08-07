@@ -33,15 +33,9 @@ abstract class TopDownSubsumption extends AbstractSubsumption {
         val subsMap = subsumer.map(a => a._2)
         
         subsMap.getOrElse({
-          node match {
-            case Axiom(conclusion) => nodeMap += (conclusion -> node) ; node
-            case R(left, right, pivot, _) => {
-  	          val newNode = fixNode(node,pivot,left,right,fixedPremises)
-  		        nodeMap += (newNode.conclusion -> newNode)
-  		        newNode
-  	        }
-            case _ => node
-          }
+          val newNode = fixNode(node,fixedPremises)
+          nodeMap += (newNode.conclusion -> newNode)
+          newNode
         })
       })
     })
@@ -53,40 +47,26 @@ object TopDownLeftRightSubsumption extends TopDownSubsumption with LeftRight
 object TopDownRightLeftSubsumption extends TopDownSubsumption with RightLeft
 
 abstract class BottomUpSubsumption extends AbstractSubsumption {
-  val nodeMap = new MMap[Sequent,SequentProofNode]
-  val replaceNodes = new MMap[SequentProofNode,SequentProofNode]
-  
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean
-  
-  def collect(node: SequentProofNode, results: Seq[Unit]):Unit = {
-    val subsumed = nodeMap.find( A => (notAncestor(node,A._2) && (node.conclusion subsequentOf A._1)))
-    val subsMap = subsumed.map(a => a._2)
-    subsMap.foreach(u => {
-      replaceNodes.get(u) match {
-        case Some(v) => if (v.conclusion.size > node.conclusion.size) replaceNodes(node) = u
-        case None => replaceNodes += (node -> u)
-      }})
-  
-    node match {
-      case Axiom(conclusion) => nodeMap += (conclusion -> node)
-      case R(_, _, _, _) => nodeMap += (node.conclusion -> node)
-      case _ => Unit
-    }
-  }
-  
   def apply(inputproof: Proof[SequentProofNode]) = {
-    val proof = setTraverseOrder(inputproof)
-    proof.foldDown(collect)
+    val replaceNodes = new MMap[SequentProofNode,SequentProofNode]
+    val nodeMap = new MSet[SequentProofNode]
     
-    Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
-    	
-      replaceNodes.getOrElse(node,{
-        node match {
-          case R(left, right, pivot, _) => fixNode(node,pivot,left,right,fixedPremises)
-          case _ => node
-        }
-      })
-    })})
+    def collect(node: SequentProofNode, results: Seq[Unit]):Unit = {
+      val subsumed = nodeMap.find( A => (A.conclusion subsequentOf node.conclusion) && (notAncestor(A,node)))
+      subsumed match {
+        case None => nodeMap += node
+        case Some(u) => replaceNodes(node) = u
+      }
+    }
+  
+    def replace(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
+      replaceNodes.getOrElse(node,fixNode(node,fixedPremises))
+    }
+    val proof = setTraverseOrder(inputproof)
+
+    proof bottomUp collect
+    Proof(proof foldDown replace)
   }
 }
 
@@ -120,7 +100,7 @@ abstract class AxiomSubsumption extends AbstractSubsumption {
   def apply(inputproof: Proof[SequentProofNode]) = {
     val proof = setTraverseOrder(inputproof)
     val axioms = MMap[Sequent,SequentProofNode]()
-    proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
+    Proof(proof foldDown { (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
       case Axiom(conclusion) => {
         val subsumed = axioms.find(A => A._1 subsequentOf conclusion)
         val subsMap = subsumed.map(A => A._2)
@@ -128,7 +108,7 @@ abstract class AxiomSubsumption extends AbstractSubsumption {
       }
       case R(left, right, pivot, _) => fixNode(node,pivot,left,right,fixedPremises)
       case _ => node
-    }}
+    }})
   }
 }
 

@@ -51,6 +51,20 @@ package object compressor {
         val fixedRight = fixedPremises.last
         fixNode(node,pivot,left,right,fixedLeft,fixedRight)
     }
+    def fixNode(node: SequentProofNode,fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
+      node match {
+        case R(left, right, pivot, _) => {
+          if (fixedPremises.isEmpty) node
+          else {
+            val fixedLeft  = fixedPremises.head
+            val fixedRight = fixedPremises.last
+            if ((left eq fixedLeft) && (right eq fixedRight)) node 
+            else R(fixedLeft,fixedRight,pivot,true)
+          }
+        }
+        case _ => node
+      }
+    }
   }
 }
 
