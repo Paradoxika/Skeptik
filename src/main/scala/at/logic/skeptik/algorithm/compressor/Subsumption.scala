@@ -56,31 +56,59 @@ abstract class BottomUpSubsumption extends AbstractSubsumption {
       val subsumed = nodeMap.find( A => (A.conclusion subsequentOf node.conclusion) && (notAncestor(A,node)))
       subsumed match {
         case None => nodeMap += node
-        case Some(u) => replaceNodes(node) = u
+        case Some(u) => {
+//          println(u + " replaces <collect> " + node)
+          replaceNodes(node) = u
+        }
       }
     }
   
     def replace(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
+      if (replaceNodes.isDefinedAt(node)) {
+        val replacement = replaceNodes(node)
+//        println(replacement + " replaces <replace> " + node)
+      }
       replaceNodes.getOrElse(node,fixNode(node,fixedPremises))
     }
     val proof = setTraverseOrder(inputproof)
 
     proof bottomUp collect
-    Proof(proof foldDown replace)
+//    Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
+//      if (replaceNodes.isDefinedAt(node)) println("bla")
+//      replaceNodes.getOrElse(node,fixNode(node,fixedPremises))
+//    })})
+    Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
+      
+      replaceNodes.getOrElse(node,{
+        node match {
+          case R(left, right, pivot, _) => {
+            val fixedLeft  = fixedPremises.head
+          val fixedRight = fixedPremises.last
+          val newNode = 
+            if ((left eq fixedLeft) && (right eq fixedRight)) node 
+            else R(fixedLeft,fixedRight,pivot,true)
+            newNode
+            }
+          case _ => node
+        }
+      })
+    })})
   }
 }
 
 abstract class BottomUpSubsumptionTime extends BottomUpSubsumption {
   val ancestors = new MMap[SequentProofNode,ISet[SequentProofNode]]
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean = {
-    !(ancestors.getOrElseUpdate(node, computeAncestors(node)) contains ancestor)
+    !(ancestors.getOrElse(node, {Proof(node) foldDown collectAncestors; ancestors(node)}) contains ancestor)
   }
-  def computeAncestors(node: SequentProofNode):ISet[SequentProofNode] = {
-    val premises = node.premises
-    val ancPremises = (new ISet[SequentProofNode] /: premises){ (l1,l2) =>
-      l1 union ancestors.getOrElse(l2, MSet(l2))
+  
+  def collectAncestors(node: SequentProofNode, premises: Seq[SequentProofNode]):SequentProofNode = {
+    ancestors(node) = (ISet(node) /: premises){ (l1,l2) =>
+      l1 union ancestors(l2)
     }
-    (ancPremises + node)
+//    print("#ancestors of " + node + " " + ancestors(node).size + "\n")
+    //ancestors(node).foreach(println)
+    node
   }
 }
 
