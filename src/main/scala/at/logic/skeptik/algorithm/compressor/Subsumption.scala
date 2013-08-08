@@ -48,6 +48,10 @@ abstract class BWS extends AbstractSubsumption {
   def notAncestor(node: SequentProofNode, ancestor: SequentProofNode):Boolean
   
   def collect(node: SequentProofNode, results: Seq[Unit]):Unit = {
+    // ToDo: the following line is inefficient. 
+    // As suggested by the experiments, checking "notAncestor" is the expensive part of the find.
+    // Therefore, this should only be checked after we have already checked that "node.conclusion subsumes A._1"...
+    // Perhaps, just changing the order of the conjuncts of && could give us a big improvement in performance.
     val subsumed = nodeMap.find( A => (notAncestor(node,A._2) && (node.conclusion subsequentOf A._1)))
     val subsMap = subsumed.map(a => a._2)
     subsMap.foreach(u => {
@@ -72,12 +76,12 @@ abstract class BWS extends AbstractSubsumption {
         node match {
           case R(left, right, pivot, _) => {
             val fixedLeft  = fixedPremises.head
-	        val fixedRight = fixedPremises.last
-	        val newNode = 
-	          if ((left eq fixedLeft) && (right eq fixedRight)) node 
-	          else R(fixedLeft,fixedRight,pivot,true)
+	          val fixedRight = fixedPremises.last
+	          val newNode = 
+	            if ((left eq fixedLeft) && (right eq fixedRight)) node 
+	            else R(fixedLeft,fixedRight,pivot,true)
 	          newNode
-            }
+          }
           case _ => node
         }
       })

@@ -40,11 +40,11 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
     Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => node match {
       case R(left, right, pivot, _) => {
         val fixedLeft  = fixedPremises.head
-		val fixedRight = fixedPremises.last
-		units.getOrElse(pivot,new MSet[SequentProofNode]).find(u => ! descUnits(node).contains(u)) match {
+		    val fixedRight = fixedPremises.last
+		    units.getOrElse(pivot,new MSet[SequentProofNode]).find(u => ! descUnits(node).contains(u)) match {
           case None => {
-		    if ((left eq fixedLeft) && (right eq fixedRight)) node 
-		    else R(fixedLeft,fixedRight,pivot,true)
+		        if ((left eq fixedLeft) && (right eq fixedRight)) node 
+		        else R(fixedLeft,fixedRight,pivot,true)
           }
           case Some(u) => {
             if (u.conclusion.suc.contains(pivot)) R(u,fixedRight,pivot,true)
