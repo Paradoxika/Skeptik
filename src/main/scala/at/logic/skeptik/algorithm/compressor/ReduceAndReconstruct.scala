@@ -20,7 +20,8 @@ object r {
   node match {
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o1.conclusion.suc contains u) =>
+       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o1.conclusion.suc contains u) &&
+       ((o2.conclusion.ant contains u) || (o1.conclusion.width < o2.conclusion.width)) =>
 //         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
@@ -298,8 +299,10 @@ extends AbstractReduceAndReconstruct with CheckA2 {
       else // only A2 rule has been applied
         if (count < height)
           aux(after, count+1)
-        else
+        else {
+          print(" ("+height+") ")
           after
+        }
     }
     aux(proof,1)
   }
