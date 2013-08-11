@@ -320,3 +320,9 @@ extends ReduceAndReconstructLowerMiddle with OverTermination
 
 object RRWithHelsinkiOverTermination
 extends ReduceAndReconstructHelsinki with OverTermination
+
+object C1POverTermination
+extends AbstractReduceAndReconstruct(Seq(c1p)) with OverTermination
+
+object S1POverTermination
+extends AbstractReduceAndReconstruct(Seq(s1p)) with OverTermination

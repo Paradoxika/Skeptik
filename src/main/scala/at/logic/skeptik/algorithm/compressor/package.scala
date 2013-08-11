@@ -29,6 +29,8 @@ package object compressor {
     "RRCOT" -> RRC1POverTermination,
     "RRlmOT" -> RRWithLowerMiddleOverTermination,
     "RRHOT" -> RRWithHelsinkiOverTermination,
+    "COT" -> C1POverTermination,
+    "SOT" -> S1POverTermination,
     "Split" -> new CottonSplit(30000),
     "RBSplit" -> new RandomBoudouSplit(30000),
     "DBSplit" -> new DeterministicBoudouSplit(30000),
