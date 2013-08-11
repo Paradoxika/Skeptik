@@ -216,6 +216,7 @@ extends ReduceAndReconstructLowerMiddle with RRTimeout
 trait ReconstructWithHeight
 extends AbstractReduceAndReconstruct
 {
+  // Compute the height of the original proof (not the one of the compressed proof).
   protected def reconstruct(proof: Proof[SequentProofNode], function: Fun)
                            (node: SequentProofNode, fixedPremises: Seq[(Int,SequentProofNode)]) =
     (node, fixedPremises) match {
@@ -236,7 +237,7 @@ extends AbstractReduceAndReconstruct with ReconstructWithHeight {
     def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
       val (height, root) = applyOnce(before)
       val after = Proof(root)
-      if (count < height)
+      if (count <= height)
         aux(after, count+1)
       else {
         print("("+count+" times)")
@@ -297,7 +298,7 @@ extends AbstractReduceAndReconstruct with CheckA2 {
       if (check > 0)
         aux(after, 1)
       else // only A2 rule has been applied
-        if (count < height)
+        if (count <= height)
           aux(after, count+1)
         else {
           print(" ("+height+") ")
