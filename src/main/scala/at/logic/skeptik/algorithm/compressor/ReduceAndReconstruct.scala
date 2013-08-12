@@ -100,7 +100,7 @@ object r {
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
-  def reduce
+  def b2b3b1
       (fallback: Fun) =
       (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
@@ -160,20 +160,22 @@ import r._
 
 abstract class AbstractReduceAndReconstruct(val rules: Seq[Rule])
 extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
-  def mergeRules(default: Fun) = (rules :\ default){ _(_) }
+  val fallback : Fun = a2
+  protected def mergeRules(default: Fun) = (rules :\ default){ _(_) }
+  lazy val reduce = mergeRules(fallback)
 }
 
 abstract class ReduceAndReconstruct
-extends AbstractReduceAndReconstruct(Seq(reduce,s1p))
+extends AbstractReduceAndReconstruct(Seq(b2b3b1,s1p))
 
 abstract class ReduceAndReconstructC1P
-extends AbstractReduceAndReconstruct(Seq(reduce,c1p))
+extends AbstractReduceAndReconstruct(Seq(b2b3b1,c1p))
 
 abstract class ReduceAndReconstructLowerMiddle
-extends AbstractReduceAndReconstruct(Seq(reduce,lowerMiddle))
+extends AbstractReduceAndReconstruct(Seq(b2b3b1,lowerMiddle))
 
 abstract class ReduceAndReconstructHelsinki
-extends AbstractReduceAndReconstruct(Seq(reduce,helsinki))
+extends AbstractReduceAndReconstruct(Seq(b2b3b1,helsinki))
 
 
 
@@ -191,7 +193,7 @@ extends AbstractReduceAndReconstruct
 
 trait RRTimeout
 extends Reconstruct with Timeout {
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, mergeRules(a2)))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce))
 }
 
 class ReduceAndReconstructTimeout(val timeout: Int)
@@ -219,7 +221,7 @@ extends AbstractReduceAndReconstruct
 trait SimpleTermination
 extends AbstractReduceAndReconstruct with ReconstructWithHeight {
 
-  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, mergeRules(a2)))
+  def applyOnce(proof: Proof[SequentProofNode]) = proof.foldDown(reconstruct(proof, reduce))
 
   def apply(proof: Proof[SequentProofNode]) = {
     @tailrec
@@ -256,7 +258,7 @@ extends AbstractReduceAndReconstruct with ReconstructWithHeight {
     check = 0
     def post(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
       check -= 1
-      a2(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+      fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
     }
     val mr = mergeRules(post)
     def pre(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
