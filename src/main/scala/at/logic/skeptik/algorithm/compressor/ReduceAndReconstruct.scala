@@ -3,13 +3,14 @@ package at.logic.skeptik.algorithm.compressor
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.R
-import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
 import at.logic.skeptik.util.math.max
-import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import scala.collection.Map
 import annotation.tailrec
 
+
+/** Contains the rules for Reduce-and-Reconstruct
+ *
+ * @author Joseph Boudou
+ */
 object r {
   type Fun = ((SequentProofNode,Boolean,Boolean) => SequentProofNode)
   type Rule = Fun => Fun
@@ -22,22 +23,18 @@ object r {
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o1.conclusion.suc contains u) &&
        ((o2.conclusion.ant contains u) || (o1.conclusion.width < o2.conclusion.width)) =>
-//         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o2.conclusion.ant contains u) =>
-//         print("Case 2 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o1.conclusion.suc contains u) =>
-//         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o2.conclusion.ant contains u) =>
-//         print("Case 4 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
 
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
@@ -52,22 +49,18 @@ object r {
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion subsequentOf o2.conclusion) =>
-//         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion subsequentOf o1.conclusion) =>
-//         print("Case 2 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion subsequentOf o2.conclusion) =>
-//         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o2.conclusion subsequentOf o1.conclusion) =>
-//         print("Case 4 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o2)
 
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
@@ -81,12 +74,10 @@ object r {
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1 eq o2) =>
-//         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1 eq o2) =>
-//         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
 
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
@@ -100,12 +91,10 @@ object r {
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion == o2.conclusion) =>
-//         print("Case 1 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
     case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion == o2.conclusion) =>
-//         print("Case 3 : ({"+alpha.conclusion+"}.{"+o1.conclusion+"}).({"+beta.conclusion+"}.{"+o2.conclusion+"}) ; "+s+", "+t+", "+u+"\n")
          R(R(alpha,beta), o1)
 
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
@@ -239,10 +228,8 @@ extends AbstractReduceAndReconstruct with ReconstructWithHeight {
       val after = Proof(root)
       if (count <= height)
         aux(after, count+1)
-      else {
-        print("("+count+" times)")
+      else
         after
-      }
     }
     aux(proof,1)
   }
@@ -267,15 +254,12 @@ extends AbstractReduceAndReconstruct with ReconstructWithHeight {
 
   def applyOnce(proof: Proof[SequentProofNode]) = {
     check = 0
-//    print(" ")
     def post(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
-//      print("-")
       check -= 1
       a2(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
     }
     val mr = mergeRules(post)
     def pre(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
-//      print("+")
       check += 1
       mr(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
     }
@@ -289,21 +273,16 @@ extends AbstractReduceAndReconstruct with CheckA2 {
   def apply(proof: Proof[SequentProofNode]) = {
     @tailrec
     def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
-//      print("_"+count)
       val (height, root) = applyOnce(before)
       val after = Proof(root)
-//      print("/"+check)
-//      print("h"+height)
 
       if (check > 0)
         aux(after, 1)
       else // only A2 rule has been applied
         if (count <= height)
           aux(after, count+1)
-        else {
-          print(" ("+height+") ")
+        else
           after
-        }
     }
     aux(proof,1)
   }
