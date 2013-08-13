@@ -312,3 +312,51 @@ extends AbstractReduceAndReconstruct(Seq(c1p)) with OverTermination
 
 object S1POverTermination
 extends AbstractReduceAndReconstruct(Seq(s1p)) with OverTermination
+
+
+trait RandomFallback
+extends AbstractReduceAndReconstruct {
+  val rand = new scala.util.Random()
+  var fallbackThreshold : Double
+  abstract override def fallback
+    (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =
+    if (rand.nextDouble() <= fallbackThreshold)
+      super.fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+    else
+      node
+}
+
+trait OTBasedRandomA2
+extends AbstractReduceAndReconstruct with RandomFallback with CheckFallback {
+  var fallbackThreshold = 0.0
+
+  def apply(proof: Proof[SequentProofNode]) = {
+    @tailrec
+    def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
+      val (height, root) = applyOnce(before)
+      val after = Proof(root)
+      fallbackThreshold = count.toDouble / height.toDouble
+
+      if (check > 0)
+        aux(after, 1)
+      else // only A2 rule has been applied
+        if (count <= 2 * height)
+          aux(after, count+1)
+        else
+          after
+    }
+    aux(proof,1)
+  }
+}
+
+object ReduceAndReconstructOTBasedRandomA2
+extends ReduceAndReconstruct with OTBasedRandomA2
+
+object RRC1POTBasedRandomA2
+extends ReduceAndReconstructC1P with OTBasedRandomA2
+
+object RRWithLowerMiddleOTBasedRandomA2
+extends ReduceAndReconstructLowerMiddle with OTBasedRandomA2
+
+object RRWithHelsinkiOTBasedRandomA2
+extends ReduceAndReconstructHelsinki with OTBasedRandomA2
