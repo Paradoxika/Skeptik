@@ -160,7 +160,11 @@ import r._
 
 abstract class AbstractReduceAndReconstruct(val rules: Seq[Rule])
 extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
-  val fallback : Fun = a2
+
+  def fallback
+    (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =
+    a2(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+
   protected def mergeRules(default: Fun) = (rules :\ default){ _(_) }
   lazy val reduce = mergeRules(fallback)
 }
@@ -250,27 +254,28 @@ object RRWithHelsinkiSimpleTermination
 extends ReduceAndReconstructHelsinki with SimpleTermination
 
 
-trait CheckA2
+trait CheckFallback
 extends AbstractReduceAndReconstruct with ReconstructWithHeight {
   var check = 0
 
+  abstract override def fallback
+    (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
+    check -= 1
+    super.fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+  }
+
   def applyOnce(proof: Proof[SequentProofNode]) = {
     check = 0
-    def post(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
-      check -= 1
-      fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
-    }
-    val mr = mergeRules(post)
     def pre(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
       check += 1
-      mr(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+      reduce(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
     }
     proof.foldDown(reconstruct(proof, pre))
   }
 }
 
 trait OverTermination
-extends AbstractReduceAndReconstruct with CheckA2 {
+extends AbstractReduceAndReconstruct with CheckFallback {
   
   def apply(proof: Proof[SequentProofNode]) = {
     @tailrec
