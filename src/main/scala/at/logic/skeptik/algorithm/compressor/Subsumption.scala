@@ -79,19 +79,7 @@ abstract class BottomUpSubsumption extends AbstractSubsumption {
 //    })})
     Proof(proof foldDown { ((node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) => {
       
-      replaceNodes.getOrElse(node,{
-        node match {
-          case R(left, right, pivot, _) => {
-            val fixedLeft  = fixedPremises.head
-          val fixedRight = fixedPremises.last
-          val newNode = 
-            if ((left eq fixedLeft) && (right eq fixedRight)) node 
-            else R(fixedLeft,fixedRight,pivot,true)
-            newNode
-            }
-          case _ => node
-        }
-      })
+      replaceNodes.getOrElse(node,{fixNode(node,fixedPremises)})
     })})
   }
 }
