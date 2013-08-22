@@ -105,7 +105,7 @@ object ProofCompressionCLI {
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { c =>
       
-      val measures = Seq("length","coreSize","height","time")
+      val measures = Seq("length","coreSize","height","pebble","time")
       
       val prettyTable = new HumanReadableTable(measures)
       val stats = new CumulativeStats(measures, c.algorithms)
@@ -161,7 +161,7 @@ object ProofCompressionCLI {
           c.hout.write("\t\tMeasuring...")
           val Timed(mOProof,tMOProof) = timed { measure(p) }
           c.hout.write(completedIn(tMOProof) + "\n\n")
-          
+
           val measurements = mOProof + ("time" -> Math.round(t).toInt)
           
           stats.processOutput(oProofName, a, measurements)
@@ -217,7 +217,8 @@ object ProofCompressionCLI {
   }
 
   class CumulativeStats(measures: Seq[String], algorithms: Seq[String]) extends DataAggregator {
-    private val m = MMap( ("id"::(algorithms.toList)) map { (_ -> Seq(0,0,0)) } :_* )
+
+    private val m = MMap( ("id"::(algorithms.toList)) map { (_ -> Seq(0,0,0,0)) } :_* ) //had to change Seq(0,0,0) to Seq(0,0,0,0) to get the new measure into cumulative stats
     
     def processInput(name: String, measurements: M) = append("id", for (m <- measures) yield measurements(m)) 
     

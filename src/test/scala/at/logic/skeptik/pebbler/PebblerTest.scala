@@ -5,8 +5,9 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.Pebbler
+import at.logic.skeptik.algorithm.compressor.GreedyPebbler
 import at.logic.skeptik.parser.ProofParserVeriT
+import at.logic.skeptik.proof.measure
 
 object PebblerTest {
   def main(args: Array[String]):Unit = {
@@ -59,7 +60,7 @@ object PebblerTest {
       concseq = R(n14,n18)
     }
 //    val proof = new Proof(concseq)
-    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl739.smt2")
+    val proof = ProofParserVeriT.read("F:/Proofs/small-size/SortingNetwork8_safe_blmc000.smt2")
     
     def printBottomUp(node: SequentProofNode, c: Seq[SequentProofNode]):SequentProofNode = {
       println(node + " " + c.size)
@@ -68,14 +69,12 @@ object PebblerTest {
     
 //    proof bottomUp printBottomUp
 //    println(proof)
-    val p = new Pebbler[SequentProofNode]
-    val greedy = p.greedyPebble(proof)
-    val greedy2 = p.greedyPebble2(proof)
+    val greedy2 = GreedyPebbler(proof)
 //    println(greedy)
 //    println(greedy2)
     
-    println("\nnormal:" + p.computePebbleNumber(proof))
-    println("\ngreedy:" + p.computePebbleNumber(proof,greedy))
-    println("\ngreedy2:" + p.computePebbleNumber(proof,greedy2))
+    println("\nnormal:" + measure(proof))
+//    println("\ngreedy:" + Pebbler.computePebbleNumber(proof))
+    println("\ngreedy2:" + measure(greedy2))
   }
 }
