@@ -120,18 +120,21 @@ extends AdditivityHeuristic {
 
   override def applyOnce(proof: Proof[SequentProofNode]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
-    var sum = totalAdditivity
-    val variableList = {
-      def selectVariables(variableList: List[E], remaining: Int):List[E] = if (remaining < 1 || sum < 1) variableList else {
-        val selected = chooseVariable(literalAdditivity, sum)
-        sum -= literalAdditivity(selected)
-        literalAdditivity.remove(selected)
-        selectVariables(selected::variableList, remaining - 1)
+    if (literalAdditivity.size < numberOfVariables) proof //TODO: It would be better to call MultiSplit(literalAdditivity.size).applyOnce(proof)
+    else {
+      var sum = totalAdditivity
+      val variableList = {
+        def selectVariables(variableList: List[E], remaining: Int):List[E] = if (remaining < 1 || sum < 1) variableList else {
+          val selected = chooseVariable(literalAdditivity, sum)
+          sum -= literalAdditivity(selected)
+          literalAdditivity.remove(selected)
+          selectVariables(selected::variableList, remaining - 1)
+        }
+        selectVariables(List(), numberOfVariables)
       }
-      selectVariables(List(), numberOfVariables)
+      val compressedProof: Proof[SequentProofNode] = split(proof, variableList).merge(variableList)
+      if (compressedProof.size < proof.size) compressedProof else proof
     }
-    val compressedProof: Proof[SequentProofNode] = split(proof, variableList).merge(variableList)
-    if (compressedProof.size < proof.size) compressedProof else proof
   }
 }
 
