@@ -1,7 +1,7 @@
 package at.logic.skeptik
 
 import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser}
-import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik}
+import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik,ProofExporterSkeptikD}
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
@@ -23,9 +23,9 @@ object ProofCompressionCLI {
                     moutHeader: Boolean = true)                
 
     
-  val supportedProofFormats = Seq("smt2", "skeptik")
+  val supportedProofFormats = Seq("smt2", "skeptik","skeptikD")
   
-  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2' and '.skeptik'"                 
+  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.skeptik' and '.skeptikD'"                 
   
   def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
@@ -62,7 +62,7 @@ object ProofCompressionCLI {
     } validate { v =>
       if (supportedProofFormats contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> (either 'smt2' or 'skeptik') to output compressed proofs\n") valueName("<format>")
+    } text("use <format> (either 'smt2', 'skeptik' or 'skeptikD') to output compressed proofs\n") valueName("<format>")
  
 
     opt[String]('m', "mout") action { (v, c) =>
@@ -142,6 +142,7 @@ object ProofCompressionCLI {
           c.format match {
             case "smt2" => (p: Proof[N], name: String) => ProofExporterVeriT.write(p, name)
             case "skeptik" => (p: Proof[N], name: String) => ProofExporterSkeptik.write(p, name)
+            case "skeptikD" => (p: Proof[N], name: String) => ProofExporterSkeptikD.write(p, name)
             case "" =>  (p: Proof[N], name: String) => { }
           }
         }
