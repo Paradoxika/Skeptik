@@ -4,7 +4,7 @@ package split
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof.sequent.lk.R
-import at.logic.skeptik.expression.E
+import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
 trait AdditivityHeuristic
@@ -28,6 +28,7 @@ extends Split  {
   
   def selectVariable(proof: Proof[N]) = {
     val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
-    chooseVariable(literalAdditivity, totalAdditivity)
+    if (totalAdditivity == 0) Var("⊥",o)
+    else chooseVariable(literalAdditivity, totalAdditivity)
   }
 }
