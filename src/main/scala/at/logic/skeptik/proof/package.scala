@@ -15,33 +15,31 @@ package object proof {
         max(heights, (x:Int)=>x, default = 0) + 1
       } 
     
-    val pebble = {
-      val lastChildOf = MMap[N,MSet[N]]() //key node is the last child of all nodes in the corresponding value set
-      var pebbleNumber = 0 //indicates the current number of pebbles required
+    val space = {
+      val childrenVisited = MMap[N,Int]()
+      var currentPebbles = 0 //indicates the current number of pebbles required
       var maxPebble = 0 //the maximum number of pebbles needed among all nodes, which is the pebble number
-  
-      //traverse the proof bottom up and update the lastChildOf entries by adding the current node to its last child
-      def lastChild(node: N, children: Seq[N]):N = {
-        children.lastOption.foreach(n => lastChildOf(n) = lastChildOf.getOrElse(n, MSet[N]()) += node)
-        node
-      }
       
-      p bottomUp lastChild
-      
+//      var counter = 1
       //compute the pebble number of the root node
-  //    println
       def sumUp(node: N, pr: Seq[Unit]) = {
         //for each node the pebble number increses by 1 minus the amount of premises the current node is the last child of
-        val rm = lastChildOf.getOrElse(node, MSet[N]()).size
-        pebbleNumber += 1 - rm
-        maxPebble = pebbleNumber max maxPebble
-  //      print(rm)
+        var step = 1
+        node.premises.foreach(pr => {
+          val chV = childrenVisited.getOrElse(pr, 0) + 1
+          childrenVisited.update(pr, chV)
+          if (chV == p.childrenOf(pr).size) {
+            step = step - 1
+          }
+        })
+//        println(counter + " : " + step)
+//        counter = counter + 1
+        currentPebbles += step
+        maxPebble = currentPebbles max maxPebble
       }
-  //    println
-  //    println(permutation)
       p foldDown sumUp
       maxPebble
     }
-    Map("length" -> length, "coreSize" -> coreSize, "height" -> height, "pebble" -> pebble)
+    Map("length" -> length, "coreSize" -> coreSize, "height" -> height, "space" -> space)
   }
 }

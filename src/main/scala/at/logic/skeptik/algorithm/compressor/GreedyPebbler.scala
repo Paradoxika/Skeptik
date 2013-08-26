@@ -7,37 +7,6 @@ import scala.collection.mutable.{HashMap => MMap,HashSet => MSet}
 import scala.collection.immutable.{HashMap => IMap}
 
 object GreedyPebbler extends (Proof[SequentProofNode] => Proof[SequentProofNode])  {
-  def computePebbleNumber(proof: Proof[SequentProofNode]):Int = {
-    computePebbleNumber(proof,(0 to proof.size -1): Seq[Int])
-  }
-  def computePebbleNumber(proof: Proof[SequentProofNode],permutation: Seq[Int]):Int = {
-    val lastChildOf = MMap[SequentProofNode,MSet[SequentProofNode]]() //key node is the last child of all nodes in the corresponding value set
-    var pebbleNumber = 0 //indicates the current number of pebbles required
-    var maxPebble = 0 //the maximum number of pebbles needed among all nodes, which is the pebble number
-
-    //traverse the proof bottom up and update the lastChildOf entries by adding the current node to its last child
-    def lastChild(node: SequentProofNode, children: Seq[SequentProofNode]):SequentProofNode = {
-      children.lastOption.foreach(n => lastChildOf(n) = lastChildOf.getOrElse(n, MSet[SequentProofNode]()) += node)
-      node
-    }
-    
-    proof bottomUp2(lastChild,permutation)
-    
-    //compute the pebble number of the root node
-//    println
-    def sumUp(node: SequentProofNode, pr: Seq[Unit]) = {
-      //for each node the pebble number increses by 1 minus the amount of premises the current node is the last child of
-      val rm = lastChildOf.getOrElse(node, MSet[SequentProofNode]()).size
-      pebbleNumber += 1 - rm
-      maxPebble = pebbleNumber max maxPebble
-//      print(rm)
-    }
-//    println
-//    println(permutation)
-    proof.foldDown2(sumUp,permutation)
-    maxPebble
-  }
-  
   def apply(proof: Proof[SequentProofNode]):Proof[SequentProofNode] = {
     val nodeInfos = MMap[SequentProofNode,NodeInfo]()
     var counter = 0
@@ -83,7 +52,7 @@ object GreedyPebbler extends (Proof[SequentProofNode] => Proof[SequentProofNode]
 //    premisePermutation.foreach(println)
     new Proof(proof.root,premisePermutation)
   }
-    
+  
   //NodeInfo represents important information for sorting the premises of nodes, these are:
   //node n: n is the node to which the information belongs
   //index i: in the original proof and in a bottom up traversal, the node was visited at the i'th iteration
