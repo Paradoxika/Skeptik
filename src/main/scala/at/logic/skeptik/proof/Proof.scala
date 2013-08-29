@@ -9,27 +9,29 @@ import at.logic.skeptik.judgment.Judgment
 
 // ProofNode tree is rotated clockwise. That means that traversing "left" is bottom-up.
 // Traversing "right" is top-down and we ensure that premises of a proof are processed before that proof.
-class Proof[P <: ProofNode[Judgment,P]](val root: P, val leftRight: Boolean, premisePermutation: MMap[P,MMap[P,P]])
+class Proof[P <: ProofNode[Judgment,P]](val root: P, val leftRight: Boolean = true, val permutation: IndexedSeq[P] = IndexedSeq[P]())
 extends Iterable[P]
-{
-  def this(root: P) = this(root,true,MMap[P,MMap[P,P]]())
+{ 
   
-  def this(root: P, premisePermutation: MMap[P,MMap[P,P]]) = this(root,true,premisePermutation)
-  
-  def this(root: P, leftRight: Boolean) = this(root,leftRight,MMap[P,MMap[P,P]]())
-
+  def this(root: P, permutation: IndexedSeq[P]) = this(root,true, permutation)
   def initialize() = {
     val nodes = Stack[P]()
     val children = MMap[P,IndexedSeq[P]](root -> IndexedSeq())
     val visited = MSet[P]()
+    var counter = 0
     def visit(p:P):Unit = if (!visited(p)){
       visited += p
-      val pr = if (premisePermutation.isEmpty) if (leftRight) p.premises else p.premises.reverse
-      else p.premises.map(premisePermutation(p))
+      val pr = if (leftRight) p.premises else p.premises.reverse
       pr.foreach(premise => {
-        visit(premise)
+        if (permutation.isEmpty) {
+          visit(premise)
+        }
         children(premise) = p +: children.getOrElse(premise,IndexedSeq())
       })
+      if (!permutation.isEmpty && (counter + 1) < permutation.size) {
+        counter = counter + 1
+        visit(permutation(counter))
+      }
       nodes.push(p)
     }
     visit(root)
@@ -41,7 +43,6 @@ extends Iterable[P]
   override def iterator:Iterator[P] = nodes.iterator
   override def isEmpty:Boolean = nodes.isEmpty
   override lazy val size:Int = nodes.length // ToDo: nodes is IndexedSeq, and nodes.length should take constant time. Therefore it might be ok to make this a def instead of a val
-
 
   def foldDown[X](f: (P, Seq[X]) => X): X = {
     val resultFrom = MMap[P,X]()
@@ -98,7 +99,7 @@ extends Iterable[P]
     var counter = 0; var result = "";
     foldDown { (n:P, r:Seq[Int]) =>
       counter += 1
-      result += counter.toString + ": {" + n.conclusion + "} \t: " +
+      result += n.hashCode() + " " + counter.toString + ": {" + n.conclusion + "} \t: " +
                 n.name + "(" + r.mkString(", ") + ")[" + n.parameters.mkString(", ") + "]\n"
       counter
     }
