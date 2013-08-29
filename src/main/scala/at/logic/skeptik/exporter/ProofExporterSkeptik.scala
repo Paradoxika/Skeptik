@@ -23,7 +23,7 @@ trait deleteInfo {
       val chV = childrenVisited.getOrElse(pr, 0) + 1
       childrenVisited.update(pr, chV)
       if (chV == p.childrenOf(pr).size) {
-        out += "(delete " + currString + ")\n"
+        if (!((p.childrenOf(pr).size == 1) && (pr.isInstanceOf[R]))) out += "(delete " + currString + ")\n"
       }
     })
     out
