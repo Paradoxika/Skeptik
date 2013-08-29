@@ -40,7 +40,7 @@ package object compressor {
     "BURLSm" -> BottomUpRightLeftSubsumptionMemory,
     "LRAS" -> LeftRightAxiomSubsumption,
     "RLAS" -> RightLeftAxiomSubsumption,
-    "GP" -> GreedyPebbler
+    "GP" -> RemoveMostPebbles
   )
   trait fixNodes {
     def fixNode[P <: ProofNode[Sequent,P]](node: SequentProofNode, pivot: E, left: P, right: P, fixedLeft: SequentProofNode, fixedRight: SequentProofNode):SequentProofNode = {
