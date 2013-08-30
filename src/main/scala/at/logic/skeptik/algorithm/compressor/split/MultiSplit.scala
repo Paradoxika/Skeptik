@@ -50,14 +50,15 @@ extends AdditivityHeuristic {
 
     override def deepen(amount: Int = 1) = {
       val newDepth = depth + amount
-      if (newDepth > 0) SplitterTrunk(branch, newDepth) else branch.deepen(newDepth)
+      //the only other reasonable case is newDepth == 0, where branch is returned -> in other cases requirement depth > 0 is violated?
+      if (newDepth > 0) SplitterTrunk(branch, newDepth) else branch.deepen(newDepth) 
     }
   }
 
   private case class SplitterNode (pos: Splitter, neg: Splitter)
   extends Splitter {
     def merge(variableList: List[E]) = variableList match {
-      case t::q => R(pos.merge(q), neg.merge(q), t, true)
+      case t::q => R(pos.merge(q), neg.merge(q), t, true) //isn't the second (error) case called as soon q is empty?
       case _ => throw new Exception("Variable list doen't correspond to Splitter structure")
     }
   }
@@ -88,7 +89,7 @@ extends AdditivityHeuristic {
           Splitter(l.pos, r.neg)
 
         // Optimization case : if both premises have non-null depth we can remove some variables from the list
-        case (left @ SplitterTrunk(_, depthLeft), right @ SplitterTrunk(_, depthRight)) =>
+        case (left @ SplitterTrunk(_, depthLeft), right @ SplitterTrunk(_, depthRight)) => //this assignment with @ seems useless?
           val depthMax = depthLeft min depthRight
           val (depthDiff, variables) = {
             def dive(depth: Int, variables: List[E]):(Int,List[E]) =
@@ -111,7 +112,7 @@ extends AdditivityHeuristic {
   private def split(proof: Proof[SequentProofNode], variableList: List[E]) = {
     def visit(node: SequentProofNode, premises: Seq[Splitter]) =
       node match {
-        case Axiom(_) => Splitter(node, variableList)
+        case Axiom(_) => Splitter(node, variableList) //redundant case with 3?
         case R(_,_,pivot,_) => Splitter(pivot, premises.head, premises.last, variableList)
         case _ => Splitter(node, variableList)
       }
