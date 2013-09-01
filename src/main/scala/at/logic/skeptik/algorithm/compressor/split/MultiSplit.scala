@@ -13,7 +13,7 @@ import at.logic.skeptik.expression._
   * subproofs.
   */
 abstract class MultiSplit(numberOfVariables: Int)
-extends AdditivityHeuristic {
+extends AbstractSplitHeuristic {
 
   /** Binary tree to store partial proofs.
     *
@@ -120,21 +120,31 @@ extends AdditivityHeuristic {
   }
 
   override def applyOnce(proof: Proof[SequentProofNode]) = {
-    val (literalAdditivity, totalAdditivity) = computeAdditivities(proof)
-    var sum = totalAdditivity
+    val (measures, measureSum) = computeMeasures(proof)
+    var sum = measureSum
     val variableList = {
       def selectVariables(variableList: List[E], remaining: Int):List[E] = if (remaining < 1 || sum < 1) variableList else {
-        val selected = chooseVariable(literalAdditivity, sum)
-        sum -= literalAdditivity(selected)
-        literalAdditivity.remove(selected)
+        val selected = chooseVariable(measures, sum)
+        sum -= measures(selected)
+        measures.remove(selected)
         selectVariables(selected::variableList, remaining - 1)
       }
       selectVariables(List(), numberOfVariables)
     }
     val compressedProof: Proof[SequentProofNode] = split(proof, variableList).merge(variableList)
-    if (compressedProof.size < proof.size) compressedProof else proof
+//    if (compressedProof.size < proof.size) compressedProof else proof
+    compressedProof
   }
 }
 
 class TimeoutMultiSplit(numberOfVariables: Int, val timeout: Int)
-extends MultiSplit(numberOfVariables) with DeterministicChoice with Timeout
+extends MultiSplit(numberOfVariables) with AdditivityHeuristic with DeterministicChoice with Timeout
+
+class PRMultiSplit(numberOfVariables: Int, val timeout: Int)
+extends MultiSplit(numberOfVariables) with PivotRepetitionHeuristic with DeterministicChoice with Timeout
+
+class SSMultiSplit(numberOfVariables: Int, val timeout: Int)
+extends MultiSplit(numberOfVariables) with SequentSizeHeuristic with DeterministicChoice with Timeout
+
+class WDMultiSplit(numberOfVariables: Int, val timeout: Int)
+extends MultiSplit(numberOfVariables) with WeightedDepthHeuristic with DeterministicChoice with Timeout

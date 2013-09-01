@@ -5,9 +5,9 @@ import at.logic.skeptik.expression.E
 
 
 
-trait DeterministicChoice
-extends AdditivityHeuristic {
-  protected def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long) = {
+trait DeterministicChoice 
+extends AbstractSplitHeuristic {
+  def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long) = {
     val iterator = literalAdditivity.toIterator
     var (result, max) = iterator.next
     var left = totalAdditivity - max
