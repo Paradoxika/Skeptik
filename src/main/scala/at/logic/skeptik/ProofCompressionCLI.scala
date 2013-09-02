@@ -219,7 +219,7 @@ object ProofCompressionCLI {
 
   class CumulativeStats(measures: Seq[String], algorithms: Seq[String]) extends DataAggregator {
 
-    private val m = MMap( ("id"::(algorithms.toList)) map { (_ -> Seq(0,0,0,0)) } :_* ) //had to change Seq(0,0,0) to Seq(0,0,0,0) to get the new measure into cumulative stats
+    private val m = MMap( ("id"::(algorithms.toList)) map { (_ -> measures.map(m => 0)) } :_* )
     
     def processInput(name: String, measurements: M) = append("id", for (m <- measures) yield measurements(m)) 
     
