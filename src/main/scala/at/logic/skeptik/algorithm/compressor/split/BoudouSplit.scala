@@ -31,13 +31,16 @@ extends Split with AbstractSplitHeuristic {
 class DeterministicBoudouSplit(val timeout: Int)
 extends BoudouSplit with AdditivityHeuristic with DeterministicChoice with Timeout
 
-class DeterministicPRSplit(val timeout: Int)
-extends BoudouSplit with PivotRepetitionHeuristic with DeterministicChoice with Timeout
+class PUISplit(val timeout: Int)
+extends BoudouSplit with PunishIrregularityHeuristic with DeterministicChoice with Timeout
 
-class DeterministicWDSplit(val timeout: Int)
+class PRISplit(val timeout: Int)
+extends BoudouSplit with LeaveIrregularitiesHeuristic with DeterministicChoice with Timeout
+
+class WDSplit(val timeout: Int)
 extends BoudouSplit with WeightedDepthHeuristic with DeterministicChoice with Timeout
 
-class DeterministicSSSplit(val timeout: Int)
+class SSSplit(val timeout: Int)
 extends BoudouSplit with SequentSizeHeuristic with DeterministicChoice with Timeout
 
 

@@ -45,3 +45,8 @@ extends (Proof[N] => Proof[N]) {
     if (compressedProof.size < p.size) compressedProof else p
   }
 }
+
+class SimpleSplit(variable: E) extends Split {
+  def selectVariable(proof: Proof[N]): E = variable
+  def apply(p: Proof[N]):Proof[N] = applyOnce(p)
+}

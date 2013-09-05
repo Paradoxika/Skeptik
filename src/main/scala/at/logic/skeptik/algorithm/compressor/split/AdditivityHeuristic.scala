@@ -6,6 +6,7 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof.sequent.lk.R
 import at.logic.skeptik.expression.E
 import scala.collection.mutable.{HashMap => MMap,HashSet => MSet}
+import scala.collection.immutable.{HashSet => ISet}
 import org.specs2.internal.scalaz._
 import Scalaz._
 
@@ -13,6 +14,16 @@ trait AbstractSplitHeuristic extends Split {
   def computeMeasures(proof: Proof[N]):(MMap[E,Long],Long)
   
   def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long):E
+  
+  def selectVariable(proof: Proof[N], tabu: List[E]) = {
+    val (measureMap, measureSum) = computeMeasures(proof)
+    val reducedMap = measureMap -- tabu
+    var reducedSum = measureSum
+    tabu.foreach(t => if (measureMap.isDefinedAt(t)) reducedSum = reducedSum - measureMap(t))
+//    if (reducedMap.isEmpty) tabu.head
+//    else 
+      chooseVariable(reducedMap,reducedSum)
+  }
   
   def selectVariable(proof: Proof[N]) = {
     val (measureMap, measureSum) = computeMeasures(proof)
@@ -61,7 +72,7 @@ extends AbstractSplitHeuristic {
   }
 }
 
-trait PivotRepetitionHeuristic
+trait PunishIrregularityHeuristic
 extends AbstractSplitHeuristic {
   def computeMeasures(proof: Proof[N]) = {
     val repetition = MMap[E,Long]()
@@ -80,6 +91,32 @@ extends AbstractSplitHeuristic {
           tmp
         }
         case _ => (Map[E,Long]() /: children) ((A,B) => A |+| B)
+      }
+    }
+    proof bottomUp visit
+    (repetition,totalRepetition)
+  }
+}
+
+trait LeaveIrregularitiesHeuristic
+extends AbstractSplitHeuristic {
+  def computeMeasures(proof: Proof[N]) = {
+    val repetition = MMap[E,Long]()
+    var totalRepetition = 0.toLong
+    def visit(node: N, children: Seq[ISet[E]]):ISet[E] = {
+      val fromChildren = (ISet[E]() /: children) ((A,B) => A union B)
+      node match {
+        case R(_,_,aux,_) => {
+//          val rep = (tmp(aux)-1)*(tmp(aux)-1)
+          val add = if (fromChildren.contains(aux)) 0.toLong else (((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1)
+//          val rep = tmp(aux)
+//          if (rep > 0) {
+            totalRepetition += add
+            repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + add)
+//          }
+          fromChildren + aux
+        }
+        case _ => fromChildren
       }
     }
     proof bottomUp visit
