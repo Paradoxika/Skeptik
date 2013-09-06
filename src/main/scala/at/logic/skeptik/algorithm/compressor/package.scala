@@ -44,7 +44,6 @@ package object compressor {
     "RecS5" -> new DetADRecSplitDepth(5),
     "TDLRS" -> TopDownLeftRightSubsumption,
     "TDRLS" -> TopDownRightLeftSubsumption,
-    "TDLRS" -> TopDownLeftRightSubsumption,
     "BURLSt" -> BottomUpRightLeftSubsumptionTime,
     "BURLSm" -> BottomUpRightLeftSubsumptionMemory,
     "LRAS" -> LeftRightAxiomSubsumption,

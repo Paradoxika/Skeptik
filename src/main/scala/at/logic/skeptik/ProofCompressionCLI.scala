@@ -16,7 +16,7 @@ object ProofCompressionCLI {
 
   case class Config(inputs: Seq[String] = Seq(),
                     directory: String = "",
-                    algorithms: Seq[String] = Seq(), 
+                    algorithms: Seq[String] = Seq(),
                     format: String = "",
                     hout: Output = StandardOutput, // human-readable output
                     mout: Output = NoOutput, // machine-readable output
@@ -169,6 +169,7 @@ object ProofCompressionCLI {
           prettyTable.processOutput(oProofName, a, measurements)
           csv.processOutput(oProofName, a, measurements)        
         }  // end of 'for (a <- algorithms)'
+        csv.closeLine
       } // end of 'for (filename <- config.inputs)'
       
       // Displaying proof measurements  
@@ -241,11 +242,15 @@ object ProofCompressionCLI {
       val emptyColumns = ("" /: measures){(acc,m) => acc + ","} // n commas for n measures
       val measureHeaders = measures.mkString("",",",",")
       "Proof,Uncompressed" + emptyColumns + (""/:(for (a <- algorithms) yield a + emptyColumns )){_ + _} + "\n" +
-      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _}
+      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _} + "\n"
+    }
+    
+    def closeLine = {
+      out.write("\n")
     }
     
     def processInput(name: String, measurements: M) = {
-      out.write("\n" + name + (for (m <- measures) yield measurements(m)).mkString(",",",", ","))
+      out.write(name + (for (m <- measures) yield measurements(m)).mkString(",",",", ","))
     }
     
     def processOutput(name: String, a: String, measurements: M) = {
