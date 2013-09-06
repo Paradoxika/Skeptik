@@ -7,8 +7,8 @@ import at.logic.skeptik.proof.sequent.lk.R
 import at.logic.skeptik.expression.E
 import scala.collection.mutable.{HashMap => MMap,HashSet => MSet}
 import scala.collection.immutable.{HashSet => ISet}
-//import org.specs2.internal.scalaz._
-//import Scalaz._
+import org.specs2.internal.scalaz._
+import Scalaz._
 
 trait AbstractSplitHeuristic extends Split {
   def computeMeasures(proof: Proof[N]):(MMap[E,Long],Long)
@@ -72,31 +72,31 @@ extends AbstractSplitHeuristic {
   }
 }
 
-//trait PunishIrregularityHeuristic
-//extends AbstractSplitHeuristic {
-//  def computeMeasures(proof: Proof[N]) = {
-//    val repetition = MMap[E,Long]()
-//    var totalRepetition = 0.toLong
-//    def visit(node: N, children: Seq[Map[E,Long]]):Map[E,Long] = {
-//      node match {
-//        case R(_,_,aux,_) => {
-//          val tmp = (Map(aux -> 1.toLong) /: children) ((A,B) => A |+| B)
-////          val rep = (tmp(aux)-1)*(tmp(aux)-1)
-//          val rep = (((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1) * tmp(aux)
-////          val rep = tmp(aux)
-////          if (rep > 0) {
-//            totalRepetition += rep
-//            repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + rep)
-////          }
-//          tmp
-//        }
-//        case _ => (Map[E,Long]() /: children) ((A,B) => A |+| B)
-//      }
-//    }
-//    proof bottomUp visit
-//    (repetition,totalRepetition)
-//  }
-//}
+trait PunishIrregularityHeuristic
+extends AbstractSplitHeuristic {
+  def computeMeasures(proof: Proof[N]) = {
+    val repetition = MMap[E,Long]()
+    var totalRepetition = 0.toLong
+    def visit(node: N, children: Seq[Map[E,Long]]):Map[E,Long] = {
+      node match {
+        case R(_,_,aux,_) => {
+          val tmp = (Map(aux -> 1.toLong) /: children) ((A,B) => A |+| B)
+//          val rep = (tmp(aux)-1)*(tmp(aux)-1)
+          val rep = (((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1) * tmp(aux)
+//          val rep = tmp(aux)
+//          if (rep > 0) {
+            totalRepetition += rep
+            repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + rep)
+//          }
+          tmp
+        }
+        case _ => (Map[E,Long]() /: children) ((A,B) => A |+| B)
+      }
+    }
+    proof bottomUp visit
+    (repetition,totalRepetition)
+  }
+}
 
 trait LeaveIrregularitiesHeuristic
 extends AbstractSplitHeuristic {

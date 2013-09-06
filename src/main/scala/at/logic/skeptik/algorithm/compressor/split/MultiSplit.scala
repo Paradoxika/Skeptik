@@ -169,8 +169,8 @@ extends MultiSplit(numberOfVariables) with AdditivityHeuristic with Deterministi
 class TakeItLeaveIrregularities(numberOfVariables: Int, val timeout: Int)
 extends MultiSplit(numberOfVariables) with LeaveIrregularitiesHeuristic with DeterministicChoice with leaveIt with Timeout
 
-//class PRMultiSplit(numberOfVariables: Int, val timeout: Int)
-//extends MultiSplit(numberOfVariables) with PunishIrregularityHeuristic with DeterministicChoice with takeIt with Timeout
+class PRMultiSplit(numberOfVariables: Int, val timeout: Int)
+extends MultiSplit(numberOfVariables) with PunishIrregularityHeuristic with DeterministicChoice with takeIt with Timeout
 
 class SSMultiSplit(numberOfVariables: Int, val timeout: Int)
 extends MultiSplit(numberOfVariables) with SequentSizeHeuristic with DeterministicChoice with takeIt with Timeout
