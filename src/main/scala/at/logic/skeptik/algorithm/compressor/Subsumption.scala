@@ -266,9 +266,15 @@ case class ClauseTreeNode(literal: Literal, node1: NodeWithIterators, node2: Nod
   
   def checkSubsumed(node: NodeWithIterators):(ClauseTree,SequentProofNode) = {
     if(literal.isContainedIn(node)) {
-      val result = in.get.checkSubsumed(node)
+      val (resultTree,resultNode) = in.get.checkSubsumed(node)
+      val backNode = if (notIn.isDefined) {
+        val (_,notInNode) = notIn.get.checkSubsumed(node)
+        if (resultNode.conclusion.size > notInNode.conclusion.size) notInNode
+        else resultNode
+      }
+      else resultNode
 //      println("result from pos. branch: " + in + " --> " + result)
-      val b = (new ClauseTreeNode(literal,Some(result._1),this.notIn),result._2)
+      val b = (new ClauseTreeNode(literal,Some(resultTree),this.notIn),backNode)
 //      println("back: " + b)
       b
     }
