@@ -5,9 +5,10 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.algorithm.compressor.GreedyPebbler
+import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.parser.ProofParserVeriT
 import at.logic.skeptik.proof.measure
+import scala.collection.mutable.{HashMap => MMap,HashSet => MSet}
 
 object PebblerTest {
   def main(args: Array[String]):Unit = {
@@ -60,7 +61,15 @@ object PebblerTest {
       concseq = R(n14,n18)
     }
 //    val proof = new Proof(concseq)
-    val proof = ProofParserVeriT.read("F:/Proofs/small-size/SortingNetwork8_safe_blmc000.smt2")
+//    val proof = ProofParserVeriT.read("C:/Proofs/very-small/hash_uns_04_10.smt2")
+    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl494.smt2")
+    val seqtest = List(1,2,3)
+    def test(l: List[Int]):Unit = l match {
+      case t::q => {println(t);test(q)}
+      case _ => println("arrive here")
+    }
+    
+    test(seqtest)
     
     def printBottomUp(node: SequentProofNode, c: Seq[SequentProofNode]):SequentProofNode = {
       println(node + " " + c.size)
@@ -69,12 +78,14 @@ object PebblerTest {
     
 //    proof bottomUp printBottomUp
 //    println(proof)
-    val greedy2 = GreedyPebbler(proof)
+    val greedy = LastChildOfBUPebbler(proof)
+    val greedy2 = RemoveMostPebbles(proof)
 //    println(greedy)
 //    println(greedy2)
     
-    println("\nnormal:" + measure(proof))
-//    println("\ngreedy:" + Pebbler.computePebbleNumber(proof))
-    println("\ngreedy2:" + measure(greedy2))
+    println("bU: " + measure(greedy))
+    println("tD: " + measure(greedy2))
+    println("normal:" + measure(proof))
+//    println("\ngreedy2:" + measure(greedy2))
   }
 }
