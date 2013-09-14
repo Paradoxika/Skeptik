@@ -154,6 +154,6 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
       }
     }
     val out = Proof(proof foldDown replace2)
-   out
+    if (out.size < proof.size) out else proof
   }
 }

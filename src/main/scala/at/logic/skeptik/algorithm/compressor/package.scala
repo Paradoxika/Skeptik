@@ -29,19 +29,22 @@ package object compressor {
     "lmA2" -> new LowerMiddleA2(5000),
     "Split" -> new CottonSplit(30000),
     "RBSplit" -> new RandomBoudouSplit(30000),
-    "DBSplit" -> new DeterministicBoudouSplit(30000),
+    "DBSplit" -> new DeterministicBoudouSplit(5000),
     "MSplit2" -> new TimeoutMultiSplit(2,5000),
-    "MSplit3" -> new TimeoutMultiSplit(3,5000),
+    "MSplit3" -> new TimeoutMultiSplit(3,3000),
     "MSplit4" -> new TimeoutMultiSplit(4,5000),
     "TIMSplit2" -> new TakeItMultiSplit(2,5000),
     "TIMSplit3" -> new TakeItMultiSplit(3,5000),
     "TIMSplit4" -> new TakeItMultiSplit(4,5000),
     "TestMSplit" -> new TakeItLeaveIrregularities(3,5000),
-    "TRSplit" -> new DetADRecSplitTime(5000),
+    "TRSplit" -> new DetADRecSplitTime(200,5000),
+    "RSTDS" -> new RSTDS(200,5000),
     "SimpleMS3" -> new SimpleMultiSplit(3),
     "SimpleMS5" -> new SimpleMultiSplit(5),
-    "RecS3" -> new DetADRecSplitDepth(3),
-    "RecS5" -> new DetADRecSplitDepth(5),
+    "RecS3" -> new DepthTimeRS(3,5000),
+    "RecS5" -> new DepthTimeRS(5,5000),
+    "ITS3" -> new IterativeSplit(3),
+    "ITS5" -> new IterativeSplit(5),
     "TDLRS" -> TopDownLeftRightSubsumption,
     "OldTDS" -> OldTDS,
     "TDRLS" -> TopDownRightLeftSubsumption,
@@ -49,7 +52,9 @@ package object compressor {
     "BURLSm" -> BottomUpRightLeftSubsumptionMemory,
     "LRAS" -> LeftRightAxiomSubsumption,
     "RLAS" -> RightLeftAxiomSubsumption,
-    "GP" -> RemoveMostPebbles
+    "GP" -> RemoveMostPebbles,
+    "BUP" -> LastChildOfBUPebbler
+    
   )
   trait fixNodes {
     def fixNode[P <: ProofNode[Sequent,P]](node: SequentProofNode, pivot: E, left: P, right: P, fixedLeft: SequentProofNode, fixedRight: SequentProofNode):SequentProofNode = {

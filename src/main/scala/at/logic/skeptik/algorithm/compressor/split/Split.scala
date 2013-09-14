@@ -50,3 +50,15 @@ class SimpleSplit(variable: E) extends Split {
   def selectVariable(proof: Proof[N]): E = variable
   def apply(p: Proof[N]):Proof[N] = applyOnce(p)
 }
+
+class IterativeSplit(depth: Int) extends Split with AdditivityHeuristic with DeterministicChoice {
+  def apply(p: Proof[N]):Proof[N] = {
+    var outProof = p
+    for (i <- 0 to depth - 1){
+      outProof = applyOnce(outProof)
+      println("compressing")
+    }
+    outProof = DAGify(outProof)
+    if (outProof.size < p.size) outProof else p
+  }
+}
