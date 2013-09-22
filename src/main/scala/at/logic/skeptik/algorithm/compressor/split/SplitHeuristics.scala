@@ -10,30 +10,27 @@ import scala.collection.immutable.{HashSet => ISet}
 import org.specs2.internal.scalaz._
 import Scalaz._
 
+/**
+ * Heuristic for selecting split variable.
+ * Computes some measure for each node, where the higher measure should represent a better variable.
+ * The sum of the measures is also computed to select variables more efficient.
+ * The variables can either be selected deterministically or randomly.
+ */
 trait AbstractSplitHeuristic extends Split {
   def computeMeasures(proof: Proof[N]):(MMap[E,Long],Long)
   
   def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long):E
   
-  def selectVariable(proof: Proof[N], tabu: List[E]) = {
-    val (measureMap, measureSum) = computeMeasures(proof)
-    val reducedMap = measureMap -- tabu
-    var reducedSum = measureSum
-    tabu.foreach(t => if (measureMap.isDefinedAt(t)) reducedSum = reducedSum - measureMap(t))
-//    if (reducedMap.isEmpty) tabu.head
-//    else 
-      chooseVariable(reducedMap,reducedSum)
-  }
-  
   def selectVariable(proof: Proof[N]) = {
     val (measureMap, measureSum) = computeMeasures(proof)
-//    println("total measure.: " + measureSum)
-//    println("literal measurements:")
-//    measureMap.foreach(A => println(A._1 + " -> " + A._2))
     chooseVariable(measureMap, measureSum)
   }
 }
 
+/**
+ * The additivity heuristic is the original heuristic proposed by Scott Cotton.
+ * It measures how much a clause grows after resolving, using the variable as pivot, in comparison to its biggest premise.
+ */
 trait AdditivityHeuristic
 extends AbstractSplitHeuristic  {
   def computeMeasures(proof: Proof[N]) = {
@@ -51,6 +48,11 @@ extends AbstractSplitHeuristic  {
   }
 }
 
+/**
+ * The weighted depth heuristic modifies the additivity heuristic, by multiplying the additivity with the depth of the node.
+ * The depth of a node is defined here as the maximum path length from the root to the node.
+ * Therefore pivot used at nodes with a higher depth have a higher chance of being selected.
+ */
 trait WeightedDepthHeuristic
 extends AbstractSplitHeuristic {
   def computeMeasures(proof: Proof[N]) = {
@@ -72,7 +74,13 @@ extends AbstractSplitHeuristic {
   }
 }
 
-trait PunishIrregularityHeuristic
+/**
+ * The remove irregularities heuristic modifies the additivity heuristic, by multiplying the additivity by the number of times the pivot was used already in this path.
+ * If a variable occurs two or more times as a pivot in a resolution path, it is called irregular.
+ * Therefore irregular pivots are likely to be removed using this heuristic.
+ * Removing irregularities might lead to exponential proof growth.
+ */
+trait RemoveIrregularityHeuristic
 extends AbstractSplitHeuristic {
   def computeMeasures(proof: Proof[N]) = {
     val repetition = MMap[E,Long]()
@@ -81,13 +89,9 @@ extends AbstractSplitHeuristic {
       node match {
         case R(_,_,aux,_) => {
           val tmp = (Map(aux -> 1.toLong) /: children) ((A,B) => A |+| B)
-//          val rep = (tmp(aux)-1)*(tmp(aux)-1)
           val rep = (((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1) * tmp(aux)
-//          val rep = tmp(aux)
-//          if (rep > 0) {
-            totalRepetition += rep
-            repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + rep)
-//          }
+          totalRepetition += rep
+          repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + rep)
           tmp
         }
         case _ => (Map[E,Long]() /: children) ((A,B) => A |+| B)
@@ -98,6 +102,11 @@ extends AbstractSplitHeuristic {
   }
 }
 
+/**
+ * The leave irregularities heuristic is the counterpart to the remove irregularities heuristic.
+ * It only adds the additivity to the variable, if the variable was not used before as pivot in the resolution path.
+ * Therefore irregular variables will end up having a smaller measure.
+ */
 trait LeaveIrregularitiesHeuristic
 extends AbstractSplitHeuristic {
   def computeMeasures(proof: Proof[N]) = {
@@ -107,13 +116,9 @@ extends AbstractSplitHeuristic {
       val fromChildren = (ISet[E]() /: children) ((A,B) => A union B)
       node match {
         case R(_,_,aux,_) => {
-//          val rep = (tmp(aux)-1)*(tmp(aux)-1)
           val add = if (fromChildren.contains(aux)) 0.toLong else (((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1)
-//          val rep = tmp(aux)
-//          if (rep > 0) {
-            totalRepetition += add
-            repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + add)
-//          }
+          totalRepetition += add
+          repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + add)
           fromChildren + aux
         }
         case _ => fromChildren
@@ -124,6 +129,9 @@ extends AbstractSplitHeuristic {
   }
 }
 
+/**
+ * The sequent size heuristic adds the size of the conclusion sequent to the variable measure, whereever it is used as a pivot.
+ */
 trait SequentSizeHeuristic
 extends AbstractSplitHeuristic  {
   def computeMeasures(proof: Proof[N]) = {

@@ -6,15 +6,19 @@ import at.logic.skeptik.judgment.Judgment
 import scala.collection.mutable.{HashMap => MMap,HashSet => MSet}
 import scala.collection.immutable.{HashMap => IMap}
 
-//NodeInfo represents information of a node for sorting nodes in top down or bottom up pebbling algorithms
-//all descriptions reference the corresponding node as n
-//index i: in the original proof and in a bottom up traversal, the node was visited at the i'th iteration
-//depth: number of nodes on the shortest path between the proof root and n
-//numberOfChildren: the amount of children nodes of n
-//lastChildOf: the amount of nodes of which n is the last child that is visited in a top down traversal
-//waitForPremises: the number of currently unpebbled premises. Especially interesting when the value is set to 1, because then n can be pebbled
-//usesPebbles: upper bound of pebbles that are currently used for n and its premises
-//childrenNotPebbled: number of children nodes of n, that have not yet been visited. Especially interesting when the value is set to 1, because then when pebbling another child of n, the pebbles of n can be removed
+/**NodeInfo represents information of a node for sorting nodes in top down or bottom up pebbling algorithms
+ * all descriptions reference the corresponding node as n
+ * - index i: in the original proof and in a bottom up traversal, the node was visited at the i'th iteration
+ * - depth: number of nodes on the shortest path between the proof root and n
+ * - numberOfChildren: the amount of children nodes of n
+ * - lastChildOf: the amount of nodes of which n is the last child that is visited in a top down traversal
+ * - waitForPremises: the number of currently unpebbled premises. Especially interesting when the value is set to 1, because then n can be pebbled
+ * - usesPebbles: upper bound of pebbles that are currently used for n and its premises
+ * - childrenNotPebbled: number of children nodes of n, that have not yet been visited. Especially interesting when the value is set to 1, because then when pebbling another child of n, the pebbles of n can be removed^
+ * 
+ * These objects might be too heavy for a fast algorithm. If one is only interested in certain data, then computing this seperately will be more efficient
+ */
+
 class NodeInfo(val index:Int, val depth: Int, val numberOfChildren: Int, var lastChildOf:Int, var waitsForPremises: Int, var usesPebbles: Int, var childrenNotPebbled: Int){
   def incLCO = lastChildOf = lastChildOf + 1
   override def toString:String = {
@@ -24,10 +28,15 @@ class NodeInfo(val index:Int, val depth: Int, val numberOfChildren: Int, var las
 
 final object EmptyNI extends NodeInfo(Integer.MAX_VALUE,0,0,0,0,0,0)
 
+/**
+ * Abstract pebbling class, both for top-down and bottom-up pebblers
+ */
 abstract class AbstractPebbler extends (Proof[N] => Proof[N])  {
   
+  //usedOrder basically represents the used heuristic
   def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N]
   
+  //this is where top-down and bottom-up differ
   def findProof(proof:Proof[N],nodeInfos: MMap[N,NodeInfo],initNodes: MSet[N]):Proof[N]
   
   var counter:Int = 0
@@ -57,7 +66,9 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N])  {
 /*****************Top down Pebblers*****************
  * Top down pebblers traverse the proof from leaves to the root and pebble nodes using a specific heuristic in form of a node ordering.
  * By pebbling nodes, other nodes are made available for pebbling and initially only nodes without premises are available.
- * This is done until no more nodes are available for pebbling, i.e. the root node is available for pebbling*/
+ * This is done until no more nodes are available for pebbling, i.e. the root node is available for pebbling
+ * Top-down pebbling directly corresponds to playing the Black pebbling game
+ * */
 
 abstract class AbstractTopDownPebbler extends AbstractPebbler  {
   def findProof(proof:Proof[N],nodeInfos: MMap[N,NodeInfo],initNodes: MSet[N]):Proof[N] = {
@@ -65,16 +76,7 @@ abstract class AbstractTopDownPebbler extends AbstractPebbler  {
     var permutation:Seq[N] = Seq[N]()
     
     val canBePebbled:MSet[N] = initNodes
-//
-//    //Number of premises that have not been pebbled yet
-//    val waitsForPremises: MMap[N,Int] = MMap[N,Int]()
-//    
-//    //Number of pebbles a node uses recursively
-//    val usesPebbles: MMap[N,Int] = MMap[N,Int]()
-//    
-//    //Number of children of a node that are currently not pebbled. Especially interesting when the number is 1, so pebbling the next child means one can remove the pebbles from this node
-//    val childrenNotPebbled: MMap[N,Int] = MMap[N,Int]()
-//    
+    
     proof.nodes.foreach(n => {
       if (n.premises.isEmpty) canBePebbled += n
     })
@@ -83,17 +85,10 @@ abstract class AbstractTopDownPebbler extends AbstractPebbler  {
       //decide the next node to be pebbled by taking all pebbleable nodes and taking their maximum with the currently used Ordering
       val next = canBePebbled.max(usedOrder(proof,nodeInfos))
       
-      
-//      println(nodeInfos.size)
-      
-//      print("Available:(")
-//      canBePebbled.foreach(c => print(nodeInfos(c).index +"["+new RemovesPebblesOrder(proof,nodeInfos).compute(c)  + "~"+ new DepthOrder(proof,nodeInfos).compute(c) +"~"+ new PebbledPremisesOrder(proof,nodeInfos).compute(c) + "~" + new ChildWithPebbledPremise(proof,nodeInfos).compute(c) +"] "))
-//      print(")\n")
-      
-//      println(nodeInfos(next).index + " " + next)
-//      println(next)
       permutation = permutation :+ next
       canBePebbled -= next
+      
+      //Update the relevant nodeInfo objects
       next.premises.foreach(pr => {
         if (nodeInfos.isDefinedAt(pr)) {
           val cNP = nodeInfos(pr).childrenNotPebbled - 1
@@ -133,7 +128,7 @@ abstract class AbstractTopDownPebbler extends AbstractPebbler  {
  * At each node n its premises are visited recursively before n is processed.
  * It is decided heuristically in what order the nodes are visited.
  * So far these pebblers have behaved better in compressing the space measure than top down pebblers.
- * I think this is the case, because far new branches are not touched before old ones are finished with.
+ * I think this is the case, because "far away" new branches are not touched before old ones are finished with.
  */
 
 abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
@@ -155,14 +150,15 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
       permutation = permutation :+ p
     }
     visit(proof.root)
-//    permutation.foreach(println)
     new Proof(proof.root, permutation.reverse.toIndexedSeq)
   }
 }
 
 
 
-/*****************Orderings*****************/
+/*****************Orderings****************
+ * represent different heuristics for pebbling
+ * */
 
 //Order with the number of children nodes have
 class ChildrenOrder(proof: Proof[N]) extends Ordering[N] {
@@ -299,6 +295,10 @@ class IndexOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) extends UseNodeIn
   }
   def nextOrder = new DepthOrder(proof,nodeInfos)
 }
+
+/*****************Pebbler Objects****************
+ * Pebblers only differ in the used order, i.e. the heuristic
+ * */
 
 object NumberOfChildrenPebbler extends AbstractTopDownPebbler {
   def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {

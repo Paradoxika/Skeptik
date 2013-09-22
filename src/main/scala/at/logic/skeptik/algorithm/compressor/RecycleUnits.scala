@@ -9,17 +9,28 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashSet => MSet}
 
+/**
+ * RecycleUnits is a special case of bottom-up subsumption, which seeks to replace nodes by subsuming unit nodes.
+ * The initial idea of the algorithm is, not to check for subsumption for every node with every unit clause, but to compare unit nodes to pivots.
+ * If a unit clause matches a pivot, then one of the premise nodes can be changed.
+ * This approach is so far not implemented, but subsumption is checked like in the bottom-up subsumption algorithm.
+ * The reason for this is the way how foldDown works. It only affects the updated node for the current node itself and has no means of modifying parent nodes.
+ * One could update the node to be the resolvent of the new premises, however that leaves the old premises in tact, and it will be used for premises of other nodes.
+ * Moreover RecycleUnits suffers from the same copy node problems described at the bottom-up subsumption algorithm
+ */
+
 object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with fixNodes {
   
   def isUnit[P <: ProofNode[Sequent,P]](n: P) = n.conclusion.width == 1
   
   def apply(proof: Proof[SequentProofNode]) = {
-    //stores the unit descendend unit nodes of all proof nodes
+    //stores the descendant unit nodes of all proof nodes
     val descUnits = new MMap[SequentProofNode,MSet[SequentProofNode]]
+    //store the ancestor unit nodes of all proof nodes
     val ancUnits = new MMap[SequentProofNode,MSet[SequentProofNode]]
-    //stores occuring unit nodes in the proof for pivot elements
-    val units = new MMap[E,MSet[SequentProofNode]]
+    //node map to do dagification on the fly to ease the copy node issue
     val nodeMap = MMap[Sequent,SequentProofNode]()
+    //Set of unit nodes occuring in the proof
     val unitNodes = new MSet[SequentProofNode]
     
     def collectUnits(node: SequentProofNode, children: Seq[SequentProofNode]):SequentProofNode = {
@@ -30,8 +41,6 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
       //add unit clause to global set
       if (isUnit(node)) {
         unitNodes += node
-        node.conclusion.ant.foreach(l => units(l) = units.getOrElse(l, new MSet[SequentProofNode]) += node )
-        node.conclusion.suc.foreach(l => units(l) = units.getOrElse(l, new MSet[SequentProofNode]) += node )
       }
       
       //add unit clause to seen units for this node
@@ -39,6 +48,8 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
       node
     }
     
+    //collect the ancestor unit nodes for every node
+    //unfortunately this has to be done beforehand and needs an extra traversal, but without this information cyclic proofs might result after replacing some node by a unit
     def getAncUnits(node: SequentProofNode, res: Seq[Unit]):Unit ={
       val ancPremises = (new MSet[SequentProofNode] /: node.premises)( (l1,l2) =>
         l1 union ancUnits(l2)
@@ -49,15 +60,15 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
       ancUnits(node) = ancPremises
     }
 
-    proof.bottomUp(collectUnits)
+    //It's a little unfortunate, that I need two pre-proccessing traversals, but both ancestor and descendant unit nodes information is crucial for correctness
+    proof bottomUp collectUnits
     proof foldDown getAncUnits
-//    units.foreach(println)
-    
+
+    //Helper method to replace one reference to a unit node by another unit node with the same literal in all the helper maps and sets
     def replaceUnitbyUnit(oldUnit: SequentProofNode, newUnit: SequentProofNode) {
-      newUnit.conclusion.ant.foreach(l => {if (units.isDefinedAt(l)) units(l) -= oldUnit; units(l) = units.getOrElse(l, MSet[SequentProofNode]()) + newUnit})
-      newUnit.conclusion.suc.foreach(l => {if (units.isDefinedAt(l)) units(l) -= oldUnit; units(l) = units.getOrElse(l, MSet[SequentProofNode]()) + newUnit})
       unitNodes -= oldUnit
       unitNodes += newUnit
+      //This traversal is likely to be inefficient, maybe by changing the way descendant and ancestor units information is stored this could be done more efficiently
       descUnits.foreach(dU => {
         if (dU._2 contains oldUnit) {
           dU._2 -= oldUnit
@@ -70,24 +81,25 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
           dU._2 += newUnit
         }
       })
-//      println("updated units:")
-//      units.foreach(println)
     }
     
-    def replace2(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
+    def replace(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
+      //On the fly dagification
       if (nodeMap.contains(node.conclusion)) nodeMap(node.conclusion)
       else {
-        
         val newNode = fixNode(node,fixedPremises)
-        if ((isUnit(newNode)) && (isUnit(node))) {
+        if (!(newNode eq node) && (isUnit(newNode)) && (isUnit(node))) { //A unit node got a new reference (because its premises have been changed) and from now on this new reference should be used
           replaceUnitbyUnit(node,newNode)
         }
         if (newNode.isInstanceOf[R] || newNode.isInstanceOf[Axiom]) {
           nodeMap += (newNode.conclusion -> newNode)
         }
-        ancUnits(newNode) = ancUnits(node)
-        descUnits(newNode) = descUnits(node)
-        unitNodes.find(u => (u.conclusion subsequentOf newNode.conclusion) && !(fixedPremises contains u) && !descUnits(newNode).contains(u) && ancUnits(u).forall(au => !(descUnits(newNode) contains au))) match {
+        if (!(newNode eq node)) { //If the node was actually fixed, then the ancestor, descendant unit node information is copied from the original node
+          ancUnits(newNode) = ancUnits(node)
+          descUnits(newNode) = descUnits(node)
+        }
+        //A unit node, which does not create a cyclic proof if replaced for this node is searched for
+        unitNodes.find(u => (u.conclusion subsequentOf newNode.conclusion) && !(fixedPremises contains u) && !descUnits(newNode).contains(u) && (ancUnits(u) intersect descUnits(newNode)).isEmpty) match {
           case None => newNode
           case Some(u) => {
             u
@@ -96,64 +108,9 @@ object RecycleUnits extends (Proof[SequentProofNode] => Proof[SequentProofNode])
       }
     }
     
-    def replace(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]):SequentProofNode = {
-      val newNode = fixNode(node,fixedPremises)
-      if ((isUnit(newNode)) && (isUnit(node))) {
-        replaceUnitbyUnit(node,newNode)
-      }
-      val ancPremises = (new MSet[SequentProofNode] /: fixedPremises)( (l1,l2) =>
-        l1 union ancUnits(l2)
-      )
-      if (isUnit(newNode)) {
-        ancPremises += newNode
-      }
-      ancUnits(newNode) = ancPremises
-      descUnits(newNode) = descUnits(node)
-      node match {
-        case R(left, right, pivot, _) => {
-          val fixedLeft  = fixedPremises.head
-      		val fixedRight = fixedPremises.last
-      		//find unit nodes with the current pivot element which are not ancestors of the current node and for which none of its ancestor units are contained in the descendend units of the current node
-      		units.getOrElse(pivot,new MSet[SequentProofNode]).find(u => !(fixedPremises contains u) && !descUnits(newNode).contains(u) && ancUnits(u).forall(au => !(descUnits(newNode) contains au))) match {
-            //in case there are no such units -> update the node if needed
-            case None => {
-//              if (node.conclusion.size == 1) println("new root by fixing old: " + node + " new: " + newNode)
-              newNode
-            }
-            //there is a not ancestor unit in the proof using the current pivot
-            case Some(u) => {
-              if (fixedPremises contains u) {
-                println("fixed premises contains " + u)
-              }
-    //          println("fixed Premises:" )
-    //          fixedPremises.foreach(println)
-    //          println("u:")
-    //          println(u)
-              //println(u.conclusion + " contains " + pivot + " suc c: " + u.conclusion.suc.contains(pivot))
-              //pivot is negative
-              val newNewNode = if (u.conclusion.suc.contains(pivot)) {
-//                println("fixing parent " + fixedLeft + " to " + u)
-                fixNode(node,pivot,left,right,u,fixedRight)
-              }
-              //pivot is positive
-              else {
-//                println("fixing parent " + fixedRight + " by " + u)
-                fixNode(node,pivot,left,right,fixedLeft,u)
-              }
-//              println("replacing " + node + " by " + newNewNode)
-              if ((isUnit(newNode)) && (isUnit(newNewNode))) {
-                replaceUnitbyUnit(newNode,newNewNode)
-              }
-              ancUnits(newNewNode) = ancUnits(newNode) union ancUnits(u)
-              descUnits(newNewNode) = if (isUnit(newNewNode)) descUnits(newNode) + newNewNode else descUnits(newNode)
-              newNewNode
-            }
-          }
-        }
-        case _ => newNode
-      }
-    }
-    val out = Proof(proof foldDown replace2)
+    val out = Proof(proof foldDown replace)
+    
+    //Since there can be negative compression, only shorter proofs are accepted
     if (out.size < proof.size) out else proof
   }
 }

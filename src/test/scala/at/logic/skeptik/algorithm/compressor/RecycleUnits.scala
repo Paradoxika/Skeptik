@@ -6,6 +6,8 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent._
+import at.logic.skeptik.parser._
+import at.logic.skeptik.proof.measure
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
@@ -70,7 +72,8 @@ import at.logic.skeptik.expression.Var
     val n13 = R(n4,n12) // b |-
     concseq = R(n1,n13)
   }
-  val proof = Proof(concseq)
+//  val proof = Proof(concseq)
+  val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl381.smt2")
     def printProof(proof: Proof[SequentProofNode]) = {
     
     var counter = 0; var result = "";
@@ -84,10 +87,10 @@ import at.logic.skeptik.expression.Var
     result
   }
 
-  println(printProof(proof))
+//  println(printProof(proof))
 
   val compproof = RecycleUnits.apply(proof)
-  println(printProof(compproof))
+  println(measure(compproof))
   
 //  "RecycleUnits" should {
 //    "compress the proof" in {
