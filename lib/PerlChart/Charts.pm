@@ -33,7 +33,7 @@ sub draw_x {
     # Throws: 
     my ($title, $div, $factor, $width, $height) = @_;
 
-    my $step = $div * $factor;
+    my $step = ($div * $factor) - 0.001;
     my @div = map { $_ * $div } (1..($width / $step));
 
     draw_mx($title, $width, $height, @div);
