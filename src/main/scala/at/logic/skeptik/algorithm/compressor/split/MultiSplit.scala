@@ -137,43 +137,25 @@ extends AbstractSplitHeuristic {
       selectVariables(List(), numberOfVariables)
     }
     val compressedProof: Proof[SequentProofNode] = split(proof, variableList).merge(variableList)
-//    if (compressedProof.size < proof.size) compressedProof else proof
-//    compressedProof
-    takeItOrLeaveIt(proof,compressedProof)
+    if (compressedProof.size < proof.size) compressedProof else proof
   }
-  
-  def takeItOrLeaveIt(proof:Proof[SequentProofNode],compressedProof:Proof[SequentProofNode]):Proof[SequentProofNode]
-}
-
-trait takeIt {
-  def takeItOrLeaveIt(proof:Proof[SequentProofNode],compressedProof:Proof[SequentProofNode]):Proof[SequentProofNode] = compressedProof
-}
-
-trait leaveIt {
-  def takeItOrLeaveIt(proof:Proof[SequentProofNode],compressedProof:Proof[SequentProofNode]):Proof[SequentProofNode] = if (compressedProof.size < proof.size) compressedProof else proof
 }
 
 class SimpleMultiSplit(numberOfVariables: Int)
-extends MultiSplit(numberOfVariables) with AdditivityHeuristic with DeterministicChoice with takeIt{
+extends MultiSplit(numberOfVariables) with AdditivityHeuristic with DeterministicChoice {
   def apply(p: Proof[SequentProofNode]):Proof[SequentProofNode] = {
     applyOnce(p)
   }
 }
 
 class TimeoutMultiSplit(numberOfVariables: Int, val timeout: Int)
-extends MultiSplit(numberOfVariables) with AdditivityHeuristic with DeterministicChoice with leaveIt with Timeout
-
-class TakeItMultiSplit(numberOfVariables: Int, val timeout: Int)
-extends MultiSplit(numberOfVariables) with AdditivityHeuristic with DeterministicChoice with takeIt with Timeout
-
-class TakeItLeaveIrregularities(numberOfVariables: Int, val timeout: Int)
-extends MultiSplit(numberOfVariables) with LeaveIrregularitiesHeuristic with DeterministicChoice with leaveIt with Timeout
+extends MultiSplit(numberOfVariables) with AdditivityHeuristic with DeterministicChoice with Timeout
 
 class PRMultiSplit(numberOfVariables: Int, val timeout: Int)
-extends MultiSplit(numberOfVariables) with RemoveIrregularityHeuristic with DeterministicChoice with takeIt with Timeout
+extends MultiSplit(numberOfVariables) with RemoveIrregularityHeuristic with DeterministicChoice with Timeout
 
 class SSMultiSplit(numberOfVariables: Int, val timeout: Int)
-extends MultiSplit(numberOfVariables) with SequentSizeHeuristic with DeterministicChoice with takeIt with Timeout
+extends MultiSplit(numberOfVariables) with SequentSizeHeuristic with DeterministicChoice with Timeout
 
 class WDMultiSplit(numberOfVariables: Int, val timeout: Int)
-extends MultiSplit(numberOfVariables) with WeightedDepthHeuristic with DeterministicChoice with takeIt with Timeout
+extends MultiSplit(numberOfVariables) with WeightedDepthHeuristic with DeterministicChoice with Timeout

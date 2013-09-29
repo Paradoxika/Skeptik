@@ -8,11 +8,11 @@ import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.parser._
 import at.logic.skeptik.proof.measure
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 import at.logic.skeptik.expression.Var
+import at.logic.skeptik.algorithm.compressor.subsumption.RecycleUnits
 
 //@RunWith(classOf[JUnitRunner])
 //class RecycleUnitsSpecification extends SpecificationWithJUnit {

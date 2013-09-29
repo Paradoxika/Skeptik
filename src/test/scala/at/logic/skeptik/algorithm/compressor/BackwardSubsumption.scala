@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.algorithm.compressor._
+import at.logic.skeptik.algorithm.compressor.subsumption._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
@@ -129,7 +129,7 @@ class BackwardSubsumptionSpecification extends SpecificationWithJUnit {
 //    
 //    proof bottomUp(visit)
 //  println(proof)
-   val compproof = BottomUpRightLeftSubsumptionMemory(concseq)
+   val compproof = BottomUpSubsumptionMemory(concseq)
 // println(compproof)
   
   "Backward Subsumption" should {

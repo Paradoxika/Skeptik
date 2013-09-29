@@ -17,9 +17,9 @@ import Scalaz._
  * The variables can either be selected deterministically or randomly.
  */
 trait AbstractSplitHeuristic extends Split {
-  def computeMeasures(proof: Proof[N]):(MMap[E,Long],Long)
+  def computeMeasures(proof: Proof[N]): (MMap[E,Long],Long)
   
-  def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long):E
+  def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long): E
   
   def selectVariable(proof: Proof[N]) = {
     val (measureMap, measureSum) = computeMeasures(proof)
@@ -29,7 +29,8 @@ trait AbstractSplitHeuristic extends Split {
 
 /**
  * The additivity heuristic is the original heuristic proposed by Scott Cotton.
- * It measures how much a clause grows after resolving, using the variable as pivot, in comparison to its biggest premise.
+ * It measures how much a clause grows after resolving, using the variable as pivot, 
+ * in comparison to its biggest premise.
  */
 trait AdditivityHeuristic
 extends AbstractSplitHeuristic  {
@@ -49,7 +50,9 @@ extends AbstractSplitHeuristic  {
 }
 
 /**
- * The weighted depth heuristic modifies the additivity heuristic, by multiplying the additivity with the depth of the node.
+ * The weighted depth heuristic modifies the additivity heuristic, 
+ * by multiplying the additivity with the depth of the node.
+ * 
  * The depth of a node is defined here as the maximum path length from the root to the node.
  * Therefore pivot used at nodes with a higher depth have a higher chance of being selected.
  */
@@ -58,7 +61,7 @@ extends AbstractSplitHeuristic {
   def computeMeasures(proof: Proof[N]) = {
     var totalAdditivity = 0.toLong
     val literalAdditivity = MMap[E,Long]()
-    def visit(node: N, children:Seq[Int]):Int = {
+    def visit(node: N, children:Seq[Int]): Int = {
       val depth = if (children.size > 0) children.min + 1 else 0
       node match {
         case R(_,_,aux,_) =>
@@ -75,7 +78,9 @@ extends AbstractSplitHeuristic {
 }
 
 /**
- * The remove irregularities heuristic modifies the additivity heuristic, by multiplying the additivity by the number of times the pivot was used already in this path.
+ * The remove irregularities heuristic modifies the additivity heuristic, 
+ * by multiplying the additivity by the number of times the pivot was used already in this path.
+ * 
  * If a variable occurs two or more times as a pivot in a resolution path, it is called irregular.
  * Therefore irregular pivots are likely to be removed using this heuristic.
  * Removing irregularities might lead to exponential proof growth.
@@ -85,17 +90,15 @@ extends AbstractSplitHeuristic {
   def computeMeasures(proof: Proof[N]) = {
     val repetition = MMap[E,Long]()
     var totalRepetition = 0.toLong
-    def visit(node: N, children: Seq[Map[E,Long]]):Map[E,Long] = {
-      node match {
-        case R(_,_,aux,_) => {
-          val tmp = (Map(aux -> 1.toLong) /: children) ((A,B) => A |+| B)
-          val rep = (((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1) * tmp(aux)
-          totalRepetition += rep
-          repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + rep)
-          tmp
-        }
-        case _ => (Map[E,Long]() /: children) ((A,B) => A |+| B)
+    def visit(node: N, children: Seq[Map[E,Long]]): Map[E,Long] = node match {
+      case R(_,_,aux,_) => {
+        val tmp = (Map(aux -> 1.toLong) /: children) ((A,B) => A |+| B)
+        val rep = (((node.conclusion.size - (node.premises(0).conclusion.size max node.premises(1).conclusion.size)) max 0) + 1) * tmp(aux)
+        totalRepetition += rep
+        repetition.update(aux, repetition.getOrElse(aux, 0.toLong) + rep)
+        tmp
       }
+      case _ => (children foldLeft Map[E,Long]()) ((A,B) => A |+| B)
     }
     proof bottomUp visit
     (repetition,totalRepetition)
@@ -104,7 +107,9 @@ extends AbstractSplitHeuristic {
 
 /**
  * The leave irregularities heuristic is the counterpart to the remove irregularities heuristic.
- * It only adds the additivity to the variable, if the variable was not used before as pivot in the resolution path.
+ * 
+ * It only adds the additivity to the variable, 
+ * if the variable was not used before as pivot in the resolution path.
  * Therefore irregular variables will end up having a smaller measure.
  */
 trait LeaveIrregularitiesHeuristic
@@ -130,7 +135,8 @@ extends AbstractSplitHeuristic {
 }
 
 /**
- * The sequent size heuristic adds the size of the conclusion sequent to the variable measure, whereever it is used as a pivot.
+ * The sequent size heuristic adds the size of the conclusion sequent to the variable measure, 
+ * wherever it is used as a pivot.
  */
 trait SequentSizeHeuristic
 extends AbstractSplitHeuristic  {

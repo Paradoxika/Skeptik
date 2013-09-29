@@ -12,14 +12,25 @@ import scala.collection.immutable.{HashMap => IMap}
  * - depth: number of nodes on the shortest path between the proof root and n
  * - numberOfChildren: the amount of children nodes of n
  * - lastChildOf: the amount of nodes of which n is the last child that is visited in a top down traversal
- * - waitForPremises: the number of currently unpebbled premises. Especially interesting when the value is set to 1, because then n can be pebbled
+ * - waitForPremises: the number of currently unpebbled premises
+ *    Especially interesting when the value is set to 1, because then n can be pebbled
  * - usesPebbles: upper bound of pebbles that are currently used for n and its premises
- * - childrenNotPebbled: number of children nodes of n, that have not yet been visited. Especially interesting when the value is set to 1, because then when pebbling another child of n, the pebbles of n can be removed^
+ * - childrenNotPebbled: number of children nodes of n, that have not yet been visited. 
+ *    Especially interesting when the value is set to 1, 
+ *    because then when pebbling another child of n, the pebbles of n can be removed
  * 
- * These objects might be too heavy for a fast algorithm. If one is only interested in certain data, then computing this seperately will be more efficient
+ * These objects might be too heavy for a fast algorithm. 
+ * If one is only interested in certain data, then computing this separately will be more efficient.
  */
 
-class NodeInfo(val index:Int, val depth: Int, val numberOfChildren: Int, var lastChildOf:Int, var waitsForPremises: Int, var usesPebbles: Int, var childrenNotPebbled: Int){
+class NodeInfo(
+    val index: Int, 
+    val depth: Int, 
+    val numberOfChildren: Int, 
+    var lastChildOf: Int, 
+    var waitsForPremises: Int, 
+    var usesPebbles: Int, 
+    var childrenNotPebbled: Int) {
   def incLCO = lastChildOf = lastChildOf + 1
   override def toString:String = {
     "["+index+", " + lastChildOf + ", " + numberOfChildren +"]"

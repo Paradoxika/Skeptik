@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.algorithm.compressor._
+import at.logic.skeptik.algorithm.compressor.subsumption._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.lk._
@@ -66,10 +66,10 @@ object ForwardSubsumptionSpecification {
     val proof = Proof(concseq:SequentProofNode)
 //    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl381.smt2")
     println(proof)
-    val cproof = TopDownLeftRightSubsumption(proof)
+    val cproof = TopDownSubsumption(proof)
     println(cproof)
     println(cproof.root)
-    println(measure(OldTDS(proof)))
+    println(measure(NaiveTopDownSubsumption(proof)))
     println(measure(DAGify(proof)))
 //    proof bottomUp({ ((node: SequentProofNode, children: Seq[SequentProofNode]) => { print(node.conclusion + " XX " ) ; children.foreach(f => print(f.conclusion)) ; print("\n") ; node } ) } )
 	
