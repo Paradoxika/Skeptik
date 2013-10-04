@@ -119,8 +119,6 @@ object RecSplitTest {
     val ssS = new SSSplit(5000)
     val adMS = new TimeoutMultiSplit(2,5000)
     val prMS = new PRMultiSplit(3,5000)
-    val recS = new DetADRecSplitTime(2000,5000)
-    val recS2 = new DepthTimeRS(3,5000)
     val RSTDS5000 = new RSTDS(2000,5000)
     val its = new IterativeSplit(3)
     println(measure(proof))
