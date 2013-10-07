@@ -1,6 +1,6 @@
 package at.logic.skeptik
 
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser}
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserTraceCheck,ProofParserSkeptik,AlgorithmParser}
 import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik,ProofExporterSkeptikD}
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
@@ -120,6 +120,8 @@ object ProofCompressionCLI {
         val proofParser = proofFormat match {
           case ".smt2"  => ProofParserVeriT
           case ".skeptik"  => ProofParserSkeptik
+          case ".tc" => ProofParserTraceCheck
+          case _ => throw new Exception(unknownFormat(filename))
         }
         
         // Reading the proof
