@@ -22,3 +22,4 @@ experiments/compressor/slice*
 *.blg
 *.synctex.gz
 /.scala_dependencies
+examples/proofs/VeriT/bad
