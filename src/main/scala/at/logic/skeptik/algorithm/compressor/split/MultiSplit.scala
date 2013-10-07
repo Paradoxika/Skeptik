@@ -134,9 +134,10 @@ extends AbstractSplitHeuristic {
         measures.remove(selected)
         selectVariables(selected::variableList, remaining - 1)
       }
-      val compressedProof: Proof[SequentProofNode] = split(proof, variableList).merge(variableList)
-      if (compressedProof.size < proof.size) compressedProof else proof
+      selectVariables(List(), numberOfVariables)
     }
+    val compressedProof: Proof[SequentProofNode] = split(proof, variableList).merge(variableList)
+    if (compressedProof.size < proof.size) compressedProof else proof
   }
 }
 
