@@ -16,3 +16,13 @@ trait Timeout {
     return result
   }
 }
+
+/**
+ * The algorithm should applied only once and not until a timeout is reached.
+ */
+trait outTimeout {
+  def applyOnce(p: Proof[N]): Proof[N]
+  def apply(p: Proof[N]): Proof[N] = {
+    applyOnce(p)
+  }
+}

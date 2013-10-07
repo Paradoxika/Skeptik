@@ -21,7 +21,7 @@ object AlgorithmParser extends RegexParsers {
     }
   }
   
-  def composedAlgo : Parser[A] = "(" ~> repsep(algo, "*") <~ ")" ^^ {
+  def composedAlgo : Parser[A] = "(" ~> repsep(algo, "-") <~ ")" ^^ {
     case Nil => (p: P) => p  // an empty composition of algorithms is the identity algorithm
     case h::Nil => h
     case h::t =>  (h /: t) { (acc, next) => acc compose next }

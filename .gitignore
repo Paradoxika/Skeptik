@@ -21,3 +21,4 @@ experiments/compressor/slice*
 *.bbl
 *.blg
 *.synctex.gz
+/.scala_dependencies

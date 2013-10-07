@@ -13,6 +13,9 @@ extends ProofNode[Sequent, SequentProofNode] {
   // The lazy modifier for "conclusion" is very important,
   // because "conclusion" calls methods that will only be overriden by subtraits and subclasses.
   override lazy val conclusion: Sequent = mainFormulas union conclusionContext
+  override def toString():String = {
+    this.conclusion.toString + " ~ " + this.hashCode()
+  }
 }
 
 trait Nullary extends SequentProofNode with GenNullary[Sequent,SequentProofNode] {
