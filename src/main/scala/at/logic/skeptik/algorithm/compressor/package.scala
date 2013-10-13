@@ -1,6 +1,7 @@
 package at.logic.skeptik.algorithm
 
 import at.logic.skeptik.algorithm.compressor.split._
+import at.logic.skeptik.algorithm.compressor.reduceAndReconstruct._
 
 // Algorithm names should contain only alphanumeric characters
 
@@ -19,22 +20,22 @@ package object compressor {
     "RPI3LU" -> IdempotentThreePassLowerUnits,
     "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI3LUniv" -> LowerUnivalentsBeforeRecyclePivots,
-    "RR" -> new ReduceAndReconstructTimeout(5000),
-    "RRlm" -> new RRWithLowerMiddleTimeout(5000),
-    "RRST" -> ReduceAndReconstructSimpleTermination,
+
+    "RR" -> new ReduceAndReconstructS1P(5000),
+    "RRlm" -> new ReduceAndReconstructMiddleLowerTimeout(5000),
+    "RRST" -> RRS1PSimpleTermination,
     "RRCST" -> RRC1PSimpleTermination,
-    "RRlmST" -> RRWithLowerMiddleSimpleTermination,
-    "RRHST" -> RRWithHelsinkiSimpleTermination,
-    "RROT" -> ReduceAndReconstructOverTermination,
+    "RRlmST" -> RRMiddleLowerSimpleTermination,
+    "RRHST" -> RRHelsinkiSimpleTermination,
+    "RROT" -> RRS1POverTermination,
     "RRCOT" -> RRC1POverTermination,
-    "RRlmOT" -> RRWithLowerMiddleOverTermination,
-    "RRHOT" -> RRWithHelsinkiOverTermination,
-    "COT" -> C1POverTermination,
-    "SOT" -> S1POverTermination,
-    "RRROT" -> ReduceAndReconstructOTBasedRandomA2,
-    "RRCROT" -> RRC1POTBasedRandomA2,
-    "RRlmROT" -> RRWithLowerMiddleOTBasedRandomA2,
-    "RRHROT" -> RRWithHelsinkiOTBasedRandomA2,
+    "RRlmOT" -> RRMiddleLowerOverTermination,
+    "RRHOT" -> RRHelsinkiOverTermination,
+    "RRROT" -> RRS1PRandomA2,
+    "RRCROT" -> RRC1PRandomA2,
+    "RRlmROT" -> RRMiddleLowerRandomA2,
+    "RRHROT" -> RRHelsinkiRandomA2,
+
     "Split" -> new CottonSplit(30000),
     "RBSplit" -> new RandomBoudouSplit(30000),
     "DBSplit" -> new DeterministicBoudouSplit(30000),
