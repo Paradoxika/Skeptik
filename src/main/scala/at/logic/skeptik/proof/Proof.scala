@@ -99,7 +99,7 @@ extends Iterable[P]
     var counter = 0; var result = "";
     foldDown { (n:P, r:Seq[Int]) =>
       counter += 1
-      result += n.hashCode() + " " + counter.toString + ": {" + n.conclusion + "} \t: " +
+      result += counter.toString + ": {" + n.conclusion + "} \t: " +
                 n.name + "(" + r.mkString(", ") + ")[" + n.parameters.mkString(", ") + "]\n"
       counter
     }

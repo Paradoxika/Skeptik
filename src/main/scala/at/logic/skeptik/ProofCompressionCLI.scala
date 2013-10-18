@@ -1,6 +1,6 @@
 package at.logic.skeptik
 
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser}
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser,ProofParserTraceCheck}
 import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik,ProofExporterSkeptikD}
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
@@ -23,9 +23,9 @@ object ProofCompressionCLI {
                     moutHeader: Boolean = true)                
 
     
-  val supportedProofFormats = Seq("smt2", "skeptik","skeptikD")
+  val supportedProofFormats = Seq("smt2", "skeptik","skeptikD","trc")
   
-  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.skeptik' and '.skeptikD'"                 
+  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.skeptik', '.skeptikD' and '.trc'"                 
   
   def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
@@ -120,6 +120,7 @@ object ProofCompressionCLI {
         val proofParser = proofFormat match {
           case ".smt2"  => ProofParserVeriT
           case ".skeptik"  => ProofParserSkeptik
+          case ".trc" => ProofParserTraceCheck
         }
         
         // Reading the proof
