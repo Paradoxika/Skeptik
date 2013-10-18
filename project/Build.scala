@@ -10,7 +10,7 @@ object SkeptikBuild extends Build {
   // Extension of "one-jar" to copy jar file to the root folder
   val jarS = oneJar <<= (oneJar,scalaVersion,version) map { (file,s,v) =>
     val m = major(s)
-    "cp ./target/scala-" + m + "/skeptik_" + m + "-" + v + "-one-jar.jar skeptik.jar" !;
+    sys.process.stringToProcess("cp ./target/scala-" + m + "/skeptik_" + m + "-" + v + "-one-jar.jar skeptik.jar") !;
     file
   }
   val jarSettings = oneJarSettings ++ 
@@ -21,7 +21,7 @@ object SkeptikBuild extends Build {
   // Extension of "make-pom" to copy pom file to the root folder
   val pomS = makePom <<= (makePom,scalaVersion,version) map { (file, s,v) =>
     val m = major(s)
-    "cp ./target/scala-" + m + "/skeptik_" + m + "-" + v + ".pom pom.xml" !;
+    sys.process.stringToProcess("cp ./target/scala-" + m + "/skeptik_" + m + "-" + v + ".pom pom.xml") !;
     file
   }
   val pomSettings = Seq(pomS)
