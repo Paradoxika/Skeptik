@@ -8,7 +8,7 @@ import annotation.tailrec
 
 import baseRules._
 
-/** Contains the rules for Reduce-and-Reconstruct
+/** The C1' rule as described in TODO. This rule is an improvement over the S1' rule.
  *
  * @author Joseph Boudou
  */

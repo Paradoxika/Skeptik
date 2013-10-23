@@ -5,18 +5,30 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import annotation.tailrec
 
 
+/** Apply the fallback rule randomly.
+ * The probability the fallback rule is applied is given by the member variable fallbackThreshold.
+ * When the fallback rule is not applied, the node is left as is.
+ */
 trait RandomFallback
 extends Reduce {
-  val rand = new scala.util.Random()
-  var fallbackThreshold : Double
+  private val rand = new scala.util.Random()
+
+  protected var fallbackThreshold : Double
+
   abstract override def fallback
     (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =
-    if (rand.nextDouble() <= fallbackThreshold)
+    if ((fallbackThreshold >= 1.0) || (rand.nextDouble() <= fallbackThreshold))
       super.fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
     else
       node
 }
 
+/** Apply A2 rule randomly with increasing probability.
+ * Let c be the number of previous successive calls for which no other rule than A2 have been applied.
+ * This number is equal to zero when the last call applied any other rule than A2.
+ * The probability A2 is applied during the next call corresponds to this number c divided by the height of the proof.
+ * The algorithm terminates when c exceeds the double of the height of the proof.
+ */
 trait RandomA2
 extends Reduce with RandomFallback with CheckFallback {
   var fallbackThreshold = 0.0
@@ -28,7 +40,7 @@ extends Reduce with RandomFallback with CheckFallback {
       val after = Proof(root)
       fallbackThreshold = count.toDouble / height.toDouble
 
-      if (check > 0)
+      if (checkFallback > 0)
         aux(after, 1)
       else // only A2 rule has been applied
         if (count <= 2 * height)

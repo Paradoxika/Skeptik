@@ -5,26 +5,34 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import annotation.tailrec
 
 
+/** Counts on how many nodes non-fallback rules have been applied.
+ * The counter being a member of the trait, this trait is not thread safe.
+ */
 trait CheckFallback
 extends Reduce with ReconstructWithHeight {
-  var check = 0
+  var checkFallback = 0
 
   abstract override def fallback
     (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
-    check -= 1
+    checkFallback -= 1
     super.fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
   def applyOnce(proof: Proof[SequentProofNode]) = {
-    check = 0
+    checkFallback = 0
     def pre(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
-      check += 1
+      checkFallback += 1
       reduce(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
     }
     proof.foldDown(reconstruct(proof, pre))
   }
 }
 
+
+/** Calls recursively the Reduce-and-Reconstruct algorithm checking whether non-fallback rules have been applied for each call.
+ * Terminates when the number of successive calls for which only fallback rules have been applied exceeds the height of the proof.
+ * This termination condition ensures that further applications of the rules would not reduce the size of the proof.
+ */
 trait OverTermination
 extends Reduce with CheckFallback {
   
@@ -34,7 +42,7 @@ extends Reduce with CheckFallback {
       val (height, root) = applyOnce(before)
       val after = Proof(root)
 
-      if (check > 0)
+      if (checkFallback > 0)
         aux(after, 1)
       else // only A2 rule has been applied
         if (count <= height)

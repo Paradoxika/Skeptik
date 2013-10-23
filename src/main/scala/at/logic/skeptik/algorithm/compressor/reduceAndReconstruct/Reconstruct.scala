@@ -6,9 +6,13 @@ import at.logic.skeptik.proof.sequent.lk.R
 
 import baseRules._
 
+/** Applies rules inconditionaly to each resolution node.
+ */
 trait Reconstruct
 extends Reduce
 {
+  /** Gives a function to be passed to Proof.foldDown.
+   */
   protected def reconstruct(proof: Proof[SequentProofNode], function: Fun)
                            (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =
     (node, fixedPremises) match {

@@ -5,47 +5,13 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.R
 
 
-/** Contains the rules for Reduce-and-Reconstruct
+/** The shared basic proof transformation rules for the Reduce-and-Reconstruct algorithms.
  *
  * @author Joseph Boudou
  */
 object baseRules {
   type Fun = ((SequentProofNode,Boolean,Boolean) => SequentProofNode)
   type Rule = Fun => Fun
-
-  def s1p
-      (fallback: Fun) =
-      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
-  node match {
-
-    case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
-    if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1 eq o2) =>
-         R(R(alpha,beta), o1)
-    case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
-    if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1 eq o2) =>
-         R(R(alpha,beta), o1)
-
-    case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
-  }
-
-  def c1p
-      (fallback: Fun) =
-      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
-  node match {
-
-    case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
-    if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion == o2.conclusion) =>
-         R(R(alpha,beta), o1)
-    case R(R(o1,alpha,s,_),R(o2,beta,t,_),u,_)
-    if leftPremiseHasOneChild && rightPremiseHasOneChild &&
-       s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && (o1.conclusion == o2.conclusion) =>
-         R(R(alpha,beta), o1)
-
-    case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
-  }
 
   def b2b3b1
       (fallback: Fun) =
@@ -105,6 +71,12 @@ object baseRules {
 }
 import baseRules._
 
+
+/** Represents a list of rules to be applied to a proof.
+ *
+ * It is the base class for all Reduce-and-Reconstruct algorithms. Two methods are missing in this abstract class:
+ * the reconstruct method which encapsulates how rules are applied, and the apply method which encapsulates the termination conditions.
+ */
 abstract class Reduce(val rules: Seq[Rule])
 extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
@@ -113,5 +85,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
     a2(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
 
   protected def mergeRules(default: Fun) = (rules :\ default){ _(_) }
+
   lazy val reduce = mergeRules(fallback)
 }

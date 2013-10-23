@@ -6,7 +6,7 @@ import at.logic.skeptik.proof.sequent.lk.R
 
 import baseRules._
 
-/** Contains the rules for Reduce-and-Reconstruct
+/** The Helsinki rule is an improvement of the middleLower rule.
  *
  * @author Joseph Boudou
  */

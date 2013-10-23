@@ -8,6 +8,10 @@ import at.logic.skeptik.util.math.max
 import baseRules._
 
 
+/** Computes the height of the original proof
+ * while applying inconditionaly the rules to each resolution node.
+ * This trait allows termination conditions to take the height of the proof into account.
+ */
 trait ReconstructWithHeight
 extends Reduce
 {

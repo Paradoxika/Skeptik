@@ -6,7 +6,7 @@ import at.logic.skeptik.proof.sequent.lk.R
 
 import baseRules._
 
-/** Contains the rules for Reduce-and-Reconstruct
+/** The S1' rule as described in TODO. It's the same rule as the rule A1' described in TODO.
  *
  * @author Joseph Boudou
  */
