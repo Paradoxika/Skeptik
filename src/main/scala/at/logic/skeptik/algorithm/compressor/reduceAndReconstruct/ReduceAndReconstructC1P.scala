@@ -8,7 +8,8 @@ import annotation.tailrec
 
 import baseRules._
 
-/** The C1' rule as described in TODO. This rule is an improvement over the S1' rule.
+/** The C1' rule is an improvement over the S1' rule. It corresponds to a literal interpretation of rule A1' from [Rollini, Bruttomesso and
+ * Sharygina 2011] in which nodes with conclusion t̅E are not necessarly the same node.
  *
  * @author Joseph Boudou
  */

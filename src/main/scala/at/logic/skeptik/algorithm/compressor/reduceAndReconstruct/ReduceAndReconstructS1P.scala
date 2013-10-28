@@ -6,7 +6,8 @@ import at.logic.skeptik.proof.sequent.lk.R
 
 import baseRules._
 
-/** The S1' rule as described in TODO. It's the same rule as the rule A1' described in TODO.
+/** The S1' rule as described in [Rollini, Bruttomesso, Sharygina and Tsitovich 2013]. It's the same rule as the rule A1' described in [Rollini,
+ * Bruttomesso and Sharygina 2011].
  *
  * @author Joseph Boudou
  */

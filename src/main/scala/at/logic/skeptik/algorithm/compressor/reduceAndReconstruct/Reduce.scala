@@ -6,6 +6,7 @@ import at.logic.skeptik.proof.sequent.lk.R
 
 
 /** The shared basic proof transformation rules for the Reduce-and-Reconstruct algorithms.
+ * Names for the rules are taken form [Rollini, Bruttomesso and Sharygina 2011].
  *
  * @author Joseph Boudou
  */
