@@ -22,7 +22,9 @@ package object compressor {
     "RPI3LUniv" -> LowerUnivalentsBeforeRecyclePivots,
 
     "RR" -> new ReduceAndReconstructS1P(5000),
+    "RRC" -> new ReduceAndReconstructC1P(5000),
     "RRlm" -> new ReduceAndReconstructMiddleLowerTimeout(5000),
+    "RRH" -> new ReduceAndReconstructHelsinkiTimeout(5000),
     "RRST" -> RRS1PSimpleTermination,
     "RRCST" -> RRC1PSimpleTermination,
     "RRlmST" -> RRMiddleLowerSimpleTermination,
