@@ -15,6 +15,7 @@ object HelsinkiRule {
       (fallback: Fun) =
       (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
+
     case R(R(alpha,o1,_,s),R(beta,o2,_,t),u,_)
     if leftPremiseHasOneChild && rightPremiseHasOneChild &&
        s == t && (alpha.conclusion.suc contains u) && (beta.conclusion.ant contains u) && !(o1.conclusion.suc contains u) &&
