@@ -53,5 +53,8 @@ extends ReduceHelsinki with SimpleTermination
 object RRHelsinkiOverTermination
 extends ReduceHelsinki with OverTermination
 
+object RRHelsinkiRandomA2Alt
+extends ReduceHelsinki with RandomA2Alt
+
 object RRHelsinkiRandomA2
 extends ReduceHelsinki with RandomA2

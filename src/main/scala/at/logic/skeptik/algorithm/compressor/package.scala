@@ -37,6 +37,10 @@ package object compressor {
     "RRCROT" -> RRC1PRandomA2,
     "RRlmROT" -> RRMiddleLowerRandomA2,
     "RRHROT" -> RRHelsinkiRandomA2,
+    "RRROTA" -> RRS1PRandomA2Alt,
+    "RRCROTA" -> RRC1PRandomA2Alt,
+    "RRlmROTA" -> RRMiddleLowerRandomA2Alt,
+    "RRHROTA" -> RRHelsinkiRandomA2Alt,
 
     "Split" -> new CottonSplit(30000),
     "RBSplit" -> new RandomBoudouSplit(30000),

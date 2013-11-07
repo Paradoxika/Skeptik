@@ -53,5 +53,8 @@ extends ReduceMiddleLower with SimpleTermination
 object RRMiddleLowerOverTermination
 extends ReduceMiddleLower with OverTermination
 
+object RRMiddleLowerRandomA2Alt
+extends ReduceMiddleLower with RandomA2Alt
+
 object RRMiddleLowerRandomA2
 extends ReduceMiddleLower with RandomA2

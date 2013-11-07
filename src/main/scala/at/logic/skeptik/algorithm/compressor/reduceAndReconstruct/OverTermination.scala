@@ -37,19 +37,24 @@ trait OverTermination
 extends Reduce with CheckFallback {
   
   def apply(proof: Proof[SequentProofNode]) = {
+    println(" go")
     @tailrec
-    def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
+    def aux(before: Proof[SequentProofNode], count: Int, total: Int): Proof[SequentProofNode] = {
       val (height, root) = applyOnce(before)
       val after = Proof(root)
 
-      if (checkFallback > 0)
-        aux(after, 1)
+      if (checkFallback > 0) {
+        println(total+":"+count+":"+height)
+        aux(after, 1, total+1)
+      }
       else // only A2 rule has been applied
-        if (count <= height)
-          aux(after, count+1)
-        else
+        if (count - 700 <= height)
+          aux(after, count+1, total+1)
+        else {
+          println(total+":"+count+":"+height)
           after
+        }
     }
-    aux(proof,1)
+    aux(proof,1,1)
   }
 }

@@ -48,3 +48,6 @@ extends ReduceS1P with OverTermination
 
 object RRS1PRandomA2
 extends ReduceS1P with RandomA2
+
+object RRS1PRandomA2Alt
+extends ReduceS1P with RandomA2Alt

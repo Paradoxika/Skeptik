@@ -48,5 +48,8 @@ extends ReduceC1P with SimpleTermination
 object RRC1POverTermination
 extends ReduceC1P with OverTermination
 
+object RRC1PRandomA2Alt
+extends ReduceC1P with RandomA2Alt
+
 object RRC1PRandomA2
 extends ReduceC1P with RandomA2

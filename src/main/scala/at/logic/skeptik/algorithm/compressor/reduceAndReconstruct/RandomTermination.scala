@@ -51,3 +51,33 @@ extends Reduce with RandomFallback with CheckFallback {
     aux(proof,1)
   }
 }
+
+trait RandomA2Alt
+extends Reduce with RandomFallback with CheckFallback {
+  var fallbackThreshold = 0.0
+
+  def apply(proof: Proof[SequentProofNode]) = {
+    @tailrec
+    def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
+      val (height, root) = applyOnce(before)
+      val after = Proof(root)
+
+      if (checkFallback > 0) {
+        fallbackThreshold = 0.0
+        aux(after, 1)
+      }
+      else // only A2 rule has been applied
+        if (count <= height)
+          aux(after, count+1)
+        else
+          if (fallbackThreshold < 1.0) {
+            fallbackThreshold += 0.5
+            aux(after, 1)
+          }
+          else
+            after
+    }
+    fallbackThreshold = 0.0
+    aux(proof,1)
+  }
+}
