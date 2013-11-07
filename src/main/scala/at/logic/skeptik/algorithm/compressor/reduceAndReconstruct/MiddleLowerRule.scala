@@ -39,7 +39,7 @@ object MiddleLowerRule {
 import MiddleLowerRule.middleLower
 
 abstract class ReduceMiddleLower
-extends Reduce(Seq(b2b3b1,middleLower))
+extends Reduce(Seq(b2,b3,b1,middleLower))
 
 class ReduceAndReconstructMiddleLowerTimeout(val timeout: Int)
 extends ReduceMiddleLower with TimeoutTermination

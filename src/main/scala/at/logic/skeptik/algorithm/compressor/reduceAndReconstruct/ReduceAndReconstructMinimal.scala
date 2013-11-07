@@ -7,7 +7,7 @@ import at.logic.skeptik.proof.sequent.lk.R
 import baseRules._
 
 abstract class ReduceMin
-extends Reduce(Seq(b2b3b1))
+extends Reduce(Seq(b3,b1))
 
 class ReduceAndReconstructMin(val timeout: Int)
 extends ReduceMin with TimeoutTermination

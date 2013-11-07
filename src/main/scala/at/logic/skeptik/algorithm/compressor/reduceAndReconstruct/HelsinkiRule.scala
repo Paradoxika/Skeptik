@@ -40,7 +40,7 @@ object HelsinkiRule {
 import HelsinkiRule.helsinki
 
 abstract class ReduceHelsinki
-extends Reduce(Seq(b2b3b1,helsinki))
+extends Reduce(Seq(b2,b3,b1,helsinki))
 
 class ReduceAndReconstructHelsinkiTimeout(val timeout: Int)
 extends ReduceHelsinki with TimeoutTermination

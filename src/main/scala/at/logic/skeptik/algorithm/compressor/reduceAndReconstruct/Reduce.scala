@@ -14,32 +14,10 @@ object baseRules {
   type Fun = ((SequentProofNode,Boolean,Boolean) => SequentProofNode)
   type Rule = Fun => Fun
 
-  def b2b3b1
+  def b1
       (fallback: Fun) =
       (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
   node match {
-
-    // B2
-    case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
-         R(R(beta, alpha, t), gamma, s)
-    case R(R(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
-         R(gamma, R(beta, alpha, t), s)
-    case R(alpha,R(beta,gamma,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
-         R(R(alpha, beta, t), gamma, s)
-    case R(alpha,R(gamma,beta,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
-         R(gamma, R(alpha, beta, t), s)
-
-    // B3
-    case R(R(beta,gamma,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
-         gamma
-    case R(R(gamma,beta,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
-         gamma
-    case R(alpha,R(beta,gamma,s,_),t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
-         gamma
-    case R(alpha,R(gamma,beta,s,_),t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
-         gamma
-
-    // B2'/B1
     case R(R(beta,_,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && (beta.conclusion.suc contains t) && (s != t) =>
          R(beta, alpha, t)
     case R(R(_,beta,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && (beta.conclusion.suc contains t) && (s != t) =>
@@ -52,19 +30,47 @@ object baseRules {
     case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
   }
 
+  def b2
+      (fallback: Fun) =
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
+  node match {
+    case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
+         R(R(beta, alpha, t), gamma, s)
+    case R(R(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
+         R(gamma, R(beta, alpha, t), s)
+    case R(alpha,R(beta,gamma,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
+         R(R(alpha, beta, t), gamma, s)
+    case R(alpha,R(gamma,beta,s,_),t,_) if rightPremiseHasOneChild && (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
+         R(gamma, R(alpha, beta, t), s)
+
+    case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+  }
+
+  def b3
+      (fallback: Fun) =
+      (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =>
+  node match {
+    case R(R(beta,gamma,s,_),alpha,t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
+         gamma
+    case R(R(gamma,beta,s,_),alpha,t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
+         gamma
+    case R(alpha,R(beta,gamma,s,_),t,_) if (alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
+         gamma
+    case R(alpha,R(gamma,beta,s,_),t,_) if (alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
+         gamma
+
+    case _ => fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+  }
+
   def a2
     (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = node match {
-    case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild &&
-                                                   !(alpha.conclusion.suc contains s) && !(gamma.conclusion.suc contains t) =>
+    case R(R(beta,gamma,s,_),alpha,t,_) if leftPremiseHasOneChild  && !(gamma.conclusion.suc contains t) =>
          R(R(beta,alpha, t), gamma, s)
-    case R(R(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild &&
-                                                   !(alpha.conclusion.ant contains s) && !(gamma.conclusion.suc contains t) =>
+    case R(R(gamma,beta,s,_),alpha,t,_) if leftPremiseHasOneChild  && !(gamma.conclusion.suc contains t) =>
          R(gamma, R(beta,alpha, t), s)
-    case R(alpha,R(beta,gamma,s,_),t,_) if rightPremiseHasOneChild &&
-                                                   !(alpha.conclusion.suc contains s) && !(gamma.conclusion.ant contains t) =>
+    case R(alpha,R(beta,gamma,s,_),t,_) if rightPremiseHasOneChild && !(gamma.conclusion.ant contains t) =>
          R(R(alpha,beta, t), gamma, s)
-    case R(alpha,R(gamma,beta,s,_),t,_) if rightPremiseHasOneChild &&
-                                                   !(alpha.conclusion.ant contains s) && !(gamma.conclusion.ant contains t) =>
+    case R(alpha,R(gamma,beta,s,_),t,_) if rightPremiseHasOneChild && !(gamma.conclusion.ant contains t) =>
          R(gamma, R(alpha,beta, t), s)
 
     case _ => node

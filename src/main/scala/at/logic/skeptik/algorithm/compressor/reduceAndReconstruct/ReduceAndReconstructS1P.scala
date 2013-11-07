@@ -32,7 +32,7 @@ object S1PRule {
 import S1PRule.s1p
 
 abstract class ReduceS1P
-extends Reduce(Seq(b2b3b1,s1p))
+extends Reduce(Seq(b2,b3,b1,s1p))
 
 class ReduceAndReconstructS1P(val timeout: Int)
 extends ReduceS1P with TimeoutTermination

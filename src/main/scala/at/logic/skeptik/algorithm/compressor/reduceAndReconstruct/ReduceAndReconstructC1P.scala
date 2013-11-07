@@ -34,7 +34,7 @@ object C1PRule {
 import C1PRule.c1p
 
 abstract class ReduceC1P
-extends Reduce(Seq(b2b3b1,c1p))
+extends Reduce(Seq(b2,b3,b1,c1p))
 
 class ReduceAndReconstructC1P(val timeout: Int)
 extends ReduceC1P with TimeoutTermination
