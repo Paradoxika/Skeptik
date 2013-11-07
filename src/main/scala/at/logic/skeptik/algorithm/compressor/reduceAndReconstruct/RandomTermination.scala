@@ -17,7 +17,7 @@ extends Reduce {
 
   abstract override def fallback
     (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) =
-    if ((fallbackThreshold >= 1.0) || (rand.nextDouble() <= fallbackThreshold))
+    if ((fallbackThreshold > 0.0) && ((fallbackThreshold >= 1.0) || (rand.nextDouble() <= fallbackThreshold)))
       super.fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
     else
       node
@@ -67,15 +67,20 @@ extends Reduce with RandomFallback with CheckFallback {
         aux(after, 1)
       }
       else // only A2 rule has been applied
-        if (count <= height)
-          aux(after, count+1)
+        if (fallbackThreshold == 0.0) {
+          fallbackThreshold = 0.5
+          aux(after, 1)
+        }
         else
-          if (fallbackThreshold < 1.0) {
-            fallbackThreshold += 0.5
-            aux(after, 1)
-          }
+          if (count <= height)
+            aux(after, count+1)
           else
-            after
+            if (fallbackThreshold < 1.0) {
+              fallbackThreshold += 0.5
+              aux(after, 1)
+            }
+            else
+              after
     }
     fallbackThreshold = 0.0
     aux(proof,1)

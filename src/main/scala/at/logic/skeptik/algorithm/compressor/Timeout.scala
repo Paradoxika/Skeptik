@@ -12,7 +12,7 @@ trait Timeout {
     var result = p
     var count = 0
     while ((System.nanoTime() - start)/1000000 < timeout) { count += 1 ; result = applyOnce(result) }
-    print("("+count+" times)")
+//    print("("+count+" times)")
     return result
   }
 }
