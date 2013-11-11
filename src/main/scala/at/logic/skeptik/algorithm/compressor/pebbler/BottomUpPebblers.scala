@@ -19,3 +19,20 @@ object LastChildOfBUPebbler extends AbstractBottomUpPebbler {
     new LastChildOfOrder(proof,nodeInfos)
   }
 }
+
+class GenericBUPebbler(inOrderings: Seq[String]) extends AbstractBottomUpPebbler with GenericPebbler {
+  def orderings: Seq[String] = inOrderings
+}
+
+object WasPebbledPebbler extends AbstractBottomUpPebbler {
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new WasPebbledOrder(proof,nodeInfos)
+  }
+}
+
+class ChildrenDecayPebbler(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
+    extends AbstractBottomUpPebbler {
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new ChildrenDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
+  }
+}

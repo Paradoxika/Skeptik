@@ -16,8 +16,9 @@ import scala.collection.mutable.{HashSet => MSet}
  */
 
 abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
-   
-  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], initNodes: MSet[N]): Proof[N] = {
+  
+  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], initNodes: MSet[N], reverseNode: Option[N]): Proof[N] = {
+//    println(nodeInfos.size)
     var permutation: Seq[N] = Seq[N]()
     val visited = MSet[N]()
     
@@ -30,13 +31,20 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
       visited += p
       var premises = p.premises
       while (!premises.isEmpty) {
-        val next = premises.max(usedOrder(proof,nodeInfos))
+        val next = 
+          if (reverseNode.exists(_ eq p)) premises.min(usedOrder(proof,nodeInfos))
+          else premises.max(usedOrder(proof,nodeInfos))
         premises = premises.diff(Seq(next))
         visit(next)
       }
       permutation = permutation :+ p
+      nodeInfos(p) = nodeInfos(p).changeWasPebbled(permutation.size)
+      nodeInfos(p) = nodeInfos(p).changeUsesPebbles(1)
+//      print(nodeInfos(p).index + ", ")
     }
     visit(proof.root)
+//    println()
+//    nodeInfos.clear
     new Proof(proof.root, permutation.reverse.toIndexedSeq)
   }
 }

@@ -2,6 +2,7 @@ package at.logic.skeptik.algorithm
 
 import at.logic.skeptik.algorithm.compressor.split._
 import at.logic.skeptik.algorithm.compressor.subsumption._
+import at.logic.skeptik.algorithm.compressor.pebbler._
 import at.logic.skeptik.expression.E
 import at.logic.skeptik.proof.ProofNode
 import at.logic.skeptik.proof.sequent.SequentProofNode
@@ -41,7 +42,9 @@ package object compressor {
     "RecS5" -> new DepthRecSplit(5,5000),
     "TDS" -> TopDownSubsumption,
     "GP" -> RemoveMostPebbles,
-    "BUP" -> LastChildOfBUPebbler
+    "BUP" -> LastChildOfBUPebbler,
+    "P1" -> new GenericBUPebbler(List("LastChild","Children","ProofSize")),
+    "P2" -> new GenericBUPebbler(List("SubProofPebbled","LastChild","Children","ProofSize"))
   )
   
   trait fixNodes {

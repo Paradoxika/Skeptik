@@ -5,14 +5,14 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.algorithm.compressor._
+import at.logic.skeptik.algorithm.compressor.pebbler._
 import at.logic.skeptik.parser.ProofParserVeriT
 import at.logic.skeptik.proof.measure
 import scala.collection.mutable.{HashMap => MMap,HashSet => MSet}
 
 object PebblerTest {
   def main(args: Array[String]):Unit = {
-    val testcase = 1
+    val testcase = 0
     val a = new Var("a",i)
     val b = new Var("b",i)
     val c = new Var("c",i)
@@ -61,15 +61,10 @@ object PebblerTest {
       concseq = R(n14,n18)
     }
 //    val proof = new Proof(concseq)
-//    val proof = ProofParserVeriT.read("C:/Proofs/very-small/hash_uns_04_10.smt2")
-    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl494.smt2")
-    val seqtest = List(1,2,3)
-    def test(l: List[Int]):Unit = l match {
-      case t::q => {println(t);test(q)}
-      case _ => println("arrive here")
-    }
-    
-    test(seqtest)
+//    val proof = ProofParserVeriT.read("F:/Proofs/very-small/hash_uns_04_10.smt2")
+//    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl494.smt2")
+    val proof = ProofParserVeriT.read("F:/Proofs/small-size/gensys_icl052.smt2")
+//    val proof = ProofParserVeriT.read("examples/proofs/VeriT/eq_diamond2.smt2")
     
     def printBottomUp(node: SequentProofNode, c: Seq[SequentProofNode]):SequentProofNode = {
       println(node + " " + c.size)
@@ -78,14 +73,27 @@ object PebblerTest {
     
 //    proof bottomUp printBottomUp
 //    println(proof)
+//    LastChildOfBUPebbler.climbOnce(proof)
     val greedy = LastChildOfBUPebbler(proof)
-    val greedy2 = RemoveMostPebbles(proof)
+//    val greedy2 = DistancePebbler(proof)
+//    val greedy3 = new GenericPebbler(List("RemovesPebbles","ChildWithPebbledPremise","Distance","InSub","MakesAvailable"))(proof)
+//    val generic1 = new GenericBUPebbler(List("LastChild","Children","ProofSize"))
+//    val generic2 = new GenericBUPebbler(List("SubProofPebbled","LastChild","Children","ProofSize"))
+//    val greedy4 = generic1(proof)
+//    val greedy5 = generic2(proof)
+//    val climb = generic2.climbOnce(proof)
+
+    val chDC = new ChildrenDecayPebbler(0.5, 2, (A: Seq[Double]) => A.min)
 //    println(greedy)
 //    println(greedy2)
     
-    println("bU: " + measure(greedy))
-    println("tD: " + measure(greedy2))
-    println("normal:" + measure(proof))
+    println("bU: " + measure(greedy)("space"))
+//    println("bU2: " + measure(greedy4)("space"))
+//    println("bU3: " + measure(greedy5)("space"))
+    println("chDC: " + measure(chDC(proof))("space"))
+//    println("climb: " + measure(climb)("space"))
+//    println("tD: " + measure(greedy3)("space"))
+    println("normal:" + measure(proof)("space"))
 //    println("\ngreedy2:" + measure(greedy2))
   }
 }

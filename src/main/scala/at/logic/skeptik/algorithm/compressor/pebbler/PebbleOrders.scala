@@ -4,26 +4,192 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.mutable.{HashMap => MMap}
 
+object OrderCreator {
+  def apply(orders: Seq[String], proof: Proof[N], nodeInfos: MMap[N, NodeInfo]): Ordering[N] = orders match {
+    case o::rest => {
+      val restOrders = OrderCreator(rest, proof, nodeInfos)
+      o match {
+        case "Distance" => new DistanceOrder(proof, nodeInfos, restOrders)
+        case "InSub" => new InSubProofOrder(proof, nodeInfos, restOrders)
+        case "Children" => new ChildrenOrder(proof, restOrders)
+        case "Premises" => new NumberOfPremisesOrder(proof, restOrders)
+        case "ProofSize" => new ProofSizeOrder(restOrders)
+        case "WaitFor" => new WaitForOrder(proof, nodeInfos, restOrders)
+        case "WaitForUsed" => new WaitForUsedPebblesOrder(proof, nodeInfos, restOrders)
+        case "MakesAvailable" => new MakesAvailableOrder(proof, nodeInfos, restOrders)
+        case "PebbledPremises" => new PebbledPremisesOrder(proof, nodeInfos, restOrders)
+        case "ChildWithPebbledPremise" => new ChildWithPebbledPremiseOrder(proof, nodeInfos, restOrders)
+        case "DepthOrder" => new DepthOrder(proof, nodeInfos, restOrders)
+        case "LastChild" => new LastChildOfOrder(proof, nodeInfos, restOrders)
+        case "RemovesPebbles" => new RemovesPebblesOrder(proof, nodeInfos, restOrders)
+        case "Index" => new IndexOrder(proof, nodeInfos, restOrders)
+        case "NotBlocked" => new NotBlockedOrder(proof, nodeInfos, restOrders)
+        case "SubProofPebbled" => new SubProofPebbled(proof, nodeInfos, restOrders)
+        case "WasPebbled" => new WasPebbledOrder(proof, nodeInfos, restOrders)
+        case _ => new DummyOrder
+      }
+    }
+    case _ => new DummyOrder
+  }
+}
+
+abstract class DecayOrder(
+    proof: Proof[N], 
+    nodeInfos: MMap[N,NodeInfo], 
+    decay: Double,
+    premiseDepth: Int,
+    combineParents: (Seq[Double] => Double), 
+    nextOrder: Ordering[N]) 
+    extends Ordering[N] {
+  
+  def singleMeasure(node: N): Int
+  
+  def computeMeasure(node: N, restDepth: Int): Double = {
+    if (restDepth == 0) singleMeasure(node)
+    else {     
+      
+      val fromPremises = 
+        if (node.premises.isEmpty) 0 
+        else {
+          val premiseMeasures = node.premises.map(pr => computeMeasure(pr, restDepth - 1))
+          combineParents(premiseMeasures)*decay
+        }
+      fromPremises + singleMeasure(node)
+    }
+  }
+  
+  def compare(a: N, b: N) = 
+    computeMeasure(a, premiseDepth) compare computeMeasure(b, premiseDepth) match {
+      case 0 => nextOrder.compare(a, b)
+      case c => c
+    }
+}
+
+
+class ChildrenDecayOrder(
+    proof: Proof[N], 
+    nodeInfos: MMap[N,NodeInfo], 
+    decay: Double,
+    premiseDepth: Int,
+    combineParents: (Seq[Double] => Double), 
+    nextOrder: Ordering[N]) 
+    extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
+
+  def singleMeasure(node: N): Int = {
+    -proof.childrenOf.size
+  }
+}
+
 /*****************Orderings****************
  * Represent different heuristics for pebbling
  */
 
+class DistanceOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) extends Ordering[N] {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new RemovesPebblesOrder(proof,nodeInfos))
+  }
+  
+  val spheres = MMap[N,MMap[Int,Set[N]]]()
+  
+  def initSpheres(node: N): MMap[Int,Set[N]] = {
+    val set = proof.childrenOf(node).toSet union node.premises.toSet
+    MMap[Int,Set[N]](0 -> Set[N](node), 1 -> set)
+  }
+  
+  def calculateSphere(node: N, distance: Int): Set[N] = {
+    val last = spheres(node)(distance-1)
+    val border = last -- spheres(node)(distance-2)
+    (border foldLeft (last)) ((A,B) => {
+      A union spheres.getOrElseUpdate(B, initSpheres(B))(1)
+    })
+  }
+  
+  def closestPebble(node: N, distance: Int): (Int,Int,Int) = {
+    if (distance == 4) (distance,0,0)
+    else {
+    	val spheresOfNode = spheres.getOrElseUpdate(node, initSpheres(node))
+	    val distanceSphere = spheresOfNode.getOrElseUpdate(distance,calculateSphere(node,distance))
+	    val usingPebbles = distanceSphere.filter(nodeInSphere => (nodeInfos.getOrElse(nodeInSphere, EmptyNI).usesPebbles) != 0)
+	    if (distanceSphere.forall(nodeInSphere => (nodeInfos.getOrElse(nodeInSphere, EmptyNI).usesPebbles) == 0)) {
+	      closestPebble(node,distance + 1)
+	    }
+	    else {
+//	      println("found one: " + distance)
+	      distance
+	    }
+    	usingPebbles.size match {
+    	  case 0 => closestPebble(node,distance + 1)
+    	  case c => {
+    	    val lastPebbled = usingPebbles.map(n => nodeInfos(n).wasPebbled).max
+    	    (distance, c, lastPebbled)
+    	  }
+    	}
+    }
+  }
+  
+  def compare(a: N, b: N) = {
+    closestPebble(a,1)._1 compare closestPebble(b,1)._1 match {
+      case 0 => closestPebble(a,1)._2 compare closestPebble(b,1)._2 match {
+        case 0 => closestPebble(a,1)._3 compare closestPebble(b,1)._3 match {
+          case 0 => nextOrder.compare(a, b) //compare difficulties
+          case c => c
+        }
+        case c => c
+      }
+      case c => -c
+    }
+  }
+}
+
+
+class InSubProofOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) extends Ordering[N] {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new IndexOrder(proof,nodeInfos))
+  }
+  
+  def compare(a: N, b: N) = nodeInfos(a).inSubProof compare nodeInfos(b).inSubProof match {
+    case 0 => nextOrder.compare(a, b)
+    case c => c
+  }
+}
+
+class NotBlockedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) extends Ordering[N] {
+  def compare(a: N, b: N) = 
+    nodeInfos.getOrElse(a,EmptyNI).blocked compare nodeInfos.getOrElse(b,EmptyNI).blocked match {
+    case 0 => nextOrder.compare(a, b)
+    case c => -c
+  }
+}
+
+
 /**
  * Order with the number of children nodes have
  */
-class ChildrenOrder(proof: Proof[N]) extends Ordering[N] {
-  def compare(a: N, b: N) = proof.childrenOf(a).size compare proof.childrenOf(b).size
+class ChildrenOrder(proof: Proof[N], nextOrder: Ordering[N]) extends Ordering[N] {
+  
+  def this(proof: Proof[N]) = {
+    this (proof, new DummyOrder)
+  }
+  
+  def compare(a: N, b: N) = proof.childrenOf(a).size compare proof.childrenOf(b).size match {
+    case 0 => nextOrder.compare(a, b)
+    case c => c
+  }
 }
 
 /**
  * Order with the number of premises nodes have
  */
-class NumberOfPremisesOrder(proof: Proof[N]) extends Ordering[N] {
-  def compare(a: N, b: N) = {
-    a.premises.size compare b.premises.size match {
-      case 0 => new ChildrenOrder(proof).compare(a, b)
-      case c => c
-    }
+class NumberOfPremisesOrder(proof: Proof[N], nextOrder: Ordering[N]) extends Ordering[N] {
+  
+  def this(proof: Proof[N]) = {
+    this (proof, new ChildrenOrder(proof))
+  }
+  def compare(a: N, b: N) = a.premises.size compare b.premises.size match {
+    case 0 => nextOrder.compare(a, b)
+    case c => c
   }
 }
 
@@ -31,10 +197,15 @@ class NumberOfPremisesOrder(proof: Proof[N]) extends Ordering[N] {
  *  Order with the sizes of the subproofs of nodes, 
  *  where smaller sizes are considered to give a bigger ordering 
  */
-class ProofSizeOrder extends Ordering[N] {
-  def compare(a: N, b: N) = {
-    -(Proof(a).size compare Proof(b).size)
+class ProofSizeOrder(nextOrder: Ordering[N]) extends Ordering[N] {
+  
+  def this() = {
+    this(new DummyOrder)
   }
+  def compare(a: N, b: N) = (Proof(a).size compare Proof(b).size) match {
+      case 0 => nextOrder.compare(a, b)
+      case c => c
+    }
 }
 
 /**
@@ -44,7 +215,7 @@ class ProofSizeOrder extends Ordering[N] {
  * nextOrder stands for the Ordering that should be applied in case of a draw.
  */
 
-abstract class UseNodeInfosOrdering(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) extends Ordering[N] {
+abstract class UseNodeInfosOrdering(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) extends Ordering[N] {
   val measure = MMap[N,Int]()
   final def computeMeasure(node: N): Int = {
     val x = compute(node)
@@ -52,24 +223,43 @@ abstract class UseNodeInfosOrdering(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]
     x
   }
   def compute(node:N): Int
-  def nextOrder: Ordering[N]
-  def compare(a: N, b: N) = 
-    measure.getOrElse(a, computeMeasure(a)) compare measure.getOrElse(b, computeMeasure(b)) match {
+  def compare(a: N, b: N) = {
+//    if (nodeInfos(a).index == 7 && nodeInfos(b).index == 22) {
+//      println(this.getClass())
+//      println("7: " + measure.getOrElse(a, computeMeasure(a)))
+//      println("22: " + measure.getOrElse(b, computeMeasure(b)))
+//    }
+    compute(a) compare compute(b) match {
       case 0 => nextOrder.compare(a, b)
       case c => c
     }
+  }
+}
+
+class WasPebbledOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) 
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new RemovesPebblesOrder(proof,nodeInfos))
+  }
+  def compute(node: N) = {
+    -nodeInfos(node).wasPebbled
+  }
 }
 
 /**
  * Order with the amount of premises that a node's children are waiting for to be pebbled
  */
-class WaitForOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class WaitForOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) 
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new RemovesPebblesOrder(proof,nodeInfos))
+  }
   def compute(node: N) = {
     (proof.childrenOf(node) foldLeft 0) ((A,B) => 
       A + nodeInfos.getOrElse(B,EmptyNI).waitsForPremises)
   }
-  def nextOrder = new RemovesPebblesOrder(proof,nodeInfos)
 }
 
 /**
@@ -79,9 +269,12 @@ class WaitForOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo])
  * this number is added to the measure sum for n, 
  * because if n was pebbled then c could remove pu- many pebbles in a next round.
  */
-class WaitForUsedPebblesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class WaitForUsedPebblesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N])
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
   
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new ChildrenOrder(proof))
+  }
   def compute(node: N) = {
     val x = (proof.childrenOf(node) foldLeft 0) ((A,B) => {
       A + (if (nodeInfos.getOrElse(B, EmptyNI).waitsForPremises == 1) 
@@ -98,44 +291,53 @@ class WaitForUsedPebblesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo])
     premiseUP(node) = x
     x
   }
-  def nextOrder = new ChildrenOrder(proof)
 }
 
 /**
  * Order with the amount of nodes that would be made available for pebbling in the next round, 
  * if a node was pebbled in the current round.
  */
-class MakesAvailableOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class MakesAvailableOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N])  
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new NumberOfPremisesOrder(proof))
+  }
   
   def compute(node:N) = {
     (proof.childrenOf(node) foldLeft 0) ((A,B) =>
       A + (if (nodeInfos.getOrElse(B, EmptyNI).waitsForPremises == 1) 1 else 0))
   }
-  def nextOrder = new NumberOfPremisesOrder(proof)
 }
 
 /** Order with the sum of pebbles that are (maximally) used for all premises of a node */
-class PebbledPremisesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class PebbledPremisesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N])  
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new ChildWithPebbledPremiseOrder(proof,nodeInfos))
+  }
   
   def compute(node: N) = {
     (node.premises foldLeft 0) ((A,B) => 
       A + nodeInfos.getOrElse(B, EmptyNI).usesPebbles)
   }
-  def nextOrder = new ChildWithPebbledPremise(proof,nodeInfos)
 }
 
 /** 
  *  Order with the sum of pebbles that are (maximally) used for all premises, 
  *  summed up over all children of a node
  */
-class ChildWithPebbledPremise(proof: Proof[N],nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class ChildWithPebbledPremiseOrder(proof: Proof[N],nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) 
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new InSubProofOrder(proof,nodeInfos))
+  }
   
   def compute(node: N) = {
     (proof.childrenOf(node) foldLeft 0) ((A,B) => 
-      A + pebbledPremises.getOrElse(B, computePP(B)))
+      A + computePP(B))
   }
   val pebbledPremises = MMap[N,Int]()
   def computePP(node: N) = {
@@ -144,18 +346,20 @@ class ChildWithPebbledPremise(proof: Proof[N],nodeInfos: MMap[N,NodeInfo])
     pebbledPremises(node) = x
     x
   }
-  def nextOrder = new IndexOrder(proof,nodeInfos)
 }
 
 /** Order with the depth of a node */
 
-class DepthOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class DepthOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) 
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new ChildrenOrder(proof))
+  }
   
   def compute(node: N) = {
     nodeInfos(node).depth
   }
-  def nextOrder = new ChildrenOrder(proof)
 }
 
 /**
@@ -164,8 +368,12 @@ class DepthOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo])
  * then the amount of pebbles it uses can be removed when pebbling this node, 
  * otherwise no pebbles can be removed.
  */
-class RemovesPebblesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class RemovesPebblesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) 
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new PebbledPremisesOrder(proof, nodeInfos))
+  }
   
   def compute(node: N) = {
     (node.premises foldLeft 0) ((A,B) => 
@@ -174,28 +382,50 @@ class RemovesPebblesOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo])
           else 0)
       )
   }
-  def nextOrder = new PebbledPremisesOrder(proof, nodeInfos)
 }
 
 /** Order with the amount of nodes for which a node is the last child of. */
-class LastChildOfOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) extends Ordering[N] {
+class LastChildOfOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) extends Ordering[N] {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new ChildrenOrder(proof))
+  }
+  
   def compare(a: N, b: N) = {
     nodeInfos(a).lastChildOf compare nodeInfos(b).lastChildOf match {
-      case 0 => nodeInfos(a).numberOfChildren compare nodeInfos(b).numberOfChildren match {
-        case 0 => (nodeInfos(a).index compare nodeInfos(b).index)
-        case c => c
-      }
+      case 0 => nextOrder.compare(a, b)
       case c => c
     }
   }
 }
 
+class SubProofPebbled(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) 
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new LastChildOfOrder(proof, nodeInfos))
+  }
+  
+  def compute(node: N) = {
+    Proof(node).filter(n => nodeInfos(n).usesPebbles != 0).size
+  }
+}
+
 /** Order with the index of a node */
-class IndexOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) 
-  extends UseNodeInfosOrdering(proof, nodeInfos) {
+class IndexOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) 
+  extends UseNodeInfosOrdering(proof, nodeInfos, nextOrder) {
+  
+  def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
+    this (proof, nodeInfos, new DepthOrder(proof,nodeInfos))
+  }
   
   def compute(node: N) = {
     nodeInfos(node).index
   }
-  def nextOrder = new DepthOrder(proof,nodeInfos)
+}
+
+class DummyOrder extends Ordering[N] {
+  def compare(a: N, b: N) = {
+    a.hashCode() compare b.hashCode()
+  }
 }
