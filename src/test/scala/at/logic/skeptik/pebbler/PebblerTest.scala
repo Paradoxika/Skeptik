@@ -62,8 +62,8 @@ object PebblerTest {
     }
 //    val proof = new Proof(concseq)
 //    val proof = ProofParserVeriT.read("F:/Proofs/very-small/hash_uns_04_10.smt2")
-//    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl494.smt2")
-    val proof = ProofParserVeriT.read("F:/Proofs/small-size/gensys_icl052.smt2")
+    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl494.smt2")
+//    val proof = ProofParserVeriT.read("F:/Proofs/small-size/gensys_icl052.smt2")
 //    val proof = ProofParserVeriT.read("examples/proofs/VeriT/eq_diamond2.smt2")
     
     def printBottomUp(node: SequentProofNode, c: Seq[SequentProofNode]):SequentProofNode = {
@@ -84,6 +84,9 @@ object PebblerTest {
 //    val climb = generic2.climbOnce(proof)
 
     val chDC = new ChildrenDecayPebbler(0.5, 2, (A: Seq[Double]) => A.min)
+    val lcDC = new LastChildOfDecayPebbler(2, 7, (A: Seq[Double]) => A.max)
+    val disDC = new LcoDCthenDistancePebbler(2, 7, (A: Seq[Double]) => A.max)
+    
 //    println(greedy)
 //    println(greedy2)
     
@@ -91,6 +94,8 @@ object PebblerTest {
 //    println("bU2: " + measure(greedy4)("space"))
 //    println("bU3: " + measure(greedy5)("space"))
     println("chDC: " + measure(chDC(proof))("space"))
+    println("lcDC: " + measure(lcDC(proof))("space"))
+    println("disDC: " + measure(disDC(proof))("space"))
 //    println("climb: " + measure(climb)("space"))
 //    println("tD: " + measure(greedy3)("space"))
     println("normal:" + measure(proof)("space"))

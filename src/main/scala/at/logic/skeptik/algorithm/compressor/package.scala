@@ -44,7 +44,31 @@ package object compressor {
     "GP" -> RemoveMostPebbles,
     "BUP" -> LastChildOfBUPebbler,
     "P1" -> new GenericBUPebbler(List("LastChild","Children","ProofSize")),
-    "P2" -> new GenericBUPebbler(List("SubProofPebbled","LastChild","Children","ProofSize"))
+    "P2" -> new GenericBUPebbler(List("SubProofPebbled","LastChild","Children","ProofSize")),
+    "CDllmin" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.min),
+    "CDllavg" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
+    "CDlhmin" -> new ChildrenDecayPebbler(0.5, 7, (A: Seq[Double]) => A.min),
+    "CDlhavg" -> new ChildrenDecayPebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
+    "CDhlmin" -> new ChildrenDecayPebbler(3, 1, (A: Seq[Double]) => A.min),
+    "CDhlavg" -> new ChildrenDecayPebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
+    "CDhhmin" -> new ChildrenDecayPebbler(3, 7, (A: Seq[Double]) => A.min),
+    "CDhhavg" -> new ChildrenDecayPebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
+    "LCllmax" -> new LastChildOfDecayPebbler(0.5, 1, (A: Seq[Double]) => A.max),
+    "LCllavg" -> new LastChildOfDecayPebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
+    "LClhmin" -> new LastChildOfDecayPebbler(0.5, 7, (A: Seq[Double]) => A.max),
+    "LClhavg" -> new LastChildOfDecayPebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
+    "LChlmin" -> new LastChildOfDecayPebbler(3, 1, (A: Seq[Double]) => A.max),
+    "LChlavg" -> new LastChildOfDecayPebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
+    "LChhmin" -> new LastChildOfDecayPebbler(3, 7, (A: Seq[Double]) => A.max),
+    "LChhavg" -> new LastChildOfDecayPebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
+    "Dllmax" -> new LcoDCthenDistancePebbler(0.5, 1, (A: Seq[Double]) => A.max),
+    "Dllavg" -> new LcoDCthenDistancePebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
+    "Dlhmin" -> new LcoDCthenDistancePebbler(0.5, 7, (A: Seq[Double]) => A.max),
+    "Dlhavg" -> new LcoDCthenDistancePebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
+    "Dhlmin" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.max),
+    "Dhlavg" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
+    "Dhhmin" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.max),
+    "Dhhavg" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.sum / A.size)
   )
   
   trait fixNodes {

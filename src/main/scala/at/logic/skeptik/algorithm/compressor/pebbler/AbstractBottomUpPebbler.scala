@@ -17,10 +17,14 @@ import scala.collection.mutable.{HashSet => MSet}
 
 abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
   
+  def findFirstOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = usedOrder(proof, nodeInfos)
+  
   def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], initNodes: MSet[N], reverseNode: Option[N]): Proof[N] = {
 //    println(nodeInfos.size)
     var permutation: Seq[N] = Seq[N]()
     val visited = MSet[N]()
+    
+    var currentOrder = findFirstOrder(proof, nodeInfos)
     
     /**
      * Computes the final permutation by recursively visiting the premises of nodes
@@ -33,13 +37,19 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
       while (!premises.isEmpty) {
         val next = 
           if (reverseNode.exists(_ eq p)) premises.min(usedOrder(proof,nodeInfos))
-          else premises.max(usedOrder(proof,nodeInfos))
+          else premises.max(currentOrder)
         premises = premises.diff(Seq(next))
         visit(next)
       }
+      currentOrder = usedOrder(proof, nodeInfos)
       permutation = permutation :+ p
       nodeInfos(p) = nodeInfos(p).changeWasPebbled(permutation.size)
       nodeInfos(p) = nodeInfos(p).changeUsesPebbles(1)
+      //unpebble premises
+      p.premises.foreach(pr => {
+        if (proof.childrenOf(pr).forall(ch => nodeInfos(p).usesPebbles != 0))
+          nodeInfos(pr) = nodeInfos(pr).changeUsesPebbles(0)
+      })
 //      print(nodeInfos(p).index + ", ")
     }
     visit(proof.root)

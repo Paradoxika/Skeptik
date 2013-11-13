@@ -36,3 +36,20 @@ class ChildrenDecayPebbler(decay: Double, premiseDepth: Int, combineParents: (Se
     new ChildrenDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
   }
 }
+
+class LastChildOfDecayPebbler(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
+    extends AbstractBottomUpPebbler {
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new LastChildOfDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
+  }
+}
+
+class LcoDCthenDistancePebbler(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
+    extends AbstractBottomUpPebbler {
+  override def findFirstOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new LastChildOfDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
+  }
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new DistanceOrder(proof, nodeInfos, findFirstOrder(proof, nodeInfos), 3)
+  }
+}

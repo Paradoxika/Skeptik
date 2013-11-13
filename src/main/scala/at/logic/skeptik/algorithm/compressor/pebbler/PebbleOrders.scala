@@ -80,11 +80,25 @@ class ChildrenDecayOrder(
   }
 }
 
+class LastChildOfDecayOrder(
+    proof: Proof[N], 
+    nodeInfos: MMap[N,NodeInfo], 
+    decay: Double, 
+    premiseDepth: Int, 
+    combineParents: (Seq[Double] => Double), 
+    nextOrder: Ordering[N]) 
+    extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
+
+  def singleMeasure(node: N): Int = {
+    nodeInfos(node).lastChildOf
+  }
+}
+
 /*****************Orderings****************
  * Represent different heuristics for pebbling
  */
 
-class DistanceOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) extends Ordering[N] {
+class DistanceOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N], maxDistance: Int = 3) extends Ordering[N] {
   
   def this(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]) = {
     this (proof, nodeInfos, new RemovesPebblesOrder(proof,nodeInfos))
@@ -106,7 +120,7 @@ class DistanceOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ord
   }
   
   def closestPebble(node: N, distance: Int): (Int,Int,Int) = {
-    if (distance == 4) (distance,0,0)
+    if (distance == maxDistance + 1) (distance,0,0)
     else {
     	val spheresOfNode = spheres.getOrElseUpdate(node, initSpheres(node))
 	    val distanceSphere = spheresOfNode.getOrElseUpdate(distance,calculateSphere(node,distance))
@@ -129,9 +143,9 @@ class DistanceOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ord
   }
   
   def compare(a: N, b: N) = {
-    closestPebble(a,1)._1 compare closestPebble(b,1)._1 match {
-      case 0 => closestPebble(a,1)._2 compare closestPebble(b,1)._2 match {
-        case 0 => closestPebble(a,1)._3 compare closestPebble(b,1)._3 match {
+    closestPebble(a,1)._1 compare closestPebble(b,1)._1 match { //smallest sphere with a pebbled node should win
+      case 0 => closestPebble(a,1)._2 compare closestPebble(b,1)._2 match { //maximum amount of pebbled nodes in that sphere
+        case 0 => closestPebble(a,1)._3 compare closestPebble(b,1)._3 match { //most recent pebbled node
           case 0 => nextOrder.compare(a, b) //compare difficulties
           case c => c
         }
