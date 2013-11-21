@@ -36,9 +36,9 @@ package object compressor {
     "RRMST" -> RRMinSimpleTermination,
     "RRHST" -> RRHelsinkiSimpleTermination,
 
-    "RRROTA" -> RRS1PRandomTermination,
-    "RRMROTA" -> RRMinRandomTermination,
-    "RRHROTA" -> RRHelsinkiRandomTermination,
+    "RRRT" -> RRS1PRandomTermination,
+    "RRMRT" -> RRMinRandomTermination,
+    "RRHRT" -> RRHelsinkiRandomTermination,
 
     "Split" -> new CottonSplit(30000),
     "RBSplit" -> new RandomBoudouSplit(30000),
