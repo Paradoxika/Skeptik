@@ -11,7 +11,7 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.mutable.{HashMap => MMap}
 
 trait RandomChoice
-extends AdditivityHeuristic {
+extends AbstractSplitHeuristic {
   private val rand = new scala.util.Random()
 
   private def randomLong(max: Long):Long = {
@@ -24,7 +24,7 @@ extends AdditivityHeuristic {
     }
   }
 
-  protected def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long) = {
+  def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long) = {
     val iterator = literalAdditivity.toIterator
     def searchPos(left: Long):E = {
       val next = iterator.next

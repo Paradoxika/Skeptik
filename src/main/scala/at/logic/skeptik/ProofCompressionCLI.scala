@@ -1,7 +1,7 @@
 package at.logic.skeptik
 
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser}
-import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik}
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserTraceCheck,ProofParserSkeptik,AlgorithmParser}
+import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik,ProofExporterSkeptikD}
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
@@ -16,16 +16,16 @@ object ProofCompressionCLI {
 
   case class Config(inputs: Seq[String] = Seq(),
                     directory: String = "",
-                    algorithms: Seq[String] = Seq(), 
+                    algorithms: Seq[String] = Seq(),
                     format: String = "",
                     hout: Output = StandardOutput, // human-readable output
                     mout: Output = NoOutput, // machine-readable output
                     moutHeader: Boolean = true)                
 
     
-  val supportedProofFormats = Seq("smt2", "skeptik")
+  val supportedProofFormats = Seq("smt2", "skeptik","skeptikD")
   
-  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2' and '.skeptik'"                 
+  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.skeptik' and '.skeptikD'"                 
   
   def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
@@ -62,7 +62,7 @@ object ProofCompressionCLI {
     } validate { v =>
       if (supportedProofFormats contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> (either 'smt2' or 'skeptik') to output compressed proofs\n") valueName("<format>")
+    } text("use <format> (either 'smt2', 'skeptik' or 'skeptikD') to output compressed proofs\n") valueName("<format>")
  
 
     opt[String]('m', "mout") action { (v, c) =>
@@ -104,8 +104,8 @@ object ProofCompressionCLI {
 
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { c =>
-      
-      val measures = Seq("length","coreSize","height","time")
+
+      val measures = Seq("length","coreSize","height","space","time")
       
       val prettyTable = new HumanReadableTable(measures)
       val stats = new CumulativeStats(measures, c.algorithms)
@@ -120,6 +120,8 @@ object ProofCompressionCLI {
         val proofParser = proofFormat match {
           case ".smt2"  => ProofParserVeriT
           case ".skeptik"  => ProofParserSkeptik
+          case ".tc" => ProofParserTraceCheck
+          case _ => throw new Exception(unknownFormat(filename))
         }
         
         // Reading the proof
@@ -142,6 +144,7 @@ object ProofCompressionCLI {
           c.format match {
             case "smt2" => (p: Proof[N], name: String) => ProofExporterVeriT.write(p, name)
             case "skeptik" => (p: Proof[N], name: String) => ProofExporterSkeptik.write(p, name)
+            case "skeptikD" => (p: Proof[N], name: String) => ProofExporterSkeptikD.write(p, name)
             case "" =>  (p: Proof[N], name: String) => { }
           }
         }
@@ -161,13 +164,15 @@ object ProofCompressionCLI {
           c.hout.write("\t\tMeasuring...")
           val Timed(mOProof,tMOProof) = timed { measure(p) }
           c.hout.write(completedIn(tMOProof) + "\n\n")
-          
+
           val measurements = mOProof + ("time" -> Math.round(t).toInt)
           
           stats.processOutput(oProofName, a, measurements)
           prettyTable.processOutput(oProofName, a, measurements)
           csv.processOutput(oProofName, a, measurements)        
         }  // end of 'for (a <- algorithms)'
+
+        csv.closeLine
       } // end of 'for (filename <- config.inputs)'
       
       // Displaying proof measurements  
@@ -217,7 +222,8 @@ object ProofCompressionCLI {
   }
 
   class CumulativeStats(measures: Seq[String], algorithms: Seq[String]) extends DataAggregator {
-    private val m = MMap( ("id"::(algorithms.toList)) map { (_ -> Seq(0,0,0)) } :_* )
+
+    private val m = MMap( ("id"::(algorithms.toList)) map { (_ -> measures.map(m => 0)) } :_* )
     
     def processInput(name: String, measurements: M) = append("id", for (m <- measures) yield measurements(m)) 
     
@@ -239,11 +245,15 @@ object ProofCompressionCLI {
       val emptyColumns = ("" /: measures){(acc,m) => acc + ","} // n commas for n measures
       val measureHeaders = measures.mkString("",",",",")
       "Proof,Uncompressed" + emptyColumns + (""/:(for (a <- algorithms) yield a + emptyColumns )){_ + _} + "\n" +
-      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _}
+      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _} + "\n"
+    }
+    
+    def closeLine = {
+      out.write("\n")
     }
     
     def processInput(name: String, measurements: M) = {
-      out.write("\n" + name + (for (m <- measures) yield measurements(m)).mkString(",",",", ","))
+      out.write(name + (for (m <- measures) yield measurements(m)).mkString(",",",", ","))
     }
     
     def processOutput(name: String, a: String, measurements: M) = {
