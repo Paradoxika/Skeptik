@@ -43,11 +43,5 @@ extends ReduceS1P with TimeoutTermination
 object RRS1PSimpleTermination
 extends ReduceS1P with SimpleTermination
 
-object RRS1POverTermination
-extends ReduceS1P with OverTermination
-
-object RRS1PRandomA2
-extends ReduceS1P with RandomA2
-
-object RRS1PRandomA2Alt
-extends ReduceS1P with RandomA2Alt
+object RRS1PRandomTermination
+extends ReduceS1P with RandomTermination

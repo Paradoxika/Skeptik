@@ -30,33 +30,15 @@ package object compressor {
 
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),
-    "RRC" -> new ReduceAndReconstructC1P(5000),
-    "RRlm" -> new ReduceAndReconstructMiddleLowerTimeout(5000),
     "RRH" -> new ReduceAndReconstructHelsinkiTimeout(5000),
 
     "RRST" -> RRS1PSimpleTermination,
     "RRMST" -> RRMinSimpleTermination,
-    "RRCST" -> RRC1PSimpleTermination,
-    "RRlmST" -> RRMiddleLowerSimpleTermination,
     "RRHST" -> RRHelsinkiSimpleTermination,
 
-    "RROT" -> RRS1POverTermination,
-    "RRMOT" -> RRMinOverTermination,
-    "RRCOT" -> RRC1POverTermination,
-    "RRlmOT" -> RRMiddleLowerOverTermination,
-    "RRHOT" -> RRHelsinkiOverTermination,
-
-    "RRROT" -> RRS1PRandomA2,
-    "RRMROT" -> RRMinRandomA2,
-    "RRCROT" -> RRC1PRandomA2,
-    "RRlmROT" -> RRMiddleLowerRandomA2,
-    "RRHROT" -> RRHelsinkiRandomA2,
-
-    "RRROTA" -> RRS1PRandomA2Alt,
-    "RRMROTA" -> RRMinRandomA2Alt,
-    "RRCROTA" -> RRC1PRandomA2Alt,
-    "RRlmROTA" -> RRMiddleLowerRandomA2Alt,
-    "RRHROTA" -> RRHelsinkiRandomA2Alt,
+    "RRROTA" -> RRS1PRandomTermination,
+    "RRMROTA" -> RRMinRandomTermination,
+    "RRHROTA" -> RRHelsinkiRandomTermination,
 
     "Split" -> new CottonSplit(30000),
     "RBSplit" -> new RandomBoudouSplit(30000),

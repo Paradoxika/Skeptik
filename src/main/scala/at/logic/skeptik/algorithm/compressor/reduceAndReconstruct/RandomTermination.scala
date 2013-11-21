@@ -5,6 +5,29 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import annotation.tailrec
 
 
+/** Counts on how many nodes non-fallback rules have been applied.
+ * The counter being a member of the trait, this trait is not thread safe.
+ */
+trait CheckFallback
+extends Reduce with ReconstructWithHeight {
+  var checkFallback = 0
+
+  abstract override def fallback
+    (node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
+    checkFallback -= 1
+    super.fallback(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+  }
+
+  def applyOnce(proof: Proof[SequentProofNode]) = {
+    checkFallback = 0
+    def pre(node: SequentProofNode, leftPremiseHasOneChild: Boolean, rightPremiseHasOneChild: Boolean) = {
+      checkFallback += 1
+      reduce(node, leftPremiseHasOneChild, rightPremiseHasOneChild)
+    }
+    proof.foldDown(reconstruct(proof, pre))
+  }
+}
+
 /** Apply the fallback rule randomly.
  * The probability the fallback rule is applied is given by the member variable fallbackThreshold.
  * When the fallback rule is not applied, the node is left as is.
@@ -23,36 +46,11 @@ extends Reduce {
       node
 }
 
-/** Apply A2 rule randomly with increasing probability.
- * Let c be the number of previous successive calls for which no other rule than A2 have been applied.
- * This number is equal to zero when the last call applied any other rule than A2.
- * The probability A2 is applied during the next call corresponds to this number c divided by the height of the proof.
- * The algorithm terminates when c exceeds the double of the height of the proof.
+/** First only apply non-fallback rules. When no such rule have been applied in a run, apply fallback rule with probability one half
+ * for as many runs as the height of the proof. Then apply fallback rule with probability one for as many runs as the height of the proof.
+ * Whenever at least one non-fallback rule is applied, return to the first step.
  */
-trait RandomA2
-extends Reduce with RandomFallback with CheckFallback {
-  var fallbackThreshold = 0.0
-
-  def apply(proof: Proof[SequentProofNode]) = {
-    @tailrec
-    def aux(before: Proof[SequentProofNode], count: Int): Proof[SequentProofNode] = {
-      val (height, root) = applyOnce(before)
-      val after = Proof(root)
-      fallbackThreshold = count.toDouble / height.toDouble
-
-      if (checkFallback > 0)
-        aux(after, 1)
-      else // only A2 rule has been applied
-        if (count <= 2 * height)
-          aux(after, count+1)
-        else
-          after
-    }
-    aux(proof,1)
-  }
-}
-
-trait RandomA2Alt
+trait RandomTermination
 extends Reduce with RandomFallback with CheckFallback {
   var fallbackThreshold = 0.0
 
@@ -66,7 +64,7 @@ extends Reduce with RandomFallback with CheckFallback {
         fallbackThreshold = 0.0
         aux(after, 1)
       }
-      else // only A2 rule has been applied
+      else // no non-fallback rule has been applied
         if (fallbackThreshold == 0.0) {
           fallbackThreshold = 0.5
           aux(after, 1)

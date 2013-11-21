@@ -18,11 +18,5 @@ extends ReduceMin with TimeoutTermination
 object RRMinSimpleTermination
 extends ReduceMin with SimpleTermination
 
-object RRMinOverTermination
-extends ReduceMin with OverTermination
-
-object RRMinRandomA2
-extends ReduceMin with RandomA2
-
-object RRMinRandomA2Alt
-extends ReduceMin with RandomA2Alt
+object RRMinRandomTermination
+extends ReduceMin with RandomTermination
