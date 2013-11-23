@@ -24,6 +24,7 @@ object io {
   
   class FileOutput(path: String) extends Output {
     private val w = Resource.fromFile(path)
+    def clear = w.truncate(0)
     def isEmpty = w.lines().isEmpty
     def write(s:Any) = w.append(s.toString) 
   }
