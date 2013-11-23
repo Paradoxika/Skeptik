@@ -94,6 +94,21 @@ class LastChildOfDecayOrder(
   }
 }
 
+class UsesPebblesDecayOrder(
+    proof: Proof[N], 
+    nodeInfos: MMap[N,NodeInfo], 
+    decay: Double, 
+    premiseDepth: Int, 
+    combineParents: (Seq[Double] => Double), 
+    nextOrder: Ordering[N]) 
+    extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
+
+  def singleMeasure(node: N): Int = {
+    nodeInfos(node).usesPebbles
+  }
+}
+
+
 /*****************Orderings****************
  * Represent different heuristics for pebbling
  */

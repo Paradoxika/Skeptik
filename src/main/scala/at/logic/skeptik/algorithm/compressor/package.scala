@@ -68,7 +68,8 @@ package object compressor {
     "Dhlmin" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.max),
     "Dhlavg" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
     "Dhhmin" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.max),
-    "Dhhavg" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.sum / A.size)
+    "Dhhavg" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
+    "TestP" -> new InSubThenUsesPebblesPebbler(3, 7, (A: Seq[Double]) => A.max)
   )
   
   trait fixNodes {
