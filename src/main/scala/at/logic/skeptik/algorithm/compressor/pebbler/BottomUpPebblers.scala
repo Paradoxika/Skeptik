@@ -53,3 +53,14 @@ class LcoDCthenDistancePebbler(decay: Double, premiseDepth: Int, combineParents:
     new DistanceOrder(proof, nodeInfos, findFirstOrder(proof, nodeInfos), 3)
   }
 }
+
+class InSubThenUsesPebblesPebbler(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
+    extends AbstractBottomUpPebbler {
+  override def findFirstOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new LastChildOfDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
+//    new InSubProofOrder(proof, nodeInfos)
+  }
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new UsesPebblesDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, findFirstOrder(proof, nodeInfos))
+  }
+}
