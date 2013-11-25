@@ -25,6 +25,8 @@ object io {
   class FileOutput(path: String) extends Output {
     private val w = Resource.fromFile(path)
     def clear = w.truncate(0)
+    def prepend(s: Any) = w.insert(0, s.toString)
+    def appendAll(strings: Traversable[String], separator: String = "") = w.appendStrings(strings, separator)
     def isEmpty = w.lines().isEmpty
     def write(s:Any) = w.append(s.toString) 
   }

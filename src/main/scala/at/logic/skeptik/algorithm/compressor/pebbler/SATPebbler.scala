@@ -106,7 +106,7 @@ object SATPebbler {
   
   def main(args: Array[String]): Unit = {
     val proof = ProofParserVeriT.read("examples/proofs/VeriT/eq_diamond2.smt2")
-      val out = new FileOutput("experiments/SATPebble")
+    val out = new FileOutput("experiments/SATPebble")
     out.clear
     println(proof)
 //    proof.nodes.foreach(println)
