@@ -40,9 +40,9 @@ package object compressor {
     "RRMRT" -> RRMinRandomTermination,
     "RRHRT" -> RRHelsinkiRandomTermination,
 
-    "Split" -> new CottonSplit(30000),
-    "RBSplit" -> new RandomBoudouSplit(30000),
-    "DBSplit" -> new DeterministicBoudouSplit(30000),
+    "Split" -> new CottonSplit(5000),
+    "RBSplit" -> new RandomBoudouSplit(5000),
+    "DBSplit" -> new DeterministicBoudouSplit(5000),
     "MSplit2" -> new TimeoutMultiSplit(2,5000),
     "MSplit3" -> new TimeoutMultiSplit(3,5000),
     "MSplit4" -> new TimeoutMultiSplit(4,5000),

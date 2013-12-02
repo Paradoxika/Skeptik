@@ -37,13 +37,16 @@ extends JavaTokenParsers with RegexParsers {
   def axiom: Parser[Node] = "input" ~> conclusion ^^ {
     list => new Axiom(list)
   }
-  def unchecked: Parser[Node] = name ~ opt(premises) ~ conclusion ^^ {
-    case ~(~(name, None), list) => new UncheckedInference(name,Seq(),list)
-    case ~(~(name, Some(premises)), list) => new UncheckedInference(name,premises,list)
+  def unchecked: Parser[Node] = name ~ opt(premises) ~ opt(args) ~ conclusion ^^ {
+    case ~(~(~(name, None),_), list) => new UncheckedInference(name,Seq(),list)
+    case ~(~(~(name, Some(premises)),_), list) => new UncheckedInference(name,premises,list)
   }
 
   def premises: Parser[List[Node]] = ":clauses (" ~> rep(proofName) <~ ")" ^^ {
     list => list map proofMap
+  }
+  def args: Parser[List[Int]] = ":iargs (" ~> rep("""\d+""".r) <~ ")" ^^ {
+    list => list map { _.toInt }
   }
   def conclusion: Parser[List[E]] = ":conclusion (" ~> rep(expression) <~ ")"
 
