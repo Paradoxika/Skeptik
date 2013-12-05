@@ -10,7 +10,11 @@ object OrderCreator {
     case o::rest => {
       val restOrders = OrderCreator(rest, proof, nodeInfos)
       o match {
-        case "Distance" => new DistanceOrder(proof, nodeInfos, restOrders)
+        case "Distance1" => new DistanceOrder(proof, nodeInfos, restOrders,1)
+        case "Distance2" => new DistanceOrder(proof, nodeInfos, restOrders,2)
+        case "Distance3" => new DistanceOrder(proof, nodeInfos, restOrders,3)
+        case "Distance4" => new DistanceOrder(proof, nodeInfos, restOrders,4)
+        case "Distance5" => new DistanceOrder(proof, nodeInfos, restOrders,5)
         case "InSub" => new InSubProofOrder(proof, nodeInfos, restOrders)
         case "Children" => new ChildrenOrder(proof, restOrders)
         case "Premises" => new NumberOfPremisesOrder(proof, restOrders)
