@@ -17,7 +17,7 @@ import at.logic.skeptik.proof.measure
  * This topological order can be used to rearrange the proof
  * and (hopefully) reduce the space measure.
  */
-abstract class AbstractPebbler extends (Proof[N] => Proof[N])  {
+abstract class AbstractPebbler extends (Proof[N] => Proof[N]) {
   
   /** Represents the used heuristic */
   def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N]
@@ -61,16 +61,22 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N])  {
       val nI = new NodeInfo(proofSize-counter, depth, children.size, inSubProof, 0, node.premises.size, 0, children.size, 0, false, impact)
 //      println("node# :" + (proofSize-counter) + " has impact: " + impact + " and depth: " + depth + " inSubProofs: " + inSubProof)
       nodeInfos += (node -> nI)
-      children.lastOption.foreach(l => {
-        val current = nodeInfos(l)
-        nodeInfos(l) = current.changeLastChildOf(current.lastChildOf + 1)
-      })
+      lastChild(node, children, nodeInfos)
+//      children.lastOption.foreach(l => {
+//        nodeInfos(l) = nodeInfos(l).changeLastChildOf(nodeInfos(l).lastChildOf + 1)
+//      })
       counter = counter + 1
       node
     }
     proof bottomUp gather
     
     (nodeInfos,initNodes)
+  }
+  
+  def lastChild(l: N, children: Seq[N], nodeInfos: MMap[N,NodeInfo]) = {
+    children.lastOption.foreach(l => {
+      nodeInfos(l) = nodeInfos(l).changeLastChildOf(nodeInfos(l).lastChildOf + 1)
+    })
   }
   
   def climbOnce(proof: Proof[N]): Proof[N] = {
@@ -89,5 +95,23 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N])  {
       }
     })
     bestProof
+  }
+}
+
+//trait lastChildOrig {
+//  def lastChild(l: N, children: Seq[N], nodeInfos: MMap[N,NodeInfo]) = {
+//    children.lastOption.foreach(l => {
+//      nodeInfos(l) = nodeInfos(l).changeLastChildOf(nodeInfos(l).lastChildOf + 1)
+//    })
+//  }
+//}
+
+trait lastChildNew extends AbstractPebbler {
+  override def lastChild(l: N, children: Seq[N], nodeInfos: MMap[N,NodeInfo]) = {
+    if (children.size == 1) {
+      children.lastOption.foreach(l => {
+        nodeInfos(l) = nodeInfos(l).changeLastChildOf(nodeInfos(l).lastChildOf + 1)
+      })
+    }
   }
 }

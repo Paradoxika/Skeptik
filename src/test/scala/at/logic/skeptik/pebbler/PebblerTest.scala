@@ -62,9 +62,9 @@ object PebblerTest {
     }
 //    val proof = new Proof(concseq)
 //    val proof = ProofParserVeriT.read("F:/Proofs/very-small/hash_uns_04_10.smt2")
-    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl494.smt2")
+//    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl494.smt2")
 //    val proof = ProofParserVeriT.read("F:/Proofs/small-size/gensys_icl052.smt2")
-//    val proof = ProofParserVeriT.read("examples/proofs/VeriT/eq_diamond2.smt2")
+    val proof = ProofParserVeriT.read("examples/proofs/VeriT/eq_diamond3.smt2")
     
     def printBottomUp(node: SequentProofNode, c: Seq[SequentProofNode]):SequentProofNode = {
       println(node + " " + c.size)
@@ -86,16 +86,21 @@ object PebblerTest {
     val chDC = new ChildrenDecayPebbler(0.5, 2, (A: Seq[Double]) => A.min)
     val lcDC = new LastChildOfDecayPebbler(2, 7, (A: Seq[Double]) => A.max)
     val disDC = new LcoDCthenDistancePebbler(2, 7, (A: Seq[Double]) => A.max)
+    val upDC = new InSubThenUsesPebblesPebbler(2, 7, (A: Seq[Double]) => A.max)
     
+    proof.foreach(node => println("node: " + node +" last Child before:" + proof.childrenOf(node).lastOption.getOrElse("<>")))
+    println("\n**************\n")
+    greedy.foreach(node => println("node: " + node +" last Child after:" + greedy.childrenOf(node).lastOption.getOrElse("<>")))
 //    println(greedy)
 //    println(greedy2)
     
     println("bU: " + measure(greedy)("space"))
 //    println("bU2: " + measure(greedy4)("space"))
 //    println("bU3: " + measure(greedy5)("space"))
-    println("chDC: " + measure(chDC(proof))("space"))
-    println("lcDC: " + measure(lcDC(proof))("space"))
-    println("disDC: " + measure(disDC(proof))("space"))
+//    println("chDC: " + measure(chDC(proof))("space"))
+//    println("lcDC: " + measure(lcDC(proof))("space"))
+//    println("disDC: " + measure(disDC(proof))("space"))
+    println("upDC: " + measure(upDC(proof))("space"))
 //    println("climb: " + measure(climb)("space"))
 //    println("tD: " + measure(greedy3)("space"))
     println("normal:" + measure(proof)("space"))

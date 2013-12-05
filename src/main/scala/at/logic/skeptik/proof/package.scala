@@ -30,6 +30,7 @@ package object proof {
           childrenVisited.update(pr, chV)
           if (chV == p.childrenOf(pr).size) {
             step = step - 1
+//            println("node: " + node + " is last Child of: " + pr)
           }
         })
 //        println(counter + " : " + step)

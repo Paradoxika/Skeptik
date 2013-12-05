@@ -37,10 +37,33 @@ class ChildrenDecayPebbler(decay: Double, premiseDepth: Int, combineParents: (Se
   }
 }
 
+
+class HardSubFirstPebbler(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
+    extends AbstractBottomUpPebbler {
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+//    new HardSubFirstOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
+    new HSF
+  }
+}
+
 class LastChildOfDecayPebbler(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
     extends AbstractBottomUpPebbler {
   def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
     new LastChildOfDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
+  }
+}
+
+class LastChildOfDecayPebblerNew(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
+    extends AbstractBottomUpPebbler with lastChildNew {
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new LastChildOfDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
+  }
+}
+
+class LastChildOfDecayPebbler2(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
+    extends AbstractBottomUpPebbler {
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new LastChildOfDecayOrder2(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
   }
 }
 

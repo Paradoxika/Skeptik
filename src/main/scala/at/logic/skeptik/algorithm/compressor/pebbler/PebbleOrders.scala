@@ -3,6 +3,7 @@ package at.logic.skeptik.algorithm.compressor.pebbler
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.mutable.{HashMap => MMap}
+import at.logic.skeptik.proof.measure
 
 object OrderCreator {
   def apply(orders: Seq[String], proof: Proof[N], nodeInfos: MMap[N, NodeInfo]): Ordering[N] = orders match {
@@ -36,8 +37,8 @@ object OrderCreator {
 abstract class DecayOrder(
     proof: Proof[N], 
     nodeInfos: MMap[N,NodeInfo], 
-    decay: Double,
-    premiseDepth: Int,
+    decay: Double, 
+    premiseDepth: Int, 
     combineParents: (Seq[Double] => Double), 
     nextOrder: Ordering[N]) 
     extends Ordering[N] {
@@ -76,7 +77,33 @@ class ChildrenDecayOrder(
     extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
 
   def singleMeasure(node: N): Int = {
-    -proof.childrenOf.size
+    proof.childrenOf.size
+  }
+}
+
+class HardSubFirstOrder(
+    proof: Proof[N], 
+    nodeInfos: MMap[N,NodeInfo], 
+    decay: Double,
+    premiseDepth: Int,
+    combineParents: (Seq[Double] => Double), 
+    nextOrder: Ordering[N]) 
+    extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
+
+  def singleMeasure(node: N): Int = {
+//    if (Proof(node).size < 1000)
+//      measure(Proof(node))("space")
+//    else
+//      nodeInfos(node).lastChildOf
+    Proof(node).size
+  } 
+}
+
+class HSF extends Ordering[N] {
+  val measures = MMap[N,Int]()
+  
+  def compare(a: N, b: N) = {
+    measures.getOrElseUpdate(a, measure(Proof(a))("space")) compare measures.getOrElseUpdate(b, measure(Proof(b))("space"))
   }
 }
 
@@ -91,6 +118,20 @@ class LastChildOfDecayOrder(
 
   def singleMeasure(node: N): Int = {
     nodeInfos(node).lastChildOf
+  }
+}
+
+class LastChildOfDecayOrder2(
+    proof: Proof[N], 
+    nodeInfos: MMap[N,NodeInfo], 
+    decay: Double, 
+    premiseDepth: Int, 
+    combineParents: (Seq[Double] => Double), 
+    nextOrder: Ordering[N]) 
+    extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
+
+  def singleMeasure(node: N): Int = {
+    node.premises.filter(proof.childrenOf(_).filter(nodeInfos(_).usesPebbles == 0) == 1).size
   }
 }
 
