@@ -23,7 +23,7 @@ object ProofCompressionCLI {
                     moutHeader: Boolean = true)                
 
     
-  val supportedProofFormats = Seq("smt2", "skeptik","skeptikD")
+  val supportedProofFormats = Seq("smt2", "tc", "skeptik", "skeptikD")
   
   def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.skeptik' and '.skeptikD'"                 
   
@@ -142,7 +142,7 @@ object ProofCompressionCLI {
   
         val writeProof =  {
           c.format match {
-            case "smt2" => (p: Proof[N], name: String) => ProofExporterVeriT.write(p, name)
+            case "smt2" => (p: Proof[N], name: String) => new ProofExporterVeriT(new java.io.FileWriter(name + ".smt2")).export(p)
             case "skeptik" => (p: Proof[N], name: String) => ProofExporterSkeptik.write(p, name)
             case "skeptikD" => (p: Proof[N], name: String) => ProofExporterSkeptikD.write(p, name)
             case "" =>  (p: Proof[N], name: String) => { }
