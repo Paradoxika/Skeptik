@@ -1,4 +1,5 @@
 package at.logic.skeptik.exporter
+package skeptik
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
@@ -34,7 +35,7 @@ object ProofExporterSkeptik extends AbstractProofExporterSkeptik with outDeleteI
 
 object ProofExporterSkeptikD extends AbstractProofExporterSkeptik with deleteInfo
 
-abstract class AbstractProofExporterSkeptik extends ProofExporter[Node] {
+abstract class AbstractProofExporterSkeptik {
   
   def getDeleteInfo(p: Proof[Node], n: Node, premiseResults: Seq[String]):String
   

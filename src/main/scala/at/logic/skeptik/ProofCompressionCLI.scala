@@ -1,7 +1,8 @@
 package at.logic.skeptik
 
 import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserTraceCheck,ProofParserSkeptik,AlgorithmParser}
-import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik,ProofExporterSkeptikD}
+import at.logic.skeptik.exporter.skeptik.{ProofExporterSkeptik,ProofExporterSkeptikD}
+import at.logic.skeptik.exporter.smt.SMTFileExporter
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
@@ -142,7 +143,7 @@ object ProofCompressionCLI {
   
         val writeProof =  {
           c.format match {
-            case "smt2" => (p: Proof[N], name: String) => new ProofExporterVeriT(new java.io.FileWriter(name + ".smt2")).export(p)
+            case "smt2" => (p: Proof[N], name: String) => new SMTFileExporter(name + ".smt2").write(p)
             case "skeptik" => (p: Proof[N], name: String) => ProofExporterSkeptik.write(p, name)
             case "skeptikD" => (p: Proof[N], name: String) => ProofExporterSkeptikD.write(p, name)
             case "" =>  (p: Proof[N], name: String) => { }
