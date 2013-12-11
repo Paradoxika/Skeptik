@@ -1,8 +1,10 @@
 package at.logic.skeptik
 
 import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserTraceCheck,ProofParserSkeptik,AlgorithmParser}
-import at.logic.skeptik.exporter.skeptik.{ProofExporterSkeptik,ProofExporterSkeptikD}
-import at.logic.skeptik.exporter.smt.SMTFileExporter
+
+import at.logic.skeptik.exporter.Exporter
+import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
+import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
@@ -24,9 +26,9 @@ object ProofCompressionCLI {
                     moutHeader: Boolean = true)                
 
     
-  val supportedProofFormats = Seq("smt2", "tc", "skeptik", "skeptikD")
+  val supportedProofFormats = Seq("smt2", "tc", "s", "sd")
   
-  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.skeptik' and '.skeptikD'"                 
+  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.s' and '.sd'"                 
   
   def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
@@ -63,7 +65,7 @@ object ProofCompressionCLI {
     } validate { v =>
       if (supportedProofFormats contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> (either 'smt2', 'skeptik' or 'skeptikD') to output compressed proofs\n") valueName("<format>")
+    } text("use <format> (either 'smt2', 's' or 'sd') to output compressed proofs\n") valueName("<format>")
  
 
     opt[String]('m', "mout") action { (v, c) =>
@@ -121,6 +123,7 @@ object ProofCompressionCLI {
         val proofParser = proofFormat match {
           case ".smt2"  => ProofParserVeriT
           case ".skeptik"  => ProofParserSkeptik
+          case ".s" => ProofParserSkeptik
           case ".tc" => ProofParserTraceCheck
           case _ => throw new Exception(unknownFormat(filename))
         }
@@ -141,15 +144,10 @@ object ProofCompressionCLI {
         prettyTable.processInput(proofName, measurements)
         csv.processInput(proofName, measurements)
   
-        val writeProof =  {
-          c.format match {
-            case "smt2" => (p: Proof[N], name: String) => new SMTFileExporter(name + ".smt2").write(p)
-            case "skeptik" => (p: Proof[N], name: String) => ProofExporterSkeptik.write(p, name)
-            case "skeptikD" => (p: Proof[N], name: String) => ProofExporterSkeptikD.write(p, name)
-            case "" =>  (p: Proof[N], name: String) => { }
-          }
-        }
 
+
+        
+        
         // Compressing the proof
         for (a <- c.algorithms) {
           val algorithm = AlgorithmParser.parse(a)
@@ -158,10 +156,23 @@ object ProofCompressionCLI {
           c.hout.write(completedIn(t) + "\n")
           
           val oProofName = proofName + "-" + a
-          c.hout.write("\t\tWriting compressed proof...")
-          val Timed(_,w) = timed { writeProof(p, oProofName) }
-          c.hout.write(completedIn(w) + "\n")
           
+          val writer: Option[Exporter] =  {
+            c.format match {
+              case "" => None
+              case "smt2" => Some(new SMTFileExporter(oProofName))
+              case "s" => Some(new SkeptikFileExporter(oProofName))
+              case "sd" => Some(new SkeptikFileExporter(oProofName, deletionInfo = true))
+            }
+          }
+          
+          for (w <- writer) {
+            c.hout.write("\t\tWriting compressed proof...")
+            val Timed(_,tWOProof) = timed { w.write(p) }
+            c.hout.write(completedIn(tWOProof) + "\n")
+            w.close()
+          }
+       
           c.hout.write("\t\tMeasuring...")
           val Timed(mOProof,tMOProof) = timed { measure(p) }
           c.hout.write(completedIn(tMOProof) + "\n\n")

@@ -31,9 +31,9 @@ trait ProofE extends SequentE {
         }    
         n match {
           case Axiom(conclusion) => {
-            val chain = beginInference("input")
+            val name = beginInference("input")
             endInference()
-            chain // only the name of the axiom
+            name // chain containing only the name of the axiom
           }
           case R(left,right,_,_) => {
             val chain = premiseResults(0) + " " + premiseResults(1)
@@ -41,17 +41,17 @@ trait ProofE extends SequentE {
               chain
             }
             else {
-              val chain = beginInference("resolution")
+              val name = beginInference("resolution")
               write(" :clauses (" + chain + ")") 
               endInference()
-              chain // only the name of the resolution node
+              name // chain containing only the name of the resolution node
             }
           }
           case UncheckedInference(infName, premises, conclusion) => {
-            val chain = beginInference(infName)
+            val name = beginInference(infName)
             if (!premiseResults.isEmpty) write(" :clauses " + premiseResults.mkString("("," ",")"))
             endInference()
-            chain // only the name of the unchecked inference
+            name // chain containing only the name of the unchecked inference
           }
         }  
       } 
