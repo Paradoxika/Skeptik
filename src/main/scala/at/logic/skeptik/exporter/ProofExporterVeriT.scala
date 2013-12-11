@@ -15,7 +15,16 @@ abstract class Exporter(w: Writer) {
 
 trait SequentExporterVeriT extends ExpressionExporterVeriT {
   def export(s: Sequent): Unit = {
-    export(bigOr(s.ant.map(e => neg(e)) ++ s.suc)) 
+    val disjuncts = (s.ant.map(f => neg(f)).view ++ s.suc)
+    write("(")
+    if (!disjuncts.isEmpty) {
+      export(disjuncts.head)
+      for (f <- disjuncts.tail) { 
+        write(" ")
+        export(f)       
+      }
+    } 
+    write(")")
   }
 }
 
@@ -30,7 +39,6 @@ trait ExpressionExporterVeriT extends Exporter {
       else write(n)
     }
     case App(App(Var(p,_), e1), e2) if p == eqS => {
-      println("hello")
       write("(= ")
       export(e1)
       write(" ")
@@ -44,6 +52,7 @@ trait ExpressionExporterVeriT extends Exporter {
         write(" ")
         export(a)
       }
+      write(")")
     }
     case _ => write(e.toString)
   }
@@ -55,13 +64,26 @@ class ProofExporterVeriT(w: Writer) extends Exporter(w) with SequentExporterVeri
     
     proof foldDown { 
       (n, premiseResults: Seq[String]) => {
+        val infName = n match {
+          case Axiom(_) => "input"
+          case R(_,_,_,_) => "resolution"
+          case UncheckedInference(x,_,_) => x
+        }
+//        def beginInference() = {
+//          
+//        }
+        
+        def endInference() = {
+          write(" :conclusion ")
+          export(n.conclusion) 
+          write ("))\n")
+        }    
         n match {
           case Axiom(conclusion) => {
               val name = ".c" + counter
               counter += 1
-              write("(set " + name + " (input :conclusion ")
-              export(conclusion) 
-              write ("))\n")
+              write("(set " + name + " (" + infName)
+              endInference()
               name
           }
           case R(left,right,_,_) => {
@@ -72,18 +94,18 @@ class ProofExporterVeriT(w: Writer) extends Exporter(w) with SequentExporterVeri
               val name = ".c" + counter
               counter += 1
               val subproof = "(" + premiseResults(0) + " " + premiseResults(1) + ")"
-              write("(set " + name + " (resolution :clauses " + subproof + "))\n")
+              write("(set " + name + " (" + infName)
+              write(" :clauses " + subproof) 
+              endInference()
               name
             }
           }
-          case UncheckedInference(infName, premises, conclusion) => {
+          case UncheckedInference(_, premises, conclusion) => {
             val name = ".c" + counter
             counter += 1
             write("(set " + name + " (" + infName)
-            if (!premiseResults.isEmpty) write(" :clauses " + premiseResults.mkString(" "))
-            write(" :conclusion ") 
-            export(conclusion)
-            write("))\n")
+            if (!premiseResults.isEmpty) write(" :clauses " + premiseResults.mkString("("," ",")"))
+            endInference()
             name
           }
         }  
