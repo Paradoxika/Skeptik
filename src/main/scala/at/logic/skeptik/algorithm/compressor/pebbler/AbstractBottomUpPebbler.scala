@@ -43,12 +43,12 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
       }
       currentOrder = usedOrder(proof, nodeInfos)
       permutation = permutation :+ p
-      nodeInfos(p) = nodeInfos(p).changeWasPebbled(permutation.size)
-      nodeInfos(p) = nodeInfos(p).changeUsesPebbles(1)
+      nodeInfos.update(p, nodeInfos.getOrElse(p, new NodeInfo).changeWasPebbled(permutation.size))
+      nodeInfos.update(p, nodeInfos.getOrElse(p, new NodeInfo).changeUsesPebbles(1))
       //unpebble premises
       p.premises.foreach(pr => {
-        if (proof.childrenOf(pr).forall(ch => nodeInfos(p).usesPebbles != 0))
-          nodeInfos(pr) = nodeInfos(pr).changeUsesPebbles(0)
+        if (proof.childrenOf(pr).forall(ch => nodeInfos.getOrElse(pr, new NodeInfo).usesPebbles != 0))
+          nodeInfos.update(pr, nodeInfos.getOrElse(pr, new NodeInfo).changeUsesPebbles(0))
       })
 //      print(nodeInfos(p).index + ", ")
     }
