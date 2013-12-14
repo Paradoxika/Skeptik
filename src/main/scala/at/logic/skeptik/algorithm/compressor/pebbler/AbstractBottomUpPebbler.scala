@@ -33,6 +33,9 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
      */
     def visit(p: N): Unit = if (!visited(p)) {
       visited += p
+      if (!nodeInfos.isDefinedAt(p)) {
+        nodeInfos += (p -> new NodeInfo)
+      }
       var premises = p.premises
       while (!premises.isEmpty) {
         val next = 
