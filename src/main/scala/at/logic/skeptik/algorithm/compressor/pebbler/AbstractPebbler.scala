@@ -23,21 +23,21 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N]) {
   def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N]
   
   /** This is where top-down and bottom-up differ */
-  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], initNodes: MSet[N]): Proof[N] = {
-    findProof(proof,nodeInfos,initNodes,None)
+  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Proof[N] = {
+    findProof(proof,nodeInfos,None)
   }
   
-  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], initNodes: MSet[N], reverseNode: Option[N]): Proof[N]
+  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], reverseNode: Option[N]): Proof[N]
   
   def apply(proof: Proof[N]): Proof[N] = {
-    val (nodeInfos,initNodes) = initInfos(proof)
-    findProof(proof,nodeInfos,initNodes)
+    val nodeInfos = initInfos(proof)
+    findProof(proof, nodeInfos)
   }
   
   def initInfos(proof: Proof[N]) = {
     val nodeInfos:MMap[N,NodeInfo] = MMap[N,NodeInfo]()
     //Set of nodes that can be pebbled initially, i.e. the axioms
-    val initNodes: MSet[N] = MSet[N]()
+//    val initNodes: Iterable[N] = proof.filter(a => a.premises.isEmpty)
     var counter = 0
     val proofSize = proof.size
     /**
@@ -45,7 +45,7 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N]) {
      * Adds all nodes without premises to the set of initially pebbleable nodes
      */
     def gather(node: N, children: Seq[N]):N = {
-      if (node.premises.isEmpty) initNodes += node
+//      if (node.premises.isEmpty) initNodes += node
       val impact = 
         if (children.size > 0) 
           children.map(c => nodeInfos(c).impact / c.premises.size).min
@@ -70,7 +70,7 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N]) {
     }
 //    proof bottomUp gather
     
-    (nodeInfos,initNodes)
+    nodeInfos
   }
   
   def lastChild(l: N, children: Seq[N], nodeInfos: MMap[N,NodeInfo]) = {
@@ -80,14 +80,14 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N]) {
   }
   
   def climbOnce(proof: Proof[N]): Proof[N] = {
-    val (nodeInfos,initNodes) = initInfos(proof)
-    val initProof = findProof(proof,nodeInfos,initNodes)
+    val nodeInfos = initInfos(proof)
+    val initProof = findProof(proof,nodeInfos)
     var bestProof = initProof
     var bestM = measure(bestProof)("space")
 //    var bestNodeInfos = nodeInfos
     nodeInfos.foreach(nodeInfo => {
       val currentNodeInfos = nodeInfos.clone
-      val currentProof = WasPebbledPebbler.findProof(initProof,currentNodeInfos,initNodes,Some(nodeInfo._1))
+      val currentProof = WasPebbledPebbler.findProof(initProof,currentNodeInfos,Some(nodeInfo._1))
       val currentM = measure(currentProof)("space")
       if (currentM < bestM) {
         bestProof = currentProof

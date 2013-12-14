@@ -17,11 +17,12 @@ import scala.collection.mutable.{HashSet => MSet}
 
 abstract class AbstractTopDownPebbler extends AbstractPebbler  {
   
-  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], initNodes: MSet[N], reverseNode: Option[N]): Proof[N] = {
+  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], reverseNode: Option[N]): Proof[N] = {
     //Pebbled nodes go into this Seq
     var permutation:Seq[N] = Seq[N]()
     
-    val canBePebbled:MSet[N] = initNodes
+    val canBePebbled:MSet[N] = MSet[N]()
+    proof.filter(a => a.premises.isEmpty).foreach(canBePebbled.add(_))
     
     proof.nodes.foreach(n => {
       if (n.premises.isEmpty) canBePebbled += n

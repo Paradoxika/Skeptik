@@ -19,7 +19,7 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
   
   def findFirstOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = usedOrder(proof, nodeInfos)
   
-  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], initNodes: MSet[N], reverseNode: Option[N]): Proof[N] = {
+  def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], reverseNode: Option[N]): Proof[N] = {
 //    println(nodeInfos.size)
     var permutation: Seq[N] = Seq[N]()
     val visited = MSet[N]()
