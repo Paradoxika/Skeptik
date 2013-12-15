@@ -121,7 +121,7 @@ class LastChildOfDecayOrder(
     extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
 
   def singleMeasure(node: N): Int = {
-    nodeInfos(node).lastChildOf
+    nodeInfos.getOrElseUpdate(node, new NodeInfo).lastChildOf
   }
 }
 
@@ -135,7 +135,7 @@ class LastChildOfDecayOrder2(
     extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
 
   def singleMeasure(node: N): Int = {
-    node.premises.filter(proof.childrenOf(_).filter(nodeInfos(_).usesPebbles == 0) == 1).size
+    node.premises.filter(proof.childrenOf(_).filter(nodeInfos.getOrElseUpdate(_, new NodeInfo).usesPebbles == 0) == 1).size
   }
 }
 
@@ -149,7 +149,7 @@ class UsesPebblesDecayOrder(
     extends DecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, nextOrder) {
 
   def singleMeasure(node: N): Int = {
-    nodeInfos(node).usesPebbles
+    nodeInfos.getOrElseUpdate(node, new NodeInfo).usesPebbles
   }
 }
 
@@ -184,8 +184,8 @@ class DistanceOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ord
     else {
     	val spheresOfNode = spheres.getOrElseUpdate(node, initSpheres(node))
 	    val distanceSphere = spheresOfNode.getOrElseUpdate(distance,calculateSphere(node,distance))
-	    val usingPebbles = distanceSphere.filter(nodeInSphere => (nodeInfos.getOrElse(nodeInSphere, EmptyNI).usesPebbles) != 0)
-	    if (distanceSphere.forall(nodeInSphere => (nodeInfos.getOrElse(nodeInSphere, EmptyNI).usesPebbles) == 0)) {
+	    val usingPebbles = distanceSphere.filter(nodeInSphere => (nodeInfos.getOrElseUpdate(nodeInSphere, new NodeInfo).usesPebbles) != 0)
+	    if (distanceSphere.forall(nodeInSphere => (nodeInfos.getOrElseUpdate(nodeInSphere, new NodeInfo).usesPebbles) == 0)) {
 	      closestPebble(node,distance + 1)
 	    }
 	    else {
@@ -195,7 +195,7 @@ class DistanceOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ord
     	usingPebbles.size match {
     	  case 0 => closestPebble(node,distance + 1)
     	  case c => {
-    	    val lastPebbled = usingPebbles.map(n => nodeInfos(n).wasPebbled).max
+    	    val lastPebbled = usingPebbles.map(n => nodeInfos.getOrElseUpdate(n, new NodeInfo).wasPebbled).max
     	    (distance, c, lastPebbled)
     	  }
     	}
@@ -223,7 +223,7 @@ class InSubProofOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: O
     this (proof, nodeInfos, new IndexOrder(proof,nodeInfos))
   }
   
-  def compare(a: N, b: N) = nodeInfos(a).inSubProof compare nodeInfos(b).inSubProof match {
+  def compare(a: N, b: N) = nodeInfos.getOrElseUpdate(a, new NodeInfo).inSubProof compare nodeInfos.getOrElseUpdate(b, new NodeInfo).inSubProof match {
     case 0 => nextOrder.compare(a, b)
     case c => c
   }
@@ -231,7 +231,7 @@ class InSubProofOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: O
 
 class NotBlockedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Ordering[N]) extends Ordering[N] {
   def compare(a: N, b: N) = 
-    nodeInfos.getOrElse(a,EmptyNI).blocked compare nodeInfos.getOrElse(b,EmptyNI).blocked match {
+    nodeInfos.getOrElseUpdate(a, new NodeInfo).blocked compare nodeInfos.getOrElseUpdate(b, new NodeInfo).blocked match {
     case 0 => nextOrder.compare(a, b)
     case c => -c
   }
@@ -317,7 +317,7 @@ class WasPebbledOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: O
     this (proof, nodeInfos, new RemovesPebblesOrder(proof,nodeInfos))
   }
   def compute(node: N) = {
-    -nodeInfos(node).wasPebbled
+    -nodeInfos.getOrElseUpdate(node, new NodeInfo).wasPebbled
   }
 }
 
@@ -432,7 +432,7 @@ class DepthOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Orderi
   }
   
   def compute(node: N) = {
-    nodeInfos(node).depth
+    nodeInfos.getOrElseUpdate(node, new NodeInfo).depth
   }
 }
 
@@ -466,7 +466,7 @@ class LastChildOfOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: 
   }
   
   def compare(a: N, b: N) = {
-    nodeInfos(a).lastChildOf compare nodeInfos(b).lastChildOf match {
+    nodeInfos.getOrElseUpdate(a, new NodeInfo).lastChildOf compare nodeInfos.getOrElseUpdate(b, new NodeInfo).lastChildOf match {
       case 0 => nextOrder.compare(a, b)
       case c => c
     }
@@ -481,7 +481,7 @@ class SubProofPebbled(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: O
   }
   
   def compute(node: N) = {
-    Proof(node).filter(n => nodeInfos(n).usesPebbles != 0).size
+    Proof(node).filter(n => nodeInfos.getOrElseUpdate(n, new NodeInfo).usesPebbles != 0).size
   }
 }
 
@@ -494,7 +494,7 @@ class IndexOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], nextOrder: Orderi
   }
   
   def compute(node: N) = {
-    nodeInfos(node).index
+    nodeInfos.getOrElseUpdate(node, new NodeInfo).index
   }
 }
 
