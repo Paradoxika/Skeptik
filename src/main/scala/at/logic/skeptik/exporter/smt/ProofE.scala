@@ -7,6 +7,9 @@ import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 
 
 trait ProofE extends SequentE {
+  def omitConclusion: Boolean
+  def avoidChains: Boolean
+  
   def write(proof:Proof[N]): Unit = {
     var counter = 0
     
@@ -23,9 +26,11 @@ trait ProofE extends SequentE {
           return name
         }
         
-        def endInference() = {
-          write(" :conclusion ")
-          write(n.conclusion) 
+        def endInference(withConclusion: Boolean = true) = {
+          if (withConclusion) {
+            write(" :conclusion ")
+            write(n.conclusion)  
+          }
           write("))\n")
           flush()
         }    
@@ -37,13 +42,13 @@ trait ProofE extends SequentE {
           }
           case R(left,right,_,_) => {
             val chain = premiseResults(0) + " " + premiseResults(1)
-            if (proof.childrenOf(n).length == 1) {  // Note: this guarantees tree-like chains, but does not guarantee left-associativity of resolution chains
+            if (!avoidChains && proof.childrenOf(n).length == 1) {  // Note: this guarantees tree-like chains, but does not guarantee left-associativity of resolution chains
               chain
             }
             else {
               val name = beginInference("resolution")
               write(" :clauses (" + chain + ")") 
-              endInference()
+              endInference(!omitConclusion)
               name // chain containing only the name of the resolution node
             }
           }
