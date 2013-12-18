@@ -61,7 +61,7 @@ object ProofCompressionCLI {
     opt[String]('f', "format") action { (v, c) => 
       c.copy(format = v) 
     } validate { v =>
-      if (Seq("smt2", "smtbc", "tc", "s", "sd") contains v) success 
+      if (Seq("smt2", "smtbc", "smtb", "tc", "s", "sd") contains v) success 
       else failure("unknown proof format: " + v)
     } text("use <format> (either 'smt2', 'smtbc' 's' or 'sd') to output compressed proofs\n") valueName("<format>")
  
@@ -159,6 +159,7 @@ object ProofCompressionCLI {
             c.format match {
               case "" => None
               case "smt2" => Some(new SMTFileExporter(oProofName))
+              case "smtb" => Some(new SMTFileExporter(oProofName, avoidChains = true))
               case "smtbc" => Some(new SMTFileExporter(oProofName, avoidChains = true, omitConclusion = true))
               case "s" => Some(new SkeptikFileExporter(oProofName))
               case "sd" => Some(new SkeptikFileExporter(oProofName, deletionInfo = true))
