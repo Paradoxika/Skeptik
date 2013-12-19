@@ -4,6 +4,7 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashSet => MSet}
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Bottom up pebblers find a topological order while traversing the proof from root to leafs.
@@ -21,7 +22,8 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
   
   def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], reverseNode: Option[N]): Proof[N] = {
 //    println(nodeInfos.size)
-    var permutation: Seq[N] = Seq[N]()
+//    var permutation: Seq[N] = Seq[N]()
+    val permutation = new ArrayBuffer[N]()
     val visited = MSet[N]()
     
     var currentOrder = findFirstOrder(proof, nodeInfos)
@@ -45,19 +47,21 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
         visit(next)
       }
       currentOrder = usedOrder(proof, nodeInfos)
-      permutation = permutation :+ p
+//      permutation = permutation :+ p
+      permutation += p
       nodeInfos.update(p, nodeInfos.getOrElse(p, new NodeInfo).changeWasPebbled(permutation.size))
       nodeInfos.update(p, nodeInfos.getOrElse(p, new NodeInfo).changeUsesPebbles(1))
       //unpebble premises
-      p.premises.foreach(pr => {
-        if (proof.childrenOf(pr).forall(ch => nodeInfos.getOrElse(pr, new NodeInfo).usesPebbles != 0))
-          nodeInfos.update(pr, nodeInfos.getOrElse(pr, new NodeInfo).changeUsesPebbles(0))
-      })
+//      p.premises.foreach(pr => {
+//        if (proof.childrenOf(pr).forall(ch => nodeInfos.getOrElse(pr, new NodeInfo).usesPebbles != 0))
+//          nodeInfos.update(pr, nodeInfos.getOrElse(pr, new NodeInfo).changeUsesPebbles(0))
+//      })
 //      print(nodeInfos(p).index + ", ")
     }
     visit(proof.root)
 //    println()
 //    nodeInfos.clear
-    new Proof(proof.root, permutation.reverse.toIndexedSeq)
+//    new Proof(proof.root, permutation.reverse.toIndexedSeq)
+    proof
   }
 }
