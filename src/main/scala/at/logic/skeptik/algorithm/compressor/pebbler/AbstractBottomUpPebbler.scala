@@ -61,7 +61,7 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
     visit(proof.root)
 //    println()
 //    nodeInfos.clear
-//    new Proof(proof.root, permutation.reverse.toIndexedSeq)
-    proof
+    new Proof(proof.root, permutation.reverse.toIndexedSeq)
+//    proof
   }
 }
