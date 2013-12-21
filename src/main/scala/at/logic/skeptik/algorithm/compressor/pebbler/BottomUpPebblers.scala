@@ -36,6 +36,12 @@ class ChildrenDecayPebbler(decay: Double, premiseDepth: Int, combineParents: (Se
     new ChildrenDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
   }
 }
+object ChildrenDecayPebbler {
+  def apply(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) = {
+    new ChildrenDecayPebbler(decay, premiseDepth, combineParents)
+  }
+  val param = 3
+}
 
 
 class HardSubFirstPebbler(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
@@ -51,6 +57,12 @@ class LastChildOfDecayPebbler(decay: Double, premiseDepth: Int, combineParents: 
   def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
     new LastChildOfDecayOrder(proof, nodeInfos, decay, premiseDepth, combineParents, new InSubProofOrder(proof, nodeInfos))
   }
+}
+object LastChildOfDecayPebbler {
+  def apply(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) = {
+    new LastChildOfDecayPebbler(decay, premiseDepth, combineParents)
+  }
+  val param = 3
 }
 
 class LastChildOfDecayPebblerNew(decay: Double, premiseDepth: Int, combineParents: (Seq[Double] => Double)) 
