@@ -15,6 +15,11 @@ import at.logic.skeptik.algorithm.compressor.subsumption.RecycleUnits
 // ToDo: the name of an algorithm should be a property defined in the algorithm's class
 
 package object compressor {
+  val paramAlgorithms = Map(
+      "LastChildDecay" -> LastChildOfDecayPebbler
+  )
+  
+  
   val algorithms = Map(
     "DAGify" -> DAGify,
     "ET" -> EliminateTautologies,
@@ -43,11 +48,13 @@ package object compressor {
     "TDS" -> TopDownSubsumption,
     "GP" -> RemoveMostPebbles,
     "BUP" -> LastChildOfBUPebbler,
-    "LastChild" -> new GenericBUPebbler(List("LastChild","Children","ProofSize")),
+    "LastChild" -> new GenericBUPebbler(List("LastChild","InSub")),
     "Children" -> new GenericBUPebbler(List("Children","InSub")),
-    "Distance1" -> new GenericBUPebbler(List("Children","InSub")),
-    "Distance3" -> new GenericBUPebbler(List("Children","InSub")),
-    "Distance5" -> new GenericBUPebbler(List("Distance","InSub")),
+    "LastChildTD" -> new GenericTDPebbler(List("LastChild","InSub")),
+    "ChildrenTD" -> new GenericTDPebbler(List("Children","InSub")),
+    "Distance1" -> new GenericTDPebbler(List("Distance1","InSub")),
+    "Distance3" -> new GenericTDPebbler(List("Distance3","InSub")),
+    "Distance5" -> new GenericTDPebbler(List("Distance5","InSub")),
     "CDllmin" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.min),
     "CDllavg" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
     "CDlhmin" -> new ChildrenDecayPebbler(0.5, 7, (A: Seq[Double]) => A.min),

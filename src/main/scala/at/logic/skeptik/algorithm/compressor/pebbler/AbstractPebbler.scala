@@ -68,7 +68,7 @@ abstract class AbstractPebbler extends (Proof[N] => Proof[N]) {
       counter = counter + 1
       node
     }
-//    proof bottomUp gather
+    proof bottomUp gather
     
     nodeInfos
   }

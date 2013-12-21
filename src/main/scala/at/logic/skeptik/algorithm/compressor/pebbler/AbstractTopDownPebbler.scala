@@ -4,6 +4,7 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashSet => MSet}
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Top down pebblers traverse the proof from leaves to the root and pebble nodes
@@ -19,20 +20,20 @@ abstract class AbstractTopDownPebbler extends AbstractPebbler  {
   
   def findProof(proof: Proof[N], nodeInfos: MMap[N,NodeInfo], reverseNode: Option[N]): Proof[N] = {
     //Pebbled nodes go into this Seq
-    var permutation:Seq[N] = Seq[N]()
+    val permutation = new ArrayBuffer[N]()
     
     val canBePebbled:MSet[N] = MSet[N]()
     proof.filter(a => a.premises.isEmpty).foreach(canBePebbled.add(_))
     
-    proof.nodes.foreach(n => {
-      if (n.premises.isEmpty) canBePebbled += n
-    })
+//    proof.nodes.foreach(n => {
+//      if (n.premises.isEmpty) canBePebbled += n
+//    })
     
     while(!canBePebbled.isEmpty) {
       //Choose the next node as the maximum w.r.t. the used heuristic of pebbleable nodes
       val next = canBePebbled.max(usedOrder(proof,nodeInfos))
       
-      permutation = permutation :+ next
+      permutation += next
 //      print(nodeInfos(next).index + ", ")
       canBePebbled -= next
       
