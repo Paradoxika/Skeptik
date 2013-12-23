@@ -52,7 +52,7 @@ The generated jar file can be deployed and used like any other java jar file:
 ```
 
 
-###Skeptik as a lIBRARY###
+###Skeptik as a Library###
 
 To import Skeptik as a library in your own Java or Scala projects,  
 add the following line to your build.sbt file, if you are using [SBT](https://github.com/harrah/xsbt/wiki/Getting-Started-Setup) to manage the library dependencies of your project:
