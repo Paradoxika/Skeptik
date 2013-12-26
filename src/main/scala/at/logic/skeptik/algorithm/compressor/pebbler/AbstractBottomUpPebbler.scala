@@ -52,10 +52,10 @@ abstract class AbstractBottomUpPebbler extends AbstractPebbler  {
       nodeInfos.update(p, nodeInfos.getOrElse(p, new NodeInfo).changeWasPebbled(permutation.size))
       nodeInfos.update(p, nodeInfos.getOrElse(p, new NodeInfo).changeUsesPebbles(1))
       //unpebble premises
-//      p.premises.foreach(pr => {
-//        if (proof.childrenOf(pr).forall(ch => nodeInfos.getOrElse(pr, new NodeInfo).usesPebbles != 0))
-//          nodeInfos.update(pr, nodeInfos.getOrElse(pr, new NodeInfo).changeUsesPebbles(0))
-//      })
+      p.premises.foreach(pr => {
+        if (proof.childrenOf(pr).forall(ch => nodeInfos.getOrElse(pr, new NodeInfo).usesPebbles != 0))
+          nodeInfos.update(pr, nodeInfos.getOrElse(pr, new NodeInfo).changeUsesPebbles(0))
+      })
 //      print(nodeInfos(p).index + ", ")
     }
     visit(proof.root)

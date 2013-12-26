@@ -48,6 +48,7 @@ package object compressor {
     "TDS" -> TopDownSubsumption,
     "GP" -> RemoveMostPebbles,
     "BUP" -> LastChildOfBUPebbler,
+    "RemovesPebbles" -> LeastWaitingForPebbler,
     "LastChild" -> new GenericBUPebbler(List("LastChild","InSub")),
     "Children" -> new GenericBUPebbler(List("Children","InSub")),
     "LastChildTD" -> new GenericTDPebbler(List("LastChild","InSub")),
