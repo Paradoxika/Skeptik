@@ -16,17 +16,17 @@ import at.logic.skeptik.proof.sequent.lk.R
 
 package object compressor {
   val algorithms = Map(
-    "DAGify" -> DAGify,
+    "D" -> DAGify,
     "ET" -> EliminateTautologies,
     "RU" -> RecycleUnits,
     "RP" -> RecyclePivots,
     "RPI" -> RecyclePivotsWithIntersection,
     "RPC" -> RecyclePivotsWithConclusionSequent,
     "LU" -> LowerUnits,
-    "LUniv" -> LowerUnivalents,
+    "LUV" -> LowerUnivalents,
     "RPI3LU" -> IdempotentThreePassLowerUnits,
-    "LUnivRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
-    "RPI3LUniv" -> LowerUnivalentsBeforeRecyclePivots,
+    "LUVRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
+    "RPI3LUV" -> LowerUnivalentsBeforeRecyclePivots,
 
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),
