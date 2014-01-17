@@ -26,7 +26,10 @@ extends JavaTokenParsers with RegexParsers {
     p
   }
   def line: Parser[Node] = "(set"  ~> proofName ~ "(" ~ inference <~ "))" ^^ {
-    case ~(~(n, _), p) => proofMap += (n -> p); p
+    case ~(~(n, _), p) => {
+      if (n % 100 == 0) println("Parsed " + n + " lines") // This line was added to allow Georg to see the progress when parsing very large proofs. It should be removed in the future.
+      proofMap += (n -> p); p
+    }
     case wl => throw new Exception("Wrong line " + wl)
   }
 

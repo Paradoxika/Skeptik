@@ -25,14 +25,12 @@ object ProofCompressionCLI {
                     mout: Output = NoOutput, // machine-readable output
                     moutHeader: Boolean = true)                
 
-    
-  val supportedProofFormats = Seq("smt2", "tc", "s", "sd")
   
-  def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.s' and '.sd'"                 
+  private def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.s' and '.sd'"                 
   
-  def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
+  private def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
-  def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
+  private def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
 
   val parser = new scopt.OptionParser[Config]("compress"){
     
@@ -63,9 +61,9 @@ object ProofCompressionCLI {
     opt[String]('f', "format") action { (v, c) => 
       c.copy(format = v) 
     } validate { v =>
-      if (supportedProofFormats contains v) success 
+      if (Seq("smt2", "smtbc", "smtb", "tc", "s", "sd") contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> (either 'smt2', 's' or 'sd') to output compressed proofs\n") valueName("<format>")
+    } text("use <format> (either 'smt2', 'smtbc' 's' or 'sd') to output compressed proofs\n") valueName("<format>")
  
 
     opt[String]('m', "mout") action { (v, c) =>
@@ -95,9 +93,9 @@ object ProofCompressionCLI {
     Example:
       The following command processes the proof 'eq_diamond9.smt2' using the
       algorithms 'RP' and the sequential composition of 'DAGify', 'RPI' and 'LU'.
-      The compressed proofs are written using 'skeptik' proof format.
+      The compressed proofs are written using 'smt2' proof format.
 
-      compress -a RP -a (DAGify*RPI*LU) -f skeptik examples/proofs/VeriT/eq_diamond9.smt2
+      compress -a RP -a (DAGify*RPI*LU) -f smt2 examples/proofs/VeriT/eq_diamond9.smt2
       """)
   }
   
@@ -161,6 +159,8 @@ object ProofCompressionCLI {
             c.format match {
               case "" => None
               case "smt2" => Some(new SMTFileExporter(oProofName))
+              case "smtb" => Some(new SMTFileExporter(oProofName, avoidChains = true))
+              case "smtbc" => Some(new SMTFileExporter(oProofName, avoidChains = true, omitConclusion = true))
               case "s" => Some(new SkeptikFileExporter(oProofName))
               case "sd" => Some(new SkeptikFileExporter(oProofName, deletionInfo = true))
             }
