@@ -4,10 +4,12 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import scala.util.parsing.combinator._
 import at.logic.skeptik.proof.Proof
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
+import collection.immutable.{HashMap => Map, HashSet => Set}
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
+//import scala.collection.mutable.ArrayBuffer
 
 /**
  * The syntax of a trace is as follows:
@@ -29,38 +31,24 @@ extends JavaTokenParsers with RegexParsers {
   
   private var proofMap = new MMap[Int,Node]
   private var varMap = new MMap[Int,E]
+  private val clauseNumbers = new MMap[Int,(List[E],List[Int])]
+  var maxClause = 0
 
   def proof: Parser[Proof[Node]] = rep(clause) ^^ { list => 
-    val p = Proof(list.last)
-    proofMap = new MMap[Int,Node]
-    p
+    Proof(getNode(list.last))
   }
-  def clause: Parser[Node] = pos ~ literals ~ antecedents ^^ {
-    case ~(~(p, l), List()) => {
-        if (l.isEmpty) throw new Exception("Invalid input")
+  
+  def clause: Parser[Int] = pos ~ literals ~ antecedents ^^ {
+    case ~(~(p, l), a) => {
+        if (l.isEmpty && a.isEmpty) throw new Exception("Invalid input at " + p + " ~ " + l)
         else {
-          val ax = new Axiom(l)
-          proofMap += (p -> ax)
-//          println("read axiom " + ax)
-          ax
+          clauseNumbers += (p -> (l,a))
+          if (maxClause < p) {
+            maxClause = p
+          }
+          maxClause
         }
       }
-    case ~(~(p, l), a) => {
-//      println("----")
-//      val n = a.tail.foldLeft(getNode(a.head)) ({ 
-//        (left, right) => {
-//            val r = getNode(right)
-//            println(p+ ": trying to resolve " + left + " with " + r)
-//            R(left, r)
-//          }
-//        })
-//      println("----")
-      
-      val n = resolveClauses(a)
-//      println("computing " + p + " as " + n + " from " + p)
-      proofMap += (p -> n)
-      n
-    }
     case wl => throw new Exception("Wrong line " + wl)
   }
   
@@ -133,15 +121,25 @@ extends JavaTokenParsers with RegexParsers {
           negOc(v) -= negClause
           negOc(v) += newClause
         })
-        posOc -= p
-        negOc -= p
-        if (posOc.isEmpty && negOc.isEmpty) newClause
-        else res(posOc,negOc)
+        val newPOc = posOc - p
+        val newNegOc = negOc - p
+        if (newPOc.isEmpty && newNegOc.isEmpty) newClause
+        else res(newPOc,newNegOc)
       }
     }
   }
   
-  def getNode(index: Int) = proofMap.getOrElse(index, throw new Exception("Clause not defined yet"))
+//  def getNode(index: Int) = proofMap.getOrElse(index, throw new Exception("Clause not defined yet"))
+  
+  def getNode(index: Int): Node = {
+    val tuple = clauseNumbers(index)
+    if (tuple._2.isEmpty) {
+      new Axiom(tuple._1)
+    }
+    else {
+      resolveClauses(tuple._2)
+    }
+  }
   
   def pos: Parser[Int] = """[1-9][0-9]*""".r ^^ { _.toInt }
   
