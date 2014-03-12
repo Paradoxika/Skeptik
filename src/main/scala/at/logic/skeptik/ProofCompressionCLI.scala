@@ -1,10 +1,8 @@
 package at.logic.skeptik
 
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserTraceCheck,ProofParserSkeptik,AlgorithmParser}
 
-import at.logic.skeptik.exporter.Exporter
-import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
-import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser,ProofParserTraceCheck}
+import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik,ProofExporterSkeptikD}
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
@@ -26,7 +24,7 @@ object ProofCompressionCLI {
                     moutHeader: Boolean = true)                
 
   
-  private def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.s' and '.sd'"                 
+  private def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.s', '.sd' and '.tc'"                 
   
   private def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   

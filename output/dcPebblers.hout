@@ -1,0 +1,1270 @@
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond1.smt2' ... (completed in 100ms)
+Measuring... (completed in 12ms)
+
+		Compressing with algorithm: CDllmin... (completed in 103ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDllavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LCllmax... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LCllavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LClhmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LClhavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LChlmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LChlavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LChhmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LChhavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dllmax... (completed in 22ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dllavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 0ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond2.smt2' ... (completed in 44ms)
+Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDllmin... (completed in 72ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDllavg... (completed in 3ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LCllmax... (completed in 1ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LCllavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LClhmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LClhavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChlmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LChlavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LChhmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: LChhavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dllmax... (completed in 36ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dllavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 3ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 2ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 0ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond3.smt2' ... (completed in 70ms)
+Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDllmin... (completed in 4ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDllavg... (completed in 3ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 4ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 4ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LCllmax... (completed in 3ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LCllavg... (completed in 3ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LClhmin... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LClhavg... (completed in 4ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChlmin... (completed in 3ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChlavg... (completed in 3ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChhmin... (completed in 4ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChhavg... (completed in 4ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllmax... (completed in 13ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllavg... (completed in 12ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 12ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 10ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 9ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 9ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 9ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond4.smt2' ... (completed in 101ms)
+Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDllmin... (completed in 7ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDllavg... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 7ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 7ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LCllmax... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LCllavg... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LClhmin... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LClhavg... (completed in 7ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChlmin... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChlavg... (completed in 5ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChhmin... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChhavg... (completed in 6ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllmax... (completed in 29ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllavg... (completed in 31ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 36ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 30ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 29ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 29ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 28ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 27ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond5.smt2' ... (completed in 175ms)
+Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDllmin... (completed in 13ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDllavg... (completed in 12ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 12ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 13ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 10ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 5ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 10ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 14ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 11ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LCllmax... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LCllavg... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LClhmin... (completed in 10ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LClhavg... (completed in 10ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChlmin... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChlavg... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChhmin... (completed in 10ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: LChhavg... (completed in 10ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllmax... (completed in 98ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllavg... (completed in 92ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 91ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 78ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 79ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 78ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 72ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 70ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond6.smt2' ... (completed in 188ms)
+Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDllmin... (completed in 13ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDllavg... (completed in 13ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 17ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 16ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 11ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 11ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 14ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 16ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LCllmax... (completed in 11ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LCllavg... (completed in 9ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LClhmin... (completed in 14ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LClhavg... (completed in 13ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LChlmin... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LChlavg... (completed in 8ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LChhmin... (completed in 13ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: LChhavg... (completed in 12ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllmax... (completed in 240ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dllavg... (completed in 215ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 227ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 213ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 2ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 224ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 207ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 219ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 205ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 1ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond7.smt2' ... (completed in 380ms)
+Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDllmin... (completed in 18ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDllavg... (completed in 17ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 25ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 24ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 17ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 18ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 25ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 24ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LCllmax... (completed in 17ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LCllavg... (completed in 17ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LClhmin... (completed in 24ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LClhavg... (completed in 27ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LChlmin... (completed in 18ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LChlavg... (completed in 17ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LChhmin... (completed in 24ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: LChhavg... (completed in 25ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dllmax... (completed in 867ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dllavg... (completed in 918ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 901ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 909ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 863ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 891ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 886ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 864ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 3ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond8.smt2' ... (completed in 369ms)
+Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDllmin... (completed in 45ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDllavg... (completed in 44ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 54ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 56ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 49ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 46ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 55ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 55ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LCllmax... (completed in 45ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LCllavg... (completed in 44ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LClhmin... (completed in 56ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LClhavg... (completed in 56ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LChlmin... (completed in 43ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LChlavg... (completed in 44ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LChhmin... (completed in 55ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: LChhavg... (completed in 56ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dllmax... (completed in 2654ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dllavg... (completed in 2381ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 2868ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 2375ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 2664ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 2375ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 2947ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 2397ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 6ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond9.smt2' ... (completed in 621ms)
+Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDllmin... (completed in 125ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDllavg... (completed in 127ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 147ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 149ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 126ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 128ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 146ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 147ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 12ms)
+
+		Compressing with algorithm: LCllmax... (completed in 127ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: LCllavg... (completed in 125ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: LClhmin... (completed in 150ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 13ms)
+
+		Compressing with algorithm: LClhavg... (completed in 152ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: LChlmin... (completed in 125ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: LChlavg... (completed in 126ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: LChhmin... (completed in 149ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: LChhavg... (completed in 150ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: Dllmax... (completed in 9799ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: Dllavg... (completed in 8065ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 8369ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 8247ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 9807ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 8078ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 8613ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 12ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 8477ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 11ms)
+
+Reading and checking proof 'examples\proofs\VeriT\eq_diamond10.smt2' ... (completed in 1245ms)
+Measuring... (completed in 23ms)
+
+		Compressing with algorithm: CDllmin... (completed in 433ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 24ms)
+
+		Compressing with algorithm: CDllavg... (completed in 452ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: CDlhmin... (completed in 477ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: CDlhavg... (completed in 488ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: CDhlmin... (completed in 426ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: CDhlavg... (completed in 445ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 22ms)
+
+		Compressing with algorithm: CDhhmin... (completed in 466ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 22ms)
+
+		Compressing with algorithm: CDhhavg... (completed in 481ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: LCllmax... (completed in 437ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 22ms)
+
+		Compressing with algorithm: LCllavg... (completed in 438ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 25ms)
+
+		Compressing with algorithm: LClhmin... (completed in 472ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: LClhavg... (completed in 500ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: LChlmin... (completed in 427ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: LChlavg... (completed in 450ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: LChhmin... (completed in 484ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: LChhavg... (completed in 500ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 25ms)
+
+		Compressing with algorithm: Dllmax... (completed in 41931ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 34ms)
+
+		Compressing with algorithm: Dllavg... (completed in 41326ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: Dlhmin... (completed in 42085ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 33ms)
+
+		Compressing with algorithm: Dlhavg... (completed in 40011ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 34ms)
+
+		Compressing with algorithm: Dhlmin... (completed in 41038ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 22ms)
+
+		Compressing with algorithm: Dhlavg... (completed in 30208ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 22ms)
+
+		Compressing with algorithm: Dhhmin... (completed in 32961ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 23ms)
+
+		Compressing with algorithm: Dhhavg... (completed in 33401ms)
+		Writing compressed proof... (completed in 0ms)
+		Measuring... (completed in 22ms)
+
+
+Proof                                        length          coreSize       height         space         time           
+===========================================================================================================================
+examples\proofs\VeriT\eq_diamond1            3               2              2              2             100            
+examples\proofs\VeriT\eq_diamond1-CDllmin    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    103 (103.0%)   
+examples\proofs\VeriT\eq_diamond1-CDllavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-CDlhmin    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-CDlhavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-CDhlmin    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-CDhlavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-CDhhmin    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-CDhhavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-LCllmax    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    5 (5.0%)       
+examples\proofs\VeriT\eq_diamond1-LCllavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-LClhmin    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-LClhavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-LChlmin    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-LChlavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-LChhmin    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-LChhavg    3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-Dllmax     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    22 (22.0%)     
+examples\proofs\VeriT\eq_diamond1-Dllavg     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-Dlhmin     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-Dlhavg     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-Dhlmin     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-Dhlavg     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-Dhhmin     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond1-Dhhavg     3 (100.0%)      2 (100.0%)     2 (100.0%)     2 (100.0%)    0 (0.0%)       
+examples\proofs\VeriT\eq_diamond2            19              7              10             5             44             
+examples\proofs\VeriT\eq_diamond2-CDllmin    19 (100.0%)     7 (100.0%)     10 (100.0%)    7 (140.0%)    72 (163.6%)    
+examples\proofs\VeriT\eq_diamond2-CDllavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    7 (140.0%)    3 (6.8%)       
+examples\proofs\VeriT\eq_diamond2-CDlhmin    19 (100.0%)     7 (100.0%)     10 (100.0%)    6 (120.0%)    2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-CDlhavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    7 (140.0%)    2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-CDhlmin    19 (100.0%)     7 (100.0%)     10 (100.0%)    7 (140.0%)    2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-CDhlavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    7 (140.0%)    2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-CDhhmin    19 (100.0%)     7 (100.0%)     10 (100.0%)    6 (120.0%)    2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-CDhhavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    6 (120.0%)    2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-LCllmax    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     1 (2.3%)       
+examples\proofs\VeriT\eq_diamond2-LCllavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-LClhmin    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-LClhavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-LChlmin    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-LChlavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-LChhmin    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-LChhavg    19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-Dllmax     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     36 (81.8%)     
+examples\proofs\VeriT\eq_diamond2-Dllavg     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-Dlhmin     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     3 (6.8%)       
+examples\proofs\VeriT\eq_diamond2-Dlhavg     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-Dhlmin     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-Dhlavg     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-Dhhmin     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond2-Dhhavg     19 (100.0%)     7 (100.0%)     10 (100.0%)    4 (80.0%)     2 (4.5%)       
+examples\proofs\VeriT\eq_diamond3            44              13             20             11            70             
+examples\proofs\VeriT\eq_diamond3-CDllmin    44 (100.0%)     13 (100.0%)    20 (100.0%)    12 (109.1%)   4 (5.7%)       
+examples\proofs\VeriT\eq_diamond3-CDllavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    12 (109.1%)   3 (4.3%)       
+examples\proofs\VeriT\eq_diamond3-CDlhmin    44 (100.0%)     13 (100.0%)    20 (100.0%)    12 (109.1%)   5 (7.1%)       
+examples\proofs\VeriT\eq_diamond3-CDlhavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    13 (118.2%)   5 (7.1%)       
+examples\proofs\VeriT\eq_diamond3-CDhlmin    44 (100.0%)     13 (100.0%)    20 (100.0%)    12 (109.1%)   4 (5.7%)       
+examples\proofs\VeriT\eq_diamond3-CDhlavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    12 (109.1%)   4 (5.7%)       
+examples\proofs\VeriT\eq_diamond3-CDhhmin    44 (100.0%)     13 (100.0%)    20 (100.0%)    12 (109.1%)   5 (7.1%)       
+examples\proofs\VeriT\eq_diamond3-CDhhavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    13 (118.2%)   6 (8.6%)       
+examples\proofs\VeriT\eq_diamond3-LCllmax    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    3 (4.3%)       
+examples\proofs\VeriT\eq_diamond3-LCllavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    3 (4.3%)       
+examples\proofs\VeriT\eq_diamond3-LClhmin    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    6 (8.6%)       
+examples\proofs\VeriT\eq_diamond3-LClhavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    4 (5.7%)       
+examples\proofs\VeriT\eq_diamond3-LChlmin    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    3 (4.3%)       
+examples\proofs\VeriT\eq_diamond3-LChlavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    3 (4.3%)       
+examples\proofs\VeriT\eq_diamond3-LChhmin    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    4 (5.7%)       
+examples\proofs\VeriT\eq_diamond3-LChhavg    44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    4 (5.7%)       
+examples\proofs\VeriT\eq_diamond3-Dllmax     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    13 (18.6%)     
+examples\proofs\VeriT\eq_diamond3-Dllavg     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    12 (17.1%)     
+examples\proofs\VeriT\eq_diamond3-Dlhmin     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    12 (17.1%)     
+examples\proofs\VeriT\eq_diamond3-Dlhavg     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    10 (14.3%)     
+examples\proofs\VeriT\eq_diamond3-Dhlmin     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    9 (12.9%)      
+examples\proofs\VeriT\eq_diamond3-Dhlavg     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    8 (11.4%)      
+examples\proofs\VeriT\eq_diamond3-Dhhmin     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    9 (12.9%)      
+examples\proofs\VeriT\eq_diamond3-Dhhavg     44 (100.0%)     13 (100.0%)    20 (100.0%)    10 (90.9%)    9 (12.9%)      
+examples\proofs\VeriT\eq_diamond4            89              21             36             17            101            
+examples\proofs\VeriT\eq_diamond4-CDllmin    89 (100.0%)     21 (100.0%)    36 (100.0%)    18 (105.9%)   7 (6.9%)       
+examples\proofs\VeriT\eq_diamond4-CDllavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    18 (105.9%)   6 (5.9%)       
+examples\proofs\VeriT\eq_diamond4-CDlhmin    89 (100.0%)     21 (100.0%)    36 (100.0%)    18 (105.9%)   8 (7.9%)       
+examples\proofs\VeriT\eq_diamond4-CDlhavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    18 (105.9%)   8 (7.9%)       
+examples\proofs\VeriT\eq_diamond4-CDhlmin    89 (100.0%)     21 (100.0%)    36 (100.0%)    18 (105.9%)   5 (5.0%)       
+examples\proofs\VeriT\eq_diamond4-CDhlavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    18 (105.9%)   6 (5.9%)       
+examples\proofs\VeriT\eq_diamond4-CDhhmin    89 (100.0%)     21 (100.0%)    36 (100.0%)    18 (105.9%)   7 (6.9%)       
+examples\proofs\VeriT\eq_diamond4-CDhhavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    19 (111.8%)   7 (6.9%)       
+examples\proofs\VeriT\eq_diamond4-LCllmax    89 (100.0%)     21 (100.0%)    36 (100.0%)    15 (88.2%)    6 (5.9%)       
+examples\proofs\VeriT\eq_diamond4-LCllavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    5 (5.0%)       
+examples\proofs\VeriT\eq_diamond4-LClhmin    89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    6 (5.9%)       
+examples\proofs\VeriT\eq_diamond4-LClhavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    7 (6.9%)       
+examples\proofs\VeriT\eq_diamond4-LChlmin    89 (100.0%)     21 (100.0%)    36 (100.0%)    15 (88.2%)    5 (5.0%)       
+examples\proofs\VeriT\eq_diamond4-LChlavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    5 (5.0%)       
+examples\proofs\VeriT\eq_diamond4-LChhmin    89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    6 (5.9%)       
+examples\proofs\VeriT\eq_diamond4-LChhavg    89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    6 (5.9%)       
+examples\proofs\VeriT\eq_diamond4-Dllmax     89 (100.0%)     21 (100.0%)    36 (100.0%)    15 (88.2%)    29 (28.7%)     
+examples\proofs\VeriT\eq_diamond4-Dllavg     89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    31 (30.7%)     
+examples\proofs\VeriT\eq_diamond4-Dlhmin     89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    36 (35.6%)     
+examples\proofs\VeriT\eq_diamond4-Dlhavg     89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    30 (29.7%)     
+examples\proofs\VeriT\eq_diamond4-Dhlmin     89 (100.0%)     21 (100.0%)    36 (100.0%)    15 (88.2%)    29 (28.7%)     
+examples\proofs\VeriT\eq_diamond4-Dhlavg     89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    29 (28.7%)     
+examples\proofs\VeriT\eq_diamond4-Dhhmin     89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    28 (27.7%)     
+examples\proofs\VeriT\eq_diamond4-Dhhavg     89 (100.0%)     21 (100.0%)    36 (100.0%)    16 (94.1%)    27 (26.7%)     
+examples\proofs\VeriT\eq_diamond5            194             37             61             24            175            
+examples\proofs\VeriT\eq_diamond5-CDllmin    194 (100.0%)    37 (100.0%)    61 (100.0%)    24 (100.0%)   13 (7.4%)      
+examples\proofs\VeriT\eq_diamond5-CDllavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    24 (100.0%)   12 (6.9%)      
+examples\proofs\VeriT\eq_diamond5-CDlhmin    194 (100.0%)    37 (100.0%)    61 (100.0%)    26 (108.3%)   12 (6.9%)      
+examples\proofs\VeriT\eq_diamond5-CDlhavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    25 (104.2%)   13 (7.4%)      
+examples\proofs\VeriT\eq_diamond5-CDhlmin    194 (100.0%)    37 (100.0%)    61 (100.0%)    24 (100.0%)   10 (5.7%)      
+examples\proofs\VeriT\eq_diamond5-CDhlavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    24 (100.0%)   10 (5.7%)      
+examples\proofs\VeriT\eq_diamond5-CDhhmin    194 (100.0%)    37 (100.0%)    61 (100.0%)    26 (108.3%)   14 (8.0%)      
+examples\proofs\VeriT\eq_diamond5-CDhhavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    26 (108.3%)   11 (6.3%)      
+examples\proofs\VeriT\eq_diamond5-LCllmax    194 (100.0%)    37 (100.0%)    61 (100.0%)    21 (87.5%)    8 (4.6%)       
+examples\proofs\VeriT\eq_diamond5-LCllavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    23 (95.8%)    8 (4.6%)       
+examples\proofs\VeriT\eq_diamond5-LClhmin    194 (100.0%)    37 (100.0%)    61 (100.0%)    23 (95.8%)    10 (5.7%)      
+examples\proofs\VeriT\eq_diamond5-LClhavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    23 (95.8%)    10 (5.7%)      
+examples\proofs\VeriT\eq_diamond5-LChlmin    194 (100.0%)    37 (100.0%)    61 (100.0%)    21 (87.5%)    8 (4.6%)       
+examples\proofs\VeriT\eq_diamond5-LChlavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    22 (91.7%)    8 (4.6%)       
+examples\proofs\VeriT\eq_diamond5-LChhmin    194 (100.0%)    37 (100.0%)    61 (100.0%)    21 (87.5%)    10 (5.7%)      
+examples\proofs\VeriT\eq_diamond5-LChhavg    194 (100.0%)    37 (100.0%)    61 (100.0%)    22 (91.7%)    10 (5.7%)      
+examples\proofs\VeriT\eq_diamond5-Dllmax     194 (100.0%)    37 (100.0%)    61 (100.0%)    21 (87.5%)    98 (56.0%)     
+examples\proofs\VeriT\eq_diamond5-Dllavg     194 (100.0%)    37 (100.0%)    61 (100.0%)    25 (104.2%)   92 (52.6%)     
+examples\proofs\VeriT\eq_diamond5-Dlhmin     194 (100.0%)    37 (100.0%)    61 (100.0%)    25 (104.2%)   91 (52.0%)     
+examples\proofs\VeriT\eq_diamond5-Dlhavg     194 (100.0%)    37 (100.0%)    61 (100.0%)    25 (104.2%)   78 (44.6%)     
+examples\proofs\VeriT\eq_diamond5-Dhlmin     194 (100.0%)    37 (100.0%)    61 (100.0%)    21 (87.5%)    79 (45.1%)     
+examples\proofs\VeriT\eq_diamond5-Dhlavg     194 (100.0%)    37 (100.0%)    61 (100.0%)    23 (95.8%)    78 (44.6%)     
+examples\proofs\VeriT\eq_diamond5-Dhhmin     194 (100.0%)    37 (100.0%)    61 (100.0%)    21 (87.5%)    72 (41.1%)     
+examples\proofs\VeriT\eq_diamond5-Dhhavg     194 (100.0%)    37 (100.0%)    61 (100.0%)    23 (95.8%)    70 (40.0%)     
+examples\proofs\VeriT\eq_diamond6            362             56             82             32            188            
+examples\proofs\VeriT\eq_diamond6-CDllmin    362 (100.0%)    56 (100.0%)    82 (100.0%)    32 (100.0%)   13 (6.9%)      
+examples\proofs\VeriT\eq_diamond6-CDllavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    32 (100.0%)   13 (6.9%)      
+examples\proofs\VeriT\eq_diamond6-CDlhmin    362 (100.0%)    56 (100.0%)    82 (100.0%)    32 (100.0%)   17 (9.0%)      
+examples\proofs\VeriT\eq_diamond6-CDlhavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    36 (112.5%)   16 (8.5%)      
+examples\proofs\VeriT\eq_diamond6-CDhlmin    362 (100.0%)    56 (100.0%)    82 (100.0%)    32 (100.0%)   11 (5.9%)      
+examples\proofs\VeriT\eq_diamond6-CDhlavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    32 (100.0%)   11 (5.9%)      
+examples\proofs\VeriT\eq_diamond6-CDhhmin    362 (100.0%)    56 (100.0%)    82 (100.0%)    32 (100.0%)   14 (7.4%)      
+examples\proofs\VeriT\eq_diamond6-CDhhavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    36 (112.5%)   16 (8.5%)      
+examples\proofs\VeriT\eq_diamond6-LCllmax    362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    11 (5.9%)      
+examples\proofs\VeriT\eq_diamond6-LCllavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    29 (90.6%)    9 (4.8%)       
+examples\proofs\VeriT\eq_diamond6-LClhmin    362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    14 (7.4%)      
+examples\proofs\VeriT\eq_diamond6-LClhavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    29 (90.6%)    13 (6.9%)      
+examples\proofs\VeriT\eq_diamond6-LChlmin    362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    8 (4.3%)       
+examples\proofs\VeriT\eq_diamond6-LChlavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    29 (90.6%)    8 (4.3%)       
+examples\proofs\VeriT\eq_diamond6-LChhmin    362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    13 (6.9%)      
+examples\proofs\VeriT\eq_diamond6-LChhavg    362 (100.0%)    56 (100.0%)    82 (100.0%)    30 (93.8%)    12 (6.4%)      
+examples\proofs\VeriT\eq_diamond6-Dllmax     362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    240 (127.7%)   
+examples\proofs\VeriT\eq_diamond6-Dllavg     362 (100.0%)    56 (100.0%)    82 (100.0%)    30 (93.8%)    215 (114.4%)   
+examples\proofs\VeriT\eq_diamond6-Dlhmin     362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    227 (120.7%)   
+examples\proofs\VeriT\eq_diamond6-Dlhavg     362 (100.0%)    56 (100.0%)    82 (100.0%)    30 (93.8%)    213 (113.3%)   
+examples\proofs\VeriT\eq_diamond6-Dhlmin     362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    224 (119.1%)   
+examples\proofs\VeriT\eq_diamond6-Dhlavg     362 (100.0%)    56 (100.0%)    82 (100.0%)    30 (93.8%)    207 (110.1%)   
+examples\proofs\VeriT\eq_diamond6-Dhhmin     362 (100.0%)    56 (100.0%)    82 (100.0%)    28 (87.5%)    219 (116.5%)   
+examples\proofs\VeriT\eq_diamond6-Dhhavg     362 (100.0%)    56 (100.0%)    82 (100.0%)    30 (93.8%)    205 (109.0%)   
+examples\proofs\VeriT\eq_diamond7            751             96             119            40            380            
+examples\proofs\VeriT\eq_diamond7-CDllmin    751 (100.0%)    96 (100.0%)    119 (100.0%)   38 (95.0%)    18 (4.7%)      
+examples\proofs\VeriT\eq_diamond7-CDllavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   38 (95.0%)    17 (4.5%)      
+examples\proofs\VeriT\eq_diamond7-CDlhmin    751 (100.0%)    96 (100.0%)    119 (100.0%)   44 (110.0%)   25 (6.6%)      
+examples\proofs\VeriT\eq_diamond7-CDlhavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   42 (105.0%)   24 (6.3%)      
+examples\proofs\VeriT\eq_diamond7-CDhlmin    751 (100.0%)    96 (100.0%)    119 (100.0%)   38 (95.0%)    17 (4.5%)      
+examples\proofs\VeriT\eq_diamond7-CDhlavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   38 (95.0%)    18 (4.7%)      
+examples\proofs\VeriT\eq_diamond7-CDhhmin    751 (100.0%)    96 (100.0%)    119 (100.0%)   44 (110.0%)   25 (6.6%)      
+examples\proofs\VeriT\eq_diamond7-CDhhavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   43 (107.5%)   24 (6.3%)      
+examples\proofs\VeriT\eq_diamond7-LCllmax    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    17 (4.5%)      
+examples\proofs\VeriT\eq_diamond7-LCllavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    17 (4.5%)      
+examples\proofs\VeriT\eq_diamond7-LClhmin    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    24 (6.3%)      
+examples\proofs\VeriT\eq_diamond7-LClhavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    27 (7.1%)      
+examples\proofs\VeriT\eq_diamond7-LChlmin    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    18 (4.7%)      
+examples\proofs\VeriT\eq_diamond7-LChlavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    17 (4.5%)      
+examples\proofs\VeriT\eq_diamond7-LChhmin    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    24 (6.3%)      
+examples\proofs\VeriT\eq_diamond7-LChhavg    751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    25 (6.6%)      
+examples\proofs\VeriT\eq_diamond7-Dllmax     751 (100.0%)    96 (100.0%)    119 (100.0%)   36 (90.0%)    867 (228.2%)   
+examples\proofs\VeriT\eq_diamond7-Dllavg     751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    918 (241.6%)   
+examples\proofs\VeriT\eq_diamond7-Dlhmin     751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    901 (237.1%)   
+examples\proofs\VeriT\eq_diamond7-Dlhavg     751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    909 (239.2%)   
+examples\proofs\VeriT\eq_diamond7-Dhlmin     751 (100.0%)    96 (100.0%)    119 (100.0%)   36 (90.0%)    863 (227.1%)   
+examples\proofs\VeriT\eq_diamond7-Dhlavg     751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    891 (234.5%)   
+examples\proofs\VeriT\eq_diamond7-Dhhmin     751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    886 (233.2%)   
+examples\proofs\VeriT\eq_diamond7-Dhhavg     751 (100.0%)    96 (100.0%)    119 (100.0%)   37 (92.5%)    864 (227.4%)   
+examples\proofs\VeriT\eq_diamond8            1450            171            168            53            369            
+examples\proofs\VeriT\eq_diamond8-CDllmin    1450 (100.0%)   171 (100.0%)   168 (100.0%)   49 (92.5%)    45 (12.2%)     
+examples\proofs\VeriT\eq_diamond8-CDllavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   49 (92.5%)    44 (11.9%)     
+examples\proofs\VeriT\eq_diamond8-CDlhmin    1450 (100.0%)   171 (100.0%)   168 (100.0%)   56 (105.7%)   54 (14.6%)     
+examples\proofs\VeriT\eq_diamond8-CDlhavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   54 (101.9%)   56 (15.2%)     
+examples\proofs\VeriT\eq_diamond8-CDhlmin    1450 (100.0%)   171 (100.0%)   168 (100.0%)   49 (92.5%)    49 (13.3%)     
+examples\proofs\VeriT\eq_diamond8-CDhlavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   49 (92.5%)    46 (12.5%)     
+examples\proofs\VeriT\eq_diamond8-CDhhmin    1450 (100.0%)   171 (100.0%)   168 (100.0%)   56 (105.7%)   55 (14.9%)     
+examples\proofs\VeriT\eq_diamond8-CDhhavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   55 (103.8%)   55 (14.9%)     
+examples\proofs\VeriT\eq_diamond8-LCllmax    1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    45 (12.2%)     
+examples\proofs\VeriT\eq_diamond8-LCllavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   46 (86.8%)    44 (11.9%)     
+examples\proofs\VeriT\eq_diamond8-LClhmin    1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    56 (15.2%)     
+examples\proofs\VeriT\eq_diamond8-LClhavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   46 (86.8%)    56 (15.2%)     
+examples\proofs\VeriT\eq_diamond8-LChlmin    1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    43 (11.7%)     
+examples\proofs\VeriT\eq_diamond8-LChlavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   46 (86.8%)    44 (11.9%)     
+examples\proofs\VeriT\eq_diamond8-LChhmin    1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    55 (14.9%)     
+examples\proofs\VeriT\eq_diamond8-LChhavg    1450 (100.0%)   171 (100.0%)   168 (100.0%)   47 (88.7%)    56 (15.2%)     
+examples\proofs\VeriT\eq_diamond8-Dllmax     1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    2654 (719.2%)  
+examples\proofs\VeriT\eq_diamond8-Dllavg     1450 (100.0%)   171 (100.0%)   168 (100.0%)   46 (86.8%)    2381 (645.3%)  
+examples\proofs\VeriT\eq_diamond8-Dlhmin     1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    2868 (777.2%)  
+examples\proofs\VeriT\eq_diamond8-Dlhavg     1450 (100.0%)   171 (100.0%)   168 (100.0%)   46 (86.8%)    2375 (643.6%)  
+examples\proofs\VeriT\eq_diamond8-Dhlmin     1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    2664 (722.0%)  
+examples\proofs\VeriT\eq_diamond8-Dhlavg     1450 (100.0%)   171 (100.0%)   168 (100.0%)   46 (86.8%)    2375 (643.6%)  
+examples\proofs\VeriT\eq_diamond8-Dhhmin     1450 (100.0%)   171 (100.0%)   168 (100.0%)   45 (84.9%)    2947 (798.6%)  
+examples\proofs\VeriT\eq_diamond8-Dhhavg     1450 (100.0%)   171 (100.0%)   168 (100.0%)   48 (90.6%)    2397 (649.6%)  
+examples\proofs\VeriT\eq_diamond9            2738            303            223            63            621            
+examples\proofs\VeriT\eq_diamond9-CDllmin    2738 (100.0%)   303 (100.0%)   223 (100.0%)   60 (95.2%)    125 (20.1%)    
+examples\proofs\VeriT\eq_diamond9-CDllavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   60 (95.2%)    127 (20.5%)    
+examples\proofs\VeriT\eq_diamond9-CDlhmin    2738 (100.0%)   303 (100.0%)   223 (100.0%)   61 (96.8%)    147 (23.7%)    
+examples\proofs\VeriT\eq_diamond9-CDlhavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   62 (98.4%)    149 (24.0%)    
+examples\proofs\VeriT\eq_diamond9-CDhlmin    2738 (100.0%)   303 (100.0%)   223 (100.0%)   60 (95.2%)    126 (20.3%)    
+examples\proofs\VeriT\eq_diamond9-CDhlavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   60 (95.2%)    128 (20.6%)    
+examples\proofs\VeriT\eq_diamond9-CDhhmin    2738 (100.0%)   303 (100.0%)   223 (100.0%)   61 (96.8%)    146 (23.5%)    
+examples\proofs\VeriT\eq_diamond9-CDhhavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   62 (98.4%)    147 (23.7%)    
+examples\proofs\VeriT\eq_diamond9-LCllmax    2738 (100.0%)   303 (100.0%)   223 (100.0%)   56 (88.9%)    127 (20.5%)    
+examples\proofs\VeriT\eq_diamond9-LCllavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    125 (20.1%)    
+examples\proofs\VeriT\eq_diamond9-LClhmin    2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    150 (24.2%)    
+examples\proofs\VeriT\eq_diamond9-LClhavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    152 (24.5%)    
+examples\proofs\VeriT\eq_diamond9-LChlmin    2738 (100.0%)   303 (100.0%)   223 (100.0%)   56 (88.9%)    125 (20.1%)    
+examples\proofs\VeriT\eq_diamond9-LChlavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    126 (20.3%)    
+examples\proofs\VeriT\eq_diamond9-LChhmin    2738 (100.0%)   303 (100.0%)   223 (100.0%)   58 (92.1%)    149 (24.0%)    
+examples\proofs\VeriT\eq_diamond9-LChhavg    2738 (100.0%)   303 (100.0%)   223 (100.0%)   59 (93.7%)    150 (24.2%)    
+examples\proofs\VeriT\eq_diamond9-Dllmax     2738 (100.0%)   303 (100.0%)   223 (100.0%)   56 (88.9%)    9799 (1577.9%) 
+examples\proofs\VeriT\eq_diamond9-Dllavg     2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    8065 (1298.7%) 
+examples\proofs\VeriT\eq_diamond9-Dlhmin     2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    8369 (1347.7%) 
+examples\proofs\VeriT\eq_diamond9-Dlhavg     2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    8247 (1328.0%) 
+examples\proofs\VeriT\eq_diamond9-Dhlmin     2738 (100.0%)   303 (100.0%)   223 (100.0%)   56 (88.9%)    9807 (1579.2%) 
+examples\proofs\VeriT\eq_diamond9-Dhlavg     2738 (100.0%)   303 (100.0%)   223 (100.0%)   57 (90.5%)    8078 (1300.8%) 
+examples\proofs\VeriT\eq_diamond9-Dhhmin     2738 (100.0%)   303 (100.0%)   223 (100.0%)   59 (93.7%)    8613 (1387.0%) 
+examples\proofs\VeriT\eq_diamond9-Dhhavg     2738 (100.0%)   303 (100.0%)   223 (100.0%)   60 (95.2%)    8477 (1365.1%) 
+examples\proofs\VeriT\eq_diamond10           5391            571            276            73            1245           
+examples\proofs\VeriT\eq_diamond10-CDllmin   5391 (100.0%)   571 (100.0%)   276 (100.0%)   67 (91.8%)    433 (34.8%)    
+examples\proofs\VeriT\eq_diamond10-CDllavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   67 (91.8%)    452 (36.3%)    
+examples\proofs\VeriT\eq_diamond10-CDlhmin   5391 (100.0%)   571 (100.0%)   276 (100.0%)   71 (97.3%)    477 (38.3%)    
+examples\proofs\VeriT\eq_diamond10-CDlhavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   74 (101.4%)   488 (39.2%)    
+examples\proofs\VeriT\eq_diamond10-CDhlmin   5391 (100.0%)   571 (100.0%)   276 (100.0%)   67 (91.8%)    426 (34.2%)    
+examples\proofs\VeriT\eq_diamond10-CDhlavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   67 (91.8%)    445 (35.7%)    
+examples\proofs\VeriT\eq_diamond10-CDhhmin   5391 (100.0%)   571 (100.0%)   276 (100.0%)   71 (97.3%)    466 (37.4%)    
+examples\proofs\VeriT\eq_diamond10-CDhhavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   74 (101.4%)   481 (38.6%)    
+examples\proofs\VeriT\eq_diamond10-LCllmax   5391 (100.0%)   571 (100.0%)   276 (100.0%)   64 (87.7%)    437 (35.1%)    
+examples\proofs\VeriT\eq_diamond10-LCllavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    438 (35.2%)    
+examples\proofs\VeriT\eq_diamond10-LClhmin   5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    472 (37.9%)    
+examples\proofs\VeriT\eq_diamond10-LClhavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    500 (40.2%)    
+examples\proofs\VeriT\eq_diamond10-LChlmin   5391 (100.0%)   571 (100.0%)   276 (100.0%)   64 (87.7%)    427 (34.3%)    
+examples\proofs\VeriT\eq_diamond10-LChlavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    450 (36.1%)    
+examples\proofs\VeriT\eq_diamond10-LChhmin   5391 (100.0%)   571 (100.0%)   276 (100.0%)   67 (91.8%)    484 (38.9%)    
+examples\proofs\VeriT\eq_diamond10-LChhavg   5391 (100.0%)   571 (100.0%)   276 (100.0%)   68 (93.2%)    500 (40.2%)    
+examples\proofs\VeriT\eq_diamond10-Dllmax    5391 (100.0%)   571 (100.0%)   276 (100.0%)   64 (87.7%)    41931 (3368.0%)
+examples\proofs\VeriT\eq_diamond10-Dllavg    5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    41326 (3319.4%)
+examples\proofs\VeriT\eq_diamond10-Dlhmin    5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    42085 (3380.3%)
+examples\proofs\VeriT\eq_diamond10-Dlhavg    5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    40011 (3213.7%)
+examples\proofs\VeriT\eq_diamond10-Dhlmin    5391 (100.0%)   571 (100.0%)   276 (100.0%)   64 (87.7%)    41038 (3296.2%)
+examples\proofs\VeriT\eq_diamond10-Dhlavg    5391 (100.0%)   571 (100.0%)   276 (100.0%)   65 (89.0%)    30208 (2426.3%)
+examples\proofs\VeriT\eq_diamond10-Dhhmin    5391 (100.0%)   571 (100.0%)   276 (100.0%)   67 (91.8%)    32961 (2647.5%)
+examples\proofs\VeriT\eq_diamond10-Dhhavg    5391 (100.0%)   571 (100.0%)   276 (100.0%)   68 (93.2%)    33401 (2682.8%)
+
+Cumulative stats for CDhhmin: 100.0%, 100.0%, 100.0%, 102.5%, 22.3%
+Cumulative stats for LChhmin: 100.0%, 100.0%, 100.0%, 90.0%, 22.7%
+Cumulative stats for LChlmin: 100.0%, 100.0%, 100.0%, 88.1%, 19.4%
+Cumulative stats for CDlhmin: 100.0%, 100.0%, 100.0%, 102.5%, 22.7%
+Cumulative stats for LClhmin: 100.0%, 100.0%, 100.0%, 89.7%, 22.5%
+Cumulative stats for Dllmax: 100.0%, 100.0%, 100.0%, 87.8%, 1691.1%
+Cumulative stats for Dhlavg: 100.0%, 100.0%, 100.0%, 90.6%, 1271.7%
+Cumulative stats for Dlhavg: 100.0%, 100.0%, 100.0%, 91.3%, 1575.3%
+Cumulative stats for Dllavg: 100.0%, 100.0%, 100.0%, 91.3%, 1610.8%
+Cumulative stats for CDhhavg: 100.0%, 100.0%, 100.0%, 105.0%, 22.7%
+Cumulative stats for CDhlavg: 100.0%, 100.0%, 100.0%, 96.6%, 20.3%
+Cumulative stats for Dhhavg: 100.0%, 100.0%, 100.0%, 93.1%, 1380.3%
+Cumulative stats for CDllavg: 100.0%, 100.0%, 100.0%, 96.6%, 20.6%
+Cumulative stats for CDlhavg: 100.0%, 100.0%, 100.0%, 104.1%, 23.1%
+Cumulative stats for LChlavg: 100.0%, 100.0%, 100.0%, 90.0%, 20.1%
+Cumulative stats for LChhavg: 100.0%, 100.0%, 100.0%, 92.2%, 23.2%
+Cumulative stats for LCllmax: 100.0%, 100.0%, 100.0%, 88.1%, 20.0%
+Cumulative stats for CDhlmin: 100.0%, 100.0%, 100.0%, 96.6%, 19.7%
+Cumulative stats for LClhavg: 100.0%, 100.0%, 100.0%, 90.3%, 23.4%
+Cumulative stats for LCllavg: 100.0%, 100.0%, 100.0%, 90.3%, 19.8%
+Cumulative stats for Dhhmin: 100.0%, 100.0%, 100.0%, 90.3%, 1388.9%
+Cumulative stats for Dhlmin: 100.0%, 100.0%, 100.0%, 87.8%, 1661.6%
+Cumulative stats for CDllmin: 100.0%, 100.0%, 100.0%, 96.6%, 25.3%
+Cumulative stats for id: 100.0%, 100.0%, 100.0%, 100.0%, 100.0%
+Cumulative stats for Dlhmin: 100.0%, 100.0%, 100.0%, 90.3%, 1657.8%

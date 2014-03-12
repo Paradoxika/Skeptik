@@ -18,20 +18,84 @@ package at.logic.skeptik.algorithm.compressor.pebbler
  */
 
 class NodeInfo(
-    val index: Int, 
-    val depth: Int, 
-    val numberOfChildren: Int, 
-    var lastChildOf: Int, 
-    var waitsForPremises: Int, 
-    var usesPebbles: Int, 
-    var childrenNotPebbled: Int) {
+    val index: Int = Integer.MAX_VALUE, 
+    val depth: Int = 0, 
+    val numberOfChildren: Int = 0,
+    val inSubProof: Int = 0,
+    val lastChildOf: Int = 0, 
+    val waitsForPremises: Int = 0, 
+    val usesPebbles: Int = 0, 
+    val childrenNotPebbled: Int = 0,
+    val wasPebbled: Int = 0,
+    val blocked: Boolean = false,
+    val impact: Double = 0.0) {
+
+  def changeInteger(which: Int, to: Int) = {
+     new NodeInfo (
+        if (which == 0) to else this.index,
+        if (which == 1) to else this.depth,
+        if (which == 2) to else this.numberOfChildren,
+        if (which == 3) to else this.inSubProof,
+        if (which == 4) to else this.lastChildOf,
+        if (which == 5) to else this.waitsForPremises,
+        if (which == 6) to else this.usesPebbles,
+        if (which == 7) to else this.childrenNotPebbled,
+        if (which == 8) to else this.wasPebbled,
+        this.blocked,
+        this.impact)
+  }
   
-  def incLCO = 
-    lastChildOf = lastChildOf + 1
-    
+  def changeIndex(to: Int) = changeInteger(0, to)
+  
+  def changeDepth(to: Int) = changeInteger(1, to)
+  
+  def changeNumberOfChildren(to: Int) = changeInteger(2, to)
+  
+  def changeInSubProof(to: Int) = changeInteger(3, to)
+  
+  def changeLastChildOf(to: Int) = changeInteger(4, to)
+  
+  def changeWaitsForPremises(to: Int) = changeInteger(5, to)
+  
+  def changeUsesPebbles(to: Int) = changeInteger(6, to)
+  
+  def changeChildrenNotPebbled(to: Int) = changeInteger(7, to)
+  
+  def changeWasPebbled(to: Int) = changeInteger(8, to)
+  
+  def changeBlocked(to: Boolean)  = {
+     new NodeInfo (
+        this.index,
+        this.depth,
+        this.numberOfChildren,
+        this.inSubProof,
+        this.lastChildOf,
+        this.waitsForPremises,
+        this.usesPebbles,
+        this.childrenNotPebbled,
+        this.wasPebbled,
+        to,
+        this.impact)
+  }
+  
+  def changeImpact(to: Double) = {
+    new NodeInfo (
+        this.index,
+        this.depth,
+        this.numberOfChildren,
+        this.inSubProof,
+        this.lastChildOf,
+        this.waitsForPremises,
+        this.usesPebbles,
+        this.childrenNotPebbled,
+        this.wasPebbled,
+        this.blocked,
+        to)
+  }
   override def toString:String = {
-    "["+index+", " + lastChildOf + ", " + numberOfChildren +"]"
+    "["+index + ", " + depth + ", " + numberOfChildren + ", " + inSubProof + ", " + waitsForPremises + ", " + usesPebbles + ", " + childrenNotPebbled + ", " + wasPebbled + ", " + blocked + ", " + impact +"]"
   }
 }
 
-final object EmptyNI extends NodeInfo(Integer.MAX_VALUE,0,0,0,0,0,0)
+final object EmptyNI extends NodeInfo()
+//final object EmptyNI extends NodeInfo(Integer.MAX_VALUE,0,0.0,0,0,0,0,0,0)

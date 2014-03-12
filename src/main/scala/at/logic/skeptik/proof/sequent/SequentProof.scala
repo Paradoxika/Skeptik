@@ -14,7 +14,7 @@ extends ProofNode[Sequent, SequentProofNode] {
   // because "conclusion" calls methods that will only be overriden by subtraits and subclasses.
   override lazy val conclusion: Sequent = mainFormulas union conclusionContext
   override def toString():String = {
-    this.conclusion.toString + " ~ " + this.hashCode()
+    this.conclusion.toString
   }
 }
 
