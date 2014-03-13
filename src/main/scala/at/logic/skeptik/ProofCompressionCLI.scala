@@ -1,8 +1,11 @@
 package at.logic.skeptik
 
 
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,AlgorithmParser,ProofParserTraceCheck}
-import at.logic.skeptik.exporter.{ProofExporterVeriT,ProofExporterSkeptik,ProofExporterSkeptikD}
+import at.logic.skeptik.parser.AlgorithmParser
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,ProofParserTraceCheck}
+import at.logic.skeptik.exporter.Exporter
+import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
+import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
 import at.logic.skeptik.judgment.Judgment
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
