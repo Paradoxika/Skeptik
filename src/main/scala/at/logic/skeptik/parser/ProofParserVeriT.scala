@@ -53,11 +53,95 @@ extends JavaTokenParsers with RegexParsers {
   def premises: Parser[List[Node]] = ":clauses (" ~> rep(proofName) <~ ")" ^^ {
     list => list map {pn => proofArray(pn - 1)}
   }
-  def conclusion: Parser[List[E]] = ":conclusion (" ~> rep(expression) <~ ")"
+  
+//  def conclusion: Parser[List[E]] = (hornEqualityConclusion | normalConclusion)
+  def conclusion: Parser[List[E]] = normalConclusion
+  
+  def hornEqualityConclusion: Parser[List[E]] = ":conclusion (" ~> rep(disequality) ~ equality.* ~ rep(disequality) <~ ")" ^^ { 
+    case ~(~(neg1,optPos),neg2) => {
+//      println(neg1)
+//      println(optPos)
+//      println(neg2)
+      val neg = (neg2 union neg1)
+      println("negatives: " + neg)
+      println("positive: " + optPos)
+      neg union optPos
+    }
+  }
+  
+  def namedExprEQ: Parser[E] = exprName ^^ {
+    val x = exprMap(_)
+    x match {
+      case eq => {
+        x
+      }
+    }
+  }
+  
+  def equalityExpression: Parser[E] = "(= " ~> term ~ term <~ ")" ^^ {
+    case ~(term1,term2) => {
+      App(App(eqC(o),term1),term2)
+    }
+  }
+  
+  def equality: Parser[E] = (namedExprEQ | equalityExpression)
+  
+  def disequality: Parser[E] = (namedExprDisEQ | disequalityExpression)
+  
+  def namedExprDisEQ: Parser[E] = exprName ^^ {
+    val x = exprMap(_)
+    x match {
+      case Neg(e) => {
+        e match {
+          case eq => {
+            x
+          }
+        }
+      }
+    }
+  }
+  
+  def disequalityExpression: Parser[E] = "(not (= " ~> term ~ term <~ "))" ^^ {
+    case ~(term1,term2) => {
+      App(App(App(negC,eqC(o)),term1),term2)
+    }
+  }
+  
+  def term: Parser[E] = (variable | compound)
+  
+  def compound: Parser[E] = "(" ~> name ~ rep(term) <~ ")" ^^ {
+    case ~(functionSymbol, args) => {
+      val function = Var(functionSymbol, (args :\ (o: T)) {(a, t) => (o -> t)})
+      ((function: E) /: args)((e,a) => App(e,a))
+    }
+  }
+  
+  def positiveEqualityExpression: Parser[E] = expression
+  
+  def negativeEqualityExpression: Parser[E] = "(not" ~> expression <~ ")" ^^ {
+    case eqE => {
+      App(negC,eqE)
+    }
+  }
+  
+  def equalityApp: Parser[E] = "(" ~> name ~ rep(equalityExpression) <~ ")" ^^ {
+    case ~(functionSymbol, args) => {
+      val function = if (functionSymbol == "=") {
+        eqC(o)
+      } 
+      else { 
+        Var(functionSymbol, (args :\ (o: T)) {(a, t) => (o -> t)})
+      }
+      ((function: E) /: args)((e,a) => App(e,a))
+    }
+  }
+  
+  def normalConclusion: Parser[List[E]] = ":conclusion (" ~> rep(expression) <~ ")"
 
   def proofName: Parser[Int] = ".c" ~> """\d+""".r ^^ { _.toInt }
   
   def expression: Parser[E] = (assignment | namedExpr | expr)
+  
   def assignment: Parser[E] = exprName ~ ":" ~ expr ^^ {
     case ~(~(n,_),e) => {
 //      println(n)
@@ -94,6 +178,11 @@ extends JavaTokenParsers with RegexParsers {
     
   private val predefinedSymbols = Map(
     "imp" -> impC ,
+    "not" -> negC ,
+    "=" -> eqC(o)
+  ) 
+  
+ private val equalitySymbols = Map(
     "not" -> negC ,
     "=" -> eqC(o)
   ) 

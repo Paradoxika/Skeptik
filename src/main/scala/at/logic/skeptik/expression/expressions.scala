@@ -46,7 +46,11 @@ case class App(val function: E, val argument: E) extends E {
   def copy = new App(function.copy,argument.copy)
   override lazy val t = function.t.asInstanceOf[Arrow].t2
   def logicalSize = function.logicalSize + argument.logicalSize + 1
-
+  def unapply = this match {
+    case App(App(function,f1),f2) => Some((f1,f2))
+    case _ => None
+  }  
+  
   override def toString = this match {
     case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
     case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"

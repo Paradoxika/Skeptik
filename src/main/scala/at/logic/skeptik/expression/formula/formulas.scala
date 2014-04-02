@@ -46,12 +46,16 @@ object And extends BinaryFormula(andC)
 object Or extends BinaryFormula(orC)
 
 object Imp extends BinaryFormula(impC)
+
+object Eq extends Equation 
   
 object All extends QuantifierFormula(allC)  
 
 object Ex extends QuantifierFormula(exC)
 
+abstract class Equation extends BinaryFormula(eqC(o))
 
+object EmptyEq extends Equation
 
 object Atom extends Formula {
   def apply(p: E, args: List[E]) = {
