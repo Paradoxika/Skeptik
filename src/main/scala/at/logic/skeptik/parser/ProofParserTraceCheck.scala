@@ -32,6 +32,10 @@ extends JavaTokenParsers with RegexParsers {
 
   def proof: Parser[Proof[Node]] = rep(clause) ^^ { list => 
     val p = Proof(list.last)
+    println("pm: " + proofMap)
+    println("vm: " + varMap)
+    println("last: " + list.last)
+    println("full list: " + list)
     proofMap = new MMap[Int,Node]
     p
   }
@@ -39,27 +43,36 @@ extends JavaTokenParsers with RegexParsers {
     case ~(~(p, l), List()) => {
         if (l.isEmpty) throw new Exception("Invalid input")
         else {
+          println("head:" + l.head)
           val ax = new Axiom(l)
           proofMap += (p -> ax)
-//          println("read axiom " + ax)
+          println("read axiom " + ax)
           ax
         }
       }
+    
     case ~(~(p, l), a) => {
+      println("a: "+ a)
       val n = a.tail.foldLeft(getNode(a.head)) ({ 
         (left, right) => {
             val r = getNode(right)
-//            println("trying to resolve " + left + " with " + r)
+            println("trying to resolve " + left + " with " + r)
             R(left, r)
           }
         })
       proofMap += (p -> n)
+      println("second case: " + n)
       n
     }
+    
+    
     case wl => throw new Exception("Wrong line " + wl)
   }
   
-  def getNode(index: Int) = proofMap.getOrElse(index, throw new Exception("Clause not defined yet"))
+  def getNode(index: Int) = {
+   // println("here?")
+    proofMap.getOrElse(index, throw new Exception("Clause not defined yet"))
+  }
   
   def pos: Parser[Int] = """[1-9][0-9]*""".r ^^ { _.toInt }
   

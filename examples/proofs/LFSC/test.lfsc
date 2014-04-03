@@ -1,0 +1,26 @@
+(declare var type)
+(declare lit type)
+(declare pos (! x var lit))
+(declare neg (! x var lit))
+(declare clause type)
+(declare cln clause)
+(declare clc (! x lit (! c clause clause)))
+
+(% p (term Bool)
+(% @f (th_holds (and (p_app p) (not (p_app p))))
+(: (holds cln)
+(start _ @f
+(\ @f0
+(dist_pos _ _ _ _ @f0
+(\ @f1 (\ @f2
+(decl_atom_pos _ _ _ @f1
+(\ @v0 (\ @a0 (\ @f3
+(clausify _ @f3
+(\ @x0
+(subst_atom_neg _ _ _ _ @f2 @a0
+(\ @f4
+(clausify _ @f4
+(\ @x1
+(satlem _ _ _ (R _ _ @x0 @x1 @v0)
+(\ @done @done))
+))))))))))))))))))
