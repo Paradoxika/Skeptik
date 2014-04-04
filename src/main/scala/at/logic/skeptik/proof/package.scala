@@ -15,6 +15,8 @@ package object proof {
         max(heights, (x:Int)=>x, default = 0) + 1
       } 
     
+    // ToDo: compute space in the same traversal as everything else.
+
     val space = {
       val childrenVisited = MMap[N,Int]()
       var currentPebbles = 0 //indicates the current number of pebbles required

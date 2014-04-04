@@ -28,18 +28,18 @@ object SkeptikBuild extends Build {
   
  
   // Custom Run Tasks
-  val compress = InputKey[Unit]("compress", "bla")
-  val compressSettings = Seq(fullRunInputTask(compress,Runtime,"at.logic.skeptik.ProofCompressionCLI"),
-                             trapExit in compress := true ,
-                             fork in compress := false, 
-                             traceLevel in compress := 0)
+  val skeptik = InputKey[Unit]("skeptik", "bla")
+  val skeptikSettings = Seq(fullRunInputTask(skeptik,Runtime,"at.logic.skeptik.ProofCompressionCLI"),
+                             trapExit in skeptik := true ,
+                             fork in skeptik := false,
+                             traceLevel in skeptik := 0)
   
   
-  val skeptikSettings = Defaults.defaultSettings ++ 
-                        jarSettings ++
-                        pomSettings ++
-                        compressSettings
+  val allSettings = Defaults.defaultSettings ++ 
+                    jarSettings ++
+                    pomSettings ++
+                    skeptikSettings
                         
 
-  lazy val project = Project("project", file("."), settings = skeptikSettings)
+  lazy val project = Project("project", file("."), settings = allSettings)
 }

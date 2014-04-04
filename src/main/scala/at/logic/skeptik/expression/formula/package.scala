@@ -56,4 +56,7 @@ package object formula {
   
   def ex(v:Var) = (f:E) => Ex(v,f)
   def ∃(v:Var) = all(v)
+  
+  def bigOr(args: Iterable[E]) = AppRec(bigOrC(args.size), args)
+  def bigAnd(args: Iterable[E]) = AppRec(bigAndC(args.size), args)
 }

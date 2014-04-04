@@ -42,14 +42,15 @@ extends Iterable[P]
     
   override def iterator:Iterator[P] = nodes.iterator
   override def isEmpty:Boolean = nodes.isEmpty
-  override lazy val size:Int = nodes.length // ToDo: nodes is IndexedSeq, and nodes.length should take constant time. Therefore it might be ok to make this a def instead of a val
+  override lazy val size:Int = nodes.length
+
 
   def foldDown[X](f: (P, Seq[X]) => X): X = {
     val resultFrom = MMap[P,X]()
     @tailrec def iterate(pos:Int):Unit = {
       if (pos < 0) return
       val node = nodes(pos)
-      resultFrom(node) = f(node, node.premises.map(resultFrom)) // TODO: remove "toList"
+      resultFrom(node) = f(node, node.premises.map(resultFrom))
       iterate(pos-1)
     }
     iterate(nodes.length - 1)
@@ -62,7 +63,7 @@ extends Iterable[P]
       if (pos < 0) return
       val node = nodes(permutation(pos))
 //      println("foldDown visits " + node + " at pos: " + pos + " permutation at pos: " + permutation(pos))
-      resultFrom(node) = f(node, node.premises.map(resultFrom)) // TODO: remove "toList"
+      resultFrom(node) = f(node, node.premises.map(resultFrom))
       iterate(pos-1)
     }
     iterate(nodes.length - 1)

@@ -41,7 +41,7 @@ extends (Proof[N] => Proof[N]) {
   def applyOnce(p: Proof[N]): Proof[N] = {
     val selectedVariable = selectVariable(p)
     val (left, right) = split(p, selectedVariable)
-    val compressedProof: Proof[N] = R(left, right, selectedVariable)
+    val compressedProof: Proof[N] = R(left, right, selectedVariable,true)
     if (compressedProof.size < p.size) compressedProof else p
   }
 }
