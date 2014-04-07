@@ -41,7 +41,7 @@ extends JavaTokenParsers with RegexParsers {
     
   //parse a clause -- currently limited to clauses with only two variables, should generalize
     def clausel : Parser[Node] = "($ " ~ cname ~ "(holds (clc (" ~ pn ~ vname ~ ") (clc (" ~ pn ~ vname ~ ") cln)))" ^^{
-      case ~(~(~(~(~(~(~(~(_,n),_),"neg "),fir),_),"pos "),sec),_) => {
+      case ~(~(~(~(~(~(~(~(_,n),_),false),fir),_),true),sec),_) => {
         //not(v1) or (v2)
         //make the clause: add the variables, after getting them from the map if necessary
         //negate only the first one
@@ -51,21 +51,21 @@ extends JavaTokenParsers with RegexParsers {
       
      
     }
-      case ~(~(~(~(~(~(~(~(_,n),_),"pos "),fir),_),"pos "),sec),_) => {
+      case ~(~(~(~(~(~(~(~(_,n),_),true),fir),_),true),sec),_) => {
          //(v1) or (v2)
       val ax = new Axiom(List(exprMap.getOrElseUpdate(fir.toString+"_pos",new Var(fir.toString,o)), exprMap.getOrElseUpdate(sec.toString+"_pos",new Var(sec.toString,o))))
       proofMap += (n -> ax)
       ax
      
     }
-      case ~(~(~(~(~(~(~(~(_,n),_),"neg "),fir),_),"neg "),sec),_) => {
+      case ~(~(~(~(~(~(~(~(_,n),_),false),fir),_),false),sec),_) => {
          //not(v1) or not(v2)
       val ax = new Axiom(List(exprMap.getOrElseUpdate(fir.toString+"_neg",new App(negC,new Var(fir.toString,o))), exprMap.getOrElseUpdate(sec.toString+"_neg",new App(negC,new Var(sec.toString,o)))))
       proofMap += (n -> ax)
       ax
      
     }
-      case ~(~(~(~(~(~(~(~(_,n),_),"pos "),fir),_),"neg "),sec),_) => { 
+      case ~(~(~(~(~(~(~(~(_,n),_),true),fir),_),false),sec),_) => { 
         //(v1) or not(v2)
       val ax = new Axiom(List(exprMap.getOrElseUpdate(fir.toString+"_pos",new Var(fir.toString,o)), exprMap.getOrElseUpdate(sec.toString+"_neg",new App(negC,new Var(sec.toString,o)))))
       proofMap += (n -> ax)
@@ -99,7 +99,11 @@ extends JavaTokenParsers with RegexParsers {
     }
   }
   
-  def pn: Parser[String] = ("pos " | "neg ")
+
+  def pn: Parser[Boolean] = ("pos " | "neg ") ^^{
+  	case "pos " => true
+  	case "neg " => false
+  }
   
   def cname: Parser[String] = """[^ ():]+""".r
 
