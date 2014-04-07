@@ -40,40 +40,18 @@ extends JavaTokenParsers with RegexParsers {
   def clause : Parser[Node] = (clausel | resolves)
     
   //parse a clause -- currently limited to clauses with only two variables, should generalize
-    def clausel : Parser[Node] = "($ " ~ cname ~ "(holds (clc (" ~ pn ~ vname ~ ") (clc (" ~ pn ~ vname ~ ") cln)))" ^^{
-      case ~(~(~(~(~(~(~(~(_,n),_),false),fir),_),true),sec),_) => {
-        //not(v1) or (v2)
-        //make the clause: add the variables, after getting them from the map if necessary
-        //negate only the first one
-      val ax = new Axiom(List(exprMap.getOrElseUpdate(fir.toString+"_neg",new App(negC,new Var(fir.toString,o))), exprMap.getOrElseUpdate(sec.toString+"_pos",new Var(sec.toString,o))))
+  def clausel : Parser[Node] = "($ " ~ cname ~ "(holds (clc (" ~ literal ~ ") (clc (" ~ literal ~ ") cln)))" ^^{
+    case ~(~(~(~(~(~(_,n),_),fl),_),sl),_) =>{
+      val ax = new Axiom(List(fl, sl))
       proofMap += (n -> ax)
       ax
-      
-     
     }
-      case ~(~(~(~(~(~(~(~(_,n),_),true),fir),_),true),sec),_) => {
-         //(v1) or (v2)
-      val ax = new Axiom(List(exprMap.getOrElseUpdate(fir.toString+"_pos",new Var(fir.toString,o)), exprMap.getOrElseUpdate(sec.toString+"_pos",new Var(sec.toString,o))))
-      proofMap += (n -> ax)
-      ax
-     
-    }
-      case ~(~(~(~(~(~(~(~(_,n),_),false),fir),_),false),sec),_) => {
-         //not(v1) or not(v2)
-      val ax = new Axiom(List(exprMap.getOrElseUpdate(fir.toString+"_neg",new App(negC,new Var(fir.toString,o))), exprMap.getOrElseUpdate(sec.toString+"_neg",new App(negC,new Var(sec.toString,o)))))
-      proofMap += (n -> ax)
-      ax
-     
-    }
-      case ~(~(~(~(~(~(~(~(_,n),_),true),fir),_),false),sec),_) => { 
-        //(v1) or not(v2)
-      val ax = new Axiom(List(exprMap.getOrElseUpdate(fir.toString+"_pos",new Var(fir.toString,o)), exprMap.getOrElseUpdate(sec.toString+"_neg",new App(negC,new Var(sec.toString,o)))))
-      proofMap += (n -> ax)
-      ax
-     
-    }   
-
-  }
+  } 
+  
+  def literal : Parser[E] = (pn ~ vname) ^^{
+  case ~(true, v) => exprMap.getOrElseUpdate(v.toString+"_pos",new Var(v.toString,o))
+  case ~(false, v) => exprMap.getOrElseUpdate(v.toString+"_neg",new App(negC,new Var(v.toString,o)))
+}
   
   //parse a resolution
   def resolves: Parser[Node] = "(R _ _ _ " ~ nameOrRes ~ nameOrRes ~ cname ~")" ^^ {
