@@ -20,22 +20,24 @@ extends JavaTokenParsers with RegexParsers {
   private var varMap = new MMap[String,E]
   
   //returns the actual proof
-  def proof: Parser[Proof[Node]] = "(check " ~ rep(varDecl) ~ rep(clause) ~ rep(paren) ^^ { 
-    case ~(~(_,list),_)=>{ //ignore everything but the clauses (which will include the resolutions)
-    val p = Proof(list.last)
-    exprMap = new MMap[String,E]
-    p
+ def proof: Parser[Proof[Node]] = "(check " ~ rep(varDecl) ~ ")" ^^ {   
+ 	case ~(~(_,list),_)=>{ //ignore everything but the clauses (which will include the resolutions)
+ 		val p = Proof((list.last).last)
+ 		exprMap = new MMap[String,E]
+ 		p
     }
   }
   
-  def varDecl: Parser[String] = "($ " ~ name  ^^{
-    case ~(_,c) => { 
-    "" //return nothing -- we don't care about the variables (assumes input is well formed)
+
+  def varDecl: Parser[List[Node]] = "($ " ~ name ~ clauseOrVar ~ ")" ^^{
+    case ~(~(~(_,_),m),_) => {
+      m
     }
-  }
+  } 
   
-  def paren: Parser[String] = ")" //for those extra ones caused by variable declarations
-       
+  def clauseOrVar: Parser[List[Node]] = (varDecl | rep(clause))
+  
+  
   //parse either a clause, or a resolution
   def clause : Parser[Node] = (clausel | resolves)
     
