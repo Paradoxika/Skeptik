@@ -40,15 +40,27 @@ extends JavaTokenParsers with RegexParsers {
   
   //parse either a clause, or a resolution
   def clause : Parser[Node] = (clausel | resolves)
-    
-  //parse a clause -- currently limited to clauses with only two variables, should generalize
-  def clausel : Parser[Node] = "($ " ~ cname ~ "(holds (clc (" ~ literal ~ ") (clc (" ~ literal ~ ") cln)))" ^^{
-    case ~(~(~(~(~(~(_,n),_),fl),_),sl),_) =>{
-      val ax = new Axiom(List(fl, sl))
+ 
+    //parse a clause -- should now work with any number of literals
+  def clausel : Parser[Node] = "($ " ~ cname ~ "(holds " ~ literalSeq ~ ")" ^^{
+    case ~(~(~(~(_,n),_),l),_) =>{
+      val ax = new Axiom(l)
       proofMap += (n -> ax)
       ax
     }
   } 
+  
+  def literalSeq : Parser[List[E]] = (emptyLit | lit)
+  
+  def emptyLit : Parser[List[E]] = "cln" ^^{
+    s=>List()
+  }
+  
+  def lit : Parser[List[E]] = "(clc (" ~ literal ~ ")"  ~ literalSeq ~ ")" ^^{
+    case ~(~(~(~(_,e),_),l),_) => {
+      List(e) ::: l
+    }
+  }
   
   def literal : Parser[E] = (pn ~ vname) ^^{
   case ~(true, v) => exprMap.getOrElseUpdate(v.toString+"_pos",new Var(v.toString,o))
