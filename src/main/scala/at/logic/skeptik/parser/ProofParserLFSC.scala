@@ -54,30 +54,20 @@ extends JavaTokenParsers with RegexParsers {
   case ~(true, v) => exprMap.getOrElseUpdate(v.toString+"_pos",new Var(v.toString,o))
   case ~(false, v) => exprMap.getOrElseUpdate(v.toString+"_neg",new App(negC,new Var(v.toString,o)))
 }
-  
-  //parse a resolution
-  def resolves: Parser[Node] = "(R _ _ _ " ~ nameOrRes ~ nameOrRes ~ cname ~")" ^^ {
-    case ~(~(~(~(_,first),second),_),_) => {      
-      //don't care about cname as we don't tell skeptik which variable to resolve on
-      
-      //find the appropriate clauses to resolve on, and then resolve on them
-      R(proofMap.getOrElse(first, throw new Exception("Clause not defined yet")), 
-          proofMap.getOrElse(second, throw new Exception("Clause not defined yet")))
-    }
-  }
     
-  def nameOrRes: Parser[String] = (cname | resolves) ^^{
-    case s:String => {
-      //if it was the name of a clause, just return that name
-      s
-    }
-    case n:Node => {
-      //if it was a R(R(_,_),_) situation, the inner R(_,_) lacks a name; 
-      // assign it one and return that name
-      proofMap += (n.toString -> n)
-      n.toString
-    }
+  def resolves: Parser[Node] = "(R _ _ _ " ~ nameOrResSubTree ~ nameOrResSubTree ~ cname ~")" ^^ {
+    case ~(~(~(~(_,f),s),_),_) => {
+      R(f,s)
+    } 
   }
+  
+  def nameOrResSubTree: Parser[Node] = (axiom | resolves) 
+  
+  def axiom: Parser[Node] =  cname ^^ {
+    f =>    proofMap.getOrElse(f, throw new Exception("Clause not defined yet"))
+  }
+  
+
   
 
   def pn: Parser[Boolean] = ("pos " | "neg ") ^^{
