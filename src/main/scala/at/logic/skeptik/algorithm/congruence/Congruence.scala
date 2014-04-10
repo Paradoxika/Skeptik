@@ -18,7 +18,8 @@ class Congruence {
   var g = new WGraph[E,Set[App]]()
   
   def addEquality(eq: App) = {
-    val (l,r) = eq.unapply.get
+    val (l,r) = (eq.function.asInstanceOf[App].argument,eq.argument)
+//    println(eq + ", left: " + l + " right: "+ r)
     addNode(l)
     addNode(r)
     merge(l,r,eq)
@@ -70,9 +71,9 @@ class Congruence {
       val (u,v) = combine.pop
       val findU = find.query(u)
       val findV = find.query(v)
-      println("possibly merge " + (u,v) + " finds: "+ (find(u),find(v)) + " querys: " + (findU,findV))
+//      println("possibly merge " + (u,v) + " finds: "+ (find(u),find(v)) + " querys: " + (findU,findV))
       if (findU != find(u) || findV != find(v)) {
-        println("merge " + u + " and " + v + " because: " + e)
+//        println("merge " + u + " and " + v + " because: " + e)
         deduced.enqueue((u,v))
       }
       if (findU != findV) { 
@@ -83,7 +84,7 @@ class Congruence {
           g = g.addUndirectedEdge((u,Set(e),v), 1)
         }
         else { //Deduced equality
-          println("deduce in merge: " + (u,v))
+//          println("deduce in merge: " + (u,v))
           deduced.enqueue((u,v))
         }
         stillTransitivity = false
@@ -102,7 +103,7 @@ class Congruence {
     y.pred.foreach(p => {
       val s = sigTable.query(p,find)
 //      if (find.query(p) != find.query(s)) {
-        println("deduct in union: " + (p,s))
+//        println("deduct in union: " + (p,s))
         deduced.enqueue((p,s))
         deduct += ((p,s))
 //      }
@@ -113,10 +114,10 @@ class Congruence {
   
   def resolveDeduced = {
     val dij = new Dijkstra[E,App]
-    println("deduce: " + deduced)
+//    println("deduce: " + deduced)
     while (!deduced.isEmpty) {
       val (u,v) = deduced.dequeue
-      println("resolve " + (u,v))
+//      println("resolve " + (u,v))
       u match {
         case App(u1,u2) => {
           v match {
@@ -142,9 +143,9 @@ class Congruence {
 //              val weight = weight1 + weight2
               val weight = labels.size
 //              println("w1: " + weight1 + " w2: " + weight2)
-              println("label1: " + labels1 + " label2: " + labels2 + " = " + labels)
+//              println("label1: " + labels1 + " label2: " + labels2 + " = " + labels)
               g = g.addUndirectedEdge((u,labels,v), weight)
-              println("deduced :" + u + " ~ " + v + " because: " + labels + " weight: " + weight)
+//              println("deduced :" + u + " ~ " + v + " because: " + labels + " weight: " + weight)
             }
             case _ =>
           }
@@ -158,6 +159,11 @@ class Congruence {
     resolveDeduced
     val dij = new Dijkstra[E,App]
     dij(u,v,g)
+  }
+  
+  def isCongruent(u: E, v: E) = {
+    if (find.isDefinedAt(u) && find.isDefinedAt(v)) find(u) == find(v)
+    else false
   }
   
 //  def eqTriplesToGraph:WGraph[E,App] = {

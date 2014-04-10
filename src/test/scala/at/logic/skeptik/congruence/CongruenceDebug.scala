@@ -13,23 +13,25 @@ object CongruenceDebug {
 //    CongruenceTest(proof)
     val testcase = 3
     
-    val a = new Var("a",o)
-    val a1 = new Var("a1",o)
-    val a2 = new Var("a2",o)
-    val a3 = new Var("a3",o)
-    val b = new Var("b",o)
-    val b1 = new Var("b1",o)
-    val b2 = new Var("b2",o)
-    val b3 = new Var("b3",o)
-    val c = new Var("c",o)
-    val c1 = new Var("c1",o)
-    val c2 = new Var("c2",o)
-    val c3 = new Var("c3",o)
+    val t = o
     
-    val d = new Var("d",o)
-    val e = new Var("e",o)
+    val a = new Var("a",t)
+    val a1 = new Var("a1",t)
+    val a2 = new Var("a2",t)
+    val a3 = new Var("a3",t)
+    val b = new Var("b",t)
+    val b1 = new Var("b1",t)
+    val b2 = new Var("b2",t)
+    val b3 = new Var("b3",t)
+    val c = new Var("c",t)
+    val c1 = new Var("c1",t)
+    val c2 = new Var("c2",t)
+    val c3 = new Var("c3",t)
     
-    val f = new Var("f",Arrow(o,o))
+    val d = new Var("d",t)
+    val e = new Var("e",t)
+    
+    val f = new Var("f",Arrow(t,t))
     
     val con = new Congruence
     
@@ -105,13 +107,15 @@ object CongruenceDebug {
       }
       
       case _ => {
-        //g(i,h) = d, c = d, g(i,d) = a, e = c, e = b, b = h
+        //g(l,h) = d, c = d, g(l,d) = a, e = c, e = b, b = h
         
-        val i = new Var("i",Arrow(o,o))
-        val h = new Var("h",o)
+        val g = new Var("g",Arrow(t,Arrow(t,t)))
+        val l = new Var("l",t)
+//        val i = new Var("i",Arrow(i,i))
+        val h = new Var("h",t)
         
-        val t1 = App(i,h)
-        val t2 = App(i,d)
+        val t1 = App(App(g,l),h)
+        val t2 = App(App(g,l),d)
         
         con.addEquality(Eq(t1,d))
         con.addEquality(Eq(c,d))
