@@ -13,10 +13,10 @@ By providing smaller resolution proofs that are easier and faster to check, Skep
 Tell your java virtual machine to use UTF-8 and more memory. You can do this by setting your environment variable with the following command:
 
 ```
-  $ export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Xmx1024m"
+  $ export JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF-8 -Xmx1024m -Xss4m -XX:MaxPermSize=256m"
 ```
 
-(you may increase the value after -Xmx, if you need to provide more memory to the JVM)
+(you may change the values after ```-Xmx```, ```Xss``` and ```XX:MaxPermSize=``` to suit your needs)
 
 You must have [SBT](http://www.scala-sbt.org/release/docs/Getting-Started/Setup.html) (version >= 0.13) installed. SBT automatically downloads all compilers and libraries on which  Skeptik depends.
 
