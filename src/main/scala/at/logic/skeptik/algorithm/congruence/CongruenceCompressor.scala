@@ -10,7 +10,7 @@ import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.dijkstra._
 
 object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
-
+  
   def apply(proof: Proof[N]): Proof[N] = {
     proof.last.conclusion
     proof
@@ -32,7 +32,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
         val con = new Congruence
         leftEqs.foreach(eq => con.addEquality(eq))
 //        con.resolveDeduced
-        var tree: Option[PathTree[E,App]] = None
+        var tree: Option[EquationTree] = None
         val canBeCompressed = rightEqs.find(eq => {
           val path = con.explain(eq.function.asInstanceOf[App].argument, eq.argument)
           val c = path.collectLabels.size
@@ -58,7 +58,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
     (fixedNode,newProofs)
   }
   
-  def pathToProof(path: PathTree[E,App], provedEqs: Map[App,N]) = {
+  def pathToProof(path: EquationTree, provedEqs: Map[App,N]) = {
     
   }
 }

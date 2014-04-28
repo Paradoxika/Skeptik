@@ -12,6 +12,12 @@ class FindTable(val map: IMap[E,CCR] = IMap[E,CCR]()) {
     }
   }
   
+  def queryTwo(x: E, y: E): (FindTable,CCR,CCR) = {
+    val (nF1,xF) = query(x)
+    val (nF2,yF) = nF1.query(y)
+    (nF2,xF,yF)
+  }
+  
   def enter(x: E): FindTable = new FindTable(map + (x -> new CCR(x)))
   
   def enter(x: E, c: CCR): FindTable = new FindTable(map + (x -> c))

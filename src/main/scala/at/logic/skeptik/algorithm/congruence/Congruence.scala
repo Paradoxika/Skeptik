@@ -5,12 +5,27 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.algorithm.dijkstra._
 //import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
-import scala.collection.immutable.Stack
+import scala.collection.mutable.Stack
 import scala.collection.immutable.Queue
 import scala.collection.mutable.ListBuffer
 
-class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureTable = new SignatureTable(), val eqTriples: Map[E,(E,E,App)] = new IMap[E,(E,E,App)], val deduced: Queue[(E,E)] = Queue[(E,E)](), val g: WGraph[E,Set[App]] = new WGraph[E,Set[App]]()) {
-//  val find = new FindTable()
+//type pT = Option[PathTree[E,Option[PathTree[E]]]]
+
+//trait recType {
+//  type X <: PathTree[E,Option[(X,X)]]
+//  type Z = String
+//}
+
+//bla[PathTree[E,]]
+
+class Congruence(
+    val find: FindTable = new FindTable(), 
+    val sigTable: SignatureTable = new SignatureTable(), 
+    val eqTriples: Map[E,(E,E,App)] = new IMap[E,(E,E,App)], 
+    val deduced: Queue[(E,E)] = Queue[(E,E)](), 
+    val g: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) {
+  
+  //  val find = new FindTable()
 //  val sigTable = new SignatureTable()
 //  val eqTriples = new Map[E,(E,E,App)] //this structure is good for comparing to inequalities
 ////  val transitivityTripples = new 
@@ -32,7 +47,7 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
   def updateDeduced(newDeduced: Queue[(E,E)]) = {
     new Congruence(find, sigTable, eqTriples,newDeduced,g)
   }
-  def updateGraph(newG: WGraph[E,Set[App]]) = {
+  def updateGraph(newG: WGraph[E,EqLabel]) = {
     new Congruence(find, sigTable, eqTriples,deduced,newG)
   }
   
@@ -41,7 +56,8 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
 //    println(eq + ", left: " + l + " right: "+ r)
     val c1 = addNode(l)
     val c2 = c1.addNode(r)
-    c2.merge(l,r,eq)
+    val c3 = c2.updateGraph(g.addUndirectedEdge((l,(eq,None),r), 1))
+    c3.merge(l,r,Some(eq))
   }
   
   //find query creates new CCR before subterms are added
@@ -80,7 +96,7 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
 //                val c5 = c3.updateFind(evenNewerFind)
 ////                  val c5 = new Congruence(evenNewerFind, sigTable, eqTriples, deduced, g)
                 val c4 = c3.union(u,v)._1
-                println("deduce: " + u + " == " + v)
+//                println("deduce: " + u + " == " + v)
                 val d = c3.resolveDeduced(u, v)
                 d.addDeduced(u, v)
               }
@@ -99,7 +115,26 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
     }
   }
   
-  def merge(a: E, b: E, eq: App): Congruence = {
+  def merge(a: E, b: E, eq: Option[App]): Congruence = {
+    val (nF,aF,bF) = find.queryTwo(a, b)
+    val c1 = updateFind(nF)
+    if (aF != bF) {
+      val (c2, deduced) = c1.union(a,b)
+      val c3 = if (eq.isDefined) {
+        c2.updateGraph(g.addUndirectedEdge((a,(eq.get,None),b), 1))
+      }
+      else c2
+      deduced.foldLeft(c3)({(A,B) =>
+        val d = A.resolveDeduced(B._1, B._2)
+//        d.addDeduced(B._1, B._2)
+//        println("deduce " + B._1 + " ~ " + B._2)
+        d.merge(B._1, B._2, None)
+      })
+    }
+    else c1
+  }
+  
+  def merge2(a: E, b: E, eq: App): Congruence = {
     val combine = Stack((a,b))
     var stillTransitivity = true
     var e = eq
@@ -130,7 +165,8 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
         val c3 = 
           if (stillTransitivity) { //Transitivity equality
             println("add " + (u,v) + " to graph")
-            c2.updateGraph(g.addUndirectedEdge((u,Set(e),v), 1))
+//            c2.updateGraph(g.addUndirectedEdge((u,Set(e),v), 1))
+            c2
           }
           else { //Deduced equality
             println("deduce: " + u + " == " + v)
@@ -166,10 +202,10 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
     val c2 = removeCCR.pred.foldLeft(c1)({(A,B) => 
 //      val s = A.sigTable.query(B,A.find)
       val s = A.find.sigQuery(B)
-      println("query sigTable for " + B + " result: " + s)
+//      println("query sigTable for " + B + " result: " + s)
       s match {
         case Some(q) => {
-          println("deduce: " + B + " ==here " + q)
+//          println("deduce: " + B + " ==here " + q)
           deduct += ((B,q))
           A.addDeduced(B, q)
 //          A
@@ -191,7 +227,7 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
   }
   
   def addDeduced(u: E, v: E): Congruence = {
-    println("adding " + (u,v))
+//    println("adding " + (u,v))
     updateDeduced(deduced.enqueue((u,v)))
   }
   
@@ -200,24 +236,31 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
 //      val (pair,newQueue) = A.deduced.dequeue
       val c = A.resolveDeduced(B._1,B._2)
 //      c.updateDeduced(newQueue)
-      println("resolving " + B)
+//      println("resolving " + B)
       c
     })
   }
   
   def resolveDeduced(u: E, v: E): Congruence = {
-    val dij = new Dijkstra[E,App]
+    val dij = new EquationDijkstra
+//    println("resolve deduced: " + (u,v))
     u match {
       case App(u1,u2) => {
         v match {
           case App(v1,v2) => {
-            val path1 = dij(u1,v1,g)
-            val labels1 = path1.collectLabels
-            val path2 = dij(u2,v2,g)
-            val labels2 = path2.collectLabels
-            val labels = labels1 union labels2
-            val weight = labels.size
-            new Congruence(find, sigTable, eqTriples, deduced, g.addUndirectedEdge((u,labels,v), weight))
+            val path1 = 
+              if (u1 == v1) dij(u1,v1,g)
+              else new EquationTree(u1,None)
+            val path2 = 
+              if (u2 == v2) dij(u2,v2,g)
+              else new EquationTree(u2,None)
+            val eq1 = path1.deduceEqs
+            val eq2 = path2.deduceEqs
+            val eqAll = eq1 union eq2
+           
+            val weight = eqAll.size
+            //if (weight > 0) here?
+            updateGraph(g.addUndirectedEdge((u,(Eq(u,v),Some(path1,path2)),v), weight))            
           }
           case _ => this
         }
@@ -225,59 +268,35 @@ class Congruence(val find: FindTable = new FindTable(), val sigTable: SignatureT
       case _ => this
     }
   }
-  
-//  def resolveDeduced: Congruence = {
-//    val dij = new Dijkstra[E,App]
-////    println("deduce: " + deduced)
-//    while (!deduced.isEmpty) {
-//      val (u,v) = deduced.dequeue
-////      println("resolve " + (u,v))
-//      u match {
-//        case App(u1,u2) => {
-//          v match {
-//            case App(v1,v2) => {
-//              val path1 = dij(u1,v1,g)
-//              
-//              val labels1 = path1.collectLabels
-//              val vertices1 = path1.collectVertices
-////              val weight1 = vertices1.foldLeft(0)((sum,v) => sum + dij.distances.getOrElse(v, Integer.MAX_VALUE)) //if Integer.Max_Value then should be a bug here
-////              val weight1 = dij.distances.getOrElse(v1, Integer.MAX_VALUE)
-//              
-//              val path2 = dij(u2,v2,g)
-//              
-//              val labels2 = path2.collectLabels
-//              val vertices2 = path2.collectVertices
-////              val weight2 = vertices2.foldLeft(0)((sum,v) => {
-////                val d = dij.distances.getOrElse(v, Integer.MAX_VALUE) //if Integer.Max_Value then should be a bug here
-////                println("distance of " + v + " to " + u2 + ": " + d)
-////                sum + d
-////              })
-////              val weight2 = dij.distances.getOrElse(v2, Integer.MAX_VALUE)
-//              val labels = labels1 union labels2
-////              val weight = weight1 + weight2
-//              val weight = labels.size
-////              println("w1: " + weight1 + " w2: " + weight2)
-////              println("label1: " + labels1 + " label2: " + labels2 + " = " + labels)
-//              g = g.addUndirectedEdge((u,labels,v), weight)
-////              println("deduced :" + u + " ~ " + v + " because: " + labels + " weight: " + weight)
-//            }
-//            case _ =>
-//          }
-//        }
-//        case _ =>
-//      }
-//    }
-//  }
-  
+
   def explain(u: E, v: E) = {
 //    resolveDeduced
-    val dij = new Dijkstra[E,App]
+    val dij = new EquationDijkstra
     dij(u,v,g)
   }
   
   def isCongruent(u: E, v: E) = {
     find.query(u) == find.query(v)
   }
+  
+  
+//  def pathTreetoProof(path: EquationTree): Boolean = {
+//    path.pred match {
+//      case Some((nextPT,label)) => {
+//        if (label.size == 1) {
+//          val eq = label.last
+//          val (u,v) = (path.v,nextPT.v)
+//          val (l,r) = (eq.function.asInstanceOf[App].argument,eq.argument)
+//          val x = (l==u && r == v)|| (l == v && r == u) && pathTreetoProof(nextPT)
+//          if (!x) println(eq + " is not an equality of " + (u,v))
+//          else println(eq + " is an equality of " + (u,v))
+//          x
+//        }
+//        else pathTreetoProof(nextPT)
+//      }
+//      case None => true
+//    }
+//  }
   
 //  def eqTriplesToGraph:WGraph[E,App] = {
 //    val triples = eqTriples.values

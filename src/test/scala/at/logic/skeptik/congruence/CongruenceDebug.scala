@@ -11,7 +11,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 1
+    val testcase = 0
     
     val t = o
     
@@ -35,7 +35,7 @@ object CongruenceDebug {
     
     var con = new Congruence
     
-    val dij = new Dijkstra[E,App]
+    val dij = new EquationDijkstra
     
     testcase match {
       case 0 => {
@@ -57,10 +57,15 @@ object CongruenceDebug {
         con = con.addEquality(eq3)
         con = con.addEquality(eq4)
         
+        con = con.resolveDeducedQueue
+        
         println(con.find)
         println(con.g)
+        val path = dij(e,d,con.g)
     //    println(t1 + " = " + t2 + " because: " + con.explain(t1, t2).collectLabels)
-        println(e + " = " + d + " because: " + con.explain(e,d).collectLabels)
+        println(e + " = " + d + " because: " + path.allEqs)
+        
+//        println("trans chain?: " + con.pathTreetoProof(path))
       }
       case 1 => {
         
@@ -131,14 +136,32 @@ object CongruenceDebug {
         con = con.addEquality(Eq(t2,a))
         con = con.addEquality(Eq(e,c))
         con = con.addEquality(Eq(e,b))
-        con = con.addEquality(Eq(b,h))
+        con = con.addEquality(Eq(b1,b))
+        con = con.addEquality(Eq(b1,h))
         
-//        con.resolveDeduced
+//        con = con.resolveDeducedQueue
         
         val path = dij(a,b,con.g)
         println(con.g)
         println("distance of " + a + " to " + b + ": " + dij.distances.getOrElse(b,Integer.MAX_VALUE))
         println(a + " = " + b + " because: " + path.collectLabels)
+        
+        con = con.addEquality(Eq(d,c1))
+//        con = con.addEquality(Eq(c1,c2))
+        con = con.addEquality(Eq(c1,c2))
+        con = con.addEquality(Eq(c2,c3))
+        con = con.addEquality(Eq(c3,h))
+        
+        con = con.resolveDeducedQueue
+        
+        val dij2 = new EquationDijkstra
+        
+        val path2 = dij2(a,b,con.g)
+        println(con.g)
+        println("distance of " + a + " to " + b + ": " + dij2.distances.getOrElse(b,Integer.MAX_VALUE))
+        println(a + " = " + b + " because: " + path2.collectLabels)
+        
+//        println("trans chain?: " + path2.toProof)
       }
     }
     
