@@ -57,8 +57,4 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
     
     (fixedNode,newProofs)
   }
-  
-  def pathToProof(path: EquationTree, provedEqs: Map[App,N]) = {
-    
-  }
 }

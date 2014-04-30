@@ -54,15 +54,20 @@ class Congruence(
   def addEquality(eq: App): Congruence = {
     val (l,r) = (eq.function.asInstanceOf[App].argument,eq.argument)
 //    println(eq + ", left: " + l + " right: "+ r)
+//    println("add equality " + eq + " to this graph: " + g)
     val c1 = addNode(l)
     val c2 = c1.addNode(r)
-    val c3 = c2.updateGraph(g.addUndirectedEdge((l,(eq,None),r), 1))
-    c3.merge(l,r,Some(eq))
+//    println("after adding the two nodes " + c2.g)
+    val c3 = c2.updateGraph(c2.g.addUndirectedEdge((l,(eq,None),r), 1))
+    val res = c3.merge(l,r,Some(eq))
+//    println("after adding equality " + eq + " graph: " + res.g)
+    res
   }
   
   //find query creates new CCR before subterms are added
    //order matters???
   def addNode(u: E): Congruence = {
+//    println("add node to this graph: " + g)
     val uRepr = find.map.get(u)
     uRepr match {
       case Some(_) => this
@@ -96,9 +101,12 @@ class Congruence(
 //                val c5 = c3.updateFind(evenNewerFind)
 ////                  val c5 = new Congruence(evenNewerFind, sigTable, eqTriples, deduced, g)
                 val c4 = c3.union(u,v)._1
-//                println("deduce: " + u + " == " + v)
+//                println("deduce in AddNode: " + u + " == " + v)
                 val d = c3.resolveDeduced(u, v)
-                d.addDeduced(u, v)
+                
+                val dd = d.addDeduced(u, v)
+//                println("dd g in addNode: " + dd.g)
+                dd
               }
               case None => {
                 val nF = newFind.addPred(v1, u)
@@ -120,14 +128,16 @@ class Congruence(
     val c1 = updateFind(nF)
     if (aF != bF) {
       val (c2, deduced) = c1.union(a,b)
-      val c3 = if (eq.isDefined) {
-        c2.updateGraph(g.addUndirectedEdge((a,(eq.get,None),b), 1))
-      }
-      else c2
-      deduced.foldLeft(c3)({(A,B) =>
+//      val c3 = 
+//        if (eq.isDefined) {
+//          c2.updateGraph(g.addUndirectedEdge((a,(eq.get,None),b), 1))
+//        }
+//        else c2
+      deduced.foldLeft(c2)({(A,B) =>
         val d = A.resolveDeduced(B._1, B._2)
 //        d.addDeduced(B._1, B._2)
 //        println("deduce " + B._1 + " ~ " + B._2)
+//        println("d <<g>> : " + d.g)
         d.merge(B._1, B._2, None)
       })
     }
@@ -164,12 +174,12 @@ class Congruence(
 //        eqTriples.update(v, (u,v,e))
         val c3 = 
           if (stillTransitivity) { //Transitivity equality
-            println("add " + (u,v) + " to graph")
+//            println("add " + (u,v) + " to graph")
 //            c2.updateGraph(g.addUndirectedEdge((u,Set(e),v), 1))
             c2
           }
           else { //Deduced equality
-            println("deduce: " + u + " == " + v)
+//            println("deduce: " + u + " == " + v)
             val d = c2.resolveDeduced(u, v)
             d.addDeduced(u, v)
           }
@@ -249,18 +259,25 @@ class Congruence(
         v match {
           case App(v1,v2) => {
             val path1 = 
-              if (u1 == v1) dij(u1,v1,g)
-              else new EquationTree(u1,None)
+              if (u1 == v1) new EquationTree(u1,None)
+              else dij(u1,v1,g)
             val path2 = 
-              if (u2 == v2) dij(u2,v2,g)
-              else new EquationTree(u2,None)
-            val eq1 = path1.deduceEqs
-            val eq2 = path2.deduceEqs
+              if (u2 == v2) new EquationTree(u2,None)
+              else dij(u2,v2,g)
+            
+//            println("path1: " + path1)
+//            println("path2: " + path2)
+            val eq1 = path1.allEqs
+            val eq2 = path2.allEqs
             val eqAll = eq1 union eq2
            
             val weight = eqAll.size
+//            println("resolve deduce: " + (u,v))
+//            println("equations: "+ eqAll)
             //if (weight > 0) here?
-            updateGraph(g.addUndirectedEdge((u,(Eq(u,v),Some(path1,path2)),v), weight))            
+            val c = updateGraph(g.addUndirectedEdge((u,(Eq(u,v),Some(path1,path2)),v), weight))
+//            println(c.g)
+            c
           }
           case _ => this
         }

@@ -53,7 +53,7 @@ object All extends QuantifierFormula(allC)
 
 object Ex extends QuantifierFormula(exC)
 
-abstract class Equation extends BinaryFormula(eqC(o))
+abstract class Equation extends BinaryFormula(eqC(i))
 
 object EmptyEq extends Equation
 

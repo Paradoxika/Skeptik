@@ -11,9 +11,9 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 0
+    val testcase = 2
     
-    val t = o
+    val t = i
     
     val a = new Var("a",t)
     val a1 = new Var("a1",t)
@@ -33,6 +33,10 @@ object CongruenceDebug {
     
     val f = new Var("f",Arrow(t,t))
     
+//    println(f + " type: " + f.t)
+    
+//    Eq(App(f,a),App(f,a))
+    
     var con = new Congruence
     
     val dij = new EquationDijkstra
@@ -50,21 +54,25 @@ object CongruenceDebug {
         val eq3 = Eq(t1,d)
         val eq4 = Eq(t2,e)
         
-        
+        println("Input: " + List(eq1,eq2,eq3,eq4).mkString(","))
         
         con = con.addEquality(eq1)
         con = con.addEquality(eq2)
         con = con.addEquality(eq3)
         con = con.addEquality(eq4)
         
-        con = con.resolveDeducedQueue
+//        con = con.resolveDeducedQueue
+        
+        
         
         println(con.find)
         println(con.g)
         val path = dij(e,d,con.g)
     //    println(t1 + " = " + t2 + " because: " + con.explain(t1, t2).collectLabels)
+        println(path)
         println(e + " = " + d + " because: " + path.allEqs)
         
+        println("\n"+path.toProof.get)
 //        println("trans chain?: " + con.pathTreetoProof(path))
       }
       case 1 => {
@@ -98,6 +106,8 @@ object CongruenceDebug {
         val path2 = dij(a,c,con.g)
         println("distance after " + c + " to " + a + ": " + dij.distances.getOrElse(c,Integer.MAX_VALUE))
         println(a + " = " + c + " because: " + path2.collectLabels)
+        
+        println("\n"+path.toProof.get)
       }
       case 2 => {
         //a1 = b1, a1 = c1, f(a1) = a, f(b1) = b, f(c1) = c
@@ -117,10 +127,12 @@ object CongruenceDebug {
         println(con.g)
         println(con.sigTable)
         println("distance of " + c + " to " + a + ": " + dij.distances.getOrElse(c,Integer.MAX_VALUE))
-        println(a + " = " + c + " because: " + path.collectLabels)
+        println(a + " = " + c + " because: " + path.allEqs)
+        
+        println("\n"+path.toProof.get)
       }
       
-      case _ => {
+      case 3 => {
         //g(l,h) = d, c = d, g(l,d) = a, e = c, e = b, b = h
         
         val g = new Var("g",Arrow(t,Arrow(t,t)))
@@ -131,37 +143,53 @@ object CongruenceDebug {
         val t1 = App(App(g,l),h)
         val t2 = App(App(g,l),d)
         
-        con = con.addEquality(Eq(t1,d))
-        con = con.addEquality(Eq(c,d))
-        con = con.addEquality(Eq(t2,a))
-        con = con.addEquality(Eq(e,c))
-        con = con.addEquality(Eq(e,b))
-        con = con.addEquality(Eq(b1,b))
-        con = con.addEquality(Eq(b1,h))
+        val eqs = List(Eq(t1,d),Eq(c,d),Eq(t2,a),Eq(e,c),Eq(e,b),Eq(b1,b),Eq(b1,h))
+        println("===Input: " + eqs.mkString(","))
+        con = eqs.foldLeft(con)({(A,B) => A.addEquality(B)})
+//        con = con.addEquality(Eq(t1,d))
+//        con = con.addEquality(Eq(c,d))
+//        con = con.addEquality(Eq(t2,a))
+//        con = con.addEquality(Eq(e,c))
+//        con = con.addEquality(Eq(e,b))
+//        con = con.addEquality(Eq(b1,b))
+//        con = con.addEquality(Eq(b1,h))
+        
+//        con = con.resolveDeducedQueue
+        
+        
         
 //        con = con.resolveDeducedQueue
         
         val path = dij(a,b,con.g)
         println(con.g)
         println("distance of " + a + " to " + b + ": " + dij.distances.getOrElse(b,Integer.MAX_VALUE))
-        println(a + " = " + b + " because: " + path.collectLabels)
+        println(a + " = " + b + " because: " + path.allEqs)
         
-        con = con.addEquality(Eq(d,c1))
+        val eqs2 = List(Eq(d,c1),Eq(c1,c2),Eq(c2,c3),Eq(c3,h))
+        println("\n\n\n===Input: " + (eqs ++ eqs2).mkString(","))
+        con = eqs2.foldLeft(con)({(A,B) => A.addEquality(B)})
+//        con = con.addEquality(Eq(d,c1))
+////        con = con.addEquality(Eq(c1,c2))
 //        con = con.addEquality(Eq(c1,c2))
-        con = con.addEquality(Eq(c1,c2))
-        con = con.addEquality(Eq(c2,c3))
-        con = con.addEquality(Eq(c3,h))
+//        con = con.addEquality(Eq(c2,c3))
+//        con = con.addEquality(Eq(c3,h))
         
         con = con.resolveDeducedQueue
+        
+        
         
         val dij2 = new EquationDijkstra
         
         val path2 = dij2(a,b,con.g)
         println(con.g)
         println("distance of " + a + " to " + b + ": " + dij2.distances.getOrElse(b,Integer.MAX_VALUE))
-        println(a + " = " + b + " because: " + path2.collectLabels)
+        println(a + " = " + b + " because: " + path2.allEqs)
         
 //        println("trans chain?: " + path2.toProof)
+        
+        println("\n"+path.toProof.get)
+        
+        println("\n"+path2.toProof.get)
       }
     }
     
