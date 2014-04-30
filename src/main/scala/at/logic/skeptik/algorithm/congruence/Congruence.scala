@@ -275,7 +275,12 @@ class Congruence(
 //            println("resolve deduce: " + (u,v))
 //            println("equations: "+ eqAll)
             //if (weight > 0) here?
-            val c = updateGraph(g.addUndirectedEdge((u,(Eq(u,v),Some(path1,path2)),v), weight))
+            if (u.t != v.t) println("Types are not the same for " + (u,v))
+            var c = this
+            try {c = updateGraph(g.addUndirectedEdge((u,(Eq(u,v),Some(path1,path2)),v), weight))}
+            catch {
+              case e: Exception => println(e + " at " + (u,v) + " types: " + (u.t,v.t) + " expls: " + (path1,path2))
+            }
 //            println(c.g)
             c
           }

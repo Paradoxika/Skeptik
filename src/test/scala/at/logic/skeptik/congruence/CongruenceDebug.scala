@@ -13,7 +13,7 @@ object CongruenceDebug {
 //    CongruenceTest(proof)
     val testcase = 2
     
-    val t = i
+    val t = o
     
     val a = new Var("a",t)
     val a1 = new Var("a1",t)
@@ -33,9 +33,17 @@ object CongruenceDebug {
     
     val f = new Var("f",Arrow(t,t))
     
-//    println(f + " type: " + f.t)
+    val x = new Var("x",Arrow(t,t))
     
-//    Eq(App(f,a),App(f,a))
+    println(App(x,b).t)
+    
+    val z1 = App(f,App(x,b))
+    val z2 = App(f,App(x,c))
+    
+    println(z1 + " type: " + z1.t)
+    println(z2 + " type: " + z2.t+"\n")
+    
+    Eq(App(f,a),App(f,a))
     
     var con = new Congruence
     
