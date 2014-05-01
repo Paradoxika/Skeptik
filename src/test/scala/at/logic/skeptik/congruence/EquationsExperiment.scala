@@ -84,7 +84,7 @@ object EquationsExperiment {
         con.resolveDeducedQueue
         rightEqs.exists(eq => {
           val path = con.explain(eq.function.asInstanceOf[App].argument, eq.argument)
-          val c = path.collectLabels.size
+          val c = if (path.isDefined) path.get.collectLabels.size else 0
           val out = c > 0 && c < leftEqs.size
 //          if (out) {
 //            println(node.conclusion + "\nshorter explanation " + path.collectLabels)
@@ -173,8 +173,7 @@ object EquationsExperiment {
             val newCon = l.foldLeft(con)({(A,B) => A.addEquality(B)})
             val path = newCon.explain(eq.function.asInstanceOf[App].argument, eq.argument)
 //            println("after xplain")
-            val newExpl = path.collectLabels
-            val c = newExpl.size
+            val c = if (path.isDefined) path.get.collectLabels.size else 0
             val out = c > 0 && c < currentExpl.size
             if (out) {
 //              println("current explanation for " + r.mkString(",") + ": " + currentExpl.size + " ~ " + currentExpl)

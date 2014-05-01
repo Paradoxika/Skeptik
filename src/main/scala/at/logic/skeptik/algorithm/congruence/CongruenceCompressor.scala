@@ -41,22 +41,27 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
         val localConRes = localCon.resolveDeducedQueue
         var tree: Option[EquationTree] = None
         val canBeCompressed = rightEqs.exists(eq => {
-          val path = localConRes.explain(eq.function.asInstanceOf[App].argument, eq.argument)
-          val newSize = path.allEqs.size
-          val oldSize = leftEqs.size + premiseAxioms.size
-          val out = newSize > 0 && newSize < oldSize
-          if (out) tree = Some(path)
-//          println("old: " + oldSize + " vs " + newSize)
-//          if (!out && path.toProof.get.size < Proof(node).size) {
-//            println("Replacing pays off!")
-//            println("path proof: \n" + path.toProof.get)
-//            println("\norig proof:\n"+Proof(node))            
-//          }
-          out
+          val (l,r) = (eq.function.asInstanceOf[App].argument,eq.argument)
+          val localConFinal = localConRes.addNode(l).addNode(r)
+          val path = localConFinal.explain(l,r)
+          path match {
+            case Some(p) => {
+              val newSize = p.originalEqs.size
+              val oldSize = leftEqs.size + premiseAxioms.size
+              if (newSize < oldSize) {
+                tree = path
+                true
+              }
+              else false
+            }
+            case None => false
+          }
         })
         if (canBeCompressed) {
           println("compressing " + node)
           val path = tree.get
+//          println("proofing " + (path.firstVert,path.lastVert) + " from " + path.originalEqs)
+//          println("path: " + path)
           val pathProof = path.toProof
           pathProof match {
             case Some(proof) => {

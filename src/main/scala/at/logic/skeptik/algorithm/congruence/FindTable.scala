@@ -30,7 +30,8 @@ class FindTable(val map: IMap[E,CCR] = IMap[E,CCR]()) {
 //    println(x + " is queried for sig")
     x match {
       case App(u,v) => {
-//        println()
+//        println("find of : " + u + " is " + query(u)._2)
+//        println("find of : " + v + " is " + query(v)._2)
         query(u)._2.pred.find(p => {
           p match {
             case App(_,t) => {

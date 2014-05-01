@@ -47,15 +47,25 @@ object Or extends BinaryFormula(orC)
 
 object Imp extends BinaryFormula(impC)
 
-object Eq extends Equation 
+object Eq {
+  def apply(term1: E, term2: E): App = {
+    require(term1.t == term2.t)
+    val t1Type = term1.t
+    new Equation(t1Type)(term1,term2)
+  }
+  def ?:(f: E) = { // very hacky!
+    f match {
+      case App(App(v,_),_) => v.toString == "="
+      case _ => false
+    }
+  }
+}
   
 object All extends QuantifierFormula(allC)  
 
 object Ex extends QuantifierFormula(exC)
 
-abstract class Equation extends BinaryFormula(eqC(o))
-
-object EmptyEq extends Equation
+class Equation(t: T) extends BinaryFormula(eqC(t))
 
 object Atom extends Formula {
   def apply(p: E, args: List[E]) = {

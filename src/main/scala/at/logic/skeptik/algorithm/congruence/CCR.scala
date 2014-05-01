@@ -15,7 +15,7 @@ class CCR(val initTerm: E, val s: E, val term: Set[E], val pred: Set[E], val rig
   
 //  term.+=(initTerm)
   
-  override def toString: String = "["+s.toString+"]"
+  override def toString: String = "["+s.toString+"]" + "{"+term+"}"
 }
 
 //object DummyCCR extends CCR

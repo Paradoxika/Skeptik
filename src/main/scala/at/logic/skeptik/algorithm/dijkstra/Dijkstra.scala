@@ -4,6 +4,7 @@ import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.PriorityQueue
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashSet => MSet}
+import at.logic.skeptik.expression.formula._
 
 class EquationDijkstra extends Dijkstra[E,EqLabel] {
   
@@ -48,8 +49,16 @@ abstract class Dijkstra[T1,T2] {
   }
   
   def apply(s: T1, target: T1, g: WGraph[T1,T2]): EquationTree = {
-    this(s,g)
-    pi(target)
+    if (s == target && s.isInstanceOf[E]) {
+      val sE = s.asInstanceOf[E]
+      val end = new EquationTree(sE,None)
+      val eqTreeEdge = new EqTreeEdgeC(end,(Eq(sE,sE),None))
+      new EquationTree(sE,Some(eqTreeEdge))
+    }
+    else {
+      this(s,g)
+      pi(target)
+    }
   }
   
   def apply(s: T1, gIn: WGraph[T1,T2]): Unit = {

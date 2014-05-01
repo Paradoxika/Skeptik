@@ -6,12 +6,13 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.congruence._
 import at.logic.skeptik.algorithm.dijkstra._
+import at.logic.skeptik.proof._
 
 object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 2
+    val testcase = 5
     
     val t = o
     
@@ -35,15 +36,21 @@ object CongruenceDebug {
     
     val x = new Var("x",Arrow(t,t))
     
-    println(App(x,b).t)
+    val op = new Var("op",Arrow(t,Arrow(t,t)))
+    val e4 = new Var("e4",t)
+    val skc1 = new Var("skc1",t)
+    val e3 = new Var("e3",t)
+    val e1 = new Var("e1",t)
     
-    val z1 = App(f,App(x,b))
-    val z2 = App(f,App(x,c))
+//    println(App(x,b).t)
+//    
+//    val z1 = App(f,App(x,b))
+//    val z2 = App(f,App(x,c))
+//    
+//    println(z1 + " type: " + z1.t)
+//    println(z2 + " type: " + z2.t+"\n")
     
-    println(z1 + " type: " + z1.t)
-    println(z2 + " type: " + z2.t+"\n")
-    
-    Eq(App(f,a),App(f,a))
+//    Eq(App(f,a),App(f,a))
     
     var con = new Congruence
     
@@ -199,7 +206,114 @@ object CongruenceDebug {
         
         println("\n"+path2.toProof.get)
       }
+      case 4 => {
+        //(op e4 e3),(op e3 e3) from
+        //((op (op e4 skc1) (op skc1 e4)) = (op e3 e3)), ((op (op e4 skc1)) = (op e3)), (e4 = (op e4 e3)), (e3 = (op e1 e4)), (e4 = (op (op e4 skc1) (op skc1 e4))), ((op e1 e4) = (op skc1 e4)))
+        //((op (op e4 skc1)) = (op e3)), (e4 = (op e4 e3)), ((op (op e3 skc1) (op skc1 e3)) = e3), (e3 = (op e1 e4)), ((op (op e3 skc1) (op skc1 e3)) = (op e4 skc1)), (e4 = (op (op e4 skc1) (op skc1 e4))), ((op e1 e4) = (op skc1 e4))
+        
+        
+        //((op e1 e3) = e1), (e4 = (op e4 e3)), ((op (op e3 skc1) (op skc1 e3)) = e3), (e1 = skc1), (e3 = (op e1 e4)), (e4 = (op e3 e1)), ((op e1 e3) = (op skc1 e3)), (e4 = (op (op e4 skc1) (op skc1 e4))), ((op e1 e4) = (op skc1 e4))
+        
+        val subt1 = App(App(op,e4),skc1) // (op e4 skc1)
+        val subt2 = App(App(op,skc1),e4) // (op skc1 e4)
+        val t1 = App(App(op,subt1),subt2) //(op (op e4 skc1) (op skc1 e4))
+        val t2 = App(App(op,e3),e3) // (op e3 e3)
+        val t3 = App(op,subt1) //(op (op e4 skc1))
+        val t4 = App(op,e3) //(op e3)
+        val t5 = App(App(op,e1),e4) //(op e1 e4)
+        val t6 = App(App(op,e4),e3) //(op e4 e3)
+        val t7 = App(App(op,e1),skc1) //(op e1 e3)
+        val subt3 = App(App(op,e3),skc1) //(op e3 skc1)
+        val subt4 = App(App(op,skc1),e3) //(op skc1 e3)
+        val t8 = App(App(op,subt3),subt4) // (op (op e3 skc1) (op skc1 e3))
+        val t9 = App(App(op,e1),e4) //(op e1 e4)
+        val t10 = App(App(op,e3),e1) //(op e3 e1)
+        
+        val eq1 = Eq(t7,e1) // (op e1 e3) = e1)
+        val eq2 = Eq(e4,t6) // (e4 = (op e4 e3))
+        val eq3 = Eq(t8,e3) // ((op (op e3 skc1) (op skc1 e3)) = e3)
+        val eq4 = Eq(e1,skc1) // (e1 = skc1)
+        val eq5 = Eq(e3,t5) // (e3 = (op e1 e4))
+        val eq6 = Eq(e4,t10) // (e4 = (op e3 e1))
+        val eq7 = Eq(t7,subt4)// ((op e1 e3) = (op skc1 e3))
+        val eq8 = Eq(e4,t1) //(e4 = (op (op e4 skc1) (op skc1 e4)))
+        val eq9 = Eq(t5,subt2) //((op e1 e4) = (op skc1 e4))
+        val allEqs = List(eq1,eq2,eq3,eq4,eq5,eq6,eq7,eq8,eq9)
+        
+        println(allEqs)
+        
+        con = con.addAll(allEqs)
+        con = con.resolveDeducedQueue
+        val path = con.explain(t2,t6)
+        println(path)
+        println(path.get.toProof)
+      }
+      case 5 => {
+        //((op e3 e1),(op e3 e3)) 
+        //((e3 = (op e4 e4)), (e4 = skc1), (e4 = (op e3 e1)), ((op e4 e4) = (op skc1 e4)), (e4 = (op (op e4 skc1) (op skc1 e4)))
+        
+        val t1 = App(App(op,e4),e4) //(op e4 e4)
+        val t2 = App(App(op,e3),e1) //(op e3 e1)
+        val t3 = App(App(op,skc1),e4) // (op skc1 e4)
+        val subt1 = App(App(op,e4),skc1) // (op e4 skc1)
+        val t4 = App(App(op,subt1),t3) //(op (op e4 skc1) (op skc1 e4))
+        
+        val t5 = App(App(op,e3),e3) //(op e3 e3)
+        
+        val eq1 = Eq(e3,t1)
+        val eq2 = Eq(e4,skc1)
+        val eq3 = Eq(e4,t2)
+        val eq4 = Eq(t1,t3)
+        val eq5 = Eq(e4,t4)
+        val allEqs = List(eq1,eq2,eq3,eq4,eq5)
+        
+        println(allEqs)
+        
+        con = con.addAll(allEqs)
+        println(con.g)
+//        con = con.resolveDeducedQueue
+//        println("XXXXXXXXXXXXXXXXXX BEFORE ADDING")
+        con = con.addNode(t5)
+//        println("XXXXXXXXXXXXXXXXXX AFTER ADDING")
+        
+        val path = con.explain(t5,t2)
+        
+//        println(path.get.toProof)
+        
+        val path2 = con.explain(e3,subt1)
+        println(path2)
+//        println(path2.get.toProof)
+        
+//        println(con.g)
+        
+//        println(dij(e1,e1,con.g))
+        
+        println(path)
+//        println("transitivity chain:\n" + path.get.transChainProof.get)
+        println("BUILDING PROOF")
+        val x = path.get.toProof.get
+        println("full proof:\n" + x)
+      }
+      case 6 => {
+        val op = new Var("op",Arrow(t,Arrow(t,t)))
+        val e3 = new Var("e3",t)
+        val e4 = new Var("e4",t)
+        val skc1 = new Var("skc1",t)
+        
+        val t1 = App(App(op,e4),e4) //(op e4 e4)
+        val t2 = App(App(op,e4),skc1) // (op e4 skc1)
+        
+        val eq1 = Eq(e3,t1)
+        val eq2 = Eq(e4,skc1)
+        val allEqs = List(eq1,eq2)
+        
+        con = con.addAll(allEqs)
+        con = con.addNode(t2)
+        
+        val path = con.explain(e3,t2)
+        println(path.get.toString(false))
+        println("transitivity chain:\n" + path.get.toProof.get)
+      }
     }
-    
   }
 }
