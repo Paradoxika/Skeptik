@@ -42,10 +42,6 @@ case class Abs(val variable: Var, val body: E) extends E {
   override def toString = unicodeOrElse("\u03BB","@") + variable.name + ":" + variable.t + "." + body
 }
 case class App(val function: E, val argument: E) extends E {
-  if (function.t.asInstanceOf[Arrow].t1 != argument.t) {
-    println(function + " t1 type " + function.t.asInstanceOf[Arrow].t1)
-    println(argument + " type " + argument.t)
-  }
   require(function.t.asInstanceOf[Arrow].t1 == argument.t)
   def copy = new App(function.copy,argument.copy)
   override lazy val t = function.t.asInstanceOf[Arrow].t2
@@ -53,6 +49,19 @@ case class App(val function: E, val argument: E) extends E {
   override def toString = this match {
     case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
     case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"
+  }
+}
+
+case class EqExpr(val function: E, val argument: E) extends E {
+  require(function.t.asInstanceOf[Arrow].t1 == argument.t)
+  def copy = new EqExpr(function.copy,argument.copy)
+  override lazy val t = function.t.asInstanceOf[Arrow].t2
+  def logicalSize = function.logicalSize + argument.logicalSize + 1
+  override def toString = this match {
+    case EqExpr(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
+  }
+  def =+=(that:EqExpr) = {
+    
   }
 }
 

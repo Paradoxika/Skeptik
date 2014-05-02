@@ -6,7 +6,8 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
 
-abstract class EqAxiom(override val mainFormulas: Sequent) extends Axiom(mainFormulas) {
+abstract class EqAxiom(override val mainFormulas: Sequent) extends SequentProofNode
+  with Nullary with NoImplicitContraction {
   def getConclusionEq: E = {
     conclusion.suc.last
   }

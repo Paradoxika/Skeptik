@@ -8,7 +8,6 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression.position.Position
 import at.logic.skeptik.prover.InferenceRule
 
-
 class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProofNode
 with Nullary with NoImplicitContraction {
   override def mainFormulas = Sequent(mainLeft)(mainRight)
@@ -68,7 +67,7 @@ with EigenvariableCondition {
 abstract class AbstractCut
 extends SequentProofNode with Binary with TwoAuxFormulas with LeftInSucRightInAnt 
 with NoMainFormula {
-  require(auxL == auxR)
+  require(Eq.eqEquals(auxL, auxR))
 }
 
 class Cut(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E)

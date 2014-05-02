@@ -53,12 +53,28 @@ object Eq {
     val t1Type = term1.t
     new Equation(t1Type)(term1,term2)
   }
+  def eqEquals(t1: E, t2: E): Boolean = {
+    if (Eq.?:(t1) && Eq.?:(t2)) {
+      val (u1,u2) = t1 match {
+        case App(App(c,f1),f2) => (f1,f2)
+      }
+      val (v1,v2) = t2 match {
+        case App(App(c,f1),f2) => (f1,f2)
+      }
+      ((u1 == v1) && (u2 == v2) || (u1 == v2) && (u2 == v1))
+    }
+    else t1 == t2
+  }
   def ?:(f: E) = { // very hacky!
     f match {
       case App(App(v,_),_) => v.toString == "="
       case _ => false
     }
   }
+//  def unapply(e:E) = e match {
+//    case App(q, Abs(v,f)) if v.toString == "=" => Some((v,f))
+//    case _ => None
+//  }  
 }
   
 object All extends QuantifierFormula(allC)  
