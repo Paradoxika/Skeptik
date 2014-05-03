@@ -10,6 +10,9 @@ import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.dijkstra._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.algorithm.compressor._
+import at.logic.skeptik.exporter.Exporter
+import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
+import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
 
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
@@ -17,12 +20,12 @@ import scala.collection.immutable.{HashMap => IMap}
 object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
   
   def apply(proof: Proof[N]): Proof[N] = {
-    val (con,eqNodesLeft,eqNodesRight) = buildGlobalCongruence(proof)
+    val (con,eqNodesLeft,eqNodesRight,allEqReferences) = buildGlobalCongruence(proof)
     
     val premiseAxiomMap = MMap[N,Set[App]]()
 //    var first = true
     def replaceRedundant(node: N, fromPremises: Seq[(N,Set[App],Boolean)]): (N,Set[App],Boolean) = {
-      println("processing " + node)
+//      println("processing " + node)
       val inputDerived = 
         if (node.isInstanceOf[Axiom]) true 
         else 
@@ -39,7 +42,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
       
       val rightEqs = fixedNodeInit.conclusion.suc.filter(Eq.?:(_)).map(f => f.asInstanceOf[App])
       val leftEqs = fixedNodeInit.conclusion.ant.filter(Eq.?:(_)).map(f => f.asInstanceOf[App])
-      
+
 //      val r1 = fixedNodeInit.conclusion.suc.filter(Eq.?:(_))
       
       val rS = rightEqs.size
@@ -74,10 +77,22 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
           val path = tree.get
 //          println("proofing " + (path.firstVert,path.lastVert) + " from " + path.originalEqs)
 //          println("path: " + path)
-          val pathProof = path.toProof
+          val eqRef = con.eqReferences
+          val pathProof = try {
+            path.toProof(allEqReferences)
+          }
+          catch {
+            case e: Exception => {
+              val exporter = new SkeptikFileExporter("experiments/congruence/resolveBug2")
+              exporter.write(Proof(fixedNodeInit))
+              exporter.flush
+              exporter.close
+              throw(e)
+            }
+          }
           val usedEqs = path.originalEqs
           pathProof match  {
-            case Some(proof) if (usedEqs.size < fixedNodeInit.conclusion.ant.size) => { //try without the if here ~ maybe reveal more bugs
+            case Some(proof) => { //try without the if here ~ maybe reveal more bugs; check is not g
               println("before " + fixedNodeInit)
 //              println(usedEqs.mkString(",") == proof.root.conclusion.ant.mkString(","))
               if (!(usedEqs.toSet.diff(proof.root.conclusion.ant.toSet).isEmpty &&  proof.root.conclusion.ant.toSet.diff(usedEqs.toSet).isEmpty)) {
@@ -93,6 +108,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
                 }
               })
               println("after  " + resNode)
+              if (resNode.conclusion.ant.size > fixedNodeInit.conclusion.ant.size) println("compressing, but clause got bigger")
               (resNode,resAxioms)
             }
             case _ => (fixedNodeInit,premiseAxioms)
@@ -126,16 +142,38 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
   
   
   
-def buildGlobalCongruence(proof: Proof[N]): (Congruence,MMap[App,N],MMap[App,N]) = {
+def buildGlobalCongruence(proof: Proof[N]): (Congruence,MMap[App,N],MMap[App,N],IMap[(E,E),App]) = {
     var con = new Congruence
     val eqNodesLeft = MMap[App,N]()
     val eqNodesRight = MMap[App,N]()
     
-    proof foldDown traverse
     
-    def traverse(node: N, premisesFresh: Seq[(Boolean,Boolean)]): (Boolean,Boolean) = {
-      val freshLeft = if (premisesFresh.size > 0) premisesFresh.map(_._1).min else true
-      val freshRight = if (premisesFresh.size > 0) premisesFresh.map(_._2).min else true
+    
+    def traverse(node: N, fromPremises: Seq[(Boolean,Boolean,IMap[(E,E),App])]): (Boolean,Boolean,IMap[(E,E),App]) = {
+      
+      val premiseMap = 
+        if (fromPremises.isEmpty) IMap[(E,E),App]()
+        else {
+          val maps = fromPremises.map(_._3)
+          maps.tail.foldLeft(maps.head)({(A,B) => 
+            A ++ B
+          })
+        }
+      
+      val rightEqs = node.conclusion.suc.filter(Eq.?:(_)).map(f => f.asInstanceOf[App])
+      val leftEqs = node.conclusion.ant.filter(Eq.?:(_)).map(f => f.asInstanceOf[App])
+      
+      val bothEqs = rightEqs ++ leftEqs
+      val eqMap = bothEqs.foldLeft(premiseMap)({(A,B) => 
+        A.updated((B.function.asInstanceOf[App].argument,B.argument), B)
+      })
+ 
+//      val test = (node.conclusion.ant ++ node.conclusion.suc).find(expr => {
+//        expr.toString == "((f2 c_5 c_2) = c_3)"
+//      })
+//      if (test.isDefined) println("found " + test.get + " in " + node)
+      val freshLeft = if (fromPremises.size > 0) fromPremises.map(_._1).min else true
+      val freshRight = if (fromPremises.size > 0) fromPremises.map(_._2).min else true
       val freshLeftOut = if(true) {
         val singleLeft = node.conclusion.suc.size == 0 && node.conclusion.ant.size == 1 && node.conclusion.ant.forall(Eq.?:(_))
         if (singleLeft) {
@@ -157,11 +195,11 @@ def buildGlobalCongruence(proof: Proof[N]): (Congruence,MMap[App,N],MMap[App,N])
         else true
       }
       else false
-      (freshLeftOut,freshRightOut)
+      (freshLeftOut,freshRightOut,eqMap)
     }
-    
+    val (_,_,mapRes) = proof foldDown traverse
     con = con.resolveDeducedQueue
     println("eqNodesLeft in bGC " + eqNodesLeft.mkString(","))
-    (con,eqNodesLeft,eqNodesRight)
+    (con,eqNodesLeft,eqNodesRight,mapRes)
   }
 }

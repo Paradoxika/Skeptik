@@ -10,8 +10,8 @@ import at.logic.skeptik.expression.formula._
 class R(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E) 
 extends AbstractCut {
   // Requirements only necessary because inefficient requirement in SequentProofNode was commented out 
-//  require(leftPremise.conclusion.suc contains auxL)
-//  require(rightPremise.conclusion.ant contains auxR)
+  require(leftPremise.conclusion.suc contains auxL)
+  require(rightPremise.conclusion.ant contains auxR)
   
   override def auxFormulasMap = Map(leftPremise -> Sequent()(auxL),
                                     rightPremise -> Sequent(auxR)())    
@@ -34,7 +34,7 @@ object R {
             pivot: E,
             returnPremiseOnfailure: Boolean = false,
             choosePremise: ((SequentProofNode, SequentProofNode) => SequentProofNode) = (l,r) => if (l.conclusion.width < r.conclusion.width) l else r ) = 
-    (leftPremise.conclusion.suc.find(Eq.eqEquals(_,pivot)), rightPremise.conclusion.ant.find(Eq.eqEquals(_,pivot))) match {
+    (leftPremise.conclusion.suc.find(_ == pivot), rightPremise.conclusion.ant.find(_ == pivot)) match {
       case (Some(auxL), Some(auxR)) => new R(leftPremise, rightPremise, auxL, auxR)
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
       case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
@@ -44,11 +44,14 @@ object R {
   
   def apply(premise1:SequentProofNode, premise2:SequentProofNode) = {
     def findPivots(p1:SequentProofNode, p2:SequentProofNode): Option[(E,E)] = {
-      for (auxL <- p1.conclusion.suc; auxR <- p2.conclusion.ant) if (Eq.eqEquals(auxL, auxR)) return Some(auxL,auxR)
+      for (auxL <- p1.conclusion.suc; auxR <- p2.conclusion.ant) if (auxL == auxR) return Some(auxL,auxR)
       return None
     }
     findPivots(premise1,premise2) match {
-      case Some((auxL,auxR)) => new R(premise1,premise2,auxL,auxR)
+      case Some((auxL,auxR)) => {
+        if (auxL.toString == "((f2 c_5 c_2) = c_3)") println("<<<<found " + auxL + " as pivot\n"+premise1 + "\n"+premise2+">>>>")
+        new R(premise1,premise2,auxL,auxR)
+      }
       case None => findPivots(premise2,premise1) match {
         case Some((auxL,auxR)) => new R(premise2,premise1,auxL,auxR)
         case None => {

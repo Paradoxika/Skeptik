@@ -5,6 +5,7 @@ package lk
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
+import scala.collection.immutable.{HashMap => IMap}
 
 abstract class EqAxiom(override val mainFormulas: Sequent) extends SequentProofNode
   with Nullary with NoImplicitContraction {
@@ -17,11 +18,15 @@ class EqReflexive(override val mainFormulas: Sequent) extends EqAxiom(mainFormul
 
 object EqReflexive {
   def apply(conclusion: Sequent) = new EqReflexive(conclusion)
-  def apply(expr: E) = {
+  def apply(expr: E, eqReferences: IMap[(E,E),App]) = {
     expr match {
       case App(App(e,t1),t2) if (t1 == t2 && Eq.?:(expr)) =>  new EqReflexive(new Sequent(Seq(),Seq(expr)))
       case _ => {
-        if (expr.t == i) new EqReflexive(new Sequent(Seq(),Seq(Eq(expr,expr))))
+        if (expr.t == i) {
+          val x = eqReferences.getOrElse((expr,expr), Eq(expr,expr))
+          if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " while creating EqReflexive node") 
+          new EqReflexive(new Sequent(Seq(),Seq(x)))
+        }
         else throw new Exception("Error occured while creating EQReflexive node: "+ expr + " neither is an instance of reflexivity nor a term")
 //        println(expr + " type: " + expr.t)
 //        new EqReflexive(new Sequent(Seq(),Seq(Eq(expr,expr))))
@@ -38,7 +43,7 @@ class EqTransitive(override val mainFormulas: Sequent) extends EqAxiom(mainFormu
 
 object EqTransitive {
   def apply(conclusion: Sequent) = new EqTransitive(conclusion)
-  def apply(eq1: E, eq2: E) = {
+  def apply(eq1: E, eq2: E, eqReferences: IMap[(E,E),App]) = {
     eq1 match {
       case App(App(e,u1),u2) if (Eq.?:(eq1)) => eq2 match {
         case App(App(e,v1),v2) if (Eq.?:(eq2)) => {
@@ -48,7 +53,22 @@ object EqTransitive {
             else if (u2 == v1) (u1,v2)
             else if (u2 == v2) (u1,v1)
             else throw new Exception("Error occured while creating EQtransitive node: "+ eq1 + " and " + eq2 + " don't form a transitivity chain")
-          new EqTransitive(new Sequent(Seq(eq1,eq2),Seq(Eq(t1,t2))))
+          val x = eqReferences.get((t1,t2)) match {
+              case Some(eq) => eq
+              case None => {
+                eqReferences.get((t2,t1)) match {
+                  case Some(eq2) => eq2
+                  case None => {
+                    val y = Eq(t1,t2)
+                    println("Have to create " + y + " myself in EqTransitive")
+                    println("eqs: " + eqReferences.values.mkString(","))
+                    y
+                  }
+                }
+              }
+            }
+          if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " while creating EqTransitive node")
+          new EqTransitive(new Sequent(Seq(eq1,eq2),Seq(x)))
         } 
       }  
     }

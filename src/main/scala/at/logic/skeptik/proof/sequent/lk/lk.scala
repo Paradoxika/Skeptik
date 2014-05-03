@@ -67,7 +67,7 @@ with EigenvariableCondition {
 abstract class AbstractCut
 extends SequentProofNode with Binary with TwoAuxFormulas with LeftInSucRightInAnt 
 with NoMainFormula {
-  require(Eq.eqEquals(auxL, auxR))
+  require(auxL == auxR)
 }
 
 class Cut(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E)

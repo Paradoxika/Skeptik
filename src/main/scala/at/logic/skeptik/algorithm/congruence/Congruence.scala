@@ -21,7 +21,7 @@ import scala.collection.mutable.ListBuffer
 class Congruence(
     val find: FindTable = new FindTable(), 
     val sigTable: SignatureTable = new SignatureTable(), 
-    val eqTriples: Map[E,(E,E,App)] = new IMap[E,(E,E,App)], 
+    val eqReferences: IMap[(E,E),App] = new IMap[(E,E),App], 
     val deduced: Queue[(E,E)] = Queue[(E,E)](), 
     val g: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) {
   
@@ -36,19 +36,19 @@ class Congruence(
 //  def copy = 
   
   def updateFind(newFind: FindTable) = {
-    new Congruence(newFind, sigTable, eqTriples,deduced,g)
+    new Congruence(newFind, sigTable, eqReferences,deduced,g)
   }
   def updateSigTable(newSigTable: SignatureTable) = {
-    new Congruence(find, newSigTable, eqTriples,deduced,g)
+    new Congruence(find, newSigTable, eqReferences,deduced,g)
   }
-  def updateEqTriples(newEqTriples: Map[E,(E,E,App)]) = {
-    new Congruence(find, sigTable, newEqTriples,deduced,g)
+  def updateEqReferences(newEqReferences: IMap[(E,E),App]) = {
+    new Congruence(find, sigTable, newEqReferences,deduced,g)
   }
   def updateDeduced(newDeduced: Queue[(E,E)]) = {
-    new Congruence(find, sigTable, eqTriples,newDeduced,g)
+    new Congruence(find, sigTable, eqReferences,newDeduced,g)
   }
   def updateGraph(newG: WGraph[E,EqLabel]) = {
-    new Congruence(find, sigTable, eqTriples,deduced,newG)
+    new Congruence(find, sigTable, eqReferences,deduced,newG)
   }
   
   def addAll(eqs: List[App]): Congruence = {
@@ -57,7 +57,9 @@ class Congruence(
   
   def addEquality(eq: App): Congruence = {
     val (l,r) = (eq.function.asInstanceOf[App].argument,eq.argument)
-    val c1 = addNode(l)
+    val eqRef = eqReferences.updated((l,r), eq)
+    val c0 = updateEqReferences(eqRef)
+    val c1 = c0.addNode(l)
     val c2 = c1.addNode(r)
     val c3 = c2.updateGraph(c2.g.addUndirectedEdge((l,(eq,None),r), 1))
     val res = c3.merge(l,r,Some(eq))
@@ -195,7 +197,9 @@ class Congruence(
 //            println("equations: "+ eqAll)
             //if (weight > 0) here?
 //            if (u.t != v.t) println("Types are not the same for " + (u,v))
-            updateGraph(g.addUndirectedEdge((u,(Eq(u,v),Some(path1,path2)),v), weight))
+            val x = Eq(u,v)
+            if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " when adding an edge to graph")
+            updateGraph(g.addUndirectedEdge((u,(x,Some(path1,path2)),v), weight))
           }
           case _ => this
         }

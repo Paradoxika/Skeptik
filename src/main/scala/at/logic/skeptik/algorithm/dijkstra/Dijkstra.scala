@@ -52,7 +52,9 @@ abstract class Dijkstra[T1,T2] {
     if (s == target && s.isInstanceOf[E]) {
       val sE = s.asInstanceOf[E]
       val end = new EquationTree(sE,None)
-      val eqTreeEdge = new EqTreeEdgeC(end,(Eq(sE,sE),None))
+      val x = Eq(sE,sE)
+      if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " when shortest path between two equal expr is asked")
+      val eqTreeEdge = new EqTreeEdgeC(end,(x,None))
       new EquationTree(sE,Some(eqTreeEdge))
     }
     else {

@@ -87,7 +87,9 @@ object CongruenceDebug {
         println(path)
         println(e + " = " + d + " because: " + path.allEqs)
         
-        println("\n"+path.toProof.get)
+        val eqRef = con.eqReferences
+        
+        println("\n"+path.toProof(eqRef).get)
 //        println("trans chain?: " + con.pathTreetoProof(path))
       }
       case 1 => {
@@ -121,8 +123,8 @@ object CongruenceDebug {
         val path2 = dij(a,c,con.g)
         println("distance after " + c + " to " + a + ": " + dij.distances.getOrElse(c,Integer.MAX_VALUE))
         println(a + " = " + c + " because: " + path2.collectLabels)
-        
-        println("\n"+path.toProof.get)
+        val eqRef = con.eqReferences
+        println("\n"+path.toProof(eqRef).get)
       }
       case 2 => {
         //a1 = b1, a1 = c1, f(a1) = a, f(b1) = b, f(c1) = c
@@ -143,8 +145,8 @@ object CongruenceDebug {
         println(con.sigTable)
         println("distance of " + c + " to " + a + ": " + dij.distances.getOrElse(c,Integer.MAX_VALUE))
         println(a + " = " + c + " because: " + path.allEqs)
-        
-        println("\n"+path.toProof.get)
+        val eqRef = con.eqReferences
+        println("\n"+path.toProof(eqRef).get)
       }
       
       case 3 => {
@@ -179,6 +181,7 @@ object CongruenceDebug {
         println(con.g)
         println("distance of " + a + " to " + b + ": " + dij.distances.getOrElse(b,Integer.MAX_VALUE))
         println(a + " = " + b + " because: " + path.allEqs)
+        val eqRef = con.eqReferences
         
         val eqs2 = List(Eq(d,c1),Eq(c1,c2),Eq(c2,c3),Eq(c3,h))
         println("\n\n\n===Input: " + (eqs ++ eqs2).mkString(","))
@@ -191,7 +194,7 @@ object CongruenceDebug {
         
         con = con.resolveDeducedQueue
         
-        
+        val eqRefs2 = con.eqReferences
         
         val dij2 = new EquationDijkstra
         
@@ -202,9 +205,10 @@ object CongruenceDebug {
         
 //        println("trans chain?: " + path2.toProof)
         
-        println("\n"+path.toProof.get)
         
-        println("\n"+path2.toProof.get)
+        println("\n"+path.toProof(eqRef).get)
+        
+        println("\n"+path2.toProof(eqRefs2).get)
       }
       case 4 => {
         //(op e4 e3),(op e3 e3) from
@@ -244,9 +248,12 @@ object CongruenceDebug {
         
         con = con.addAll(allEqs)
         con = con.resolveDeducedQueue
+        
+        val eqRef = con.eqReferences
+        
         val path = con.explain(t2,t6)
         println(path)
-        println(path.get.toProof)
+        println(path.get.toProof(eqRef))
       }
       case 5 => {
         //((op e3 e1),(op e3 e3)) 
@@ -275,7 +282,7 @@ object CongruenceDebug {
 //        println("XXXXXXXXXXXXXXXXXX BEFORE ADDING")
         con = con.addNode(t5)
 //        println("XXXXXXXXXXXXXXXXXX AFTER ADDING")
-        
+        val eqRef = con.eqReferences
         val path = con.explain(t5,t2)
         
 //        println(path.get.toProof)
@@ -291,7 +298,7 @@ object CongruenceDebug {
         println(path)
 //        println("transitivity chain:\n" + path.get.transChainProof.get)
         println("BUILDING PROOF")
-        val x = path.get.toProof.get
+        val x = path.get.toProof(eqRef).get
         println("full proof:\n" + x)
       }
       case 6 => {
@@ -309,10 +316,10 @@ object CongruenceDebug {
         
         con = con.addAll(allEqs)
         con = con.addNode(t2)
-        
+        val eqRef = con.eqReferences
         val path = con.explain(e3,t2)
         println(path.get.toString(false))
-        println("transitivity chain:\n" + path.get.toProof.get)
+        println("transitivity chain:\n" + path.get.toProof(eqRef).get)
       }
     }
   }
