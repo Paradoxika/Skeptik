@@ -11,7 +11,7 @@ trait ProofE extends SequentE {
   def avoidChains: Boolean
   
   def write(proof:Proof[N]): Unit = {
-    var counter = 0
+    var counter = 1
     
     proof foldDown { 
       // premiseResults contains the chains used to derive the premise nodes.

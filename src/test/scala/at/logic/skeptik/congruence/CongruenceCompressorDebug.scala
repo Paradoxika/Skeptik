@@ -13,9 +13,9 @@ object CongruenceCompressorDebug {
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
 //    val file = "experiments/congruence/resolveBug.s"
-      val file = "experiments/congruence/resolveBug2.smt2"
-//    val parser = ProofParserVeriT
-    val parser = ProofParserSkeptik
+      val file = "experiments/congruence/resolveBug3.smt2"
+    val parser = ProofParserVeriT
+//    val parser = ProofParserSkeptik
     if (multiple) {
       val lines = reader.lines
   //    var percentage: Double = - 1
@@ -32,7 +32,6 @@ object CongruenceCompressorDebug {
     }
     else {
       val proof = parser.read(file)
-//      val proof = parser.read(file)
       val newProof = CongruenceCompressor(proof)
       println(measure(proof))
       println(measure(newProof))

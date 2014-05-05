@@ -83,7 +83,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
           }
           catch {
             case e: Exception => {
-              val exporter = new SkeptikFileExporter("experiments/congruence/resolveBug2")
+              val exporter = new SMTFileExporter("experiments/congruence/resolveBug4")
               exporter.write(Proof(fixedNodeInit))
               exporter.flush
               exporter.close
