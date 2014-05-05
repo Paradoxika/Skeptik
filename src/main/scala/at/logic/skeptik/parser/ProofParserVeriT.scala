@@ -1,7 +1,7 @@
 package at.logic.skeptik.parser
 
 import scala.util.parsing.combinator._
-import collection.mutable.{HashMap => MMap}
+import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
@@ -40,8 +40,99 @@ extends JavaTokenParsers with RegexParsers {
 
   def inference: Parser[Node] = (resolution | axiom | unchecked)
   def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ {
-    list => (list.head /: list.tail) { ((left, right) => R(left, right)) }
+    list => resolveClauses(list)
+//    list => {
+//      (list.head /: list.tail) { (left, right) => 
+//        try { 
+//          R(left, right)
+//        }
+//        catch {
+//        	case e: Exception => {
+//        	  
+//        	  throw(e)
+//        	}
+//        }
+//      }
+//    }
   }
+  
+    /**
+   * Resolves the clauses represented by a list of indices in the correct order.
+   * 
+   * It does this by keeping track of in which clauses variables occur positively/negatively.
+   * This method only initializes these maps and calls the recursive method res with them.
+   */
+  def resolveClauses(clauses: List[Node]): Node = {
+    //map denoting that variable v occurs in {clause_1,...,clause_n} as a positive literl
+    val posOc = MMap[E,MSet[Node]]()
+    //respective negative version
+    val negOc = MMap[E,MSet[Node]]()
+    //initialize the maps
+    clauses.foreach(clause => {
+      clause.conclusion.suc.foreach(v => {
+//        println(v + " occurs positively in " + clause)
+        if (posOc.isDefinedAt(v)) posOc(v) += clause
+        else posOc += (v -> MSet[Node](clause))
+      })
+      clause.conclusion.ant.foreach(v => {
+//        println(v + " occurs negatively in " + clause)
+        if (negOc.isDefinedAt(v)) negOc(v) += clause
+        else negOc += (v -> MSet[Node](clause))
+      })
+    })
+//    println(clauseNumbers)
+//    println(posOc,negOc)
+    //start recursion
+    res(posOc,negOc)
+  }
+  
+  /**
+   * Recursively resolves clauses, given two maps for positive/negative occurances of variables
+   * 
+   * For TraceCheck chains, the following invariant holds:
+   * At every point either 
+   * there exists a literal which occurs exactly once positively and once negatively
+   * or there is only one clause remaining
+   * 
+   * In the first case, this literal is used for resolving the respective clauses and updating the
+   * occurange maps
+   * In the other case, the one clause is returned 
+   * (either when no pivot is found or when the resolved clause is empty)
+   */
+  def res(posOc: MMap[E,MSet[Node]], negOc: MMap[E,MSet[Node]]):Node = {
+    val nextPivot = posOc.find(e => {
+      e._2.size == 1 &&
+      negOc.getOrElse(e._1, MSet[Node]()).size == 1
+    }).map(a => a._1)
+//    println(nextPivot)
+    nextPivot match {
+      //no more pivot means posOc and/or negOc can only contain 1 clause in the sets of occurances
+      case None => 
+        if (posOc.size > 0) posOc.last._2.last 
+        else negOc.last._2.last
+      case Some(p) => {
+        val posClause = posOc(p).last
+        val negClause = negOc(p).last
+        val newClause = R(posClause,negClause,p,false)
+        newClause.conclusion.suc.foreach(v => {
+          posOc(v) -= posClause
+          posOc(v) -= negClause
+          posOc(v) += newClause
+        })
+        newClause.conclusion.ant.foreach(v => {
+          negOc(v) -= posClause
+          negOc(v) -= negClause
+          negOc(v) += newClause
+        })
+        val newPOc = posOc - p
+        val newNegOc = negOc - p
+        if (newPOc.isEmpty && newNegOc.isEmpty) newClause
+        else res(newPOc,newNegOc)
+      }
+    }
+  }
+
+  
   def axiom: Parser[Node] = "input" ~> conclusion ^^ {
     list => new Axiom(list)
   }

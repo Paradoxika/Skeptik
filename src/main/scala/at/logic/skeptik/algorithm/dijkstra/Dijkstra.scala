@@ -13,7 +13,7 @@ class EquationDijkstra extends Dijkstra[E,EqLabel] {
   }
   
   def setPi(u: E, l: EqLabel, v: E) = {
-    val eqTreeEdge = new EqTreeEdgeC(pi(v),l)
+    val eqTreeEdge = new EqTreeEdge(pi(v),l)
     val p = new EquationTree(u,Some(eqTreeEdge))
     pathTrees.update(u, p)
   }
@@ -54,7 +54,7 @@ abstract class Dijkstra[T1,T2] {
       val end = new EquationTree(sE,None)
       val x = Eq(sE,sE)
       if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " when shortest path between two equal expr is asked")
-      val eqTreeEdge = new EqTreeEdgeC(end,(x,None))
+      val eqTreeEdge = new EqTreeEdge(end,(x,None))
       new EquationTree(sE,Some(eqTreeEdge))
     }
     else {

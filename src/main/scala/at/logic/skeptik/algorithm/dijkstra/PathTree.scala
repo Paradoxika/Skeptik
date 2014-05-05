@@ -8,12 +8,12 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.immutable.{HashMap => IMap}
 
-class EqTreeEdgeC(val nextTree: EquationTree, val label: EqLabel) extends (EquationTree,(App,Option[(EquationTree,EquationTree)]))(nextTree,label) {
+class EqTreeEdge(val nextTree: EquationTree, val label: EqLabel) extends (EquationTree,(App,Option[(EquationTree,EquationTree)]))(nextTree,label) {
   val eq = label._1
   val deduceTrees = label._2
 }
 
-case class EquationTree(val v: E, val pred: Option[EqTreeEdgeC]) {
+case class EquationTree(val v: E, val pred: Option[EqTreeEdge]) {
   
   def toProof(eqReferences: IMap[(E,E),App]): Option[Proof[N]] = buildTransChain(eqReferences) match {
     case Some((Some(node),deduced,eq)) => {
@@ -23,7 +23,10 @@ case class EquationTree(val v: E, val pred: Option[EqTreeEdgeC]) {
 //      println("results in: " + x)
       x
     }
-    case Some((None,ded,_)) if !ded.isEmpty => Some(ded.last)
+    case Some((None,ded,_)) if !ded.isEmpty => {
+      if (ded.size > 1) println("more than one deduced with empty node")
+      Some(ded.last)
+    }
     case _ => None
   }
   
@@ -32,9 +35,9 @@ case class EquationTree(val v: E, val pred: Option[EqTreeEdgeC]) {
     val ddProofs = List(dd1Opt,dd2Opt).filter(_.isDefined).map(_.get)
     val ddProofRoots = ddProofs.map(_.root) //Check for EqAxiom, because of Axiom "hack"
     val ddEqs = ddProofRoots.map(_.conclusion.suc.last).toSeq
-//    println("deducing " + eq)
-//    println("trees: " + dd1 + " and " + dd2)
-//    println("proofs: " + dd1Opt.isDefined + " and " + dd2Opt.isDefined)
+    println("deducing " + eq)
+    println("trees: " + dd1 + " and " + dd2)
+    println("proofs: " + dd1Opt.isDefined + " and " + dd2Opt.isDefined)
     val res = 
       if (ddEqs.isEmpty) {
         val x = dd1.originalEqs.map(_.asInstanceOf[E]).toSeq ++: dd2.originalEqs.map(_.asInstanceOf[E]).toSeq
