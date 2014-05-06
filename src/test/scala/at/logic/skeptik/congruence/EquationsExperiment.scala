@@ -8,6 +8,7 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof._
 import at.logic.skeptik.util.io.Input
 import at.logic.skeptik.algorithm.congruence._
+import scala.collection.mutable.{HashMap => MMap}
 
 object EquationsExperiment {
 
@@ -79,7 +80,7 @@ object EquationsExperiment {
     val s = rightEqs.size
     val twoAndCongruent =
       if (s > 0) {
-        val con = new Congruence
+        val con = new Congruence(MMap[(E,E),App]())
         leftEqs.foreach(eq => con.addEquality(eq))
         con.resolveDeducedQueue
         rightEqs.exists(eq => {
@@ -211,12 +212,12 @@ object EquationsExperiment {
     val inputEqs = inputEqNodes.map(node => node.conclusion.suc.last.asInstanceOf[App])
     inputEqNodes.foreach(node => println(node.getClass()))
 //    println("inputEqs: " + inputEqs)
-    val con = inputEqs.foldLeft(new Congruence)({(A,B) => A.addEquality(B)}).resolveDeducedQueue
+    val con = inputEqs.foldLeft(new Congruence(MMap[(E,E),App]()))({(A,B) => A.addEquality(B)}).resolveDeducedQueue
     con
   }
   
   def buildGlobalCongruence2(proof: Proof[N]) = {
-    var con = new Congruence
+    var con = new Congruence(MMap[(E,E),App]())
     
     proof foldDown traverse
     

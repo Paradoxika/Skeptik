@@ -39,7 +39,16 @@ object R {
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
       case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
       case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
-      case _ => throw new Exception("Auxiliary formulas not found.")
+//      case (None, None) => {
+//        (leftPremise.conclusion.ant.find(_ == pivot), rightPremise.conclusion.suc.find(_ == pivot)) match {
+//          case (Some(auxL), Some(auxR)) => new R(rightPremise, leftPremise, auxR, auxL)
+//          case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
+//          case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
+//          case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
+//          case _ => throw new Exception("Auxiliary formulas not found.\n"+leftPremise.conclusion + "\n" + rightPremise.conclusion + "\n" + pivot)
+//        }
+//      }
+      case _ => throw new Exception("Auxiliary formulas not found.\n"+leftPremise.conclusion + "\n" + rightPremise.conclusion + "\n" + pivot)
     } 
   
   def apply(premise1:SequentProofNode, premise2:SequentProofNode) = {
@@ -49,7 +58,6 @@ object R {
     }
     findPivots(premise1,premise2) match {
       case Some((auxL,auxR)) => {
-        if (auxL.toString == "((f2 c_5 c_2) = c_3)") println("<<<<found " + auxL + " as pivot\n"+premise1 + "\n"+premise2+">>>>")
         new R(premise1,premise2,auxL,auxR)
       }
       case None => findPivots(premise2,premise1) match {

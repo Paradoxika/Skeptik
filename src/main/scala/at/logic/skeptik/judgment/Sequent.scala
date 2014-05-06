@@ -21,4 +21,5 @@ abstract class Sequent extends Judgment with SequentLike[Sequent] {
   def canEqual(other: Any) = other.isInstanceOf[Sequent]  
   override def hashCode = 42*ant.hashCode + suc.hashCode
   override def toString = ant.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + suc.mkString(", ")
+//  override def toString = ant.map(x => x + " ~ " + x.hashCode).mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + suc.map(x => x + " ~ " + x.hashCode).mkString(", ")
 }

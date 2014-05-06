@@ -13,6 +13,7 @@ import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.exporter.Exporter
 import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
 import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
@@ -20,8 +21,12 @@ import scala.collection.immutable.{HashMap => IMap}
 object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
   
   def apply(proof: Proof[N]): Proof[N] = {
-    val (con,eqNodesLeft,eqNodesRight,allEqReferences) = buildGlobalCongruence(proof)
-    
+    val references = MMap[(E,E),App]()
+    val (con,eqNodesLeft,eqNodesRight) = buildGlobalCongruence(proof,references)
+//    val allEqReferences: MMap[(E,E),App] = MMap[(E,E),App]() ++ allEqReferencesImmutable
+    println("all references size: " + references.size)
+//    val istherealready = allEqReferences.values.find(p => {(p.toString == "((f1 c_3 c_3) = (f1 (f3 c6) (f3 c7)))" || p.toString == "((f1 (f3 c6) (f3 c7)) = (f1 c_3 c_3))") })
+//    println("is there alreay?: " + istherealready)
     val premiseAxiomMap = MMap[N,Set[App]]()
 //    var first = true
     def replaceRedundant(node: N, fromPremises: Seq[(N,Set[App],Boolean)]): (N,Set[App],Boolean) = {
@@ -77,14 +82,47 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
           val path = tree.get
 //          println("proofing " + (path.firstVert,path.lastVert) + " from " + path.originalEqs)
 //          println("path: " + path)
-          val eqRef = con.eqReferences
+//          val eqRef = con.eqReferences
           val pathProof = try {
-            path.toProof(allEqReferences)
+            println("TO PROOF with " +  references + " references")
+            path.toProof(references)
           }
           catch {
             case e: Exception => {
-              val exporter = new SMTFileExporter("experiments/congruence/resolveBug4")
-              exporter.write(Proof(fixedNodeInit))
+              val exporter = new SMTFileExporter("experiments/congruence/resolveBug11",true)
+              val origEqs = path.originalEqs
+              val rightSideEq = fixedNodeInit.conclusion.suc.find(expr => if (Eq.?:(expr)) origEqs.contains(expr.asInstanceOf[App]) else false)
+              val res1 = rightSideEq match{
+                case Some(eq) => {
+//                  println(eq + " is rsEq")
+                  R(new Axiom(new Sequent(origEqs.toSeq,Seq())),fixedNodeInit)
+                }
+                case None => {
+                  val leftSideEq = fixedNodeInit.conclusion.ant.find(expr => if (expr.isInstanceOf[App]) origEqs.contains(expr.asInstanceOf[App]) else false)
+                  leftSideEq match{
+                    case Some(eq) => {
+//                      println(eq + " is lsEq")
+                      R(new Axiom(new Sequent(Seq(),origEqs.toSeq)),fixedNodeInit)
+                    }
+                    case None => {
+                      throw new Exception("fixedNode empty? " + fixedNodeInit)
+                    }
+                  }
+                }
+              }
+              val res2 = origEqs.foldLeft(res1)({(A,B) =>
+                val ax = new Axiom(new Sequent(Seq(),Seq(B)))
+                if (A.conclusion.ant.contains(B)) R(A,ax)
+                else A
+//                try R(A,ax)
+//                catch {
+//                  case e: Exception => {
+//                    A
+//                  }
+//                }
+              })
+              exporter.write(Proof(res2.asInstanceOf[N]))            
+              
               exporter.flush
               exporter.close
               throw(e)
@@ -140,10 +178,8 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
     DAGify(resProof)
   }
   
-  
-  
-def buildGlobalCongruence(proof: Proof[N]): (Congruence,MMap[App,N],MMap[App,N],IMap[(E,E),App]) = {
-    var con = new Congruence
+  def buildGlobalCongruence(proof: Proof[N], references: MMap[(E,E),App]): (Congruence,MMap[App,N],MMap[App,N]) = {
+    var con = new Congruence(references)
     val eqNodesLeft = MMap[App,N]()
     val eqNodesRight = MMap[App,N]()
     
@@ -164,6 +200,11 @@ def buildGlobalCongruence(proof: Proof[N]): (Congruence,MMap[App,N],MMap[App,N],
       val leftEqs = node.conclusion.ant.filter(Eq.?:(_)).map(f => f.asInstanceOf[App])
       
       val bothEqs = rightEqs ++ leftEqs
+      bothEqs.foreach(eq => {
+        val (l,r) = (eq.function.asInstanceOf[App].argument,eq.argument)
+        references += ((l,r) -> eq)
+        references += ((r,l) -> eq)
+      })
       val eqMap = bothEqs.foldLeft(premiseMap)({(A,B) => 
         A.updated((B.function.asInstanceOf[App].argument,B.argument), B)
       })
@@ -200,6 +241,6 @@ def buildGlobalCongruence(proof: Proof[N]): (Congruence,MMap[App,N],MMap[App,N],
     val (_,_,mapRes) = proof foldDown traverse
     con = con.resolveDeducedQueue
     println("eqNodesLeft in bGC " + eqNodesLeft.mkString(","))
-    (con,eqNodesLeft,eqNodesRight,mapRes)
+    (con,eqNodesLeft,eqNodesRight)
   }
 }

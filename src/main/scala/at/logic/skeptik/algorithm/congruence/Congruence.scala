@@ -5,6 +5,7 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.algorithm.dijkstra._
 //import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
+import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.Stack
 import scala.collection.immutable.Queue
 import scala.collection.mutable.ListBuffer
@@ -19,9 +20,9 @@ import scala.collection.mutable.ListBuffer
 //bla[PathTree[E,]]
 
 class Congruence(
+    val eqReferences: MMap[(E,E),App], 
     val find: FindTable = new FindTable(), 
     val sigTable: SignatureTable = new SignatureTable(), 
-    val eqReferences: IMap[(E,E),App] = new IMap[(E,E),App], 
     val deduced: Queue[(E,E)] = Queue[(E,E)](), 
     val g: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) {
   
@@ -36,19 +37,19 @@ class Congruence(
 //  def copy = 
   
   def updateFind(newFind: FindTable) = {
-    new Congruence(newFind, sigTable, eqReferences,deduced,g)
+    new Congruence(eqReferences, newFind, sigTable,deduced,g)
   }
   def updateSigTable(newSigTable: SignatureTable) = {
-    new Congruence(find, newSigTable, eqReferences,deduced,g)
+    new Congruence(eqReferences, find, newSigTable,deduced,g)
   }
-  def updateEqReferences(newEqReferences: IMap[(E,E),App]) = {
-    new Congruence(find, sigTable, newEqReferences,deduced,g)
-  }
+//  def updateEqReferences(newEqReferences: MMap[(E,E),App]) = {
+//    new Congruence(find, sigTable, newEqReferences,deduced,g)
+//  }
   def updateDeduced(newDeduced: Queue[(E,E)]) = {
-    new Congruence(find, sigTable, eqReferences,newDeduced,g)
+    new Congruence(eqReferences, find, sigTable,newDeduced,g)
   }
   def updateGraph(newG: WGraph[E,EqLabel]) = {
-    new Congruence(find, sigTable, eqReferences,deduced,newG)
+    new Congruence(eqReferences, find, sigTable,deduced,newG)
   }
   
   def addAll(eqs: List[App]): Congruence = {
@@ -57,9 +58,9 @@ class Congruence(
   
   def addEquality(eq: App): Congruence = {
     val (l,r) = (eq.function.asInstanceOf[App].argument,eq.argument)
-    val eqRef = eqReferences.updated((l,r), eq)
-    val c0 = updateEqReferences(eqRef)
-    val c1 = c0.addNode(l)
+    val eqRef = eqReferences.update((l,r), eq)
+//    val c0 = updateEqReferences(eqRef)
+    val c1 = this.addNode(l)
     val c2 = c1.addNode(r)
     val c3 = c2.updateGraph(c2.g.addUndirectedEdge((l,(eq,None),r), 1))
     val res = c3.merge(l,r,Some(eq))
@@ -173,7 +174,7 @@ class Congruence(
   }
   
   def resolveDeduced(u: E, v: E): Congruence = {
-    val dij = new EquationDijkstra
+    val dij = new EquationDijkstra(eqReferences)
 //    println("resolve deduced: " + (u,v))
     u match {
       case App(u1,u2) => {
@@ -197,7 +198,7 @@ class Congruence(
 //            println("equations: "+ eqAll)
             //if (weight > 0) here?
 //            if (u.t != v.t) println("Types are not the same for " + (u,v))
-            val x = Eq(u,v)
+            val x = Eq(u,v,eqReferences)
             if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " when adding an edge to graph")
             updateGraph(g.addUndirectedEdge((u,(x,Some(path1,path2)),v), weight))
           }
@@ -207,10 +208,10 @@ class Congruence(
       case _ => this
     }
   }
-
+  
   def explain(u: E, v: E): Option[EquationTree] = {
 //    resolveDeduced
-    val dij = new EquationDijkstra
+    val dij = new EquationDijkstra(eqReferences)
 //    val tmpEq = Eq(u,v)
 //    val tmpCon = addEquality(tmpEq)
 //    val realG = tmpCon.g.removeUndirectedEdge((u,(tmpEq,None),v))

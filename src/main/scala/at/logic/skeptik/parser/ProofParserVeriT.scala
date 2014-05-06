@@ -40,20 +40,20 @@ extends JavaTokenParsers with RegexParsers {
 
   def inference: Parser[Node] = (resolution | axiom | unchecked)
   def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ {
-    list => resolveClauses(list)
-//    list => {
-//      (list.head /: list.tail) { (left, right) => 
-//        try { 
-//          R(left, right)
-//        }
-//        catch {
-//        	case e: Exception => {
-//        	  
-//        	  throw(e)
-//        	}
-//        }
-//      }
-//    }
+//    list => resolveClauses(list)
+    list => {
+      (list.head /: list.tail) { (left, right) => 
+        try { 
+          R(left, right)
+        }
+        catch {
+        	case e: Exception => {
+        	  
+        	  throw(e)
+        	}
+        }
+      }
+    }
   }
   
     /**
@@ -115,19 +115,32 @@ extends JavaTokenParsers with RegexParsers {
         val negClause = negOc(p).last
         val newClause = R(posClause,negClause,p,false)
         newClause.conclusion.suc.foreach(v => {
-          posOc(v) -= posClause
-          posOc(v) -= negClause
-          posOc(v) += newClause
+          posOc.get(v) match {
+            case None => posOc += (v -> MSet[Node](newClause))
+            case Some(set) => {
+              set -= posClause
+              set -= negClause
+              set += newClause
+            }
+          }
         })
         newClause.conclusion.ant.foreach(v => {
-          negOc(v) -= posClause
-          negOc(v) -= negClause
-          negOc(v) += newClause
+          negOc.get(v) match {
+            case None => negOc += (v -> MSet[Node](newClause))
+            case Some(set) => {
+              set -= posClause
+              set -= negClause
+              set += newClause
+            }
+          }
         })
-        val newPOc = posOc - p
-        val newNegOc = negOc - p
-        if (newPOc.isEmpty && newNegOc.isEmpty) newClause
-        else res(newPOc,newNegOc)
+        if (posOc.contains(p) || negOc.contains(p)) {
+          val newPOc = posOc - p
+          val newNegOc = negOc - p
+          if (newPOc.isEmpty && newNegOc.isEmpty) newClause
+          else res(newPOc,newNegOc)
+        }
+        else newClause
       }
     }
   }
