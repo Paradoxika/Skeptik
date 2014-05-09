@@ -63,10 +63,10 @@ object R {
       case None => findPivots(premise2,premise1) match {
         case Some((auxL,auxR)) => new R(premise2,premise1,auxL,auxR)
         case None => {
-          println("Not resolvable:")
-          println(premise1 + " class: " + premise1.getClass)
+//          println("Not resolvable:")
+//          println(premise1 + " class: " + premise1.getClass)
 //          println(Proof(premise1))
-          println(premise2 + " class: " + premise2.getClass)
+//          println(premise2 + " class: " + premise2.getClass)
           throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
         }
       }

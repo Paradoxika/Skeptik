@@ -5,8 +5,9 @@ import scala.collection.mutable.PriorityQueue
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashSet => MSet}
 import at.logic.skeptik.expression.formula._
+import at.logic.skeptik.algorithm.congruence.EqW
 
-class EquationDijkstra(references: MMap[(E,E),App]) extends Dijkstra[E,EqLabel](references) {
+class EquationDijkstra(references: MMap[(E,E),EqW]) extends Dijkstra[E,EqLabel](references) {
   
   def pi(u: E): EquationTree = {
     pathTrees.getOrElseUpdate(u,new EquationTree(u,None))
@@ -24,11 +25,11 @@ class EquationDijkstra(references: MMap[(E,E),App]) extends Dijkstra[E,EqLabel](
 //  }
 }
 
-abstract class Dijkstra[T1,T2](references: MMap[(E,E),App]) {
+abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
   
   val distances = MMap[T1,Int]()
   val pathTrees = MMap[T1,EquationTree]()
-  val discount = MSet[App]()
+  val discount = MSet[EqW]()
   
   def d(u: T1) = {
     distances.getOrElse(u, Integer.MAX_VALUE)
@@ -52,7 +53,7 @@ abstract class Dijkstra[T1,T2](references: MMap[(E,E),App]) {
     if (s == target && s.isInstanceOf[E]) {
       val sE = s.asInstanceOf[E]
       val end = new EquationTree(sE,None)
-      val x = Eq(sE,sE,references)
+      val x = EqW(sE,sE)
       if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " when shortest path between two equal expr is asked")
       val eqTreeEdge = new EqTreeEdge(end,(x,None))
       new EquationTree(sE,Some(eqTreeEdge))
