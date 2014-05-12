@@ -115,13 +115,15 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
             path.toProof(references)
           }
           catch {
-            /**
+            
+            /******************************************************
              * here comes alot of debug stuff, including the exporting of the current node as a proof
              * to also have all them found by this procedure some artificial nodes are added
              * one for each used equality as a node with just that equality on the right side
              * 
              * and one with all equalities on the left side
-             */
+             *****************************************************/
+            
             case e: Exception => {
               val exporter = new SMTFileExporter("experiments/congruence/resolveBug11",true)
               val origEqs = path.originalEqs.toSeq //set produced bugs with EqW contain not delivering correct result
@@ -173,10 +175,12 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
               throw(e)
             }
           }
-          /**
+          
+          /******************************************************
            * here the actual replacement is done
            * if a node is in fact replaced it is also resolved with all the which it can be resolved with
-           */
+           *****************************************************/
+          
           val usedEqs = path.originalEqs
           pathProof match  {
             case Some(proof) => {
@@ -223,7 +227,17 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
   
   /**
    * gathers all the input equality and inequality axioms (i.e. single equalities on the right and left respectively)
+   * adds input equalities to a newly created congruence structure
    * 
+   * input (in)equalities are only those for which 
+   * no node with a single equality on the right (left) was used to derive this node
+   * 
+   * @param proof to gather equalities and create congruence structure for
+   * @param references equality reference map
+   * 
+   * @res triple: -congruence structure with input equalities added
+   *              -map from EqW objects representing input equalities to the respective proof nodes
+   *              -map from EqW objects representing input inequalities to the respective proof nodes
    */
   def buildGlobalCongruence(proof: Proof[N], references: MMap[(E,E),EqW]): (Congruence,MMap[EqW,N],MMap[EqW,N]) = {
     var con = new Congruence(references)

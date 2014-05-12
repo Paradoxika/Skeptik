@@ -4,10 +4,19 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof.sequent.lk._
 
+/**
+ * class EqW stands for equality wrapper
+ * provides access methods l,r for the terms on the left and right side resp.
+ * 
+ * overrides equals to make EqW objects representing symmetric equal
+ * which was the initial intention of creating this class in the first place
+ * however literals are judgements, therefore EqW can't be a literal (yet?)
+ * so this does not really solve the problem
+ * 
+ * reverse method is to get an EqW object representing r = l if the current equality is l = r
+ */
+
 class EqW(val equality :E) {
-
-
-
   
   def reverse = {
     val eqVar = new Var("=", (l.t -> (l.t -> o))) with Infix
@@ -37,6 +46,22 @@ class EqW(val equality :E) {
   
   override def toString = equality.toString
 }
+
+/**
+ * companion object of class EqW
+ * 
+ * the important methods are the isEq method, returning true iff the input expression is an equality
+ * and the apply and unapply methods
+ * 
+ * the apply method with one argument checks whether the input expression is an equality and 
+ * returns a respective EqW object in this case
+ * 
+ * the apply method with two arguments creates an equality between the terms
+ * 
+ * the resolve and resolveSymm methods are experiments to have special cases of the 
+ * R.apply method for equalities, taking into account symmetry.
+ * This is however not a very satisfactory solution and so far it does also not work properly
+ */
 
 object EqW {
   
