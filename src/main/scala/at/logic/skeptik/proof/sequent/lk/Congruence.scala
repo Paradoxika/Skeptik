@@ -9,6 +9,12 @@ import scala.collection.immutable.{HashMap => IMap}
 import scala.collection.mutable.{HashMap => MMap}
 import at.logic.skeptik.algorithm.congruence.EqW
 
+
+/**
+ * EqAxioms is the superclass of all equality axioms (reflexivity, transitivity and congruence)
+ * equality axioms are special types of SequentProofNodes
+ */
+
 abstract class EqAxiom(override val mainFormulas: Sequent) extends SequentProofNode
   with Nullary with NoImplicitContraction {
   def getConclusionEq: E = {
@@ -16,24 +22,27 @@ abstract class EqAxiom(override val mainFormulas: Sequent) extends SequentProofN
   }
 }
 
+/**
+ * EqReflexive is an axiom with the conclusion ( |- u = u )
+ * 
+ * I'm not sure whether this axiom really has to be used
+ */
 class EqReflexive(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
 
+/**
+ * companion object of EqReflexive
+ * 
+ * creates an EqReflexive object either from a full sequent (which should perhaps not be possible)
+ * or an expression, for which it is checked whether it is of the form (u = u) and an Exception is thrown if not
+ */
 object EqReflexive {
   def apply(conclusion: Sequent) = new EqReflexive(conclusion)
-  def apply(expr: E, eqReferences: MMap[(E,E),EqW]) = {
-    expr match {
-      case App(App(e,t1),t2) if (t1 == t2 && EqW.isEq(expr)) =>  new EqReflexive(new Sequent(Seq(),Seq(expr)))
-      case _ => {
-        if (expr.t == i) {
-          val x = eqReferences.getOrElse((expr,expr), EqW(expr,expr)).equality
-          if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " while creating EqReflexive node") 
-          new EqReflexive(new Sequent(Seq(),Seq(x)))
-        }
-        else throw new Exception("Error occured while creating EQReflexive node: "+ expr + " neither is an instance of reflexivity nor a term")
-//        println(expr + " type: " + expr.t)
-//        new EqReflexive(new Sequent(Seq(),Seq(Eq(expr,expr))))
-      }
+  def apply(expr: EqW, eqReferences: MMap[(E,E),EqW]) = {
+    if (expr.l == expr.r) {
+        val x = eqReferences.getOrElse((expr.l,expr.l), expr).equality
+        new EqReflexive(new Sequent(Seq(),Seq(x)))
     }
+    else throw new Exception("Error occured while creating EQReflexive node: "+ expr + " which is not an instance of reflexivity")
   }
   def unapply(p: SequentProofNode) = p match {
     case p: EqReflexive => Some(p.conclusion)
@@ -41,8 +50,22 @@ object EqReflexive {
   }
 }
 
+/**
+ * EqTransitive represents transitivity axioms
+ * 
+ * left side can be any transitivity chain of equalities and the right side is the equality between the first and last element of the chain
+ */
 class EqTransitive(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
 
+/**
+ * companion object of EqTransitive
+ * 
+ * creates an EqTransitive object either from a full sequent (which should perhaps not be possible)
+ * or an sequence of equations and two terms (semantics not checked)
+ * or two equations representing the equality chain, where the implied equality is computed and
+ * and exception is trown if there is none
+ * 
+ */
 object EqTransitive {
   
   def apply(conclusion: Sequent) = new EqTransitive(conclusion)
@@ -68,8 +91,21 @@ object EqTransitive {
   }
 }
 
+/**
+ * EqCongruent represents congruence axioms
+ * 
+ * axiom of the form ( a = b, f(a) = c |- f(b) = c )
+ */
+
 class EqCongruent(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
 
+/**
+ * companion object of EqTransitive
+ * 
+ * creates an EqTransitive object from a sequent
+ * or either one, two or a sequence of equations on the left and one right
+ * the semantics are so far not checked in any of the cases
+ */
 object EqCongruent {
   def apply(conclusion: Sequent) = new EqCongruent(conclusion)
   def apply(expl: EqW, eq: EqW) = { //Semantics are not checked (yet)

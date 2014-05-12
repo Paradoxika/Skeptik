@@ -42,18 +42,18 @@ import at.logic.skeptik.algorithm.congruence.EqW
 abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
   
   /**
-   * distances is always relative to the last input query vertix
-   * the map stores the current shortest distances between all nodes and the input vertix
+   * distances is always relative to the last input query vertex
+   * the map stores the current shortest distances between all nodes and the input vertex
    */
   val distances = MMap[T1,Int]()
   
   /**
-   * pathTrees is also relative to the last input vertix
+   * pathTrees is also relative to the last input vertex
    * similar to distances it stores the paths with the shortest distances
    * 
    * would be nicer if it were something like PathTree[T1,T2] as opposed to EquationTree
    */
-  val pathTrees = MMap[T1,EquationTree]()
+  val pathTrees = MMap[T1,EquationPath]()
   
   /**
    * set of equalities, which are discounted
@@ -61,8 +61,8 @@ abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
   val discount = MSet[EqW]()
   
   /**
-   * @param u vertix 
-   * @res distance of u to the last input vertix or Integer.MAX_VALUE (representing infinity) 
+   * @param u vertex 
+   * @res distance of u to the last input vertex or Integer.MAX_VALUE (representing infinity) 
    *      if the distance is not yet computed
    */
   def d(u: T1) = {
@@ -70,9 +70,9 @@ abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
   }
   
   /**
-   * returns the best path from u to the last input vertix
+   * returns the best path from u to the last input vertex
    */
-  def pi(u: T1): EquationTree 
+  def pi(u: T1): EquationPath 
 
   /**
    * creates the edge (u,v) in the (possibly shortest) path between the input expression and v
@@ -99,13 +99,13 @@ abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
    *         and the path to the target node is returned
    */
   
-  def apply(s: T1, target: T1, g: WGraph[T1,T2]): EquationTree = {
+  def apply(s: T1, target: T1, g: WGraph[T1,T2]): EquationPath = {
     if (s == target && s.isInstanceOf[E]) {
       val sE = s.asInstanceOf[E]
-      val end = new EquationTree(sE,None)
+      val end = new EquationPath(sE,None)
       val x = EqW(sE,sE)
       val eqTreeEdge = new EqTreeEdge(end,(x,None))
-      new EquationTree(sE,Some(eqTreeEdge))
+      new EquationPath(sE,Some(eqTreeEdge))
     }
     else {
       this(s,g)
@@ -159,7 +159,7 @@ abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
     
     while(!q.isEmpty) {
       val u = q.extractMin
-      val l = pi(u).allEqs
+      val l = pi(u).originalEqs //Only origianl Eqs are in the graph
       l.foreach(lE => {
         discount += lE
       })
@@ -188,13 +188,13 @@ abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
 
 class EquationDijkstra(references: MMap[(E,E),EqW]) extends Dijkstra[E,EqLabel](references) {
   
-  def pi(u: E): EquationTree = {
-    pathTrees.getOrElseUpdate(u,new EquationTree(u,None))
+  def pi(u: E): EquationPath = {
+    pathTrees.getOrElseUpdate(u,new EquationPath(u,None))
   }
   
   def setPi(u: E, l: EqLabel, v: E) = {
     val eqTreeEdge = new EqTreeEdge(pi(v),l)
-    val p = new EquationTree(u,Some(eqTreeEdge))
+    val p = new EquationPath(u,Some(eqTreeEdge))
     pathTrees.update(u, p)
   }
 }

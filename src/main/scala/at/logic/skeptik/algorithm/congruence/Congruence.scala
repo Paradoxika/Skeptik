@@ -18,7 +18,7 @@ import scala.collection.mutable.ListBuffer
  * @param eqReferences          Map for keeping track of the objects that represent the equalities between tuples of expressions
  * @param find                  Table for relating terms with their CCR
  * @param deduced               List of deduced equalities, for which new explanations can be computed on demand
- * @param g                     Graph representing the congruence closure
+ * @param g                     Graph representing the congruence closure, with labels of type EqLabel: see at.logic.skeptik.algorithm.dijkstra.package
  */
 
 class Congruence(
@@ -220,18 +220,18 @@ class Congruence(
         v match {
           case App(v1,v2) => {
             val path1 = 
-              if (u1 == v1) new EquationTree(u1,None)
+              if (u1 == v1) new EquationPath(u1,None)
               else dij(u1,v1,g)
             val path2 = 
-              if (u2 == v2) new EquationTree(u2,None)
+              if (u2 == v2) new EquationPath(u2,None)
               else dij(u2,v2,g)
-            val eq1 = path1.allEqs
-            val eq2 = path2.allEqs
+            val eq1 = path1.originalEqs
+            val eq2 = path2.originalEqs
             val eqAll = eq1 union eq2
            
             val weight = eqAll.size
             val x = EqW(u,v)
-            if (x.toString == "((f2 c_5 c_2) = c_3)" || x.toString == "(c_3 = (f2 c_5 c_2))") println("creating " + x + " when adding an edge to graph")
+            
             updateGraph(g.addUndirectedEdge((u,(x,Some(path1,path2)),v), weight))
           }
           case _ => this
@@ -247,7 +247,7 @@ class Congruence(
    * @res None if there is no explanation (i.e. the terms are not congruent)
    *      Some(eqT) where eqT is an EquationTree representing the explanation
    */
-  def explain(u: E, v: E): Option[EquationTree] = {
+  def explain(u: E, v: E): Option[EquationPath] = {
     val dij = new EquationDijkstra(eqReferences)
     val path = dij(u,v,g)
     if (path.isEmpty) None else Some(path)
