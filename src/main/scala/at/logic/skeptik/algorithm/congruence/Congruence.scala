@@ -230,7 +230,7 @@ class Congruence(
             val eqAll = eq1 union eq2
            
             val weight = eqAll.size
-            val x = EqW(u,v)
+            val x = EqW(u,v, eqReferences)
             
             updateGraph(g.addUndirectedEdge((u,(x,Some(path1,path2)),v), weight))
           }

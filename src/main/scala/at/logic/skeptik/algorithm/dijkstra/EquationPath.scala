@@ -114,9 +114,9 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     val ddEqs = ddProofRoots.map(_.conclusion.suc.last).toSeq
     val congr = (eq.l,eq.r) match {
       case (App(u1,u2),App(v1,v2)) => {
-        if ((u1 == v1) && (u2 != v2)) EqCongruent(EqW(u2,v2),eq)
-        else if ((u1 != v1) && (u2 == v2)) EqCongruent(EqW(u1,v1),eq)
-        else if ((u1 != v1) && (u2 != v2)) EqCongruent(EqW(u1,v1),EqW(u2,v2),eq)
+        if ((u1 == v1) && (u2 != v2)) EqCongruent(EqW(u2,v2,eqReferences),eq)
+        else if ((u1 != v1) && (u2 == v2)) EqCongruent(EqW(u1,v1,eqReferences),eq)
+        else if ((u1 != v1) && (u2 != v2)) EqCongruent(EqW(u1,v1,eqReferences),EqW(u2,v2,eqReferences),eq)
         else throw new Exception("Trying to prove the congruence of terms with equal arguments")
       }
       case _ => throw new Exception("Error when creating congruence node, because equality between wrong kind of expressions")
@@ -127,12 +127,9 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
       } 
       else {
         ddProofRoots.foldLeft(congr.asInstanceOf[N])({(A,B) => 
-          try EqW.resolveSymm(A,B)
+          try R(A,B)
           catch {
             case e: Exception => {
-              val AnewAnt = A.conclusion.ant.map(f => if (EqW.isEq(f)) EqW(f).reverse.equality else f)
-              val AnewSuc = A.conclusion.suc.map(f => if (EqW.isEq(f)) EqW(f).reverse.equality else f)
-              val Anew = 
               println()
               println(EquationPath.this)
               println(A + " " + A.getClass)

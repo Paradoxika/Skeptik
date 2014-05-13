@@ -39,7 +39,7 @@ import at.logic.skeptik.algorithm.congruence.EqW
  * Should one equation be used in a deduction, all the left and right sides could be made adjacent.
  */
 
-abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
+abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
   
   /**
    * distances is always relative to the last input query vertex
@@ -103,7 +103,7 @@ abstract class Dijkstra[T1,T2](references: MMap[(E,E),EqW]) {
     if (s == target && s.isInstanceOf[E]) {
       val sE = s.asInstanceOf[E]
       val end = new EquationPath(sE,None)
-      val x = EqW(sE,sE)
+      val x = EqW(sE,sE,eqReferences)
       val eqTreeEdge = new EqTreeEdge(end,(x,None))
       new EquationPath(sE,Some(eqTreeEdge))
     }

@@ -57,9 +57,9 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
    * @res hopefully shorter proof
    */
   def apply(proof: Proof[N]): Proof[N] = {
-    val references = MMap[(E,E),EqW]()
-    val (con,eqNodesLeft,eqNodesRight) = buildGlobalCongruence(proof,references)
-    println("all references size: " + references.size)
+    val eqReferences = MMap[(E,E),EqW]()
+    val (con,eqNodesLeft,eqNodesRight) = buildGlobalCongruence(proof,eqReferences)
+    println("all references size: " + eqReferences.size)
     val premiseAxiomMap = MMap[N,Set[EqW]]()
     
     /**
@@ -80,8 +80,8 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
         else premiseAxiomsTmp.filter(Proof(fixedNodeInit).nodes.contains(_))
       })
       
-      val rightEqs = fixedNodeInit.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
-      val leftEqs = fixedNodeInit.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))
+      val rightEqs = fixedNodeInit.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
+      val leftEqs = fixedNodeInit.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
       
       val rS = rightEqs.size
       val lS = leftEqs.size
@@ -112,7 +112,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
           
           val path = tree.get
           val pathProof = try {
-            path.toProof(references)
+            path.toProof(eqReferences)
           }
           catch {
             
@@ -127,14 +127,14 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
             case e: Exception => {
               val exporter = new SMTFileExporter("experiments/congruence/resolveBug11",true)
               val origEqs = path.originalEqs.toSeq //set produced bugs with EqW contain not delivering correct result
-              val rightSideEq = fixedNodeInit.conclusion.suc.find(expr => if (EqW.isEq(expr)) origEqs.contains(EqW(expr)) else false)
+              val rightSideEq = fixedNodeInit.conclusion.suc.find(expr => if (EqW.isEq(expr)) origEqs.contains(EqW(expr,eqReferences)) else false)
               val res1 = rightSideEq match{
                 case Some(eq) => {
 //                  println(eq + " is rsEq")
                   R(new Axiom(new Sequent(origEqs.map(_.equality).toSeq,Seq())),fixedNodeInit)
                 }
                 case None => {
-                  val leftSideEq = fixedNodeInit.conclusion.ant.find(expr => if (EqW.isEq(expr)) origEqs.contains(EqW(expr)) else false)
+                  val leftSideEq = fixedNodeInit.conclusion.ant.find(expr => if (EqW.isEq(expr)) origEqs.contains(EqW(expr,eqReferences)) else false)
                   leftSideEq match{
                     case Some(eq) => {
 //                      println(eq + " is lsEq")
@@ -146,9 +146,9 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
 //                      })
                       println(origEqs.mkString(","))
                       val c7c3_1 = origEqs.find(_.toString == "(c7 = c_3)").get
-                      val c7c3_2 = EqW(fixedNodeInit.conclusion.ant.find(_.toString == "(c7 = c_3)").get)
+                      val c7c3_2 = EqW(fixedNodeInit.conclusion.ant.find(_.toString == "(c7 = c_3)").get,eqReferences)
                       println(c7c3_1 + " == " + c7c3_2 + " ~> " + (c7c3_1 == c7c3_2))
-                      fixedNodeInit.conclusion.ant.map(EqW(_)).foreach(p => {
+                      fixedNodeInit.conclusion.ant.map(EqW(_,eqReferences)).foreach(p => {
                         println(p + " contained in map? " + origEqs.contains(p))
                       })
 //                      println(last + " contained in\n " + origEqs.mkString(",") + "\n" +last)
@@ -188,11 +188,10 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
               }
               val (resNode, resAxioms) = usedEqs.foldLeft((proof.root,Set[EqW]()))({(A,B) => 
                 eqNodesRight.get(B) match {
-                  case Some(node) => (R(A._1,node), A._2 + EqW(node.conclusion.suc.last))
+                  case Some(node) => (R(A._1,node), A._2 + EqW(node.conclusion.suc.last,eqReferences))
                   case None => A
                 }
               })
-              println("after  " + resNode)
               if (resNode.conclusion.ant.size > fixedNodeInit.conclusion.ant.size) println("compressing, but clause got bigger")
               (resNode,resAxioms)
             }
@@ -211,7 +210,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
     }
     val (newProof, _,_) = proof foldDown replaceRedundant
     val resProof = newProof.conclusion.suc.foldLeft(newProof)({(A,B) => 
-      eqNodesLeft.get(EqW(B)) match {
+      eqNodesLeft.get(EqW(B,eqReferences)) match {
         case Some(node) => {
           R(A,node)
         }
@@ -239,8 +238,8 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
    *              -map from EqW objects representing input equalities to the respective proof nodes
    *              -map from EqW objects representing input inequalities to the respective proof nodes
    */
-  def buildGlobalCongruence(proof: Proof[N], references: MMap[(E,E),EqW]): (Congruence,MMap[EqW,N],MMap[EqW,N]) = {
-    var con = new Congruence(references)
+  def buildGlobalCongruence(proof: Proof[N], eqReferences: MMap[(E,E),EqW]): (Congruence,MMap[EqW,N],MMap[EqW,N]) = {
+    var con = new Congruence(eqReferences)
     val eqNodesLeft = MMap[EqW,N]()
     val eqNodesRight = MMap[EqW,N]()
     
@@ -257,13 +256,13 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
           })
         }
       
-      val rightEqs = node.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
-      val leftEqs = node.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))
+      val rightEqs = node.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
+      val leftEqs = node.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
       
       val bothEqs = rightEqs ++ leftEqs
       bothEqs.foreach(eq => {
         val (l,r) = (eq.l,eq.r)
-        references += ((l,r) -> eq)
+        eqReferences += ((l,r) -> eq)
 //        references += ((r,l) -> eq)
       })
       val eqMap = bothEqs.foldLeft(premiseMap)({(A,B) => 
@@ -275,7 +274,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
       val freshLeftOut = if(true) {
         val singleLeft = node.conclusion.suc.size == 0 && node.conclusion.ant.size == 1 && node.conclusion.ant.forall(EqW.isEq(_))
         if (singleLeft) {
-          val eq = EqW(node.conclusion.ant.last)
+          val eq = EqW(node.conclusion.ant.last,eqReferences)
           eqNodesLeft += (eq -> node)
           false
         }
@@ -285,7 +284,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
       val freshRightOut = if (freshRight) {
         val singleRight = node.conclusion.suc.size == 1 && node.conclusion.ant.size == 0 && node.conclusion.suc.forall(EqW.isEq(_))
         if (singleRight) {
-          val eq = EqW(node.conclusion.suc.last)
+          val eq = EqW(node.conclusion.suc.last,eqReferences)
           con = con.addEquality(eq)
           eqNodesRight += (eq -> node)
           false
@@ -297,7 +296,6 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
     }
     val (_,_,mapRes) = proof foldDown traverse
     con = con.resolveDeducedQueue
-    println("eqNodesLeft in bGC " + eqNodesLeft.mkString(","))
     (con,eqNodesLeft,eqNodesRight)
   }
 }

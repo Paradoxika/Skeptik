@@ -14,9 +14,9 @@ object CongruenceCompressorDebug {
   def main(args: Array[String]):Unit = {
     val multiple = false
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
-//    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
+    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
 //    val file = "experiments/congruence/resolveBug.s"
-      val file = "experiments/congruence/resolveBug10_1.smtb"
+//      val file = "experiments/congruence/resolveBug10_1.smtb"
     val parser = ProofParserVeriT
 //    val parser = ProofParserSkeptik
     if (multiple) {
