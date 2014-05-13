@@ -27,13 +27,13 @@ object DijkstraDebug {
     
     println(g)
     
-    val dij = new Dijkstra[String,String]()
-    
-    dij.apply(g, s, List())
-    
-    println("shortest path from s to t: " + dij.pi(t))
-    
-    println(dij.distances.mkString(","))
+//    val dij = new EquationDijkstra
+//    
+//    dij.apply(s, g)
+//    
+//    println("shortest path from s to t: " + dij.pi(t))
+//    
+//    println(dij.distances.mkString(","))
   }
   
 }

@@ -3,178 +3,260 @@ package at.logic.skeptik.algorithm.congruence
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.algorithm.dijkstra._
-import scala.collection.mutable.{HashMap => Map}
+//import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.immutable.{HashMap => IMap}
+import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.Stack
-import scala.collection.mutable.Queue
+import scala.collection.immutable.Queue
 import scala.collection.mutable.ListBuffer
 
-class Congruence {
-  val find = new FindTable()
-  val sigTable = new SignatureTable()
-  val eqTriples = new Map[E,(E,E,App)] //this structure is good for comparing to inequalities
-//  val transitivityTripples = new 
-  val deduced = new Queue[(E,E)]
+/**
+ * Class Congruence class is for computing and maintaining the congruence closure of some input equations
+ * equations can be entered incrementally and on entering an equation CCRs will be created and/or merged
+ * is immutable
+ * 
+ * @param eqReferences          Map for keeping track of the objects that represent the equalities between tuples of expressions
+ * @param find                  Table for relating terms with their CCR
+ * @param deduced               List of deduced equalities, for which new explanations can be computed on demand
+ * @param g                     Graph representing the congruence closure, with labels of type EqLabel: see at.logic.skeptik.algorithm.dijkstra.package
+ */
+
+class Congruence(
+    val eqReferences: MMap[(E,E),EqW], 
+    val find: FindTable = new FindTable(), 
+    val deduced: Queue[(E,E)] = Queue[(E,E)](), 
+    val g: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) {
   
-  var g = new WGraph[E,Set[App]]()
-  
-  def addEquality(eq: App) = {
-    val (l,r) = eq.unapply.get
-    addNode(l)
-    addNode(r)
-    merge(l,r,eq)
+  /**
+   * the following methods are create new Congruence objects, when one of their parameters is changed
+   */
+  def updateFind(newFind: FindTable) = {
+    new Congruence(eqReferences, newFind,deduced,g)
+  }
+
+  def updateDeduced(newDeduced: Queue[(E,E)]) = {
+    new Congruence(eqReferences, find,newDeduced,g)
+  }
+  def updateGraph(newG: WGraph[E,EqLabel]) = {
+    new Congruence(eqReferences, find,deduced,newG)
   }
   
+
+  /**
+   * method for adding an equation to the this congruence closure
+   * calls addNode for both sides of the equality
+   * calls merge with the two sides
+   * adds edge labeled with the equality and weight 1 to the graph
+   * 
+   * see page 188 in Pascal's work
+   * 
+   * @param eq    equality to be added represented as an EqW object
+   * @result      new congruence data structure with eq added
+   */
+  
+  def addEquality(eq: EqW): Congruence = {
+    val (l,r) = (eq.l,eq.r)
+    val eqRef = eqReferences.update((l,r), eq)
+//    val c0 = updateEqReferences(eqRef)
+    val c1 = this.addNode(l)
+    val c2 = c1.addNode(r)
+    val c3 = c2.updateGraph(c2.g.addUndirectedEdge((l,(eq,None),r), 1))
+    val res = c3.merge(l,r,Some(eq))
+    res
+  }
+  
+  /**
+   * method addNode adds a term into the congruence closure structure
+   * checks the findmap for entry u does nothing when u has an entry
+   * adds u and all its subterms to the congruence structure
+   * queries for signature equality and deduces new equalities
+   * 
+   * see page 189 in Pascal's work
+   * 
+   * @param  u  expression to add to the structure
+   * @result new congruence structure with u an its subterms added
+   */
   //find query creates new CCR before subterms are added
    //order matters???
-  def addNode(u: E): Unit = {
-    if (!find.isDefinedAt(u)) {
-      u match {
-        case App(v1,v2) => {
-          addNode(v1)
-          addNode(v2)
-        }
-        case _ => 
+  def addNode(u: E): Congruence = {
+    val uRepr = find.map.get(u)
+    uRepr match {
+      case Some(_) => {
+        this
       }
-      find.+=(u -> new CCR(u))
-      val y = sigTable.query(u, find)
-      if (y != u) { //Deduced equality
-        union(find.query(u),find.query(y))
-//        eqTriples.update(u, (u,y,EmptyEq))
-//        eqTriples.update(y, (u,y,EmptyEq))
-        deduced.enqueue((u,y))
-      }
-      else {
+      case None => {
+        val c2 = 
+          u match {
+            case App(v1,v2) => {
+              val c1 = addNode(v1)
+              c1.addNode(v2)
+            }
+            case _ => this
+          }
+        val newFind = c2.find.enter(u)
+        val c3 = c2.updateFind(newFind)
         u match {
           case App(v1,v2) => {
-            find.query(v1).pred+=(u)
-            find.query(v2).pred+=(u)
-          }
-          case _ => 
-        }
-      }
-    }
-  }
-  
-  def merge(a: E, b: E, eq: App) = {
-    val combine = Stack((a,b))
-    var stillTransitivity = true
-    var e = eq
-//    println("merge " + a + " and " + b + " because: " + e)
-//    if (stillTransitivity) {
-//      g = g.addUndirectedEdge((a,List(e),b), 1)
-//    }
-    if (!stillTransitivity) {
-      deduced.enqueue((a,b))
-    }
-    while (!combine.isEmpty) {
-      val (u,v) = combine.pop
-      val findU = find.query(u)
-      val findV = find.query(v)
-      println("possibly merge " + (u,v) + " finds: "+ (find(u),find(v)) + " querys: " + (findU,findV))
-      if (findU != find(u) || findV != find(v)) {
-        println("merge " + u + " and " + v + " because: " + e)
-        deduced.enqueue((u,v))
-      }
-      if (findU != findV) { 
-        combine.pushAll(union(findU,findV))
-        eqTriples.update(u, (u,v,e))
-        eqTriples.update(v, (u,v,e))
-        if (stillTransitivity) { //Transitivity equality
-          g = g.addUndirectedEdge((u,Set(e),v), 1)
-        }
-        else { //Deduced equality
-          println("deduce in merge: " + (u,v))
-          deduced.enqueue((u,v))
-        }
-        stillTransitivity = false
-//        e = EmptyEq
-      }
-    }
-  }
-  
-  def union(a: CCR, b: CCR) = {
-    val deduct = ListBuffer[(E,E)]()
-    val (x,y) = if (a.term.size > b.term.size) (a,b) else (b,a)
-    y.term.foreach(t => {
-      find.update(t,x)
-    })
-    x.term.++=(y.term)
-    y.pred.foreach(p => {
-      val s = sigTable.query(p,find)
-//      if (find.query(p) != find.query(s)) {
-        println("deduct in union: " + (p,s))
-        deduced.enqueue((p,s))
-        deduct += ((p,s))
-//      }
-    })
-    x.pred.++=(y.pred)
-    deduct
-  }
-  
-  def resolveDeduced = {
-    val dij = new Dijkstra[E,App]
-    println("deduce: " + deduced)
-    while (!deduced.isEmpty) {
-      val (u,v) = deduced.dequeue
-      println("resolve " + (u,v))
-      u match {
-        case App(u1,u2) => {
-          v match {
-            case App(v1,v2) => {
-              val path1 = dij(u1,v1,g)
-              
-              val labels1 = path1.collectLabels
-              val vertices1 = path1.collectVertices
-//              val weight1 = vertices1.foldLeft(0)((sum,v) => sum + dij.distances.getOrElse(v, Integer.MAX_VALUE)) //if Integer.Max_Value then should be a bug here
-//              val weight1 = dij.distances.getOrElse(v1, Integer.MAX_VALUE)
-              
-              val path2 = dij(u2,v2,g)
-              
-              val labels2 = path2.collectLabels
-              val vertices2 = path2.collectVertices
-//              val weight2 = vertices2.foldLeft(0)((sum,v) => {
-//                val d = dij.distances.getOrElse(v, Integer.MAX_VALUE) //if Integer.Max_Value then should be a bug here
-//                println("distance of " + v + " to " + u2 + ": " + d)
-//                sum + d
-//              })
-//              val weight2 = dij.distances.getOrElse(v2, Integer.MAX_VALUE)
-              val labels = labels1 union labels2
-//              val weight = weight1 + weight2
-              val weight = labels.size
-//              println("w1: " + weight1 + " w2: " + weight2)
-              println("label1: " + labels1 + " label2: " + labels2 + " = " + labels)
-              g = g.addUndirectedEdge((u,labels,v), weight)
-              println("deduced :" + u + " ~ " + v + " because: " + labels + " weight: " + weight)
+            val y = c3.find.sigQuery(u)
+            y match {
+              case Some(v) => {
+                val c4 = c3.union(u,v)._1
+                val d = c4.resolveDeduced(u, v)
+                val dd = d.addDeduced(u, v)
+                dd
+              }
+              case None => {
+                val nF = newFind.addPred(v1, u)
+                val nF2 = nF.addPred(v2, u)
+                val c4 = c3.updateFind(nF2)
+                c4
+              }
             }
-            case _ =>
           }
+          case _ => c3
         }
-        case _ =>
       }
     }
   }
   
-  def explain(u: E, v: E) = {
-    resolveDeduced
-    val dij = new Dijkstra[E,App]
-    dij(u,v,g)
+   /**
+   * method for adding lists of equations
+   */
+  def addAll(eqs: List[EqW]): Congruence = {
+    eqs.foldLeft(this)({(A,B) => A.addEquality(B)})
   }
   
-//  def eqTriplesToGraph:WGraph[E,App] = {
-//    val triples = eqTriples.values
-//    val (simple,nonSimple) = triples.partition(tr => tr._3 != EmptyEq)
-//    simple.foreach(tr => {
-//      g = g.addUndirectedEdge((tr._1,tr._3,tr._2), 1)
-//    })
-//    nonSimple.foreach(tr => {
-//      g = resolve(tr._1,tr._2,g)
-//    })
-//    g
-//  }
+  /**
+   * merges the CCRs of two by calling union of these terms
+   * recursively merges deduced equalities of union
+   * 
+   * see page 190 in Pascal's work
+   * 
+   * @param  a,b expression to be merged
+   * @param  eq equality as reason for merge
+   * @result new congruence structure with CCRs merged
+
+   */
+  def merge(a: E, b: E, eq: Option[EqW]): Congruence = {
+    val (nF,aF,bF) = find.queryTwo(a, b)
+    val c1 = updateFind(nF)
+    if (aF != bF) {
+      val (c2, deduced) = c1.union(a,b)
+      deduced.foldLeft(c2)({(A,B) =>
+        val d = A.resolveDeduced(B._1, B._2)
+        d.merge(B._1, B._2, None)
+      })
+    }
+    else c1
+  }
   
-//  def resolve(tr: (E,E,App), g: WGraph[E,App]): WGraph[E,App] = {
-//    var g1 = g
-//    
-//    g1
-//  }
+  /**
+   * union actually performs the merge by altering CCRs and the findMap
+   * calls sigQuery to deduce new equalities
+   * 
+   * see page 191 in Pascal's work 
+   * 
+   * @param u,v expressions which CRRs should be merged
+   * @res new congruence structure with u,v merged and list of deduced equalities
+   */
+  def union(u: E, v: E): (Congruence,ListBuffer[(E,E)]) = {
+    val (nF,a) = find.query(u)
+    val (nF2,b) = nF.query(v)
+    
+    val deduct = ListBuffer[(E,E)]()
+    val (remainCCR,removeCCR,remainTerm,removeTerm) = if (a.term.size > b.term.size) (a,b,u,v) else (b,a,v,u)
+    val nF3 = removeCCR.term.foldLeft(nF2)({(A,B) => A.addTerm(remainTerm, B)})
+    
+    val (nF4,remain) = nF3.query(remainTerm)
+    val (nF5,remove) = nF4.query(removeTerm)
+    
+    val nF6 = remain.term.foldLeft(nF5)({(A,B) => A.update(B, remain)})
+    val c1 = updateFind(nF6)
+    val c2 = removeCCR.pred.foldLeft(c1)({(A,B) => 
+      val s = A.find.sigQuery(B)
+      s match {
+        case Some(q) => {
+          deduct += ((B,q))
+          A.addDeduced(B, q)
+        }
+        case None => {
+          A
+        }
+      }
+    })
+    (c2,deduct)
+  }
+  
+  /**
+   * adds one deduced equality to the Queue of deduced equalities
+   */
+  def addDeduced(u: E, v: E): Congruence = {
+    updateDeduced(deduced.enqueue((u,v)))
+  }
+  
+  /**
+   * resolves all queued up equalities by finding an explanation for them in the current graph
+   */
+  def resolveDeducedQueue: Congruence = {
+    deduced.foldLeft(this)((A,B) => {
+      val c = A.resolveDeduced(B._1,B._2)
+      c
+    })
+  }
+  
+  /**
+   * resolves one given equality by finding an explanation for it in the current graph 
+   * and adding an edge labeled with the explanation to the graph
+   * the weight of the edge is defined as the size of the explanation
+   * 
+   * creates a EquationDijkstra object to perform the search
+   * 
+   * @res congruence structure with updated graph
+   */
+  def resolveDeduced(u: E, v: E): Congruence = {
+    val dij = new EquationDijkstra(eqReferences)
+    u match {
+      case App(u1,u2) => {
+        v match {
+          case App(v1,v2) => {
+            val path1 = 
+              if (u1 == v1) new EquationPath(u1,None)
+              else dij(u1,v1,g)
+            val path2 = 
+              if (u2 == v2) new EquationPath(u2,None)
+              else dij(u2,v2,g)
+            val eq1 = path1.originalEqs
+            val eq2 = path2.originalEqs
+            val eqAll = eq1 union eq2
+           
+            val weight = eqAll.size
+            val x = EqW(u,v)
+            
+            updateGraph(g.addUndirectedEdge((u,(x,Some(path1,path2)),v), weight))
+          }
+          case _ => this
+        }
+      }
+      case _ => this
+    }
+  }
+  
+  /**
+   * queries an EquationDijkstra object for the explanation of the equality of two terms
+   * 
+   * @res None if there is no explanation (i.e. the terms are not congruent)
+   *      Some(eqT) where eqT is an EquationTree representing the explanation
+   */
+  def explain(u: E, v: E): Option[EquationPath] = {
+    val dij = new EquationDijkstra(eqReferences)
+    val path = dij(u,v,g)
+    if (path.isEmpty) None else Some(path)
+  }
+  
+  /**
+   * @res returns true iff u and v are congruent in the current congruence structure
+   */
+  def isCongruent(u: E, v: E) = {
+    find.query(u) == find.query(v)
+  }
 }

@@ -8,7 +8,6 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression.position.Position
 import at.logic.skeptik.prover.InferenceRule
 
-
 class AxiomTaut(val mainLeft: E, val mainRight: E) extends SequentProofNode
 with Nullary with NoImplicitContraction {
   override def mainFormulas = Sequent(mainLeft)(mainRight)
