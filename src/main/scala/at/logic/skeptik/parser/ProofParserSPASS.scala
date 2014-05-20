@@ -26,6 +26,7 @@ extends JavaTokenParsers with RegexParsers {
  def proof: Parser[Proof[Node]] = rep(line) ^^ {   
  	case list =>{ 
  	    println("parsed!")
+ 	    println(varMap)
  		val p = Proof((list.last).last)
  		exprMap = new MMap[String,E]
  		p
@@ -42,7 +43,10 @@ extends JavaTokenParsers with RegexParsers {
   }	
   
   def proofTerm: Parser[String] = (term | term ~ "*" | term ~ "*+") ^^{
-    _ => "" //TODO: return something meaningful
+    _ => {
+      println("in proof term")
+      "" //TODO: return something meaningful
+    }
   }
   
   def lineNum: Parser[Int] = number
@@ -108,7 +112,7 @@ extends JavaTokenParsers with RegexParsers {
     case _ => ""
   }
   
-  def userDef: Parser[String] = str ~ "(" ~ term ~ ")" ^^ {
+  def userDef: Parser[String] = name ~ "(" ~ term ~ ")" ^^ {
     case ~(~(~(s,_),t),_) => {
       println("userdef: " + s)
       s
@@ -124,13 +128,16 @@ extends JavaTokenParsers with RegexParsers {
   
   def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
   
-  def term: Parser[String] = ("(~ " ~ term ~ ")" | func | num | str) ^^ {
+  def term: Parser[String] = ("(~ " ~ term ~ ")" | func | num | variable) ^^ {
     case _ => {
       println("term")
       ""
     }
   }
     
+  def variable: Parser[E] = name ^^ {
+    case s => varMap.getOrElseUpdate(s,new Var(s.toString,o))
+  }
     
   def cnfFormula: Parser[String] = term ~ "|" ~ term ~ "|" ~ term ^^ { //This is actually a disjunction in the BNF of TPTP, and as such, might not always have 3 conjunctions
     case _ => {
@@ -139,14 +146,15 @@ extends JavaTokenParsers with RegexParsers {
     }
   }
    
-    def str: Parser[String] = """[^ ():]+""".r ^^ {
+   def str: Parser[String] = """[^ ():]+""".r ^^ {
+  
       case s => {
         println("str: " + s)
         s
       }
     }
     
-    def name: Parser[String] = """[^ (){}:⊢,.=]+""".r ^^ {
+   def name: Parser[String] = "[a-zA-Z0-9]+".r ^^ {
       case s => {
         println("name: " + s)
         s
