@@ -37,11 +37,11 @@ extends JavaTokenParsers with RegexParsers {
   	_ => List();//change this
   }
   
-  def proofLine: Parser[String] = rep(proofTerm) ~ "->" ~ rep(proofTerm)  ~ "." ^^{ 
+  def proofLine: Parser[String] = rep(proofTerm) ~ "->" ~ rep(proofTerm)  <~ "." ^^{ 
     _ => "" //TODO: return something meaningful
   }	
   
-  def proofTerm: Parser[String] = (term | term ~ "*") ^^{
+  def proofTerm: Parser[String] = (term | term ~ "*" | term ~ "*+") ^^{
     _ => "" //TODO: return something meaningful
   }
   
