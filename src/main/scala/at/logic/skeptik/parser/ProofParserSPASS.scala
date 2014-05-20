@@ -25,6 +25,7 @@ extends JavaTokenParsers with RegexParsers {
   //returns the actual proof
  def proof: Parser[Proof[Node]] = rep(line) ^^ {   
  	case list =>{ 
+ 	    println("parsed!")
  		val p = Proof((list.last).last)
  		exprMap = new MMap[String,E]
  		p
@@ -63,7 +64,7 @@ extends JavaTokenParsers with RegexParsers {
     case ~(~(n,_),_) => n
   }
   
-  def typeName: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:"
+  def typeName: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:" //TODO: each one of these does NOT have a unique integer preceeding it
   
   def cnfName: Parser[String] = name ^^ {
     case _ => {
