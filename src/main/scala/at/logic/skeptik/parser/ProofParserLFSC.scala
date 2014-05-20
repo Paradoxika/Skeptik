@@ -10,9 +10,9 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
-object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
+object ProofParserLFSC extends ProofParser[Node] with LFSCParsers
 
-trait SPASSParsers
+trait LFSCParsers
 extends JavaTokenParsers with RegexParsers {
   
   private var proofMap = new MMap[String,Node]

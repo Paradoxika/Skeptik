@@ -70,7 +70,6 @@ extends JavaTokenParsers with RegexParsers {
   }
   
   def getNode(index: Int) = {
-   // println("here?")
     proofMap.getOrElse(index, throw new Exception("Clause not defined yet"))
   }
   
