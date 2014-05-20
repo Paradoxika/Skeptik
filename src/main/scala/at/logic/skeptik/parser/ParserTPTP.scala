@@ -10,9 +10,9 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
-object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
+object ParserTPTP extends ProofParser[Node] with ParserTPTP
 
-trait SPASSParsers
+trait ParserTPTP
 extends JavaTokenParsers with RegexParsers {
   
   private var proofMap = new MMap[String,Node]
@@ -32,21 +32,21 @@ extends JavaTokenParsers with RegexParsers {
   }
   
   
-  def sos: Parser[String] = "sos" ^^ {
+  def cnfName: Parser[String] = name ^^ {
     case _ => {
       println("sos")
       "sos"
     }
   }
     
-  def axiom: Parser[String] = "axiom" ^^ {
+  def cnfRole: Parser[String] = name ^^ {
     case _ => {
       println("axiom")
       "axiom"
     }
   }
 
-  def func: Parser[String] = equals | max | userDef
+  def func: Parser[String] = equals | max | userDef | lessEquals | greaterEquals
   
   def equals: Parser[String] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
       case ~(~(~(~(_,first),_),second),_) => {
@@ -55,6 +55,21 @@ extends JavaTokenParsers with RegexParsers {
     }
   }
   
+    def lessEquals: Parser[String] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
+      case ~(~(~(~(_,first),_),second),_) => {
+      println("le: " + first + " " + second)
+      "le"
+    }
+  }
+  
+    
+    def greaterEquals: Parser[String] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
+      case ~(~(~(~(_,first),_),second),_) => {
+      println("ge: " + first + " " + second)
+      "ge"
+    }
+  }
+    
   def max: Parser[String] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
     case _ => ""
   }
@@ -81,14 +96,14 @@ extends JavaTokenParsers with RegexParsers {
   }
     
     
-  def line: Parser[String] = term ~ "|" ~ term ~ "|" ~ term ^^ {
+  def cnfFormula: Parser[String] = term ~ "|" ~ term ~ "|" ~ term ^^ { //This is actually a disjunction in the BNF of TPTP, and as such, might not always have 3 conjunctions
     case _ => {
       println("line")
       ""
     }
   }
     
-  def cnf: Parser[List[Node]] = "cnf(" ~ sos ~ "," ~ axiom ~ "," ~ line ~ ")." ^^{
+  def cnf: Parser[List[Node]] = "cnf(" ~ cnfName ~ "," ~ cnfRole ~ "," ~ cnfFormula ~ ")." ^^{
     case ~(~(~(_,_),m),_) => {
       println("cnf")
       List()//TODO: replace this
@@ -99,6 +114,13 @@ extends JavaTokenParsers with RegexParsers {
     def str: Parser[String] = """[^ ():]+""".r ^^ {
       case s => {
         println("str: " + s)
+        s
+      }
+    }
+    
+    def name: Parser[String] = """[^ (){}:⊢,.=]+""".r ^^ {
+      case s => {
+        println("name: " + s)
         s
       }
     }
