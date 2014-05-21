@@ -50,6 +50,11 @@ trait SPASSParsers
         proofMap += (ln -> ax)
 	    ax
 	  }
+    case ~(~(~(~(~(~(~(ln,_),_),_),_),refs), _),seq)=> {
+        val ax = new Axiom( exprMap.get(ln).toList )
+        proofMap += (ln -> ax)
+	    ax
+	  }    
   }
 
   def sequent: Parser[(List[E], List[E])] = antecedent ~ "->" ~ succedent ~ "." ^^ {
@@ -121,31 +126,27 @@ trait SPASSParsers
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("eq: " + first + " " + second)
-      //TODO: use AppRec
-      first //temporary stub
+      AppRec(new Var("eq",  booleanFunctionType(2)), List(first, second)) //TODO: check
     }
   }
 
   def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       // println("le: " + first + " " + second)
-      //TODO: use AppRec
-      first //temporary stub
+      AppRec(new Var("le",booleanFunctionType(2)), List(first, second)) //TODO: check
     }
   }
 
   def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("ge: " + first + " " + second)
-      //TODO: use AppRec
-      first //temporary stub
+      AppRec(new Var("ge",booleanFunctionType(2)), List(first, second)) //TODO: check
     }
   }
 
   def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(~(~(_, first), _), second), _), last), _) => {
-      //TODO: use AppRec
-      first //temporary stub
+      AppRec(new Var("max",booleanFunctionType(3)), List(first, second, last)) //TODO: check
     }
 
   }
@@ -160,7 +161,7 @@ trait SPASSParsers
   def num: Parser[E] = """\d+""".r ^^ {
     case a => {
       // println("num: " + a)
-      new Var(a, i) //TODO: check
+      new Var(a, o) //TODO: check
     }
   }
 
