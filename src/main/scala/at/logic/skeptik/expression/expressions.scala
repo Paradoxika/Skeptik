@@ -55,6 +55,7 @@ case class App(val function: E, val argument: E) extends E {
 
 //TODO: rename, if they're the way to go
 case class App2(val function: E, val argument: E, val argumentB: E) extends E {
+  //TODO: fix these?
   //require(function.t.asInstanceOf[ArrowPair].t1 == argument.t)
   //require(function.t.asInstanceOf[ArrowPair].t2 == argumentB.t)
   def copy = new App2(function.copy,argument.copy, argumentB.copy)
