@@ -50,7 +50,43 @@ case class App(val function: E, val argument: E) extends E {
   override def toString = this match {
     case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
     case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"
-  }
+  } 
+}
+
+//TODO: rename, if they're the way to go
+case class App2(val function: E, val argument: E, val argumentB: E) extends E {
+  require(function.t.asInstanceOf[ArrowPair].t1 == argument.t)
+  require(function.t.asInstanceOf[ArrowPair].t2 == argumentB.t)
+  def copy = new App2(function.copy,argument.copy, argumentB.copy)
+  override lazy val t = function.t.asInstanceOf[ArrowPair].t3
+  
+  def logicalSize = function.logicalSize + argument.logicalSize + argumentB.logicalSize + 1
+
+  /*
+  override def toString = this match {
+    case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
+    case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"
+  } 
+  
+  */
+}
+
+case class App3(val function: E, val argument: E, val argumentB: E, val argumentC: E) extends E {
+  require(function.t.asInstanceOf[ArrowTriple].t1 == argument.t)
+  require(function.t.asInstanceOf[ArrowTriple].t2 == argumentB.t)
+  require(function.t.asInstanceOf[ArrowTriple].t3 == argumentC.t)
+  def copy = new App3(function.copy,argument.copy, argumentB.copy, argumentC.copy)
+  override lazy val t = function.t.asInstanceOf[ArrowTriple].t4
+  
+  def logicalSize = function.logicalSize + argument.logicalSize + argumentB.logicalSize + argumentC.logicalSize + 1
+
+  /*
+  override def toString = this match {
+    case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
+    case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"
+  } 
+  
+  */
 }
 
 object AppRec {
@@ -68,5 +104,7 @@ object AppRec {
     case _ => return (e.function, e.argument::Nil) 
   } 
 }
+
+
 
 trait Infix extends Var

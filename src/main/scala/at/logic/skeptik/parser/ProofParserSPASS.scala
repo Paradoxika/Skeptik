@@ -79,35 +79,25 @@ extends JavaTokenParsers with RegexParsers {
     case ~(~(n,_),_) => n
   }
   
-  def typeName: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:" //TODO: each one of these does NOT have a unique integer preceeding it
+  //TODO: each one of these does NOT have a unique integer preceding it
+  //TODO: get complete list from SPASS documentation
+  def typeName: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:" 
   
-  def cnfName: Parser[String] = name ^^ {
-    case _ => {
-      //println("sos")
-      "sos"
-    }
-  }
-    
-  def cnfRole: Parser[String] = name ^^ {
-    case _ => {
-     // println("axiom")
-      "axiom"
-    }
-  }
-
   def func: Parser[E] = equals | max | userDef | lessEquals | greaterEquals
   
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
       case ~(~(~(~(_,first),_),second),_) => {
       //println("eq: " + first + " " + second)
-      first
+      //can't use function like in user defined function, as there are multiple arguments and App does not support that
+      exprMap.getOrElseUpdate("eq",new App2(new Var("eq",new ArrowPair(o,o, i)), first, second))
     }
   }
   
     def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
       case ~(~(~(~(_,first),_),second),_) => {
      // println("le: " + first + " " + second)
-    first
+      //can't use function like in user defined function, as there are multiple arguments and App does not support that
+      exprMap.getOrElseUpdate("le",new App2(new Var("le",new ArrowPair(o,o, i)), first, second))
     }
   }
   
@@ -115,14 +105,18 @@ extends JavaTokenParsers with RegexParsers {
   def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
       case ~(~(~(~(_,first),_),second),_) => {
       //println("ge: " + first + " " + second)
-      first 
+      //can't use function like in user defined function, as there are multiple arguments and App does not support that
+      exprMap.getOrElseUpdate("ge",new App2(new Var("ge",new ArrowPair(o,o, i)), first, second))
     }
   }
     
   def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
-    case ~(~(_,last),_) => {
-      last
+    case ~(~(~(~(~(~(_,first),_),second),_),last),_) => {
+     //last 
+     //can't use function like in user defined function, as there are multiple arguments and App does not support that
+      exprMap.getOrElseUpdate("max",new App3(new Var("max",new ArrowTriple(o,o,o, i)), first, second, last))
     }
+    
   }
   
   def userDef: Parser[E] = name ~ "(" ~ term ~ ")" ^^ {
@@ -158,13 +152,6 @@ extends JavaTokenParsers with RegexParsers {
     }
   }
     
-  def cnfFormula: Parser[String] = term ~ "|" ~ term ~ "|" ~ term ^^ { //This is actually a disjunction in the BNF of TPTP, and as such, might not always have 3 conjunctions
-    case _ => {
-     // println("line")
-      ""
-    }
-  }
-   
    def str: Parser[String] = """[^ ():]+""".r ^^ {
   
       case s => {
