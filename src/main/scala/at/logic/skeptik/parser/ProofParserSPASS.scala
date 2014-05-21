@@ -17,9 +17,10 @@ trait SPASSParsers
 
   private var count = 0;
 
-  private var proofMap = new MMap[String, Node] //currently un-used
+  private var proofMap = new MMap[Int, Node] 
 
-  private var exprMap = new MMap[Ref, E] //will map axioms/proven expressions to the location (line number) where they were proven
+  //unused?
+  private var exprMap = new MMap[Int, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
   private var varMap = new MMap[String, E] //will map variable names to an expression object for that variable
 
@@ -32,30 +33,31 @@ trait SPASSParsers
       println(varMap)
       println(exprMap)
       val p = Proof(list.last)
-      exprMap = new MMap[Ref, E]
+      exprMap = new MMap[Int, E]
       p
     }
   }
 
-  /* Really, this next section can be optimized I think.
-   * Since our resolution applications should be the same as theirs, we can just apply resolution 
-   * to the expressions referenced in the 'lineSummary' term, and ignore the 'proofLine' (assuming
-   * our resolution generates the same expressions in the same order
-   * 
-   * Alternatively, can we produce a resolution node manually? (that's what is attempted below, should check/change)
-   */
-  
-  def line: Parser[Node] = lineNum ~ lineSummary ~ proofLine ^^ {
-    //TODO: if we take the first approach described above, we can use the list provided by lineSummary
-    case ~(~(ln, _),_)=> {
-	    new Axiom( exprMap.get(new Ref(ln, 0)).toList ) //TODO: make it proper!
+  def line: Parser[Node] = lineNum ~ "[" ~ number ~ ":" ~ inferenceRule ~ rep(lineRef) ~ "] ||" ~ sequent ^^ {
+    //TODO: needs to change to use unifying resolution & other inference rules
+    case ~(~(~(~(~(~(~(ln,_),_),_),"Inp"),_), _),seq)=> {
+        val ax = new Axiom( exprMap.get(ln).toList )
+        proofMap += (ln -> ax)
+	    ax
+	  }
+    case ~(~(~(~(~(~(~(ln,_),_),_),"Res:"),refs), _),seq)=> {
+        val ax = new Axiom( exprMap.get(ln).toList )
+        proofMap += (ln -> ax)
+	    ax
 	  }
   }
 
-  def proofLine: Parser[String] = rep(proofTerm) ~ "->" ~ rep(proofTerm) ~ "." ^^ {
-    case ~(~(~(premises, _), conclusions), _) => {
+  def sequent: Parser[(List[E], List[E])] = antecedent ~ "->" ~ succedent ~ "." ^^ {
+    case ~(~(~(a, _), s), _) => {
 
-      //println("in proofline " + count)
+      //This function maintains a map of the form ((proof line, clause position) -> clause). 
+      //Since we're performing our own resolutions now based only on line number, this is unnecessary
+      /*
       def addToExprMap(lineNumber: Int, startPos: Int, exps: List[E]): Int = {
         if (exps.length > 1) {
           exprMap.getOrElseUpdate(new Ref(lineNumber, startPos), exps.head)
@@ -64,61 +66,55 @@ trait SPASSParsers
           exprMap.getOrElseUpdate(new Ref(lineNumber, startPos), exps.head)
           startPos + 1
         } else {
-          //TODO: throw error
+          throw new Exception("Clause position failed to be mapped");
           -1
         }
       }
 
-      addToExprMap(count, addToExprMap(count, 0, premises), conclusions)
-
+      addToExprMap(count, addToExprMap(count, 0, a), s)
+	  */
+      
       count = count + 1
       if (count % 500 == 0) { println(count + " lines parsed") }
-      "" //TODO: return something meaningful
+      (a, s)
     }
   }
-
-  def proofTerm: Parser[E] = (termType1 | maximalTerm | termType2 | term)
-
+  
+  def antecedent: Parser[List[E]] = rep(formulaList)
+  def succedent: Parser[List[E]] = rep(formulaList)
+  
+  //All the additional symbols can be ignored
+  def formulaList: Parser[E] = (termType1 | maximalTerm | termType2 | term)
   def termType1: Parser[E] = term ~ "*+" ^^ {
     case ~(t, _) => t
   }
-
   def maximalTerm: Parser[E] = term ~ "*" ^^ {
     case ~(t, _) => t
   }
-
   def termType2: Parser[E] = term ~ "+" ^^ {
     case ~(t, _) => t
   }
 
   def lineNum: Parser[Int] = number
 
-  def lineSummary: Parser[List[Ref]] = "[" ~ lineType ~ rep(lineRef) ~ "] ||" ^^ {
-    case ~(~(_,refs),_) => {
-      refs
-    }
-  }
+  def lineRef: Parser[Int] = (refComma | ref)
 
-  def lineRef: Parser[Ref] = (refComma | ref)
-
-  def refComma: Parser[Ref] = ref ~ "," ^^{
+  def refComma: Parser[Int] = ref ~ "," ^^{
     case ~(r,_) => r 
   }
   
-  def ref: Parser[Ref] = number ~ "." ~ number ^^ {
+  def ref: Parser[Int] = number ~ "." ~ number ^^ {
     case ~(~(a, _), b) => {
-      //println(a + "  " + b)
-      new Ref(a,b)
+      a
     }
   }
 
-  def lineType: Parser[Int] = number ~ ":" ~ typeName ^^ {
+  def lineType: Parser[Int] = number ~ ":" ~ inferenceRule ^^ {
     case ~(~(n, _), _) => n
   }
 
-  //TODO: each one of these does NOT have a unique integer preceding it
   //TODO: get complete list from SPASS documentation
-  def typeName: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:"
+  def inferenceRule: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:"
 
   def func: Parser[E] = equals | max | userDef | lessEquals | greaterEquals
 
@@ -174,7 +170,7 @@ trait SPASSParsers
 
   def negTerm: Parser[E] = "(~ " ~ term ~ ")" ^^ {
     case ~(~(_, t), _) => {
-      t
+      t //TODO: should actually apply the '~' before returning it
     }
   }
 
@@ -184,27 +180,11 @@ trait SPASSParsers
     }
   }
 
-  def str: Parser[String] = """[^ ():]+""".r ^^ {
-
-    case s => {
-      //println("str: " + s)
-      s
-    }
-  }
-
   def name: Parser[String] = "[a-zA-Z0-9]+".r ^^ {
     case s => {
       //  println("name: " + s)
       s
     }
   }
-
-}
-
-class Ref(f: Int, s: Int) {
-  def first: Int = f
-  def second: Int = s
-
-  override def toString() = f + "." + s
 
 }
