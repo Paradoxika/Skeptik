@@ -15,6 +15,8 @@ object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 trait SPASSParsers
 extends JavaTokenParsers with RegexParsers {
   
+  private var count = 0;
+  
   private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[String,E]
   private var varMap = new MMap[String,E]
@@ -25,7 +27,7 @@ extends JavaTokenParsers with RegexParsers {
   //returns the actual proof
  def proof: Parser[Proof[Node]] = rep(line) ^^ {   
  	case list =>{ 
- 	    println("parsed!")
+ 	    println("parsed! " + count)
  	    println(varMap)
  		val p = Proof((list.last).last)
  		exprMap = new MMap[String,E]
@@ -38,15 +40,24 @@ extends JavaTokenParsers with RegexParsers {
   	_ => List();//change this
   }
   
-  def proofLine: Parser[String] = rep(proofTerm) ~ "->" ~ rep(proofTerm)  <~ "." ^^{ 
-    _ => "" //TODO: return something meaningful
-  }	
-  
-  def proofTerm: Parser[String] = (term | term ~ "*" | term ~ "*+") ^^{
+  def proofLine: Parser[String] = rep(proofTerm) ~ "->" ~ rep(proofTerm)  ~ "." ^^{ 
     _ => {
-      println("in proof term")
+      count = count + 1
+      if (count % 500 == 0) {println(count + " lines parsed")}
+      println("in proofline " + count)
       "" //TODO: return something meaningful
     }
+  }	
+  
+  def proofTerm: Parser[String] = (term ~ "*+" | term  ~ "*" | term ~ "+" | term) ^^{
+    case _ => {
+      println("in proof term ")
+      "" //TODO: return something meaningful
+    }
+  }
+  
+  def sterm: Parser[String] = term ~ "*" ^^{
+   _ => ""
   }
   
   def lineNum: Parser[Int] = number
@@ -61,7 +72,10 @@ extends JavaTokenParsers with RegexParsers {
   
   //TODO: test this--does the regex parse decimals?
   def ref: Parser[String] = number ~ "." ~ number ^^ {
-	  _ => "" //TODO: return something meaningful
+    case ~(~(a,_),b) => {
+	    println(a + "  " + b)
+	    "" //TODO: return something meaningful
+	  }
   }
   
   def lineType: Parser[Int] = number ~ ":" ~ typeName ^^ {
