@@ -11,9 +11,9 @@ abstract class MyPriorityQueue[T1,T2] {
 
   def insert(elem: T1, value: T2)
   
-  def minimum: T1
+  def minimum: Option[T1]
   
-  def extractMin: T1
+  def extractMin: Option[T1]
   
   def decreaseKey(elem: T1, value: T2)
   
@@ -41,17 +41,23 @@ class ArrayPQ[T1,T2 <% Ordered[T2]] extends MyPriorityQueue[T1,T2] {
     values.append(value)
   }
   
-  def minimum: T1 = {
-    val v = elems(values.indexOf(values.min))
-    v
+  def minimum: Option[T1] = {
+    if (!elems.isEmpty) {
+      val v = elems(values.indexOf(values.min))
+      Some(v)
+    }
+    else None
   }
   
-  def extractMin: T1 = {
-    val elem = minimum
-    val n = elems.indexOf(elem)
-    values.remove(n)
-    elems.remove(n)
-    elem
+  def extractMin: Option[T1] = {
+    if (!elems.isEmpty) {
+      val elem = minimum
+      val n = elems.indexOf(elem)
+      values.remove(n)
+      elems.remove(n)
+      elem
+    }
+    else None
   }
   
   def decreaseKey(elem: T1, value: T2) = {

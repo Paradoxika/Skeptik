@@ -22,7 +22,7 @@ import scala.collection.mutable.ListBuffer
  */
 
 class Congruence(
-    val eqReferences: MMap[(E,E),EqW], 
+    val eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW](), 
     val find: FindTable = new FindTable(), 
     val deduced: Queue[(E,E)] = Queue[(E,E)](), 
     val g: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) {
@@ -60,7 +60,7 @@ class Congruence(
 //    val c0 = updateEqReferences(eqRef)
     val c1 = this.addNode(l)
     val c2 = c1.addNode(r)
-    val c3 = c2.updateGraph(c2.g.addUndirectedEdge((l,(eq,None),r), 1))
+    val c3 = c2.updateGraph(c2.g.addUndirectedEdge((l,EqLabel(eq,None),r), 1))
     val res = c3.merge(l,r,Some(eq))
     res
   }
@@ -144,8 +144,17 @@ class Congruence(
       val (c2, deduced) = c1.union(a,b)
       deduced.foldLeft(c2)({(A,B) =>
         val d = A.resolveDeduced(B._1, B._2)
-        d.merge(B._1, B._2, None)
+        d.merge(B._1, B._2, None) //this line is slowing down the process alot
       })
+//      var out = c2
+//      while (!deduced.isEmpty) {
+//        val (l,r) = deduced.pop
+//        val (x,newDeduced) = out.union(l,r)
+//        val y = x.resolveDeduced(l, r)
+//        deduced.pushAll(newDeduced)
+//        out = y
+//      }
+//      out
     }
     else c1
   }
@@ -159,11 +168,11 @@ class Congruence(
    * @param u,v expressions which CRRs should be merged
    * @res new congruence structure with u,v merged and list of deduced equalities
    */
-  def union(u: E, v: E): (Congruence,ListBuffer[(E,E)]) = {
+  def union(u: E, v: E): (Congruence,Stack[(E,E)]) = {
     val (nF,a) = find.query(u)
     val (nF2,b) = nF.query(v)
     
-    val deduct = ListBuffer[(E,E)]()
+    val deduct = Stack[(E,E)]()
     val (remainCCR,removeCCR,remainTerm,removeTerm) = if (a.term.size > b.term.size) (a,b,u,v) else (b,a,v,u)
     val nF3 = removeCCR.term.foldLeft(nF2)({(A,B) => A.addTerm(remainTerm, B)})
     
@@ -176,7 +185,7 @@ class Congruence(
       val s = A.find.sigQuery(B)
       s match {
         case Some(q) => {
-          deduct += ((B,q))
+          deduct.push((B,q))
           A.addDeduced(B, q)
         }
         case None => {
@@ -232,7 +241,7 @@ class Congruence(
             val weight = eqAll.size
             val x = EqW(u,v, eqReferences)
             
-            updateGraph(g.addUndirectedEdge((u,(x,Some(path1,path2)),v), weight))
+            updateGraph(g.addUndirectedEdge((u,EqLabel(x,Some(path1,path2)),v), weight))
           }
           case _ => this
         }

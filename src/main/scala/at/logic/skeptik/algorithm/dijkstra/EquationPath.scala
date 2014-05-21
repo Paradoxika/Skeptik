@@ -11,6 +11,21 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.immutable.{HashMap => IMap}
 import scala.collection.mutable.{HashMap => MMap}
 
+class EqLabel(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) extends (EqW,Option[(EquationPath,EquationPath)]) (equation, deducePaths) {
+  def size = deducePaths match {
+    case None => 1
+    case Some((ddP1,ddP2)) => {
+      ddP1.originalEqs.size + ddP2.originalEqs.size
+    }
+  }
+}
+
+object EqLabel {
+  def apply(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) = {
+    new EqLabel(equation,deducePaths)
+  }
+}
+
 /**
  * Class EqTreeEdge represents edges in the equation path.
  * In fact this class is not much more than an abbreviation for (EquationTree,(EqW,Option[(EquationPath,EquationPath)]))(nextTree,label)

@@ -89,7 +89,8 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
       val (resNode,resAxioms) = if (rS > 0 && lS > 0 && inputDerived) {
         
         val localCon = leftEqs.foldLeft(con)({(A,B) => A.addEquality(B)})
-        val localConRes = localCon.resolveDeducedQueue
+//        val localConRes = localCon.resolveDeducedQueue
+        val localConRes = localCon
         var tree: Option[EquationPath] = None
         val canBeCompressed = rightEqs.exists(eq => {
           val (l,r) = (eq.l,eq.r)

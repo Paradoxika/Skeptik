@@ -27,8 +27,8 @@ object DijkstraDebug {
     
     println(g)
     
-//    val dij = new EquationDijkstra
-//    
+    val dij = new EquationDijkstra
+    
 //    dij.apply(s, g)
 //    
 //    println("shortest path from s to t: " + dij.pi(t))
