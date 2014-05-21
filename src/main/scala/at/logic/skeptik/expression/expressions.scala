@@ -63,13 +63,9 @@ case class App2(val function: E, val argument: E, val argumentB: E) extends E {
   
   def logicalSize = function.logicalSize + argument.logicalSize + argumentB.logicalSize + 1
 
-  /*
-  override def toString = this match {
-    case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
-    case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"
-  } 
   
-  */
+  override def toString = function + "(" + argument + "," + argumentB + ")"
+  
 }
 
 case class App3(val function: E, val argument: E, val argumentB: E, val argumentC: E) extends E {
@@ -81,13 +77,8 @@ case class App3(val function: E, val argument: E, val argumentB: E, val argument
   
   def logicalSize = function.logicalSize + argument.logicalSize + argumentB.logicalSize + argumentC.logicalSize + 1
 
-  /*
-  override def toString = this match {
-    case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
-    case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"
-  } 
-  
-  */
+  override def toString = function + "(" + argument + "," + argumentB + "," + argumentC + ")"
+
 }
 
 object AppRec {

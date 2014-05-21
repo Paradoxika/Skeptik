@@ -19,12 +19,11 @@ trait SPASSParsers
 
   private var proofMap = new MMap[String, Node] //currently un-used
 
-  private var exprMap = new MMap[ref, E] //will map axioms/proven expressions to the location (line number) where they were proven
+  private var exprMap = new MMap[Ref, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
   private var varMap = new MMap[String, E] //will map variable names to an expression object for that variable
 
   //TODO: remove debugging lines
-  //TODO: actually store the information; right now it parses the stuff and throws it away
 
   //returns the actual proof
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
@@ -32,14 +31,25 @@ trait SPASSParsers
       println("parsed! " + count)
       println(varMap)
       println(exprMap)
-      val p = Proof((list.last).last)
-      exprMap = new MMap[ref, E]
+      val p = Proof(list.last)
+      exprMap = new MMap[Ref, E]
       p
     }
   }
 
-  def line: Parser[List[Node]] = lineNum ~ lineSummary ~ proofLine ^^ {
-    _ => List(); //change this
+  /* Really, this next section can be optimized I think.
+   * Since our resolution applications should be the same as theirs, we can just apply resolution 
+   * to the expressions referenced in the 'lineSummary' term, and ignore the 'proofLine' (assuming
+   * our resolution generates the same expressions in the same order
+   * 
+   * Alternatively, can we produce a resolution node manually? (that's what is attempted below, should check/change)
+   */
+  
+  def line: Parser[Node] = lineNum ~ lineSummary ~ proofLine ^^ {
+    //TODO: if we take the first approach described above, we can use the list provided by lineSummary
+    case ~(~(ln, _),_)=> {
+	    new Axiom( exprMap.get(new Ref(ln, 0)).toList ) //TODO: make it proper!
+	  }
   }
 
   def proofLine: Parser[String] = rep(proofTerm) ~ "->" ~ rep(proofTerm) ~ "." ^^ {
@@ -48,10 +58,10 @@ trait SPASSParsers
       //println("in proofline " + count)
       def addToExprMap(lineNumber: Int, startPos: Int, exps: List[E]): Int = {
         if (exps.length > 1) {
-          exprMap.getOrElseUpdate(new ref(lineNumber, startPos), exps.head)
+          exprMap.getOrElseUpdate(new Ref(lineNumber, startPos), exps.head)
           addToExprMap(lineNumber, startPos + 1, exps.tail)
         } else if (exps.length == 1) {
-          exprMap.getOrElseUpdate(new ref(lineNumber, startPos), exps.head)
+          exprMap.getOrElseUpdate(new Ref(lineNumber, startPos), exps.head)
           startPos + 1
         } else {
           //TODO: throw error
@@ -59,7 +69,7 @@ trait SPASSParsers
         }
       }
 
-      addToExprMap(count, addToExprMap(count, 1, premises), conclusions)
+      addToExprMap(count, addToExprMap(count, 0, premises), conclusions)
 
       count = count + 1
       if (count % 500 == 0) { println(count + " lines parsed") }
@@ -67,34 +77,38 @@ trait SPASSParsers
     }
   }
 
-  def proofTerm: Parser[E] = (termType1 | termType2 | termType3 | term)
+  def proofTerm: Parser[E] = (termType1 | maximalTerm | termType2 | term)
 
   def termType1: Parser[E] = term ~ "*+" ^^ {
     case ~(t, _) => t
   }
 
-  def termType2: Parser[E] = term ~ "*" ^^ {
+  def maximalTerm: Parser[E] = term ~ "*" ^^ {
     case ~(t, _) => t
   }
 
-  def termType3: Parser[E] = term ~ "+" ^^ {
+  def termType2: Parser[E] = term ~ "+" ^^ {
     case ~(t, _) => t
   }
 
   def lineNum: Parser[Int] = number
 
-  def lineSummary: Parser[String] = "[" ~ lineType ~ rep(lineRef) ~ "] ||" ^^ {
-    _ => "" //TODO: return something meaningful
+  def lineSummary: Parser[List[Ref]] = "[" ~ lineType ~ rep(lineRef) ~ "] ||" ^^ {
+    case ~(~(_,refs),_) => {
+      refs
+    }
   }
 
-  def lineRef: Parser[String] = (ref ~ "," | ref) ^^ {
-    _ => "" //TODO: return something meaningful
-  }
+  def lineRef: Parser[Ref] = (refComma | ref)
 
-  def ref: Parser[String] = number ~ "." ~ number ^^ {
+  def refComma: Parser[Ref] = ref ~ "," ^^{
+    case ~(r,_) => r 
+  }
+  
+  def ref: Parser[Ref] = number ~ "." ~ number ^^ {
     case ~(~(a, _), b) => {
       //println(a + "  " + b)
-      "" //TODO: return something meaningful
+      new Ref(a,b)
     }
   }
 
@@ -188,7 +202,7 @@ trait SPASSParsers
 
 }
 
-class ref(f: Int, s: Int) {
+class Ref(f: Int, s: Int) {
   def first: Int = f
   def second: Int = s
 
