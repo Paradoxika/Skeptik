@@ -29,6 +29,7 @@ extends JavaTokenParsers with RegexParsers {
  	case list =>{ 
  	    println("parsed! " + count)
  	    println(varMap)
+ 	    println(exprMap)
  		val p = Proof((list.last).last)
  		exprMap = new MMap[String,E]
  		p
@@ -44,21 +45,18 @@ extends JavaTokenParsers with RegexParsers {
     _ => {
       count = count + 1
       if (count % 500 == 0) {println(count + " lines parsed")}
-      println("in proofline " + count)
+      //println("in proofline " + count)
       "" //TODO: return something meaningful
     }
   }	
   
   def proofTerm: Parser[String] = (term ~ "*+" | term  ~ "*" | term ~ "+" | term) ^^{
     case _ => {
-      println("in proof term ")
+      //println("in proof term ")
       "" //TODO: return something meaningful
     }
   }
   
-  def sterm: Parser[String] = term ~ "*" ^^{
-   _ => ""
-  }
   
   def lineNum: Parser[Int] = number
   
@@ -70,10 +68,9 @@ extends JavaTokenParsers with RegexParsers {
     _ => "" //TODO: return something meaningful
   }
   
-  //TODO: test this--does the regex parse decimals?
   def ref: Parser[String] = number ~ "." ~ number ^^ {
     case ~(~(a,_),b) => {
-	    println(a + "  " + b)
+	    //println(a + "  " + b)
 	    "" //TODO: return something meaningful
 	  }
   }
@@ -86,76 +83,84 @@ extends JavaTokenParsers with RegexParsers {
   
   def cnfName: Parser[String] = name ^^ {
     case _ => {
-      println("sos")
+      //println("sos")
       "sos"
     }
   }
     
   def cnfRole: Parser[String] = name ^^ {
     case _ => {
-      println("axiom")
+     // println("axiom")
       "axiom"
     }
   }
 
-  def func: Parser[String] = equals | max | userDef | lessEquals | greaterEquals
+  def func: Parser[E] = equals | max | userDef | lessEquals | greaterEquals
   
-  def equals: Parser[String] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
+  def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
       case ~(~(~(~(_,first),_),second),_) => {
-      println("eq: " + first + " " + second)
-      "eq"
+      //println("eq: " + first + " " + second)
+      first
     }
   }
   
-    def lessEquals: Parser[String] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
+    def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
       case ~(~(~(~(_,first),_),second),_) => {
-      println("le: " + first + " " + second)
-      "le"
+     // println("le: " + first + " " + second)
+    first
     }
   }
   
     
-    def greaterEquals: Parser[String] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
+  def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
       case ~(~(~(~(_,first),_),second),_) => {
-      println("ge: " + first + " " + second)
-      "ge"
+      //println("ge: " + first + " " + second)
+      first 
     }
   }
     
-  def max: Parser[String] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
-    case _ => ""
+  def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
+    case ~(~(_,last),_) => {
+      last
+    }
   }
   
-  def userDef: Parser[String] = name ~ "(" ~ term ~ ")" ^^ {
-    case ~(~(~(s,_),t),_) => {
-      println("userdef: " + s)
-      s
+  def userDef: Parser[E] = name ~ "(" ~ term ~ ")" ^^ {
+    case ~(~(~(name,_),arg),_) => {
+      //println("userdef: " + name + " - " + arg)
+      new Var(name,new Arrow(o, i))
+      
+      exprMap.getOrElseUpdate(name,new App(new Var(name,new Arrow(o, i)), arg))
     }
   }
     
-  def num: Parser[String] = """\d+""".r ^^ { 
+  def num: Parser[E] = """\d+""".r ^^ { 
     case a => {
-      println("num: " + a)
-      a
+     // println("num: " + a)
+      new Var(a,i)//TODO: check
     }
   }
   
   def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
   
-  def term: Parser[String] = ("(~ " ~ term ~ ")" | func | num | variable) ^^ {
-    case _ => {
-      println("term")
-      ""
+  def term: Parser[E] = (negTerm | func | num | variable) 
+  
+  def negTerm: Parser[E] = "(~ " ~ term ~ ")" ^^{
+    case ~(~(_,t),_) => {
+      t
     }
   }
     
   def variable: Parser[E] = name ^^ {
-    case s => varMap.getOrElseUpdate(s,new Var(s.toString,o))
+    case s => {
+      varMap.getOrElseUpdate(s,new Var(s.toString,o))
+      exprMap.getOrElseUpdate(s,new Var(s.toString,o))
+    }
   }
     
   def cnfFormula: Parser[String] = term ~ "|" ~ term ~ "|" ~ term ^^ { //This is actually a disjunction in the BNF of TPTP, and as such, might not always have 3 conjunctions
     case _ => {
-      println("line")
+     // println("line")
       ""
     }
   }
@@ -163,14 +168,14 @@ extends JavaTokenParsers with RegexParsers {
    def str: Parser[String] = """[^ ():]+""".r ^^ {
   
       case s => {
-        println("str: " + s)
+        //println("str: " + s)
         s
       }
     }
     
    def name: Parser[String] = "[a-zA-Z0-9]+".r ^^ {
       case s => {
-        println("name: " + s)
+      //  println("name: " + s)
         s
       }
     }
