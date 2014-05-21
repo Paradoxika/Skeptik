@@ -89,7 +89,7 @@ extends JavaTokenParsers with RegexParsers {
       case ~(~(~(~(_,first),_),second),_) => {
       //println("eq: " + first + " " + second)
       //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      exprMap.getOrElseUpdate("eq",new App2(new Var("eq",new ArrowPair(o,o, i)), first, second))
+      exprMap.getOrElseUpdate("eq",new App2(new Var("eq",new ArrowPair(o,o,o)), first, second))
     }
   }
   
@@ -97,7 +97,7 @@ extends JavaTokenParsers with RegexParsers {
       case ~(~(~(~(_,first),_),second),_) => {
      // println("le: " + first + " " + second)
       //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      exprMap.getOrElseUpdate("le",new App2(new Var("le",new ArrowPair(o,o, i)), first, second))
+      exprMap.getOrElseUpdate("le",new App2(new Var("le",new ArrowPair(o,o,o)), first, second))
     }
   }
   
@@ -106,7 +106,7 @@ extends JavaTokenParsers with RegexParsers {
       case ~(~(~(~(_,first),_),second),_) => {
       //println("ge: " + first + " " + second)
       //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      exprMap.getOrElseUpdate("ge",new App2(new Var("ge",new ArrowPair(o,o, i)), first, second))
+      exprMap.getOrElseUpdate("ge",new App2(new Var("ge",new ArrowPair(o,o,o)), first, second))
     }
   }
     
@@ -114,7 +114,7 @@ extends JavaTokenParsers with RegexParsers {
     case ~(~(~(~(~(~(_,first),_),second),_),last),_) => {
      //last 
      //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      exprMap.getOrElseUpdate("max",new App3(new Var("max",new ArrowTriple(o,o,o, i)), first, second, last))
+      exprMap.getOrElseUpdate("max",new App3(new Var("max",new ArrowTriple(o,o,o,o)), first, second, last))
     }
     
   }
@@ -122,9 +122,9 @@ extends JavaTokenParsers with RegexParsers {
   def userDef: Parser[E] = name ~ "(" ~ term ~ ")" ^^ {
     case ~(~(~(name,_),arg),_) => {
       //println("userdef: " + name + " - " + arg)
-      new Var(name,new Arrow(o, i))
+      new Var(name,new Arrow(o, o))
       
-      exprMap.getOrElseUpdate(name,new App(new Var(name,new Arrow(o, i)), arg))
+      exprMap.getOrElseUpdate(name,new App(new Var(name,new Arrow(o,o)), arg))
     }
   }
     

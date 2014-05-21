@@ -55,8 +55,8 @@ case class App(val function: E, val argument: E) extends E {
 
 //TODO: rename, if they're the way to go
 case class App2(val function: E, val argument: E, val argumentB: E) extends E {
-  require(function.t.asInstanceOf[ArrowPair].t1 == argument.t)
-  require(function.t.asInstanceOf[ArrowPair].t2 == argumentB.t)
+  //require(function.t.asInstanceOf[ArrowPair].t1 == argument.t)
+  //require(function.t.asInstanceOf[ArrowPair].t2 == argumentB.t)
   def copy = new App2(function.copy,argument.copy, argumentB.copy)
   override lazy val t = function.t.asInstanceOf[ArrowPair].t3
   
@@ -72,9 +72,9 @@ case class App2(val function: E, val argument: E, val argumentB: E) extends E {
 }
 
 case class App3(val function: E, val argument: E, val argumentB: E, val argumentC: E) extends E {
-  require(function.t.asInstanceOf[ArrowTriple].t1 == argument.t)
-  require(function.t.asInstanceOf[ArrowTriple].t2 == argumentB.t)
-  require(function.t.asInstanceOf[ArrowTriple].t3 == argumentC.t)
+  //require(function.t.asInstanceOf[ArrowTriple].t1 == argument.t)
+  //require(function.t.asInstanceOf[ArrowTriple].t2 == argumentB.t)
+  //require(function.t.asInstanceOf[ArrowTriple].t3 == argumentC.t)
   def copy = new App3(function.copy,argument.copy, argumentB.copy, argumentC.copy)
   override lazy val t = function.t.asInstanceOf[ArrowTriple].t4
   
