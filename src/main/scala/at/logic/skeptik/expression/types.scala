@@ -18,14 +18,3 @@ final case class Arrow(t1:T, t2:T) extends T {
   override def toString = "(" + t1 + unicodeOrElse("\u2192","->") + t2 + ")"
   def logicalSize = t1.logicalSize + t2.logicalSize + 1
 }
-
-//
-final case class ArrowPair(t1:T, t2:T, t3:T) extends T {
-  override def toString = "(" + t1 + "," + t2 +  unicodeOrElse("\u2192","->") + t3 + ")"
-  def logicalSize = t1.logicalSize + t2.logicalSize + t3.logicalSize + 1
-}
-
-final case class ArrowTriple(t1:T, t2:T, t3:T, t4:T) extends T {
-  override def toString = "(" + t1 + "," + t2 + "," + t3 + unicodeOrElse("\u2192","->") + t4 + ")"
-  def logicalSize = t1.logicalSize + t2.logicalSize + t3.logicalSize + t4.logicalSize + 1
-}

@@ -125,32 +125,31 @@ trait SPASSParsers
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("eq: " + first + " " + second)
-      //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      new App2(new Var("eq", new ArrowPair(o, o, o)), first, second)
+      //TODO: use AppRec
+      first //temporary stub
     }
   }
 
   def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       // println("le: " + first + " " + second)
-      //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      new App2(new Var("le", new ArrowPair(o, o, o)), first, second)
+      //TODO: use AppRec
+      first //temporary stub
     }
   }
 
   def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("ge: " + first + " " + second)
-      //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      new App2(new Var("ge", new ArrowPair(o, o, o)), first, second)
+      //TODO: use AppRec
+      first //temporary stub
     }
   }
 
   def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(~(~(_, first), _), second), _), last), _) => {
-      //last 
-      //can't use function like in user defined function, as there are multiple arguments and App does not support that
-      new App3(new Var("max", new ArrowTriple(o, o, o, o)), first, second, last)
+      //TODO: use AppRec
+      first //temporary stub
     }
 
   }
