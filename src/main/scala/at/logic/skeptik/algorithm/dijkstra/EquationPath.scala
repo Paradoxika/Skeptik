@@ -12,7 +12,7 @@ import scala.collection.immutable.{HashMap => IMap}
 import scala.collection.mutable.{HashMap => MMap}
 
 class EqLabel(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) extends (EqW,Option[(EquationPath,EquationPath)]) (equation, deducePaths) {
-  def size = deducePaths match {
+  val size = deducePaths match {
     case None => 1
     case Some((ddP1,ddP2)) => {
       ddP1.originalEqs.size + ddP2.originalEqs.size

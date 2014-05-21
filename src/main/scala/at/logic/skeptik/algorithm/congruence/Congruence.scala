@@ -5,7 +5,7 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.algorithm.dijkstra._
 //import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
-import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.mutable.{HashMap => MMap,HashSet => MSet,Queue => MQueue}
 import scala.collection.mutable.Stack
 import scala.collection.immutable.Queue
 import scala.collection.mutable.ListBuffer
@@ -100,10 +100,9 @@ class Congruence(
             val y = c3.find.sigQuery(u)
             y match {
               case Some(v) => {
-                val c4 = c3.union(u,v)._1
+                val c4 = c3.union(u,v)
                 val d = c4.resolveDeduced(u, v)
-                val dd = d.addDeduced(u, v)
-                dd
+                d
               }
               case None => {
                 val nF = newFind.addPred(v1, u)
@@ -141,11 +140,22 @@ class Congruence(
     val (nF,aF,bF) = find.queryTwo(a, b)
     val c1 = updateFind(nF)
     if (aF != bF) {
-      val (c2, deduced) = c1.union(a,b)
-      deduced.foldLeft(c2)({(A,B) =>
-        val d = A.resolveDeduced(B._1, B._2)
-        d.merge(B._1, B._2, None) //this line is slowing down the process alot
-      })
+      val deduced = MSet[(E,E)]()
+      val c2 = c1.union(a,b,deduced)
+//      var ded = deduced.p
+//      deduced.foldLeft(c2)({(A,B) =>
+//              val d = A.resolveDeduced(B._1, B._2)
+//        d.merge(B._1, B._2, None) //this line is slowing down the process alot
+      var c = c2
+      var d = deduced.size
+      while (!deduced.isEmpty) {
+//        if (d > deduced.size) println("got smaller")
+        d = deduced.size
+        val (u,v) = deduced.head
+        deduced -= ((u,v))
+        if (c.find.query(u) != c.find.query(v)) c = c.union(u, v, deduced)
+      }
+      c
 //      var out = c2
 //      while (!deduced.isEmpty) {
 //        val (l,r) = deduced.pop
@@ -166,13 +176,13 @@ class Congruence(
    * see page 191 in Pascal's work 
    * 
    * @param u,v expressions which CRRs should be merged
+   * @param deduced mutable map to add deduced equalities to
    * @res new congruence structure with u,v merged and list of deduced equalities
    */
-  def union(u: E, v: E): (Congruence,Stack[(E,E)]) = {
+  def union(u: E, v: E, deduced: MSet[(E,E)] = MSet[(E,E)]()): (Congruence) = {
     val (nF,a) = find.query(u)
     val (nF2,b) = nF.query(v)
     
-    val deduct = Stack[(E,E)]()
     val (remainCCR,removeCCR,remainTerm,removeTerm) = if (a.term.size > b.term.size) (a,b,u,v) else (b,a,v,u)
     val nF3 = removeCCR.term.foldLeft(nF2)({(A,B) => A.addTerm(remainTerm, B)})
     
@@ -185,7 +195,9 @@ class Congruence(
       val s = A.find.sigQuery(B)
       s match {
         case Some(q) => {
-          deduct.push((B,q))
+//          println("deducing " + (B,q))
+//          if (deduced.contains((B,q))) println("adding something, which is already there")
+          deduced.+=((B,q))
           A.addDeduced(B, q)
         }
         case None => {
@@ -193,7 +205,7 @@ class Congruence(
         }
       }
     })
-    (c2,deduct)
+    c2
   }
   
   /**
@@ -223,17 +235,17 @@ class Congruence(
    * @res congruence structure with updated graph
    */
   def resolveDeduced(u: E, v: E): Congruence = {
-    val dij = new EquationDijkstra(eqReferences)
+    
     u match {
       case App(u1,u2) => {
         v match {
           case App(v1,v2) => {
             val path1 = 
               if (u1 == v1) new EquationPath(u1,None)
-              else dij(u1,v1,g)
+              else callDijkstra(u1,v1,g)
             val path2 = 
               if (u2 == v2) new EquationPath(u2,None)
-              else dij(u2,v2,g)
+              else callDijkstra(u2,v2,g)
             val eq1 = path1.originalEqs
             val eq2 = path2.originalEqs
             val eqAll = eq1 union eq2
@@ -248,6 +260,11 @@ class Congruence(
       }
       case _ => this
     }
+  }
+  
+  def callDijkstra(u: E, v: E, g: WGraph[E,EqLabel]) ={
+    val dij = new EquationDijkstra(eqReferences)
+    dij(u,v,g)
   }
   
   /**

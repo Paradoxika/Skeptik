@@ -2,30 +2,24 @@ package at.logic.skeptik.congruence
 
 import at.logic.skeptik.algorithm.dijkstra._
 
+object A {
+  val ms: Seq[String => String] = Seq(m1)
+  def m1(s: String) = s
+}
+
+object B {
+  val ms: Seq[String => String] = Seq(m1)
+  def m1: String => String = s => s
+}
+
 object FibonacciTest {
-  def main2(args: Array[String]):Unit = {
-    val heap = new FibonacciHeap[String,Int](Integer.MIN_VALUE)
-    
-    heap.insert("a", 1)
-    
-    heap.insert("b", 2)
-    
-    heap.insert("c", 3)
-    
-    println(heap)
-    
-    val m = heap.extractMin
-    
-    println("min: " + m)
-    
-    println(heap)
-    
-    val m2 = heap.extractMin
-    
-    println("last heap: "+ heap)
-  }
-  
+
+A.ms.map(m => m.getClass.getSimpleName)
+
     def main(args : Array[String]) : Unit = {
+  
+     println(A.ms.map(m => m.getClass.getSimpleName))
+     println(B.ms.map(m => m.getClass.getSimpleName))
      //val heap = new FibonacciHeap[int](Int.MinValue);
      val heap = new FibonacciHeap[String,Int](Int.MinValue);
      heap.insert("f",10)

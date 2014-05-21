@@ -157,8 +157,8 @@ abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
     
     distances += (s -> 0)
     
-//    val q = new ArrayPQ[T1,Int]()
-    val q = new FibonacciHeap[T1,Int](Integer.MIN_VALUE)
+    val q = new ArrayPQ[T1,Int]()
+//    val q = new FibonacciHeap[T1,Int](Integer.MIN_VALUE)
 
     g.vertices.foreach(v => {
 //      q.insert(v, d(v))

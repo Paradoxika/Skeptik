@@ -51,11 +51,11 @@ class ArrayPQ[T1,T2 <% Ordered[T2]] extends MyPriorityQueue[T1,T2] {
   
   def extractMin: Option[T1] = {
     if (!elems.isEmpty) {
-      val elem = minimum
+      val elem = minimum.get
       val n = elems.indexOf(elem)
       values.remove(n)
       elems.remove(n)
-      elem
+      Some(elem)
     }
     else None
   }
