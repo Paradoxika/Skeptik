@@ -52,7 +52,7 @@ trait SPASSParsers
 
       val sFinal = sA union sS
 
-      val ax = new Axiom(sA)
+      val ax = new Axiom(sFinal)
       proofMap += (ln -> ax)
       ax
     }
@@ -68,6 +68,9 @@ trait SPASSParsers
       //        unif.add(exprMap.getOrElse(firstRef,  throw new Exception("Error!")))
       //        unif.add(exprMap.getOrElse(secondRef,  throw new Exception("Error!")))
       //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")), )
+      println("first: " + firstNode +"," + proofMap.get(firstNode))
+      println("second: "+ secondNode +","  + proofMap.get(secondNode))
+      println(vars)
       val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(vars)
 
       //results in:  Resolution: the conclusions of the given premises are not resolvable.
@@ -86,7 +89,7 @@ trait SPASSParsers
 
       val sFinal = sA union sS
 
-      val ax = new Axiom(sA)
+      val ax = new Axiom(sFinal)
       proofMap += (ln -> ax)
       ax
     }
