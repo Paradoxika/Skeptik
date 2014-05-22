@@ -9,6 +9,7 @@ import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
+import at.logic.skeptik.proof.sequent.resolution._
 
 object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 
@@ -40,18 +41,24 @@ trait SPASSParsers
 
   def line: Parser[Node] = lineNum ~ "[" ~ number ~ ":" ~ inferenceRule ~ rep(lineRef) ~ "] ||" ~ sequent ^^ {
     //TODO: needs to change to use unifying resolution & other inference rules
-    case ~(~(~(~(~(~(~(ln,_),_),_),"Inp"),_), _),seq)=> {
-        val ax = new Axiom( exprMap.get(ln).toList )
+    case ~(~(~(~(~(~(~(ln,_),_),_),"Inp"),_), _),seq)=> {    
+        val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
         proofMap += (ln -> ax)
 	    ax
 	  }
+    /*
     case ~(~(~(~(~(~(~(ln,_),_),_),"Res:"),refs), _),seq)=> {
-        val ax = new Axiom( exprMap.get(ln).toList )
+        def first = refs.head
+        def second = refs.tail.head
+        val ax = UnifyingResolution(proofMap.getOrElse(first, throw new Exception("Error!")), proofMap.getOrElse(second, throw new Exception("Error!")))
         proofMap += (ln -> ax)
 	    ax
 	  }
+	  * 
+	  */
+    //For now, treat the other inference rules as new axioms
     case ~(~(~(~(~(~(~(ln,_),_),_),_),refs), _),seq)=> {
-        val ax = new Axiom( exprMap.get(ln).toList )
+        val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
         proofMap += (ln -> ax)
 	    ax
 	  }    
