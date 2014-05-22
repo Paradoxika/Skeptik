@@ -11,6 +11,21 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.immutable.{HashMap => IMap}
 import scala.collection.mutable.{HashMap => MMap}
 
+class EqLabel(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) extends (EqW,Option[(EquationPath,EquationPath)]) (equation, deducePaths) {
+  val size = deducePaths match {
+    case None => 1
+    case Some((ddP1,ddP2)) => {
+      ddP1.originalEqs.size + ddP2.originalEqs.size
+    }
+  }
+}
+
+object EqLabel {
+  def apply(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) = {
+    new EqLabel(equation,deducePaths)
+  }
+}
+
 /**
  * Class EqTreeEdge represents edges in the equation path.
  * In fact this class is not much more than an abbreviation for (EquationTree,(EqW,Option[(EquationPath,EquationPath)]))(nextTree,label)
@@ -114,9 +129,9 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     val ddEqs = ddProofRoots.map(_.conclusion.suc.last).toSeq
     val congr = (eq.l,eq.r) match {
       case (App(u1,u2),App(v1,v2)) => {
-        if ((u1 == v1) && (u2 != v2)) EqCongruent(EqW(u2,v2),eq)
-        else if ((u1 != v1) && (u2 == v2)) EqCongruent(EqW(u1,v1),eq)
-        else if ((u1 != v1) && (u2 != v2)) EqCongruent(EqW(u1,v1),EqW(u2,v2),eq)
+        if ((u1 == v1) && (u2 != v2)) EqCongruent(EqW(u2,v2,eqReferences),eq)
+        else if ((u1 != v1) && (u2 == v2)) EqCongruent(EqW(u1,v1,eqReferences),eq)
+        else if ((u1 != v1) && (u2 != v2)) EqCongruent(EqW(u1,v1,eqReferences),EqW(u2,v2,eqReferences),eq)
         else throw new Exception("Trying to prove the congruence of terms with equal arguments")
       }
       case _ => throw new Exception("Error when creating congruence node, because equality between wrong kind of expressions")
@@ -127,12 +142,9 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
       } 
       else {
         ddProofRoots.foldLeft(congr.asInstanceOf[N])({(A,B) => 
-          try EqW.resolveSymm(A,B)
+          try R(A,B)
           catch {
             case e: Exception => {
-              val AnewAnt = A.conclusion.ant.map(f => if (EqW.isEq(f)) EqW(f).reverse.equality else f)
-              val AnewSuc = A.conclusion.suc.map(f => if (EqW.isEq(f)) EqW(f).reverse.equality else f)
-              val Anew = 
               println()
               println(EquationPath.this)
               println(A + " " + A.getClass)

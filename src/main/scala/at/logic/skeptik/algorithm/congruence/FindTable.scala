@@ -85,7 +85,7 @@ class FindTable(val map: IMap[E,CCR] = IMap[E,CCR]()) {
    * 
    * @res None if no expression in the findTable matches
    */
-  def sigQuery(x: E): Option[E] = {
+  def sigQuery(x: E): Option[E] = { // this is not efficient!
     x match {
       case App(u,v) => {
         query(u)._2.pred.find(p => {
