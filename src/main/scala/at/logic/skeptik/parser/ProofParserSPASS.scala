@@ -158,27 +158,27 @@ trait SPASSParsers
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("eq: " + first + " " + second)
-      AppRec(new Var("eq", booleanFunctionType(2)), List(first, second)) //TODO: check
+      App(App(Var("eq", i -> (i -> o)), first) , second)
     }
   }
 
   def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       // println("le: " + first + " " + second)
-      AppRec(new Var("le", booleanFunctionType(2)), List(first, second)) //TODO: check
+      App(App(Var("le", i -> (i -> o)), first) , second)
     }
   }
 
   def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("ge: " + first + " " + second)
-      AppRec(new Var("ge", booleanFunctionType(2)), List(first, second)) //TODO: check
+      App(App(Var("ge", i -> (i -> o)), first) , second)
     }
   }
 
   def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(~(~(_, first), _), second), _), last), _) => {
-      AppRec(new Var("max", booleanFunctionType(3)), List(first, second, last)) //TODO: check
+      AppRec(new Var("max", i -> (i -> (i -> i))), List(first, second, last)) 
     }
 
   }
@@ -186,14 +186,14 @@ trait SPASSParsers
   def userDef: Parser[E] = name ~ "(" ~ term ~ ")" ^^ {
     case ~(~(~(name, _), arg), _) => {
       //println("userdef: " + name + " - " + arg)      
-      new App(new Var(name, new Arrow(o, o)), arg)
+      new App(new Var(name, i -> i), arg)
     }
   }
 
   def num: Parser[E] = """\d+""".r ^^ {
     case a => {
       // println("num: " + a)
-      new Var(a, o) //TODO: check
+      new Var(a, i) 
     }
   }
 
@@ -209,7 +209,7 @@ trait SPASSParsers
 
   def variable: Parser[E] = name ^^ {
     case s => {
-      varMap.getOrElseUpdate(s, new Var(s.toString, o))
+      varMap.getOrElseUpdate(s, new Var(s.toString, i))
     }
   }
 
