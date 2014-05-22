@@ -21,7 +21,8 @@ trait SPASSParsers
 
   private var proofMap = new MMap[Int, Node]
 
-  //unused?
+  private var vars = Set[Var]()
+
   private var exprMap = new MMap[Ref, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
   private var varMap = new MMap[String, E] //will map variable names to an expression object for that variable
@@ -67,7 +68,7 @@ trait SPASSParsers
       //        unif.add(exprMap.getOrElse(firstRef,  throw new Exception("Error!")))
       //        unif.add(exprMap.getOrElse(secondRef,  throw new Exception("Error!")))
       //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")), )
-      val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(Set())
+      val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(vars)
 
       //results in:  Resolution: the conclusions of the given premises are not resolvable.
 
@@ -158,27 +159,27 @@ trait SPASSParsers
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("eq: " + first + " " + second)
-      App(App(Var("eq", i -> (i -> o)), first) , second)
+      App(App(Var("eq", i -> (i -> o)), first), second)
     }
   }
 
   def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       // println("le: " + first + " " + second)
-      App(App(Var("le", i -> (i -> o)), first) , second)
+      App(App(Var("le", i -> (i -> o)), first), second)
     }
   }
 
   def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("ge: " + first + " " + second)
-      App(App(Var("ge", i -> (i -> o)), first) , second)
+      App(App(Var("ge", i -> (i -> o)), first), second)
     }
   }
 
   def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(~(~(_, first), _), second), _), last), _) => {
-      AppRec(new Var("max", i -> (i -> (i -> i))), List(first, second, last)) 
+      AppRec(new Var("max", i -> (i -> (i -> i))), List(first, second, last))
     }
 
   }
@@ -193,7 +194,7 @@ trait SPASSParsers
   def num: Parser[E] = """\d+""".r ^^ {
     case a => {
       // println("num: " + a)
-      new Var(a, i) 
+      new Var(a, i)
     }
   }
 
@@ -209,7 +210,12 @@ trait SPASSParsers
 
   def variable: Parser[E] = name ^^ {
     case s => {
+      val hasLowerCase = s.exists(_.isLower)
+      if (!hasLowerCase) {
+        vars += new Var(s.toString, i)
+      }
       varMap.getOrElseUpdate(s, new Var(s.toString, i))
+
     }
   }
 
