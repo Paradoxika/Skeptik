@@ -2,6 +2,7 @@ package at.logic.skeptik.parser
 
 import scala.util.parsing.combinator._
 import collection.mutable.{ HashMap => MMap }
+import collection.mutable.{ HashSet => MSet }
 import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{ SequentProofNode => Node }
@@ -47,7 +48,7 @@ trait SPASSParsers
         //TODO: avoid code re-use
         def addAntecedents(succs: List[E]): Sequent = {
           if (succs.length > 1) {
-             val s1 = addAntecedents(succs.tail) + succs.head
+             val s1 = succs.head +: addAntecedents(succs.tail)
              s1
           } else if (succs.length == 1) {
              val s0 = Sequent()()
@@ -81,29 +82,33 @@ trait SPASSParsers
         proofMap += (ln -> ax)
 	    ax
 	  }
-    /*
-     * //TODO: currently broken? Can't find implicit variable in either case.
+    
+    // * //TODO: currently broken? Can't find implicit variable in either case.
     case ~(~(~(~(~(~(~(ln,_),_),_),"Res:"),refs), _),seq)=> {
         def firstRef = refs.head
         def secondRef = refs.tail.head
         def firstNode = firstRef.first
         def secondNode = secondRef.first
-        val ss = Sequent()()
-        val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")), exprMap.getOrElse(firstRef,  throw new Exception("Error!")), exprMap.getOrElse(secondRef,  throw new Exception("Error!")))
-        UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(ss)
+//        val unif: MSet[Var] = new MSet[Var]()
+//        val u: Set[E] = new MSet[E]()
+//        unif.add(exprMap.getOrElse(firstRef,  throw new Exception("Error!")))
+//        unif.add(exprMap.getOrElse(secondRef,  throw new Exception("Error!")))
+        //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")), )
+        val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(Set())
         
+        //results in:  Resolution: the conclusions of the given premises are not resolvable.
         
         proofMap += (ln -> ax)
 	    ax
     } 
-	 */
+	 
     //For now, treat the other inference rules as new axioms
     case ~(~(~(~(~(~(~(ln,_),_),_),_),refs), _),seq)=> {
       //  val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
         //TODO: avoid code re-use
         def addAntecedents(succs: List[E]): Sequent = {
           if (succs.length > 1) {
-             val s1 = addAntecedents(succs.tail) + succs.head
+             val s1 = succs.head +: addAntecedents(succs.tail) 
              s1
           } else if (succs.length == 1) {
              val s0 = Sequent()()
