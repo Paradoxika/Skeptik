@@ -19,7 +19,7 @@ trait SPASSParsers
 
   private var count = 0;
 
-  private var proofMap = new MMap[Int, Node] 
+  private var proofMap = new MMap[Int, Node]
 
   //unused?
   private var exprMap = new MMap[Ref, E] //will map axioms/proven expressions to the location (line number) where they were proven
@@ -42,106 +42,53 @@ trait SPASSParsers
 
   def line: Parser[Node] = lineNum ~ "[" ~ number ~ ":" ~ inferenceRule ~ rep(lineRef) ~ "] ||" ~ sequent ^^ {
     //TODO: needs to change to use unifying resolution & other inference rules
-    case ~(~(~(~(~(~(~(ln,_),_),_),"Inp"),_), _),seq)=> {    
-        //val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
+    case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
+      //val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
 
-        //TODO: avoid code re-use
-        def addAntecedents(succs: List[E]): Sequent = {
-          if (succs.length > 1) {
-             val s1 = succs.head +: addAntecedents(succs.tail)
-             s1
-          } else if (succs.length == 1) {
-             val s0 = Sequent()()
-             val s1 = s0 + succs.head
-             s1
-          } else {
-             val s0 = Sequent()()
-             s0
-          }
-        }
-        val sA = addAntecedents(seq._1)
-        
-        def addSuccedents(succs: List[E]): Sequent = {
-          if (succs.length > 1) {
-             val s1 = addSuccedents(succs.tail) + succs.head
-             s1
-          } else if (succs.length == 1) {
-             val s0 = Sequent()()
-             val s1 = s0 + succs.head
-             s1
-          } else {
-             val s0 = Sequent()()
-             s0
-          }
-        }
-        val sS = addSuccedents(seq._2)
-        
-        val sFinal = sA union sS
-        
-        val ax = new Axiom(sA)
-        proofMap += (ln -> ax)
-	    ax
-	  }
-    
+      val sA = addAntecedents(seq._1)
+
+      val sS = addSuccedents(seq._2)
+
+      val sFinal = sA union sS
+
+      val ax = new Axiom(sA)
+      proofMap += (ln -> ax)
+      ax
+    }
+
     // * //TODO: currently broken? Can't find implicit variable in either case.
-    case ~(~(~(~(~(~(~(ln,_),_),_),"Res:"),refs), _),seq)=> {
-        def firstRef = refs.head
-        def secondRef = refs.tail.head
-        def firstNode = firstRef.first
-        def secondNode = secondRef.first
-//        val unif: MSet[Var] = new MSet[Var]()
-//        val u: Set[E] = new MSet[E]()
-//        unif.add(exprMap.getOrElse(firstRef,  throw new Exception("Error!")))
-//        unif.add(exprMap.getOrElse(secondRef,  throw new Exception("Error!")))
-        //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")), )
-        val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(Set())
-        
-        //results in:  Resolution: the conclusions of the given premises are not resolvable.
-        
-        proofMap += (ln -> ax)
-	    ax
-    } 
-	 
+    case ~(~(~(~(~(~(~(ln, _), _), _), "Res:"), refs), _), seq) => {
+      def firstRef = refs.head
+      def secondRef = refs.tail.head
+      def firstNode = firstRef.first
+      def secondNode = secondRef.first
+      //        val unif: MSet[Var] = new MSet[Var]()
+      //        val u: Set[E] = new MSet[E]()
+      //        unif.add(exprMap.getOrElse(firstRef,  throw new Exception("Error!")))
+      //        unif.add(exprMap.getOrElse(secondRef,  throw new Exception("Error!")))
+      //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")), )
+      val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(Set())
+
+      //results in:  Resolution: the conclusions of the given premises are not resolvable.
+
+      proofMap += (ln -> ax)
+      ax
+    }
+
     //For now, treat the other inference rules as new axioms
-    case ~(~(~(~(~(~(~(ln,_),_),_),_),refs), _),seq)=> {
+    case ~(~(~(~(~(~(~(ln, _), _), _), _), refs), _), seq) => {
       //  val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
-        //TODO: avoid code re-use
-        def addAntecedents(succs: List[E]): Sequent = {
-          if (succs.length > 1) {
-             val s1 = succs.head +: addAntecedents(succs.tail) 
-             s1
-          } else if (succs.length == 1) {
-             val s0 = Sequent()()
-             val s1 = s0 + succs.head
-             s1
-          } else {
-             val s0 = Sequent()()
-             s0
-          }
-        }
-        val sA = addAntecedents(seq._1)
-        
-        def addSuccedents(succs: List[E]): Sequent = {
-          if (succs.length > 1) {
-             val s1 = addSuccedents(succs.tail) + succs.head
-             s1
-          } else if (succs.length == 1) {
-             val s0 = Sequent()()
-             val s1 = s0 + succs.head
-             s1
-          } else {
-             val s0 = Sequent()()
-             s0
-          }
-        }
-        val sS = addSuccedents(seq._2)
-        
-        val sFinal = sA union sS
-        
-        val ax = new Axiom(sA)
-        proofMap += (ln -> ax)
-	    ax
-	  }    
+
+      val sA = addAntecedents(seq._1)
+
+      val sS = addSuccedents(seq._2)
+
+      val sFinal = sA union sS
+
+      val ax = new Axiom(sA)
+      proofMap += (ln -> ax)
+      ax
+    }
   }
 
   def sequent: Parser[(List[E], List[E])] = antecedent ~ "->" ~ succedent ~ "." ^^ {
@@ -163,16 +110,16 @@ trait SPASSParsers
 
       addToExprMap(count, addToExprMap(count, 0, a), s)
 	  */
-      
+
       count = count + 1
       if (count % 500 == 0) { println(count + " lines parsed") }
       (a, s)
     }
   }
-  
+
   def antecedent: Parser[List[E]] = rep(formulaList)
   def succedent: Parser[List[E]] = rep(formulaList)
-  
+
   //All the additional symbols can be ignored
   def formulaList: Parser[E] = (termType1 | maximalTerm | termType2 | term)
   def termType1: Parser[E] = term ~ "*+" ^^ {
@@ -189,13 +136,13 @@ trait SPASSParsers
 
   def lineRef: Parser[Ref] = (refComma | ref)
 
-  def refComma: Parser[Ref] = ref ~ "," ^^{
-    case ~(r,_) => r 
+  def refComma: Parser[Ref] = ref ~ "," ^^ {
+    case ~(r, _) => r
   }
-  
+
   def ref: Parser[Ref] = number ~ "." ~ number ^^ {
     case ~(~(a, _), b) => {
-      new Ref(a,b)
+      new Ref(a, b)
     }
   }
 
@@ -211,27 +158,27 @@ trait SPASSParsers
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("eq: " + first + " " + second)
-      AppRec(new Var("eq",  booleanFunctionType(2)), List(first, second)) //TODO: check
+      AppRec(new Var("eq", booleanFunctionType(2)), List(first, second)) //TODO: check
     }
   }
 
   def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       // println("le: " + first + " " + second)
-      AppRec(new Var("le",booleanFunctionType(2)), List(first, second)) //TODO: check
+      AppRec(new Var("le", booleanFunctionType(2)), List(first, second)) //TODO: check
     }
   }
 
   def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       //println("ge: " + first + " " + second)
-      AppRec(new Var("ge",booleanFunctionType(2)), List(first, second)) //TODO: check
+      AppRec(new Var("ge", booleanFunctionType(2)), List(first, second)) //TODO: check
     }
   }
 
   def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(~(~(_, first), _), second), _), last), _) => {
-      AppRec(new Var("max",booleanFunctionType(3)), List(first, second, last)) //TODO: check
+      AppRec(new Var("max", booleanFunctionType(3)), List(first, second, last)) //TODO: check
     }
 
   }
@@ -273,9 +220,36 @@ trait SPASSParsers
     }
   }
 
+  def addAntecedents(antes: List[E]): Sequent = {
+    if (antes.length > 1) {
+      val s1 = antes.head +: addAntecedents(antes.tail)
+      s1
+    } else if (antes.length == 1) {
+      val s0 = Sequent()()
+      val s1 = s0 + antes.head
+      s1
+    } else {
+      val s0 = Sequent()()
+      s0
+    }
+  }
+
+  def addSuccedents(succs: List[E]): Sequent = {
+    if (succs.length > 1) {
+      val s1 = addSuccedents(succs.tail) + succs.head
+      s1
+    } else if (succs.length == 1) {
+      val s0 = Sequent()()
+      val s1 = s0 + succs.head
+      s1
+    } else {
+      val s0 = Sequent()()
+      s0
+    }
+  }
 }
 
-class Ref(f: Int, s: Int){
+class Ref(f: Int, s: Int) {
   def first = f
   def second = s
 }
