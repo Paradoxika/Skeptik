@@ -31,3 +31,13 @@ object RemoveMostPebbles extends AbstractTopDownPebbler {
     new RemovesPebblesOrder(proof,nodeInfos)
   }
 }
+
+object DistancePebbler extends AbstractTopDownPebbler {
+  def usedOrder(proof: Proof[N], nodeInfos: MMap[N,NodeInfo]): Ordering[N] = {
+    new DistanceOrder(proof,nodeInfos)
+  }
+}
+
+class GenericTDPebbler(inOrderings: Seq[String]) extends AbstractTopDownPebbler with GenericPebbler {
+  def orderings: Seq[String] = inOrderings
+}

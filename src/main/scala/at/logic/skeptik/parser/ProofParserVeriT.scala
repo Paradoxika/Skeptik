@@ -9,26 +9,31 @@ import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
+import scala.collection.mutable.ArrayBuffer
 
 object ProofParserVeriT extends ProofParser[Node] with VeriTParsers
 
 trait VeriTParsers
 extends JavaTokenParsers with RegexParsers {
   
-  private var proofMap = new MMap[Int,Node]
+//  private var proofMap = new MMap[Int,Node]
+  private val proofArray = new ArrayBuffer[Node]()
   private var exprMap = new MMap[Int,E]
   private var bindMap = new MMap[String,E]
 
   def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
     val p = Proof(list.last)
-    proofMap = new MMap[Int,Node]
+//    proofMap = new MMap[Int,Node]
+    proofArray.clear
     exprMap = new MMap[Int,E]
     p
   }
   def line: Parser[Node] = "(set"  ~> proofName ~ "(" ~ inference <~ "))" ^^ {
     case ~(~(n, _), p) => {
-      if (n % 100 == 0) println("Parsed " + n + " lines") // This line was added to allow Georg to see the progress when parsing very large proofs. It should be removed in the future.
-      proofMap += (n -> p); p
+//      println(n)
+//      proofMap += (n -> p); p
+      proofArray += p
+      p
     }
     case wl => throw new Exception("Wrong line " + wl)
   }
@@ -46,7 +51,7 @@ extends JavaTokenParsers with RegexParsers {
   }
 
   def premises: Parser[List[Node]] = ":clauses (" ~> rep(proofName) <~ ")" ^^ {
-    list => list map proofMap
+    list => list map {pn => proofArray(pn - 1)}
   }
   def args: Parser[List[Int]] = ":iargs (" ~> rep("""\d+""".r) <~ ")" ^^ {
     list => list map { _.toInt }
@@ -57,7 +62,10 @@ extends JavaTokenParsers with RegexParsers {
   
   def expression: Parser[E] = (assignment | namedExpr | expr)
   def assignment: Parser[E] = exprName ~ ":" ~ expr ^^ {
-    case ~(~(n,_),e) => exprMap += (n -> e); e
+    case ~(~(n,_),e) => {
+//      println(n)
+      exprMap += (n -> e); e
+    }
   }
 
   def exprName: Parser[Int] = "#" ~> """\d+""".r ^^ { _.toInt }
