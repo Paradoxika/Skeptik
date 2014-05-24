@@ -22,7 +22,7 @@ trait SPASSParsers
 
   private var proofMap = new MMap[Int, Node]
 
-  private var vars = Set[Var]()
+  private var vars = Set[Var]() //TODO: make this val
 
   private var exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
 

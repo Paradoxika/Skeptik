@@ -7,6 +7,8 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 import at.logic.skeptik.judgment.immutable.SeqSequent
+import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
+
 
 
 class UnifyingResolution(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode,
@@ -103,12 +105,22 @@ with NoMainFormula {
       replacement = new Var("SomeNewName", i) //TODO: generate names in a much smarter way
     }
     
+    //TODO: check that usedVars.head is valid (i.e. usedVars.length > 1)
+    //TODO: make replacements for every variable in usedVars
+    val sub = Substitution(replacement -> usedVars.head)//TODO: check: is this the right order?
+    
     //Substitute the new name into one of the premises; let say the left one //TODO: check: does this matter?
-    val newAnt = for(a <- leftPremiseR.mainFormulas.ant) yield Substitution(replacement -> a)
-    val newSuc = for(a <- leftPremiseR.mainFormulas.suc) yield Substitution(replacement -> a)
+    val newAnt = for(a <- leftPremiseR.mainFormulas.ant) yield sub(a)
+    val newSuc = for(a <- leftPremiseR.mainFormulas.suc) yield sub(a)
+    
+    val seqOut = Sequent(newAnt.head)(newSuc.head) //TODO: not just heads, but the entire sequences
+    
+    val axOut = Axiom(seqOut)
+    //TODO: not sure if I can just use a new proof node; this one won't be in the proofMap of the parser. 
+    //	Is that going to effect anything? Check.
     
     //TODO: update these with something suitable
-    (leftPremise, rightPremise, auxL, auxR) // Nothing is done yet.
+    (axOut, rightPremise, auxL, auxR) // Nothing is done yet.
   }
   
 
