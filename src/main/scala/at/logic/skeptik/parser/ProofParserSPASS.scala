@@ -3,6 +3,7 @@ package at.logic.skeptik.parser
 import scala.util.parsing.combinator._
 import collection.mutable.{ HashMap => MMap }
 import collection.mutable.{ HashSet => MSet }
+import collection.mutable.Set
 import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{ SequentProofNode => Node }
@@ -27,8 +28,6 @@ trait SPASSParsers
 
   private var varMap = new MMap[String, E] //will map variable names to an expression object for that variable
 
-  //TODO: remove debugging lines
-
   //returns the actual proof
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {
@@ -44,8 +43,6 @@ trait SPASSParsers
   def line: Parser[Node] = lineNum ~ "[" ~ number ~ ":" ~ inferenceRule ~ rep(lineRef) ~ "] ||" ~ sequent ^^ {
     //TODO: needs to change to use unifying resolution & other inference rules
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
-      //val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
-
       val sA = addAntecedents(seq._1)
 
       val sS = addSuccedents(seq._2)
@@ -62,30 +59,14 @@ trait SPASSParsers
     case ~(~(~(~(~(~(~(ln, _), _), _), "Res:"), refs), _), seq) => {
       def firstRef = refs.head
       def secondRef = refs.tail.head
-//      println(firstRef+ ", " + secondRef)
       def firstNode = firstRef.first
       def secondNode = secondRef.first
-      
-//      println("first expr: " +  exprMap.get(firstRef.first + "." + firstRef.second))
-//            println("second expr: " +  exprMap.get(secondRef.first + "." + secondRef.second))
+
 
       //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")),
       //     exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!")),exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!")))(vars)
-      println("Resolution rule on line " + ln + ", first premise: " + firstNode +"," + proofMap.get(firstNode))
-      println("Resolution rule on line " + ln + ", second premise: "+ ":"+ secondNode +","  + proofMap.get(secondNode))
-//      println(vars)
-      
+    
       val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(vars)
-
-      //    if(firstNode == 11){
-//         val ay = UnifyingResolution(Some(proofMap.getOrElse(firstNode, throw new Exception("Error!"))), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(vars)
-//               println("Result of res: " + ln + ":" + ay)
-//      } 
-      //results in:  Resolution: the conclusions of the given premises are not resolvable.
-     // println("Result of Skeptik res: " + ln + ":" + ax)
-      
-     // println("Result of res + some: " + ln + ":" + Some(ax))
-     //       println("Result of res + some b: " + ln + ":" + Some(ax.conclusion))
 
       val sA = addAntecedents(seq._1)
 
@@ -100,13 +81,11 @@ trait SPASSParsers
       println("Computed: " + ln + ":" + ax)
       
       proofMap += (ln -> ax)
-      //proofMap += (ln -> Axiom(Some(ax)))
       ax
     }
 
     //For now, treat the other inference rules as new axioms
     case ~(~(~(~(~(~(~(ln, _), _), _), _), refs), _), seq) => {
-      //  val ax = new Axiom(Sequent(bigAnd(seq._1))(bigOr(seq._2)))
 
       val sA = addAntecedents(seq._1)
 
@@ -188,21 +167,18 @@ trait SPASSParsers
 
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
-      //println("eq: " + first + " " + second)
       App(App(Var("eq", i -> (i -> o)), first), second)
     }
   }
 
   def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
-      // println("le: " + first + " " + second)
       App(App(Var("le", i -> (i -> o)), first), second)
     }
   }
 
   def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
-      //println("ge: " + first + " " + second)
       App(App(Var("ge", i -> (i -> o)), first), second)
     }
   }
@@ -216,14 +192,12 @@ trait SPASSParsers
 
   def userDef: Parser[E] = name ~ "(" ~ term ~ ")" ^^ {
     case ~(~(~(name, _), arg), _) => {
-      //println("userdef: " + name + " - " + arg)      
       new App(new Var(name, i -> i), arg)
     }
   }
 
   def num: Parser[E] = """\d+""".r ^^ {
     case a => {
-      // println("num: " + a)
       new Var(a, i)
     }
   }
@@ -251,7 +225,6 @@ trait SPASSParsers
 
   def name: Parser[String] = "[a-zA-Z0-9]+".r ^^ {
     case s => {
-      //  println("name: " + s)
       s
     }
   }

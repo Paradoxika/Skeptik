@@ -3,8 +3,10 @@ package resolution
 
 import collection.mutable.{HashMap => MMap, Set => MSet}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.expression.{Var,E}
+import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
+import at.logic.skeptik.expression.substitution.immutable.Substitution
+import at.logic.skeptik.judgment.immutable.SeqSequent
 
 
 class UnifyingResolution(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode,
@@ -12,21 +14,55 @@ class UnifyingResolution(val leftPremise:SequentProofNode, val rightPremise:Sequ
 extends SequentProofNode with Binary
 with NoMainFormula {
 
-  def leftAuxFormulas: at.logic.skeptik.judgment.immutable.SeqSequent = ???
-  def rightAuxFormulas: at.logic.skeptik.judgment.immutable.SeqSequent = ???
+  def leftAuxFormulas: SeqSequent = ???
+  def rightAuxFormulas: SeqSequent = ???
   
   // When a unifiable variable X occurs in both premises, 
   // we must rename its occurrences in one of the premises to a new variable symbol Y
   // not occurring in any premise
-  val (leftPremiseR, rightPremiseR, auxLR, auxRR) = {
-    // ToDo: to be done by Jan Gorzny
-    
+  val (leftPremiseR :SequentProofNode, rightPremiseR: SequentProofNode, auxLR, auxRR) = {    
     // For example, suppose we are trying to resolve:
     
     //  p(X) |- q(a)     with    q(X) |- 
     
     // note that all variables are assumed to be universally quantified.
     // therefore, the X in the left premise has nothing to do with the X in the right premise.
+    
+    //check if there is a variable in both    
+    def getSetOfVarsFromPremise(pn: SequentProofNode) = {
+      def formula = pn.mainFormulas
+      def ante = formula.ant
+      def succ = formula.suc
+      
+      
+      def investigateExpr(e: E): Set[Var] = e match {
+      case App(e1, e2) => {
+        investigateExpr(e1).union(investigateExpr(e2))
+      }
+      case Abs(v,e1) => {
+        investigateExpr(v).union(investigateExpr(e1))
+      }
+      case v: Var => Set[Var](v)
+      }
+    
+      
+      def getSetOfVarsFromExpr(e: Seq[E]): Set[Var] = {
+        if(e.length > 1) { 
+          investigateExpr(e.head)
+          getSetOfVarsFromExpr(e.tail)
+        } else if (e.length == 1) {
+          investigateExpr(e.head)
+        } else {
+          Set[Var]()
+        }
+      }
+      getSetOfVarsFromExpr(ante).union(getSetOfVarsFromExpr(succ))
+    }
+
+    val usedVars = getSetOfVarsFromPremise(leftPremiseR).intersect(getSetOfVarsFromPremise(rightPremiseR))
+
+    
+    
     
     // if we just resolve these two clauses we would get the following WRONG resolvent:
     
@@ -56,16 +92,30 @@ with NoMainFormula {
     // You can learn how to use substitutions by looking at the MartelliMontanari.
     
     // By the way, the substitution code is a good example of how you can traverse a formula using Scala's pattern matching.
-     
     
+    //Find, and assign a new name
+    val availableVars = unifiableVariables.diff(usedVars)
+    var replacement = null.asInstanceOf[Var] //TODO: better way to do this?
+    if(availableVars.size >= 1){
+      //use one thats available
+      replacement = availableVars.head
+    } else {
+      replacement = new Var("SomeNewName", i) //TODO: generate names in a much smarter way
+    }
     
+    //Substitute the new name into one of the premises; let say the left one //TODO: check: does this matter?
+    val newAnt = for(a <- leftPremiseR.mainFormulas.ant) yield Substitution(replacement -> a)
+    val newSuc = for(a <- leftPremiseR.mainFormulas.suc) yield Substitution(replacement -> a)
+    
+    //TODO: update these with something suitable
     (leftPremise, rightPremise, auxL, auxR) // Nothing is done yet.
   }
+  
+
   
   val mgu = unify((auxLR,auxRR)::Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => {
-//      println("in mgu?")
       u
     }
   }
@@ -88,7 +138,6 @@ object UnifyingResolution {
       }
     val unifiablePairs = (for (auxL <- leftPremise.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL,auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
-//      println("here")
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR)
     }
