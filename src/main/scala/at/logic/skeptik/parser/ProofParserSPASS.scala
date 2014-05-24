@@ -17,13 +17,13 @@ object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 trait SPASSParsers
   extends JavaTokenParsers with RegexParsers {
 
-  private var count = 0;
+  private var count = 1;
 
   private var proofMap = new MMap[Int, Node]
 
   private var vars = Set[Var]()
 
-  private var exprMap = new MMap[Ref, E] //will map axioms/proven expressions to the location (line number) where they were proven
+  private var exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
   private var varMap = new MMap[String, E] //will map variable names to an expression object for that variable
 
@@ -36,7 +36,7 @@ trait SPASSParsers
       println(varMap)
       println(exprMap)
       val p = Proof(list.last)
-      exprMap = new MMap[Ref, E]
+      exprMap = new MMap[String, E]
       p
     }
   }
@@ -54,6 +54,7 @@ trait SPASSParsers
 
       val ax = new Axiom(sFinal)
       proofMap += (ln -> ax)
+      println("line: " + ln + " " + ax)
       ax
     }
 
@@ -61,21 +62,45 @@ trait SPASSParsers
     case ~(~(~(~(~(~(~(ln, _), _), _), "Res:"), refs), _), seq) => {
       def firstRef = refs.head
       def secondRef = refs.tail.head
+//      println(firstRef+ ", " + secondRef)
       def firstNode = firstRef.first
       def secondNode = secondRef.first
-      //        val unif: MSet[Var] = new MSet[Var]()
-      //        val u: Set[E] = new MSet[E]()
-      //        unif.add(exprMap.getOrElse(firstRef,  throw new Exception("Error!")))
-      //        unif.add(exprMap.getOrElse(secondRef,  throw new Exception("Error!")))
-      //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")), )
-      println("first: " + firstNode +"," + proofMap.get(firstNode))
-      println("second: "+ secondNode +","  + proofMap.get(secondNode))
-      println(vars)
+      
+//      println("first expr: " +  exprMap.get(firstRef.first + "." + firstRef.second))
+//            println("second expr: " +  exprMap.get(secondRef.first + "." + secondRef.second))
+
+      //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")),
+      //     exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!")),exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!")))(vars)
+      println("Resolution rule on line " + ln + ", first premise: " + firstNode +"," + proofMap.get(firstNode))
+      println("Resolution rule on line " + ln + ", second premise: "+ ":"+ secondNode +","  + proofMap.get(secondNode))
+//      println(vars)
+      
       val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(vars)
 
+      //    if(firstNode == 11){
+//         val ay = UnifyingResolution(Some(proofMap.getOrElse(firstNode, throw new Exception("Error!"))), proofMap.getOrElse(secondNode, throw new Exception("Error!")))(vars)
+//               println("Result of res: " + ln + ":" + ay)
+//      } 
       //results in:  Resolution: the conclusions of the given premises are not resolvable.
+     // println("Result of Skeptik res: " + ln + ":" + ax)
+      
+     // println("Result of res + some: " + ln + ":" + Some(ax))
+     //       println("Result of res + some b: " + ln + ":" + Some(ax.conclusion))
 
+      val sA = addAntecedents(seq._1)
+
+      val sS = addSuccedents(seq._2)
+
+      val sFinal = sA union sS
+
+      val ay = new Axiom(sFinal)
       proofMap += (ln -> ax)
+      
+      println("Parsed: " + ln + ":" + ay)
+      println("Computed: " + ln + ":" + ax)
+      
+      proofMap += (ln -> ax)
+      //proofMap += (ln -> Axiom(Some(ax)))
       ax
     }
 
@@ -97,18 +122,20 @@ trait SPASSParsers
 
   def sequent: Parser[(List[E], List[E])] = antecedent ~ "->" ~ succedent ~ "." ^^ {
     case ~(~(~(a, _), s), _) => {
+      
       /*
       //This function maintains a map of the form ((proof line, clause position) -> clause).       
       def addToExprMap(lineNumber: Int, startPos: Int, exps: List[E]): Int = {
         if (exps.length > 1) {
-          exprMap.getOrElseUpdate(new Ref(lineNumber, startPos), exps.head)
+          exprMap.getOrElseUpdate(lineNumber + "." + startPos, exps.head)
+          println(lineNumber + "." + startPos + " == " + exps.head)
           addToExprMap(lineNumber, startPos + 1, exps.tail)
         } else if (exps.length == 1) {
-          exprMap.getOrElseUpdate(new Ref(lineNumber, startPos), exps.head)
+          exprMap.getOrElseUpdate(lineNumber + "." + startPos, exps.head)
+          println(lineNumber + "." + startPos + " == " + exps.head)
           startPos + 1
         } else {
-          throw new Exception("Clause position failed to be mapped");
-          -1
+          startPos
         }
       }
 
@@ -261,4 +288,5 @@ trait SPASSParsers
 class Ref(f: Int, s: Int) {
   def first = f
   def second = s
+  override def toString = "(" + f + ", " + s + ")"
 }

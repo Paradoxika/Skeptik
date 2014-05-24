@@ -15,7 +15,10 @@ with NoMainFormula {
   val rightAuxFormulas = Sequent(auxR)()
   val mgu = unify((auxL,auxR)::Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
-    case Some(u) => u
+    case Some(u) => {
+//      println("in mgu?")
+      u
+    }
   }
   private val ancestryMap = new MMap[(E,SequentProofNode),Sequent]
   override val conclusionContext = {
@@ -38,6 +41,7 @@ object UnifyingResolution {
       }
     val unifiablePairs = (for (auxL <- leftPremise.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL,auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
+//      println("here")
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR)
     }
