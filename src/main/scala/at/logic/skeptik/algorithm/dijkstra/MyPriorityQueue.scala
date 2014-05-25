@@ -61,8 +61,11 @@ class ArrayPQ[T1,T2 <% Ordered[T2]] extends MyPriorityQueue[T1,T2] {
   }
   
   def decreaseKey(elem: T1, value: T2) = {
-    val n = elems.indexOf(elem)
-    values.update(n, value)
+    if (elems.contains(elem)) {
+      val n = elems.indexOf(elem)
+      if (!elems.contains(elem)) println(elem + " is not in array, size: " + elems.size)
+      values.update(n, value)
+    }
   }
   
   def isEmpty: Boolean = elems.isEmpty && values.isEmpty

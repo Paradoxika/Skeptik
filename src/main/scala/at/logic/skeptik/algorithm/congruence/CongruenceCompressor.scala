@@ -18,6 +18,30 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
 
+trait ArrayCompressor {
+  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
+    new ArrayCongruence(eqReferences)
+  }
+}
+
+trait FibonacciCompressor {
+  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
+    new FibonacciCongruence(eqReferences)
+  }
+}
+
+trait global {
+  def globalAxioms = true
+}
+
+trait local {
+  def globalAxioms = false
+}
+
+object ArrayC extends CongruenceCompressor with ArrayCompressor with local
+
+object FibonacciC extends CongruenceCompressor with FibonacciCompressor with local
+
 /**
  * Object CongruenceCompressor is the actual proof compressing object
  * 
@@ -29,7 +53,11 @@ import scala.collection.immutable.{HashMap => IMap}
  * first the node is fixed, just like subsumption or other compression algorithms do
  * then for redundant fixed nodes new subproofs are generated from the EquationTree corresponding to the new explanation
  */
-object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
+abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
+  
+  def globalAxioms: Boolean
+  
+  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence
   
   /**
    * applies the compression algorithm to a proof
@@ -62,7 +90,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
     println("all references size: " + eqReferences.size)
     val premiseAxiomMap = MMap[N,Set[EqW]]()
     
-    val localCon = new Congruence
+    val localCon = newCon(eqReferences)
     
     def doReplacement(node: N, leftEqs: Seq[EqW], rightEqs: Seq[EqW], axioms: Set[EqW]) = {
         val globalCon = leftEqs.foldLeft(con)({(A,B) => A.addEquality(B)})
@@ -188,7 +216,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
    *              -map from EqW objects representing input inequalities to the respective proof nodes
    */
   def buildGlobalCongruence(proof: Proof[N], eqReferences: MMap[(E,E),EqW]): (Congruence,MMap[EqW,N],MMap[EqW,N]) = {
-    var con = new Congruence(eqReferences)
+    var con = newCon(eqReferences)
     val eqNodesLeft = MMap[EqW,N]()
     val eqNodesRight = MMap[EqW,N]()
     
@@ -232,7 +260,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
         val singleRight = node.conclusion.suc.size == 1 && node.conclusion.ant.size == 0 && node.conclusion.suc.forall(EqW.isEq(_))
         if (singleRight) {
           val eq = EqW(node.conclusion.suc.last,eqReferences)
-          con = con.addEquality(eq)
+          if (globalAxioms) con = con.addEquality(eq)
           eqNodesRight += (eq -> node)
           false
         }
@@ -242,7 +270,7 @@ object CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes {
       (freshLeftOut,freshRightOut,eqMap)
     }
     val (_,_,mapRes) = proof foldDown buildTraversal
-    con = con.resolveDeducedQueue
+    if (globalAxioms) con = con.resolveDeducedQueue
     (con,eqNodesLeft,eqNodesRight)
   }
 }

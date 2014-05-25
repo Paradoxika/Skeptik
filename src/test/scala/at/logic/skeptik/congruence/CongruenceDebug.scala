@@ -13,7 +13,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 4
+    val testcase = 3
     
     val t = o
     
@@ -55,9 +55,7 @@ object CongruenceDebug {
     
     val eqReferences = MMap[(E,E),EqW]()
     
-    var con = new Congruence(eqReferences)
-    
-    val dij = new EquationDijkstra
+    var con: Congruence = new FibonacciCongruence(eqReferences)
     
     testcase match {
       case 0 => {
@@ -85,7 +83,7 @@ object CongruenceDebug {
         
         println(con.find)
         println(con.g)
-        val path = dij(e,d,con.g)
+        val path = con.explain(e,d).getOrElse(EquationPath(e,None))
     //    println(t1 + " = " + t2 + " because: " + con.explain(t1, t2).collectLabels)
         println(path)
         println(e + " = " + d + " because: " + path.originalEqs)
@@ -117,14 +115,12 @@ object CongruenceDebug {
         println(con.find)
         println(con.g)
         
-        val path = dij(a,c,con.g)
-        println("distance of " + c + " to " + a + ": " + dij.distances.getOrElse(c,Integer.MAX_VALUE))
+        val path = con.explain(a,c).getOrElse(EquationPath(a,None))
         println(a + " = " + c + " because: " + path.originalEqs)
         
         con = con.resolveDeducedQueue
 //        con = con.resolveDeduced(t1, t2)
-        val path2 = dij(a,c,con.g)
-        println("distance after " + c + " to " + a + ": " + dij.distances.getOrElse(c,Integer.MAX_VALUE))
+        val path2 = con.explain(a,c).getOrElse(EquationPath(a,None))
         println(a + " = " + c + " because: " + path2.originalEqs)
         val eqRef = con.eqReferences
         println("\n"+path.toProof(eqReferences).get)
@@ -143,9 +139,8 @@ object CongruenceDebug {
         
 //        con.resolveDeduced
         
-        val path = dij(a,c,con.g)
+        val path = con.explain(a,c).getOrElse(EquationPath(a,None))
         println(con.g)
-        println("distance of " + c + " to " + a + ": " + dij.distances.getOrElse(c,Integer.MAX_VALUE))
         println(a + " = " + c + " because: " + path.originalEqs)
         val eqRef = con.eqReferences
         println("\n"+path.toProof(eqReferences).get)
@@ -162,16 +157,18 @@ object CongruenceDebug {
         val t1 = App(App(g,l),h)
         val t2 = App(App(g,l),d)
         
-        val eqs = List(EqW(t1,d,eqReferences),EqW(c,d,eqReferences),EqW(t2,a,eqReferences),EqW(e,c,eqReferences),EqW(e,b,eqReferences),EqW(b1,b,eqReferences),EqW(b1,h,eqReferences))
+        val eqs = List(EqW(t1,d,eqReferences),EqW(t2,a,eqReferences),EqW(c,d,eqReferences),EqW(e,c,eqReferences),EqW(e,b,eqReferences),EqW(b1,b,eqReferences),EqW(b1,h,eqReferences))
         println("===Input: " + eqs.mkString(","))
-        con = eqs.foldLeft(con)({(A,B) => A.addEquality(B)})
-//        con = con.addEquality(Eq(t1,d))
-//        con = con.addEquality(Eq(c,d))
-//        con = con.addEquality(Eq(t2,a))
-//        con = con.addEquality(Eq(e,c))
-//        con = con.addEquality(Eq(e,b))
-//        con = con.addEquality(Eq(b1,b))
-//        con = con.addEquality(Eq(b1,h))
+        con = con.addAll(eqs)
+//        con = con.addEquality(EqW(t1,d,eqReferences))
+//        con = con.addEquality(EqW(c,d,eqReferences))
+//        con = con.addEquality(EqW(t2,a,eqReferences))
+//        con = con.addEquality(EqW(e,c,eqReferences))
+//        con = con.addEquality(EqW(e,b,eqReferences))
+//        con = con.addEquality(EqW(b1,b,eqReferences))
+//        con = con.addEquality(EqW(b1,h,eqReferences))
+        
+//        con = con.addEquality(EqW(d,h,eqReferences))
         
 //        con = con.resolveDeducedQueue
         
@@ -179,9 +176,8 @@ object CongruenceDebug {
         
 //        con = con.resolveDeducedQueue
         
-        val path = dij(a,b,con.g)
+        val path = con.explain(a,b).getOrElse(EquationPath(a,None))
         println(con.g)
-        println("distance of " + a + " to " + b + ": " + dij.distances.getOrElse(b,Integer.MAX_VALUE))
         println(a + " = " + b + " because: " + path.originalEqs)
         val eqRef = con.eqReferences
         
@@ -198,11 +194,8 @@ object CongruenceDebug {
         
         val eqRefs2 = con.eqReferences
         
-        val dij2 = new EquationDijkstra
-        
-        val path2 = dij2(a,b,con.g)
+        val path2 = con.explain(a, b).getOrElse(EquationPath(a,None))
         println(con.g)
-        println("distance of " + a + " to " + b + ": " + dij2.distances.getOrElse(b,Integer.MAX_VALUE))
         println(a + " = " + b + " because: " + path2.originalEqs)
         
 //        println("trans chain?: " + path2.toProof)

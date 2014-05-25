@@ -6,8 +6,20 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashSet => MSet}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.algorithm.congruence.EqW
-import net.pragyah.scalgorithms.heaps._
 import scala.math.Ordering.Implicits._
+
+
+class ArrayDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends EquationDijkstra(references) {
+  def newPQ: MyPriorityQueue[E,Int] = {
+    new ArrayPQ[E,Int]
+  }
+}
+
+class FibonacciDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends EquationDijkstra(references) {
+  def newPQ: MyPriorityQueue[E,Int] = {
+    new FibonacciHeap[E,Int](Integer.MIN_VALUE)
+  }
+}
 
 /**
  * mutable class Dijkstra implements (a slightly modified version of) Dijkstra's shortest path algorithm
@@ -88,6 +100,8 @@ abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
   
   def emptyPath(v: T1): EquationPath
   
+  def newPQ: MyPriorityQueue[T1,Int]
+  
   def isDiscounted(l: T2): Boolean = {
     if (l.isInstanceOf[EqLabel]) {
       val lEqL = l.asInstanceOf[EqLabel]
@@ -157,7 +171,8 @@ abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
     
     distances += (s -> 0)
     
-    val q = new ArrayPQ[T1,Int]()
+    val q = newPQ
+//    val q = new ArrayPQ[T1,Int]()
 //    val q = new FibonacciHeap[T1,Int](Integer.MIN_VALUE)
 
     g.vertices.foreach(v => {
@@ -198,6 +213,7 @@ abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
            */
           val adj = g.adjacent(u) //Slow line!
           adj.foreach(x => {
+//            println("relaxing " + (u,x._2))
             relax(u,x._1,x._2)
           })
         }
@@ -221,7 +237,7 @@ abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
  * implements the path methods pi and setPi using EquationTree objects
  */
 
-class EquationDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends Dijkstra[E,EqLabel](references) {
+abstract class EquationDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends Dijkstra[E,EqLabel](references) {
   
   def w(u: E, l: EqLabel, v: E) = {
     l.size

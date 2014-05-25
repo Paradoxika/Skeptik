@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm
 
-import at.logic.skeptik.algorithm.congruence.CongruenceCompressor
+import at.logic.skeptik.algorithm.congruence._
 import at.logic.skeptik.algorithm.compressor.split._
 import at.logic.skeptik.algorithm.compressor.subsumption._
 import at.logic.skeptik.algorithm.compressor.reduceAndReconstruct._
@@ -34,7 +34,8 @@ package object compressor {
     "LUVRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI3LUV" -> LowerUnivalentsBeforeRecyclePivots,
 
-    "Congruence" -> CongruenceCompressor,
+    "ArrayC" -> ArrayC,
+    "FibC" -> FibonacciC,
     
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),

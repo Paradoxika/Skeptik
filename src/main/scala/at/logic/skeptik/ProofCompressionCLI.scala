@@ -253,12 +253,18 @@ object ProofCompressionCLI {
   }
   
   class CSV(measures: Seq[String], algorithms: Seq[String], header: Boolean, out: Output) extends DataAggregator {
+    
+    def makeHeader(algorithm: String) = {
+      val prependedMeasures = measures.map(algorithm + "." + _)
+      prependedMeasures.mkString("",",",",")
+    }
+    
     // writing header if file is empty 
     if (header && (!out.isInstanceOf[FileOutput] || (out.isInstanceOf[FileOutput] && out.asInstanceOf[FileOutput].isEmpty))) out.write {
       val emptyColumns = ("" /: measures){(acc,m) => acc + ","} // n commas for n measures
       val measureHeaders = measures.mkString("",",",",")
-      "Proof,Uncompressed" + emptyColumns + (""/:(for (a <- algorithms) yield a + emptyColumns )){_ + _} + "\n" +
-      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _} + "\n"
+      "Proof," + makeHeader("Uncompressed") + (""/:(for (a <- algorithms) yield makeHeader(a) )){_ + _} + "\n"// +
+//      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _} + "\n"
     }
     
     def closeLine = {

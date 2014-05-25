@@ -2,15 +2,22 @@ package at.logic.skeptik.algorithm.dijkstra
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.{HashMap => MMap}
+import scala.annotation.tailrec
 
 class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     extends MyPriorityQueue[T1,T2] {
-   
+  
+//  println("new heap")
+  
   var min: Option[FNode] = None
   var n: Int = 0
   val nodeMap = MMap[T1,FNode]()
   
   var special: FNode = null
+  
+  def correctlyChained(node: FNode): Boolean = {
+    node.left.right == node && node.right.left == node
+  }
   
   def addToRoot(node: FNode) = {
     node.parent = None
@@ -42,15 +49,33 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     case Some(node) => Some(node.element) 
   }
   
+//  def addAllChildToRoot(node: FNode) {
+//     node.child.foreach(ch => {
+//      var nextChild = ch.right
+//      while (nextChild != ch) {
+//        val thisChild = nextChild
+//        nextChild = nextChild.right
+//        addToRoot(thisChild)
+//      }
+//      addToRoot(ch)
+//    })
+//  }
+  
+  def addAllChildToRoot(node: FNode) {
+     node.child.foreach(_.asSequence().foreach(ch => {
+      addToRoot(ch)
+    }))
+  }
+  
+  val deleted = scala.collection.mutable.Set[FNode]()
+  
   def extractMin: Option[T1] = min match {
     case None => None
     case Some(minNode) => {
-      minNode.child.foreach(_.asSequence().foreach(ch => {
-        val allCh = ch.asSequence()
-        allCh.foreach(aC => {
-          addToRoot(ch)
-        })
-      }))
+      
+//      if (deleted.contains(minNode)) println("extracting deleted: " + minNode)
+      deleted += minNode
+      addAllChildToRoot(minNode)
       val r = minNode.right
       minNode.remove
       if (r == minNode) min = None //Now empty      
@@ -59,6 +84,8 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
         consolidate
       }
       n = n - 1
+//      if (min.isDefined) println((correctlyChained(min.get) && correctlyChained(minNode) && correctlyChained(min.get.left)) + " " + min.get.toString(true) + " " + min.get.left.toString(true) + " " + minNode.toString(true))
+//      else println("empty")
       Some(minNode.element)
     }
   }
@@ -72,6 +99,10 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       val A = MMap[Int,FNode]()
       val rootSeq = minNode.asSequence()
       rootSeq.foreach(node => {
+//      var node = minNode.right
+//      while(node != minNode) {
+//        val nextNode = node.right
+//        println(node + " ~ " + minNode)
         var x = node
         var d = x.degree
 //        println(x + " degree " + d)
@@ -90,6 +121,7 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
         }
         
         A+=(d -> x)
+//        node = nextNode
 //        println("A after " + x + " ::: " + A.mkString(","))
       })
       min = None
@@ -204,14 +236,12 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       parent = None
     }
     
-    def correctlyChained(node: FNode): Boolean = {
-      node.left.right == node && node.right.left == node
-    }
-    
     def remove = { // y <-> x <-> z ~~> y <-> z
       val x = this
       val y = x.left
       val z = x.right
+//      x.parent = None
+//      x.child = None
       y.right = z
       z.left = y
       x.left = x
@@ -280,19 +310,15 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       z.right = y
     }
     
-    def asSequence(initSeq: Seq[FNode] = Seq()): Seq[FNode] = {
-      if (!(this == left.right && this == right.left)) {
-        println("req failed for:\n" + this.toString(true))
-        println("left:\n" + this.left.toString(true))
-        println("right:\n" + this.right.toString(true))
-      }
+    @tailrec
+    final def asSequence(initSeq: List[FNode] = List()): List[FNode] = {
       require(this == left.right && this == right.left)
       if (initSeq.size > 0) {
 //        println(this.left + " <-> " + this + " <-> " + this.right + " iSH: "+ initSeq.head)
-        if (initSeq.head == this) initSeq
-        else right.asSequence(initSeq.:+(this))
+        if (initSeq.last == this) initSeq
+        else right.asSequence(initSeq.::(this))
       }
-      else right.asSequence(Seq(this))
+      else right.asSequence(List(this))
     }
     
     def toString(neighbours: Boolean) = {

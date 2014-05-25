@@ -88,7 +88,7 @@ class FindTable(val map: IMap[E,CCR] = IMap[E,CCR]()) {
   def sigQuery(x: E): Option[E] = { // this is not efficient!
     x match {
       case App(u,v) => {
-        query(u)._2.pred.find(p => {
+        val res = query(u)._2.pred.find(p => {
           p match {
             case App(s,t) => {
               (t != v || u != s) && query(v)._2 == query(t)._2
@@ -96,6 +96,7 @@ class FindTable(val map: IMap[E,CCR] = IMap[E,CCR]()) {
             case _ => false
           }
         })
+        res
       }
       case _ => None
     }

@@ -27,7 +27,7 @@ object DijkstraDebug {
     
     println(g)
     
-    val dij = new EquationDijkstra
+    val dij = new FibonacciDijkstra
     
 //    dij.apply(s, g)
 //    
