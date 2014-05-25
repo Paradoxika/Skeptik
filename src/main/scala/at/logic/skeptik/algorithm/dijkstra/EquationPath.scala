@@ -39,6 +39,12 @@ class EqTreeEdge(val nextTree: EquationPath, val label: EqLabel) extends (Equati
   val deduceTrees = label._2
 }
 
+object EqTreeEdge {
+  def apply(nextTree: EquationPath, label: EqLabel) = {
+    new EqTreeEdge(nextTree,label)
+  }
+}
+
 /**
  * Case class EquationPath representing the explanation of some equality s = t,
  * i.e. a path (u_1, ..., u_n) such that u_1 = s and u_n = t.

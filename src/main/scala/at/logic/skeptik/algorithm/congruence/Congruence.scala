@@ -26,8 +26,6 @@ abstract class Congruence(
     val deduced: Queue[(E,E)] = Queue[(E,E)](), 
     val g: CongruenceGraph) {
   
-  def newDijkstra: EquationDijkstra
-  
   def newCon(eqReferences: MMap[(E,E),EqW], find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph): Congruence
   
   /**
