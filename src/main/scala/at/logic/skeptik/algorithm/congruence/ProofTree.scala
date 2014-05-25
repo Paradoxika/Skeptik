@@ -43,18 +43,17 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
   }
   
   def explainAlongPath(path: List[(E,Option[EqW],E)]): EquationPath = {
-    println(path)
+//    println(path)
     val (t1,eq,t2) = path.head
-    val eqCheat = eq.getOrElse(EqW(t1,t2,MMap[(E,E),EqW]()))
-    
+    val eqCheat = eq.getOrElse(EqW(t1,t2,MMap[(E,E),EqW]())) //Probably causing bugs!
     val deduceTrees = eq match {
       case None => {
         (t1,t2) match {
           case (App(u1,v1),App(u2,v2)) => {
             (explain(u1,u2),explain(v1,v2)) match {
               case (Some(dd1),Some(dd2)) => {
-                println("expl for " + (u1,u2) + ": " + dd1)
-                println("expl for " + (v1,v2) + ": " + dd2)
+//                println("expl for " + (u1,u2) + ": " + dd1)
+//                println("expl for " + (v1,v2) + ": " + dd2)
                 Some(dd1,dd2)
               }
               case _ => {

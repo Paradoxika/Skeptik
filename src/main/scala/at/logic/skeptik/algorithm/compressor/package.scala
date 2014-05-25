@@ -36,6 +36,7 @@ package object compressor {
 
     "ArrayC" -> ArrayC,
     "FibC" -> FibonacciC,
+    "PtC" -> ProofTreeC,
     
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),

@@ -21,19 +21,20 @@ class ProofTreeCongruence(
   def resolveEarly = false
   
   def addEdgeEarly(u: E, v: E, eq: EqW): Congruence = {
-    this
-  }
-
-  def addEdgeLate(u: E, v: E, eq: EqW): Congruence = {
     val newG = g.addEdge(u, v, Some(eq))
     updateGraph(newG)
   }
-  
-  def resolveDeduced(u: E, v: E): Congruence = {
+
+  def addEdgeLate(u: E, v: E, eq: EqW): Congruence = {
     this
   }
   
+  def resolveDeduced(u: E, v: E): Congruence = {
+    val newG = g.addEdge(u, v, None)
+    updateGraph(newG)
+  }
+  
   def explain(u: E, v: E): Option[EquationPath] = {
-    None
+    g.explain(u,v)
   }
 }

@@ -30,6 +30,12 @@ trait FibonacciCompressor {
   }
 }
 
+trait ProofTreeCompressor {
+  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
+    new ProofTreeCongruence(eqReferences)
+  }
+}
+
 trait global {
   def globalAxioms = true
 }
@@ -41,6 +47,8 @@ trait local {
 object ArrayC extends CongruenceCompressor with ArrayCompressor with local
 
 object FibonacciC extends CongruenceCompressor with FibonacciCompressor with local
+
+object ProofTreeC extends CongruenceCompressor with ProofTreeCompressor with local
 
 /**
  * Object CongruenceCompressor is the actual proof compressing object
@@ -114,33 +122,34 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
             case None => false
           }
         })
-        if (canBeCompressed) {
-          
-          val path = tree.get
-          val pathProof =  path.toProof(eqReferences)
+      if (canBeCompressed) {
+        
+        val path = tree.get
+        val pathProof =  path.toProof(eqReferences)
 
-          /******************************************************
-           * here the actual replacement is done
-           * if a node is in fact replaced it is also resolved with all the which it can be resolved with
-           *****************************************************/
-          
-          val usedEqs = path.originalEqs
-          pathProof match  {
-            case Some(proof) => {
-              val (resNode, axioms) = usedEqs.foldLeft((proof.root,Set[EqW]()))({(A,B) => 
-                eqNodesRight.get(B) match {
-                  case Some(node) => (R(A._1,node), A._2 + EqW(node.conclusion.suc.last,eqReferences))
-                  case None => A
-                }
-              })
-              if (resNode.conclusion.ant.size > node.conclusion.ant.size) println("compressing, but clause got bigger")
-              (resNode,axioms)
-            }
-            case _ => (node,axioms)
+        /******************************************************
+         * here the actual replacement is done
+         * if a node is in fact replaced it is also resolved with all the which it can be resolved with
+         *****************************************************/
+        
+        val usedEqs = path.originalEqs
+        pathProof match  {
+          case Some(proof) => {
+            
+            val (resNode, axioms) = usedEqs.foldLeft((proof.root,Set[EqW]()))({(A,B) => 
+              eqNodesRight.get(B) match {
+                case Some(node) => (R(A._1,node), A._2 + EqW(node.conclusion.suc.last,eqReferences))
+                case None => A
+              }
+            })
+//            println("replacing \n"+node+"with\n"+resNode)
+//            if (resNode.conclusion.ant.size > node.conclusion.ant.size) println("compressing, but clause got bigger")
+            (resNode,axioms)
           }
+          case _ => (node,axioms)
         }
-        else (node,axioms)
-      
+      }
+      else (node,axioms)
     }
     
     /**
@@ -153,8 +162,9 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
           if (fromPremises.size > 0) fromPremises.map(_._3).max else false
       val premiseNodes = fromPremises.map(_._1)
       
-      
+//      println("fixing \n" + node + "with premises\n" + premiseNodes)
       val fixedNodeInit = fixNode(node,premiseNodes)
+//      println(fixedNodeInit != node)
       
       
       val premiseAxioms = premiseAxiomMap.getOrElseUpdate(fixedNodeInit, {
@@ -163,8 +173,8 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
         else premiseAxiomsTmp.filter(Proof(fixedNodeInit).nodes.contains(_))
       })
       
-      val rightEqs = node.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
-      val leftEqs = node.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
+      val rightEqs = fixedNodeInit.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
+      val leftEqs = fixedNodeInit.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
       
       val rS = rightEqs.size
       val lS = leftEqs.size
@@ -175,15 +185,17 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
         }
         else {
           if (rS == 1 && lS == 0) { // node is an axiom -> add to list
-            (node,premiseAxioms + rightEqs.last)
+            (fixedNodeInit,premiseAxioms + rightEqs.last)
           }
-          else (node,premiseAxioms)
+          else (fixedNodeInit,premiseAxioms)
         } 
       (resNode,resAxioms,inputDerived)
     }
     
     // do traversal
     val (newProof, _,_) = proof foldDown replaceRedundant
+    
+//    println(newProof == proof.root)
     
     // Resolve against axioms
     val resProof = newProof.conclusion.suc.foldLeft(newProof)({(A,B) => 
@@ -198,7 +210,9 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
       }
     })
 
-    DAGify(resProof)
+    val outProof = DAGify(resProof)
+    if (!outProof.root.conclusion.isEmpty) println("non empty conclusion!")
+    outProof
   }
   
   /******************************************************************************************************************
