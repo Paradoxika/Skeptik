@@ -22,20 +22,30 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
   //p(X) |- q(a)     with    q(X) |- 
   val leftSeq = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a))
   val rightSeq = Sequent(App(Var("q", i -> i), x))()
-
-  println(leftSeq)
-  println(rightSeq)
   
   val leftNode = new Axiom(leftSeq)
   val rightNode = new Axiom(rightSeq)
 
   val ur = UnifyingResolution(leftNode, rightNode)(usedVars)
-
+  
+  //Test case 2
+  val y = new Var("Y", i)
+  usedVars += y
+  val leftSeqB = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a))
+  val rightSeqB = Sequent(App(Var("q", i -> i), y))()
+  val leftNodeB = new Axiom(leftSeqB)
+  val rightNodeB = new Axiom(rightSeqB)
+  val urB = UnifyingResolution(leftNodeB, rightNodeB)(usedVars) 
+  
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
-    	//TODO: update this when "NEW" is changed.
-      println(ur.conclusion)
+    //TODO: update this when "NEW" is changed.
+//      println("ur: " + ur.conclusion)
       Sequent(App(Var("p", i -> i), Var("NEW", i)))() must beEqualTo(ur.conclusion)
-    } //TODO: add test when substitution is not necessary
+    } 
+    "return the correct resolvent when no substituion necessary" in {
+//      println("urB: " + urB.conclusion)
+      Sequent(App(Var("p", i -> i),x))() must beEqualTo(urB.conclusion)
+    }
   }
 }
