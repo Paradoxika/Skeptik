@@ -39,9 +39,8 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
   
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
-    //TODO: update this when "NEW" is changed.
 //      println("ur: " + ur.conclusion)
-      Sequent(App(Var("p", i -> i), Var("NEW", i)))() must beEqualTo(ur.conclusion)
+      Sequent(App(Var("p", i -> i), Var("NEW0", i)))() must beEqualTo(ur.conclusion)
     } 
     "return the correct resolvent when no substituion necessary" in {
 //      println("urB: " + urB.conclusion)

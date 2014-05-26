@@ -51,6 +51,7 @@ trait SPASSParsers
 
       val ax = new Axiom(sFinal)
       proofMap += (ln -> ax)
+      count = ln
       println("line: " + ln + " " + ax)
       ax
     }
@@ -82,6 +83,7 @@ trait SPASSParsers
 
       val ay = new Axiom(sFinal)
       proofMap += (ln -> ax)
+      count = ln
       
       println("Parsed: " + ln + ":" + ay)
       println("Computed: " + ln + ":" + ax)
@@ -101,6 +103,8 @@ trait SPASSParsers
 
       val ax = new Axiom(sFinal)
       proofMap += (ln -> ax)
+      count = ln
+      
       ax
     }
   }
@@ -127,7 +131,7 @@ trait SPASSParsers
       addToExprMap(count, addToExprMap(count, 0, a), s)
 	  */
 
-      count = count + 1
+      
       if (count % 500 == 0) { println(count + " lines parsed") }
       (a, s)
     }
@@ -225,7 +229,6 @@ trait SPASSParsers
         vars += new Var(s.toString, i)
       }
       varMap.getOrElseUpdate(s, new Var(s.toString, i))
-
     }
   }
 

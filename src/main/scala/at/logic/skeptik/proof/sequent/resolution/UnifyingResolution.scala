@@ -16,6 +16,8 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   extends SequentProofNode with Binary
   with NoMainFormula {
 
+  var count = 0
+  
   def leftAuxFormulas: SeqSequent = ???
   def rightAuxFormulas: SeqSequent = ???
 
@@ -52,9 +54,10 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
           investigateExpr(v).union(investigateExpr(e1))
         }
         case v: Var => {
-          //Only care if the variable is a captial
+          //Only care if the variable is a capital
           val hasLowerCase = v.name.exists(_.isLower)
-          if (!hasLowerCase) {
+          val notAnInt = v.name.charAt(0).isLetter
+          if (!hasLowerCase && notAnInt) {
             Set[Var](v)
           } else {
             Set[Var]()
@@ -114,7 +117,8 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
         //use one thats available
         replacement = availableVars.head
       } else {
-        replacement = new Var("NEW", i) //TODO: generate names in a much smarter way
+        replacement = new Var("NEW" + count, i)
+        count += 1
       }
       
       val sub = Substitution(sharedVars.head -> replacement)
@@ -131,7 +135,22 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       //TODO: not sure if I can just use a new proof node; this one won't be in the proofMap of the parser. 
       //	Is that going to effect anything? Check.
       
-      fixShared(axOut, rightPremiseR, auxL, auxR) //recursively call the function so that any more shared variables are also dealt with
+      //TODO: check that this is the right way to modify these expr's
+      val newAuxL = sub(auxL)
+      val newAuxR = sub(auxR)
+      println(sub + " " + sharedVars)
+
+//      println("---------")
+//      println(auxL)
+//      println(axOut.conclusion.suc + " " +  axOut.conclusion.suc.size)
+//      println(newAuxL)
+//      println("--")
+//      println(auxR)
+//      println(axOut.conclusion.ant  + " " +  axOut.conclusion.ant.size)
+//      println(newAuxR)
+//      println("---------")
+       
+      fixShared(axOut, rightPremiseR, newAuxL, newAuxR) //recursively call the function so that any more shared variables are also dealt with
       //TODO: Note that until the name of the new variable is generated in a smart way, this could loop? Check/fix.
 
     } else { //sharedVars.size  < 1
@@ -139,7 +158,6 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     }
   }
 
-  //TODO: I note this uses auxLR/auxRR, which are currently not being modified by fixShared. Something should change.
   val mgu = unify((auxLR, auxRR) :: Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => {
