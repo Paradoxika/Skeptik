@@ -3,7 +3,7 @@ package at.logic.skeptik.congruence
 import at.logic.skeptik.expression.formula._
 import scala.collection.mutable.{HashMap => MMap}
 import at.logic.skeptik.expression._
-import at.logic.skeptik.algorithm.congruence.EqW
+import at.logic.skeptik.congruence.structure.EqW
 
 object EqWTest {
   def main(args: Array[String]):Unit = {

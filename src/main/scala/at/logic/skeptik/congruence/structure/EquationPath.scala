@@ -1,14 +1,14 @@
-package at.logic.skeptik.algorithm.dijkstra
+package at.logic.skeptik.congruence.structure
 
-import at.logic.skeptik.congruence.structure.EqW
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.judgment._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import scala.collection.immutable.{HashMap => IMap}
+import scala.collection.mutable.{HashMap => MMap}
+import at.logic.skeptik.proof.Proof.apply
+import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.mutable.{HashMap => MMap}
 
 class EqLabel(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) extends (EqW,Option[(EquationPath,EquationPath)]) (equation, deducePaths) {
@@ -218,8 +218,8 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
       Some(deduced.last._1)
     }
     else {
-      println("z " + (first,last,equations,deduced))
-      println(this)
+//      println("z " + (first,last,equations,deduced))
+//      println(this)
       None  //Case 3
     }
   }

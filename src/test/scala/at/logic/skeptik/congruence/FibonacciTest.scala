@@ -6,7 +6,7 @@ import at.logic.skeptik.util.io.FileOutput
 import java.io.File
 
 object FibonacciTest {
-  def main(args : Array[String]) : Unit = {
+  def main2(args : Array[String]) : Unit = {
     val file = new FileOutput("experiments/congruence/fibVsArray2.csv")
     file.write("length,fibonacci,array\n")
     
@@ -59,7 +59,7 @@ object FibonacciTest {
     
     
   }
-  def main2(args : Array[String]) : Unit = {
+  def main1(args : Array[String]) : Unit = {
    //val heap = new FibonacciHeap[int](Int.MinValue);
    val heap = new FibonacciHeap[String,Int](Int.MinValue);
    heap.insert("f",10)

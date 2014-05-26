@@ -4,13 +4,13 @@ import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.expression.E
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.Queue
-import at.logic.skeptik.algorithm.dijkstra.EquationPath
+import at.logic.skeptik.congruence.structure.EquationPath
 import at.logic.skeptik.congruence.structure._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashMap => MMap}
 
 class ProofTreeCongruence(
-    eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW](), 
+    eqReferences: MMap[(E,E),EqW], 
     find: FindTable = new FindTable(), 
     deduced: Queue[(E,E)] = Queue[(E,E)](), 
     g: ProofForest = ProofForest()) extends Congruence(eqReferences,find,deduced,g) {
@@ -23,11 +23,6 @@ class ProofTreeCongruence(
   }
   
   def resolveEarly = true
-  
-  def addEdge(u: E, v: E, eq: EqW): Congruence = {
-    val newG = g.addEdge(u, v, Some(eq))
-    updateGraph(newG)
-  }
 
   def resolveDeduced(u: E, v: E): Congruence = {
     val newG = g.addEdge(u, v, None)

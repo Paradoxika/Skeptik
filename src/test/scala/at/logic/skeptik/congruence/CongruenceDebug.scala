@@ -1,13 +1,14 @@
 package at.logic.skeptik.congruence
 
 import at.logic.skeptik.parser.ProofParserVeriT
-import at.logic.skeptik.algorithm.congruence
+import at.logic.skeptik.congruence._
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
-import at.logic.skeptik.algorithm.congruence._
+import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.algorithm.dijkstra._
 import at.logic.skeptik.proof._
 import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.immutable.Queue
 
 object CongruenceDebug {
   def main(args: Array[String]):Unit = {
@@ -55,7 +56,7 @@ object CongruenceDebug {
     
     val eqReferences = MMap[(E,E),EqW]()
     
-    var con: Congruence = new FibonacciCongruence(eqReferences)
+    var con: Congruence = new FibonacciCongruence(eqReferences, new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
     
     testcase match {
       case 0 => {

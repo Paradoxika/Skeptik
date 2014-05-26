@@ -77,9 +77,11 @@ object EqW {
     require(t1.t == t2.t)
     
     val eqVar = new Var("=", (t1.t -> (t1.t -> o))) with Infix
-    val out = eqReferences.getOrElse((t1,t2), eqReferences.getOrElseUpdate((t2,t1),new EqW(App(App(eqVar,t1),t2))))
-    if (out.toString == "(c6 = (f2 c_5 (f1 c_5 c_0)))") println("creating (c6 = (f2 c_5 (f1 c_5 c_0))) in EqW object")
-    if (out.toString == "((f3 c_5) = (f2 c_4 (f1 c_4 c_0)))") println("creating ((f3 c_5) = (f2 c_4 (f1 c_4 c_0))) in EqW object")
+    val out = eqReferences.getOrElse((t1,t2), eqReferences.getOrElseUpdate((t2,t1),{
+      val x = new EqW(App(App(eqVar,t1),t2))
+      if (x.toString == "(c_2 = c_3)") println("creating " + x + " myself in EqW")
+      x
+    }))
     out
   }
     

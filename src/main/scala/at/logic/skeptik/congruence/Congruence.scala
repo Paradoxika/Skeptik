@@ -9,6 +9,7 @@ import scala.collection.immutable.Queue
 import at.logic.skeptik.congruence.structure.EqW
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashSet => MSet}
+import at.logic.skeptik.congruence.structure.EquationPath
 
 /**
  * Class Congruence class is for computing and maintaining the congruence closure of some input equations
@@ -22,9 +23,9 @@ import scala.collection.mutable.{HashSet => MSet}
  */
 
 abstract class Congruence(
-    val eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW](), 
-    val find: FindTable = new FindTable(), 
-    val deduced: Queue[(E,E)] = Queue[(E,E)](), 
+    val eqReferences: MMap[(E,E),EqW], 
+    val find: FindTable, 
+    val deduced: Queue[(E,E)], 
     val g: CongruenceGraph) {
   
   def newCon(eqReferences: MMap[(E,E),EqW], find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph): Congruence

@@ -1,9 +1,11 @@
 package at.logic.skeptik.congruence
 
-import at.logic.skeptik.algorithm.congruence._
+import at.logic.skeptik.algorithm.compressor.congruence._
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
+import at.logic.skeptik.congruence.structure.EqW
+import at.logic.skeptik.congruence.structure.ProofForest
 
 object proofTreeTest {
   def main(args : Array[String]) : Unit = {
@@ -63,7 +65,7 @@ object proofTreeTest {
     
     println(tree.ncaPath(e,b))
     
-    println(tree.explain(e,b2))
+    println(tree.explain(e,b2,eqReferences))
     
   }
 }

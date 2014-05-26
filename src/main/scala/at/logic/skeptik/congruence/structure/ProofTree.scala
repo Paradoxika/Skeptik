@@ -5,6 +5,7 @@ import at.logic.skeptik.algorithm.dijkstra._
 import scala.collection.mutable.{ListBuffer, StringBuilder, HashMap => MMap}
 
 case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), rootSize: Map[E,Int] = Map[E,Int]()) extends CongruenceGraph {
+  
   def addEdge(u: E, v: E, eq: Option[EqW]) = {
     val uR = root(u)
     val vR = root(v)
@@ -38,56 +39,90 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
   def ncaPath(u: E, v: E) = {
     val p1 = rootPath(u)
     val p2 = rootPath(v)
-    p1.diff(p2) ++ reversePathList(p2.diff(p1))
+    if (p1.lastOption.getOrElse((u,None,u))._3 == p2.lastOption.getOrElse((v,None,v))._3) {
+      val path = p1.diff(p2) ++ reversePathList(p2.diff(p1))
+      if (root(u) != root(v) && !path.isEmpty) println("building path for non congruent terms: " + (u,v))
+      path
+    }
+    else List()
+    
   }
   
-  def explainAlongPath(path: List[(E,Option[EqW],E)], eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()): EquationPath = {
-//    println(path)
-    val (t1,eq,t2) = path.head
-    var ownEq = false
-    val eqCheat = eq.getOrElse({
-      ownEq = true 
-      eqReferences.getOrElse((t1,t2),EqW(t1,t2,MMap[(E,E),EqW]())) //Probably causing bugs!
-    })
-    val deduceTrees = eq match {
-      case None => {
-        (t1,t2) match {
-          case (App(u1,v1),App(u2,v2)) => {
-            (explain(u1,u2),explain(v1,v2)) match {
-              case (Some(dd1),Some(dd2)) => {
-//                println("expl for " + (u1,u2) + ": " + dd1)
-//                println("expl for " + (v1,v2) + ": " + dd2)
-                Some(dd1,dd2)
-              }
-              case _ => {
-//                println("here for " + (t1,t2) + " : " + explain(v1,v2))
-                None //failure
-              }
-            }
-          }
-          case _ => None //failure
-        }
-      }
-      case Some(_) => None
-    }
-    if (ownEq && !deduceTrees.isDefined) println("own eq matters")
-    val eqL = EqLabel(eqCheat,deduceTrees)
-    val nextEdge = if (path.size > 1)
-      explainAlongPath(path.tail)
-    else {
-      new EquationPath(t2,None)
-    }
-    val eqEdge = EqTreeEdge(nextEdge,eqL)
-    new EquationPath(t1,Some(eqEdge))
-  }
-  
-  def explain(u: E, v: E, eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()): Option[EquationPath] = {
+  /**
+   * Let c be the nearest common ancestor of u and v in the proof tree
+   * The explanation in form of an EquationPath is found by traversing the path from u to c concatinated with the path from c to v.
+   * In each step of the path, if an equation is set as edge label, it is original and no deduce paths have to be created.
+   * If no equation is set, then the equality has to be deduced and paths for the two arguments are created
+   */
+  def explain(u: E, v: E, eqReferences: MMap[(E,E),EqW]): Option[EquationPath] = {
     val path = ncaPath(u,v) 
     if (path.isEmpty) {
       if (u == v) Some(new EquationPath(u,None))
       else None
     }
-    else Some(explainAlongPath(path,eqReferences))
+    else {
+      val x = explainAlongPath(path,eqReferences)
+      
+      if (!(((x.firstVert == u) && (x.lastVert == v)) || ((x.firstVert == v) && (x.lastVert == u)))){
+        println("faulty expl for " + (u,v) + "\n"+path)
+      }
+      Some(x)
+    }
+  }
+  
+  def buildDD(t1: E, eq: Option[EqW], t2: E, eqReferences: MMap[(E,E),EqW]) = eq match {
+    case None => {
+      (t1,t2) match {
+        case (App(u1,v1),App(u2,v2)) => {
+          (explain(u1,u2,eqReferences),explain(v1,v2,eqReferences)) match {
+            case (Some(dd1),Some(dd2)) => {
+//                println("expl for " + (u1,u2) + ": " + dd1)
+//                println("expl for " + (v1,v2) + ": " + dd2)
+              Some(dd1,dd2)
+            }
+            case _ => {
+              println("here for " + (t1,t2) + " : " + explain(v1,v2,eqReferences))
+              None //failure
+            }
+          }
+        }
+        case _ => {
+          println("build deduce trees for non composed terms " + (t1,t2))
+          None //failure
+        }
+      }
+    }
+    case Some(_) => {
+//        println("skipping deduce trees!")
+      None
+    }
+  }
+  
+  def explainAlongPath(path: List[(E,Option[EqW],E)], eqReferences: MMap[(E,E),EqW]): EquationPath = {
+//    println(path)
+    val (t1,eq,t2) = path.head
+    var end = false
+    val realEq = eq.getOrElse({
+      val x = EqW(t1,t2,eqReferences) //Probably causing bugs!
+//      if (x.toString == "((f1 c_1) = (f1 (f1 c_2 c_3)))") println("creating ((f1 c_1) = (f1 (f1 c_2 c_3))) in explainAlongPath")
+//      if (x.toString == "((f1 c_1) = (f1 (f1 c_2 c_3)))") println("creating ((f1 c_1) = (f1 (f1 c_2 c_3))) in explainAlongPath")
+      x
+    })
+    val deduceTrees = buildDD(t1,eq,t2,eqReferences)
+    val eqL = EqLabel(realEq,deduceTrees)
+    val nextEdge = if (path.size > 1)
+      explainAlongPath(path.tail,eqReferences)
+    else {
+//      println(path + " ending!")
+      end = true
+      val x = new EquationPath(t2,None)
+//      println(x)
+      x
+    }
+    val eqEdge = EqTreeEdge(nextEdge,eqL)
+    val y = new EquationPath(t1,Some(eqEdge))
+//    if (end) println(y)
+    y
   }
   
   def rootPath(u: E) = {

@@ -18,38 +18,7 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.immutable.{HashMap => IMap}
 import scala.collection.mutable.{HashMap => MMap}
 import at.logic.skeptik.congruence.Congruence
-
-trait ArrayCompressor {
-  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ArrayCongruence(eqReferences)
-  }
-}
-
-trait FibonacciCompressor {
-  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new FibonacciCongruence(eqReferences)
-  }
-}
-
-trait ProofTreeCompressor {
-  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ProofTreeCongruence(eqReferences)
-  }
-}
-
-trait global {
-  def globalAxioms = true
-}
-
-trait local {
-  def globalAxioms = false
-}
-
-object ArrayC extends CongruenceCompressor with ArrayCompressor with local
-
-object FibonacciC extends CongruenceCompressor with FibonacciCompressor with local
-
-object ProofTreeC extends CongruenceCompressor with ProofTreeCompressor with local
+import at.logic.skeptik.congruence.structure.EquationPath
 
 /**
  * Object CongruenceCompressor is the actual proof compressing object
@@ -99,8 +68,6 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
     println("all references size: " + eqReferences.size)
     val premiseAxiomMap = MMap[N,Set[EqW]]()
     
-    val localCon = newCon(eqReferences)
-    
     def doReplacement(node: N, leftEqs: Seq[EqW], rightEqs: Seq[EqW], axioms: Set[EqW]) = {
         val globalCon = leftEqs.foldLeft(con)({(A,B) => A.addEquality(B)})
 //        val localConRes = globalCon.resolveDeducedQueue
@@ -113,10 +80,10 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
           path match {
             case Some(p) => {
               val newSize = p.originalEqs.size
-              val oldSize = leftEqs.size + axioms.size
+              val oldSize = leftEqs.toSet.union(axioms).size
               if (newSize < oldSize) {
                 tree = path
-                println("eq1: " + eq)
+//                println("eq1: " + eq + " s: " + node.conclusion.ant.size + " " + oldSize)
                 true
               }
               else false
@@ -125,7 +92,7 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
           }
         })
       if (canBeCompressed) {
-        println("x")
+//        println("x")
         val path = tree.get
         val pathProof =  path.toProof(eqReferences)
 
@@ -146,7 +113,7 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
             })
 //            println("replacing \n"+node+"with\n"+resNode)
 //            if (resNode.conclusion.ant.size > node.conclusion.ant.size) println("compressing, but clause got bigger")
-            println("eq2: " + resNode.conclusion.suc.mkString(","))
+//            println("eq2: " + resNode.conclusion.suc.mkString(","))
             (resNode,axioms)
           }
           case None => {
@@ -159,29 +126,34 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
       else (node,axioms)
     }
     
+//    def computePremiseAxioms(node: N, fixedNodeInit: N,fromPremises: Seq[Set[EqW]]) = {
+//      premiseAxiomMap.getOrElseUpdate(node, {
+//        val premiseAxiomsTmp = fromPremises.foldLeft(Set[EqW]())({(A,B) => A union B})
+//        if (node == fixedNodeInit) premiseAxiomsTmp
+//        else premiseAxiomsTmp.filter(Proof(fixedNodeInit).nodes.contains(_))
+//      })
+//    }
+    
+    def computePremiseAxioms(node: N, fixedNodeInit: N, fromPremises: Seq[Set[EqW]]) = {
+      fromPremises.foldLeft(Set[EqW]())({(A,B) => A union B})
+    }
+    
     /**
      * traversal
      */
-    def replaceRedundant(node: N, fromPremises: Seq[(N,Set[EqW],Boolean)]): (N,Set[EqW],Boolean) = {
+    def replaceRedundant(node: N, fromPremises: Seq[(N,Set[EqW],Boolean,Boolean)]): (N,Set[EqW],Boolean,Boolean) = {
+      
+      val premiseCompressed = if (fromPremises.size > 0) fromPremises.map(_._4).max else false
       val inputDerived = 
-        if (node.isInstanceOf[Axiom]) true 
+        if (node.isInstanceOf[at.logic.skeptik.proof.sequent.lk.Axiom]) true 
         else 
           if (fromPremises.size > 0) fromPremises.map(_._3).max else false
       val premiseNodes = fromPremises.map(_._1)
       
 //      println("fixing \n" + node + "with premises\n" + premiseNodes)
       val fixedNodeInit = fixNode(node,premiseNodes)
-//      println(fixedNodeInit != node)
       
-      val test = (fixedNodeInit.conclusion.ant ++ fixedNodeInit.conclusion.suc).find(lit => lit.toString == "((f2 c_5 (f1 c_5 c_0)) = c6)" || lit.toString == "((f2 c_4 (f1 c_4 c_0)) = (f3 c_5))")
-      
-      test.foreach(l => println("found reverse: " + l))
-      
-      val premiseAxioms = premiseAxiomMap.getOrElseUpdate(fixedNodeInit, {
-        val premiseAxiomsTmp = fromPremises.foldLeft(Set[EqW]())({(A,B) => A union B._2})
-        if (node == fixedNodeInit) premiseAxiomsTmp
-        else premiseAxiomsTmp.filter(Proof(fixedNodeInit).nodes.contains(_))
-      })
+      val premiseAxioms = computePremiseAxioms(node, fixedNodeInit,fromPremises.map(_._2))
       
       val rightEqs = fixedNodeInit.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
       val leftEqs = fixedNodeInit.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
@@ -189,21 +161,23 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
       val rS = rightEqs.size
       val lS = leftEqs.size
             
-      val (resNode,resAxioms) = 
-        if (rS > 0 && lS > 0 && inputDerived) {
-          doReplacement(fixedNodeInit,leftEqs,rightEqs,premiseAxioms)
+      val (resNode,resAxioms,compressed) = 
+        if (rS > 0 && lS > 0 && inputDerived && !premiseCompressed) {
+          val x = doReplacement(fixedNodeInit,leftEqs,rightEqs,premiseAxioms)
+          if (fixedNodeInit != x._1) (x._1,x._2,true)
+          else (x._1, x._2, false)
         }
         else {
           if (rS == 1 && lS == 0) { // node is an axiom -> add to list
-            (fixedNodeInit,premiseAxioms + rightEqs.last)
+            (fixedNodeInit,premiseAxioms + rightEqs.last,premiseCompressed)
           }
-          else (fixedNodeInit,premiseAxioms)
+          else (fixedNodeInit,premiseAxioms,premiseCompressed)
         } 
-      (resNode,resAxioms,inputDerived)
+      (resNode,resAxioms,inputDerived,compressed)
     }
     
     // do traversal
-    val (newProof, _,_) = proof foldDown replaceRedundant
+    val (newProof, _,_,_) = proof foldDown replaceRedundant
     
 //    println(newProof == proof.root)
     

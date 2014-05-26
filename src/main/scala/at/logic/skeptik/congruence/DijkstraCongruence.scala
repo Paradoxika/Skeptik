@@ -3,17 +3,15 @@ package at.logic.skeptik.congruence
 import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.algorithm.dijkstra._
 import at.logic.skeptik.expression._
-import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.Queue
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashMap => MMap}
-import at.logic.skeptik.congruence.Congruence
 
 class FibonacciCongruence (
-    eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW](), 
-    find: FindTable = new FindTable(), 
-    deduced: Queue[(E,E)] = Queue[(E,E)](), 
-    g: WEqGraph = new WEqGraph()) extends DijkstraCongruence(eqReferences,find,deduced,g) with earlyRes  {
+    eqReferences: MMap[(E,E),EqW], 
+    find: FindTable, 
+    deduced: Queue[(E,E)], 
+    g: WEqGraph) extends DijkstraCongruence(eqReferences,find,deduced,g) with earlyRes  {
   
   def newDijkstra: EquationDijkstra = {
     new FibonacciDijkstra(eqReferences)
@@ -27,10 +25,10 @@ class FibonacciCongruence (
 }
 
 class ArrayCongruence (
-    eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW](), 
-    find: FindTable = new FindTable(), 
-    deduced: Queue[(E,E)] = Queue[(E,E)](), 
-    g: WEqGraph = new WEqGraph()) extends DijkstraCongruence(eqReferences,find,deduced,g) with earlyRes {
+    eqReferences: MMap[(E,E),EqW], 
+    find: FindTable, 
+    deduced: Queue[(E,E)], 
+    g: WEqGraph) extends DijkstraCongruence(eqReferences,find,deduced,g) with earlyRes {
   
   def newDijkstra: EquationDijkstra = {
     new ArrayDijkstra(eqReferences)
@@ -44,10 +42,10 @@ class ArrayCongruence (
 }
 
 abstract class DijkstraCongruence (
-    eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW](), 
+    eqReferences: MMap[(E,E),EqW], 
     find: FindTable = new FindTable(), 
     deduced: Queue[(E,E)] = Queue[(E,E)](), 
-    g: WEqGraph = new WEqGraph()) extends Congruence(eqReferences,find,deduced,g) {
+    g: WEqGraph) extends Congruence(eqReferences,find,deduced,g) {
   
   def newDijkstra: EquationDijkstra
   

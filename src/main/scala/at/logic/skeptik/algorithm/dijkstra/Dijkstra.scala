@@ -7,6 +7,7 @@ import scala.collection.mutable.{HashSet => MSet}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.congruence.structure.EqW
 import scala.math.Ordering.Implicits._
+import at.logic.skeptik.congruence.structure._
 
 
 class ArrayDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends EquationDijkstra(references) {

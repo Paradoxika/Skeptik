@@ -4,14 +4,25 @@ import at.logic.skeptik.expression.E
 import at.logic.skeptik.algorithm.dijkstra._
 import scala.collection.mutable.{HashMap => MMap}
 
-class WEqGraph(val graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) extends CongruenceGraph {
+class WEqGraph(val graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](), val eqReferences: MMap[(E,E),EqW]) extends CongruenceGraph {
+  
   def addEdge(u: E, v: E, eq: Option[EqW]): WEqGraph = {
-    new WEqGraph(graph.addUndirectedEdge((u,EqLabel(eq.getOrElse(EqW(u,v,MMap[(E,E),EqW]())),None),v), 1))
+    new WEqGraph(graph.addUndirectedEdge((u,EqLabel(eq.getOrElse(EqW(u,v,eqReferences)),None),v), 1),eqReferences)
   }
   
   def addEdge(u: E, v: E, eqLabel: EqLabel, weight: Int): WEqGraph = {
-    new WEqGraph(graph.addUndirectedEdge((u,eqLabel,v), weight))
+    new WEqGraph(graph.addUndirectedEdge((u,eqLabel,v), weight),eqReferences)
   }
   
   override def toString = graph.toString
+}
+
+object WEqGraph {
+  def apply(eqReferences: MMap[(E,E),EqW]) = {
+    new WEqGraph(new WGraph[E,EqLabel](),eqReferences)
+  }
+  
+  def apply(graph: WGraph[E,EqLabel], eqReferences: MMap[(E,E),EqW]) = {
+    new WEqGraph(graph,eqReferences)
+  }
 }
