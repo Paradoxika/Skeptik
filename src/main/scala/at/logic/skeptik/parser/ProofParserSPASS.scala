@@ -69,8 +69,8 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
       
-//      println("First: " + firstPremise)
-//      println("Second: " + secondPremise)
+      println("First: " + firstPremise)
+      println("Second: " + secondPremise)
       
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 

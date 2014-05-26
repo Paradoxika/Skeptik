@@ -28,11 +28,11 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
   val rightNode = new Axiom(rightSeq)
 
   val ur = UnifyingResolution(leftNode, rightNode)(usedVars)
-//
-//  "UnifyingResolution" should {
-//    "return the correct resolvent when necessary to make a substitution" in {
-//    	//TODO: update this when "SomeNewName" is changed.
-//      Sequent(App(Var("p", i -> i), Var("SomeNewName", i)))() must beEqualTo(ur.conclusion)
-//    } //TODO: add test when substitution is not necessary
-//  }
+
+  "UnifyingResolution" should {
+    "return the correct resolvent when necessary to make a substitution" in {
+    	//TODO: update this when "SomeNewName" is changed.
+      Sequent(App(Var("p", i -> i), Var("SomeNewName", i)))() must beEqualTo(ur.conclusion)
+    } //TODO: add test when substitution is not necessary
+  }
 }
