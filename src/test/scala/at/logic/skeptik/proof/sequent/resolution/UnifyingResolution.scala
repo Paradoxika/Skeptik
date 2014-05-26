@@ -18,12 +18,14 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
   val x = new Var("X", i)
   val a = new Var("a", i)
   usedVars += x
-  usedVars += a
 
   //p(X) |- q(a)     with    q(X) |- 
   val leftSeq = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a))
   val rightSeq = Sequent(App(Var("q", i -> i), x))()
 
+  println(leftSeq)
+  println(rightSeq)
+  
   val leftNode = new Axiom(leftSeq)
   val rightNode = new Axiom(rightSeq)
 
@@ -31,8 +33,9 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
 
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
-    	//TODO: update this when "SomeNewName" is changed.
-      Sequent(App(Var("p", i -> i), Var("SomeNewName", i)))() must beEqualTo(ur.conclusion)
+    	//TODO: update this when "NEW" is changed.
+      println(ur.conclusion)
+      Sequent(App(Var("p", i -> i), Var("NEW", i)))() must beEqualTo(ur.conclusion)
     } //TODO: add test when substitution is not necessary
   }
 }

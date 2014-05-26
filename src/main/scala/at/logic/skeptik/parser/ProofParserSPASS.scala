@@ -241,7 +241,7 @@ trait SPASSParsers
       s1
     } else if (antes.length == 1) {
       val s0 = Sequent()()
-      val s1 = s0 + antes.head
+      val s1 = antes.head +: s0
       s1
     } else {
       val s0 = Sequent()()

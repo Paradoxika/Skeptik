@@ -76,7 +76,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     }
 
     val sharedVars = getSetOfVarsFromPremise(leftPremiseR).intersect(getSetOfVarsFromPremise(rightPremiseR))
-
+    
     // if we just resolve these two clauses we would get the following WRONG resolvent:
 
     // p(a) |- 
@@ -106,8 +106,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 
     // By the way, the substitution code is a good example of how you can traverse a formula using Scala's pattern matching.
 
-    if (sharedVars.size > 1) {
-      println("here" + sharedVars)
+    if (sharedVars.size > 0) {
       //Find, and assign a new name
       val availableVars = unifiableVariables.diff(sharedVars)
       var replacement = null.asInstanceOf[Var] //TODO: better way to do this?
@@ -115,10 +114,10 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
         //use one thats available
         replacement = availableVars.head
       } else {
-        replacement = new Var("SomeNewName", i) //TODO: generate names in a much smarter way
+        replacement = new Var("NEW", i) //TODO: generate names in a much smarter way
       }
-
-      val sub = Substitution(replacement -> sharedVars.head) //TODO: check: is this the right order?
+      
+      val sub = Substitution(sharedVars.head -> replacement)
 
       //Substitute the new name into one of the premises; let say the left one //TODO: check: does this matter?
       val newAnt = for (a <- leftPremiseR.mainFormulas.ant) yield sub(a)
@@ -131,7 +130,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       val axOut = Axiom(seqOut)
       //TODO: not sure if I can just use a new proof node; this one won't be in the proofMap of the parser. 
       //	Is that going to effect anything? Check.
-
+      
       fixShared(axOut, rightPremiseR, auxL, auxR) //recursively call the function so that any more shared variables are also dealt with
       //TODO: Note that until the name of the new variable is generated in a smart way, this could loop? Check/fix.
 
@@ -140,6 +139,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     }
   }
 
+  //TODO: I note this uses auxLR/auxRR, which are currently not being modified by fixShared. Something should change.
   val mgu = unify((auxLR, auxRR) :: Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => {
