@@ -23,18 +23,22 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   // we must rename its occurrences in one of the premises to a new variable symbol Y
   // not occurring in any premise
   val (leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, auxLR: E, auxRR: E) = {
-	fixShared(leftPremiseR, rightPremiseR, auxLR, auxRR)
+    fixShared(leftPremise, rightPremise, auxLR, auxRR)
   }
 
   def fixShared(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, auxLR: E, auxRR: E): (SequentProofNode, SequentProofNode, E, E) = {
-       // For example, suppose we are trying to resolve:
+    // For example, suppose we are trying to resolve:
 
     //  p(X) |- q(a)     with    q(X) |- 
 
     // note that all variables are assumed to be universally quantified.
     // therefore, the X in the left premise has nothing to do with the X in the right premise.
 
-    //check if there is a variable in both    
+    //check if there is a variable in both  
+
+    //    println(leftPremiseR)
+    //    println(rightPremiseR)
+
     def getSetOfVarsFromPremise(pn: SequentProofNode) = {
       def formula = pn.mainFormulas
       def ante = formula.ant
@@ -47,7 +51,15 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
         case Abs(v, e1) => {
           investigateExpr(v).union(investigateExpr(e1))
         }
-        case v: Var => Set[Var](v)
+        case v: Var => {
+          //Only care if the variable is a captial
+          val hasLowerCase = v.name.exists(_.isLower)
+          if (!hasLowerCase) {
+            Set[Var](v)
+          } else {
+            Set[Var]()
+          }
+        }
       }
 
       def getSetOfVarsFromExpr(e: Seq[E]): Set[Var] = {
@@ -95,7 +107,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     // By the way, the substitution code is a good example of how you can traverse a formula using Scala's pattern matching.
 
     if (sharedVars.size > 1) {
-
+      println("here" + sharedVars)
       //Find, and assign a new name
       val availableVars = unifiableVariables.diff(sharedVars)
       var replacement = null.asInstanceOf[Var] //TODO: better way to do this?
@@ -120,14 +132,14 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       //TODO: not sure if I can just use a new proof node; this one won't be in the proofMap of the parser. 
       //	Is that going to effect anything? Check.
 
-      fixShared(axOut, rightPremise, auxL, auxR) //recursively call the function so that any more shared variables are also dealt with
+      fixShared(axOut, rightPremiseR, auxL, auxR) //recursively call the function so that any more shared variables are also dealt with
       //TODO: Note that until the name of the new variable is generated in a smart way, this could loop? Check/fix.
 
     } else { //sharedVars.size  < 1
-      (leftPremise, rightPremise, auxL, auxR) //no change
+      (leftPremiseR, rightPremiseR, auxL, auxR) //no change
     }
   }
-  
+
   val mgu = unify((auxLR, auxRR) :: Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => {
