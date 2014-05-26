@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.dijkstra
 
-import at.logic.skeptik.algorithm.congruence.EqW
+import at.logic.skeptik.congruence.structure.EqW
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof._
@@ -217,7 +217,11 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     else if (deduced.size == 1) {  //Case 2
       Some(deduced.last._1)
     }
-    else None  //Case 3
+    else {
+      println("z " + (first,last,equations,deduced))
+      println(this)
+      None  //Case 3
+    }
   }
   
   /**

@@ -1,4 +1,4 @@
-package at.logic.skeptik.algorithm.congruence
+package at.logic.skeptik.congruence
 
 trait earlyRes {
   def resolveEarly: Boolean = true

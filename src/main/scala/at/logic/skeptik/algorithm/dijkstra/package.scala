@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm
 
 import at.logic.skeptik.expression._
-import at.logic.skeptik.algorithm.congruence.EqW
+import at.logic.skeptik.congruence.structure.EqW
 
 /**
  * type EqLabel is the types of labels used for Graphs in the Congruence procedure and 

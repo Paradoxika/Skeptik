@@ -1,10 +1,7 @@
-package at.logic.skeptik.algorithm.congruence
+package at.logic.skeptik.congruence.structure
 
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.{HashSet => MSet}
-import scala.collection.immutable.{HashSet => ISet}
 
 /**
  * Class CCR

@@ -1,13 +1,14 @@
-package at.logic.skeptik.algorithm.congruence
+package at.logic.skeptik.congruence
 
+import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.algorithm.dijkstra._
-import scala.collection.immutable.{HashMap => IMap}
-import scala.collection.mutable.{HashMap => MMap,HashSet => MSet,Queue => MQueue}
-import scala.collection.mutable.Stack
+import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import scala.collection.immutable.Queue
-import scala.collection.mutable.ListBuffer
+import at.logic.skeptik.congruence.structure.EqW
+import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.mutable.{HashSet => MSet}
 
 /**
  * Class Congruence class is for computing and maintaining the congruence closure of some input equations
@@ -42,10 +43,6 @@ abstract class Congruence(
     newCon(eqReferences, find,deduced,newG)
   }
   
-  def addEdgeEarly(u: E, v: E, eq: EqW): Congruence
-
-  def addEdgeLate(u: E, v: E, eq: EqW): Congruence
-  
   /**
    * method for adding an equation to the this congruence closure
    * calls addNode for both sides of the equality
@@ -61,7 +58,7 @@ abstract class Congruence(
   def addEquality(eq: EqW): Congruence = {
     val (l,r) = (eq.l,eq.r)
 //    println("Adding " + (l,r))
-    val c0 = addEdgeEarly(l,r,eq)
+    val c0 = updateGraph(g.addEdge(l, r, Some(eq)))
     val eqRef = eqReferences.update((l,r), eq)
     val c1 = c0.addNode(l)
     val c2 = c1.addNode(r)
@@ -148,8 +145,7 @@ abstract class Congruence(
     val c1 = updateFind(nF)
     if (aF != bF) {
       val deduced = MSet[(E,E)]()
-      val c0 = c1.addEdgeLate(a, b, eq)
-      val c2 = c0.union(a,b,deduced)
+      val c2 = this.union(a,b,deduced)
       var c = c2
       var d = deduced.size
       while (!deduced.isEmpty) {

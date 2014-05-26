@@ -5,7 +5,7 @@ import scala.collection.mutable.PriorityQueue
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashSet => MSet}
 import at.logic.skeptik.expression.formula._
-import at.logic.skeptik.algorithm.congruence.EqW
+import at.logic.skeptik.congruence.structure.EqW
 import scala.math.Ordering.Implicits._
 
 

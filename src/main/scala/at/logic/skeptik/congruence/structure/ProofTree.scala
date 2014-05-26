@@ -1,9 +1,8 @@
-package at.logic.skeptik.algorithm.congruence
+package at.logic.skeptik.congruence.structure
 
 import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.dijkstra._
-import scala.collection.mutable.{StringBuilder, HashMap => MMap}
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ListBuffer, StringBuilder, HashMap => MMap}
 
 case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), rootSize: Map[E,Int] = Map[E,Int]()) extends CongruenceGraph {
   def addEdge(u: E, v: E, eq: Option[EqW]) = {
@@ -42,10 +41,14 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     p1.diff(p2) ++ reversePathList(p2.diff(p1))
   }
   
-  def explainAlongPath(path: List[(E,Option[EqW],E)]): EquationPath = {
+  def explainAlongPath(path: List[(E,Option[EqW],E)], eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()): EquationPath = {
 //    println(path)
     val (t1,eq,t2) = path.head
-    val eqCheat = eq.getOrElse(EqW(t1,t2,MMap[(E,E),EqW]())) //Probably causing bugs!
+    var ownEq = false
+    val eqCheat = eq.getOrElse({
+      ownEq = true 
+      eqReferences.getOrElse((t1,t2),EqW(t1,t2,MMap[(E,E),EqW]())) //Probably causing bugs!
+    })
     val deduceTrees = eq match {
       case None => {
         (t1,t2) match {
@@ -67,7 +70,7 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
       }
       case Some(_) => None
     }
-    
+    if (ownEq && !deduceTrees.isDefined) println("own eq matters")
     val eqL = EqLabel(eqCheat,deduceTrees)
     val nextEdge = if (path.size > 1)
       explainAlongPath(path.tail)
@@ -78,13 +81,13 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     new EquationPath(t1,Some(eqEdge))
   }
   
-  def explain(u: E, v: E): Option[EquationPath] = {
+  def explain(u: E, v: E, eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()): Option[EquationPath] = {
     val path = ncaPath(u,v) 
     if (path.isEmpty) {
       if (u == v) Some(new EquationPath(u,None))
       else None
     }
-    else Some(explainAlongPath(path))
+    else Some(explainAlongPath(path,eqReferences))
   }
   
   def rootPath(u: E) = {

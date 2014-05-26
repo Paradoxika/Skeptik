@@ -1,9 +1,13 @@
-package at.logic.skeptik.algorithm.congruence
+package at.logic.skeptik.congruence
 
-import at.logic.skeptik.expression._
+import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.algorithm.dijkstra._
+import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.Queue
+import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.mutable.{HashMap => MMap}
+import at.logic.skeptik.congruence.Congruence
 
 class FibonacciCongruence (
     eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW](), 
@@ -47,14 +51,6 @@ abstract class DijkstraCongruence (
   
   def newDijkstra: EquationDijkstra
   
-  def addEdgeEarly(u: E, v: E, eq: EqW): Congruence = {
-    updateGraph(g.addEdge(u,v,Some(eq)))
-  }
-
-  def addEdgeLate(u: E, v: E, eq: EqW): Congruence = {
-    this
-  }
-  
   def resolveDeduced(u: E, v: E): Congruence = {
     u match {
       case App(u1,u2) => {
@@ -96,6 +92,4 @@ abstract class DijkstraCongruence (
     val path = dij(u,v,g.graph)
     if (path.isEmpty) None else Some(path)
   }
-  
-  def resolveEarly: Boolean
 }

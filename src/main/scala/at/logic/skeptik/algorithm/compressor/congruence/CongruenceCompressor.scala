@@ -1,22 +1,23 @@
-package at.logic.skeptik.algorithm.congruence
+package at.logic.skeptik.algorithm.compressor.congruence
 
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable._
 import at.logic.skeptik.proof._
-import at.logic.skeptik.algorithm.congruence._
+import at.logic.skeptik.congruence._
+import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.algorithm.compressor._
 import at.logic.skeptik.algorithm.dijkstra._
 import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.algorithm.compressor._
-import at.logic.skeptik.exporter.Exporter
-import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
-import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
-import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
+import at.logic.skeptik.proof.Proof.apply
+import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
+import scala.collection.immutable.{HashMap => IMap}
+import scala.collection.mutable.{HashMap => MMap}
+import at.logic.skeptik.congruence.Congruence
 
 trait ArrayCompressor {
   def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
@@ -115,6 +116,7 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
               val oldSize = leftEqs.size + axioms.size
               if (newSize < oldSize) {
                 tree = path
+                println("eq1: " + eq)
                 true
               }
               else false
@@ -123,7 +125,7 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
           }
         })
       if (canBeCompressed) {
-        
+        println("x")
         val path = tree.get
         val pathProof =  path.toProof(eqReferences)
 
@@ -144,9 +146,14 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
             })
 //            println("replacing \n"+node+"with\n"+resNode)
 //            if (resNode.conclusion.ant.size > node.conclusion.ant.size) println("compressing, but clause got bigger")
+            println("eq2: " + resNode.conclusion.suc.mkString(","))
             (resNode,axioms)
           }
-          case _ => (node,axioms)
+          case None => {
+            println("y" + node)
+            println(path)
+            (node,axioms)
+          }
         }
       }
       else (node,axioms)
@@ -166,6 +173,9 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
       val fixedNodeInit = fixNode(node,premiseNodes)
 //      println(fixedNodeInit != node)
       
+      val test = (fixedNodeInit.conclusion.ant ++ fixedNodeInit.conclusion.suc).find(lit => lit.toString == "((f2 c_5 (f1 c_5 c_0)) = c6)" || lit.toString == "((f2 c_4 (f1 c_4 c_0)) = (f3 c_5))")
+      
+      test.foreach(l => println("found reverse: " + l))
       
       val premiseAxioms = premiseAxiomMap.getOrElseUpdate(fixedNodeInit, {
         val premiseAxiomsTmp = fromPremises.foldLeft(Set[EqW]())({(A,B) => A union B._2})

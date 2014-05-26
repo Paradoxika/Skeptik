@@ -1,7 +1,6 @@
-package at.logic.skeptik.algorithm.congruence
+package at.logic.skeptik.congruence.structure
 
 import at.logic.skeptik.expression._
-import scala.collection.immutable.{HashMap => Map}
 import scala.collection.immutable.{HashMap => IMap}
 
 /**

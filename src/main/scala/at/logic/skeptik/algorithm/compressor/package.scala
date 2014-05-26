@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm
 
-import at.logic.skeptik.algorithm.congruence._
+import at.logic.skeptik.algorithm.compressor.congruence._
 import at.logic.skeptik.algorithm.compressor.split._
 import at.logic.skeptik.algorithm.compressor.subsumption._
 import at.logic.skeptik.algorithm.compressor.reduceAndReconstruct._
