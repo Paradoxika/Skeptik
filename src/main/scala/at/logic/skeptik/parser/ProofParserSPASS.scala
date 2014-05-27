@@ -87,7 +87,9 @@ trait SPASSParsers
 
         def performReplacements(ant: Seq[E], replacements: List[Substitution]): Seq[E] ={
           if (replacements.length > 0){
-            val newAnt = for (a <- ax.conclusion.ant) yield replacements.head(a)
+            val rev = replacements.head
+            def newAnt = for (a <- ant) yield rev(a)
+//            println("newAnt IN METHOD(" + replacements.length + "): " + newAnt)
             performReplacements(newAnt, replacements.tail)
           } else {
             ant
@@ -122,6 +124,15 @@ trait SPASSParsers
         ay
 
       } else {
+        val parsedAnte = addAntecedents(seq._1)
+
+        val parsedSucc = addSuccedents(seq._2)
+
+        val parsedFinal = parsedAnte union parsedSucc
+
+        val ay = new Axiom(parsedFinal)
+        println("Parsed: " + ln + ":" + ay)
+        println("Computed: " + ln + ":" + ax)
         proofMap += (ln -> ax)
         ax
       }
