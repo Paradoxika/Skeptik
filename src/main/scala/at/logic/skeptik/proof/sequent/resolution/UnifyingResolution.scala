@@ -21,7 +21,8 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   def leftAuxFormulas: SeqSequent = ???
   def rightAuxFormulas: SeqSequent = ???
 
-  var replacementInverse: Substitution = null.asInstanceOf[Substitution]
+  //TODO: probably shouldn't use var
+  var replacementInverse: List[Substitution] = List[Substitution]()//null.asInstanceOf[Substitution]
   
   // When a unifiable variable X occurs in both premises, 
   // we must rename its occurrences in one of the premises to a new variable symbol Y
@@ -128,7 +129,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       }
       
       val sub = Substitution(sharedVars.head -> replacement)
-      replacementInverse = Substitution(replacement -> sharedVars.head)
+      replacementInverse = replacementInverse ::: List(Substitution(replacement -> sharedVars.head))
 
       println("making the following sub: " + sub)
       
