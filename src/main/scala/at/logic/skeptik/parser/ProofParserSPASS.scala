@@ -72,6 +72,8 @@ trait SPASSParsers
 
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
+       
+      println("Attempting to parse line " + ln)
 
       println("First premise: " + firstPremise)
       println("First formula: " + firstClause)
@@ -81,6 +83,8 @@ trait SPASSParsers
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
       //TODO: do we actually have to reverse this naming?
+      // even if we do, I feel like it should happen inside of UnifyingResolution. but it will stay here
+      // while there are bigger bugs to fix.
       
       if (ax.replacementInverse.length > 0) {
 
@@ -107,18 +111,17 @@ trait SPASSParsers
         val parsedFinal = parsedAnte union parsedSucc
         val ay = new Axiom(parsedFinal)
 
-
+        val aFinal = new Axiom(sFinal)
+        
         println("Parsed: " + ln + ":" + ay)
         println("Computed: " + ln + ":" + ax)
         println("Computed B: " + ln + ":" + sFinal) //this one "matches" parsed
-        proofMap += (ln -> ax)
+        proofMap += (ln -> ax) //TODO: Needs to be 'ax' in the final code  
         ax
 
       } else {
         val parsedAnte = addAntecedents(seq._1)
-
         val parsedSucc = addSuccedents(seq._2)
-
         val parsedFinal = parsedAnte union parsedSucc
 
         val ay = new Axiom(parsedFinal)
