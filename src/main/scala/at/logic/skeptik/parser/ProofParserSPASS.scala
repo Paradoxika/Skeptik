@@ -67,23 +67,22 @@ trait SPASSParsers
       def firstClause = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
       def secondClause = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
 
-      //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")),
-      //     exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!")),exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!")))(vars)
+//      val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")),
+//          exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!")),exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!")))(vars)
 
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
       println("First premise: " + firstPremise)
-      println("First clause: " + firstClause)
+      println("First formula: " + firstClause)
       println("Second premise: " + secondPremise)
-      println("Second clause: " + secondClause)
+      println("Second formula: " + secondClause)
 
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
       //TODO: do we actually have to reverse this naming?
       
       if (ax.replacementInverse.length > 0) {
-//        val rev = ax.replacementInverse(0)
 
         def performReplacements(ant: Seq[E], replacements: List[Substitution]): Seq[E] ={
           if (replacements.length > 0){
@@ -219,7 +218,7 @@ trait SPASSParsers
   //TODO: get complete list from SPASS documentation
   def inferenceRule: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:"
 
-  def func: Parser[E] = equals | max | userDef | lessEquals | greaterEquals
+  def func: Parser[E] = equals | max | userDef | lessEquals | greaterEquals | max2
 
   def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
@@ -242,6 +241,13 @@ trait SPASSParsers
   def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(~(~(_, first), _), second), _), last), _) => {
       AppRec(new Var("max", i -> (i -> (i -> i))), List(first, second, last))
+    }
+
+  }
+  
+    def max2: Parser[E] = "max(" ~ term ~ "," ~ term ~ ")" ^^ {
+    case ~(~(~(~(_, first), _), second), _) => {
+      AppRec(new Var("max", i -> (i -> i)), List(first, second))
     }
 
   }

@@ -114,7 +114,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     if (sharedVars.size > 0) {
       //Find, and assign a new name
       //first diff is so that we don't use a variable that is shared
-      //second diff is so that we don't use a variable appearing in the formula already (TODO: necessary?)
+      //second/third diff is so that we don't use a variable appearing in the formula already
       val availableVars = unifiableVariables.diff(sharedVars.union(getSetOfVarsFromPremise(leftPremiseR).union(getSetOfVarsFromPremise(rightPremiseR))))
       println("av: " + availableVars)
       println("lv: " + getSetOfVarsFromPremise(leftPremiseR))
@@ -134,14 +134,22 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       println("making the following sub: " + sub)
       
       //Substitute the new name into one of the premises; let say the left one //TODO: check: does this matter?
-//      val newAnt = for (a <- leftPremiseR.mainFormulas.ant) yield sub(a)
-//      val newSuc = for (a <- leftPremiseR.mainFormulas.suc) yield sub(a)
-
-      val newAnt = for (a <- rightPremiseR.mainFormulas.ant) yield sub(a)
-      val newSuc = for (a <- rightPremiseR.mainFormulas.suc) yield sub(a)
       
-      val sA = addAntecedents(newAnt.seq.toList)
-      val sS = addSuccedents(newSuc.seq.toList)
+      //SYM 
+      val newAnt = for (a <- leftPremiseR.mainFormulas.ant) yield sub(a)
+      val newSuc = for (a <- leftPremiseR.mainFormulas.suc) yield sub(a)
+
+//      val newAnt = for (a <- rightPremiseR.mainFormulas.ant) yield sub(a)
+//      val newSuc = for (a <- rightPremiseR.mainFormulas.suc) yield sub(a)
+      
+      val newAuxL = sub(auxL)
+      val newAuxR = sub(auxR)
+      
+      val sA = addAntecedents(newAnt.seq.filter(_ != newAuxR).toList)
+      val sS = addSuccedents(newSuc.seq.filter(_ != newAuxR).toList)
+      
+//      val sS = addSuccedents( ((newSuc.filter(_ != newAuxR)).map(e => mgu(e)) ++ newSuc.map(e => mgu(e))).toList )
+      
       val seqOut = sA union sS
 
       val axOut = Axiom(seqOut)
@@ -149,8 +157,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       //	Is that going to effect anything? Check.
       
       //TODO: check that this is the right way to modify these expr's
-      val newAuxL = sub(auxL)
-      val newAuxR = sub(auxR)
+
       
 //      println(sub + " " + sharedVars)
 
@@ -163,22 +170,31 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 //      println(axOut.conclusion.ant  + " " +  axOut.conclusion.ant.size)
 //      println(newAuxR)
 //      println("---------")
-      println("ant:" + newAnt.seq.toList)
-      println("oldAnt: " +  rightPremiseR.mainFormulas.ant)
-      println("ax: " + axOut)
+//      println("ant:" + newAnt.seq.toList)
+//      println("oldAnt: " +  rightPremiseR.mainFormulas.ant)
+//      println("ax: " + axOut)
       
-      //fixShared(axOut, rightPremiseR, newAuxL, newAuxR) //recursively call the function so that any more shared variables are also dealt with
-      fixShared(leftPremiseR, axOut, newAuxL, newAuxR) 
+      
+      //SYM
+      fixShared(axOut, rightPremiseR, newAuxL, auxR) //recursively call the function so that any more shared variables are also dealt with
+      //fixShared(leftPremiseR, axOut, auxL, newAuxR) 
     } else { //sharedVars.size  < 1
       (leftPremiseR, rightPremiseR, auxL, auxR) //no change
     }
   }
 
   val mgu = unify((auxLR, auxRR) :: Nil) match {
-    case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
+    case None => {
+      println("auxLR (NONE):" + auxLR)
+      println("auxRR (NONE):" + auxRR)
+      throw new Exception("Resolution: given premise clauses are not resolvable.")
+    }
     case Some(u) => {
+      println("auxLR (SOME):" + auxLR)
+      println("auxRR (SOME):" + auxRR)      
       println("mgu: " + u)
       u
+      //Substitution(Var("NEW0",i) -> Var("a",i))
     }
   }
   override val conclusionContext = {

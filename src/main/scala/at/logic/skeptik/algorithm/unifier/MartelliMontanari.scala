@@ -18,7 +18,10 @@ object MartelliMontanari {
       //println("Head: " + eqs.head)
       
       counter = counter + 1
-      if (counter > 10) return None
+      if (counter > 10) {
+        println("counter maxed out")
+        return None
+      }
       
       
       eqs.head match {
