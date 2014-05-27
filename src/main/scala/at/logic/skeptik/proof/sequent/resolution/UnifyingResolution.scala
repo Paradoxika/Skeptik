@@ -21,6 +21,8 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   def leftAuxFormulas: SeqSequent = ???
   def rightAuxFormulas: SeqSequent = ???
 
+  var replacementInverse: Substitution = null.asInstanceOf[Substitution]
+  
   // When a unifiable variable X occurs in both premises, 
   // we must rename its occurrences in one of the premises to a new variable symbol Y
   // not occurring in any premise
@@ -67,8 +69,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 
       def getSetOfVarsFromExpr(e: Seq[E]): Set[Var] = {
         if (e.length > 1) {
-          investigateExpr(e.head)
-          getSetOfVarsFromExpr(e.tail)
+          investigateExpr(e.head).union(getSetOfVarsFromExpr(e.tail))
         } else if (e.length == 1) {
           investigateExpr(e.head)
         } else {
@@ -111,7 +112,12 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 
     if (sharedVars.size > 0) {
       //Find, and assign a new name
-      val availableVars = unifiableVariables.diff(sharedVars)
+      //first diff is so that we don't use a variable that is shared
+      //second diff is so that we don't use a variable appearing in the formula already (TODO: necessary?)
+      val availableVars = unifiableVariables.diff(sharedVars.union(getSetOfVarsFromPremise(leftPremiseR).union(getSetOfVarsFromPremise(rightPremiseR))))
+      println("av: " + availableVars)
+      println("lv: " + getSetOfVarsFromPremise(leftPremiseR))
+      println("rv: " + getSetOfVarsFromPremise(rightPremiseR))
       var replacement = null.asInstanceOf[Var] //TODO: better way to do this?
       if (availableVars.size >= 1) {
         //use one thats available
@@ -122,11 +128,17 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       }
       
       val sub = Substitution(sharedVars.head -> replacement)
+      replacementInverse = Substitution(replacement -> sharedVars.head)
 
+      println("making the following sub: " + sub)
+      
       //Substitute the new name into one of the premises; let say the left one //TODO: check: does this matter?
-      val newAnt = for (a <- leftPremiseR.mainFormulas.ant) yield sub(a)
-      val newSuc = for (a <- leftPremiseR.mainFormulas.suc) yield sub(a)
+//      val newAnt = for (a <- leftPremiseR.mainFormulas.ant) yield sub(a)
+//      val newSuc = for (a <- leftPremiseR.mainFormulas.suc) yield sub(a)
 
+      val newAnt = for (a <- rightPremiseR.mainFormulas.ant) yield sub(a)
+      val newSuc = for (a <- rightPremiseR.mainFormulas.suc) yield sub(a)
+      
       val sA = addAntecedents(newAnt.seq.toList)
       val sS = addSuccedents(newSuc.seq.toList)
       val seqOut = sA union sS
@@ -138,7 +150,8 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       //TODO: check that this is the right way to modify these expr's
       val newAuxL = sub(auxL)
       val newAuxR = sub(auxR)
-      println(sub + " " + sharedVars)
+      
+//      println(sub + " " + sharedVars)
 
 //      println("---------")
 //      println(auxL)
@@ -149,10 +162,12 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 //      println(axOut.conclusion.ant  + " " +  axOut.conclusion.ant.size)
 //      println(newAuxR)
 //      println("---------")
-       
-      fixShared(axOut, rightPremiseR, newAuxL, newAuxR) //recursively call the function so that any more shared variables are also dealt with
-      //TODO: Note that until the name of the new variable is generated in a smart way, this could loop? Check/fix.
-
+      println("ant:" + newAnt.seq.toList)
+      println("oldAnt: " +  rightPremiseR.mainFormulas.ant)
+      println("ax: " + axOut)
+      
+      //fixShared(axOut, rightPremiseR, newAuxL, newAuxR) //recursively call the function so that any more shared variables are also dealt with
+      fixShared(leftPremiseR, axOut, newAuxL, newAuxR) 
     } else { //sharedVars.size  < 1
       (leftPremiseR, rightPremiseR, auxL, auxR) //no change
     }
@@ -161,6 +176,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   val mgu = unify((auxLR, auxRR) :: Nil) match {
     case None => throw new Exception("Resolution: given premise clauses are not resolvable.")
     case Some(u) => {
+      println("mgu: " + u)
       u
     }
   }
@@ -182,6 +198,7 @@ object UnifyingResolution {
     }
     val unifiablePairs = (for (auxL <- leftPremise.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
+      println("#unifiablePairs = " + unifiablePairs.length)
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR)
     } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")

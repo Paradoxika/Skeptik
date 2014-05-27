@@ -51,7 +51,6 @@ trait SPASSParsers
 
       val ax = new Axiom(sFinal)
       proofMap += (ln -> ax)
-      count = ln
       println("line: " + ln + " " + ax)
       ax
     }
@@ -64,29 +63,52 @@ trait SPASSParsers
       def secondNode = secondRef.first
 
 
+      def firstClause = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
+      def secondClause = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
+      
       //val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")),
       //     exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!")),exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!")))(vars)
     
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
       
-      println("First: " + firstPremise)
-      println("Second: " + secondPremise)
+      println("First premise: " + firstPremise)
+      println("First clause: " + firstClause)
+      println("Second premise: " + secondPremise)
+      println("Second clause: " + secondClause)
       
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
-      val sA = addAntecedents(seq._1)
+      //TODO: do we actually have to reverse this naming?
+      //TODO: check if this is null
+      //TODO: make this support multiple replacements
+      //TODO: replace ax with sFinal
+      val rev = ax.replacementInverse
+      
+      val newAnt = for (a <- ax.conclusion.ant) yield rev(a)
+      
+      val sA = addAntecedentsSeq(newAnt)
 
-      val sS = addSuccedents(seq._2)
+      val sS = addSuccedentsSeq(ax.conclusion.suc)
 
       val sFinal = sA union sS
 
-      val ay = new Axiom(sFinal)
-      proofMap += (ln -> ax)
-      count = ln
+//      val ay = new Axiom(sFinal)
+//      proofMap += (ln -> ax)
+      
+      val parsedAnte = addAntecedents(seq._1)
+
+      val parsedSucc = addSuccedents(seq._2)
+
+      val parsedFinal = parsedAnte union parsedSucc
+
+      val ay = new Axiom(parsedFinal)
+//      proofMap += (ln -> ax)
+//      count = ln
       
       println("Parsed: " + ln + ":" + ay)
       println("Computed: " + ln + ":" + ax)
+      println("Computed B: " + ln + ":" + sFinal) //this one "matches" parsed
       
       proofMap += (ln -> ax)
       ax
@@ -102,9 +124,7 @@ trait SPASSParsers
       val sFinal = sA union sS
 
       val ax = new Axiom(sFinal)
-      proofMap += (ln -> ax)
-      count = ln
-      
+      proofMap += (ln -> ax)      
       ax
     }
   }
@@ -112,16 +132,16 @@ trait SPASSParsers
   def sequent: Parser[(List[E], List[E])] = antecedent ~ "->" ~ succedent ~ "." ^^ {
     case ~(~(~(a, _), s), _) => {
       
-      /*
+      
       //This function maintains a map of the form ((proof line, clause position) -> clause).       
       def addToExprMap(lineNumber: Int, startPos: Int, exps: List[E]): Int = {
         if (exps.length > 1) {
           exprMap.getOrElseUpdate(lineNumber + "." + startPos, exps.head)
-          println(lineNumber + "." + startPos + " == " + exps.head)
+//          println(lineNumber + "." + startPos + " == " + exps.head)
           addToExprMap(lineNumber, startPos + 1, exps.tail)
         } else if (exps.length == 1) {
           exprMap.getOrElseUpdate(lineNumber + "." + startPos, exps.head)
-          println(lineNumber + "." + startPos + " == " + exps.head)
+//          println(lineNumber + "." + startPos + " == " + exps.head)
           startPos + 1
         } else {
           startPos
@@ -129,7 +149,7 @@ trait SPASSParsers
       }
 
       addToExprMap(count, addToExprMap(count, 0, a), s)
-	  */
+	  
 
       
       if (count % 500 == 0) { println(count + " lines parsed") }
@@ -152,7 +172,12 @@ trait SPASSParsers
     case ~(t, _) => t
   }
 
-  def lineNum: Parser[Int] = number
+  def lineNum: Parser[Int] = number ^^ {
+    case n => {
+      count = n
+      n
+    }
+  }
 
   def lineRef: Parser[Ref] = (refComma | ref)
 
@@ -265,6 +290,35 @@ trait SPASSParsers
       s0
     }
   }
+  
+  def addAntecedentsSeq(antes: Seq[E]): Sequent = {
+    if (antes.length > 1) {
+      val s1 = antes.head +: addAntecedentsSeq(antes.tail)
+      s1
+    } else if (antes.length == 1) {
+      val s0 = Sequent()()
+      val s1 = antes.head +: s0
+      s1
+    } else {
+      val s0 = Sequent()()
+      s0
+    }
+  }
+
+  def addSuccedentsSeq(succs: Seq[E]): Sequent = {
+    if (succs.length > 1) {
+      val s1 = addSuccedentsSeq(succs.tail) + succs.head
+      s1
+    } else if (succs.length == 1) {
+      val s0 = Sequent()()
+      val s1 = s0 + succs.head
+      s1
+    } else {
+      val s0 = Sequent()()
+      s0
+    }
+  }  
+  
 }
 
 class Ref(f: Int, s: Int) {
