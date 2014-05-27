@@ -57,7 +57,7 @@ trait SPASSParsers
       ax
     }
 
-    // * //TODO: currently broken? Can't find implicit variable in either case.
+    // * //TODO: currently broken? 
     case ~(~(~(~(~(~(~(ln, _), _), _), "Res:"), refs), _), seq) => {
       def firstRef = refs.head
       def secondRef = refs.tail.head
@@ -88,39 +88,31 @@ trait SPASSParsers
           if (replacements.length > 0){
             val rev = replacements.head
             def newAnt = for (a <- ant) yield rev(a)
-//            println("newAnt IN METHOD(" + replacements.length + "): " + newAnt)
             performReplacements(newAnt, replacements.tail)
           } else {
             ant
           }
         }
         
-        val newAnt = performReplacements(ax.conclusion.ant, ax.replacementInverse)// for (a <- ax.conclusion.ant) yield rev(a)
+        val newAnt =  performReplacements(ax.conclusion.ant, ax.replacementInverse)
+        val newSuc =  performReplacements(ax.conclusion.suc, ax.replacementInverse)
 
         val sA = addAntecedentsSeq(newAnt)
-
-        val sS = addSuccedentsSeq(ax.conclusion.suc)
-
+        val sS = addSuccedentsSeq(newSuc)
         val sFinal = sA union sS
 
-        //      val ay = new Axiom(sFinal)
-        //      proofMap += (ln -> ax)
 
         val parsedAnte = addAntecedents(seq._1)
-
         val parsedSucc = addSuccedents(seq._2)
-
         val parsedFinal = parsedAnte union parsedSucc
-
         val ay = new Axiom(parsedFinal)
-        //      proofMap += (ln -> ax)
-        //      count = ln
+
 
         println("Parsed: " + ln + ":" + ay)
         println("Computed: " + ln + ":" + ax)
         println("Computed B: " + ln + ":" + sFinal) //this one "matches" parsed
-        proofMap += (ln -> ay)
-        ay
+        proofMap += (ln -> ax)
+        ax
 
       } else {
         val parsedAnte = addAntecedents(seq._1)

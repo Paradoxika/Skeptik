@@ -125,10 +125,13 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
         replacement = availableVars.head
       } else {
         replacement = new Var("NEW" + count, i)
+        unifiableVariables +=  new Var("NEW" + count, i)
         count += 1
       }
       
-      val sub = Substitution(sharedVars.head -> replacement)
+      val sub = Substitution(sharedVars.head -> replacement) //perform the replacement
+      
+      //Keep track of the replacement, so we can reverse it when we're done
       replacementInverse = replacementInverse ::: List(Substitution(replacement -> sharedVars.head))
 
       println("making the following sub: " + sub)
@@ -138,25 +141,44 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       //SYM 
       val newAnt = for (a <- leftPremiseR.mainFormulas.ant) yield sub(a)
       val newSuc = for (a <- leftPremiseR.mainFormulas.suc) yield sub(a)
+      
+      val newAntR = for (a <- rightPremiseR.mainFormulas.ant) yield sub(a)
+      val newSucR = for (a <- rightPremiseR.mainFormulas.suc) yield sub(a)
 
 //      val newAnt = for (a <- rightPremiseR.mainFormulas.ant) yield sub(a)
 //      val newSuc = for (a <- rightPremiseR.mainFormulas.suc) yield sub(a)
       
+      
+      //TODO: check that this is the right way to modify these expr's      
       val newAuxL = sub(auxL)
       val newAuxR = sub(auxR)
       
-      val sA = addAntecedents(newAnt.seq.filter(_ != newAuxR).toList)
-      val sS = addSuccedents(newSuc.seq.filter(_ != newAuxR).toList)
+      
+//      println("newSuc: " + newSuc)
+      
+      //SYM
+      val sA = addAntecedents(newAnt.seq.filter(_ != newAuxL).toList)
+      val sS = addSuccedents(newSuc.seq.filter(_ != newAuxL).toList)
+      
+      val sAR = addAntecedents(newAnt.seq.filter(_ != newAuxR).toList)
+      val sSR = addSuccedents(newSuc.seq.filter(_ != newAuxR).toList)
+      
+//      val sA = addAntecedents(newAnt.seq.filter(_ != newAuxR).toList)
+//      val sS = addSuccedents(newSuc.seq.filter(_ != newAuxR).toList)
       
 //      val sS = addSuccedents( ((newSuc.filter(_ != newAuxR)).map(e => mgu(e)) ++ newSuc.map(e => mgu(e))).toList )
       
       val seqOut = sA union sS
+      
+        val seqOutR = sAR union sSR
 
       val axOut = Axiom(seqOut)
+      
+            val axOutR = Axiom(seqOutR)
+
       //TODO: not sure if I can just use a new proof node; this one won't be in the proofMap of the parser. 
       //	Is that going to effect anything? Check.
       
-      //TODO: check that this is the right way to modify these expr's
 
       
 //      println(sub + " " + sharedVars)
@@ -176,20 +198,30 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       
       
       //SYM
-      fixShared(axOut, rightPremiseR, newAuxL, auxR) //recursively call the function so that any more shared variables are also dealt with
-      //fixShared(leftPremiseR, axOut, auxL, newAuxR) 
+     fixShared(axOut, rightPremiseR, newAuxL, auxR) //recursively call the function so that any more shared variables are also dealt with
+     //fixShared(leftPremiseR, axOutR, auxL, newAuxR) 
+      //fixShared(axOut, axOutR, newAuxL, newAuxR)
     } else { //sharedVars.size  < 1
+      println(" no shared")
       (leftPremiseR, rightPremiseR, auxL, auxR) //no change
     }
   }
+  
 
-  val mgu = unify((auxLR, auxRR) :: Nil) match {
+ 
+//  val mgu = unify( ( Substitution((new Var("U",i)) -> (new Var("NEW" + 0, i))) (auxL) , auxRR) :: Nil)(unifiableVariables + new Var("NEW" + 0, i)) match {
+  val mgu = unify(  (auxLR , auxRR) :: Nil) match {
     case None => {
+       println("auxL (NONE):" + auxL)
+        println("auxR (NONE):" + auxR)
+      println("auxL changed (NONE):" +  ( Substitution((new Var("U",i)) -> (new Var("NEW" + 0, i))) (auxL)))
       println("auxLR (NONE):" + auxLR)
       println("auxRR (NONE):" + auxRR)
       throw new Exception("Resolution: given premise clauses are not resolvable.")
     }
     case Some(u) => {
+            println("auxL (SOME):" + auxL)
+      println("auxR (SOME):" + auxR)
       println("auxLR (SOME):" + auxLR)
       println("auxRR (SOME):" + auxRR)      
       println("mgu: " + u)
@@ -209,7 +241,9 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 object UnifyingResolution {
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = new UnifyingResolution(leftPremise, rightPremise, auxL, auxR)
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
-    def isUnifiable(p: (E, E)) = unify(p :: Nil)(unifiableVariables) match {
+//    val unifiableVariablesB = unifiableVariables + new Var("NEW" + 0, i)
+//    def isUnifiable(p: (E,E)) = unify( (  ( Substitution((new Var("U",i)) -> (new Var("NEW" + 0, i))) (p._1)),p._2) :: Nil)(unifiableVariablesB) match {
+    def isUnifiable(p: (E,E)) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(_) => true
     }
