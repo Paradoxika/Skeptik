@@ -1,11 +1,9 @@
-package at.logic.skeptik.congruence
+package at.logic.skeptik.algorithm.compressor.congruence
 
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.compressor.congruence._
 import at.logic.skeptik.parser.ProofParserVeriT
-import at.logic.skeptik.parser.ProofParserSkeptik
-import at.logic.skeptik.proof.measure
 import at.logic.skeptik.util.io.Input
 import at.logic.skeptik.util.io.FileOutput
 import scala.collection.mutable.{HashMap => MMap}
@@ -13,13 +11,15 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof._
 import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.congruence._
+import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
+import scala.collection.mutable.{HashMap => MMap}
 
 object ExplanationTest {
   def main(args: Array[String]): Unit = {
     val multiple = true
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
-    val output = new FileOutput("experiments/congruence/explComp/explComp3.csv")
-    output.write("original, proofTree \n")
+    val output = new FileOutput("experiments/congruence/explComp/explComp4.csv")
+    output.write("original, proofTree, origSize, pTsize \n")
     val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size6.smt2"
@@ -59,7 +59,12 @@ object ExplanationTest {
         val con = new ProofTreeCongruence(eqReferences).addAll(leftEqs.toList).addNode(eq.l).addNode(eq.r)
         con.explain(eq.l,eq.r) match {
           case Some(path) => {
-            val out = leftEqs.size + "," + path.originalEqs.size + " \n"
+            val out = path.toProof(eqReferences) match {
+              case Some(prodProof) => {
+                leftEqs.size + "," + path.originalEqs.size + ", " + Proof(node).size + ", " + prodProof.size + "\n"
+              }
+              case None => leftEqs.size + "," + path.originalEqs.size + " , , \n"
+            }
             file.write(out)
 //            println(out)
           }
