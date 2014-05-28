@@ -84,7 +84,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *         DED are all results of calls to buildDeduction, 
    *             collected as a tuple of a SequentProofNode (N) and the equality if proves (as an EqW object)
    */
-  def buildTransChain(eqReferences: MMap[(E,E),EqW]): (E,E,Seq[EqW],Seq[(N,EqW)]) = {
+  def buildTransChain(implicit eqReferences: MMap[(E,E),EqW]): (E,E,Seq[EqW],Seq[(N,EqW)]) = {
     if (v.toString == "(c_2 = c_3)") println(v + " occurs in trans. chain")
     pred match {
       case Some(pr) => {
@@ -94,7 +94,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
         val resDeduced = pr._2._2 match {
           case None => deduced
           case Some((dd1,dd2)) => {
-            (buildDeduction(dd1,dd2,pr._2._1,eqReferences),pr._2._1) +: deduced
+            (buildDeduction(dd1,dd2,pr._2._1),pr._2._1) +: deduced
           }
         }
         (resFirst,last,resEquations,resDeduced)
@@ -132,41 +132,57 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    * @res a SequentProofNode representing the full proof of the input equality from input axioms only.
    **/
   
-  def buildDeduction(dd1: EquationPath, dd2: EquationPath, eq: EqW, eqReferences: MMap[(E,E),EqW]): N = {
+  def buildDeduction(dd1: EquationPath, dd2: EquationPath, eq: EqW) (implicit eqReferences: MMap[(E,E),EqW]) = {
     val (dd1Opt, dd2Opt) = (dd1.toProof(eqReferences),dd2.toProof(eqReferences))
     val ddProofs = List(dd1Opt,dd2Opt).filter(_.isDefined).map(_.get)
     val ddProofRoots = ddProofs.map(_.root)
-    val ddEqs = ddProofRoots.map(_.conclusion.suc.last).toSeq
-    val congr = (eq.l,eq.r) match {
-      case (App(u1,u2),App(v1,v2)) => {
-        if ((u1 == v1) && (u2 != v2)) EqCongruent(EqW(u2,v2,eqReferences),eq)
-        else if ((u1 != v1) && (u2 == v2)) EqCongruent(EqW(u1,v1,eqReferences),eq)
-        else if ((u1 != v1) && (u2 != v2)) EqCongruent(EqW(u1,v1,eqReferences),EqW(u2,v2,eqReferences),eq)
-        else throw new Exception("Trying to prove the congruence of terms with equal arguments")
+    val enough = ddProofRoots.find(e => EqW(e.conclusion.suc.last) == eq)
+    enough match {
+      case Some(node) => {
+//        println("One deduction was already enough!")
+//        node
+        node
       }
-      case _ => throw new Exception("Error when creating congruence node, because equality between wrong kind of expressions")
-    }
-    val res = 
-      if (ddEqs.isEmpty) {
-        congr
-      } 
-      else {
-        ddProofRoots.foldLeft(congr.asInstanceOf[N])({(A,B) => 
-          try R(A,B)
-          catch {
-            case e: Exception => {
-              println()
-              println(EquationPath.this)
-              println(A + " " + A.getClass)
-              println(B + " " + B.getClass)
-              println(Proof(A))
-              println(Proof(B))
-              throw e
+      case None => {
+        val ddEqs = ddProofRoots.map(_.conclusion.suc.last).toSeq
+        val congr = (eq.l,eq.r) match {
+          case (App(u1,u2),App(v1,v2)) => {
+            if ((u1 == v1) && (u2 != v2)) EqCongruent(EqW(u2,v2),eq)
+            else if ((u1 != v1) && (u2 == v2)) {
+    //          println("*******************************************************************************************************")
+              EqCongruent(EqW(u1,v1),eq)
             }
+            else if ((u1 != v1) && (u2 != v2)) {
+    //          println("*******************************************************************************************************")
+              EqCongruent(EqW(u1,v1),EqW(u2,v2),eq)
+            }
+            else throw new Exception("Trying to prove the congruence of terms with equal arguments")
           }
-        })
+          case _ => throw new Exception("Error when creating congruence node, because equality between wrong kind of expressions")
+        }
+        val res = 
+          if (ddEqs.isEmpty) {
+            congr
+          } 
+          else {
+            ddProofRoots.foldLeft(congr.asInstanceOf[N])({(A,B) => 
+              try R(A,B)
+              catch {
+                case e: Exception => {
+                  println()
+                  println(EquationPath.this)
+                  println(A + " " + A.getClass)
+                  println(B + " " + B.getClass)
+                  println(Proof(A))
+                  println(Proof(B))
+                  throw e
+                }
+              }
+            })
+          }
+        res
       }
-    res
+    }
   }
 
   /**
@@ -189,10 +205,10 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *  
    *  
    */
-  def toProof(eqReferences: MMap[(E,E),EqW]): Option[Proof[N]] = {
+  def toProof(implicit eqReferences: MMap[(E,E),EqW]): Option[Proof[N]] = {
     val (first,last,equations,deduced) = this.buildTransChain(eqReferences)
     if (equations.size > 1) { //Case 1
-      val transNode = EqTransitive(equations,first,last,eqReferences)
+      val transNode = EqTransitive(equations,first,last)
       val res = deduced.foldLeft(transNode.asInstanceOf[N])({(A,B) => 
         val resEq = B._2
         val resNode = B._1

@@ -23,25 +23,25 @@ import at.logic.skeptik.congruence.structure.EquationPath
  */
 
 abstract class Congruence(
-    val eqReferences: MMap[(E,E),EqW], 
     val find: FindTable, 
     val deduced: Queue[(E,E)], 
-    val g: CongruenceGraph) {
+    val g: CongruenceGraph)
+    (implicit eqReferences: MMap[(E,E),EqW]) {
   
-  def newCon(eqReferences: MMap[(E,E),EqW], find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph): Congruence
+  def newCon(find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph)(implicit eqReferences: MMap[(E,E),EqW]): Congruence
   
   /**
    * the following methods are create new Congruence objects, when one of their parameters is changed
    */
   def updateFind(newFind: FindTable): Congruence = {
-    newCon(eqReferences, newFind,deduced,g)
+    newCon(newFind,deduced,g)
   }
 
   def updateDeduced(newDeduced: Queue[(E,E)]): Congruence = {
-    newCon(eqReferences, find,newDeduced,g)
+    newCon(find,newDeduced,g)
   }
   def updateGraph(newG: CongruenceGraph): Congruence = {
-    newCon(eqReferences, find,deduced,newG)
+    newCon(find,deduced,newG)
   }
   
   /**

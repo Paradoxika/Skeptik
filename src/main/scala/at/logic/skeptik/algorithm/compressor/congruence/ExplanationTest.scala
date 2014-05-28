@@ -18,7 +18,7 @@ object ExplanationTest {
   def main(args: Array[String]): Unit = {
     val multiple = true
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
-    val output = new FileOutput("experiments/congruence/explComp/explComp4.csv")
+    val output = new FileOutput("experiments/congruence/explComp/explComp6.csv")
     output.write("original, proofTree, origSize, pTsize \n")
     val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
@@ -50,27 +50,47 @@ object ExplanationTest {
   }
   
   def measureExpls(proof: Proof[N], file: FileOutput) = {
-    val eqReferences = MMap[(E,E),EqW]()
+    var diff = 0
+    var equal = 0
+    var bigger = 0
+    implicit val eqReferences = MMap[(E,E),EqW]()
     proof.foreach(node => {
-      val rightEqs = node.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
-      val leftEqs = node.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
+      val rightEqs = node.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
+      val leftEqs = node.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))
       
-      rightEqs.foreach(eq => {
-        val con = new ProofTreeCongruence(eqReferences).addAll(leftEqs.toList).addNode(eq.l).addNode(eq.r)
-        con.explain(eq.l,eq.r) match {
-          case Some(path) => {
-            val out = path.toProof(eqReferences) match {
-              case Some(prodProof) => {
-                leftEqs.size + "," + path.originalEqs.size + ", " + Proof(node).size + ", " + prodProof.size + "\n"
+      if (leftEqs.size > 0) {
+        rightEqs.foreach(eq => {
+          val con = new ProofTreeCongruence().addAll(leftEqs.toList).addNode(eq.l).addNode(eq.r)
+          con.explain(eq.l,eq.r) match {
+            case Some(path) => {
+              val origExpl = leftEqs.size
+              val prodExpl = path.originalEqs.size
+              val out = path.toProof(eqReferences) match {
+                case Some(prodProof) => {
+                  val realProofExpl = prodProof.root.conclusion.ant.size
+                  val origProofSize = Proof(node).size
+                  val prodProofSize = prodProof.size
+                  origExpl + "," + prodExpl + ", " + origProofSize + ", " + prodProofSize + "\n"
+                  if (origExpl != prodProof.root.conclusion.ant.size) diff = diff + 1
+                  if (origExpl == prodProof.root.conclusion.ant.size) equal = equal + 1
+                  if (origExpl < prodProof.root.conclusion.ant.size) bigger = bigger + 1
+//                  if (origExpl > prodExpl && origProofSize < prodProofSize && prodProofSize < 20) {
+//                    println("original:\n"+ Proof(node) + "\nProduced:\n" + prodProof)
+//                  }
+                  if (realProofExpl < origExpl && prodProofSize > origProofSize) {
+//                    println("original:\n"+ Proof(node) + "\nProduced:\n" + prodProof)
+                  }
+                }
+                case None => origExpl + "," + prodExpl + " , , \n"
               }
-              case None => leftEqs.size + "," + path.originalEqs.size + " , , \n"
+//              file.write(out)
+  //            println(out)
             }
-            file.write(out)
-//            println(out)
+            case _ =>
           }
-          case _ =>
-        }
-      })
+        })
+      }
     })
+    println("diff: " + diff + " equal: " + equal + " bigger: " + bigger)
   }
 }

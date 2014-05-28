@@ -8,44 +8,44 @@ import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashMap => MMap}
 
 class FibonacciCongruence (
-    eqReferences: MMap[(E,E),EqW], 
     find: FindTable, 
     deduced: Queue[(E,E)], 
-    g: WEqGraph) extends DijkstraCongruence(eqReferences,find,deduced,g) with earlyRes  {
+    g: WEqGraph)
+    (implicit eqReferences: MMap[(E,E),EqW]) extends DijkstraCongruence(find,deduced,g) with earlyRes  {
   
   def newDijkstra: EquationDijkstra = {
-    new FibonacciDijkstra(eqReferences)
+    new FibonacciDijkstra
   }
-  def newCon(eqReferences: MMap[(E,E),EqW], find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph): Congruence = {
+  def newCon(find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph)(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
     if (g.isInstanceOf[WEqGraph])
-      new FibonacciCongruence(eqReferences,find,deduced,g.asInstanceOf[WEqGraph])
+      new FibonacciCongruence(find,deduced,g.asInstanceOf[WEqGraph])
     else
       this
   }
 }
 
-class ArrayCongruence (
-    eqReferences: MMap[(E,E),EqW], 
+class ArrayCongruence ( 
     find: FindTable, 
     deduced: Queue[(E,E)], 
-    g: WEqGraph) extends DijkstraCongruence(eqReferences,find,deduced,g) with earlyRes {
+    g: WEqGraph)
+    (implicit eqReferences: MMap[(E,E),EqW]) extends DijkstraCongruence(find,deduced,g) with earlyRes {
   
   def newDijkstra: EquationDijkstra = {
-    new ArrayDijkstra(eqReferences)
+    new ArrayDijkstra
   }
-  def newCon(eqReferences: MMap[(E,E),EqW], find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph): Congruence = {
+  def newCon(find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph)(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
     if (g.isInstanceOf[WEqGraph])
-      new ArrayCongruence(eqReferences,find,deduced,g.asInstanceOf[WEqGraph])
+      new ArrayCongruence(find,deduced,g.asInstanceOf[WEqGraph])
     else
       this
   }
 }
 
 abstract class DijkstraCongruence (
-    eqReferences: MMap[(E,E),EqW], 
     find: FindTable = new FindTable(), 
     deduced: Queue[(E,E)] = Queue[(E,E)](), 
-    g: WEqGraph) extends Congruence(eqReferences,find,deduced,g) {
+    g: WEqGraph)
+    (implicit eqReferences: MMap[(E,E),EqW]) extends Congruence(find,deduced,g) {
   
   def newDijkstra: EquationDijkstra
   
@@ -65,7 +65,7 @@ abstract class DijkstraCongruence (
             val eqAll = eq1 union eq2
            
             val weight = eqAll.size
-            val x = EqW(u,v, eqReferences)
+            val x = EqW(u,v)
 //            println((u1,v1) + " : " + path1)
 //            println((u2,v2) + " : " + path2)
             val eqLabel = EqLabel(x,Some(path1,path2))

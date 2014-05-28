@@ -23,7 +23,7 @@ import at.logic.skeptik.congruence.structure.EquationPath
 object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
   
   def apply(proof: Proof[N]) = {
-    val eqReferences = MMap[(E,E),EqW]()
+    implicit val eqReferences = MMap[(E,E),EqW]()
     val axiomEqs = MMap[E,N]()
     val resolveWithMap = MMap[E,MSet[N]]()
     
@@ -31,8 +31,8 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
 
       val fixedNode = fixNode(node,fromPr)
       
-      val rightEqs = fixedNode.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
-      val leftEqs = fixedNode.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
+      val rightEqs = fixedNode.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
+      val leftEqs = fixedNode.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))
       
       if (fixedNode.conclusion.suc.size == 1 && fixedNode.conclusion.ant.size == 0) axiomEqs += (fixedNode.conclusion.suc.last -> fixedNode)
       
@@ -41,10 +41,10 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
       
       val eqToMap = rightEqs.map(eq => {
 //        val con = new FibonacciCongruence(eqReferences, new FindTable(), Queue[(E,E)](),WEqGraph(eqReferences)).addAll(leftEqs).addNode(eq.l).addNode(eq.r)
-        val con = new ProofTreeCongruence(eqReferences).addAll(leftEqs).addNode(eq.l).addNode(eq.r)
+        val con = new ProofTreeCongruence().addAll(leftEqs).addNode(eq.l).addNode(eq.r)
         con.explain(eq.l,eq.r) match {
           case Some(path) => {
-            path.toProof(eqReferences) match {
+            path.toProof match {
               case Some(proof) => proof.root
               case None => fixedNode
             }

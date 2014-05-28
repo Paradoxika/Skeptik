@@ -7,6 +7,9 @@ import at.logic.skeptik.congruence.structure.EqW
 
 object EqWTest {
   def main(args: Array[String]):Unit = {
+    
+    implicit val eqReferences = MMap[(E,E),EqW]()
+    
     val t = o
     
     val a = new Var("a",t)
@@ -14,9 +17,9 @@ object EqWTest {
     val c = new Var("c",t)
     val d = new Var("d",t)
     
-    val eq = EqW(a,b,MMap[(E,E),EqW]())
+    val eq = EqW(a,b)
     
-    val eq2 = EqW(b,a,MMap[(E,E),EqW]())
+    val eq2 = EqW(b,a)
     
     val seq = Set(eq)
     println(eq == eq)

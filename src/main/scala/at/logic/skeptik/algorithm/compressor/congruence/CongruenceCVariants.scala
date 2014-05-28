@@ -8,20 +8,20 @@ import at.logic.skeptik.expression.E
 import at.logic.skeptik.congruence.structure._
 
 trait ArrayCompressor {
-  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ArrayCongruence(eqReferences, new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
+  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
+    new ArrayCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
   }
 }
 
 trait FibonacciCompressor {
-  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new FibonacciCongruence(eqReferences, new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
+  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
+    new FibonacciCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
   }
 }
 
 trait ProofTreeCompressor {
-  def newCon(eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ProofTreeCongruence(eqReferences)
+  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
+    new ProofTreeCongruence(new FindTable(), Queue[(E,E)](), ProofForest())
   }
 }
 

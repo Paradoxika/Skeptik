@@ -10,14 +10,14 @@ import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.mutable.{HashMap => MMap}
 
 class ProofTreeCongruence(
-    eqReferences: MMap[(E,E),EqW], 
     find: FindTable = new FindTable(), 
     deduced: Queue[(E,E)] = Queue[(E,E)](), 
-    g: ProofForest = ProofForest()) extends Congruence(eqReferences,find,deduced,g) {
+    g: ProofForest = ProofForest())
+    (implicit eqReferences: MMap[(E,E),EqW]) extends Congruence(find,deduced,g) {
   
-  def newCon(eqReferences: MMap[(E,E),EqW], find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph): Congruence = {
+  def newCon(find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph)(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
     if (g.isInstanceOf[ProofForest]) {
-      new ProofTreeCongruence(eqReferences,find,deduced,g.asInstanceOf[ProofForest])
+      new ProofTreeCongruence(find,deduced,g.asInstanceOf[ProofForest])
     }
     else this
   }
@@ -30,6 +30,6 @@ class ProofTreeCongruence(
   }
   
   def explain(u: E, v: E): Option[EquationPath] = {
-    g.explain(u,v,eqReferences)
+    g.explain(u,v)
   }
 }

@@ -9,6 +9,8 @@ import at.logic.skeptik.congruence.structure.ProofForest
 
 object proofTreeTest {
   def main(args : Array[String]) : Unit = {
+    implicit val eqReferences = MMap[(E,E),EqW]()
+    
     var tree = new ProofForest
     
     val t = o
@@ -33,39 +35,37 @@ object proofTreeTest {
     val t1 = App(f,a)
     val t2 = App(f,b)
     
-    val eqReferences = MMap[(E,E),EqW]()
-    
-    tree = tree.addEdge(a, b, Some(EqW(a,b,eqReferences)))
-    tree = tree.addEdge(b, c, Some(EqW(b,c,eqReferences)))
+    tree = tree.addEdge(a, b, Some(EqW(a,b)))
+    tree = tree.addEdge(b, c, Some(EqW(b,c)))
     println("1 "+tree.printNode(a))
     println(tree.next)
 //    tree = tree.reverseToRoot(b)
 //    println("2 "+tree.printNode(c))
     
-    tree = tree.addEdge(d, e, Some(EqW(d,e,eqReferences)))
+    tree = tree.addEdge(d, e, Some(EqW(d,e)))
     
-    tree = tree.addEdge(b, d, Some(EqW(b,d,eqReferences)))
+    tree = tree.addEdge(b, d, Some(EqW(b,d)))
     
     println(tree.printNode(e))
     println(tree.printNode(c))
     println(tree.rootSize(b))
     
-    tree = tree.addEdge(b1,d,Some(EqW(b1,d,eqReferences)))
-    tree = tree.addEdge(b2,t2,Some(EqW(b2,t2,eqReferences)))
+    tree = tree.addEdge(b1,d,Some(EqW(b1,d)))
+    tree = tree.addEdge(b2,t2,Some(EqW(b2,t2)))
     tree = tree.addEdge(t1, t2, None)
-    tree = tree.addEdge(t1, b1, Some(EqW(b1,t1,eqReferences)))
+    tree = tree.addEdge(t1, b1, Some(EqW(b1,t1)))
     
     println(tree.next)
     
     println(tree.printNode(a))
     
-    tree = tree.addEdge(c1, c2, Some(EqW(c1,c2,eqReferences)))
+    tree = tree.addEdge(c1, c2, Some(EqW(c1,c2)))
     
     println(tree.ncaPath(e,c1))
     
     println(tree.ncaPath(e,b))
     
-    println(tree.explain(e,b2,eqReferences))
+    println(tree.explain(e,b2))
     
   }
 }

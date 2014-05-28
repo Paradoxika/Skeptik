@@ -14,7 +14,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 3
+    val testcase = -1
     
     val t = o
     
@@ -36,6 +36,8 @@ object CongruenceDebug {
     
     val f = new Var("f",Arrow(t,t))
     
+    val f1 = new Var("f",Arrow(t,Arrow(t,t)))
+    
     val x = new Var("x",Arrow(t,t))
     
     val op = new Var("op",Arrow(t,Arrow(t,t)))
@@ -54,22 +56,46 @@ object CongruenceDebug {
     
 //    Eq(App(f,a),App(f,a))
     
-    val eqReferences = MMap[(E,E),EqW]()
+    implicit val eqReferences = MMap[(E,E),EqW]()
     
-    var con: Congruence = new FibonacciCongruence(eqReferences, new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
+    var con: Congruence = new FibonacciCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
     
     testcase match {
+      
+      case -1 => {
+        val s1 = App(f1,a)
+        val s2 = App(f1,c)
+        val t1 = App(App(f1,a),b)
+        val t2 = App(App(f1,c),d)
+        val eq1 = EqW(a,c)
+        val eq2 = EqW(b,d)
+        println(t1 + " and " + t2)
+        con = con.addEquality(eq1).addEquality(eq2).addNode(t1).addNode(t2)
+        
+        println(con.g)
+        
+        val path = con.explain(t1, t2).get
+        
+        val proof = path.toProof.get
+        
+        println(proof)
+        
+        println(path)
+        
+        proof.root.conclusion.suc.foreach(e => println(e.t))
+      }
+      
       case 0 => {
         //a = b; b = c; f(a) = d; f(c) = e; 
         
         val t1 = new App(f,a)
         val t2 = new App(f,c)
         
-        val eq1 = EqW(a,b,eqReferences)
-        val eq2 = EqW(b,c,eqReferences)
+        val eq1 = EqW(a,b)
+        val eq2 = EqW(b,c)
         
-        val eq3 = EqW(t1,d,eqReferences)
-        val eq4 = EqW(t2,e,eqReferences)
+        val eq3 = EqW(t1,d)
+        val eq4 = EqW(t2,e)
         
         println("Input: " + List(eq1,eq2,eq3,eq4).mkString(","))
         
@@ -89,9 +115,7 @@ object CongruenceDebug {
         println(path)
         println(e + " = " + d + " because: " + path.originalEqs)
         
-        val eqRef = con.eqReferences
-        
-        println("\n"+path.toProof(eqReferences).get)
+        println("\n"+path.toProof.get)
 //        println("trans chain?: " + con.pathTreetoProof(path))
       }
       case 1 => {
@@ -103,13 +127,13 @@ object CongruenceDebug {
         val t1 = App(f,a1)
         val t2 = App(f,c1)
         
-        con = con.addEquality(EqW(a,b1,eqReferences))
-        con = con.addEquality(EqW(b1,b2,eqReferences))
-        con = con.addEquality(EqW(b2,b3,eqReferences))
-        con = con.addEquality(EqW(b3,c,eqReferences))
-        con = con.addEquality(EqW(t1,a,eqReferences))
-        con = con.addEquality(EqW(t2,c,eqReferences))
-        con = con.addEquality(EqW(a1,c1,eqReferences))
+        con = con.addEquality(EqW(a,b1))
+        con = con.addEquality(EqW(b1,b2))
+        con = con.addEquality(EqW(b2,b3))
+        con = con.addEquality(EqW(b3,c))
+        con = con.addEquality(EqW(t1,a))
+        con = con.addEquality(EqW(t2,c))
+        con = con.addEquality(EqW(a1,c1))
         
 //        con.resolveDeduced
         
@@ -123,8 +147,8 @@ object CongruenceDebug {
 //        con = con.resolveDeduced(t1, t2)
         val path2 = con.explain(a,c).getOrElse(EquationPath(a,None))
         println(a + " = " + c + " because: " + path2.originalEqs)
-        val eqRef = con.eqReferences
-        println("\n"+path.toProof(eqReferences).get)
+        
+        println("\n"+path.toProof.get)
       }
       case 2 => {
         //a1 = b1, a1 = c1, f(a1) = a, f(b1) = b, f(c1) = c
@@ -132,19 +156,19 @@ object CongruenceDebug {
         val t2 = App(f,b1)
         val t3 = App(f,c1)
         
-        con = con.addEquality(EqW(a1,b1,eqReferences))
-        con = con.addEquality(EqW(a1,c1,eqReferences))
-        con = con.addEquality(EqW(t1,a,eqReferences))
-        con = con.addEquality(EqW(t2,b,eqReferences))
-        con = con.addEquality(EqW(t3,c,eqReferences))
+        con = con.addEquality(EqW(a1,b1))
+        con = con.addEquality(EqW(a1,c1))
+        con = con.addEquality(EqW(t1,a))
+        con = con.addEquality(EqW(t2,b))
+        con = con.addEquality(EqW(t3,c))
         
 //        con.resolveDeduced
         
         val path = con.explain(a,c).getOrElse(EquationPath(a,None))
         println(con.g)
         println(a + " = " + c + " because: " + path.originalEqs)
-        val eqRef = con.eqReferences
-        println("\n"+path.toProof(eqReferences).get)
+        
+        println("\n"+path.toProof.get)
       }
       
       case 3 => {
@@ -158,7 +182,7 @@ object CongruenceDebug {
         val t1 = App(App(g,l),h)
         val t2 = App(App(g,l),d)
         
-        val eqs = List(EqW(t1,d,eqReferences),EqW(t2,a,eqReferences),EqW(c,d,eqReferences),EqW(e,c,eqReferences),EqW(e,b,eqReferences),EqW(b1,b,eqReferences),EqW(b1,h,eqReferences))
+        val eqs = List(EqW(t1,d),EqW(t2,a),EqW(c,d),EqW(e,c),EqW(e,b),EqW(b1,b),EqW(b1,h))
         println("===Input: " + eqs.mkString(","))
         con = con.addAll(eqs)
 //        con = con.addEquality(EqW(t1,d,eqReferences))
@@ -180,9 +204,8 @@ object CongruenceDebug {
         val path = con.explain(a,b).getOrElse(EquationPath(a,None))
         println(con.g)
         println(a + " = " + b + " because: " + path.originalEqs)
-        val eqRef = con.eqReferences
-        
-        val eqs2 = List(EqW(d,c1,eqReferences),EqW(c1,c2,eqReferences),EqW(c2,c3,eqReferences),EqW(c3,h,eqReferences))
+
+        val eqs2 = List(EqW(d,c1),EqW(c1,c2),EqW(c2,c3),EqW(c3,h))
         println("\n\n\n===Input: " + (eqs ++ eqs2).mkString(","))
         con = eqs2.foldLeft(con)({(A,B) => A.addEquality(B)})
 //        con = con.addEquality(Eq(d,c1))
@@ -193,8 +216,6 @@ object CongruenceDebug {
         
         con = con.resolveDeducedQueue
         
-        val eqRefs2 = con.eqReferences
-        
         val path2 = con.explain(a, b).getOrElse(EquationPath(a,None))
         println(con.g)
         println(a + " = " + b + " because: " + path2.originalEqs)
@@ -202,9 +223,9 @@ object CongruenceDebug {
 //        println("trans chain?: " + path2.toProof)
         
         
-        println("\n"+path.toProof(eqReferences).get)
+        println("\n"+path.toProof.get)
         
-        println("\n"+path2.toProof(eqReferences).get)
+        println("\n"+path2.toProof.get)
       }
       case 4 => {
         //(op e4 e3),(op e3 e3) from
@@ -229,23 +250,21 @@ object CongruenceDebug {
         val t9 = App(App(op,e1),e4) //(op e1 e4)
         val t10 = App(App(op,e3),e1) //(op e3 e1)
         
-        val eq1 = EqW(t7,e1,eqReferences) // (op e1 e3) = e1)
-        val eq2 = EqW(e4,t6,eqReferences) // (e4 = (op e4 e3))
-        val eq3 = EqW(t8,e3,eqReferences) // ((op (op e3 skc1) (op skc1 e3)) = e3)
-        val eq4 = EqW(e1,skc1,eqReferences) // (e1 = skc1)
-        val eq5 = EqW(e3,t5,eqReferences) // (e3 = (op e1 e4))
-        val eq6 = EqW(e4,t10,eqReferences) // (e4 = (op e3 e1))
-        val eq7 = EqW(t7,subt4,eqReferences)// ((op e1 e3) = (op skc1 e3))
-        val eq8 = EqW(e4,t1,eqReferences) //(e4 = (op (op e4 skc1) (op skc1 e4)))
-        val eq9 = EqW(t5,subt2,eqReferences) //((op e1 e4) = (op skc1 e4))
+        val eq1 = EqW(t7,e1) // (op e1 e3) = e1)
+        val eq2 = EqW(e4,t6) // (e4 = (op e4 e3))
+        val eq3 = EqW(t8,e3) // ((op (op e3 skc1) (op skc1 e3)) = e3)
+        val eq4 = EqW(e1,skc1) // (e1 = skc1)
+        val eq5 = EqW(e3,t5) // (e3 = (op e1 e4))
+        val eq6 = EqW(e4,t10) // (e4 = (op e3 e1))
+        val eq7 = EqW(t7,subt4)// ((op e1 e3) = (op skc1 e3))
+        val eq8 = EqW(e4,t1) //(e4 = (op (op e4 skc1) (op skc1 e4)))
+        val eq9 = EqW(t5,subt2) //((op e1 e4) = (op skc1 e4))
         val allEqs = List(eq1,eq2,eq3,eq4,eq5,eq6,eq7,eq8,eq9)
         
         println(allEqs)
         
         con = con.addAll(allEqs)
         con = con.resolveDeducedQueue
-        
-        val eqRef = con.eqReferences
         
         val path = con.explain(t2,t6)
         println(path)
@@ -263,11 +282,11 @@ object CongruenceDebug {
         
         val t5 = App(App(op,e3),e3) //(op e3 e3)
         
-        val eq1 = EqW(e3,t1,eqReferences)
-        val eq2 = EqW(e4,skc1,eqReferences)
-        val eq3 = EqW(e4,t2,eqReferences)
-        val eq4 = EqW(t1,t3,eqReferences)
-        val eq5 = EqW(e4,t4,eqReferences)
+        val eq1 = EqW(e3,t1)
+        val eq2 = EqW(e4,skc1)
+        val eq3 = EqW(e4,t2)
+        val eq4 = EqW(t1,t3)
+        val eq5 = EqW(e4,t4)
         val allEqs = List(eq1,eq2,eq3,eq4,eq5)
         
         println(allEqs)
@@ -278,7 +297,6 @@ object CongruenceDebug {
 //        println("XXXXXXXXXXXXXXXXXX BEFORE ADDING")
         con = con.addNode(t5)
 //        println("XXXXXXXXXXXXXXXXXX AFTER ADDING")
-        val eqRef = con.eqReferences
         val path = con.explain(t5,t2)
         
 //        println(path.get.toProof)
@@ -306,16 +324,16 @@ object CongruenceDebug {
         val t1 = App(App(op,e4),e4) //(op e4 e4)
         val t2 = App(App(op,e4),skc1) // (op e4 skc1)
         
-        val eq1 = EqW(e3,t1,eqReferences)
-        val eq2 = EqW(e4,skc1,eqReferences)
+        val eq1 = EqW(e3,t1)
+        val eq2 = EqW(e4,skc1)
         val allEqs = List(eq1,eq2)
         
         con = con.addAll(allEqs)
         con = con.addNode(t2)
-        val eqRef = con.eqReferences
+        
         val path = con.explain(e3,t2)
         println(path.get.toString(false))
-        println("transitivity chain:\n" + path.get.toProof(eqReferences).get)
+        println("transitivity chain:\n" + path.get.toProof.get)
       }
     }
   }

@@ -73,7 +73,7 @@ object EqW {
     }
   }
   
-  def apply(t1: E, t2: E, eqReferences: MMap[(E,E),EqW]): EqW = {
+  def apply(t1: E, t2: E)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
     require(t1.t == t2.t)
     
     val eqVar = new Var("=", (t1.t -> (t1.t -> o))) with Infix
@@ -85,7 +85,7 @@ object EqW {
     out
   }
     
-  def apply(eq: E, eqReferences: MMap[(E,E),EqW]): EqW = {
+  def apply(eq: E)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
     if (isEq(eq)) {
       val newEq = new EqW(eq)
       val (t1,t2) = (newEq.l,newEq.r)

@@ -10,13 +10,13 @@ import scala.math.Ordering.Implicits._
 import at.logic.skeptik.congruence.structure._
 
 
-class ArrayDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends EquationDijkstra(references) {
+class ArrayDijkstra(implicit eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends EquationDijkstra {
   def newPQ: MyPriorityQueue[E,Int] = {
     new ArrayPQ[E,Int]
   }
 }
 
-class FibonacciDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends EquationDijkstra(references) {
+class FibonacciDijkstra(implicit eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends EquationDijkstra {
   def newPQ: MyPriorityQueue[E,Int] = {
     new FibonacciHeap[E,Int](Integer.MIN_VALUE)
   }
@@ -54,7 +54,7 @@ class FibonacciDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends
  * Should one equation be used in a deduction, all the left and right sides could be made adjacent.
  */
 
-abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
+abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
   
   /**
    * distances is always relative to the last input query vertex
@@ -140,7 +140,7 @@ abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
     if (s == target && s.isInstanceOf[E]) {
       val sE = s.asInstanceOf[E]
       val end = new EquationPath(sE,None)
-      val x = EqW(sE,sE,eqReferences)
+      val x = EqW(sE,sE)
       val eqTreeEdge = new EqTreeEdge(end,EqLabel(x,None))
       new EquationPath(sE,Some(eqTreeEdge))
     }
@@ -238,7 +238,7 @@ abstract class Dijkstra[T1,T2](eqReferences: MMap[(E,E),EqW]) {
  * implements the path methods pi and setPi using EquationTree objects
  */
 
-abstract class EquationDijkstra(references: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends Dijkstra[E,EqLabel](references) {
+abstract class EquationDijkstra(implicit eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends Dijkstra[E,EqLabel] {
   
   def w(u: E, l: EqLabel, v: E) = {
     l.size
