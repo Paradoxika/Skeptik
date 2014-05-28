@@ -71,7 +71,8 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
     def doReplacement(node: N, leftEqs: Seq[EqW], rightEqs: Seq[EqW], axioms: Set[EqW]) = {
         val globalCon = leftEqs.foldLeft(con)({(A,B) => A.addEquality(B)})
 //        val localConRes = globalCon.resolveDeducedQueue
-        val globalConRes = globalCon
+//        val globalConRes = globalCon
+        val globalConRes = newCon(eqReferences).addAll(leftEqs.toList)
         var tree: Option[EquationPath] = None
         val canBeCompressed = rightEqs.exists(eq => {
           val (l,r) = (eq.l,eq.r)
@@ -80,7 +81,8 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
           path match {
             case Some(p) => {
               val newSize = p.originalEqs.size
-              val oldSize = leftEqs.toSet.union(axioms).size
+//              val oldSize = leftEqs.toSet.union(axioms).size
+              val oldSize = leftEqs.size
               if (newSize < oldSize) {
                 tree = path
 //                println("eq1: " + eq + " s: " + node.conclusion.ant.size + " " + oldSize)
@@ -108,7 +110,10 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
             val (resNode, axioms) = usedEqs.foldLeft((proof.root,Set[EqW]()))({(A,B) => 
               eqNodesRight.get(B) match {
                 case Some(node) => (R(A._1,node), A._2 + EqW(node.conclusion.suc.last,eqReferences))
-                case None => A
+                case None => {
+                  println("no node for " + B)
+                  A
+                }
               }
             })
 //            println("replacing \n"+node+"with\n"+resNode)
@@ -158,12 +163,20 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
       val rightEqs = fixedNodeInit.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
       val leftEqs = fixedNodeInit.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
       
+//      val found = (rightEqs.exists(_.toString == "(c_2 = c_3)"))
+//      if (found) println("(c_2 = c_3) found in fixed node " + fixedNodeInit)
+      
       val rS = rightEqs.size
       val lS = leftEqs.size
             
       val (resNode,resAxioms,compressed) = 
         if (rS > 0 && lS > 0 && inputDerived && !premiseCompressed) {
           val x = doReplacement(fixedNodeInit,leftEqs,rightEqs,premiseAxioms)
+          val inX = (x._1.conclusion.ant.exists(_.toString == "(c_2 = c_3)")) 
+          val inOrig = (fixedNodeInit.conclusion.ant.exists(_.toString == "(c_2 = c_3)"))
+          if (inX != inOrig) {
+            println("(c_2 = c_3) only in on of:\n"+fixedNodeInit + "\n" + x._1)
+          }
           if (fixedNodeInit != x._1) (x._1,x._2,true)
           else (x._1, x._2, false)
         }
@@ -231,6 +244,9 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
       
       val rightEqs = node.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
       val leftEqs = node.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_,eqReferences))
+      
+//      val found = (rightEqs.exists(_.toString == "(c_2 = c_3)"))
+//      if (found) println("(c_2 = c_3) found in original node " + node)
       
       val bothEqs = rightEqs ++ leftEqs
       bothEqs.foreach(eq => {

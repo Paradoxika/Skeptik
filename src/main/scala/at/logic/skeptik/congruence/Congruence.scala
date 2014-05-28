@@ -126,7 +126,7 @@ abstract class Congruence(
    /**
    * method for adding lists of equations
    */
-  def addAll(eqs: List[EqW]): Congruence = {
+  def addAll(eqs: Traversable[EqW]): Congruence = {
     eqs.foldLeft(this)({(A,B) => A.addEquality(B)})
   }
   

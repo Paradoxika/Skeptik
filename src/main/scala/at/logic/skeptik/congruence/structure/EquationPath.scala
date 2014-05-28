@@ -84,21 +84,24 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *         DED are all results of calls to buildDeduction, 
    *             collected as a tuple of a SequentProofNode (N) and the equality if proves (as an EqW object)
    */
-  def buildTransChain(eqReferences: MMap[(E,E),EqW]): (E,E,Seq[EqW],Seq[(N,EqW)]) = pred match {
-    case Some(pr) => {
-      val (first,last,equations,deduced) = pr._1.buildTransChain(eqReferences)
-      val resFirst = v
-      val resEquations = pr._2._1 +: equations
-      val resDeduced = pr._2._2 match {
-        case None => deduced
-        case Some((dd1,dd2)) => {
-          (buildDeduction(dd1,dd2,pr._2._1,eqReferences),pr._2._1) +: deduced
+  def buildTransChain(eqReferences: MMap[(E,E),EqW]): (E,E,Seq[EqW],Seq[(N,EqW)]) = {
+    if (v.toString == "(c_2 = c_3)") println(v + " occurs in trans. chain")
+    pred match {
+      case Some(pr) => {
+        val (first,last,equations,deduced) = pr._1.buildTransChain(eqReferences)
+        val resFirst = v
+        val resEquations = pr._2._1 +: equations
+        val resDeduced = pr._2._2 match {
+          case None => deduced
+          case Some((dd1,dd2)) => {
+            (buildDeduction(dd1,dd2,pr._2._1,eqReferences),pr._2._1) +: deduced
+          }
         }
+        (resFirst,last,resEquations,resDeduced)
       }
-      (resFirst,last,resEquations,resDeduced)
-    }
-    case None => {
-      (v,v,Seq(),Seq())
+      case None => {
+        (v,v,Seq(),Seq())
+      }
     }
   }
   
@@ -127,7 +130,8 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    * or the correct pivot is not found.
    * 
    * @res a SequentProofNode representing the full proof of the input equality from input axioms only.
-   */
+   **/
+  
   def buildDeduction(dd1: EquationPath, dd2: EquationPath, eq: EqW, eqReferences: MMap[(E,E),EqW]): N = {
     val (dd1Opt, dd2Opt) = (dd1.toProof(eqReferences),dd2.toProof(eqReferences))
     val ddProofs = List(dd1Opt,dd2Opt).filter(_.isDefined).map(_.get)
