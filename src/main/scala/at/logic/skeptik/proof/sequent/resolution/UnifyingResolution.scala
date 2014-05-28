@@ -10,6 +10,7 @@ import at.logic.skeptik.judgment.immutable.SeqSequent
 import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
 import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
+import at.logic.skeptik.parser.ProofParserSPASS
 
 class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: SequentProofNode,
   val auxL: E, val auxR: E)(implicit unifiableVariables: MSet[Var])
@@ -128,8 +129,9 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       }
             
       val sub = Substitution(sharedVars.head -> replacement) //perform the replacement
-      
-      //Keep track of the replacement, so we can reverse it when we're done
+      println("UR sub: " + sub)
+      //Keep track of the replacement, so we can reverse it when we're done 
+      //TODO: remove, I think.
       replacementInverse = replacementInverse ::: List(Substitution(replacement -> sharedVars.head))
       
       //Substitute the new name into one of the premises; let say the left one //TODO: check: does this matter?
@@ -164,8 +166,6 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       throw new Exception("Resolution: given premise clauses are not resolvable.")
     }
     case Some(u) => {
-      println("mgu auxLR: " + auxLR)
-      println("mgu :" + u)
       u
     }
   }
@@ -181,7 +181,24 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 object UnifyingResolution {
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = new UnifyingResolution(leftPremise, rightPremise, auxL, auxR)
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
-    def isUnifiable(p: (E,E)) = unify(p :: Nil)(unifiableVariables) match {
+    def isUnifiable(p: (E,E)) = unify( {
+    if (ProofParserSPASS.count == 26) {
+      println(p)
+      val a = new Var("A",i)
+      val u = new Var("U",i)
+      val v = new Var("V",i)
+      val w = new Var("W",i)
+      val n = new Var("NEW1",i)
+      val aSub = Substitution(v -> a)
+      val nSub = Substitution(n -> v)
+      val uSub = Substitution(u -> w)
+      val vSub = Substitution(a -> u)
+      println("-----> " + vSub(uSub(nSub(aSub(p._1)))))
+      (vSub(uSub(nSub(aSub(p._1)))),p._2)
+    } else {
+    p
+    }
+    }:: Nil)(unifiableVariables) match {
       case None => false
       case Some(_) => true
     }

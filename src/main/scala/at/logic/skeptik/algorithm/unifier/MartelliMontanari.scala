@@ -32,7 +32,7 @@ object MartelliMontanari {
           // without occur-check
           mgu += (v -> e) 
           val sub = Substitution(v -> e)
-          //println("mgu sub: " + sub)
+          println("mgu sub: " + sub)
           //println("MGU: " + mgu)
           
           eqs = for (eq <- eqs.tail) yield {
@@ -41,7 +41,9 @@ object MartelliMontanari {
           }
         } 
         case (e:E,v:Var) if variables contains v => eqs = Seq((v,e)) ++ eqs.tail
-        case _ => return None
+        case _ => return {
+          None
+        }
       }
     }
     return Some(mgu.toImmutable)

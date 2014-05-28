@@ -20,7 +20,7 @@ object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 trait SPASSParsers
   extends JavaTokenParsers with RegexParsers {
 
-  private var count = 1;
+  var count = 1; //TODO: make private again; public only for debugging.
 
   private var proofMap = new MMap[Int, Node]
 
@@ -64,8 +64,8 @@ trait SPASSParsers
       def firstNode = firstRef.first
       def secondNode = secondRef.first
 
-      def firstClause = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
-      def secondClause = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
+      def firstFormula = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
+      def secondFormula = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
 
 //      val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")),
 //          exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!")),exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!")))(vars)
@@ -76,46 +76,47 @@ trait SPASSParsers
       println("Attempting to parse line " + ln)
 
       println("First premise: " + firstPremise)
-      println("First formula: " + firstClause)
+      println("First formula: " + firstFormula)
       println("Second premise: " + secondPremise)
-      println("Second formula: " + secondClause)
+      println("Second formula: " + secondFormula)
 
+      
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
-
-      //TODO: do we actually have to reverse this naming?
+      
+      //TODO: do we actually have to reverse this naming? (I don't think so)
       // even if we do, I feel like it should happen inside of UnifyingResolution. but it will stay here
       // while there are bigger bugs to fix.
       
       if (ax.replacementInverse.length > 0) {
 
-        def performReplacements(ant: Seq[E], replacements: List[Substitution]): Seq[E] ={
-          if (replacements.length > 0){
-            val rev = replacements.head
-            def newAnt = for (a <- ant) yield rev(a)
-            performReplacements(newAnt, replacements.tail)
-          } else {
-            ant
-          }
-        }
-        
-        val newAnt =  performReplacements(ax.conclusion.ant, ax.replacementInverse)
-        val newSuc =  performReplacements(ax.conclusion.suc, ax.replacementInverse)
-
-        val sA = addAntecedentsSeq(newAnt)
-        val sS = addSuccedentsSeq(newSuc)
-        val sFinal = sA union sS
+//        def performReplacements(ant: Seq[E], replacements: List[Substitution]): Seq[E] ={
+//          if (replacements.length > 0){
+//            val rev = replacements.head
+//            def newAnt = for (a <- ant) yield rev(a)
+//            performReplacements(newAnt, replacements.tail)
+//          } else {
+//            ant
+//          }
+//        }
+//        
+//        val newAnt =  performReplacements(ax.conclusion.ant, ax.replacementInverse)
+//        val newSuc =  performReplacements(ax.conclusion.suc, ax.replacementInverse)
+//
+//        val sA = addAntecedentsSeq(newAnt)
+//        val sS = addSuccedentsSeq(newSuc)
+//        val sFinal = sA union sS
+//        val aFinal = new Axiom(sFinal)
 
 
         val parsedAnte = addAntecedents(seq._1)
         val parsedSucc = addSuccedents(seq._2)
         val parsedFinal = parsedAnte union parsedSucc
         val ay = new Axiom(parsedFinal)
-
-        val aFinal = new Axiom(sFinal)
         
         println("Parsed: " + ln + ":" + ay)
         println("Computed: " + ln + ":" + ax)
-        println("Computed B: " + ln + ":" + sFinal) //this one "matches" parsed
+
+//        println("Computed B: " + ln + ":" + sFinal) 
         proofMap += (ln -> ax) //TODO: Needs to be 'ax' in the final code  
         ax
 
@@ -302,34 +303,6 @@ trait SPASSParsers
   def addSuccedents(succs: List[E]): Sequent = {
     if (succs.length > 1) {
       val s1 = addSuccedents(succs.tail) + succs.head
-      s1
-    } else if (succs.length == 1) {
-      val s0 = Sequent()()
-      val s1 = s0 + succs.head
-      s1
-    } else {
-      val s0 = Sequent()()
-      s0
-    }
-  }
-
-  def addAntecedentsSeq(antes: Seq[E]): Sequent = {
-    if (antes.length > 1) {
-      val s1 = antes.head +: addAntecedentsSeq(antes.tail)
-      s1
-    } else if (antes.length == 1) {
-      val s0 = Sequent()()
-      val s1 = antes.head +: s0
-      s1
-    } else {
-      val s0 = Sequent()()
-      s0
-    }
-  }
-
-  def addSuccedentsSeq(succs: Seq[E]): Sequent = {
-    if (succs.length > 1) {
-      val s1 = addSuccedentsSeq(succs.tail) + succs.head
       s1
     } else if (succs.length == 1) {
       val s0 = Sequent()()
