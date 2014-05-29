@@ -34,6 +34,12 @@ class EqW(val equality :E) {
     case _ => throw new Exception("eq in Equation is not an equality")
   }
   
+    
+  def notO = {
+    equality.t != o
+  }
+  
+  
   override def equals(other: Any) = {
     val res = other match {
       case that: EqW => {

@@ -64,6 +64,7 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
    */
   def apply(proof: Proof[N]): Proof[N] = {
     implicit val eqReferences = MMap[(E,E),EqW]()
+    implicit val notOMap = MMap[EqW,EqW]()
     val (con,eqNodesLeft,eqNodesRight) = buildGlobalCongruence(proof)
     println("all references size: " + eqReferences.size)
     val premiseAxiomMap = MMap[N,Set[EqW]]()
@@ -96,7 +97,7 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
       if (canBeCompressed) {
 //        println("x")
         val path = tree.get
-        val pathProof =  path.toProof(eqReferences)
+        val pathProof =  path.toProof
 
         /******************************************************
          * here the actual replacement is done

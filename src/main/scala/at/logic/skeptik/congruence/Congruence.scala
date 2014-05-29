@@ -58,6 +58,16 @@ abstract class Congruence(
   
   def addEquality(eq: EqW): Congruence = {
     val (l,r) = (eq.l,eq.r)
+//    val l = eq.l match {
+//      case App(u,v) => v
+//      case _ => eq.l
+//    }
+//    val r = eq.r match {
+//      case App(u,v) => v
+//      case _ => eq.r
+//    }
+//    println(l + " type: " + l.t)
+//    println(r + " type: " + r.t)
 //    println("Adding " + (l,r))
     val c0 = updateGraph(g.addEdge(l, r, Some(eq)))
     val eqRef = eqReferences.update((l,r), eq)
@@ -65,6 +75,14 @@ abstract class Congruence(
     val c2 = c1.addNode(r)
     val res = c2.merge(l,r,eq)
     res
+  }
+  
+  def addExtraNode(v: E) = {
+    val u = v match {
+      case App(s,t) => t
+      case _ => v
+    }
+    addNode(v)
   }
   
   /**
@@ -81,8 +99,7 @@ abstract class Congruence(
   //find query creates new CCR before subterms are added
    //order matters???
   def addNode(u: E): Congruence = {
-    val uRepr = find.map.get(u)
-    uRepr match {
+    find.map.get(u) match {
       case Some(_) => {
         this
       }

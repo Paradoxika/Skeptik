@@ -24,6 +24,7 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
   
   def apply(proof: Proof[N]) = {
     implicit val eqReferences = MMap[(E,E),EqW]()
+    implicit val notOMap = MMap[EqW,EqW]()
     val axiomEqs = MMap[E,N]()
     val resolveWithMap = MMap[E,MSet[N]]()
     

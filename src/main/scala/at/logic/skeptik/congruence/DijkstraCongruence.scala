@@ -54,6 +54,10 @@ abstract class DijkstraCongruence (
       case App(u1,u2) => {
         v match {
           case App(v1,v2) => {
+            print(u1 + " t: " + u1.t+ " ")
+            print(v1 + " t: " + v1.t+ " ")
+            print(u2 + " t: " + u2.t +" ")
+            print(v2 + " t: " + v2.t +"\n")
             val path1 = 
               if (u1 == v1) new EquationPath(u1,None)
               else callDijkstra(u1,v1,g.graph)

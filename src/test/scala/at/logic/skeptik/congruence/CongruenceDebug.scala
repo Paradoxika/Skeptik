@@ -14,7 +14,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = -1
+    val testcase = -2
     
     val t = o
     
@@ -57,31 +57,48 @@ object CongruenceDebug {
 //    Eq(App(f,a),App(f,a))
     
     implicit val eqReferences = MMap[(E,E),EqW]()
-    
+    implicit val notOMap = MMap[EqW,EqW]()
     var con: Congruence = new FibonacciCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
     
     testcase match {
+      
+      case -2 => {
+        val x1 = App(f1,a)
+        val x2 = App(f1,b)
+        val y1 = App(x1,b)
+        val y2 = App(x2,a)
+        val z1 = App(op,y1)
+        val z2 = App(op,y2)
+        val v1 = App(z1,a)
+        val v2 = App(z2,a)
+        val eq1 = EqW(a,b)
+        con = con.addEquality(eq1).addExtraNode(v1).addExtraNode(v2)
+        val path = con.explain(v1, v2).get
+        val proof = path.toProof.get
+        println(proof)
+      }
       
       case -1 => {
         val s1 = App(f1,a)
         val s2 = App(f1,c)
         val t1 = App(App(f1,a),b)
         val t2 = App(App(f1,c),d)
-        val eq1 = EqW(a,c)
+        val eq1 = EqW(a,e)
         val eq2 = EqW(b,d)
-        println(t1 + " and " + t2)
-        con = con.addEquality(eq1).addEquality(eq2).addNode(t1).addNode(t2)
-        
+        val eq3 = EqW(c,e)
+        println(t1 + ": " + t1.t + " and " + t2 + " : " + t2.t)
+        con = con.addEquality(eq1).addEquality(eq2).addEquality(eq3).addExtraNode(t1).addExtraNode(t2)
+//        con = con.addEquality(eq1).addEquality(eq2)
         println(con.g)
-        
+//        
         val path = con.explain(t1, t2).get
-        
+//        
         val proof = path.toProof.get
-        
+//        
         println(proof)
-        
-        println(path)
-        
+//        
+        println(path.pred.get.label)
+//        
         proof.root.conclusion.suc.foreach(e => println(e.t))
       }
       
@@ -268,7 +285,7 @@ object CongruenceDebug {
         
         val path = con.explain(t2,t6)
         println(path)
-        println(path.get.toProof(eqReferences))
+        println(path.get.toProof)
       }
       case 5 => {
         //((op e3 e1),(op e3 e3)) 
@@ -312,7 +329,7 @@ object CongruenceDebug {
         println(path)
 //        println("transitivity chain:\n" + path.get.transChainProof.get)
         println("BUILDING PROOF")
-        val x = path.get.toProof(eqReferences).get
+        val x = path.get.toProof.get
         println("full proof:\n" + x)
       }
       case 6 => {
