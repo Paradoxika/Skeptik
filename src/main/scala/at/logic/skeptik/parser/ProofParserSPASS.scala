@@ -14,7 +14,6 @@ import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import at.logic.skeptik.proof.sequent.resolution._
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
-
 object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 
 trait SPASSParsers
@@ -34,8 +33,8 @@ trait SPASSParsers
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {
       println("parsed! " + count)
-//      println(varMap)
-//      println(exprMap)
+      //      println(varMap)
+      //      println(exprMap)
       val p = Proof(list.last)
       exprMap = new MMap[String, E]
       p
@@ -57,7 +56,6 @@ trait SPASSParsers
       ax
     }
 
-    // * //TODO: currently broken? 
     case ~(~(~(~(~(~(~(ln, _), _), _), "Res:"), refs), _), seq) => {
       def firstRef = refs.head
       def secondRef = refs.tail.head
@@ -67,70 +65,27 @@ trait SPASSParsers
       def firstFormula = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
       def secondFormula = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
 
-//      val ax = UnifyingResolution(proofMap.getOrElse(firstNode, throw new Exception("Error!")), proofMap.getOrElse(secondNode, throw new Exception("Error!")),
-//          exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!")),exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!")))(vars)
-
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
-       
+
       println("Attempting to parse line " + ln)
 
-      println("First premise: " + firstPremise)
-      println("First formula: " + firstFormula)
-      println("Second premise: " + secondPremise)
-      println("Second formula: " + secondFormula)
+      //      println("First premise: " + firstPremise)
+      //      println("First formula: " + firstFormula)
+      //      println("Second premise: " + secondPremise)
+      //      println("Second formula: " + secondFormula)
 
-      
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
-      
-      //TODO: do we actually have to reverse this naming? (I don't think so)
-      // even if we do, I feel like it should happen inside of UnifyingResolution. but it will stay here
-      // while there are bigger bugs to fix.
-      
-//      if (ax.replacementInverse.length > 0) {
 
-//        def performReplacements(ant: Seq[E], replacements: List[Substitution]): Seq[E] ={
-//          if (replacements.length > 0){
-//            val rev = replacements.head
-//            def newAnt = for (a <- ant) yield rev(a)
-//            performReplacements(newAnt, replacements.tail)
-//          } else {
-//            ant
-//          }
-//        }
-//        
-//        val newAnt =  performReplacements(ax.conclusion.ant, ax.replacementInverse)
-//        val newSuc =  performReplacements(ax.conclusion.suc, ax.replacementInverse)
-//
-//        val sA = addAntecedentsSeq(newAnt)
-//        val sS = addSuccedentsSeq(newSuc)
-//        val sFinal = sA union sS
-//        val aFinal = new Axiom(sFinal)
+      val parsedAnte = addAntecedents(seq._1)
+      val parsedSucc = addSuccedents(seq._2)
+      val parsedFinal = parsedAnte union parsedSucc
 
-
-//        val parsedAnte = addAntecedents(seq._1)
-//        val parsedSucc = addSuccedents(seq._2)
-//        val parsedFinal = parsedAnte union parsedSucc
-//        val ay = new Axiom(parsedFinal)
-//        
-//        println("Parsed: " + ln + ":" + ay)
-//        println("Computed: " + ln + ":" + ax)
-
-//        println("Computed B: " + ln + ":" + sFinal) 
-//        proofMap += (ln -> ax) //TODO: Needs to be 'ax' in the final code  
-//        ax
-//
-//      } else {
-        val parsedAnte = addAntecedents(seq._1)
-        val parsedSucc = addSuccedents(seq._2)
-        val parsedFinal = parsedAnte union parsedSucc
-
-        val ay = new Axiom(parsedFinal)
-        println("Parsed: " + ln + ":" + ay)
-        println("Computed: " + ln + ":" + ax)
-        proofMap += (ln -> ax)
-        ax
-//      }
+      val ay = new Axiom(parsedFinal)
+      println("Parsed: " + ln + ":" + ay)
+      println("Computed: " + ln + ":" + ax)
+      proofMap += (ln -> ax)
+      ax
     }
 
     //For now, treat the other inference rules as new axioms
@@ -240,8 +195,8 @@ trait SPASSParsers
     }
 
   }
-  
-    def max2: Parser[E] = "max(" ~ term ~ "," ~ term ~ ")" ^^ {
+
+  def max2: Parser[E] = "max(" ~ term ~ "," ~ term ~ ")" ^^ {
     case ~(~(~(~(_, first), _), second), _) => {
       AppRec(new Var("max", i -> (i -> i)), List(first, second))
     }
