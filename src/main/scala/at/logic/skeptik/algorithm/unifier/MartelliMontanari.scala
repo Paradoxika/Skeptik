@@ -18,10 +18,10 @@ object MartelliMontanari {
       //println("Head: " + eqs.head)
       
       counter = counter + 1
-      if (counter > 10) {
-        println("counter maxed out")
-        return None
-      }
+//      if (counter > 100) { //10 is too small.
+//        println("counter maxed out")
+//        return None
+//      }
       
       
       eqs.head match {
@@ -32,7 +32,7 @@ object MartelliMontanari {
           // without occur-check
           mgu += (v -> e) 
           val sub = Substitution(v -> e)
-          println("mgu sub: " + sub)
+          //println("mgu sub: " + sub)
           //println("MGU: " + mgu)
           
           eqs = for (eq <- eqs.tail) yield {

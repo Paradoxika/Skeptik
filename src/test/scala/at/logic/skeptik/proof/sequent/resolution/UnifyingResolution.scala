@@ -63,8 +63,8 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
       Sequent(App(Var("p", i -> i),x))() must beEqualTo(urB.conclusion)
     }
     "return the correct resolvent taken from the example" in {
-     println("urC: " + urC.conclusion)
-      Sequent()(App(App(Var("le", i -> (i -> o)), u), AppRec(new Var("max", i -> (i -> i)), List(v, u)))) must beEqualTo(urC.conclusion)
+//     println("urC: " + urC.conclusion)
+      Sequent()(App(App(Var("le", i -> (i -> o)), v), AppRec(new Var("max", i -> (i -> i)), List(u, v)))) must beEqualTo(urC.conclusion)
     }
   }
 }

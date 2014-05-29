@@ -34,8 +34,8 @@ trait SPASSParsers
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {
       println("parsed! " + count)
-      println(varMap)
-      println(exprMap)
+//      println(varMap)
+//      println(exprMap)
       val p = Proof(list.last)
       exprMap = new MMap[String, E]
       p
@@ -87,7 +87,7 @@ trait SPASSParsers
       // even if we do, I feel like it should happen inside of UnifyingResolution. but it will stay here
       // while there are bigger bugs to fix.
       
-      if (ax.replacementInverse.length > 0) {
+//      if (ax.replacementInverse.length > 0) {
 
 //        def performReplacements(ant: Seq[E], replacements: List[Substitution]): Seq[E] ={
 //          if (replacements.length > 0){
@@ -108,19 +108,19 @@ trait SPASSParsers
 //        val aFinal = new Axiom(sFinal)
 
 
-        val parsedAnte = addAntecedents(seq._1)
-        val parsedSucc = addSuccedents(seq._2)
-        val parsedFinal = parsedAnte union parsedSucc
-        val ay = new Axiom(parsedFinal)
-        
-        println("Parsed: " + ln + ":" + ay)
-        println("Computed: " + ln + ":" + ax)
+//        val parsedAnte = addAntecedents(seq._1)
+//        val parsedSucc = addSuccedents(seq._2)
+//        val parsedFinal = parsedAnte union parsedSucc
+//        val ay = new Axiom(parsedFinal)
+//        
+//        println("Parsed: " + ln + ":" + ay)
+//        println("Computed: " + ln + ":" + ax)
 
 //        println("Computed B: " + ln + ":" + sFinal) 
-        proofMap += (ln -> ax) //TODO: Needs to be 'ax' in the final code  
-        ax
-
-      } else {
+//        proofMap += (ln -> ax) //TODO: Needs to be 'ax' in the final code  
+//        ax
+//
+//      } else {
         val parsedAnte = addAntecedents(seq._1)
         val parsedSucc = addSuccedents(seq._2)
         val parsedFinal = parsedAnte union parsedSucc
@@ -130,7 +130,7 @@ trait SPASSParsers
         println("Computed: " + ln + ":" + ax)
         proofMap += (ln -> ax)
         ax
-      }
+//      }
     }
 
     //For now, treat the other inference rules as new axioms
