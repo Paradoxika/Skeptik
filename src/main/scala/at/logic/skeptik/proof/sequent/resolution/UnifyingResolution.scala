@@ -17,7 +17,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   extends SequentProofNode with Binary
   with NoMainFormula {
 
-  //TODO: remove these variables?
+  //TODO: define these variables
   def leftAuxFormulas: SeqSequent = ???
   def rightAuxFormulas: SeqSequent = ???
 
@@ -61,8 +61,7 @@ object UnifyingResolution {
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
-//      new UnifyingResolution(leftPremiseClean, rightPremiseClean, auxL, auxR)
-      new UnifyingResolution(leftPremise, rightPremise, auxL, auxR)
+      new UnifyingResolution(leftPremiseClean, rightPremiseClean, auxL, auxR)
     } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
     else throw new Exception("Resolution: the resolvent is ambiguous.")
   }
