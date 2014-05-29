@@ -11,17 +11,18 @@ import at.logic.skeptik.proof.Proof.apply
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.mutable.{HashMap => MMap}
 
-class EqLabel(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) extends (EqW,Option[(EquationPath,EquationPath)]) (equation, deducePaths) {
-  val size = deducePaths match {
-    case None => 1
-    case Some((ddP1,ddP2)) => {
-      ddP1.originalEqs.size + ddP2.originalEqs.size
+class EqLabel(equation: EqW, deducePaths: Set[EquationPath]) extends (EqW,Set[EquationPath]) (equation, deducePaths) {
+  val size: Int = deducePaths.foldLeft(1)({(A,B) => 
+    val add = B.pred match {
+      case None => 0
+      case Some(pr) => pr.label.size
     }
-  }
+    A + add
+  })
 }
 
 object EqLabel {
-  def apply(equation: EqW, deducePaths: Option[(EquationPath,EquationPath)]) = {
+  def apply(equation: EqW, deducePaths: Set[EquationPath]) = {
     new EqLabel(equation,deducePaths)
   }
 }
@@ -34,7 +35,7 @@ object EqLabel {
  * @param nextTree is an EquationTree, that the current object is pointing to
  * @param label for the edge, which is an instance of EqLabel
  */
-class EqTreeEdge(val nextTree: EquationPath, val label: EqLabel) extends (EquationPath,(EqW,Option[(EquationPath,EquationPath)]))(nextTree,label) {
+class EqTreeEdge(val nextTree: EquationPath, val label: EqLabel) extends (EquationPath,(EqW,Set[EquationPath]))(nextTree,label) {
   val eq = label._1
   val deduceTrees = label._2
 }
@@ -69,6 +70,57 @@ object EqTreeEdge {
  */
 case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   
+  def symmetricTo(that: EquationPath) = {
+    this.firstVert == that.lastVert && this.lastVert == that.firstVert
+  }
+  
+  def isAxiom = pred match {
+    case None => false
+    case Some(pr) => !pr.nextTree.pred.isDefined && pr.deduceTrees.isEmpty
+  }
+  
+  def typeString(node: N)(implicit eqReferences: MMap[(E,E),EqW]) = {
+    (node.conclusion.ant.map(EqW(_).l.t) ++ node.conclusion.suc.map(EqW(_).l.t)).mkString(",")
+  }
+  
+  /**
+   * the toProof method transforms a EquationPath into a corresponding Resolution proof.
+   * To do so, it first calls its buildTransChain method.
+   * The size of the returned equalities and deduced equalities differentiate three cases:
+   *    Case 1: There is more than one equality (general case)
+   *    ---> An instance of an Eq_Transitive Axiom is created, having all the equalities on the left side and
+   *         the equality between the first and last term on the right side.
+   *         Note: Initially I had a method, which only had Eq_Transitive axioms with exactly two equations on the left
+   *         but as I found out that veriT uses not only these, I dropped that method and simplified to use these
+   *         "chain" axioms.
+   *         
+   *    Case 2: There are less than 2 equalities and exactly one deduced equality (for example when proving f(a) = f(b))
+   *    ---> the node of the deduced equality is simply taken (because it has the correct equality on the right side anyways)
+   *         
+   *    Case 3: There are less than 2 equalities and not 1 deduced equality:
+   *    ---> the path corresponds either to an input axiom or the request for an explanation,
+   *        where there is none. Therefore the returned proof is None
+   *  
+   *  
+   */
+  def toProof(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): Option[Proof[N]] = {
+    
+    val (first,last,equations,deduced) = this.buildTransChain
+    if (equations.size > 1) {
+      val transNode = EqTransitive(equations,first,last)
+      val res = deduced.foldLeft(transNode.asInstanceOf[N])({(A,B) => 
+        R(A,B)
+      })
+      Some(res)
+    }
+    else if (deduced.size == 1) { //Case 2
+      Some(deduced.last)
+    }
+    else { //Case 3
+      None  
+    }
+  }
+  
   /**
    * method buildTransChain is required for proof production.
    * It traverses the proof, gathering the equalities of the labels and 
@@ -84,19 +136,16 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *         DED are all results of calls to buildDeduction, 
    *             collected as a tuple of a SequentProofNode (N) and the equality if proves (as an EqW object)
    */
-  def buildTransChain(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): (E,E,Seq[EqW],Seq[(N,EqW)]) = {
+  def buildTransChain(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): (E,E,Seq[EqW],Seq[N]) = {
     if (v.toString == "(c_2 = c_3)") println(v + " occurs in trans. chain")
     pred match {
       case Some(pr) => {
+        val predEq = pr._2._1
+        val predDed = pr._2._2
         val (first,last,equations,deduced) = pr._1.buildTransChain
         val resFirst = v
         val resEquations = pr._2._1 +: equations
-        val resDeduced = pr._2._2 match {
-          case None => deduced
-          case Some((dd1,dd2)) => {
-            (buildDeduction(dd1,dd2,pr._2._1),pr._2._1) +: deduced
-          }
-        }
+        val resDeduced = if (predDed.isEmpty) deduced else deduced :+ buildDeduction(predDed,predEq)
         (resFirst,last,resEquations,resDeduced)
       }
       case None => {
@@ -132,132 +181,63 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    * @res a SequentProofNode representing the full proof of the input equality from input axioms only.
    **/
 
-  def buildDeduction(dd1: EquationPath, dd2: EquationPath, eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]) = {
-    
-    val (dd1Opt, dd2Opt) = (dd1.toProof,dd2.toProof)
-    val ddProofs = List(dd1Opt,dd2Opt).filter(_.isDefined).map(_.get)
+  def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]) = {
+//    println("dds in buildDeduction: " + dds)
+    val (axPaths, otherPaths) = dds.partition(_.isAxiom)
+    val (normalPaths,symmetricPaths) = otherPaths.partition(p => otherPaths.-(p).exists(_.symmetricTo(p)))
+    val symOnlyOne = 
+      if (symmetricPaths.isEmpty) symmetricPaths
+      else symmetricPaths.foldLeft(Set(symmetricPaths.head))({(A,B) => 
+        if (A.exists(_.symmetricTo(B))) A
+        else A + B
+      })
+    val symProofOpts = symOnlyOne.map(_.toProof)
+    val symProofs = symProofOpts.filter(_.isDefined).map(_.get)
+    val symRoots = symProofs.map(_.root)
+    val finalSym = symRoots ++ symRoots.map(r => R(r,EqSymmetry(EqW(r.conclusion.suc.last))))
+    val ddProofOpts = normalPaths.map(_.toProof)
+    val ddProofs = ddProofOpts.filter(_.isDefined).map(_.get)
     val ddProofRoots = ddProofs.map(_.root)
-    val enough = ddProofRoots.find(e => EqW(e.conclusion.suc.last) == eq)
-//    println("roots in buildDeduction: " + ddProofRoots.map(e=> EqW(e.root.conclusion.suc.last).l.t + " " +e).mkString(","))
-    enough match {
-      case Some(node) => {
-//        println("One deduction was already enough!")
-//        node
-        node
+    val ddEqs = (ddProofRoots.map(e => e.conclusion.suc.last)).toSeq.map(EqW(_)) ++ axPaths.map(_.pred.get.eq).toSeq
+    val ddEqsWithSymm = 
+      if (symRoots.isEmpty) ddEqs ++ symRoots.map(e => e.conclusion.suc.last)
+      else {
+        ddEqs ++ symRoots.map(e => e.conclusion.suc.last) ++ symRoots.map(e => EqW(e.conclusion.suc.last).reverseEquality)
       }
-      case None => {
-        val ddEqs = ddProofRoots.map(_.conclusion.suc.last).toSeq
-        val congr = (eq.l,eq.r) match {
-          case (App(u1,u2),App(v1,v2)) => {
-            if (eq.l.t != o) {
-//              println(eq +" is notO, storing " + EqW(u2,v2))
-//              println(eq.l +" t: " + eq.l.t)
-              notOMap.update(eq,EqW(u2,v2))
+//    println("ddEqs in buildDeduction: " + ddEqs)
+    val resolveWith = ddProofRoots ++ finalSym
+    val congr = EqCongruent(ddEqs,eq)
+    val res = 
+      if (ddEqs.isEmpty) {
+        congr
+      } 
+      else {
+        resolveWith.foldLeft(congr.asInstanceOf[N])({(A,B) =>
+          try R(A,B)
+          catch {
+            case e: Exception => {
+              println(Proof(A))
+              println(typeString(A))
+              println(Proof(B))
+              println(typeString(B))
+              println(congr)
+              println(typeString(congr))
+              println(eq)
+              println(this.toString(true))
+              println(axPaths)
+              println(otherPaths.mkString("\n"))
+              println(ddEqs)
+              println(ddProofRoots.mkString("\n"))
+              ddProofRoots.foreach(root => println(root.conclusion.suc.last))
+              throw e
             }
-//            if (notOMap.isDefinedAt(EqW(u1,v1))) println("is defined!")
-//            if (notOMap.isDefinedAt(EqW(u2,v2))) println("is defined!")
-//            println("map: " + notOMap.mkString(","))
-            
-            val eq1 = notOMap.getOrElse(EqW(u1,v1), EqW(u1,v1))
-            val eq2 = notOMap.getOrElse(EqW(u2,v2), EqW(u2,v2))
-//            println("eq1: " + EqW(u1,v1) + " ~> " + eq1)
-//            println("eq2: " + EqW(u2,v2) + " ~> " + eq2)
-            if ((u1 == v1) && (u2 != v2)) EqCongruent(eq2,eq)
-            else if ((u1 != v1) && (u2 == v2)) {
-    //          println("*******************************************************************************************************")
-              EqCongruent(eq1,eq)
-            }
-            else if ((u1 != v1) && (u2 != v2)) {
-    //          println("*******************************************************************************************************")
-              EqCongruent(eq1,eq2,eq)
-            }
-            else throw new Exception("Trying to prove the congruence of terms with equal arguments")
           }
-          case _ => throw new Exception("Error when creating congruence node, because equality between wrong kind of expressions")
-        }
-        val res = 
-          if (ddEqs.isEmpty) {
-            congr
-          } 
-          else {
-            val resolvent = (congr +: ddProofRoots).filter(r => EqW(r.conclusion.suc.last).l.t == o)
-            resolvent.tail.foldLeft(resolvent.head)({(A,B) =>
-              try R(A,B)
-              catch {
-                case e: Exception => {
-                  println(Proof(A))
-                  println(Proof(B))
-                  println(congr)
-                  throw e
-                }
-              }
-            })
-          }
-        res
+        })
       }
-    }
+//    println("result of build Deduction: " + res)
+    res
   }
 
-  /**
-   * the toProof method transforms a EquationPath into a corresponding Resolution proof.
-   * To do so, it first calls its buildTransChain method.
-   * The size of the returned equalities and deduced equalities differentiate three cases:
-   *    Case 1: There is more than one equality (general case)
-   *    ---> An instance of an Eq_Transitive Axiom is created, having all the equalities on the left side and
-   *         the equality between the first and last term on the right side.
-   *         Note: Initially I had a method, which only had Eq_Transitive axioms with exactly two equations on the left
-   *         but as I found out that veriT uses not only these, I dropped that method and simplified to use these
-   *         "chain" axioms.
-   *         
-   *    Case 2: There are less than 2 equalities and exactly one deduced equality (for example when proving f(a) = f(b))
-   *    ---> the node of the deduced equality is simply taken (because it has the correct equality on the right side anyways)
-   *         
-   *    Case 3: There are less than 2 equalities and not 1 deduced equality:
-   *    ---> the path corresponds either to an input axiom or the request for an explanation,
-   *        where there is none. Therefore the returned proof is None
-   *  
-   *  
-   */
-  def toProof(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): Option[Proof[N]] = {
-    val (first,last,equations,deduced) = this.buildTransChain
-    if (equations.size > 1) { //Case 1
-      val transNode = EqTransitive(equations,first,last)
-      val res = deduced.foldLeft(transNode.asInstanceOf[N])({(A,B) => 
-        val resEq = B._2
-        val resNode = B._1
-        try {
-          /**
-           * this line sometimes causes errors, because of no correct pivot being found
-           */
-          R(A,resNode)
-        }
-        catch {
-          case e:Exception => {
-            try R(resNode,A)
-            catch {
-              case e1:Exception => {
-                println(Proof(A))
-                println(Proof(resNode))
-                println(A.conclusion.ant.map(EqW(_).l.t).mkString(",") + " " + A.conclusion.suc.map(EqW(_).l.t).mkString(","))
-                println(resNode.conclusion.ant.map(EqW(_).l.t).mkString(",") + " " + resNode.conclusion.suc.map(EqW(_).l.t).mkString(","))
-                throw e1
-              }
-            }
-          }
-        }
-      })
-      Some(res)
-    }
-    else if (deduced.size == 1) {  //Case 2
-      Some(deduced.last._1)
-    }
-    else {
-//      println("z " + (first,last,equations,deduced))
-//      println(this)
-      None  //Case 3
-    }
-  }
-  
   /**
    * @return the equality of the next EqTreeEdge or None if there is no more edge
    */
@@ -282,28 +262,6 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   }
   
   /**
-   * @return left element of the deduction path tuple if present
-   */
-  def leftExpl: Option[EquationPath] = pred match {
-    case Some(pr) => pr._2._2 match {
-      case Some((l,r)) => Some(l)
-      case None => None
-    }
-    case None => None
-  }
-  
-  /**
-   * @return right element of the deduction path tuple if present
-   */
-  def rightExpl: Option[EquationPath] = pred match {
-    case Some(pr) => pr._2._2 match {
-      case Some((l,r)) => Some(r)
-      case None => None
-    }
-    case None => None
-  }
-  
-  /**
    * @return predecessor of the current node in the path if present
    */
   def predPath: Option[EquationPath] = pred match {
@@ -324,10 +282,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   def originalEqs: Set[EqW] = pred match {
     case Some(pr) => {
       val predOrig = pr._1.originalEqs
-      val extra = pr._2._2 match {
-        case Some((dd1,dd2)) => dd1.originalEqs union dd2.originalEqs
-        case None => Set(pr._2._1)
-      }
+      val extra = pr._2._2.foldLeft(Set[EqW]())({(A,B) => A union B.originalEqs})
       predOrig union extra
     }
     case None => Set()
@@ -352,16 +307,11 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   /**
    * @return all original Eqs of the deduce paths of the current edge if present
    */
-  def deducedEqs: Set[EqW] = {
-    val lEqs = leftExpl match {
-      case Some(l) => l.originalEqs
-      case None => Set()
+  def deducedEqs: Set[EqW] = pred match {
+    case None => Set()
+    case Some(pr) => {
+      pr._2._2.foldLeft(Set[EqW]())({(A,B) => A union B.originalEqs})
     }
-    val rEqs = rightExpl match {
-      case Some(r) => r.originalEqs
-      case None => Set()
-    }
-    lEqs ++ rEqs
   }
       
   override def toString: String = toString(true)

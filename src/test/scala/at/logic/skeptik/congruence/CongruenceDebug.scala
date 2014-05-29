@@ -14,7 +14,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = -2
+    val testcase = -1
     
     val t = o
     
@@ -46,6 +46,12 @@ object CongruenceDebug {
     val e3 = new Var("e3",t)
     val e1 = new Var("e1",t)
     
+    def origSubterms(term: E): Seq[E] = (term,term.t) match {
+      case (App(u,v),Arrow(_,_)) => origSubterms(v) ++ origSubterms(u)
+      case (_, Arrow(_,_)) => Seq()
+      case (t, _) => Seq(term)
+    }
+    
 //    println(App(x,b).t)
 //    
 //    val z1 = App(f,App(x,b))
@@ -58,9 +64,22 @@ object CongruenceDebug {
     
     implicit val eqReferences = MMap[(E,E),EqW]()
     implicit val notOMap = MMap[EqW,EqW]()
-    var con: Congruence = new FibonacciCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
+    
+    val set = Set(EqW(a,b),EqW(b,a))
+    
+    println("set: " + set)
+    
+    var con: Congruence = new ProofTreeCongruence()
     
     testcase match {
+      
+      case -3 => {
+        con = con.addEquality(EqW(a,b))
+        val path = con.explain(a,b)
+        
+        println(path)
+        println(path.get.toProof)
+      }
       
       case -2 => {
         val x1 = App(f1,a)
@@ -76,6 +95,8 @@ object CongruenceDebug {
         val path = con.explain(v1, v2).get
         val proof = path.toProof.get
         println(proof)
+        
+        println(origSubterms(v1))
       }
       
       case -1 => {
@@ -94,7 +115,9 @@ object CongruenceDebug {
         val path = con.explain(t1, t2).get
 //        
         val proof = path.toProof.get
-//        
+//      
+        println(path)
+        
         println(proof)
 //        
         println(path.pred.get.label)

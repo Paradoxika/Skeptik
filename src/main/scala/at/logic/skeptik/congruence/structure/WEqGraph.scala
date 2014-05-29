@@ -7,7 +7,7 @@ import scala.collection.mutable.{HashMap => MMap}
 class WEqGraph(val graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](), implicit val eqReferences: MMap[(E,E),EqW]) extends CongruenceGraph {
   
   def addEdge(u: E, v: E, eq: Option[EqW]): WEqGraph = {
-    new WEqGraph(graph.addUndirectedEdge((u,EqLabel(eq.getOrElse(EqW(u,v)),None),v), 1),eqReferences)
+    new WEqGraph(graph.addUndirectedEdge((u,EqLabel(eq.getOrElse(EqW(u,v)),Set[EquationPath]()),v), 1),eqReferences)
   }
   
   def addEdge(u: E, v: E, eqLabel: EqLabel, weight: Int): WEqGraph = {

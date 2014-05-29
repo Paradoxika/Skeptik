@@ -70,31 +70,31 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     }
   }
   
+  def subterms(term: E): Seq[E] = term match {
+    case App(u,v) => uncurriedTerms(u) ++ uncurriedTerms(v)
+    case _ => Seq()
+  }
+  
+  def uncurriedTerms(term: E): Seq[E] = term.t match {
+    case Arrow(_,_) => {
+      term match {
+        case App(u,v) => uncurriedTerms(u) ++ uncurriedTerms(v)
+        case _ => Seq()
+      }
+    }
+    case _ => Seq(term)
+  }
+  
   def buildDD(t1: E, eq: Option[EqW], t2: E)(implicit eqReferences: MMap[(E,E),EqW]) = eq match {
     case None => {
-      (t1,t2) match {
-        case (App(u1,v1),App(u2,v2)) => {
-          (explain(u1,u2),explain(v1,v2)) match {
-            case (Some(dd1),Some(dd2)) => {
-//                println("expl for " + (u1,u2) + ": " + dd1)
-//                println("expl for " + (v1,v2) + ": " + dd2)
-              Some(dd1,dd2)
-            }
-            case _ => {
-              println("here for " + (t1,t2) + " : " + explain(v1,v2))
-              None //failure
-            }
-          }
-        }
-        case _ => {
-          println("build deduce trees for non composed terms " + (t1,t2))
-          None //failure
-        }
-      }
+      val (sub1,sub2) = (subterms(t1),subterms(t2))
+      require(sub1.size == sub2.size)
+      val explOpts = (sub1 zip sub2).map(tuple => explain(tuple._1,tuple._2))
+      explOpts.filter(_.isDefined).map(_.get).toSet
     }
     case Some(_) => {
 //        println("skipping deduce trees!")
-      None
+      Set[EquationPath]()
     }
   }
   

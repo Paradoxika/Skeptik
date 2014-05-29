@@ -141,7 +141,7 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
       val sE = s.asInstanceOf[E]
       val end = new EquationPath(sE,None)
       val x = EqW(sE,sE)
-      val eqTreeEdge = new EqTreeEdge(end,EqLabel(x,None))
+      val eqTreeEdge = new EqTreeEdge(end,EqLabel(x,Set[EquationPath]()))
       new EquationPath(sE,Some(eqTreeEdge))
     }
     else {

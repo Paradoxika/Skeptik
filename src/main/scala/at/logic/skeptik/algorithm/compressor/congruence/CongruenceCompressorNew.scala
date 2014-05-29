@@ -28,12 +28,20 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
     val axiomEqs = MMap[E,N]()
     val resolveWithMap = MMap[E,MSet[N]]()
     
+    val eqNodesLeft = MMap[EqW,N]()
+    
     def traversal(node: N, fromPr: Seq[N]): N = {
 
       val fixedNode = fixNode(node,fromPr)
       
       val rightEqs = fixedNode.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
       val leftEqs = fixedNode.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))
+      
+      val singleLeft = fixedNode.conclusion.suc.size == 0 && fixedNode.conclusion.ant.size == 1 && fixedNode.conclusion.ant.forall(EqW.isEq(_))
+      if (singleLeft) {
+        val eq = EqW(fixedNode.conclusion.ant.last)
+        eqNodesLeft += (eq -> node)
+      }
       
       if (fixedNode.conclusion.suc.size == 1 && fixedNode.conclusion.ant.size == 0) axiomEqs += (fixedNode.conclusion.suc.last -> fixedNode)
       
@@ -57,13 +65,27 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
       else eqToMap.minBy(_.conclusion.size)
     }
     
-    val res = proof foldDown traversal
+    val newProof = proof foldDown traversal
+    
+    // Resolve against axioms
+    val resProof = newProof.conclusion.suc.foldLeft(newProof)({(A,B) => 
+      eqNodesLeft.get(EqW(B)) match { //probably slow
+        case Some(node) => {
+          R(A,node)
+        }
+        case None => {
+          println("no equality for " + B)
+          A
+        }
+      }
+    })
+    
     println("number of axioms: " + axiomEqs.size)
-    res.conclusion.ant.foreach(l => {
+    resProof.conclusion.ant.foreach(l => {
       println("axiom for " + l + " " + axiomEqs.contains(l))
       println("node to res against fo " + l + " " + resolveWithMap.contains(l))
     })
-    res
+    resProof
   }
   
   

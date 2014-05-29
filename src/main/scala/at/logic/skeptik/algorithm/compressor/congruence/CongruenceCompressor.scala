@@ -110,7 +110,21 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
             
             val (resNode, axioms) = usedEqs.foldLeft((proof.root,Set[EqW]()))({(A,B) => 
               eqNodesRight.get(B) match {
-                case Some(node) => (R(A._1,node), A._2 + EqW(node.conclusion.suc.last))
+                case Some(node) => {
+                  val x = 
+                    try (R(A._1,node))
+                    catch {
+                      case e: Exception => {
+                        println(Proof(A._1))
+                        println(Proof(node))
+                        println((A._1.conclusion.ant.map(EqW(_).l.t) ++ A._1.conclusion.suc.map(EqW(_).l.t)).mkString(","))
+                        println((node.conclusion.ant.map(EqW(_).l.t) ++ node.conclusion.suc.map(EqW(_).l.t)).mkString(","))
+                        println(B + "\n" + B.l.t)
+                        throw e
+                      }
+                    }
+                  (x, A._2 + EqW(node.conclusion.suc.last))
+                }
                 case None => {
 //                  println("no node for " + B)
                   A

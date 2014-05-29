@@ -19,10 +19,10 @@ import scala.collection.mutable.{HashMap => MMap}
 
 class EqW(val equality :E) {
   
-//  def reverse = {
-//    val eqVar = new Var("=", (l.t -> (l.t -> o))) with Infix
-//    EqW(App(App(eqVar,r),l))
-//  }
+  def reverseEquality = {
+    val eqVar = new Var("=", (l.t -> (l.t -> o))) with Infix
+    App(App(eqVar,r),l)
+  }
   
   def l = equality match {
     case App(App(c,u),v) if c.toString == "=" => u
@@ -40,16 +40,16 @@ class EqW(val equality :E) {
   }
   
   
-  override def equals(other: Any) = {
-    val res = other match {
-      case that: EqW => {
-        ((this.l == that.l) && (this.r == that.r) || (this.l == that.r) && (this.r == that.l))
-      }
-      case _ => false
-    }
-//    println("checking " + this + " == " + other + " ?: " + res)
-    res
-  }
+//  override def equals(other: Any) = {
+//    val res = other match {
+//      case that: EqW => {
+//        ((this.l == that.l) && (this.r == that.r) || (this.l == that.r) && (this.r == that.l))
+//      }
+//      case _ => false
+//    }
+////    println("checking " + this + " == " + other + " ?: " + res)
+//    res
+//  }
   
   override def toString = equality.toString
 }
@@ -78,7 +78,7 @@ object EqW {
       case _ => false
     }
   }
-  
+
   def apply(t1: E, t2: E)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
     require(t1.t == t2.t)
     
@@ -90,12 +90,31 @@ object EqW {
     }))
     out
   }
+  
+  def apply(t1: E, t2: E, symmetric: Boolean)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
+    require(t1.t == t2.t)
+    
+    val eqVar = new Var("=", (t1.t -> (t1.t -> o))) with Infix
+    val out = if (symmetric) { 
+      eqReferences.getOrElse((t1,t2), eqReferences.getOrElseUpdate((t2,t1),{
+        val x = new EqW(App(App(eqVar,t1),t2))
+        if (x.toString == "(c_2 = c_3)") println("creating " + x + " myself in EqW")
+        x
+      }))}
+    else {
+      val x = new EqW(App(App(eqVar,t1),t2))
+      eqReferences.update((t1,t2),x)
+      x
+    }
+    out
+  }
     
   def apply(eq: E)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
     if (isEq(eq)) {
       val newEq = new EqW(eq)
       val (t1,t2) = (newEq.l,newEq.r)
-      eqReferences.getOrElse((t1,t2), eqReferences.getOrElseUpdate((t2,t1),newEq))
+      eqReferences.update((t1,t2),newEq)
+      newEq
     }
     else throw new Exception("eq in Equation is not an equality")
   }

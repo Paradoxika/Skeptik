@@ -122,3 +122,11 @@ object EqCongruent {
     case _ => None
   }
 }
+
+class EqSymmetry(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
+
+object EqSymmetry {
+  def apply(eq: EqW) = {
+    new EqSymmetry(new Sequent(Seq(eq.equality),Seq(eq.reverseEquality)))
+  }
+}
