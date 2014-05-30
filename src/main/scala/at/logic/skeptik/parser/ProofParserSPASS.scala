@@ -98,14 +98,30 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
+      var thirdPremise = null.asInstanceOf[Node]
+      if(firstNode == secondNode){
+        val thirdRef = refs.tail.tail.head
+        val thirdNode = thirdRef.first
+        println(thirdNode)
+        thirdPremise = proofMap.getOrElse(thirdNode, throw new Exception("Error!"))
+     }
+      
       println("Attempting to parse line " + ln)
             println("First premise: " + firstPremise)
             println("First formula: " + firstFormula)
             println("Second premise: " + secondPremise)
             println("Second formula: " + secondFormula)
 
-      val ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
-
+      var ax = null.asInstanceOf[Node]
+      if(firstNode != secondNode){
+         ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+      } else {
+        println("third premise: " + thirdPremise)
+         var axA = UnifyingResolutionMRR(thirdPremise, firstPremise)(vars)
+          var axB = UnifyingResolutionMRR(thirdPremise, secondPremise)(vars)
+          ax = axA // UnifyingResolution(axA, axB)(vars) //need something like this?
+      }
+      
       val parsedAnte = addAntecedents(seq._1)
       val parsedSucc = addSuccedents(seq._2)
       val parsedFinal = parsedAnte union parsedSucc

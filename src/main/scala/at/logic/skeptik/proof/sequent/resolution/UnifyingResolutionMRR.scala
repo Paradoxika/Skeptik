@@ -57,6 +57,8 @@ object UnifyingResolutionMRR {
       case None => false
       case Some(_) => true
     }
+//          println("mrr: " + leftPremiseClean + " and " + rightPremiseClean)
+//println("mrr: " + leftPremiseClean.conclusion.ant + " and " + rightPremiseClean.conclusion.suc )
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
