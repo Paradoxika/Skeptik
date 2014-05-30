@@ -202,7 +202,7 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
     
     while(!q.isEmpty) {
       q.extractMin match {
-        case None =>
+        case None => 
         case Some(u) => {
 //          val l = pi(u.key).originalEqs //Only origianl Eqs are in the graph
 //          l.foreach(lE => {

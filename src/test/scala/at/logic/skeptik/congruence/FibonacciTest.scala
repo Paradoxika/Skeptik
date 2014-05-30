@@ -59,14 +59,14 @@ object FibonacciTest {
     
     
   }
-  def main1(args : Array[String]) : Unit = {
+  def main(args : Array[String]) : Unit = {
    //val heap = new FibonacciHeap[int](Int.MinValue);
    val heap = new FibonacciHeap[String,Int](Int.MinValue);
    heap.insert("f",10)
-   heap.insert("l",98)
+   heap.insert("f",98)
    heap.insert("d",5)
    heap.insert("m",123)
-   heap.insert("b",3)
+   heap.insert("f",3)
    heap.insert("i",52)
    heap.insert("j",52)
    heap.insert("k",52)
@@ -93,6 +93,7 @@ object FibonacciTest {
    println("min: " + heap.extractMin)
         println(heap)
   heap.decreaseKey("m",29)
+      println("test123")
 //    val m = heap.min.get
 //    println(m.toString(true))
 //    println(m.asSequence())

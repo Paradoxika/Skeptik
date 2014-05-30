@@ -37,7 +37,9 @@ package object compressor {
     "ArrayC" -> ArrayC,
     "FibC" -> FibonacciC,
     "PtC" -> ProofTreeC,
-    "CNew" -> CongruenceCompressorNew,
+    "ACNew" -> ArrayCNew,
+    "FCNew" -> FibonacciCNew,
+    "PCNew" -> ProofTreeCNew,
     
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),

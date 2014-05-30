@@ -38,3 +38,11 @@ object ArrayC extends CongruenceCompressor with ArrayCompressor with local
 object FibonacciC extends CongruenceCompressor with FibonacciCompressor with local
 
 object ProofTreeC extends CongruenceCompressor with ProofTreeCompressor with local
+
+
+object ArrayCNew extends CongruenceCompressorNew with ArrayCompressor
+
+object FibonacciCNew extends CongruenceCompressorNew with FibonacciCompressor
+
+object ProofTreeCNew extends CongruenceCompressorNew with ProofTreeCompressor
+

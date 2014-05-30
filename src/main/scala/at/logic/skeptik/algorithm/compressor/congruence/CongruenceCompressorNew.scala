@@ -20,7 +20,9 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 import at.logic.skeptik.congruence.Congruence
 import at.logic.skeptik.congruence.structure.EquationPath
 
-object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
+abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
+  
+  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence
   
   def apply(proof: Proof[N]) = {
     implicit val eqReferences = MMap[(E,E),EqW]()
@@ -30,9 +32,10 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
     
     val eqNodesLeft = MMap[EqW,N]()
     
-    def traversal(node: N, fromPr: Seq[N]): N = {
-
-      val fixedNode = fixNode(node,fromPr)
+    def traversal(node: N, fromPr: Seq[(N,Boolean)]): (N,Boolean) = {
+      
+      val fixedNode = fixNode(node,fromPr.map(_._1))
+      var replaced = fromPr.map(_._2).exists(b => b)
       
       val rightEqs = fixedNode.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
       val leftEqs = fixedNode.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))
@@ -47,25 +50,35 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
       
       if (fixedNode.conclusion.suc.size == 1 && fixedNode.conclusion.suc.forall(EqW.isEq(_))) 
         resolveWithMap.update(fixedNode.conclusion.suc.last, resolveWithMap.getOrElse(fixedNode.conclusion.suc.last, MSet[N]()) += fixedNode)
-      
-      val eqToMap = rightEqs.map(eq => {
-//        val con = new FibonacciCongruence(eqReferences, new FindTable(), Queue[(E,E)](),WEqGraph(eqReferences)).addAll(leftEqs).addNode(eq.l).addNode(eq.r)
-        val con = new ProofTreeCongruence().addAll(leftEqs).addNode(eq.l).addNode(eq.r)
-        con.explain(eq.l,eq.r) match {
-          case Some(path) => {
-            path.toProof match {
-              case Some(proof) => proof.root
-              case None => fixedNode
+      val resNode = 
+        if (replaced) fixedNode
+        else {
+          val eqToMap = rightEqs.map(eq => {
+    //        val con = new FibonacciCongruence(eqReferences, new FindTable(), Queue[(E,E)](),WEqGraph(eqReferences)).addAll(leftEqs).addNode(eq.l).addNode(eq.r)
+            val con = newCon.addAll(leftEqs).addNode(eq.l).addNode(eq.r)
+            con.explain(eq.l,eq.r) match {
+              case Some(path) => {
+                path.toProof match {
+                  case Some(proof) => {
+    //                if (Proof(fixedNode).size < proof.size && proof.size < 15) println("original:\n"+Proof(fixedNode) + "\nproduced\n"+proof)
+    //                if (Proof(fixedNode).size > proof.size) proof.root
+    //                else fixedNode
+                    replaced = true
+                    proof.root
+                  }
+                  case None => fixedNode
+                }
+              }
+              case _ => fixedNode
             }
-          }
-          case _ => fixedNode
+          })
+          if (eqToMap.isEmpty) fixedNode 
+          else eqToMap.minBy(_.conclusion.size)
         }
-      })
-      if (eqToMap.isEmpty) fixedNode 
-      else eqToMap.minBy(_.conclusion.size)
+      (resNode,replaced)
     }
     
-    val newProof = proof foldDown traversal
+    val newProof = (proof foldDown traversal)._1
     
     // Resolve against axioms
     val resProof = newProof.conclusion.suc.foldLeft(newProof)({(A,B) => 
@@ -80,11 +93,6 @@ object CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
       }
     })
     
-    println("number of axioms: " + axiomEqs.size)
-    resProof.conclusion.ant.foreach(l => {
-      println("axiom for " + l + " " + axiomEqs.contains(l))
-      println("node to res against fo " + l + " " + resolveWithMap.contains(l))
-    })
     resProof
   }
   

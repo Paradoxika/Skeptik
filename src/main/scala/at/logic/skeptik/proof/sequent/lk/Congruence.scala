@@ -108,6 +108,9 @@ class EqCongruent(override val mainFormulas: Sequent) extends EqAxiom(mainFormul
  */
 object EqCongruent {
   def apply(conclusion: Sequent) = new EqCongruent(conclusion)
+  def apply(expl: Seq[E], eq: E) = { //Semantics are not checked (yet)
+    new EqCongruent(new Sequent(expl,Seq(eq)))
+  }
   def apply(expl: EqW, eq: EqW) = { //Semantics are not checked (yet)
     new EqCongruent(new Sequent(Seq(expl.equality),Seq(eq.equality)))
   }

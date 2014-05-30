@@ -70,7 +70,7 @@ abstract class Congruence(
 //    println(r + " type: " + r.t)
 //    println("Adding " + (l,r))
     val c0 = updateGraph(g.addEdge(l, r, Some(eq)))
-    val eqRef = eqReferences.update((l,r), eq)
+//    val eqRef = eqReferences.update((l,r), eq)
     val c1 = c0.addNode(l)
     val c2 = c1.addNode(r)
     val res = c2.merge(l,r,eq)

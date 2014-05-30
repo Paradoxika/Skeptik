@@ -184,29 +184,40 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]) = {
 //    println("dds in buildDeduction: " + dds)
     val (axPaths, otherPaths) = dds.partition(_.isAxiom)
-    val (normalPaths,symmetricPaths) = otherPaths.partition(p => otherPaths.-(p).exists(_.symmetricTo(p)))
-    val symOnlyOne = 
-      if (symmetricPaths.isEmpty) symmetricPaths
-      else symmetricPaths.foldLeft(Set(symmetricPaths.head))({(A,B) => 
-        if (A.exists(_.symmetricTo(B))) A
-        else A + B
-      })
-    val symProofOpts = symOnlyOne.map(_.toProof)
+//    println("axPaths in buildDeduction: "+ axPaths.map(_.toString(true)))
+    val (normalPaths,symmetricPaths) = otherPaths.foldLeft((Set[EquationPath](),Set[EquationPath]()))({(A,B) => 
+      if (A._1.exists(p => B.symmetricTo(p))) (A._1,A._2 + B)
+      else (A._1+B,A._2)
+    })
+    val (axSymms,axPsymmrem) = axPaths.foldLeft((Set[E](),Set[EquationPath]()))({(A,B) => 
+      B.eq match {
+        case None => A
+        case Some(e) => {
+          if (A._2.exists(p => p.symmetricTo(B))) (A._1 + e.reverseEquality, A._2)
+          else (A._1 + e.equality, A._2 + B)
+        }
+      }
+    })
+//    println("symmetricPaths in buildDeduction: "+ symmetricPaths)
+    val symProofOpts = symmetricPaths.map(_.toProof)
     val symProofs = symProofOpts.filter(_.isDefined).map(_.get)
     val symRoots = symProofs.map(_.root)
-    val finalSym = symRoots ++ symRoots.map(r => R(r,EqSymmetry(EqW(r.conclusion.suc.last))))
+    val finalSym = symRoots.map(r => R(r,EqSymmetry(EqW(r.conclusion.suc.last))))
     val ddProofOpts = normalPaths.map(_.toProof)
     val ddProofs = ddProofOpts.filter(_.isDefined).map(_.get)
     val ddProofRoots = ddProofs.map(_.root)
-    val ddEqs = (ddProofRoots.map(e => e.conclusion.suc.last)).toSeq.map(EqW(_)) ++ axPaths.map(_.pred.get.eq).toSeq
+    val ddEqs = (ddProofRoots.map(e => e.conclusion.suc.last)).toSeq.map(EqW(_)) 
     val ddEqsWithSymm = 
-      if (symRoots.isEmpty) ddEqs ++ symRoots.map(e => e.conclusion.suc.last)
+      if (symRoots.isEmpty) ddEqs.map(_.equality) ++ axSymms.toSeq
       else {
-        ddEqs ++ symRoots.map(e => e.conclusion.suc.last) ++ symRoots.map(e => EqW(e.conclusion.suc.last).reverseEquality)
+        val symRootsSeq = symRoots.map(e => EqW(e.conclusion.suc.last).reverseEquality)
+//        println("symmRoots: " + symRootsSeq)
+        ddEqs.map(_.equality) ++ symRootsSeq  ++ axSymms.toSeq
       }
 //    println("ddEqs in buildDeduction: " + ddEqs)
     val resolveWith = ddProofRoots ++ finalSym
-    val congr = EqCongruent(ddEqs,eq)
+//    println("ddEqsWithSymm in buildDeduction: "+ ddEqsWithSymm)
+    val congr = EqCongruent(ddEqsWithSymm,eq.equality)
     val res = 
       if (ddEqs.isEmpty) {
         congr
@@ -217,18 +228,9 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
           catch {
             case e: Exception => {
               println(Proof(A))
-              println(typeString(A))
               println(Proof(B))
-              println(typeString(B))
               println(congr)
-              println(typeString(congr))
-              println(eq)
-              println(this.toString(true))
-              println(axPaths)
-              println(otherPaths.mkString("\n"))
-              println(ddEqs)
-              println(ddProofRoots.mkString("\n"))
-              ddProofRoots.foreach(root => println(root.conclusion.suc.last))
+              println("finalySym: " + finalSym)
               throw e
             }
           }
@@ -325,7 +327,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     }
     val predLabel = 
       if (labels) eq match {
-        case Some(e) => "{"+deducedEqs+"}"//"-["+e+"]" + "{"+deducedEqs+"}"
+        case Some(e) => "-["+e+"]" + "{"+deducedEqs+"}"
         case None => ""
       }
       else ""

@@ -13,8 +13,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
   var n: Int = 0
   val nodeMap = MMap[T1,FNode]()
   
-  var special: FNode = null
-  
   def correctlyChained(node: FNode): Boolean = {
     node.left.right == node && node.right.left == node
   }
@@ -36,12 +34,15 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     require(node.left.right == node && node.right.left == node)
   }
   
+  def addNodeMap(elem: T1, newNode: FNode) = nodeMap += (elem -> newNode)
+  
   def insert(elem: T1, key: T2) = {
-    val newNode = new FNode(elem,key)
-    if (elem == "j") special = newNode
-    nodeMap += (elem -> newNode)
-    addToRoot(newNode)
-    n = n + 1
+    if (!nodeMap.isDefinedAt(elem)) {
+      val newNode = new FNode(elem,key)
+      addNodeMap(elem,newNode)
+      addToRoot(newNode)
+      n = n + 1
+    }
   }
   
   def minimum: Option[T1] = min match {
@@ -67,14 +68,11 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     }))
   }
   
-  val deleted = scala.collection.mutable.Set[FNode]()
-  
   def extractMin: Option[T1] = min match {
     case None => None
     case Some(minNode) => {
-      
+      nodeMap -= (minNode.element)
 //      if (deleted.contains(minNode)) println("extracting deleted: " + minNode)
-      deleted += minNode
       addAllChildToRoot(minNode)
       val r = minNode.right
       minNode.remove
@@ -142,17 +140,22 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
 //    println("parent: " + parent.toString(true))
   }
   
+  def accessNodeMap(elem: T1) = nodeMap.get(elem)
+  
   def decreaseKey(elem: T1, value: T2) {
-    nodeMap.get(elem) match {
+    accessNodeMap(elem) match {
       
       case Some(elemNode) if (elemNode.key > value) => { //otherwise current value is already smaller
+        
         elemNode.key = value
         elemNode.parent match {
           
           case Some(y) if (y.key > value) => {
+            
 //            println("parent of " + elemNode + " is " + y)
 //            println("at this point child of " + special + " = " + special.child)
             cut(elemNode,y)
+            
             cascading_cut(y)
           }
           case Some(y) => // println(y + " < " + elemNode)
@@ -163,9 +166,17 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       case None => 
     }
     min match {
-      case Some(m) if (m.key > value) => min = nodeMap.get(elem)
+      case Some(m) if (m.key > value) => {
+        
+        min = accessNodeMap(elem)
+      }
       case _ => 
     }
+//    println(min)
+//    println(nodeMap.map(n => n._1 + " ch: " + n._2.child).mkString(","))
+//    println(nodeMap.map(n => n._1 + " parent: " + n._2.parent).mkString(","))
+//    println(nodeMap.map(n => n._1 + " left: " + n._2.left).mkString(","))
+//    println(nodeMap.map(n => n._1 + " right: " + n._2.right).mkString(","))
   }
   
   def cut(x: FNode, y: FNode) = {
@@ -191,16 +202,12 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
 //    println("after cascadind cut child of " + special + " = " + special.child)
   }
   
-  def delete(elem: T1) = nodeMap.get(elem) match {
+  def delete(elem: T1) = accessNodeMap(elem) match {
     case None =>
     case Some(node) => {
       decreaseKey(elem, absoluteMin)
       extractMin
     }
-  }
-  
-  def printSpecial = {
-    println("now " + special + " = " + special.child)
   }
   
   def isEmpty: Boolean = !min.isDefined
@@ -212,10 +219,9 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
         str = str.concat(" EMPTY "); return str
       }
       case Some(minNode) => {
-        val c = min.get
-        str =str.concat("\n-").concat("min " + c.toTreeString("\t",1))
-        c.asSequence().foreach({sib =>
-          if (sib != c) str =str.concat("\n-").concat(sib.toTreeString("\t",1))
+        str =str.concat("\n-").concat("min " + minNode.toTreeString("\t",1))
+        minNode.asSequence().foreach({sib =>
+          if (sib != minNode) str =str.concat("\n-").concat(sib.toTreeString("\t",1))
         })
         str
       }
@@ -264,8 +270,10 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     def removeChild(that: FNode) = child match {
       case None => 
       case Some(ch) => {
-        if (ch.right == ch) this.child = None
-        else this.child = Some(ch.right)
+        if (that.right == that) this.child = None
+        else this.child = {
+          Some(that.right)
+        }
       }
       that.remove
     }
@@ -313,6 +321,7 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     @tailrec
     final def asSequence(initSeq: List[FNode] = List()): List[FNode] = {
       require(this == left.right && this == right.left)
+//      println("here in asSequence for " + this + " m: " + min)
       if (initSeq.size > 0) {
 //        println(this.left + " <-> " + this + " <-> " + this.right + " iSH: "+ initSeq.head)
         if (initSeq.last == this) initSeq

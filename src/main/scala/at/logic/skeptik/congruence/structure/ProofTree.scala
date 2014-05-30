@@ -103,12 +103,13 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     val (t1,eq,t2) = path.head
     var end = false
     val realEq = eq.getOrElse({
-      val x = EqW(t1,t2) //Probably causing bugs!
+      val x = EqW(t1,t2,false) //Probably causing bugs!
 //      if (x.toString == "((f1 c_1) = (f1 (f1 c_2 c_3)))") println("creating ((f1 c_1) = (f1 (f1 c_2 c_3))) in explainAlongPath")
 //      if (x.toString == "((f1 c_1) = (f1 (f1 c_2 c_3)))") println("creating ((f1 c_1) = (f1 (f1 c_2 c_3))) in explainAlongPath")
       x
     })
     val deduceTrees = buildDD(t1,eq,t2)
+//    println(eq + " real eq: " + realEq)
     val eqL = EqLabel(realEq,deduceTrees)
     val nextEdge = if (path.size > 1)
       explainAlongPath(path.tail)

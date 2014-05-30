@@ -24,6 +24,14 @@ class FibonacciCongruence (
   }
 }
 
+object FibonacciCongruence {
+  
+  def apply(implicit eqReferences: MMap[(E,E),EqW]) = {
+    new FibonacciCongruence(new FindTable(),Queue[(E,E)](),new WEqGraph)
+  }
+  
+}
+
 class ArrayCongruence ( 
     find: FindTable, 
     deduced: Queue[(E,E)], 
