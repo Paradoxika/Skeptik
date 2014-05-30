@@ -81,12 +81,41 @@ trait SPASSParsers
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-      println("Parsed: " + ln + ":" + ay)
-      println("Computed: " + ln + ":" + ax)
+//      println("Parsed: " + ln + ":" + ay)
+//      println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       ax
     }
+    case ~(~(~(~(~(~(~(ln, _), _), _), "MRR:"), refs), _), seq) => {
+      def firstRef = refs.head
+      def secondRef = refs.tail.head
+      def firstNode = firstRef.first
+      def secondNode = secondRef.first
 
+      def firstFormula = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
+      def secondFormula = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
+
+      val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
+      val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
+
+      println("Attempting to parse line " + ln)
+            println("First premise: " + firstPremise)
+            println("First formula: " + firstFormula)
+            println("Second premise: " + secondPremise)
+            println("Second formula: " + secondFormula)
+
+      val ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+
+      val parsedAnte = addAntecedents(seq._1)
+      val parsedSucc = addSuccedents(seq._2)
+      val parsedFinal = parsedAnte union parsedSucc
+
+      val ay = new Axiom(parsedFinal)
+      println("Parsed MRR: " + ln + ":" + ay)
+      println("Computed MRR: " + ln + ":" + ax)
+      proofMap += (ln -> ax)
+      ax
+    }
     //For now, treat the other inference rules as new axioms
     case ~(~(~(~(~(~(~(ln, _), _), _), _), refs), _), seq) => {
 
