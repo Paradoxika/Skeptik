@@ -68,12 +68,11 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
-      println("Attempting to parse line " + ln)
-
-      //      println("First premise: " + firstPremise)
-      //      println("First formula: " + firstFormula)
-      //      println("Second premise: " + secondPremise)
-      //      println("Second formula: " + secondFormula)
+//      println("Attempting to parse line " + ln)
+//            println("First premise: " + firstPremise)
+//            println("First formula: " + firstFormula)
+//            println("Second premise: " + secondPremise)
+//            println("Second formula: " + secondFormula)
 
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
