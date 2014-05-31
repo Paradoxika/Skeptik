@@ -38,6 +38,7 @@ trait SPASSParsers
       //      println(exprMap)
       val p = Proof(list.last)
       exprMap = new MMap[String, E]
+      lineCounter = 0
       p
     }
   }
@@ -49,7 +50,7 @@ trait SPASSParsers
     }
   }
 
-  def line: Parser[Node] = lineNum ~ "[" ~ number ~ ":" ~ inferenceRule ~ rep(lineRef) ~ "] ||" ~ sequent ^^ {
+  def line: Parser[Node] = lineNum ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref,",") ~ "] ||" ~ sequent ^^ {
     //TODO: needs to change to use unifying resolution & other inference rules
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
       val sA = addAntecedents(seq._1)
@@ -208,12 +209,6 @@ trait SPASSParsers
     }
   }
 
-  def lineRef: Parser[Ref] = (refComma | ref)
-
-  def refComma: Parser[Ref] = ref ~ "," ^^ {
-    case ~(r, _) => r
-  }
-
   def ref: Parser[Ref] = number ~ "." ~ number ^^ {
     case ~(~(a, _), b) => {
       new Ref(a, b)
@@ -227,7 +222,7 @@ trait SPASSParsers
   //TODO: get complete list from SPASS documentation
   def inferenceRule: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:"
 
-  def func: Parser[E] = name ~ "(" ~ rep(arg) ~ ")" ^^ {
+  def func: Parser[E] = name ~ "(" ~ repsep(term, ",") ~ ")" ^^ {
     case ~(~(~(name, _), args), _) => {
       val arrow = getArrow(args)
       AppRec(new Var(name, arrow), args)
@@ -242,12 +237,6 @@ trait SPASSParsers
     } else {
       throw new ParserException("Arrow creation failed")
     }
-  }
-
-  def arg: Parser[E] = (termComma | term)
-
-  def termComma: Parser[E] = term ~ "," ^^ {
-    case ~(t, _) => t
   }
 
   def num: Parser[E] = """\d+""".r ^^ {
