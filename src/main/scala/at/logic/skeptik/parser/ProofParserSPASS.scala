@@ -19,7 +19,8 @@ object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 trait SPASSParsers
   extends JavaTokenParsers with RegexParsers {
 
-  var count = 1; //TODO: make private again; public only for debugging.
+  private var count = 1 //the count of the line as given by the SPASS proof
+  private var lineCounter = 0 //the actual line number, as in the file
 
   private var proofMap = new MMap[Int, Node]
 
@@ -32,12 +33,19 @@ trait SPASSParsers
   //returns the actual proof
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {
-      println("parsed! " + count)
+      println("Parsed line labelled " + count + "; done.")
       //      println(varMap)
       //      println(exprMap)
       val p = Proof(list.last)
       exprMap = new MMap[String, E]
       p
+    }
+  }
+
+  def updateLineCounter = {
+    lineCounter += 1
+    if (lineCounter % 50 == 0) {
+      println("Parsed " + lineCounter + " lines.")
     }
   }
 
@@ -52,7 +60,8 @@ trait SPASSParsers
 
       val ax = new Axiom(sFinal)
       proofMap += (ln -> ax)
-      println("line: " + ln + " " + ax)
+      //      println("line: " + ln + " " + ax)
+      updateLineCounter
       ax
     }
 
@@ -68,11 +77,11 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
-//      println("Attempting to parse line " + ln)
-//            println("First premise: " + firstPremise)
-//            println("First formula: " + firstFormula)
-//            println("Second premise: " + secondPremise)
-//            println("Second formula: " + secondFormula)
+      //      println("Attempting to parse line " + ln)
+      //            println("First premise: " + firstPremise)
+      //            println("First formula: " + firstFormula)
+      //            println("Second premise: " + secondPremise)
+      //            println("Second formula: " + secondFormula)
 
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
@@ -81,9 +90,10 @@ trait SPASSParsers
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-//      println("Parsed: " + ln + ":" + ay)
-//      println("Computed: " + ln + ":" + ax)
+      //      println("Parsed: " + ln + ":" + ay)
+      //      println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
+      updateLineCounter
       ax
     }
     case ~(~(~(~(~(~(~(ln, _), _), _), "MRR:"), refs), _), seq) => {
@@ -98,38 +108,42 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
-      var thirdPremise = null.asInstanceOf[Node]
-      if(firstNode == secondNode){
-        val thirdRef = refs.tail.tail.head
-        val thirdNode = thirdRef.first
-        println(thirdNode)
-        thirdPremise = proofMap.getOrElse(thirdNode, throw new Exception("Error!"))
-     }
-      
-      println("Attempting to parse line " + ln)
-            println("First premise: " + firstPremise)
-            println("First formula: " + firstFormula)
-            println("Second premise: " + secondPremise)
-            println("Second formula: " + secondFormula)
+      var lastPremise = null.asInstanceOf[Node]
+      if (firstNode == secondNode) {
+        val lastRef = refs.last
+        val lastNode = lastRef.first
+        lastPremise = proofMap.getOrElse(lastNode, throw new Exception("Error!"))
+      }
+
+      //      println("Attempting to parse line " + ln)
+      //            println("First premise: " + firstPremise)
+      //            println("First formula: " + firstFormula)
+      //            println("Second premise: " + secondPremise)
+      //            println("Second formula: " + secondFormula)
 
       var ax = null.asInstanceOf[Node]
-      if(firstNode != secondNode){
-         ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+      if (firstNode != secondNode) {
+        ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
       } else {
-        println("third premise: " + thirdPremise)
-         var axA = UnifyingResolutionMRR(thirdPremise, firstPremise)(vars)
-          var axB = UnifyingResolutionMRR(thirdPremise, secondPremise)(vars)
-          ax = axA // UnifyingResolution(axA, axB)(vars) //need something like this?
+        var axA = UnifyingResolutionMRR(lastPremise, firstPremise)(vars)
+        var axB = UnifyingResolutionMRR(lastPremise, secondPremise)(vars)
+        //Since all examples so far have the first two premises referencing the same line, I'm doing this:
+        if (axA.conclusion.suc.length == 0 && axA.conclusion.suc.length == 0) {
+          ax = axA //  UnifyingResolution(axB, axA)(vars) //need something like this?
+        } else {
+          throw new ParserException("MRR invalid form")
+        }
       }
-      
+
       val parsedAnte = addAntecedents(seq._1)
       val parsedSucc = addSuccedents(seq._2)
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-      println("Parsed MRR: " + ln + ":" + ay)
-      println("Computed MRR: " + ln + ":" + ax)
+      //      println("Parsed MRR: " + ln + ":" + ay)
+      //      println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
+      updateLineCounter
       ax
     }
     //For now, treat the other inference rules as new axioms
@@ -167,7 +181,7 @@ trait SPASSParsers
 
       addToExprMap(count, addToExprMap(count, 0, a), s)
 
-      if (count % 500 == 0) { println(count + " lines parsed") }
+      updateLineCounter
       (a, s)
     }
   }
@@ -213,44 +227,27 @@ trait SPASSParsers
   //TODO: get complete list from SPASS documentation
   def inferenceRule: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:"
 
-  def func: Parser[E] = equals | max | userDef | lessEquals | greaterEquals | max2
-
-  def equals: Parser[E] = "eq(" ~ term ~ "," ~ term ~ ")" ^^ {
-    case ~(~(~(~(_, first), _), second), _) => {
-      App(App(Var("eq", i -> (i -> o)), first), second)
+  def func: Parser[E] = name ~ "(" ~ rep(arg) ~ ")" ^^ {
+    case ~(~(~(name, _), args), _) => {
+      val arrow = getArrow(args)
+      AppRec(new Var(name, arrow), args)
     }
   }
 
-  def lessEquals: Parser[E] = "le(" ~ term ~ "," ~ term ~ ")" ^^ {
-    case ~(~(~(~(_, first), _), second), _) => {
-      App(App(Var("le", i -> (i -> o)), first), second)
+  def getArrow(args: List[E]): Arrow = {
+    if (args.length > 1) {
+      i -> (getArrow(args.tail))
+    } else if (args.length == 1) {
+      (i -> i)
+    } else {
+      throw new ParserException("Arrow creation failed")
     }
   }
 
-  def greaterEquals: Parser[E] = "ge(" ~ term ~ "," ~ term ~ ")" ^^ {
-    case ~(~(~(~(_, first), _), second), _) => {
-      App(App(Var("ge", i -> (i -> o)), first), second)
-    }
-  }
+  def arg: Parser[E] = (termComma | term)
 
-  def max: Parser[E] = "max(" ~ term ~ "," ~ term ~ "," ~ term ~ ")" ^^ {
-    case ~(~(~(~(~(~(_, first), _), second), _), last), _) => {
-      AppRec(new Var("max", i -> (i -> (i -> i))), List(first, second, last))
-    }
-
-  }
-
-  def max2: Parser[E] = "max(" ~ term ~ "," ~ term ~ ")" ^^ {
-    case ~(~(~(~(_, first), _), second), _) => {
-      AppRec(new Var("max", i -> (i -> i)), List(first, second))
-    }
-
-  }
-
-  def userDef: Parser[E] = name ~ "(" ~ term ~ ")" ^^ {
-    case ~(~(~(name, _), arg), _) => {
-      new App(new Var(name, i -> i), arg)
-    }
+  def termComma: Parser[E] = term ~ "," ^^ {
+    case ~(t, _) => t
   }
 
   def num: Parser[E] = """\d+""".r ^^ {
@@ -261,13 +258,7 @@ trait SPASSParsers
 
   def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
 
-  def term: Parser[E] = (negTerm | func | num | variable)
-
-  def negTerm: Parser[E] = "(~ " ~ term ~ ")" ^^ {
-    case ~(~(_, t), _) => {
-      t //TODO: should actually apply the '~' before returning it
-    }
-  }
+  def term: Parser[E] = (func | num | variable)
 
   def variable: Parser[E] = name ^^ {
     case s => {
@@ -314,6 +305,8 @@ trait SPASSParsers
   }
 
 }
+
+case class ParserException(error: String) extends Exception
 
 class Ref(f: Int, s: Int) {
   def first = f

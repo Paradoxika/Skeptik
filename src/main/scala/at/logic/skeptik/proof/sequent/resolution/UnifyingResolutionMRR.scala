@@ -28,7 +28,7 @@ class UnifyingResolutionMRR(val leftPremise: SequentProofNode, val rightPremise:
   val (leftPremiseR: Sequent, rightPremiseR: Sequent, auxLR: E, auxRR: E) = {
     (leftPremise.conclusion, rightPremise.conclusion, auxL, auxR)
   }
-  
+
   val mgu = unify((auxLR, auxRR) :: Nil) match {
     case None => {
       throw new Exception("Resolution: given premise clauses are not resolvable.")
@@ -57,8 +57,8 @@ object UnifyingResolutionMRR {
       case None => false
       case Some(_) => true
     }
-//          println("mrr: " + leftPremiseClean + " and " + rightPremiseClean)
-//println("mrr: " + leftPremiseClean.conclusion.ant + " and " + rightPremiseClean.conclusion.suc )
+    //          println("mrr: " + leftPremiseClean + " and " + rightPremiseClean)
+    //println("mrr: " + leftPremiseClean.conclusion.ant + " and " + rightPremiseClean.conclusion.suc )
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
@@ -175,9 +175,6 @@ object UnifyingResolutionMRR {
 
       val seqOut = sS union sA
       val axOut = Axiom(seqOut)
-
-      //TODO: not sure if I can just use a new proof node; this one won't be in the proofMap of the parser. 
-      //	Is that going to effect anything? Check.
 
       fixSharedNoFilter(axOut, rightPremiseR, count + 1, unifiableVariables) //recursively call the function so that any more shared variables are also dealt with
     } else { //sharedVars.size  < 1
