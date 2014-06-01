@@ -13,7 +13,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class UnifyingResolutionMRR(val leftPremise: SequentProofNode, val rightPremise: SequentProofNode,
-  val auxL: E, val auxR: E)(implicit unifiableVariables: MSet[Var])
+  val auxL: E, val auxR: E, val leftClean: SequentProofNode)(implicit unifiableVariables: MSet[Var])
   extends SequentProofNode with Binary
   with NoMainFormula {
 
@@ -38,15 +38,15 @@ class UnifyingResolutionMRR(val leftPremise: SequentProofNode, val rightPremise:
     }
   }
   override val conclusionContext = {
-    val antecedent = leftPremise.conclusion.ant.map(e => mgu(e))
-    val succedent = (leftPremise.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
+    val antecedent = leftClean.conclusion.ant.map(e => mgu(e))
+    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
     new Sequent(antecedent, succedent)
   }
 }
 
 object UnifyingResolutionMRR {
-  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR)
+//  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR)
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
 
     val cleanNodes = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
@@ -62,7 +62,7 @@ object UnifyingResolutionMRR {
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
-      new UnifyingResolutionMRR(leftPremiseClean, rightPremiseClean, auxL, auxR)
+      new UnifyingResolutionMRR(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)
     } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
     else throw new Exception("Resolution: the resolvent is ambiguous.")
   }

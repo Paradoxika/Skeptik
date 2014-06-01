@@ -13,7 +13,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: SequentProofNode,
-  val auxL: E, val auxR: E, leftClean: SequentProofNode)(implicit unifiableVariables: MSet[Var])
+  val auxL: E, val auxR: E, val leftClean: SequentProofNode)(implicit unifiableVariables: MSet[Var])
   extends SequentProofNode with Binary
   with NoMainFormula {
 
