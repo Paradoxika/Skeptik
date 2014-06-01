@@ -50,7 +50,7 @@ trait SPASSParsers
     }
   }
 
-  def line: Parser[Node] = lineNum ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref,",") ~ "] ||" ~ sequent ^^ {
+  def line: Parser[Node] = number ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref,",") ~ "] ||" ~ sequent ^^ {
     //TODO: needs to change to use unifying resolution & other inference rules
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
       val sA = addAntecedents(seq._1)
@@ -200,13 +200,6 @@ trait SPASSParsers
   }
   def termType2: Parser[E] = term ~ "+" ^^ {
     case ~(t, _) => t
-  }
-
-  def lineNum: Parser[Int] = number ^^ {
-    case n => {
-      count = n
-      n
-    }
   }
 
   def ref: Parser[Ref] = number ~ "." ~ number ^^ {
