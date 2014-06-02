@@ -37,8 +37,10 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       u
     }
   }
+  
+  //ALTERNATIVELY: if we have mgu variables appearing ONLY in the left, then just use the contraction
   override val conclusionContext = {
-    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
+    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++ 
       (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
@@ -53,18 +55,12 @@ object UnifyingResolution {
     val cleanNodes = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
     val leftPremiseClean = cleanNodes._1
     val rightPremiseClean = cleanNodes._2
-//    val s = Substitution(( Var("K", i), Var("U", i)))
-//    println("a " + leftPremise.conclusion)
-   // leftPremise.conclusion.suc.foldLeft(E)(s) = s(leftPremise.conclusion.suc.head)
-//    println("b " + leftPremise.conclusion.suc.head)
-//    println(leftPremiseClean.conclusion + "\n" + leftPremiseClean.mainFormulas)
-//    val a  = leftPremiseClean.mainFormulas
-    
+
     def isUnifiable(p: (E, E)) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(_) => true
     }
-    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)

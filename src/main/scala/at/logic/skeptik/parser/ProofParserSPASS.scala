@@ -91,8 +91,8 @@ trait SPASSParsers
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-//            println("Parsed: " + ln + ":" + ay)
-//            println("Computed: " + ln + ":" + ax)
+            println("Parsed: " + ln + ":" + ay)
+            println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
@@ -124,7 +124,8 @@ trait SPASSParsers
 
       var ax = null.asInstanceOf[Node]
       if (firstNode != secondNode) {
-        ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+        //THIS CHANGED
+        ax = UnifyingResolution(firstPremise, secondPremise)(vars)
       } else {
         var axA = UnifyingResolutionMRR(lastPremise, firstPremise)(vars)
         var axB = UnifyingResolutionMRR(lastPremise, secondPremise)(vars)
@@ -141,8 +142,8 @@ trait SPASSParsers
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-      //      println("Parsed MRR: " + ln + ":" + ay)
-      //      println("Computed MRR: " + ln + ":" + ax)
+            println("Parsed MRR: " + ln + ":" + ay)
+            println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
