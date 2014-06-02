@@ -12,7 +12,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
-class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MSet[Var])
+class Contraction(val premise: SequentProofNode, val newAnt: Seq[E])(implicit unifiableVariables: MSet[Var])
   extends SequentProofNode with Unary
   with NoMainFormula {
 
@@ -20,7 +20,7 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
   def auxFormulas = ???
 
   override val conclusionContext = {
-    val antecedent = premise.conclusion.ant
+    val antecedent = newAnt
     val succedent = premise.conclusion.suc
     new Sequent(antecedent, succedent)
   }
@@ -28,48 +28,62 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
 
 object Contraction {
   def apply(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
-    println(contract(premise)(unifiableVariables))
-    new Contraction(premise) //TODO: change this to the real thing
+    //println(contract(premise)(unifiableVariables))
+    new Contraction(premise, contract(premise)(unifiableVariables)) 
   }
 
-  def contract(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): List[Substitution] = {
+  def contract(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): Seq[E] = {
     //Want to do pair-wise comparison for formulas in the antecedent of the premise
     val ant = premise.conclusion.ant
 
+    var first = 0
+    var second = 0
+    
     var change = null.asInstanceOf[List[Substitution]]
 
     //Check if the current head matches the rest of the antecedent
-    def checkHead(h: E, t: Seq[E]): Boolean = {
+    def checkHead(h: E, t: Seq[E], start: Int): (Boolean, Int) = {
       if (t.length == 0) {
-        return false
+        return (false, -1)
       } else {
+        second += 1
         val (replacements, matched) = contractPair(h, t.head)
         if (matched) {
           change = replacements
-          matched
+          (true, start)
         } else {
-          checkHead(h, t.tail)
+          checkHead(h, t.tail, start+1)
         }
       }
     }
 
-    def checkAllPairs(ant: Seq[E]): Boolean = {
+    def checkAllPairs(ant: Seq[E], start: Int): (Boolean, Int, Int) = {
       if (ant.length == 0) {
-        return false
+        return (false, -1, -1)
       }
       val h = ant.head
       //If the head did not match anything else, check the rest
-      if (!checkHead(h, ant.tail)) {
-        checkAllPairs(ant.tail)
+      val result = checkHead(h, ant.tail, start+1)
+      if (!result._1) {
+        checkAllPairs(ant.tail, start+1)
 
         //if it did, we found a match, return true.
       } else {
-        return true
+        return (true, start,result._2)
       }
     }
-
-    checkAllPairs(ant)
-    change
+    
+    val temp = checkAllPairs(ant,0)
+    
+    def removeNth(ant: Seq[E], n: Int, step: Int) : List[E] = {
+      if(n == step){
+        (ant.tail).toList
+      } else {
+        List(ant.head) ++ removeNth(ant.tail, n, step+1)
+      }
+    }    
+    
+    removeNth(premise.conclusion.ant, temp._3, 0).toSeq
 
   }
 
@@ -131,8 +145,6 @@ object Contraction {
     case v1: Var => {
       f2 match {
         case v2: Var => {
-          println("names: " + v1 + " and " + v2)
-
           //Something is going wrong here, when it probably should not be.
           val hasLowerCase1 = v1.name.exists(_.isLower)
           val notAnInt1 = v1.name.charAt(0).isLetter

@@ -32,7 +32,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val seqF2 = Sequent(f2)()
   val seq = f1 +: seqF2
   
-  println(seq)
+//  println(seq)
   
   val premise = new Axiom(seq)
 
@@ -41,10 +41,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
   
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
-      
-      //TODO: change these
-//     println("ur: " + ur.conclusion)
-      Sequent(App(Var("p", i -> i), Var("NEW0", i)))() must beEqualTo(ur.conclusion)
-    } 
+//           println("ur: " + ur.conclusion)
+      Sequent(f2)() must beEqualTo(ur.conclusion)
+    } //TODO: add a test case when contraction is not applicable. 
   }
 }
