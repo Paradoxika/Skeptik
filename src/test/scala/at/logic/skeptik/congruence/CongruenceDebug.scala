@@ -69,8 +69,8 @@ object CongruenceDebug {
     
     println("set: " + set)
     
-//    var con: Congruence = FibonacciCongruence(eqReferences)
-    var con: Congruence = new ProofTreeCongruence()
+    var con: Congruence = FibonacciCongruence(eqReferences)
+    var con2: Congruence = new ProofTreeCongruence()
     
     testcase match {
       
@@ -83,6 +83,12 @@ object CongruenceDebug {
         
         println(path)
         println(path.get.toProof)
+        
+        con2 = con2.addEquality(EqW(a,b,false)).addEquality(EqW(b,a,false)).addNode(t1).addNode(t2)
+        val path2 = con2.explain(t1,t2)
+        
+        println(path2)
+        println(path2.get.toProof)
       }
       
       case -2 => {

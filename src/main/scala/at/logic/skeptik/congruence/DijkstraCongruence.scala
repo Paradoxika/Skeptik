@@ -58,31 +58,40 @@ abstract class DijkstraCongruence (
   def newDijkstra: EquationDijkstra
   
   def resolveDeduced(u: E, v: E): Congruence = {
-    u match {
-      case App(u1,u2) => {
-        v match {
-          case App(v1,v2) => {
-            val path1 = 
-              if (u1 == v1) new EquationPath(u1,None)
-              else callDijkstra(u1,v1,g.graph)
-            val path2 = 
-              if (u2 == v2) new EquationPath(u2,None)
-              else callDijkstra(u2,v2,g.graph)
-            val eq1 = path1.originalEqs
-            val eq2 = path2.originalEqs
-            val eqAll = eq1 union eq2
-           
-            val weight = eqAll.size
-            val x = EqW(u,v)
-//            println((u1,v1) + " : " + path1)
-//            println((u2,v2) + " : " + path2)
-            val eqLabel = EqLabel(x,Set(path1,path2))
-            updateGraph(g.addEdge(u, v, eqLabel, weight))
-          }
-          case _ => this
-        }
+    val paths = buildDD(u,None,v)
+    val eqAll = paths.foldLeft(Set[EqW]())({(A,B) => 
+      A union B.originalEqs
+    })
+    val weight = eqAll.size
+    val eqLabel = EqLabel(EqW(u,v),paths)
+    updateGraph(g.addEdge(u, v, eqLabel, weight))
+  }
+    
+  def subterms(term: E): Seq[E] = term match {
+    case App(u,v) => uncurriedTerms(u) ++ uncurriedTerms(v)
+    case _ => Seq()
+  }
+  
+  def uncurriedTerms(term: E): Seq[E] = term.t match {
+    case Arrow(_,_) => {
+      term match {
+        case App(u,v) => uncurriedTerms(u) ++ uncurriedTerms(v)
+        case _ => Seq()
       }
-      case _ => this
+    }
+    case _ => Seq(term)
+  }
+  
+  def buildDD(t1: E, eq: Option[EqW], t2: E)(implicit eqReferences: MMap[(E,E),EqW]) = eq match {
+    case None => {
+      val (sub1,sub2) = (subterms(t1),subterms(t2))
+      require(sub1.size == sub2.size)
+      val explOpts = (sub1 zip sub2).map(tuple => explain(tuple._1,tuple._2))
+      explOpts.filter(_.isDefined).map(_.get).toSet
+    }
+    case Some(_) => {
+//        println("skipping deduce trees!")
+      Set[EquationPath]()
     }
   }
   
