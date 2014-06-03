@@ -22,6 +22,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val two = new Var("2", i)
   usedVars += x
 
+  
+  //First test case
   //(eq (f X) 2), (eq (f NEW2) 2) ⊢
   val f1 = AppRec(e, List(App(f, x), two))
   val f2 = AppRec(e, List(App(f, n), two))
@@ -36,13 +38,29 @@ class ContractionSpecification extends SpecificationWithJUnit {
   
   val premise = new Axiom(seq)
 
-  val ur = Contraction(premise)(usedVars)
+  val con = Contraction(premise)(usedVars)
 
+  
+  //Second test case
+  //(eq X 2), (eq (f NEW2) 2) ⊢
+  val f1B = AppRec(e, List(x, two))
+  val f2B = AppRec(e, List(App(f, n), two))
+  
+  val seqF2B = Sequent(f2B)()
+  val seqB = f1B +: seqF2B
+  
+  val premiseB = new Axiom(seqB)
+
+  val conB = Contraction(premiseB)(usedVars)
   
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
 //           println("ur: " + ur.conclusion)
-      Sequent(f2)() must beEqualTo(ur.conclusion)
-    } //TODO: add a test case when contraction is not applicable. 
+      Sequent(f2)() must beEqualTo(con.conclusion)
+    } 
+     "return the correct resolvent when no contraction is possible" in {
+//           println("conB: " + ur.conclusion)
+      seqB must beEqualTo(conB.conclusion)
+    } 
   }
 }

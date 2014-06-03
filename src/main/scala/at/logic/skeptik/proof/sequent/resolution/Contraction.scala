@@ -82,8 +82,12 @@ object Contraction {
         List(ant.head) ++ removeNth(ant.tail, n, step+1)
       }
     }    
-    
-    removeNth(premise.conclusion.ant, temp._3, 0).toSeq
+
+    if(temp._3 != -1){
+      removeNth(premise.conclusion.ant, temp._3, 0).toSeq
+    } else {
+      premise.conclusion.ant
+    }
 
   }
 
