@@ -5,7 +5,7 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
+import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference,EqCongruent,EqTransitive,EqReflexive,EqSymmetry}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -37,8 +37,22 @@ extends JavaTokenParsers with RegexParsers {
     }
     case wl => throw new Exception("Wrong line " + wl)
   }
-
-  def inference: Parser[Node] = (resolution | axiom | unchecked)
+  
+  def equality: Parser[Node] = (eq_congruent | eq_reflexive | eq_transitive)
+  
+  def eq_congruent: Parser[Node] = "eq_congruent" ~> conclusion ^^ {
+    list => new EqCongruent(list)
+  }
+  
+  def eq_reflexive: Parser[Node] = "eq_reflexive" ~> conclusion ^^ {
+    list => new EqReflexive(list)
+  }
+  
+  def eq_transitive: Parser[Node] = "eq_transitive" ~> conclusion ^^ {
+    list => new EqTransitive(list)
+  }
+  
+  def inference: Parser[Node] = (resolution | axiom | equality |unchecked)
   def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ {
 //    list => resolveClauses(list)
     list => {
