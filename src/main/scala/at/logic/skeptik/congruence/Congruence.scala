@@ -26,7 +26,7 @@ abstract class Congruence(
     val find: FindTable, 
     val deduced: Queue[(E,E)], 
     val g: CongruenceGraph)
-    (implicit eqReferences: MMap[(E,E),EqW]) {
+    (implicit eqReferences: MMap[(E,E),EqW]) extends AbstractCongruence {
   
   def newCon(find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph)(implicit eqReferences: MMap[(E,E),EqW]): Congruence
   

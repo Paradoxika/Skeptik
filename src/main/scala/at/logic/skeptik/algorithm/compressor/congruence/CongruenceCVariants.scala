@@ -1,29 +1,7 @@
 package at.logic.skeptik.algorithm.compressor.congruence
 
-import scala.collection.mutable.{HashMap => MMap}
-import scala.collection.immutable.Queue
+
 import at.logic.skeptik.congruence._
-import at.logic.skeptik.congruence.structure.EqW
-import at.logic.skeptik.expression.E
-import at.logic.skeptik.congruence.structure._
-
-trait ArrayCompressor {
-  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ArrayCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
-  }
-}
-
-trait FibonacciCompressor {
-  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new FibonacciCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
-  }
-}
-
-trait ProofTreeCompressor {
-  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ProofTreeCongruence(new FindTable(), Queue[(E,E)](), ProofForest())
-  }
-}
 
 trait global {
   def globalAxioms = true
@@ -33,16 +11,23 @@ trait local {
   def globalAxioms = false
 }
 
-object ArrayC extends CongruenceCompressor with ArrayCompressor with local
+object ArrayC extends CongruenceCompressor with ArrayStructure with local
 
-object FibonacciC extends CongruenceCompressor with FibonacciCompressor with local
+object FibonacciC extends CongruenceCompressor with FibonacciStructure with local
 
-object ProofTreeC extends CongruenceCompressor with ProofTreeCompressor with local
+object ProofTreeC extends CongruenceCompressor with ProofTreeStructure with local
 
 
-object ArrayCNew extends CongruenceCompressorNew with ArrayCompressor
+object ArrayCNew extends CongruenceCompressorNew with ArrayStructure
 
-object FibonacciCNew extends CongruenceCompressorNew with FibonacciCompressor
+object FibonacciCNew extends CongruenceCompressorNew with FibonacciStructure
 
-object ProofTreeCNew extends CongruenceCompressorNew with ProofTreeCompressor
+object ProofTreeCNew extends CongruenceCompressorNew with ProofTreeStructure
+
+object ArrayCNewNew extends CongruenceCompressorNew with ArrayStructureNew
+
+object FibonacciCNewNew extends CongruenceCompressorNew with FibonacciStructureNew
+
+object ProofTreeCNewNew extends CongruenceCompressorNew with ProofTreeStructureNew
+
 

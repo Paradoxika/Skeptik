@@ -22,7 +22,7 @@ import at.logic.skeptik.congruence.structure.EquationPath
 
 abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
   
-  def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence
+  def newCon(implicit eqReferences: MMap[(E,E),EqW]): AbstractCongruence
   
   def apply(proof: Proof[N]) = {
     implicit val eqReferences = MMap[(E,E),EqW]()

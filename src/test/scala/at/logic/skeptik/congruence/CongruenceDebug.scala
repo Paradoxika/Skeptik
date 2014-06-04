@@ -14,7 +14,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = -4
+    val testcase = -2
     
     val t = o
     
@@ -69,8 +69,9 @@ object CongruenceDebug {
     
     println("set: " + set)
     
-    var con: Congruence = FibonacciCongruence(eqReferences)
-    var con2: Congruence = new ProofTreeCongruence()
+//    var con: AbstractCongruence = FibonacciCongruence(eqReferences)
+    var con2: AbstractCongruence = new ProofTreeCongruence()
+    var con: AbstractCongruence = FibConNew(eqReferences)
     
     testcase match {
       
@@ -111,7 +112,8 @@ object CongruenceDebug {
         val v1 = App(z1,a)
         val v2 = App(z2,a)
         val eq1 = EqW(a,b)
-        con = con.addEquality(eq1).addExtraNode(v1).addExtraNode(v2)
+        println((v1,v2))
+        con = con.addEquality(eq1).addNode(v1).addNode(v2)
         val path = con.explain(v1, v2).get
         val proof = path.toProof.get
         println(proof)
@@ -127,7 +129,7 @@ object CongruenceDebug {
         val eq2 = EqW(b,d)
         val eq3 = EqW(c,e)
         println(t1 + ": " + t1.t + " and " + t2 + " : " + t2.t)
-        con = con.addEquality(eq1).addEquality(eq2).addEquality(eq3).addExtraNode(t1).addExtraNode(t2)
+        con = con.addEquality(eq1).addEquality(eq2).addEquality(eq3).addNode(t1).addNode(t2)
 //        con = con.addEquality(eq1).addEquality(eq2)
         println(con.g)
 //        
@@ -166,8 +168,6 @@ object CongruenceDebug {
 //        con = con.resolveDeducedQueue
         
         
-        
-        println(con.find)
         println(con.g)
         val path = con.explain(e,d).getOrElse(EquationPath(e,None))
     //    println(t1 + " = " + t2 + " because: " + con.explain(t1, t2).collectLabels)
@@ -195,14 +195,12 @@ object CongruenceDebug {
         con = con.addEquality(EqW(a1,c1))
         
 //        con.resolveDeduced
-        
-        println(con.find)
+
         println(con.g)
         
         val path = con.explain(a,c).getOrElse(EquationPath(a,None))
         println(a + " = " + c + " because: " + path.originalEqs)
         
-        con = con.resolveDeducedQueue
 //        con = con.resolveDeduced(t1, t2)
         val path2 = con.explain(a,c).getOrElse(EquationPath(a,None))
         println(a + " = " + c + " because: " + path2.originalEqs)
@@ -272,9 +270,7 @@ object CongruenceDebug {
 //        con = con.addEquality(Eq(c1,c2))
 //        con = con.addEquality(Eq(c2,c3))
 //        con = con.addEquality(Eq(c3,h))
-        
-        con = con.resolveDeducedQueue
-        
+
         val path2 = con.explain(a, b).getOrElse(EquationPath(a,None))
         println(con.g)
         println(a + " = " + b + " because: " + path2.originalEqs)
@@ -323,7 +319,6 @@ object CongruenceDebug {
         println(allEqs)
         
         con = con.addAll(allEqs)
-        con = con.resolveDeducedQueue
         
         val path = con.explain(t2,t6)
         println(path)
