@@ -14,7 +14,6 @@ import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import at.logic.skeptik.proof.sequent.resolution._
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
-
 object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 
 trait SPASSParsers
@@ -51,7 +50,7 @@ trait SPASSParsers
     }
   }
 
-  def line: Parser[Node] = number ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref,",") ~ "] ||" ~ sequent ^^ {
+  def line: Parser[Node] = number ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref, ",") ~ "] ||" ~ sequent ^^ {
     //TODO: needs to change to use unifying resolution & other inference rules
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
       val sA = addAntecedents(seq._1)
@@ -92,8 +91,8 @@ trait SPASSParsers
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-            println("Parsed: " + ln + ":" + ay)
-            println("Computed: " + ln + ":" + ax)
+      //            println("Parsed: " + ln + ":" + ay)
+      //            println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
@@ -127,17 +126,16 @@ trait SPASSParsers
       if (firstNode != secondNode) {
         //THIS CHANGED
         ax = UnifyingResolution(firstPremise, secondPremise)(vars)
-        
-        
+
         var con = Contraction(ax)(vars)
-        println("UR-MRR: " + ax)
-        println("UR-CON: " + con)
-        while(!con.conclusion.equals(ax.conclusion)){
+        //        println("UR-MRR: " + ax)
+        //        println("UR-CON: " + con)
+        while (!con.conclusion.equals(ax.conclusion)) {
           ax = con
           con = Contraction(ax)(vars)
-          println("UR-CON: " + con)
+          //          println("UR-CON: " + con)
         }
-        
+
       } else {
         var axA = UnifyingResolutionMRR(lastPremise, firstPremise)(vars)
         var axB = UnifyingResolutionMRR(lastPremise, secondPremise)(vars)
@@ -154,8 +152,8 @@ trait SPASSParsers
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-            println("Parsed MRR: " + ln + ":" + ay)
-            println("Computed MRR: " + ln + ":" + ax)
+      //            println("Parsed MRR: " + ln + ":" + ay)
+      //            println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax

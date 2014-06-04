@@ -22,7 +22,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   def rightAuxFormulas: SeqSequent = ???
 
   var isMRR = false
-  
+
   // When a unifiable variable X occurs in both premises, 
   // we must rename its occurrences in one of the premises to a new variable symbol Y
   // not occurring in any premise
@@ -39,40 +39,39 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       u
     }
   }
-  
+
   //ALTERNATIVELY: if we have mgu variables appearing ONLY in the left, then just use the contraction
   override val conclusionContext = {
-    
+
     val leftAntContainsMGU = containsMGUVariables(leftClean.conclusion.ant)
     val rightAntContainsMGU = containsMGUVariables(rightPremise.conclusion.ant)
-    
+
     val leftSucContainsMGU = containsMGUVariables(leftClean.conclusion.suc)
     val rightSucContainsMGU = containsMGUVariables(rightPremise.conclusion.suc)
-    
+
     val leftContainsMGU = leftAntContainsMGU || leftSucContainsMGU
     val rightContainsMGU = rightAntContainsMGU || rightSucContainsMGU
-    
-    if(leftContainsMGU && rightContainsMGU){
+
+    if (leftContainsMGU && rightContainsMGU) {
       //not an MRR instance
-    } else if (leftContainsMGU && !rightContainsMGU){
-      println("MRR instance!")
+    } else if (leftContainsMGU && !rightContainsMGU) {
+      //      println("MRR instance!")
       isMRR = true
     } else if (!leftContainsMGU && rightContainsMGU) {
-      println("MRR instance!")
+      //      println("MRR instance!")
       isMRR = true
     } //TODO: this is reporting MRR instance on cases where it's not expected to be one. This seems to be luck. 
     //...but would applying contraction in these cases break anything?
-    
-    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++ 
+
+    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
       (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
     new Sequent(antecedent, succedent)
   }
-  
-  
-  def containsMGUVariables(s: Seq[E]): Boolean ={
-   // println("" + s.map(e => mgu(e)) + "=?=" + s)
+
+  def containsMGUVariables(s: Seq[E]): Boolean = {
+    // println("" + s.map(e => mgu(e)) + "=?=" + s)
     !(s.map(e => mgu(e)).equals(s))
   }
 }

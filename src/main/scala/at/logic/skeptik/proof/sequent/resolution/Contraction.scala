@@ -29,7 +29,7 @@ class Contraction(val premise: SequentProofNode, val newAnt: Seq[E])(implicit un
 object Contraction {
   def apply(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
     //println(contract(premise)(unifiableVariables))
-    new Contraction(premise, contract(premise)(unifiableVariables)) 
+    new Contraction(premise, contract(premise)(unifiableVariables))
   }
 
   def contract(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): Seq[E] = {
@@ -38,7 +38,7 @@ object Contraction {
 
     var first = 0
     var second = 0
-    
+
     var change = null.asInstanceOf[List[Substitution]]
 
     //Check if the current head matches the rest of the antecedent
@@ -48,45 +48,45 @@ object Contraction {
       } else {
         second += 1
         val (replacements, matched) = contractPair(h, t.head)
-        println("replacements: " + replacements)
+        //        println("replacements: " + replacements)
         if (matched) {
           change = replacements
           (true, start)
         } else {
-          checkHead(h, t.tail, start+1)
+          checkHead(h, t.tail, start + 1)
         }
       }
     }
 
     def checkAllPairs(ant: Seq[E], start: Int): (Boolean, Int, Int) = {
-      println("in checkAllPairs")
+      //      println("in checkAllPairs")
       if (ant.length == 0) {
         return (false, -1, -1)
       }
       val h = ant.head
       //If the head did not match anything else, check the rest
-      val result = checkHead(h, ant.tail, start+1)
+      val result = checkHead(h, ant.tail, start + 1)
       if (!result._1) {
-        checkAllPairs(ant.tail, start+1)
+        checkAllPairs(ant.tail, start + 1)
 
         //if it did, we found a match, return true.
       } else {
-        return (true, start,result._2)
+        return (true, start, result._2)
       }
     }
-    
-    val temp = checkAllPairs(ant,0)
-    
-    println("removing " + temp._2 + " and " + temp._3)
-    def removeNth(ant: Seq[E], n: Int, step: Int) : List[E] = {
-      if(n == step){
+
+    val temp = checkAllPairs(ant, 0)
+
+    //    println("removing " + temp._2 + " and " + temp._3)
+    def removeNth(ant: Seq[E], n: Int, step: Int): List[E] = {
+      if (n == step) {
         (ant.tail).toList
       } else {
-        List(ant.head) ++ removeNth(ant.tail, n, step+1)
+        List(ant.head) ++ removeNth(ant.tail, n, step + 1)
       }
-    }    
+    }
 
-    if(temp._3 != -1){
+    if (temp._3 != -1) {
       removeNth(premise.conclusion.ant, temp._3, 0).toSeq
     } else {
       premise.conclusion.ant
