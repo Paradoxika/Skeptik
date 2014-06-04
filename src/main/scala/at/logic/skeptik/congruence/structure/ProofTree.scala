@@ -69,35 +69,7 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
       Some(x)
     }
   }
-  
-  def subterms(term: E): Seq[E] = term match {
-    case App(u,v) => uncurriedTerms(u) ++ uncurriedTerms(v)
-    case _ => Seq()
-  }
-  
-  def uncurriedTerms(term: E): Seq[E] = term.t match {
-    case Arrow(_,_) => {
-      term match {
-        case App(u,v) => uncurriedTerms(u) ++ uncurriedTerms(v)
-        case _ => Seq()
-      }
-    }
-    case _ => Seq(term)
-  }
-  
-  def buildDD(t1: E, eq: Option[EqW], t2: E)(implicit eqReferences: MMap[(E,E),EqW]) = eq match {
-    case None => {
-      val (sub1,sub2) = (subterms(t1),subterms(t2))
-      require(sub1.size == sub2.size)
-      val explOpts = (sub1 zip sub2).map(tuple => explain(tuple._1,tuple._2))
-      explOpts.filter(_.isDefined).map(_.get).toSet
-    }
-    case Some(_) => {
-//        println("skipping deduce trees!")
-      Set[EquationPath]()
-    }
-  }
-  
+    
   def explainAlongPath(path: List[(E,Option[EqW],E)])(implicit eqReferences: MMap[(E,E),EqW]): EquationPath = {
 //    println(path)
     val (t1,eq,t2) = path.head

@@ -14,7 +14,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = -2
+    val testcase = 4
     
     val t = o
     
@@ -72,6 +72,7 @@ object CongruenceDebug {
 //    var con: AbstractCongruence = FibonacciCongruence(eqReferences)
     var con2: AbstractCongruence = new ProofTreeCongruence()
     var con: AbstractCongruence = FibConNew(eqReferences)
+//    var con: AbstractCongruence = ProofTreeConNew(eqReferences)
     
     testcase match {
       
@@ -114,6 +115,7 @@ object CongruenceDebug {
         val eq1 = EqW(a,b)
         println((v1,v2))
         con = con.addEquality(eq1).addNode(v1).addNode(v2)
+        println("congruent?" + con.isCongruent(v1, v2))
         val path = con.explain(v1, v2).get
         val proof = path.toProof.get
         println(proof)

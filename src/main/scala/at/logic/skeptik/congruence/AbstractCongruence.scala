@@ -12,7 +12,7 @@ abstract class AbstractCongruence {
   
   def explain(u: E, v: E): Option[EquationPath]
   
-  def isCongruent(u: E, v: E)
+  def isCongruent(u: E, v: E): Boolean
   
   def g: CongruenceGraph
 }

@@ -27,7 +27,7 @@ class FibonacciCongruence (
 object FibonacciCongruence {
   
   def apply(implicit eqReferences: MMap[(E,E),EqW]) = {
-    new FibonacciCongruence(new FindTable(),Queue[(E,E)](),new WEqGraph)
+    new FibonacciCongruence(new FindTable(),Queue[(E,E)](),new FibonacciGraph)
   }
   
 }

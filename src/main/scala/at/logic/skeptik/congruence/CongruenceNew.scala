@@ -32,7 +32,7 @@ abstract class CongruenceNew(
             case Some(term) if (term != v) => {
               c1.merge(term,v,None)
             }
-            case _ => c1.updateLookup(c1.lookup.updated((c1.rep(a),c1.rep(b)), v))
+            case _ => c1.updateLookup(c1.lookup.updated((c1.rep(a),c1.rep(b)), v)) //maybe c1.rep(v) instead of v??
           }
           val rNa = c2.rN(c2.rep(a)) + c2.rep(b)
           val lNb = c2.lN(c2.rep(b)) + c2.rep(a)
@@ -80,32 +80,33 @@ abstract class CongruenceNew(
   def union(s: E, t: E, deduced: MSet[(E,E)]): CongruenceNew = {
     val (u,v) = if (cclass(rep(s)).size > cclass(rep(t)).size) (s,t) else (t,s)
     val (ru,rv) = (rep(u),rep(v))
-//    println("union of " + (s,t) + " rN: " + rN(rv) + " reps: " + rN(rv).map(rep(_)))
     val cR = rN(rv).foldLeft(this)({(A,B) => 
       val rx = A.rep(B)
       val lv = try A.lookup(rv,rx)
       catch {
         case e: Exception => {
-          println("trying to access lookup at " + (rv,rx))
-          println("lookup: " + A.lookup.mkString(";"))
-          println(rv + " right: " + rN(rv).mkString(";"))
-          println("rep: " + rep.mkString(";"))
+          println("trying to access lookup at " + (rv,rx) + " originals: " + (u,B))
+          println("rights: " + rN(rv).mkString(";"))
+          println("lookup: " + A.lookup)
+          println("class: " + cclass(v))
           throw e
         }
       }
-//      println("checking " + A.lookup.mkString(",") + " for " + (ru,rx) + " in union of " + (s,t))
       val xDealt = A.lookup.get(ru,rx) match {
         case None => {
-//          println("searching for lookup of " + (ru,rx) + " and found none, inserting " + lv + " into " + A.lookup.mkString(","))
           A.updateLookup(A.lookup + ((ru,rx) -> lv))
         }
         case Some(lu) => {
-//          println("searching for lookup of " + (ru,rx) + " and found " + lu)
-          if (lu != lv) deduced += ((lu,lv))
-          A
+          val y = if (lu != lv) {
+            deduced += ((lu,lv))
+            A.updateLookup(A.lookup + ((rx,ru) -> lv))
+          }
+          else A
+          y.updateLookup(y.lookup - ((rx,rv)))
         }
       }
       xDealt.updateLookup(xDealt.lookup - ((rv,rx)))
+      xDealt
     })
     val cL = cR.lN(rv).foldLeft(cR)({(A,B) => 
       val rx = A.rep(B)
@@ -117,25 +118,51 @@ abstract class CongruenceNew(
         }
         case Some(lu) => {
 //          println("searching for lookup of " + (rx,ru) + " and found " + lu)
-          if (lu != lv) deduced += ((lu,lv))
-          A
+          val y = if (lu != lv) {
+            deduced += ((lu,lv))
+            A.updateLookup(A.lookup + ((rx,ru) -> lv))
+          }
+          else A
+          y.updateLookup(y.lookup - ((rx,rv)))
         }
       }
-      xDealt.updateLookup(xDealt.lookup - ((rx,rv)))
+      xDealt
     })
 //    println("lookup after " + cL.lookup.mkString(","))
     val vClass = cL.cclass(cL.rep(v))
     val newRep = vClass.foldLeft(cL.rep)({(A,B) => 
       A.updated(B, cL.rep(u))
     })
-    val uClass = cL.cclass(cL.rep(u)) ++ vClass
-    val newCclass = (cL.cclass.updated(cL.rep(u), uClass) - cL.rep(v))
-    val vRight = cL.rN(cL.rep(v))
-    val vLeft = cL.lN(cL.rep(v))
-    val uRight = cL.rN(cL.rep(u)) ++ vRight
-    val uLeft = cL.lN(cL.rep(u)) ++ vLeft
-    val newRight = (cL.rN.updated(cL.rep(u), uRight) - cL.rep(v))
-    val newLeft = (cL.lN.updated(cL.rep(u), uLeft) - cL.rep(v))
+    val uClass = cL.cclass(newRep(u)) ++ vClass
+    val newCclass = (cL.cclass- newRep(v)).updated(newRep(u), uClass)
+    val vRight = cL.rN(newRep(v))
+    val vLeft = cL.lN(newRep(v))
+    val uRight = cL.rN(newRep(u)) ++ vRight
+    val uLeft = cL.lN(newRep(u)) ++ vLeft
+    val newRight = (cL.rN - newRep(v)).updated(newRep(u), uRight)
+    val newLeft = (cL.lN - newRep(v)).updated(newRep(u), uLeft)
+    val bla = newCclass(newRep(s))
+    require(newCclass(newRep(s)).contains(s))
+    require(cL.lookup.forall(l => newRep.contains(l._1._1) && newRep.contains(l._1._2)))
+    newRight.foreach(l => {
+      l._2.foreach(r => {
+        if (!cL.lookup.isDefinedAt((newRep(l._1),newRep(r)))) {
+//          println("lookup doesnt contain right " + (newRep(l._1),newRep(r)) + " current lookup\nl:" + cL.lookup.mkString(";"))
+//          println("keySet: " + cL.lookup.keySet)
+        }
+      })
+    })
+    newLeft.foreach(l => {
+      l._2.foreach(r => {
+        if (!cL.lookup.isDefinedAt((newRep(r),newRep(l._1)))) {
+//          println("lookup doesnt contain left " + (newRep(r),newRep(l._1)) + " " + (r,l._1).hashCode() + " current lookup\nl:" + cL.lookup.mkString(";"))
+//          println(cL.lookup(r,l._1))
+//          println("keySet: " + cL.lookup.keySet.head + " == " + (r,l._1) + " ~> " + (cL.lookup.keySet.head eq (r,l._1)))
+        }
+      })
+    })
+//    require(newRight.forall(l => l._2.forall(r => cL.lookup.isDefinedAt((newRep(l._1),newRep(r))))))
+//    require(newLeft.forall(l => l._2.forall(r => cL.lookup.isDefinedAt((newRep(r),newRep(l._1))))))
     newCon(newRep,newCclass,cL.lookup,newLeft,newRight,cL.g)
   }
   
@@ -198,5 +225,15 @@ abstract class CongruenceNew(
   
   def updateGraph(newG: CongruenceGraph): CongruenceNew = {
     newCon(rep,cclass,lookup,lN,rN,newG)
+  }
+  
+  override def toString = {
+    "rep: " + rep.mkString(";") + 
+    "\ncclass: " + cclass.mkString(";")+ 
+    "\nlookup: " + lookup.mkString(";") + 
+    "\nrN: " + rN.mkString(";") +
+    "\nlN: " + lN.mkString(";") +
+    "\ng: " + g
+    
   }
 }

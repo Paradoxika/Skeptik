@@ -28,7 +28,6 @@ package object proof {
         maxPebble = currentPebbles max maxPebble
         length += 1
         if (n.isInstanceOf[EqTransitive]) {
-          println(n + " ~ " + n.conclusion.logicalSize)
           transLength += (n.asInstanceOf[SequentProofNode].conclusion.ant.size - 2)*2 + 1
         }
         else transLength += 1

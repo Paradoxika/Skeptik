@@ -19,12 +19,12 @@ object CongruenceCompressorDebug {
     
     println(x.getOrElse((0,1),x.getOrElseUpdate((1,0), 6)))
     
-    val multiple = false
+    val multiple = true
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
-//    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size8.smt2"
+    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size8.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ013_size4.smt2"
-      val file = "F:/Proofs/QF_UF/SEQ/SEQ032_size2.smt2"
+//      val file = "F:/Proofs/QF_UF/SEQ/SEQ032_size2.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size6.smt2"
 //      val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
@@ -40,11 +40,10 @@ object CongruenceCompressorDebug {
         println("parsing " + singleFile)
         val proof = parser.read(singleFile)
         println("finished parsing")
-  //      val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/SEQ/SEQ032_size2.smt2")
-//        val newProof = CongruenceCompressor(proof)
+        val newProof = ProofTreeCNewNew(proof)
         println(measure(proof))
-//        println(measure(newProof))
-//        println(newProof.root)
+        println(measure(newProof))
+        println(newProof.root)
       }
     }
     else {

@@ -17,13 +17,13 @@ trait lazyRes {
 
 trait ArrayStructure {
   def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ArrayCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
+    new ArrayCongruence(new FindTable(), Queue[(E,E)](), new ArrayGraph)
   }
 }
 
 trait FibonacciStructure {
   def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new FibonacciCongruence(new FindTable(), Queue[(E,E)](), WEqGraph(eqReferences))
+    new FibonacciCongruence(new FindTable(), Queue[(E,E)](), new FibonacciGraph)
   }
 }
 
