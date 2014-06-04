@@ -21,6 +21,8 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   def leftAuxFormulas: SeqSequent = ???
   def rightAuxFormulas: SeqSequent = ???
 
+  var isMRR = false
+  
   // When a unifiable variable X occurs in both premises, 
   // we must rename its occurrences in one of the premises to a new variable symbol Y
   // not occurring in any premise
@@ -54,8 +56,10 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       //not an MRR instance
     } else if (leftContainsMGU && !rightContainsMGU){
       println("MRR instance!")
+      isMRR = true
     } else if (!leftContainsMGU && rightContainsMGU) {
       println("MRR instance!")
+      isMRR = true
     } //TODO: this is reporting MRR instance on cases where it's not expected to be one. This seems to be luck. 
     //...but would applying contraction in these cases break anything?
     

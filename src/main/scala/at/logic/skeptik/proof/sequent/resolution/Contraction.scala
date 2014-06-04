@@ -48,6 +48,7 @@ object Contraction {
       } else {
         second += 1
         val (replacements, matched) = contractPair(h, t.head)
+        println("replacements: " + replacements)
         if (matched) {
           change = replacements
           (true, start)
@@ -58,6 +59,7 @@ object Contraction {
     }
 
     def checkAllPairs(ant: Seq[E], start: Int): (Boolean, Int, Int) = {
+      println("in checkAllPairs")
       if (ant.length == 0) {
         return (false, -1, -1)
       }
@@ -75,6 +77,7 @@ object Contraction {
     
     val temp = checkAllPairs(ant,0)
     
+    println("removing " + temp._2 + " and " + temp._3)
     def removeNth(ant: Seq[E], n: Int, step: Int) : List[E] = {
       if(n == step){
         (ant.tail).toList
@@ -135,7 +138,7 @@ object Contraction {
               val s = Substitution(v1 -> v2)
               (List[Substitution](s) ++ firstMaps, true)
             } else {
-              (List[Substitution](), true) //we have match, but it's not a variable to replace 
+              (List[Substitution](), v1.name.equals(v2.name)) //we might have match, but it's not a variable to replace 
             }
 
           } else {
@@ -158,7 +161,7 @@ object Contraction {
             val s = Substitution(v1 -> v2)
             (List[Substitution](s), true)
           } else {
-            (List[Substitution](), true) //we have a match, but it's not a variable we want to replace?
+            (List[Substitution](), v1.name.equals(v2.name)) //we might have a match, but it's not a variable we want to replace?
           }
 
         }

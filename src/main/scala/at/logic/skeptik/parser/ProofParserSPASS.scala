@@ -14,6 +14,7 @@ import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import at.logic.skeptik.proof.sequent.resolution._
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
+
 object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 
 trait SPASSParsers
@@ -126,6 +127,17 @@ trait SPASSParsers
       if (firstNode != secondNode) {
         //THIS CHANGED
         ax = UnifyingResolution(firstPremise, secondPremise)(vars)
+        
+        
+        var con = Contraction(ax)(vars)
+        println("UR-MRR: " + ax)
+        println("UR-CON: " + con)
+        while(!con.conclusion.equals(ax.conclusion)){
+          ax = con
+          con = Contraction(ax)(vars)
+          println("UR-CON: " + con)
+        }
+        
       } else {
         var axA = UnifyingResolutionMRR(lastPremise, firstPremise)(vars)
         var axB = UnifyingResolutionMRR(lastPremise, secondPremise)(vars)
