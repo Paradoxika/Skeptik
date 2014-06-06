@@ -91,8 +91,8 @@ trait SPASSParsers
       val parsedFinal = parsedAnte union parsedSucc
 
       val ay = new Axiom(parsedFinal)
-      //            println("Parsed: " + ln + ":" + ay)
-      //            println("Computed: " + ln + ":" + ax)
+//                  println("Parsed: " + ln + ":" + ay)
+//                  println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
