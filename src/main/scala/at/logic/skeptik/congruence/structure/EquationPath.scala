@@ -79,6 +79,11 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     case Some(pr) => !pr.nextTree.pred.isDefined && pr.deduceTrees.isEmpty
   }
   
+  def isReflexive = pred match {
+    case None => true
+    case Some(_) => false
+  }
+  
   def typeString(node: N)(implicit eqReferences: MMap[(E,E),EqW]) = {
     (node.conclusion.ant.map(EqW(_).l.t) ++ node.conclusion.suc.map(EqW(_).l.t)).mkString(",")
   }
@@ -104,13 +109,13 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *  
    */
   def toProof(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): Option[Proof[N]] = {
-    
     val (first,last,equations,deduced) = this.buildTransChain
     if (equations.size > 1) {
       val transNode = EqTransitive(equations,first,last)
       val res = deduced.foldLeft(transNode.asInstanceOf[N])({(A,B) => 
         R(A,B)
       })
+      if (res.conclusion.ant.exists(_.toString == "((f2 c_5 c_5) = (f2 c_4 c_4))")) println("creating it while making proof for " + this + "\n"+Proof(res))
       Some(res)
     }
     else if (deduced.size == 1) { //Case 2
@@ -183,8 +188,10 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
 
   def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]) = {
 //    println("dds in buildDeduction: " + dds)
-    val (axPaths, otherPaths) = dds.partition(_.isAxiom)
-//    println("axPaths in buildDeduction: "+ axPaths.map(_.toString(true)))
+    val (axPaths, notaxPaths) = dds.partition(_.isAxiom)
+    val (reflPaths,otherPaths) = notaxPaths.partition(_.isReflexive)
+//    println(dds.map(p => p + " " + p.isReflexive).mkString(","))
+//    println(reflPaths)
     val (normalPaths,symmetricPaths) = otherPaths.foldLeft((Set[EquationPath](),Set[EquationPath]()))({(A,B) => 
       if (A._1.exists(p => B.symmetricTo(p))) (A._1,A._2 + B)
       else (A._1+B,A._2)
@@ -215,9 +222,19 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
         ddEqs.map(_.equality) ++ symRootsSeq  ++ axSymms.toSeq
       }
 //    println("ddEqs in buildDeduction: " + ddEqs)
-    val resolveWith = ddProofRoots ++ finalSym
-//    println("ddEqsWithSymm in buildDeduction: "+ ddEqsWithSymm)
-    val congr = EqCongruent(ddEqsWithSymm,eq.equality)
+    val resolveWith = ddProofRoots ++ finalSym ++ reflPaths.map(p => EqReflexive(p.v))
+//    println("ddEqsWithSymm in buildDeduction: "+ ddEqsWithSymm.mkString(";") + " from " + dds)
+    if (ddEqsWithSymm.isEmpty) {
+      println("empty ddEqSym for " + eq +"\n"+this.toString(true)+"\ndds:"+dds.mkString("\n"))
+      println("axiom paths: " + axPaths.mkString("\n"))
+      println("other paths: " + otherPaths.mkString("\n"))
+      val c3 = eq.l.asInstanceOf[App].function.asInstanceOf[App].argument
+      val f2c3c3 = eq.r.asInstanceOf[App].function.asInstanceOf[App].argument
+//      println()
+    }
+    val reflEqs = reflPaths.map(p => (EqW(p.v,p.v).equality)).toSeq
+    val ddEqsSymRefl = ddEqsWithSymm ++ reflEqs
+    val congr = EqCongruent(ddEqsSymRefl,eq.equality)
     val res = 
       if (ddEqs.isEmpty) {
         congr
@@ -312,11 +329,16 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   def deducedEqs: Set[EqW] = pred match {
     case None => Set()
     case Some(pr) => {
-      pr._2._2.foldLeft(Set[EqW]())({(A,B) => A union B.originalEqs})
+      
+      val x = pr._2._2.foldLeft(Set[EqW]())({(A,B) => 
+        println(B + " : " + B.originalEqs)
+        A union B.originalEqs})
+      println("set: " + pr._2._2 + " for " + this + " produces " + x)
+      x
     }
   }
       
-  override def toString: String = toString(true)
+  override def toString: String = toString(false)
   
   def toString(labels: Boolean): String = {
     val pString = pred match {
@@ -327,7 +349,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     }
     val predLabel = 
       if (labels) eq match {
-        case Some(e) => "-["+e+"]" + "{"+deducedEqs+"}"
+        case Some(e) => "-["+e+"]" + "{"+pred.foreach(_.deduceTrees.mkString(";"))+"}"
         case None => ""
       }
       else ""

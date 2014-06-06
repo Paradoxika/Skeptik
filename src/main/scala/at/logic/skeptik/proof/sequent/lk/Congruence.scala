@@ -44,6 +44,9 @@ object EqReflexive {
     }
     else throw new Exception("Error occured while creating EQReflexive node: "+ expr + " which is not an instance of reflexivity")
   }
+  def apply(e: E)(implicit eqReferences: MMap[(E,E),EqW]) = {
+    new EqReflexive(new Sequent(Seq(),Seq(EqW(e,e).equality)))
+  }
   def unapply(p: SequentProofNode) = p match {
     case p: EqReflexive => Some(p.conclusion)
     case _ => None

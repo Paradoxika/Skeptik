@@ -9,12 +9,13 @@ import at.logic.skeptik.algorithm.dijkstra._
 import at.logic.skeptik.proof._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.Queue
+import at.logic.skeptik.algorithm.compressor.congruence._
 
 object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 4
+    val testcase = 1
     
     val t = o
     
@@ -71,10 +72,29 @@ object CongruenceDebug {
     
 //    var con: AbstractCongruence = FibonacciCongruence(eqReferences)
     var con2: AbstractCongruence = new ProofTreeCongruence()
-    var con: AbstractCongruence = FibConNew(eqReferences)
-//    var con: AbstractCongruence = ProofTreeConNew(eqReferences)
+//    var con: AbstractCongruence = FibConNew(eqReferences)
+    var con: AbstractCongruence = ProofTreeConNew(eqReferences)
     
     testcase match {
+      
+      case -6 => {
+        con = con.addEquality(EqW(a,b))
+        val path = con.explain(a, b)
+        println(con.g)
+        println(path)
+      }
+      
+      case -5 => {
+        val t1 = App(App(f1,a),b)
+        val t2 = App(App(f1,t1),b)
+        con = con.addEquality(EqW(a,t1)).addNode(t2)
+        val path = con.explain(t1, t2)
+        println(path)
+        val proof = path.get.toProof.get
+        
+        println(proof)
+        println(measure(proof))
+      }
       
       case -4 => {
         con = con.addEquality(EqW(a,b)).addEquality(EqW(b,c)).addEquality(EqW(c,e)).addEquality(EqW(e,d))
@@ -98,9 +118,10 @@ object CongruenceDebug {
         
         con2 = con2.addEquality(EqW(a,b,false)).addEquality(EqW(b,a,false)).addNode(t1).addNode(t2)
         val path2 = con2.explain(t1,t2)
-        
+        val proof = path2.get.toProof.get
         println(path2)
-        println(path2.get.toProof)
+        println(proof)
+        println(ProofTreeCNewNew(proof))
       }
       
       case -2 => {
@@ -117,6 +138,7 @@ object CongruenceDebug {
         con = con.addEquality(eq1).addNode(v1).addNode(v2)
         println("congruent?" + con.isCongruent(v1, v2))
         val path = con.explain(v1, v2).get
+        println(path.toString(true))
         val proof = path.toProof.get
         println(proof)
         println(origSubterms(v1))
@@ -323,8 +345,10 @@ object CongruenceDebug {
         con = con.addAll(allEqs)
         
         val path = con.explain(t2,t6)
+        val proof = path.get.toProof.get
         println(path)
-        println(path.get.toProof)
+        println(proof)
+        
       }
       case 5 => {
         //((op e3 e1),(op e3 e3)) 
@@ -368,8 +392,9 @@ object CongruenceDebug {
         println(path)
 //        println("transitivity chain:\n" + path.get.transChainProof.get)
         println("BUILDING PROOF")
-        val x = path.get.toProof.get
-        println("full proof:\n" + x)
+        val proof = path.get.toProof.get
+        println("full proof:\n" + proof)
+        println(ProofTreeCNewNew(proof))
       }
       case 6 => {
         val op = new Var("op",Arrow(t,Arrow(t,t)))

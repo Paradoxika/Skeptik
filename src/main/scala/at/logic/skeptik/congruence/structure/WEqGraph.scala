@@ -11,14 +11,33 @@ abstract class WEqGraph(val graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) 
   def newDijkstra: EquationDijkstra
   
   def explain(u: E, v: E)(implicit eqReferences: MMap[(E,E),EqW]): Option[EquationPath] = {
+//    println("explaining in WeQGraph")
     val dij = newDijkstra
     val path = dij(u,v,graph)
-    if (path.isEmpty) None else Some(path)
+//    if (path.isEmpty) None else Some(path)
+    Some(path)
   }
   
+//  def addEdge(u: E, v: E, eq: Option[EqW]): WEqGraph = eq match {
+//    case None => {
+//      val paths = buildDD(u,None,v)
+//      val eqAll = paths.foldLeft(Set[EqW]())({(A,B) => 
+//        A union B.originalEqs
+//      })
+//      val weight = eqAll.size
+//      val eqLabel = EqLabel(EqW(u,v),paths)
+//      if (paths.isEmpty) println("deductions are constructed for " + (u,v) + "\n"+eqLabel)
+//      addEdge(u, v, eqLabel, weight)
+//    }
+//    case Some(e) => {
+//      newWEqGraph(graph.addUndirectedEdge((u,EqLabel(e,Set[EquationPath]()),v), 1))
+//    }
+//    
+//  }
   def addEdge(u: E, v: E, eq: Option[EqW]): WEqGraph = eq match {
     case None => {
       val paths = buildDD(u,None,v)
+//      println("buildDD in addEdge.WEQGraph returns " + paths +" for " + (u,v))
       val eqAll = paths.foldLeft(Set[EqW]())({(A,B) => 
         A union B.originalEqs
       })
@@ -27,9 +46,8 @@ abstract class WEqGraph(val graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel]()) 
       addEdge(u, v, eqLabel, weight)
     }
     case Some(e) => {
-      newWEqGraph(graph.addUndirectedEdge((u,EqLabel(e,Set[EquationPath]()),v), 1))
+      addEdge(u, v, EqLabel(e,Set[EquationPath]()), 1)
     }
-    
   }
   
   def addEdge(u: E, v: E, eqLabel: EqLabel, weight: Int): WEqGraph = {

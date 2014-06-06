@@ -7,9 +7,11 @@ import scala.collection.mutable.{ListBuffer, StringBuilder, HashMap => MMap}
 case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), rootSize: Map[E,Int] = Map[E,Int]()) extends CongruenceGraph {
   
   def addEdge(u: E, v: E, eq: Option[EqW]) = {
+//    println("before: " + this)
+//    println("adding: " + (u,v,eq))
     val uR = root(u)
     val vR = root(v)
-    if (uR != vR) {
+    val res = if (uR != vR) {
       val uIn = if (!rootSize.isDefinedAt(uR)) ProofForest(next,rootSize + (u -> 1)) else this
       val vIn = if (!rootSize.isDefinedAt(v)) ProofForest(uIn.next,uIn.rootSize +(v -> 1)) else uIn
       if (vIn.rootSize(uR) > vIn.rootSize(vR)) {
@@ -20,6 +22,8 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
       }
     }
     else this
+//    println("result:" + res)
+    res
   }
   
   def root(u: E) = {
@@ -39,9 +43,10 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
   def ncaPath(u: E, v: E) = {
     val p1 = rootPath(u)
     val p2 = rootPath(v)
+//    println("node / root: " + (u,p1)  + " and " + (v,p2))
     if (p1.lastOption.getOrElse((u,None,u))._3 == p2.lastOption.getOrElse((v,None,v))._3) {
       val path = p1.diff(p2) ++ reversePathList(p2.diff(p1))
-      if (root(u) != root(v) && !path.isEmpty) println("building path for non congruent terms: " + (u,v))
+//      if (root(u) != root(v) && !path.isEmpty) println("building path for non congruent terms: " + (u,v))
       path
     }
     else List()
@@ -58,13 +63,16 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     val path = ncaPath(u,v) 
     if (path.isEmpty) {
       if (u == v) Some(new EquationPath(u,None))
-      else None
+      else {
+//        println("no explanation for " + (u,v))
+        None
+      }
     }
     else {
       val x = explainAlongPath(path)
       
       if (!(((x.firstVert == u) && (x.lastVert == v)) || ((x.firstVert == v) && (x.lastVert == u)))){
-        println("faulty expl for " + (u,v) + "\n"+path)
+//        println("faulty expl for " + (u,v) + "\n"+path)
       }
       Some(x)
     }
@@ -80,6 +88,7 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
 //      if (x.toString == "((f1 c_1) = (f1 (f1 c_2 c_3)))") println("creating ((f1 c_1) = (f1 (f1 c_2 c_3))) in explainAlongPath")
       x
     })
+//    if (!eq.isDefined) println("EQ NOT DEFINED IN EXPLAIN OF PROOFTREE")
     val deduceTrees = buildDD(t1,eq,t2)
 //    println(eq + " real eq: " + realEq)
     val eqL = EqLabel(realEq,deduceTrees)

@@ -137,17 +137,17 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
    */
   
   def apply(s: T1, target: T1, g: WGraph[T1,T2]): EquationPath = {
-    if (s == target && s.isInstanceOf[E]) {
-      val sE = s.asInstanceOf[E]
-      val end = new EquationPath(sE,None)
-      val x = EqW(sE,sE)
-      val eqTreeEdge = new EqTreeEdge(end,EqLabel(x,Set[EquationPath]()))
-      new EquationPath(sE,Some(eqTreeEdge))
-    }
-    else {
+//    if (s == target && s.isInstanceOf[E]) {
+//      val sE = s.asInstanceOf[E]
+//      val end = new EquationPath(sE,None)
+//      val x = EqW(sE,sE)
+//      val eqTreeEdge = new EqTreeEdge(end,EqLabel(x,Set[EquationPath]()))
+//      new EquationPath(sE,Some(eqTreeEdge))
+//    }
+//    else {
       this(s,g)
       paths.getOrElse(target,emptyPath(target))
-    }
+//    }
   }
   
   
