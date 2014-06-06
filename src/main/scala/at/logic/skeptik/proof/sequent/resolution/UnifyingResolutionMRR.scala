@@ -23,11 +23,12 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode,override 
       rightPremise.conclusion.suc.map(e => mgu(e))
     new Sequent(antecedent, succedent)
   }
+  
 }
 
 object UnifyingResolutionMRR extends CanRenameVariables{
 //  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR)
-  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
+  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     val cleanNodes = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
     val leftPremiseClean = cleanNodes._1
@@ -49,8 +50,25 @@ object UnifyingResolutionMRR extends CanRenameVariables{
     } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
     else throw new Exception("Resolution: the resolvent is ambiguous.")
   }
+  
+  def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode, thirdPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    
+        val con = Contraction(secondPremise)(unifiableVariables)
+        val conRes =  UnifyingResolutionMRR(thirdPremise, con)(unifiableVariables)
+        //Since all examples so far have the first two premises referencing the same line, I'm doing this:
+        if (conRes.conclusion.suc.length == 0 && conRes.conclusion.suc.length == 0) {
+          conRes
+        } else {
+          throw new MRRException("3-way MRR failed.")
+        }
+    
+  }
+  
   def unapply(p: SequentProofNode) = p match {
     case p: UnifyingResolution => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
     case _ => None
   }
 }
+
+  case class MRRException(error: String) extends Exception
+

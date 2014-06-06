@@ -34,8 +34,6 @@ trait SPASSParsers
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {
       println("Parsed line labelled " + count + "; done.")
-      //      println(varMap)
-      //      println(exprMap)
       val p = Proof(list.last)
       exprMap = new MMap[String, E]
       lineCounter = 0
@@ -63,7 +61,6 @@ trait SPASSParsers
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
       val ax = newAxiomFromLists(seq._1, seq._2)
       proofMap += (ln -> ax)
-      //      println("line: " + ln + " " + ax)
       updateLineCounter
       ax
     }
@@ -74,17 +71,8 @@ trait SPASSParsers
       def firstNode = firstRef.first
       def secondNode = secondRef.first
 
-      def firstFormula = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
-      def secondFormula = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
-
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
-
-      //      println("Attempting to parse line " + ln)
-      //            println("First premise: " + firstPremise)
-      //            println("First formula: " + firstFormula)
-      //            println("Second premise: " + secondPremise)
-      //            println("Second formula: " + secondFormula)
 
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
@@ -101,9 +89,6 @@ trait SPASSParsers
       def firstNode = firstRef.first
       def secondNode = secondRef.first
 
-      def firstFormula = exprMap.getOrElse(firstRef.first + "." + firstRef.second, throw new Exception("Error!"))
-      def secondFormula = exprMap.getOrElse(secondRef.first + "." + secondRef.second, throw new Exception("Error!"))
-
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
@@ -113,27 +98,12 @@ trait SPASSParsers
         val lastNode = lastRef.first
         lastPremise = proofMap.getOrElse(lastNode, throw new Exception("Error!"))
       }
-
-      //      println("Attempting to parse line " + ln)
-      //            println("First premise: " + firstPremise)
-      //            println("First formula: " + firstFormula)
-      //            println("Second premise: " + secondPremise)
-      //            println("Second formula: " + secondFormula)
-
+      
       var ax = null.asInstanceOf[Node]
       if (firstNode != secondNode) {
         ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
       } else {
-
-        val con = Contraction(secondPremise)(vars)
-        val conRes= UnifyingResolutionMRR(lastPremise, con)(vars)
-
-        //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-        if (conRes.conclusion.suc.length == 0 && conRes.conclusion.suc.length == 0) {
-          ax = conRes //  UnifyingResolution(axB, axA)(vars) //need something like this?
-        } else {
-          throw new ParserException("MRR invalid form")
-        }
+        ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise)(vars)
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
@@ -158,11 +128,9 @@ trait SPASSParsers
       def addToExprMap(lineNumber: Int, startPos: Int, exps: List[E]): Int = {
         if (exps.length > 1) {
           exprMap.getOrElseUpdate(lineNumber + "." + startPos, exps.head)
-          //          println(lineNumber + "." + startPos + " == " + exps.head)
           addToExprMap(lineNumber, startPos + 1, exps.tail)
         } else if (exps.length == 1) {
           exprMap.getOrElseUpdate(lineNumber + "." + startPos, exps.head)
-          //          println(lineNumber + "." + startPos + " == " + exps.head)
           startPos + 1
         } else {
           startPos
