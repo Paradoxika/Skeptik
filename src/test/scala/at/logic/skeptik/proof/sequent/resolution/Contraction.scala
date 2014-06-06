@@ -47,6 +47,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val seqF2B = Sequent(f2B)()
   val seqB = f1B +: seqF2B
 
+//  println("SeqB: " + seqB)
   val premiseB = new Axiom(seqB)
 
   val conB = Contraction(premiseB)(usedVars)
@@ -74,9 +75,9 @@ class ContractionSpecification extends SpecificationWithJUnit {
       println("con: " + con.conclusion)
       Sequent(f2)() must beEqualTo(con.conclusion)
     }
-    "return the correct resolvent when no contraction is possible" in {
+    "return the correct resolvent when unifying (f NEW2) with X" in {
       println("conB: " + conB.conclusion)
-      seqB must beEqualTo(conB.conclusion)
+      Sequent(f2B)() must beEqualTo(conB.conclusion)
     }
     "return the correct resolvent when no contraction is possible" in {
       println("conC: " + conC.conclusion)

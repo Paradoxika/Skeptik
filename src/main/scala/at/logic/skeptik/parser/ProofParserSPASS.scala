@@ -124,16 +124,13 @@ trait SPASSParsers
 
       var ax = null.asInstanceOf[Node]
       if (firstNode != secondNode) {
-        //THIS CHANGED
         ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
         var con = Contraction(ax)(vars)
-        //        println("UR-MRR: " + ax)
-        //        println("UR-CON: " + con)
+        //If they're ever equal, contraction did nothing; discard the contraction
         while (!con.conclusion.equals(ax.conclusion)) {
           ax = con
           con = Contraction(ax)(vars)
-          //          println("UR-CON: " + con)
         }
 
       } else {
