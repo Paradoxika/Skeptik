@@ -177,7 +177,7 @@ trait SPASSParsers
   def antecedent: Parser[List[E]] = rep(formulaList)
   def succedent: Parser[List[E]] = rep(formulaList)
 
-  //All the additional symbols can be ignored
+  //All the additional symbols can be ignored----
   def formulaList: Parser[E] = (termType1 | maximalTerm | termType2 | term)
   def termType1: Parser[E] = term ~ "*+" ^^ {
     case ~(t, _) => t
@@ -188,7 +188,8 @@ trait SPASSParsers
   def termType2: Parser[E] = term ~ "+" ^^ {
     case ~(t, _) => t
   }
-
+  //---------------------------------------------
+  
   def ref: Parser[Ref] = number ~ "." ~ number ^^ {
     case ~(~(a, _), b) => {
       new Ref(a, b)
