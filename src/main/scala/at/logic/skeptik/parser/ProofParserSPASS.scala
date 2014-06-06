@@ -124,11 +124,13 @@ trait SPASSParsers
       if (firstNode != secondNode) {
         ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
       } else {
-        var axA = UnifyingResolutionMRR(lastPremise, firstPremise)(vars)
-        var axB = UnifyingResolutionMRR(lastPremise, secondPremise)(vars)
+
+        val con = Contraction(secondPremise)(vars)
+        val conRes= UnifyingResolutionMRR(lastPremise, con)(vars)
+
         //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-        if (axA.conclusion.suc.length == 0 && axA.conclusion.suc.length == 0) {
-          ax = axA //  UnifyingResolution(axB, axA)(vars) //need something like this?
+        if (conRes.conclusion.suc.length == 0 && conRes.conclusion.suc.length == 0) {
+          ax = conRes //  UnifyingResolution(axB, axA)(vars) //need something like this?
         } else {
           throw new ParserException("MRR invalid form")
         }
