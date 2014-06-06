@@ -50,16 +50,18 @@ trait SPASSParsers
     }
   }
 
-  def line: Parser[Node] = number ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref, ",") ~ "] ||" ~ sequent ^^ {
-    //TODO: needs to change to use unifying resolution & other inference rules
-    case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
-      val sA = addAntecedents(seq._1)
-
-      val sS = addSuccedents(seq._2)
-
+  def newAxiomFromLists(ant: List[E], suc: List[E]): Axiom ={
+      val sA = addAntecedents(ant)
+      val sS = addSuccedents(suc)
       val sFinal = sA union sS
 
-      val ax = new Axiom(sFinal)
+      new Axiom(sFinal)
+  }
+    
+  
+  def line: Parser[Node] = number ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref, ",") ~ "] ||" ~ sequent ^^ {
+    case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
+      val ax = newAxiomFromLists(seq._1, seq._2)
       proofMap += (ln -> ax)
       //      println("line: " + ln + " " + ax)
       updateLineCounter
@@ -86,11 +88,7 @@ trait SPASSParsers
 
       val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
 
-      val parsedAnte = addAntecedents(seq._1)
-      val parsedSucc = addSuccedents(seq._2)
-      val parsedFinal = parsedAnte union parsedSucc
-
-      val ay = new Axiom(parsedFinal)
+      val ay = newAxiomFromLists(seq._1, seq._2)
 //                  println("Parsed: " + ln + ":" + ay)
 //                  println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
@@ -124,15 +122,7 @@ trait SPASSParsers
 
       var ax = null.asInstanceOf[Node]
       if (firstNode != secondNode) {
-        ax = UnifyingResolution(firstPremise, secondPremise)(vars)
-
-        var con = Contraction(ax)(vars)
-        //If they're ever equal, contraction did nothing; discard the contraction
-        while (!con.conclusion.equals(ax.conclusion)) {
-          ax = con
-          con = Contraction(ax)(vars)
-        }
-
+        ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
       } else {
         var axA = UnifyingResolutionMRR(lastPremise, firstPremise)(vars)
         var axB = UnifyingResolutionMRR(lastPremise, secondPremise)(vars)
@@ -144,11 +134,7 @@ trait SPASSParsers
         }
       }
 
-      val parsedAnte = addAntecedents(seq._1)
-      val parsedSucc = addSuccedents(seq._2)
-      val parsedFinal = parsedAnte union parsedSucc
-
-      val ay = new Axiom(parsedFinal)
+      val ay = newAxiomFromLists(seq._1, seq._2)
       //            println("Parsed MRR: " + ln + ":" + ay)
       //            println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
@@ -157,14 +143,7 @@ trait SPASSParsers
     }
     //For now, treat the other inference rules as new axioms
     case ~(~(~(~(~(~(~(ln, _), _), _), _), refs), _), seq) => {
-
-      val sA = addAntecedents(seq._1)
-
-      val sS = addSuccedents(seq._2)
-
-      val sFinal = sA union sS
-
-      val ax = new Axiom(sFinal)
+      val ax = newAxiomFromLists(seq._1, seq._2)
       proofMap += (ln -> ax)
       ax
     }

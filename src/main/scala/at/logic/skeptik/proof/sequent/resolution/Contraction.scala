@@ -13,17 +13,18 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MSet[Var])
-  extends SequentProofNode with Unary
-  with NoMainFormula {
+  extends SequentProofNode with Unary {
 
-  //TODO: define this?
+  //TODO: define these
   def auxFormulas = ???
+  def mainFormulas = ???
+  def conclusionContext = ???
   
   def newAnt = contract(premise.conclusion.ant)(unifiableVariables)
   def newSuc = contract(premise.conclusion.suc)(unifiableVariables)
 
 
-  override val conclusionContext = {
+  override lazy val conclusion = {
     val antecedent = newAnt
     val succedent =  newSuc
     new Sequent(antecedent, succedent)
@@ -40,7 +41,6 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
         val matched = contractPair(h, t.head, unifiableVariables)
 
         if (matched) {
-          //          change = replacements
           (true, start)
         } else {
           checkHead(h, t.tail, start + 1)

@@ -35,8 +35,17 @@ object UnifyingResolutionMRR extends CanRenameVariables{
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
+      
       val (auxL, auxR) = unifiablePairs(0)
-      new UnifyingResolutionMRR(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)
+      var ax = null.asInstanceOf[SequentProofNode]
+      ax = new UnifyingResolutionMRR(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)
+        var con = Contraction(ax)(unifiableVariables)
+        //If they're ever equal, contraction did nothing; discard the contraction
+        while (!con.conclusion.equals(ax.conclusion)) {
+          ax = con
+          con = Contraction(ax)(unifiableVariables)
+        }
+      ax
     } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
     else throw new Exception("Resolution: the resolvent is ambiguous.")
   }
