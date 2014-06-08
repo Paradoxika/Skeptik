@@ -40,6 +40,9 @@ package object compressor {
     "ACNew" -> ArrayCNew,
     "FCNew" -> FibonacciCNew,
     "PCNew" -> ProofTreeCNew,
+    "ACNewNew" -> ArrayCNewNew,
+    "FCNewNew" -> FibonacciCNewNew,
+    "PCNewNew" -> ProofTreeCNewNew,
     
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),

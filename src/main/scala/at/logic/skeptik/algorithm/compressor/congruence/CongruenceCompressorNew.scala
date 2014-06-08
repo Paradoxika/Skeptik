@@ -81,6 +81,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
           if (eqToMap.isEmpty) fixedNode 
           else eqToMap.minBy(_.conclusion.size)
         }
+//      if (resNode.conclusion.suc.size > 1) println("size > 1 in compressor!:\n " + Proof(resNode))
       (resNode,replaced)
     }
     
@@ -98,8 +99,9 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
         }
       }
     })
-    if (!resProof.conclusion.isEmpty) println("non empty clause!")
+    if (!resProof.conclusion.isEmpty) println("non empty clause! " + resProof)
     resProof
+//    DAGify(resProof)
   }
   
   

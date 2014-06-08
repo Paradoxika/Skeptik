@@ -71,20 +71,11 @@ abstract class CongruenceNew(
         c = c.updateGraph(c.g.addEdge(u, v, realEq))
 //        println("graph after adding: " + c.g)
         realEq = None
-        deducedTest += ((u,v))
         deduced -= ((u,v))
         if (c.rep(u) != c.rep(v)) {
           c = c.union(u, v, deduced)
         }
       }
-      deducedTest.foreach({x => 
-        val (u,v) = x
-        val path = c.g.explain(u, v)
-        
-        if (!path.isDefined) {
-          println("can't explain " + (u,v) + " even though I merged it; congruent?: " + c.isCongruent(u,v) + "\n"+c.g)
-        }
-      })
       c
     }
     else this

@@ -80,8 +80,8 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   }
   
   def isReflexive = pred match {
-    case None => true
-    case Some(_) => false
+    case Some(pr) if (pr.nextTree.v == this.v)=> true
+    case _ => false
   }
   
   def typeString(node: N)(implicit eqReferences: MMap[(E,E),EqW]) = {
@@ -109,6 +109,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *  
    */
   def toProof(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): Option[Proof[N]] = {
+    implicit val reflMap = MMap[E,N]()
     val (first,last,equations,deduced) = this.buildTransChain
     if (equations.size > 1) {
       val transNode = EqTransitive(equations,first,last)
@@ -116,6 +117,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
         R(A,B)
       })
       if (res.conclusion.ant.exists(_.toString == "((f2 c_5 c_5) = (f2 c_4 c_4))")) println("creating it while making proof for " + this + "\n"+Proof(res))
+      if (res.conclusion.suc.size > 1) println("size > 1 in toProof!:\n " + Proof(res))
       Some(res)
     }
     else if (deduced.size == 1) { //Case 2
@@ -141,7 +143,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *         DED are all results of calls to buildDeduction, 
    *             collected as a tuple of a SequentProofNode (N) and the equality if proves (as an EqW object)
    */
-  def buildTransChain(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): (E,E,Seq[EqW],Seq[N]) = {
+  def buildTransChain(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW], reflMap: MMap[E,N]): (E,E,Seq[EqW],Seq[N]) = {
     if (v.toString == "(c_2 = c_3)") println(v + " occurs in trans. chain")
     pred match {
       case Some(pr) => {
@@ -186,12 +188,12 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    * @res a SequentProofNode representing the full proof of the input equality from input axioms only.
    **/
 
-  def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]) = {
+  def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], reflMap: MMap[E,N], notOMap: MMap[EqW,EqW]) = {
 //    println("dds in buildDeduction: " + dds)
-    val (axPaths, notaxPaths) = dds.partition(_.isAxiom)
+    val (axPaths, notaxPaths) = dds.partition(p => p.isAxiom && !p.isReflexive)
     val (reflPaths,otherPaths) = notaxPaths.partition(_.isReflexive)
 //    println(dds.map(p => p + " " + p.isReflexive).mkString(","))
-//    println(reflPaths)
+//    if (!reflPaths.isEmpty) println(reflPaths)
     val (normalPaths,symmetricPaths) = otherPaths.foldLeft((Set[EquationPath](),Set[EquationPath]()))({(A,B) => 
       if (A._1.exists(p => B.symmetricTo(p))) (A._1,A._2 + B)
       else (A._1+B,A._2)
@@ -222,7 +224,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
         ddEqs.map(_.equality) ++ symRootsSeq  ++ axSymms.toSeq
       }
 //    println("ddEqs in buildDeduction: " + ddEqs)
-    val resolveWith = ddProofRoots ++ finalSym ++ reflPaths.map(p => EqReflexive(p.v))
+    val resolveWith = ddProofRoots ++ finalSym ++ reflPaths.map(p => reflMap.getOrElseUpdate(p.v, EqReflexive(p.v)))
 //    println("ddEqsWithSymm in buildDeduction: "+ ddEqsWithSymm.mkString(";") + " from " + dds)
     if (ddEqsWithSymm.isEmpty) {
       println("empty ddEqSym for " + eq +"\n"+this.toString(true)+"\ndds:"+dds.mkString("\n"))
@@ -236,7 +238,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     val ddEqsSymRefl = ddEqsWithSymm ++ reflEqs
     val congr = EqCongruent(ddEqsSymRefl,eq.equality)
     val res = 
-      if (ddEqs.isEmpty) {
+      if (ddEqsSymRefl.isEmpty) {
         congr
       } 
       else {
@@ -253,7 +255,11 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
           }
         })
       }
+//    if (reflPaths.exists(p => p.v.toString == "c_5")) println(Proof(res) + "\nreswith: " + resolveWith.mkString(";"))
 //    println("result of build Deduction: " + res)
+    if (!reflPaths.isEmpty) println(reflPaths.mkString(";") + "\nreswith: " + resolveWith.mkString(";") + "result:\n" + Proof(res))
+//    if (!symProofs.isEmpty) println("Symm not empty: " + Proof(res))
+    if (res.conclusion.suc.size > 1) println("size > 1!:\n " + Proof(res))
     res
   }
 

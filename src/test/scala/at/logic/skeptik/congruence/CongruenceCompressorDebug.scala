@@ -21,8 +21,8 @@ object CongruenceCompressorDebug {
     
     val multiple = false
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
-//    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
-      val file = "F:/Proofs/QF_UF/SEQ/SEQ017_size5.smt2"
+    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
+//      val file = "F:/Proofs/QF_UF/SEQ/SEQ017_size5.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size8.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ013_size4.smt2"
 //      val file = "F:/Proofs/QF_UF/SEQ/SEQ032_size2.smt2"
@@ -41,7 +41,7 @@ object CongruenceCompressorDebug {
         println("parsing " + singleFile)
         val proof = parser.read(singleFile)
         println("finished parsing")
-        val newProof = FibonacciCNewNew(proof)
+        val newProof = ProofTreeCNewNew(proof)
         println(measure(proof))
         println(measure(newProof))
         println(newProof.root)
@@ -52,7 +52,7 @@ object CongruenceCompressorDebug {
       println("finished parsing")
 //      println(proof)
       val t = System.currentTimeMillis()
-      val newProof = ProofTreeCNewNew(proof)
+      val newProof = FibonacciCNewNew(proof)
       val timeReq = System.currentTimeMillis() - t
       println("time: " + timeReq + "ms")
       println(measure(proof))
