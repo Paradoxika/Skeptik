@@ -7,5 +7,8 @@ object SPASSTest {
     println(proof)
     val proof2 = ProofParserSPASS.read("examples/proofs/SPASS/FSTP2.spass")
     println(proof2)
+    
+    val proof3 = ProofParserSPASS.read("examples/proofs/SPASS/example2.spass")
+    println(proof3)
   }
 }

@@ -1,0 +1,95 @@
+\documentclass[12pt]{article}
+\usepackage{bussproofs}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage[landscape, a1paper]{geometry}
+\marginparwidth=0pt
+\hoffset=-10cm
+\voffset=-5cm
+\begin{document}
+\section{Local Redundancy}
+We first consider an example first posed by Postan:
+\begin{prooftree}
+\AxiomC{$L_2$: $P(A)$}
+\AxiomC{$\eta_2$: $\neg P(x)$, $\neg Q(x, B)$}
+\BinaryInfC{$\neg Q(x,  B)$}
+\AxiomC{$\eta_1$: $\neg P(z)$, $Q(z,y)$}
+\BinaryInfC{$\neg P(z)$}
+\AxiomC{$L_1$: $P(x)$}
+\BinaryInfC{$\bot$}
+\end{prooftree}
+Which is locally redundant; see the compressed version in his document.
+
+\section{``Example 2''}
+We consider example 2, from the LU/RPI paper, modified for first order predicates in a trivial way:
+\begin{prooftree}
+\def\fCenter{\mbox{\ $\vdash$\ }}
+
+\AxiomC{$\eta_1$: $\neg P(A)$}
+\AxiomC{$\eta_3$: $P(A),Q(B)$}
+\BinaryInfC{$\eta_4$: $Q(B)$}
+\AxiomC{$\eta_2$: $P(A), R(C), \neg Q(B)$}
+\BinaryInfC{$\eta_5$: $P(A), R(C)$}
+\AxiomC{$\eta_1$: $\neg P(A)$}
+\BinaryInfC{$\eta_6$: $R(C)$}
+
+\AxiomC{$\eta_4$: $Q(B)$}
+\AxiomC{$\eta_7$: $P(A), \neg Q(B), \neg R(C)$}
+\BinaryInfC{$\eta_8$: $P(A), \neg R(C)$}
+\AxiomC{$\eta_1$: $\neg P(A)$}
+\BinaryInfC{$\eta_9$: $\neg R(C)$}
+
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+\subsection{Lower Units}
+Proceeds exactly the same as in the paper.\\
+{\bf TODO:} show exact steps? \\
+{\bf TODO:} cases where we can lower larger formulas, namely non-units, as long as they're unifiable?\\
+
+\subsection{RecyclePivots}
+Again, proceeds like in the paper. 
+
+\section{A larger proof}
+{\bf TODO:} We consider the following proof:
+\begin{prooftree}
+\def\fCenter{\mbox{\ $\vdash$\ }}
+
+
+\AxiomC{ $\fCenter$ (eq (f U) 0), (eq (f U) 1)} 	
+
+\AxiomC{ $\fCenter$ (le U U)} 	
+\AxiomC{(eq (f V) 0), (eq (f U) 0), (le (s U) V) $\fCenter$ } 	
+\BinaryInfC{(eq (f (s U)) 0), (eq (f U) 0) $\fCenter$ } 	
+
+
+
+\BinaryInfC{(eq (f U) 0) $\fCenter$ (eq (f (s U)) 1)} 	
+
+\AxiomC{ $\fCenter$ (le U U)} 	
+\AxiomC{(le (max U V) W) $\fCenter$ (le V W)} 	
+\BinaryInfC{ $\fCenter$ (le V (max U V))} 	
+\AxiomC{(eq (f V) 0), (eq (f U) 0), (le (s U) V) $\fCenter$ } 	
+\BinaryInfC{(eq (f (max X (s U))) 0), (eq (f U) 0) $\fCenter$ } 	
+\AxiomC{ $\fCenter$ (eq (f U) 0), (eq (f U) 1)} 	
+\BinaryInfC{(eq (f U) 0) $\fCenter$ (eq (f (max X (s U))) 1)} 	
+\AxiomC{(le (max U V) W) $\fCenter$ (le U W)} 	
+\AxiomC{ $\fCenter$ (le U U)} 	
+\BinaryInfC{ $\fCenter$ (le U (max U V))} 	
+\AxiomC{(eq (f V) 1), (eq (f U) 1), (le (s U) V) $\fCenter$ } 
+\BinaryInfC{(eq (f (max (s U) X)) 1), (eq (f U) 1) $\fCenter$ } 	
+\BinaryInfC{(eq (f W) 0), (eq (f U) 1) $\fCenter$ } 	
+\BinaryInfC{(eq (f X) 0), (eq (f W) 0) $\fCenter$ } 	
+\UnaryInfC{(eq (f X) 0) $\fCenter$ } 	
+\AxiomC{ $\fCenter$ (eq (f U) 0), (eq (f U) 1)} 	
+\BinaryInfC{ $\fCenter$ (eq (f X) 1)} 	
+
+\AxiomC{(eq (f V) 1), (eq (f U) 1), (le (s U) V) $\fCenter$ } 	
+\AxiomC{(eq (f V) 1), (eq (f U) 1), (le (s U) V) $\fCenter$ } 	
+\BinaryInfC{(eq (f (s U)) 1), (eq (f U) 1) $\fCenter$ } 	
+\UnaryInfC{(eq (f (s U)) 1) $\fCenter$ } 	
+\BinaryInfC{ $\fCenter$ } 	
+
+
+\end{prooftree}
+\end{document}

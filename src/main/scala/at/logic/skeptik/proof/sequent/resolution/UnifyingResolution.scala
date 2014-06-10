@@ -55,11 +55,12 @@ object UnifyingResolution extends CanRenameVariables {
     val cleanNodes = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
     val leftPremiseClean = cleanNodes._1
     val rightPremiseClean = cleanNodes._2
+    
+    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
-    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
-      new UnifyingResolution(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)
+      new UnifyingResolution(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)    
     } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
     else throw new Exception("Resolution: the resolvent is ambiguous.")
   }

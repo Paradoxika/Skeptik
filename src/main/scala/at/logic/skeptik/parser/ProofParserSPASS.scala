@@ -74,7 +74,12 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
-      val ax = UnifyingResolution(firstPremise, secondPremise)(vars)
+      var ax = null.asInstanceOf[Node]
+      try {
+        ax = UnifyingResolution(firstPremise, secondPremise)(vars) 
+      } catch {
+        case e: Exception =>  ax = UnifyingResolution(secondPremise, firstPremise)(vars) 
+      }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
 //                  println("Parsed: " + ln + ":" + ay)
