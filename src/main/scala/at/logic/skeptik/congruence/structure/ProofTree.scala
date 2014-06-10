@@ -4,7 +4,15 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.dijkstra._
 import scala.collection.mutable.{ListBuffer, StringBuilder, HashMap => MMap}
 
-case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), rootSize: Map[E,Int] = Map[E,Int]()) extends CongruenceGraph {
+case class ProofForest(
+    next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
+    rootSize: Map[E,Int] = Map[E,Int](), 
+    edges: Map[(E,E),Option[EqW]] = Map[(E,E),Option[EqW]]()) 
+      extends CongruenceGraph(edges) {
+  
+  def newGraph(edges: Map[(E,E),Option[EqW]]): CongruenceGraph = {
+    ProofForest(next,rootSize,edges)
+  }
   
   def addEdge(u: E, v: E, eq: Option[EqW]) = {
 //    println("before: " + this)
@@ -12,8 +20,8 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     val uR = root(u)
     val vR = root(v)
     val res = if (uR != vR) {
-      val uIn = if (!rootSize.isDefinedAt(uR)) ProofForest(next,rootSize + (u -> 1)) else this
-      val vIn = if (!rootSize.isDefinedAt(v)) ProofForest(uIn.next,uIn.rootSize +(v -> 1)) else uIn
+      val uIn = if (!rootSize.isDefinedAt(uR)) ProofForest(next,rootSize + (u -> 1),edges) else this
+      val vIn = if (!rootSize.isDefinedAt(v)) ProofForest(uIn.next,uIn.rootSize +(v -> 1),edges) else uIn
       if (vIn.rootSize(uR) > vIn.rootSize(vR)) {
         vIn.insertEdge(u,uR,v,vR,eq)
       }
@@ -60,16 +68,25 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
    * If no equation is set, then the equality has to be deduced and paths for the two arguments are created
    */
   def explain(u: E, v: E)(implicit eqReferences: MMap[(E,E),EqW]): Option[EquationPath] = {
-    val path = ncaPath(u,v) 
+    val realTree = lazyEdges.foldLeft(this)({(A,B) => 
+      A.addEdge(B._1._1, B._1._2, B._2)
+    })
+    val path = realTree.ncaPath(u,v) 
     if (path.isEmpty) {
-      if (u == v) Some(new EquationPath(u,None))
+      if (u == v) {
+        val end = new EquationPath(u,None)
+        val x = EqW(u,v)
+        val eqTreeEdge = new EqTreeEdge(end,EqLabel(x,Set[EquationPath]()))
+        val y = new EquationPath(u,Some(eqTreeEdge))
+        Some(y)
+      }
       else {
 //        println("no explanation for " + (u,v))
         None
       }
     }
     else {
-      val x = explainAlongPath(path)
+      val x = realTree.explainAlongPath(path)
       
       if (!(((x.firstVert == u) && (x.lastVert == v)) || ((x.firstVert == v) && (x.lastVert == u)))){
 //        println("faulty expl for " + (u,v) + "\n"+path)
@@ -123,7 +140,7 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     val reversed = reverseToRoot(v)
     val finalSize = reversed.rootSize.updated(uRoot,reversed.rootSize(uRoot) + reversed.rootSize(vRoot)) - v
     val finalNext = reversed.next.updated(v, (u,eq))
-    ProofForest(finalNext,finalSize)
+    ProofForest(finalNext,finalSize,edges - ((u,v)) - ((v,u))) //probably don't need to delete (v,u), because it should not be in the map
   }
   
   def reverseToRoot(u: E): ProofForest = {
@@ -134,7 +151,7 @@ case class ProofForest(next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
       A.updated(node2,(node1,eq))
     })
     val finalNext = revNext - u
-    ProofForest(finalNext,rootSize)
+    ProofForest(finalNext,rootSize,edges)
   }
   
   def printNode(u: E) = {

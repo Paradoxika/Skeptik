@@ -108,8 +108,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *  
    *  
    */
-  def toProof(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW]): Option[Proof[N]] = {
-    implicit val reflMap = MMap[E,N]()
+  def toProof(implicit eqReferences: MMap[(E,E),EqW], reflMap: MMap[E,N]): Option[Proof[N]] = {
     val (first,last,equations,deduced) = this.buildTransChain
     if (equations.size > 1) {
       val transNode = EqTransitive(equations,first,last)
@@ -143,7 +142,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    *         DED are all results of calls to buildDeduction, 
    *             collected as a tuple of a SequentProofNode (N) and the equality if proves (as an EqW object)
    */
-  def buildTransChain(implicit eqReferences: MMap[(E,E),EqW], notOMap: MMap[EqW,EqW], reflMap: MMap[E,N]): (E,E,Seq[EqW],Seq[N]) = {
+  def buildTransChain(implicit eqReferences: MMap[(E,E),EqW], reflMap: MMap[E,N]): (E,E,Seq[EqW],Seq[N]) = {
     if (v.toString == "(c_2 = c_3)") println(v + " occurs in trans. chain")
     pred match {
       case Some(pr) => {
@@ -188,7 +187,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
    * @res a SequentProofNode representing the full proof of the input equality from input axioms only.
    **/
 
-  def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], reflMap: MMap[E,N], notOMap: MMap[EqW,EqW]) = {
+  def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], reflMap: MMap[E,N]) = {
 //    println("dds in buildDeduction: " + dds)
     val (axPaths, notaxPaths) = dds.partition(p => p.isAxiom && !p.isReflexive)
     val (reflPaths,otherPaths) = notaxPaths.partition(_.isReflexive)
@@ -224,7 +223,8 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
         ddEqs.map(_.equality) ++ symRootsSeq  ++ axSymms.toSeq
       }
 //    println("ddEqs in buildDeduction: " + ddEqs)
-    val resolveWith = ddProofRoots ++ finalSym ++ reflPaths.map(p => reflMap.getOrElseUpdate(p.v, EqReflexive(p.v)))
+    reflPaths.foreach(p => reflMap.update(EqW(p.v,p.v).equality, EqReflexive(p.v)))
+    val resolveWith = ddProofRoots ++ finalSym // ++ reflPaths.map(p => reflMap.getOrElseUpdate(p.v, EqReflexive(p.v)))
 //    println("ddEqsWithSymm in buildDeduction: "+ ddEqsWithSymm.mkString(";") + " from " + dds)
     if (ddEqsWithSymm.isEmpty) {
       println("empty ddEqSym for " + eq +"\n"+this.toString(true)+"\ndds:"+dds.mkString("\n"))
@@ -257,7 +257,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
       }
 //    if (reflPaths.exists(p => p.v.toString == "c_5")) println(Proof(res) + "\nreswith: " + resolveWith.mkString(";"))
 //    println("result of build Deduction: " + res)
-    if (!reflPaths.isEmpty) println(reflPaths.mkString(";") + "\nreswith: " + resolveWith.mkString(";") + "result:\n" + Proof(res))
+//    if (!reflPaths.isEmpty) println(reflPaths.mkString(";") + "\nreswith: " + resolveWith.mkString(";") + "result:\n" + Proof(res))
 //    if (!symProofs.isEmpty) println("Symm not empty: " + Proof(res))
     if (res.conclusion.suc.size > 1) println("size > 1!:\n " + Proof(res))
     res
@@ -307,7 +307,8 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
   def originalEqs: Set[EqW] = pred match {
     case Some(pr) => {
       val predOrig = pr._1.originalEqs
-      val extra = pr._2._2.foldLeft(Set[EqW]())({(A,B) => A union B.originalEqs})
+      val extra = if (pr._2._2.isEmpty) Set(pr.eq)
+      else pr._2._2.foldLeft(Set[EqW]())({(A,B) => A union B.originalEqs})
       predOrig union extra
     }
     case None => Set()
@@ -339,7 +340,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
       val x = pr._2._2.foldLeft(Set[EqW]())({(A,B) => 
         println(B + " : " + B.originalEqs)
         A union B.originalEqs})
-      println("set: " + pr._2._2 + " for " + this + " produces " + x)
+//      println("set: " + pr._2._2 + " for " + this + " produces " + x)
       x
     }
   }

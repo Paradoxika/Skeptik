@@ -13,7 +13,7 @@ import at.logic.skeptik.proof.sequent.lk._
 import at.logic.skeptik.algorithm.compressor._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
-import at.logic.skeptik.proof.Proof.apply
+import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import scala.collection.immutable.{HashMap => IMap,Queue}
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
@@ -26,7 +26,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
   
   def apply(proof: Proof[N]) = {
     implicit val eqReferences = MMap[(E,E),EqW]()
-    implicit val notOMap = MMap[EqW,EqW]()
+    implicit val reflMap = MMap[E,N]()
     val axiomEqs = MMap[E,N]()
     val resolveWithMap = MMap[E,MSet[N]]()
     
@@ -54,22 +54,17 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
         if (replaced) fixedNode
         else {
           val eqToMap = rightEqs.map(eq => {
-    //        val con = new FibonacciCongruence(eqReferences, new FindTable(), Queue[(E,E)](),WEqGraph(eqReferences)).addAll(leftEqs).addNode(eq.l).addNode(eq.r)
             val con = newCon.addAll(leftEqs).addNode(eq.l).addNode(eq.r)
-//            println("done adding!")
-//            val gBefore = con.g
-//            if (eq.toString == "((f2 c_3 c_5) = (f2 (f2 c_3 c_3) c_5))") println("found " + eq + " in compressor")
-//            println("explaining: " + eq)
             con.explain(eq.l,eq.r) match {
               case Some(path) => {
-//                val gAfter = con.g
-//                println("done explaining g same: " + (gBefore == gAfter))
                 path.toProof match {
                   case Some(proof) => {
-    //                if (Proof(fixedNode).size < proof.size && proof.size < 15) println("original:\n"+Proof(fixedNode) + "\nproduced\n"+proof)
-    //                if (Proof(fixedNode).size > proof.size) proof.root
-    //                else fixedNode
                     replaced = true
+//                    if (proof.size > Proof(fixedNode).size) {
+//                      val oldProof = Proof(fixedNode)
+//                      println("increasing proof size, length:" + measure(oldProof)("length") + " vs " + measure(proof)("length") +  " trans length:" + measure(oldProof)("transLength") + " vs " + measure(proof)("transLength") + "\n" + Proof(fixedNode) + "\nto\n"+proof)
+//                    }
+//                    println(proof.root.conclusion.ant.size == path.originalEqs.size)
                     proof.root
                   }
                   case None => fixedNode
@@ -78,8 +73,11 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
               case _ => fixedNode
             }
           })
-          if (eqToMap.isEmpty) fixedNode 
+          
+          val x = if (eqToMap.isEmpty) fixedNode 
           else eqToMap.minBy(_.conclusion.size)
+//          println(eqToMap.size + " ~ " + x)
+          x
         }
 //      if (resNode.conclusion.suc.size > 1) println("size > 1 in compressor!:\n " + Proof(resNode))
       (resNode,replaced)
@@ -87,21 +85,30 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
     
     val newProof = (proof foldDown traversal)._1
     
+//    println(newProof)
+    
     // Resolve against axioms
     val resProof = newProof.conclusion.suc.foldLeft(newProof)({(A,B) => 
       eqNodesLeft.get(EqW(B)) match { //probably slow
         case Some(node) => {
-          R(A,node)
+//          println("blabla")
+          R(A,node,B)
         }
         case None => {
-//          println("no equality for " + B)
           A
         }
       }
     })
-    if (!resProof.conclusion.isEmpty) println("non empty clause! " + resProof)
-    resProof
-//    DAGify(resProof)
+    val resProof2 = newProof.conclusion.ant.foldLeft(newProof)({(A,B) => 
+      reflMap.get(B) match {
+        case Some(node) => R(A,node)
+        case None => A
+      }
+    })
+//    println("refls:" + reflMap.mkString(","))
+    if (!resProof2.conclusion.isEmpty) println("non empty clause! " + resProof2)
+//    resProof
+    DAGify(resProof2)
   }
   
   

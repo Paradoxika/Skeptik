@@ -3,7 +3,22 @@ package at.logic.skeptik.congruence.structure
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 
-abstract class CongruenceGraph {
+abstract class CongruenceGraph(val lazyEdges: Map[(E,E),Option[EqW]]) {
+  
+  def newGraph(edges: Map[(E,E),Option[EqW]]): CongruenceGraph
+  
+  def lazyAddEdge(u: E, v: E, eq: Option[EqW]): CongruenceGraph = eq match {
+    case Some(_) => {
+      if (lazyEdges.isDefinedAt((u,v)) || lazyEdges.isDefinedAt((v,u))){
+        val in = lazyEdges.getOrElse((u,v),lazyEdges.get((v,u)))
+        if (!in.isDefined) {
+          println("replacing bad vs good")
+        }
+      }
+      newGraph(lazyEdges - ((u,v)) - ((v,u)) + ((u,v) -> eq))
+    }
+    case None => if (lazyEdges.isDefinedAt((u,v)) || lazyEdges.isDefinedAt((v,u))) this else newGraph(lazyEdges +((u,v) -> eq))
+  }
   
   def addEdge(u: E, v: E, eq: Option[EqW]): CongruenceGraph
   
@@ -40,6 +55,7 @@ abstract class CongruenceGraph {
       
 //      println((sub1,sub2) + " subterms of " + (t1,t2))
 //      println((subterms(t1).mkString(";"),subterms(t2).mkString(";")) + " subterms of " + (t1,t2))
+      if (sub1.size != sub2.size) println("subterms don't match for " + (t1,t2) + " t: " + (t1.t,t2.t) + " s: " + (sub1,sub2) + "\n" + this)
       require(sub1.size == sub2.size)
       val explOpts = (sub1 zip sub2).map(tuple => {
         

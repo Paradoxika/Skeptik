@@ -54,7 +54,7 @@ object ExplanationTest {
     var equal = 0
     var bigger = 0
     implicit val eqReferences = MMap[(E,E),EqW]()
-    implicit val notOMap = MMap[EqW,EqW]()
+    implicit val reflMap = MMap[E,N]()
     proof.foreach(node => {
       val rightEqs = node.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
       val leftEqs = node.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))

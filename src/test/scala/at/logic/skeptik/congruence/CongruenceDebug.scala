@@ -1,5 +1,6 @@
 package at.logic.skeptik.congruence
 
+import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.parser.ProofParserVeriT
 import at.logic.skeptik.congruence._
 import at.logic.skeptik.expression.formula._
@@ -15,7 +16,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 1
+    val testcase = 0
     
     val t = o
     
@@ -64,7 +65,7 @@ object CongruenceDebug {
 //    Eq(App(f,a),App(f,a))
     
     implicit val eqReferences = MMap[(E,E),EqW]()
-    implicit val notOMap = MMap[EqW,EqW]()
+    implicit val reflMap = MMap[E,N]()
     
     val set = Set(EqW(a,b),EqW(b,a))
     
@@ -82,6 +83,7 @@ object CongruenceDebug {
         val path = con.explain(a, b)
         println(con.g)
         println(path)
+        
       }
       
       case -5 => {
@@ -94,6 +96,7 @@ object CongruenceDebug {
         
         println(proof)
         println(measure(proof))
+        
       }
       
       case -4 => {
@@ -104,6 +107,7 @@ object CongruenceDebug {
         
         println(proof)
         println(measure(proof))
+        
       }
       
       case -3 => {
@@ -348,6 +352,7 @@ object CongruenceDebug {
         val proof = path.get.toProof.get
         println(path)
         println(proof)
+        println(path.get.originalEqs)
         
       }
       case 5 => {
@@ -390,6 +395,7 @@ object CongruenceDebug {
 //        println(dij(e1,e1,con.g))
         
         println(path)
+        println("origEqs: " + path.get.originalEqs)
 //        println("transitivity chain:\n" + path.get.transChainProof.get)
         println("BUILDING PROOF")
         val proof = path.get.toProof.get

@@ -138,13 +138,11 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
   
   def apply(s: T1, target: T1, g: WGraph[T1,T2]): EquationPath = {
     if (s == target && s.isInstanceOf[E]) {
-      println("reflexive in dijkstra: " + s)
       val sE = s.asInstanceOf[E]
       val end = new EquationPath(sE,None)
       val x = EqW(sE,sE)
       val eqTreeEdge = new EqTreeEdge(end,EqLabel(x,Set[EquationPath]()))
       val y = new EquationPath(sE,Some(eqTreeEdge))
-      println("result: " + y + " is Rfl: " + y.isReflexive)
       y
     }
     else {

@@ -117,6 +117,7 @@ object EqW {
       val newEq = new EqW(eq)
       val (t1,t2) = (newEq.l,newEq.r)
       eqReferences.update((t1,t2),newEq)
+      eqReferences.update((t2,t1),newEq)
       newEq
     }
     else throw new Exception("eq in Equation is not an equality")

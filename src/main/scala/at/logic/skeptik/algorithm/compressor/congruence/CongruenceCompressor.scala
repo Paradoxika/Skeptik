@@ -64,7 +64,7 @@ abstract class CongruenceCompressor extends (Proof[N] => Proof[N]) with fixNodes
    */
   def apply(proof: Proof[N]): Proof[N] = {
     implicit val eqReferences = MMap[(E,E),EqW]()
-    implicit val notOMap = MMap[EqW,EqW]()
+    implicit val reflMap = MMap[E,N]()
     val (con,eqNodesLeft,eqNodesRight) = buildGlobalCongruence(proof)
     println("all references size: " + eqReferences.size)
     val premiseAxiomMap = MMap[N,Set[EqW]]()
