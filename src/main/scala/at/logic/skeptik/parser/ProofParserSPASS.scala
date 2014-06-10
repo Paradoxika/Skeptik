@@ -48,15 +48,14 @@ trait SPASSParsers
     }
   }
 
-  def newAxiomFromLists(ant: List[E], suc: List[E]): Axiom ={
-      val sA = addAntecedents(ant)
-      val sS = addSuccedents(suc)
-      val sFinal = sA union sS
+  def newAxiomFromLists(ant: List[E], suc: List[E]): Axiom = {
+    val sA = addAntecedents(ant)
+    val sS = addSuccedents(suc)
+    val sFinal = sA union sS
 
-      new Axiom(sFinal)
+    new Axiom(sFinal)
   }
-    
-  
+
   def line: Parser[Node] = number ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref, ",") ~ "] ||" ~ sequent ^^ {
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), _), seq) => {
       val ax = newAxiomFromLists(seq._1, seq._2)
@@ -76,14 +75,14 @@ trait SPASSParsers
 
       var ax = null.asInstanceOf[Node]
       try {
-        ax = UnifyingResolution(firstPremise, secondPremise)(vars) 
+        ax = UnifyingResolution(firstPremise, secondPremise)(vars)
       } catch {
-        case e: Exception =>  ax = UnifyingResolution(secondPremise, firstPremise)(vars) 
+        case e: Exception => ax = UnifyingResolution(secondPremise, firstPremise)(vars)
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
-//                  println("Parsed: " + ln + ":" + ay)
-//                  println("Computed: " + ln + ":" + ax)
+      //                  println("Parsed: " + ln + ":" + ay)
+      //                  println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
@@ -103,10 +102,16 @@ trait SPASSParsers
         val lastNode = lastRef.first
         lastPremise = proofMap.getOrElse(lastNode, throw new Exception("Error!"))
       }
-      
+
       var ax = null.asInstanceOf[Node]
       if (firstNode != secondNode) {
         ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+
+        try {
+          ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+        } catch {
+          case e: Exception => ax = UnifyingResolutionMRR(secondPremise, firstPremise)(vars)
+        }
       } else {
         ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise)(vars)
       }
@@ -164,7 +169,7 @@ trait SPASSParsers
     case ~(t, _) => t
   }
   //---------------------------------------------
-  
+
   def ref: Parser[Ref] = number ~ "." ~ number ^^ {
     case ~(~(a, _), b) => {
       new Ref(a, b)
