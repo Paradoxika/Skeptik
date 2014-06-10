@@ -15,7 +15,6 @@ experiments/compressor/slice*
 *.out
 *.snm
 *.toc
-*.pdf
 *.lst
 *.log
 *.bbl
