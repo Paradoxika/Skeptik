@@ -2,22 +2,30 @@ package at.logic.skeptik.congruence.structure
 
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
+import scala.collection.immutable.Queue
 
-abstract class CongruenceGraph(val lazyEdges: Map[(E,E),Option[EqW]]) {
+abstract class CongruenceGraph(lazyEdges: Map[(E,E),Option[EqW]], val order: Queue[(E,E)]) {
   
-  def newGraph(edges: Map[(E,E),Option[EqW]]): CongruenceGraph
+  def newGraph(edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): CongruenceGraph
   
-  def lazyAddEdge(u: E, v: E, eq: Option[EqW]): CongruenceGraph = eq match {
-    case Some(_) => {
-      if (lazyEdges.isDefinedAt((u,v)) || lazyEdges.isDefinedAt((v,u))){
-        val in = lazyEdges.getOrElse((u,v),lazyEdges.get((v,u)))
-        if (!in.isDefined) {
-          println("replacing bad vs good")
-        }
-      }
-      newGraph(lazyEdges - ((u,v)) - ((v,u)) + ((u,v) -> eq))
+  def lazyAddEdge(u: E, v: E, eq: Option[EqW]): CongruenceGraph = {
+    val newQueue = if (!lazyEdges.isDefinedAt((u,v)) && !lazyEdges.isDefinedAt((v,u))) {
+//      println("enquing " + (u,v) + " lE: "+ lazyEdges) 
+      order.enqueue((u,v))
     }
-    case None => if (lazyEdges.isDefinedAt((u,v)) || lazyEdges.isDefinedAt((v,u))) this else newGraph(lazyEdges +((u,v) -> eq))
+    else order
+    eq match {
+      case Some(_) => {
+//        if (lazyEdges.isDefinedAt((u,v)) || lazyEdges.isDefinedAt((v,u))){
+//          val in = lazyEdges.getOrElse((u,v),lazyEdges.get((v,u)))
+//          if (!in.isDefined) {
+//            println("replacing bad vs good")
+//          }
+//        }
+        newGraph(lazyEdges - ((u,v)) - ((v,u)) + ((u,v) -> eq),newQueue)
+      }
+      case None => if (lazyEdges.isDefinedAt((u,v)) || lazyEdges.isDefinedAt((v,u))) this else newGraph(lazyEdges +((u,v) -> eq),newQueue)
+    }
   }
   
   def addEdge(u: E, v: E, eq: Option[EqW]): CongruenceGraph
@@ -65,7 +73,7 @@ abstract class CongruenceGraph(val lazyEdges: Map[(E,E),Option[EqW]]) {
       })
       val x = explOpts.filter(_.isDefined).map(_.get).toSet
 //      println((t1,t2) +" produces expls: " + x)
-//      if (x.isEmpty) println("empty ddTrees for " + (t1,t2))
+      if (x.isEmpty) println("empty ddTrees for " + (t1,t2) + " in\n" + this)
 //      if (t1.toString == "(f2 c_3 c_5)" && t2.toString() == "(f2 (f2 c_3 c_3) c_5)") println("found it!; result: " + x + "graph:\n"+this)
       x
     }

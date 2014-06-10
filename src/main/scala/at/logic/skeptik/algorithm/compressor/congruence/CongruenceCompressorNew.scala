@@ -29,6 +29,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
     implicit val reflMap = MMap[E,N]()
     val axiomEqs = MMap[E,N]()
     val resolveWithMap = MMap[E,MSet[N]]()
+    var comp = 0
+    var tried = 0
     
     val eqNodesLeft = MMap[EqW,N]()
     
@@ -53,6 +55,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
       val resNode = 
         if (replaced) fixedNode
         else {
+          tried = tried + 1
           val eqToMap = rightEqs.map(eq => {
             val con = newCon.addAll(leftEqs).addNode(eq.l).addNode(eq.r)
             con.explain(eq.l,eq.r) match {
@@ -60,11 +63,17 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                 path.toProof match {
                   case Some(proof) => {
                     replaced = true
-//                    if (proof.size > Proof(fixedNode).size) {
+                    val fixedProof = Proof(fixedNode)
+//                    if (proof.size > fixedProof.size) {
 //                      val oldProof = Proof(fixedNode)
 //                      println("increasing proof size, length:" + measure(oldProof)("length") + " vs " + measure(proof)("length") +  " trans length:" + measure(oldProof)("transLength") + " vs " + measure(proof)("transLength") + "\n" + Proof(fixedNode) + "\nto\n"+proof)
 //                    }
 //                    println(proof.root.conclusion.ant.size == path.originalEqs.size)
+//                    if (fixedNode.conclusion.size < proof.root.conclusion.size) println("made it bigger: " + fixedNode.conclusion.size +" vs " + proof.root.conclusion.size)
+//                    if (fixedNode.conclusion.size == proof.root.conclusion.size) println("stayed the same")
+//                    if (fixedNode.conclusion.size > proof.root.conclusion.size) println("got smaller: " + fixedNode.conclusion.size +" vs " + proof.root.conclusion.size)
+                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
+//                    println("compressing")
                     proof.root
                   }
                   case None => fixedNode
@@ -74,7 +83,10 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
             }
           })
           
-          val x = if (eqToMap.isEmpty) fixedNode 
+          val x = if (eqToMap.isEmpty) {
+//            println("reach this")
+            fixedNode 
+          }
           else eqToMap.minBy(_.conclusion.size)
 //          println(eqToMap.size + " ~ " + x)
           x
@@ -108,6 +120,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
 //    println("refls:" + reflMap.mkString(","))
     if (!resProof2.conclusion.isEmpty) println("non empty clause! " + resProof2)
 //    resProof
+    println("all eq comp: " + comp + " tried: " + tried)
     DAGify(resProof2)
   }
   

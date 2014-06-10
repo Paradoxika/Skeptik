@@ -3,15 +3,17 @@ package at.logic.skeptik.congruence.structure
 import at.logic.skeptik.expression._
 import at.logic.skeptik.algorithm.dijkstra._
 import scala.collection.mutable.{ListBuffer, StringBuilder, HashMap => MMap}
+import scala.collection.immutable.Queue
 
 case class ProofForest(
     next: Map[E,(E,Option[EqW])] = Map[E,(E,Option[EqW])](), 
     rootSize: Map[E,Int] = Map[E,Int](), 
-    edges: Map[(E,E),Option[EqW]] = Map[(E,E),Option[EqW]]()) 
-      extends CongruenceGraph(edges) {
+    edges: Map[(E,E),Option[EqW]] = Map[(E,E),Option[EqW]](),
+    pForder: Queue[(E,E)] = Queue[(E,E)]()) 
+      extends CongruenceGraph(edges,pForder) {
   
-  def newGraph(edges: Map[(E,E),Option[EqW]]): CongruenceGraph = {
-    ProofForest(next,rootSize,edges)
+  def newGraph(edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): CongruenceGraph = {
+    ProofForest(next,rootSize,edges,order)
   }
   
   def addEdge(u: E, v: E, eq: Option[EqW]) = {
@@ -20,8 +22,8 @@ case class ProofForest(
     val uR = root(u)
     val vR = root(v)
     val res = if (uR != vR) {
-      val uIn = if (!rootSize.isDefinedAt(uR)) ProofForest(next,rootSize + (u -> 1),edges) else this
-      val vIn = if (!rootSize.isDefinedAt(v)) ProofForest(uIn.next,uIn.rootSize +(v -> 1),edges) else uIn
+      val uIn = if (!rootSize.isDefinedAt(uR)) ProofForest(next,rootSize + (u -> 1),edges,order) else this
+      val vIn = if (!rootSize.isDefinedAt(v)) ProofForest(uIn.next,uIn.rootSize +(v -> 1),edges,order) else uIn
       if (vIn.rootSize(uR) > vIn.rootSize(vR)) {
         vIn.insertEdge(u,uR,v,vR,eq)
       }
@@ -68,10 +70,22 @@ case class ProofForest(
    * If no equation is set, then the equality has to be deduced and paths for the two arguments are created
    */
   def explain(u: E, v: E)(implicit eqReferences: MMap[(E,E),EqW]): Option[EquationPath] = {
-    val realTree = lazyEdges.foldLeft(this)({(A,B) => 
-      A.addEdge(B._1._1, B._1._2, B._2)
-    })
-    val path = realTree.ncaPath(u,v) 
+//    println("ORDER SIZE: " + order.size +" vs " + edges.size + " ~ \n"+order + "\n"+edges)
+    var ord = order
+    var graph = this
+    while (!ord.isEmpty) {
+      val (currEl,currOrd) = ord.dequeue
+      ord = currOrd
+//      if (!graph.edges.isDefinedAt(currEl)) {
+//        println(graph.edges + "\n" + ord)
+//      }
+      graph = ProofForest(graph.next,graph.rootSize,edges,ord).asInstanceOf[ProofForest]
+      graph = graph.addEdge(currEl._1, currEl._2, graph.edges.getOrElse((currEl),graph.edges(currEl.swap)))
+    }
+//    val realTree = lazyEdges.foldLeft(this)({(A,B) => 
+//      A.addEdge(B._1._1, B._1._2, B._2)
+//    })
+    val path = graph.ncaPath(u,v) 
     if (path.isEmpty) {
       if (u == v) {
         val end = new EquationPath(u,None)
@@ -86,7 +100,7 @@ case class ProofForest(
       }
     }
     else {
-      val x = realTree.explainAlongPath(path)
+      val x = graph.explainAlongPath(path)
       
       if (!(((x.firstVert == u) && (x.lastVert == v)) || ((x.firstVert == v) && (x.lastVert == u)))){
 //        println("faulty expl for " + (u,v) + "\n"+path)
@@ -140,7 +154,7 @@ case class ProofForest(
     val reversed = reverseToRoot(v)
     val finalSize = reversed.rootSize.updated(uRoot,reversed.rootSize(uRoot) + reversed.rootSize(vRoot)) - v
     val finalNext = reversed.next.updated(v, (u,eq))
-    ProofForest(finalNext,finalSize,edges - ((u,v)) - ((v,u))) //probably don't need to delete (v,u), because it should not be in the map
+    ProofForest(finalNext,finalSize,edges - ((u,v)) - ((v,u)),order) //probably don't need to delete (v,u), because it should not be in the map
   }
   
   def reverseToRoot(u: E): ProofForest = {
@@ -151,7 +165,7 @@ case class ProofForest(
       A.updated(node2,(node1,eq))
     })
     val finalNext = revNext - u
-    ProofForest(finalNext,rootSize,edges)
+    ProofForest(finalNext,rootSize,edges,order)
   }
   
   def printNode(u: E) = {
