@@ -41,15 +41,15 @@ extends JavaTokenParsers with RegexParsers {
   def equality: Parser[Node] = (eq_congruent | eq_reflexive | eq_transitive)
   
   def eq_congruent: Parser[Node] = "eq_congruent" ~> conclusion ^^ {
-    list => new EqCongruent(list)
+    list => EqCongruent(list)
   }
   
   def eq_reflexive: Parser[Node] = "eq_reflexive" ~> conclusion ^^ {
-    list => new EqReflexive(list)
+    list => EqReflexive(list)
   }
   
   def eq_transitive: Parser[Node] = "eq_transitive" ~> conclusion ^^ {
-    list => new EqTransitive(list)
+    list => EqTransitive(list)
   }
   
   def inference: Parser[Node] = (resolution | axiom | equality |unchecked)

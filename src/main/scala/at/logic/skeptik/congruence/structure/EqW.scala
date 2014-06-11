@@ -82,13 +82,6 @@ object EqW {
   def apply(t1: E, t2: E)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
     require(t1.t == t2.t)
     apply(t1,t2,true)
-//    val eqVar = new Var("=", (t1.t -> (t1.t -> o))) with Infix
-//    val out = eqReferences.getOrElse((t1,t2), eqReferences.getOrElseUpdate((t2,t1),{
-//      val x = new EqW(App(App(eqVar,t1),t2))
-//      if (x.toString == "(c_2 = c_3)") println("creating " + x + " myself in EqW")
-//      x
-//    }))
-//    out
   }
   
   def apply(t1: E, t2: E, symmetric: Boolean)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
