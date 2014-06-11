@@ -16,7 +16,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 0
+    val testcase = 3
     
     val t = o
     
@@ -78,7 +78,7 @@ object CongruenceDebug {
     
     testcase match {
       
-      case -6 => {
+      case -7 => {
         con = con.addEquality(EqW(a,b))
         val path = con.explain(a, b)
         println(con.g)
@@ -86,7 +86,7 @@ object CongruenceDebug {
         
       }
       
-      case -5 => {
+      case -6 => {
         val t1 = App(App(f1,a),b)
         val t2 = App(App(f1,t1),b)
         con = con.addEquality(EqW(a,t1)).addNode(t2)
@@ -99,7 +99,7 @@ object CongruenceDebug {
         
       }
       
-      case -4 => {
+      case -5 => {
         con = con.addEquality(EqW(a,b)).addEquality(EqW(b,c)).addEquality(EqW(c,e)).addEquality(EqW(e,d))
         val path = con.explain(a, d)
         
@@ -108,6 +108,17 @@ object CongruenceDebug {
         println(proof)
         println(measure(proof))
         
+      }
+      
+      case -4 => {
+        val t1 = App(App(f1,a),b)
+        val t2 = App(App(f1,b),a)
+        con = con.addEquality(EqW(a,c)).addEquality(EqW(b,c)).addNode(t1).addNode(t2)
+        println(eqReferences)
+        val path = con.explain(t1,t2)
+        
+        println(path)
+        println(path.get.toProof)
       }
       
       case -3 => {

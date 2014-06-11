@@ -91,7 +91,6 @@ object EqW {
     val out = if (symmetric) { 
       eqReferences.getOrElse((t1,t2), eqReferences.getOrElseUpdate((t2,t1),{
         val x = new EqW(App(App(eqVar,t1),t2))
-        if (x.toString == "(c_2 = c_3)") println("creating " + x + " myself in EqW")
         x
       }))}
     else {

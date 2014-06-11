@@ -53,7 +53,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
       if (fixedNode.conclusion.suc.size == 1 && fixedNode.conclusion.suc.forall(EqW.isEq(_))) 
         resolveWithMap.update(fixedNode.conclusion.suc.last, resolveWithMap.getOrElse(fixedNode.conclusion.suc.last, MSet[N]()) += fixedNode)
       val resNode = 
-        if (replaced) fixedNode
+        if (false) fixedNode
         else {
           tried = tried + 1
           val eqToMap = rightEqs.map(eq => {

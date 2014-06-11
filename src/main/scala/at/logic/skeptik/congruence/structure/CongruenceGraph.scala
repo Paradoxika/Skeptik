@@ -65,15 +65,15 @@ abstract class CongruenceGraph(lazyEdges: Map[(E,E),Option[EqW]], val order: Que
 //      println((subterms(t1).mkString(";"),subterms(t2).mkString(";")) + " subterms of " + (t1,t2))
       if (sub1.size != sub2.size) println("subterms don't match for " + (t1,t2) + " t: " + (t1.t,t2.t) + " s: " + (sub1,sub2) + "\n" + this)
       require(sub1.size == sub2.size)
-      val explOpts = (sub1 zip sub2).map(tuple => {
+      val explOpts = (sub1 zip sub2).toSet[Tuple2[E,E]].map(tuple => {
         
         val x = explain(tuple._1,tuple._2)
 //        println("while building dd, explaining: " + (tuple) + " result: " + x)
         x
       })
-      val x = explOpts.filter(_.isDefined).map(_.get).toSet
+      val x = explOpts.filter(_.isDefined).map(_.get)
 //      println((t1,t2) +" produces expls: " + x)
-      if (x.isEmpty) println("empty ddTrees for " + (t1,t2) + " in\n" + this)
+//      if (x.isEmpty) println("empty ddTrees for " + (t1,t2) + " in\n" + this)
 //      if (t1.toString == "(f2 c_3 c_5)" && t2.toString() == "(f2 (f2 c_3 c_3) c_5)") println("found it!; result: " + x + "graph:\n"+this)
       x
     }

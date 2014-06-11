@@ -15,17 +15,18 @@ object CongruenceCompressorDebug {
 
   def main(args: Array[String]):Unit = {
 
-    val multiple = false
+    val multiple = true
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
+//    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size8.smt2"
 //      val file = "F:/Proofs/QF_UF/SEQ/SEQ017_size5.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size8.smt2"
-//    val file = "F:/Proofs/QF_UF/SEQ/SEQ013_size4.smt2"
+    val file = "F:/Proofs/QF_UF/SEQ/SEQ013_size4.smt2"
 //      val file = "F:/Proofs/QF_UF/SEQ/SEQ032_size2.smt2"
-    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
+//    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size6.smt2"
 //      val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
-//    val file = "F:/Proofs/QF_UF/SEQ/SEQ026_size4.smt2"
+//    val file = "F:/Proofs/QF_UF/SEQ/SEQ015_size2.smt2"
 //    val file = "experiments/congruence/resolveBug.s"
 //      val file = "experiments/congruence/resolveBug10_1.smtb"
     val parser = ProofParserVeriT
@@ -38,18 +39,17 @@ object CongruenceCompressorDebug {
         val proof = parser.read(singleFile)
         println("finished parsing")
         val newProof = ProofTreeCNewNew(proof)
-        val newProof2 = FibonacciCNewNew(proof)
+//        val newProof2 = FibonacciCNewNew(proof)
         println(measure(proof))
         println(measure(newProof))
         println(newProof.root)
-        println(measure(newProof2))
-        println(newProof2.root)
+//        println(measure(newProof2))
+//        println(newProof2.root)
       }
     }
     else {
       val proof = parser.read(file)
       println("finished parsing")
-      proof.foreach(n => if (n.conclusion.ant.exists(l => l.toString() == "(c_3 = (f2 c_0 c_5))" || l.toString == "(c_3 = (f2 c_0 c_2))")) println(Proof(n)))
 //      println(proof)
       val t = System.currentTimeMillis()
       val newProof = ProofTreeCNewNew(proof)
@@ -62,9 +62,9 @@ object CongruenceCompressorDebug {
       println(newMeasures)
 //      println("trans is shift: " + (measures("length") - newMeasures("length") == measures("transLength") - newMeasures("transLength")))
       println(newProof.root)
-//      println(proof)
-      println("orig after RPI: " + measure(RecyclePivotsWithIntersection(proof)))
-      println("compressed after RPI: " + measure(RecyclePivotsWithIntersection(newProof)))
+//      println(newProof)
+//      println("orig after RPI: " + measure(RecyclePivotsWithIntersection(proof)))
+//      println("compressed after RPI: " + measure(RecyclePivotsWithIntersection(newProof)))
     }
   }
 }
