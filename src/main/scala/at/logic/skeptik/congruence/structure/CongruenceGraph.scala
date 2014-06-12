@@ -4,9 +4,26 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.Queue
 
-abstract class CongruenceGraph(lazyEdges: Map[(E,E),Option[EqW]], val order: Queue[(E,E)]) {
+abstract class CongruenceGraph(val lazyEdges: Map[(E,E),Option[EqW]], val order: Queue[(E,E)]) {
   
   def newGraph(edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): CongruenceGraph
+  
+  def updateLazy: CongruenceGraph = {
+    var ord = order
+    var graph = this
+    while (!ord.isEmpty) {
+      val (currEl,currOrd) = ord.dequeue
+      ord = currOrd
+//      if (!graph.edges.isDefinedAt(currEl)) {
+//        println(graph.edges + "\n" + ord)
+//      }
+      graph = graph.updateLazyData(graph.lazyEdges,ord)
+      graph = graph.addEdge(currEl._1, currEl._2, graph.lazyEdges.getOrElse((currEl),graph.lazyEdges(currEl.swap)))
+    }
+    graph
+  }
+  
+  def updateLazyData(edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): CongruenceGraph
   
   def lazyAddEdge(u: E, v: E, eq: Option[EqW]): CongruenceGraph = {
     val newQueue = if (!lazyEdges.isDefinedAt((u,v)) && !lazyEdges.isDefinedAt((v,u))) {

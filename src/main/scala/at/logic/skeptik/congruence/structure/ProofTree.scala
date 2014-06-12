@@ -12,6 +12,10 @@ case class ProofForest(
     pForder: Queue[(E,E)] = Queue[(E,E)]()) 
       extends CongruenceGraph(edges,pForder) {
   
+  def updateLazyData(edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): CongruenceGraph = {
+    ProofForest(next,rootSize,edges,order)
+  }
+  
   def newGraph(edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): CongruenceGraph = {
     ProofForest(next,rootSize,edges,order)
   }
@@ -70,22 +74,8 @@ case class ProofForest(
    * If no equation is set, then the equality has to be deduced and paths for the two arguments are created
    */
   def explain(u: E, v: E)(implicit eqReferences: MMap[(E,E),EqW]): Option[EquationPath] = {
-//    println("ORDER SIZE: " + order.size +" vs " + edges.size + " ~ \n"+order + "\n"+edges)
-    var ord = order
-    var graph = this
-    while (!ord.isEmpty) {
-      val (currEl,currOrd) = ord.dequeue
-      ord = currOrd
-//      if (!graph.edges.isDefinedAt(currEl)) {
-//        println(graph.edges + "\n" + ord)
-//      }
-      graph = ProofForest(graph.next,graph.rootSize,edges,ord).asInstanceOf[ProofForest]
-      graph = graph.addEdge(currEl._1, currEl._2, graph.edges.getOrElse((currEl),graph.edges(currEl.swap)))
-    }
-//    val realTree = lazyEdges.foldLeft(this)({(A,B) => 
-//      A.addEdge(B._1._1, B._1._2, B._2)
-//    })
-    val path = graph.ncaPath(u,v) 
+
+    val path = ncaPath(u,v) 
     if (path.isEmpty) {
       if (u == v) {
         val end = new EquationPath(u,None)
@@ -100,7 +90,7 @@ case class ProofForest(
       }
     }
     else {
-      val x = graph.explainAlongPath(path)
+      val x = explainAlongPath(path)
       
       if (!(((x.firstVert == u) && (x.lastVert == v)) || ((x.firstVert == v) && (x.lastVert == u)))){
 //        println("faulty expl for " + (u,v) + "\n"+path)

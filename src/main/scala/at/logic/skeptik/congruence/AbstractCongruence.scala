@@ -12,6 +12,8 @@ abstract class AbstractCongruence {
   
   def explain(u: E, v: E): Option[EquationPath]
   
+  def updateLazy: AbstractCongruence
+  
   def isCongruent(u: E, v: E): Boolean
   
   def g: CongruenceGraph

@@ -73,17 +73,16 @@ object CongruenceDebug {
     
 //    var con: AbstractCongruence = FibonacciCongruence(eqReferences)
     var con2: AbstractCongruence = new ProofTreeCongruence()
-//    var con: AbstractCongruence = FibConNew(eqReferences)
-    var con: AbstractCongruence = ProofTreeConNew(eqReferences)
+    var con: AbstractCongruence = FibConNew(eqReferences)
+//    var con: AbstractCongruence = ProofTreeConNew(eqReferences)
     
     testcase match {
       
       case -7 => {
-        con = con.addEquality(EqW(a,b))
+        con = con.addEquality(EqW(a,b)).updateLazy
         val path = con.explain(a, b)
         println(con.g)
         println(path)
-        
       }
       
       case -6 => {
@@ -280,7 +279,7 @@ object CongruenceDebug {
         
         val eqs = List(EqW(t1,d),EqW(t2,a),EqW(c,d),EqW(e,c),EqW(e,b),EqW(b1,b),EqW(b1,h))
         println("===Input: " + eqs.mkString(","))
-        con = con.addAll(eqs)
+        con = con.addAll(eqs).updateLazy
 //        con = con.addEquality(EqW(t1,d,eqReferences))
 //        con = con.addEquality(EqW(c,d,eqReferences))
 //        con = con.addEquality(EqW(t2,a,eqReferences))
@@ -304,6 +303,7 @@ object CongruenceDebug {
         val eqs2 = List(EqW(d,c1),EqW(c1,c2),EqW(c2,c3),EqW(c3,h))
         println("\n\n\n===Input: " + (eqs ++ eqs2).mkString(","))
         con = eqs2.foldLeft(con)({(A,B) => A.addEquality(B)})
+        con = con.updateLazy
 //        con = con.addEquality(Eq(d,c1))
 ////        con = con.addEquality(Eq(c1,c2))
 //        con = con.addEquality(Eq(c1,c2))

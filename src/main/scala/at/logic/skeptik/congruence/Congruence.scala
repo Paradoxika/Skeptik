@@ -28,6 +28,8 @@ abstract class Congruence(
     val g: CongruenceGraph)
     (implicit eqReferences: MMap[(E,E),EqW]) extends AbstractCongruence {
   
+  def updateLazy: AbstractCongruence = this
+  
   def newCon(find: FindTable, deduced: Queue[(E,E)], g: CongruenceGraph)(implicit eqReferences: MMap[(E,E),EqW]): Congruence
   
   /**

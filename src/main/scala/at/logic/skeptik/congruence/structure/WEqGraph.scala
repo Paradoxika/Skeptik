@@ -8,28 +8,22 @@ import scala.collection.immutable.Queue
 abstract class WEqGraph(
     val graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](),
     val edges: Map[(E,E),Option[EqW]],
-    order: Queue[(E,E)] = Queue[(E,E)]()) 
+    order: Queue[(E,E)]) 
     (implicit eqReferences: MMap[(E,E),EqW]) 
       extends CongruenceGraph(edges,order) {
-
+  
+  def updateLazyData(edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): CongruenceGraph = {
+    newWEqGraph(graph,edges,order)
+  }
+  
   def newWEqGraph(graph: WGraph[E,EqLabel],edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): WEqGraph
   
   def newDijkstra: EquationDijkstra
   
   def explain(u: E, v: E)(implicit eqReferences: MMap[(E,E),EqW]): Option[EquationPath] = {
-//    val realGraph = lazyEdges.foldLeft(this)({(A,B) => 
-//      A.addEdge(B._1._1, B._1._2, B._2)
-//    })
-    var ord = order
-    var graph = this
-    while (!ord.isEmpty) {
-      val (currEl,currOrd) = ord.dequeue
-      ord = currOrd
-      graph = newWEqGraph(graph.graph,edges,ord)
-      graph = graph.addEdge(currEl._1, currEl._2, graph.edges.getOrElse((currEl),graph.edges(currEl.swap)))
-    }
+    
     val dij = newDijkstra
-    val path = dij(u,v,graph.graph)
+    val path = dij(u,v,graph)
     Some(path)
   }
 
@@ -63,7 +57,7 @@ abstract class WEqGraph(
   override def toString = graph.toString
 }
 
-class FibonacciGraph(graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](), lazyEdges: Map[(E,E),Option[EqW]] = Map[(E,E),Option[EqW]](), order: Queue[(E,E)] = Queue[(E,E)]()) (implicit eqReferences: MMap[(E,E),EqW]) extends WEqGraph(graph,lazyEdges) {
+class FibonacciGraph(graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](), lazyEdges: Map[(E,E),Option[EqW]] = Map[(E,E),Option[EqW]](), order: Queue[(E,E)] = Queue[(E,E)]()) (implicit eqReferences: MMap[(E,E),EqW]) extends WEqGraph(graph,lazyEdges,order) {
   def newWEqGraph(graph: WGraph[E,EqLabel],edges: Map[(E,E),Option[EqW]], order: Queue[(E,E)]): WEqGraph = {
     new FibonacciGraph(graph,edges,order)
   }
@@ -77,7 +71,7 @@ class FibonacciGraph(graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](), lazyEdg
   }
 }
 
-class ArrayGraph(graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](), lazyEdges: Map[(E,E),Option[EqW]] = Map[(E,E),Option[EqW]](), order: Queue[(E,E)] = Queue[(E,E)]()) (implicit eqReferences: MMap[(E,E),EqW]) extends WEqGraph(graph, lazyEdges) {
+class ArrayGraph(graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](), lazyEdges: Map[(E,E),Option[EqW]] = Map[(E,E),Option[EqW]](), order: Queue[(E,E)] = Queue[(E,E)]()) (implicit eqReferences: MMap[(E,E),EqW]) extends WEqGraph(graph, lazyEdges,order) {
   def newWEqGraph(graph: WGraph[E,EqLabel],edges: Map[(E,E),Option[EqW]],order: Queue[(E,E)]): WEqGraph = {
     new ArrayGraph(graph,edges,order)
   }

@@ -14,6 +14,8 @@ abstract class CongruenceNew(
     val g: CongruenceGraph)
     (implicit eqReferences: MMap[(E,E),EqW]) extends AbstractCongruence {
 
+  def updateLazy: AbstractCongruence = updateGraph(g.updateLazy)
+  
   def initNode(v: E): CongruenceNew = {
     val newRep = rep + (v -> v)
     val newCclass = cclass + (v -> Set(v))

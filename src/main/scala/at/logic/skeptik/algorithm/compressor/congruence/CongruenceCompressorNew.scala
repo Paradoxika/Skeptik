@@ -57,7 +57,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
         else {
           tried = tried + 1
           val eqToMap = rightEqs.map(eq => {
-            val con = newCon.addAll(leftEqs).addNode(eq.l).addNode(eq.r)
+            val con = newCon.addAll(leftEqs).addNode(eq.l).addNode(eq.r).updateLazy
             con.explain(eq.l,eq.r) match {
               case Some(path) => {
                 path.toProof match {

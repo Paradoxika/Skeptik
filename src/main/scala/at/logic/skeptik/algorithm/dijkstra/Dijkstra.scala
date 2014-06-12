@@ -160,31 +160,24 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
    * @param s source node
    * @param g graph where shortest paths should be searched
    */
-  def apply(s: T1, g: WGraph[T1,T2]): Unit = {
-//    var g = gIn // had this, but I don't think I need it still
+  def apply(s: T1, graph: WGraph[T1,T2]): Unit = {
+    var g = graph
     distances.clear
     paths.clear
     discount.clear
     dataTuples.clear
-    
-//    println("new search")
-    
+
     initPaths(g)
     
     distances += (s -> 0)
     
     val q = newPQ
-//    val q = new ArrayPQ[T1,Int]()
-//    val q = new FibonacciHeap[T1,Int](Integer.MIN_VALUE)
-
+    
     g.vertices.foreach(v => {
-//      q.insert(v, d(v))
       val dT = DataTuple(v,d(v))
-//      if (v.toString == "(f1 (f3 c_2) c_2)") println(" adding it! ")
       dataTuples += (v -> dT)
       q.insert(v,d(v))
     })
-//    println("finished adding")
 
     
     def relax(u: T1, l: T2, v: T1) = {
@@ -193,11 +186,11 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
       if (d(v) > x) {
         val oldDT = dataTuples(v)
         val newDT = DataTuple(v,x)
+        g = makeAdjacent(l,g)
         dataTuples.update(v, newDT)
         distances.update(v, x)
         setPi(v,l,u)
         q.decreaseKey(v, x)
-//        q.decreaseKey(oldDT, newDT)
       }
     }
     
@@ -205,23 +198,19 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
       q.extractMin match {
         case None => 
         case Some(u) => {
-//          val l = pi(u.key).originalEqs //Only origianl Eqs are in the graph
-//          l.foreach(lE => {
-//            discount += lE
-//          })
-          
           /**
            * if adjacend would be dynamic, discounts could be taken into account here
            */
           val adj = g.adjacent(u) //Slow line!
           adj.foreach(x => {
-//            println("relaxing " + (u,x._2))
             relax(u,x._1,x._2)
           })
         }
       }
     }
   }  
+  
+  def makeAdjacent(l: T2, g: WGraph[T1,T2]): WGraph[T1,T2] = g
   
   class distOrder extends Ordering[T1] {
     override def compare(a: T1, b: T1) = - (d(a) compare d(b))
@@ -240,6 +229,20 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
  */
 
 abstract class EquationDijkstra(implicit eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends Dijkstra[E,EqLabel] {
+  
+  override def makeAdjacent(l: EqLabel, g: WGraph[E,EqLabel]): WGraph[E,EqLabel] = {
+//    l._2.foldLeft(g)({(A,B) =>
+//      B.originalEqs.foldLeft((A,Set[E])(op)
+//    })
+    val x = l._2.map(_.originalEqs)
+    val y = x.flatten
+//    g.addUndirectedEdge((B,), weight)
+    var gOut = y.foldLeft(g)({(A,B) => 
+      val label = EqLabel(B,Set[EquationPath]())
+      A.addUndirectedEdge((B.l,label,B.r),0)
+    })
+    gOut
+  }
   
   def w(u: E, l: EqLabel, v: E) = {
     l.size
