@@ -1,24 +1,15 @@
 package at.logic.skeptik.algorithm.compressor.congruence
 
-import at.logic.skeptik.expression.formula._
-import at.logic.skeptik.expression._
-import at.logic.skeptik.judgment.immutable._
+import at.logic.skeptik.util.io.FileOutput
+import at.logic.skeptik.expression.{E,App}
 import at.logic.skeptik.proof._
-import at.logic.skeptik.congruence._
-import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.algorithm.compressor._
-import at.logic.skeptik.algorithm.dijkstra._
 import at.logic.skeptik.proof.sequent.lk._
-import at.logic.skeptik.algorithm.compressor._
-import scala.collection.mutable.{HashMap => MMap}
-import scala.collection.immutable.{HashMap => IMap}
-import at.logic.skeptik.proof._
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
-import scala.collection.immutable.{HashMap => IMap,Queue}
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
-import at.logic.skeptik.congruence.Congruence
-import at.logic.skeptik.congruence.structure.EquationPath
+import at.logic.skeptik.congruence.AbstractCongruence
+import at.logic.skeptik.congruence.structure.{EqW,EquationPath}
 
 abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
   
@@ -32,12 +23,20 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
     var comp = 0
     var tried = 0
     
+    val directory = "$GLOBAL/test5/"
+    val filename = "proof_"+proof.hashCode
+    val output = new FileOutput(directory + filename)
+    val header = "original, produced, theorylemma\n"
+    output.write(header)
     val eqNodesLeft = MMap[EqW,N]()
     
     def traversal(node: N, fromPr: Seq[(N,Boolean)]): (N,Boolean) = {
       
       val fixedNode = fixNode(node,fromPr.map(_._1))
-      var replaced = fromPr.map(_._2).exists(b => b)
+      var theorylemma = 
+        if (fromPr.isEmpty)
+          fixedNode.isInstanceOf[EqAxiom]
+        else fromPr.map(_._2).forall(b => b)
       
       val rightEqs = fixedNode.conclusion.suc.filter(EqW.isEq(_)).map(EqW(_))
       val leftEqs = fixedNode.conclusion.ant.filter(EqW.isEq(_)).map(EqW(_))
@@ -52,18 +51,25 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
       
       if (fixedNode.conclusion.suc.size == 1 && fixedNode.conclusion.suc.forall(EqW.isEq(_))) 
         resolveWithMap.update(fixedNode.conclusion.suc.last, resolveWithMap.getOrElse(fixedNode.conclusion.suc.last, MSet[N]()) += fixedNode)
-      val resNode = 
-        if (false) fixedNode
-        else {
-          tried = tried + 1
-          val eqToMap = rightEqs.map(eq => {
-            val con = newCon.addAll(leftEqs).addNode(eq.l).addNode(eq.r).updateLazy
-            con.explain(eq.l,eq.r) match {
-              case Some(path) => {
-                path.toProof match {
-                  case Some(proof) => {
-                    replaced = true
-                    val fixedProof = Proof(fixedNode)
+      val resNode = {
+        tried = tried + 1
+        val eqToMap = rightEqs.map(eq => {
+          val con = newCon.addAll(leftEqs).addNode(eq.l).addNode(eq.r).updateLazy
+          con.explain(eq.l,eq.r) match {
+            case Some(path) => {
+              
+              
+              
+              path.toProof match {
+                case Some(proof) => {
+                  val newSize = proof.root.conclusion.ant.size
+                  val oldSize = leftEqs.size
+                  
+//                  println(newSize == proof.root.conclusion.ant.size)
+                  
+                  val line = oldSize + ", " + newSize + ", " + theorylemma + "\n"
+                  output.write(line)
+//                  val fixedProof = Proof(fixedNode)
 //                    if (proof.size > fixedProof.size) {
 //                      val oldProof = Proof(fixedNode)
 //                      println("increasing proof size, length:" + measure(oldProof)("length") + " vs " + measure(proof)("length") +  " trans length:" + measure(oldProof)("transLength") + " vs " + measure(proof)("transLength") + "\n" + Proof(fixedNode) + "\nto\n"+proof)
@@ -72,27 +78,27 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
 //                    if (fixedNode.conclusion.size < proof.root.conclusion.size) println("made it bigger: " + fixedNode.conclusion.size +" vs " + proof.root.conclusion.size)
 //                    if (fixedNode.conclusion.size == proof.root.conclusion.size) println("stayed the same")
 //                    if (fixedNode.conclusion.size > proof.root.conclusion.size) println("got smaller: " + fixedNode.conclusion.size +" vs " + proof.root.conclusion.size)
-                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
+                  comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
 //                    println("compressing")
-                    proof.root
-                  }
-                  case None => fixedNode
+                  proof.root
                 }
+                case None => fixedNode
               }
-              case _ => fixedNode
             }
-          })
-          
-          val x = if (eqToMap.isEmpty) {
-//            println("reach this")
-            fixedNode 
+            case _ => fixedNode
           }
-          else eqToMap.minBy(_.conclusion.size)
-//          println(eqToMap.size + " ~ " + x)
-          x
+        })
+        
+        val x = if (eqToMap.isEmpty) {
+//            println("reach this")
+          fixedNode 
         }
+        else eqToMap.minBy(_.conclusion.size)
+//          println(eqToMap.size + " ~ " + x)
+        x
+      }
 //      if (resNode.conclusion.suc.size > 1) println("size > 1 in compressor!:\n " + Proof(resNode))
-      (resNode,replaced)
+      (resNode,theorylemma)
     }
     
     val newProof = (proof foldDown traversal)._1
