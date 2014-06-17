@@ -2,10 +2,10 @@
 \usepackage{bussproofs}
 \usepackage{amssymb}
 \usepackage{latexsym}
-\usepackage[landscape, a1paper]{geometry}
+\usepackage[landscape]{geometry}
 \marginparwidth=0pt
-\hoffset=-10cm
-\voffset=-5cm
+%\hoffset=-10cm
+%\voffset=-5cm
 \begin{document}
 \section{Local Redundancy}
 We first consider an example first posed by Postan:
@@ -45,51 +45,57 @@ We consider example 2, from the LU/RPI paper, modified for first order predicate
 \subsection{Lower Units}
 Proceeds exactly the same as in the paper.\\
 {\bf TODO:} show exact steps? \\
-{\bf TODO:} cases where we can lower larger formulas, namely non-units, as long as they're unifiable (and subject to the other same conditions?)\\
 
 \subsection{RecyclePivots}
 Again, proceeds like in the paper. 
 
-\section{A larger proof}
-{\bf TODO:} We consider the following proof:
+\section{Lower Units - Research Notes}
+First, I consider the proofs 1-5 that were provided by Bruno on the Skeptik dev mailing list. In order to be explicit, I outline the case of compression from proof 1 to proof 2:
+\begin{itemize}
+\item Lower $P(X)$ so that the terms using it were resolved against each other instead of with $P(X)$
+\item Contract (trivially?); the unifier resulted in the duplicated terms
+\item Resolve the contracted formula against the lowered unit, $P(X)$
+\end{itemize}
+
+The result is a trade of a resolution for a contraction, which is more compact (when we consider compactness as a count of the number of resolution rules).
+
+In order to generalize, I think the best place to start was see under what conditions we can in fact make this contraction. It should not be required that contraction results in duplicated formulas; indeed, as long as a contraction is possible this seems to work. So in particular, I conjecture that we should lower a unit formula if and only if for all formulas which would be resolved against the unit clause of interest are pair-wise unifiable (disregarding the remainder of their premises).
+
+This is trivially seen in proof 1 and 2, but further, this is lacking the case of proof 3: $P(a)$ and $P(b)$ is not unifiable, and thus proof 5 is not actually compressed. But if $P(b)$ had been $P(B)$, then we would have been fine. It also fails in the following example:
+
 \begin{prooftree}
-\def\fCenter{\mbox{\ $\vdash$\ }}
-
-
-\AxiomC{ $\fCenter$ (eq (f U) 0), (eq (f U) 1)} 	
-
-\AxiomC{ $\fCenter$ (le U U)} 	
-\AxiomC{(eq (f V) 0), (eq (f U) 0), (le (s U) V) $\fCenter$ } 	
-\BinaryInfC{(eq (f (s U)) 0), (eq (f U) 0) $\fCenter$ } 	
-
-
-
-\BinaryInfC{(eq (f U) 0) $\fCenter$ (eq (f (s U)) 1)} 	
-
-\AxiomC{ $\fCenter$ (le U U)} 	
-\AxiomC{(le (max U V) W) $\fCenter$ (le V W)} 	
-\BinaryInfC{ $\fCenter$ (le V (max U V))} 	
-\AxiomC{(eq (f V) 0), (eq (f U) 0), (le (s U) V) $\fCenter$ } 	
-\BinaryInfC{(eq (f (max X (s U))) 0), (eq (f U) 0) $\fCenter$ } 	
-\AxiomC{ $\fCenter$ (eq (f U) 0), (eq (f U) 1)} 	
-\BinaryInfC{(eq (f U) 0) $\fCenter$ (eq (f (max X (s U))) 1)} 	
-\AxiomC{(le (max U V) W) $\fCenter$ (le U W)} 	
-\AxiomC{ $\fCenter$ (le U U)} 	
-\BinaryInfC{ $\fCenter$ (le U (max U V))} 	
-\AxiomC{(eq (f V) 1), (eq (f U) 1), (le (s U) V) $\fCenter$ } 
-\BinaryInfC{(eq (f (max (s U) X)) 1), (eq (f U) 1) $\fCenter$ } 	
-\BinaryInfC{(eq (f W) 0), (eq (f U) 1) $\fCenter$ } 	
-\BinaryInfC{(eq (f X) 0), (eq (f W) 0) $\fCenter$ } 	
-\UnaryInfC{(eq (f X) 0) $\fCenter$ } 	
-\AxiomC{ $\fCenter$ (eq (f U) 0), (eq (f U) 1)} 	
-\BinaryInfC{ $\fCenter$ (eq (f X) 1)} 	
-
-\AxiomC{(eq (f V) 1), (eq (f U) 1), (le (s U) V) $\fCenter$ } 	
-\AxiomC{(eq (f V) 1), (eq (f U) 1), (le (s U) V) $\fCenter$ } 	
-\BinaryInfC{(eq (f (s U)) 1), (eq (f U) 1) $\fCenter$ } 	
-\UnaryInfC{(eq (f (s U)) 1) $\fCenter$ } 	
-\BinaryInfC{ $\fCenter$ } 	
-
-
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\e $P(X)$}
+\AxiomC{$P(a)$\e$Q(Y),R(Z)$}
+\BinaryInfC{\e$Q(Y),R(Z)$}
+\AxiomC{$R(X),P(b)$\e $S(Y)$}
+\BinaryInfC{$P(b)$\e $S(Y),Q(Y)$}
+\AxiomC{$S(Y), Q(Y)$\e}
+\BinaryInfC{$P(b)$\e}
+\AxiomC{\e $P(X)$}
+\BinaryInfC{$\bot$}
 \end{prooftree}
+
+which is the 'potentially' globally reduction example from the original lower units paper.
+
+However, I'm not yet entirely convinced this the whole picture. In particular, I am concerned about proof  structures -- maybe unnecessarily. Basically, I'm concerned that there might be cases were the formulas are pair-wise unifiable, but moving the unit lower breaks the proof. To this end, I've considered the following questions, regarding potential units from being lowerable:
+
+\begin{itemize}
+\item Can a unit be required in the different proof tree branch, at the same 'depth', so that if we lowered it, we couldn't use the original resolvent, thus making the proof longer? (Basically, we draw the proof like in Bruno's pictures, is there a case where somewhere on say, level two (from the top), we have a resolvent using our unit and some other formula, that we need at some lower level, wherein if we lower the unit we have to do this work anyways?)
+\begin{itemize}
+\item From experiments (see proofs 6,7), this looks like it's not an issue; as long as some pair of formulas can be resolved later, we've still traded a resolution for a contraction.
+\end{itemize}
+
+\item Can a unit be created from some other resolutions, the intermediate results of which are necessary below the usage of the unit formula, but above where the unit would be placed after lowering it?
+\begin{itemize}
+\item Probably not an issue: we have to compute the unit anyways, so just compute until we get the parts we need, and hold off on computing the actual unit before it necessary, in the lowered position.
+\end{itemize}
+
+\item Can a unit be in such a location of the proof, that it is necessary in the next step so that it can't be placed lower?
+\begin{itemize}
+\item From experiments (see proofs 8,9), this looks like it's not an issue. 
+\end{itemize}
+
+\end{itemize}
+
 \end{document}
