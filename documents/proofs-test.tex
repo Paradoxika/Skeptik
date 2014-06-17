@@ -85,15 +85,14 @@ but if we delay the resolution with $P(y,x)$ we get
 \def\e{\mbox{\ $\vdash$\ }}
 \AxiomC{$P(A,x)$\e $Q(A),R(B)$}
 \AxiomC{$Q(y)$ \e$Q(x)$}
-\BinaryInfC{$P(x,x),Q(y)$\e$R(B)$}
-\AxiomC{$Q(y)$\e$Q(x)$}
-\BinaryInfC{$P(x,x)$\e $Q(x), R(B)$}
+\BinaryInfC{$P(y,x)$\e$Q(x),R(B)$}
+
 \AxiomC{$Q(A), P(y,A)$\e}
-\BinaryInfC{$P(x,x), P(x,y)$\e $R(B)$}
+\BinaryInfC{$P(y,x), P(x,y)$\e $R(B)$}
 \AxiomC{$R(B)$\e}
-\BinaryInfC{$P(x,x),P(y,A)$\e}
+\BinaryInfC{$P(y,x),P(y,A)$\e}
 \AxiomC{\e $P(y,x)$}
-\BinaryInfC{$P(x,x)$}
+\BinaryInfC{$P(y,x)$}
 \AxiomC{\e $P(y,x)$}
 \BinaryInfC{$\bot$}
 \end{prooftree}
