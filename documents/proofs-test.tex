@@ -59,9 +59,38 @@ First, I consider the proofs 1-5 that were provided by Bruno on the Skeptik dev 
 
 The result is a trade of a resolution for a contraction, which is more compact (when we consider compactness as a count of the number of resolution rules).
 
-In order to generalize, I think the best place to start was see under what conditions we can in fact make this contraction. It should not be required that contraction results in duplicated formulas; indeed, as long as a contraction is possible this seems to work. So in particular, I conjecture that we should lower a unit formula if and only if for all formulas which would be resolved against the unit clause of interest are pair-wise unifiable (disregarding the remainder of their premises).
+In order to generalize, I think the best place to start was see under what conditions we can in fact make this contraction. It should not be required that contraction results in duplicated formulas; indeed, as long as a contraction is possible this seems to work. So in particular, I conjecture that we should lower a unit formula if and only if for all formulas which would be resolved against the unit clause of interest are pair-wise unifiable (disregarding the remainder of their premises), and unifiable with the unit. Further, the unit must be the most general form of the formula, as the following shows:
 
-This is trivially seen in proof 1 and 2, but further, this is lacking the case of proof 3: $P(a)$ and $P(b)$ is not unifiable, and thus proof 5 is not actually compressed. But if $P(b)$ had been $P(B)$, then we would have been fine. It also fails in the following example:
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\e$P(y,x)$}
+\AxiomC{$P(A,x)$ \e $Q(A),R(B)$}
+\BinaryInfC{\e $Q(y), R(B)$}
+\AxiomC{$Q(y)$ \e $Q(x)$}
+\BinaryInfC{\e $R(B), Q(x)$}
+
+\AxiomC{$Q(A), P(y,A)$\e}
+\AxiomC{\e$P(y,x)$}
+\BinaryInfC{$Q(x)$\e}
+
+\BinaryInfC{\e$R(B)$}
+\AxiomC{$R(B)$\e}
+
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+but if we delay the resolution with $P(y,x)$ we get
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{$P(A,x)$\e $Q(A),R(B)$}
+\AxiomC{$Q(y)$ \e$Q(x)$}
+\BinaryInfC{$P(x,x),Q(y)$\e$R(B)$}
+\end{prooftree}
+
+and now we cannot resolve away the $P(x,x)$.
+
+The requirement for being pairwise unifiable is also seen in proof 1 and 2, but further, this is lacking the case of proof 3: $P(a)$ and $P(b)$ is not unifiable, and thus proof 5 is not actually compressed. But if $P(b)$ had been $P(B)$, then we would have been fine. It also fails in the following example:
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
@@ -97,5 +126,9 @@ However, I'm not yet entirely convinced this the whole picture. In particular, I
 \end{itemize}
 
 \end{itemize}
+
+There is a concern regarding unit formulas that have multiple literals; consider the unit being $P(a,b)$ being resolved in two places against $P(A, b)$ and $P(a, B)$, where the order of resolution in the proof matters (namely, other things are set to $a$ or $b$, respectively. I don't think this is as large an issue, because it seems that if this can be done with the non-lowered unit, then the proof can compensate in the lowered case as well.
+
+Lastly, a concern is 'how low' should the unit be lowered; I think this is entirely covered by the rest of the algorithm; that is, if we can lower it, the techniques from the propositional case should also determine this.
 
 \end{document}
