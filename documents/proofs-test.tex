@@ -86,9 +86,19 @@ but if we delay the resolution with $P(y,x)$ we get
 \AxiomC{$P(A,x)$\e $Q(A),R(B)$}
 \AxiomC{$Q(y)$ \e$Q(x)$}
 \BinaryInfC{$P(x,x),Q(y)$\e$R(B)$}
+\AxiomC{$Q(y)$\e$Q(x)$}
+\BinaryInfC{$P(x,x)$\e $Q(x), R(B)$}
+\AxiomC{$Q(A), P(y,A)$\e}
+\BinaryInfC{$P(x,x), P(x,y)$\e $R(B)$}
+\AxiomC{$R(B)$\e}
+\BinaryInfC{$P(x,x),P(y,A)$\e}
+\AxiomC{\e $P(y,x)$}
+\BinaryInfC{$P(x,x)$}
+\AxiomC{\e $P(y,x)$}
+\BinaryInfC{$\bot$}
 \end{prooftree}
 
-and now we cannot resolve away the $P(x,x)$.
+and now we actually required more resolution rules.
 
 The requirement for being pairwise unifiable is also seen in proof 1 and 2, but further, this is lacking the case of proof 3: $P(a)$ and $P(b)$ is not unifiable, and thus proof 5 is not actually compressed. But if $P(b)$ had been $P(B)$, then we would have been fine. It also fails in the following example:
 
