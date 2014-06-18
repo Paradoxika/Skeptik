@@ -17,19 +17,14 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
   extends SequentProofNode with Binary
   with NoMainFormula {
 
-  //TODO: define these variables
-  def leftAuxFormulas: SeqSequent = ???
-  def rightAuxFormulas: SeqSequent = ???
+  def leftAuxFormulas: SeqSequent = Sequent()(auxL)
+  def rightAuxFormulas: SeqSequent =  Sequent(auxR)()
 
   // When a unifiable variable X occurs in both premises, 
   // we must rename its occurrences in one of the premises to a new variable symbol Y
   // not occurring in any premise
-  //TODO: remove these variables?
-  val (leftPremiseR: Sequent, rightPremiseR: Sequent, auxLR: E, auxRR: E) = {
-    (leftPremise.conclusion, rightPremise.conclusion, auxL, auxR)
-  }
 
-  val mgu = unify((auxLR, auxRR) :: Nil) match {
+  val mgu = unify((auxL, auxR) :: Nil) match {
     case None => {
       throw new Exception("Resolution: given premise clauses are not resolvable.")
     }
@@ -49,18 +44,16 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 }
 
 object UnifyingResolution extends CanRenameVariables {
-  //def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = new UnifyingResolution(leftPremise, rightPremise, auxL, auxR)
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
 
     val cleanNodes = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
     val leftPremiseClean = cleanNodes._1
-    val rightPremiseClean = cleanNodes._2
     
-    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
-      new UnifyingResolution(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)    
+      new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)    
     } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
     else throw new Exception("Resolution: the resolvent is ambiguous.")
   }

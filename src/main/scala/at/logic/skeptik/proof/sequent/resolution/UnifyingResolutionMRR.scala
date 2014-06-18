@@ -27,19 +27,17 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode,override 
 }
 
 object UnifyingResolutionMRR extends CanRenameVariables{
-//  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR)
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     val cleanNodes = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
     val leftPremiseClean = cleanNodes._1
-    val rightPremiseClean = cleanNodes._2
 
-    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremiseClean.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     if (unifiablePairs.length > 0) {
       
       val (auxL, auxR) = unifiablePairs(0)
       var ax = null.asInstanceOf[SequentProofNode]
-      ax = new UnifyingResolutionMRR(leftPremise, rightPremiseClean, auxL, auxR, leftPremiseClean)
+      ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
         var con = Contraction(ax)(unifiableVariables)
         //If they're ever equal, contraction did nothing; discard the contraction
         while (!con.conclusion.equals(ax.conclusion)) {
