@@ -2,7 +2,7 @@ package at.logic.skeptik
 
 
 import at.logic.skeptik.parser.AlgorithmParser
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,ProofParserTraceCheck}
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,ProofParserTraceCheck, ProofParserSPASS}
 import at.logic.skeptik.exporter.Exporter
 import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
 import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
@@ -124,6 +124,7 @@ object ProofCompressionCLI {
           case ".skeptik"  => ProofParserSkeptik
           case ".s" => ProofParserSkeptik
           case ".tc" => ProofParserTraceCheck
+          case ".spass" => ProofParserSPASS
           case _ => throw new Exception(unknownFormat(filename))
         }
         

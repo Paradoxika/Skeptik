@@ -33,6 +33,8 @@ package object compressor {
     "LUVRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI3LUV" -> LowerUnivalentsBeforeRecyclePivots,
 
+    "FOLU" -> FOLowerUnits,
+    
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),
     "RRH" -> new ReduceAndReconstructHelsinkiTimeout(5000),
