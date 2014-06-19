@@ -70,18 +70,6 @@ trait CanRenameVariables {
       case Some(_) => true
     }
   
-  
-    def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): (SequentProofNode, SequentProofNode) = {
-
-    // For example, suppose we are trying to resolve:
-
-    //  p(X) |- q(a)     with    q(X) |- 
-
-    // note that all variables are assumed to be universally quantified.
-    // therefore, the X in the left premise has nothing to do with the X in the right premise.
-
-    //check if there is a variable in both  
-
     def getSetOfVarsFromPremise(pn: SequentProofNode) = {
       val ante = pn.conclusion.ant
       val succ = pn.conclusion.suc
@@ -115,7 +103,19 @@ trait CanRenameVariables {
         }
       }
       getSetOfVarsFromExpr(ante).union(getSetOfVarsFromExpr(succ))
-    }
+    }  
+     
+     
+    def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): (SequentProofNode, SequentProofNode) = {
+
+    // For example, suppose we are trying to resolve:
+
+    //  p(X) |- q(a)     with    q(X) |- 
+
+    // note that all variables are assumed to be universally quantified.
+    // therefore, the X in the left premise has nothing to do with the X in the right premise.
+
+    //check if there is a variable in both  
 
     val sharedVars = getSetOfVarsFromPremise(leftPremiseR).intersect(getSetOfVarsFromPremise(rightPremiseR))
 
