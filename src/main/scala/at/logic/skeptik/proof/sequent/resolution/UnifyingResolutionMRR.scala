@@ -29,10 +29,13 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode,override 
 object UnifyingResolutionMRR extends CanRenameVariables{
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
-    val cleanNodes = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
-    val leftPremiseClean = cleanNodes._1
+    val leftPremiseClean =  fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+    
+     //should be == 1?
+    //see  https://github.com/jgorzny/Skeptik/commit/ad7ac312b5e777c96726588b15bd7f52002ac7ff#commitcomment-6761034
+    //but causes error
     if (unifiablePairs.length > 0) {
       
       val (auxL, auxR) = unifiablePairs(0)

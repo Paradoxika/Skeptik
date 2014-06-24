@@ -24,7 +24,7 @@ trait SPASSParsers
 
   private var proofMap = new MMap[Int, Node]
 
-  private var vars = Set[Var]() //TODO: make this val
+  private val vars = Set[Var]() 
 
   private var exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
@@ -212,8 +212,10 @@ trait SPASSParsers
 
   def variable: Parser[E] = name ^^ {
     case s => {
-      val hasLowerCase = s.exists(_.isLower)
-      if (!hasLowerCase) {
+      //TODO: clean this up; remove 'vars' all together?
+      // see https://github.com/jgorzny/Skeptik/commit/32dc9b6d9ddd1a3d18c514c9e4d05660ef2ec7bc#commitcomment-6760631
+      val hasLowerCaseFirst = s.charAt(0).isLower
+      if (!hasLowerCaseFirst) {
         vars += new Var(s.toString, i)
       }
       varMap.getOrElseUpdate(s, new Var(s.toString, i))
