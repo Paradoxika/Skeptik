@@ -156,36 +156,26 @@ trait CanRenameVariables {
       //first diff is so that we don't use a variable that is shared
       //second/third diff is so that we don't use a variable appearing in the formula already
       val availableVars = unifiableVariables.diff(sharedVars.union(getSetOfVarsFromPremise(leftPremiseR).union(getSetOfVarsFromPremise(rightPremiseR))))
-
-      var replacement = availableVars.headOption getOrElse {
-        val a = new Var("NEW" + count, i)
-        unifiableVariables += a
-        a
-      }
-
-      availableVars
       
-      //Old way:
-      //val sub = Substitution(sharedVars.head -> replacement) //perform the replacement
-
-      //New way:
-      //causes bugs
-      var counter = count
+      def incrementCounter(start: Int): Int = {
+        if (unifiableVariables.contains(new Var("NEW" + start,i))) {
+          incrementCounter(start + 1)
+        } else {
+          start
+        }
+      }
+        
       val kvs = for (v <- sharedVars) yield {
         val replacement = availableVars.headOption getOrElse {
-          val a = new Var("NEW" + counter, i)
-          unifiableVariables += a
-          counter = counter + 1
-          a
+          val newVar = new Var("NEW" + incrementCounter(count), i)
+          unifiableVariables += newVar
+          newVar
         } // get a suitable variable from availableVars (must be a different Var in each iteration of this loop) or create a new one...
         
-        if (availableVars.contains(replacement)) { availableVars.remove(replacement)}
-        
-        (v -> replacement.asInstanceOf[E])
+        if (availableVars.contains(replacement)) {  availableVars.remove(replacement)  }
+        (v -> replacement)
       }
 
-      println(leftPremiseR, rightPremiseR)
-      println(kvs.toSeq)
       
       val sub = Substitution(kvs.toSeq: _*)
       
@@ -201,7 +191,6 @@ trait CanRenameVariables {
       val axOut = Axiom(seqOut)
 
       axOut
-      //fixSharedNoFilter(axOut, rightPremiseR, count + 1, unifiableVariables) //recursively call the function so that any more shared variables are also dealt with
     } else { //sharedVars.size  < 1
       leftPremiseR //no change
     }
