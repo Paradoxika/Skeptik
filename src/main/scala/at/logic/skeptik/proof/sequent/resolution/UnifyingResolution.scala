@@ -76,39 +76,37 @@ trait CanRenameVariables {
     val ante = pn.conclusion.ant
     val succ = pn.conclusion.suc
 
-    def investigateExpr(e: E): Set[Var] = e match {
-      case App(e1, e2) => {
-        investigateExpr(e1).union(investigateExpr(e2))
-      }
-      case Abs(v, e1) => {
-        investigateExpr(v).union(investigateExpr(e1))
-      }
-      case v: Var => {
-        //Only care if the variable is a capital         
-        val hasLowerCaseFirst = v.name.charAt(0).isLower
-        val notAnInt = v.name.charAt(0).isLetter
-        if (!hasLowerCaseFirst && notAnInt) {
-          Set[Var](v)
-        } else {
-          Set[Var]()
-        }
-      }
-    }
+    def getVarSet(e: E*): Set[Var] =
+      if (e.length == 1) {
+        e.head match {
+          case App(e1, e2) => {
+            getVarSet(e1).union(getVarSet(e2))
+          }
+          case Abs(v, e1) => {
+            getVarSet(v).union(getVarSet(e1))
+          }
+          case v: Var => {
+            //Only care if the variable starts with a capital         
+            val hasLowerCaseFirst = v.name.charAt(0).isLower
+            val notAnInt = v.name.charAt(0).isLetter
+            if (!hasLowerCaseFirst && notAnInt) {
+              Set[Var](v)
+            } else {
+              Set[Var]()
+            }
+          }
 
-    //TODO: rename:
-    //https://github.com/jgorzny/Skeptik/commit/ad7ac312b5e777c96726588b15bd7f52002ac7ff#commitcomment-6760364
-    def getSetOfVarsFromExpr(e: Seq[E]): Set[Var] = {
-      if (e.length > 1) {
-        investigateExpr(e.head).union(getSetOfVarsFromExpr(e.tail))
-      } else if (e.length == 1) {
-        investigateExpr(e.head)
+        }
+      } else if (e.length > 1) {
+        getVarSet(e.head).union(getVarSet(e.tail:_*))
       } else {
         Set[Var]()
-      }
-    }
-    getSetOfVarsFromExpr(ante).union(getSetOfVarsFromExpr(succ))
-  }
+      } 
 
+    getVarSet(ante:_*).union(getVarSet(succ:_*))
+  }
+  
+   
   def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): SequentProofNode = {
 
     // For example, suppose we are trying to resolve:
