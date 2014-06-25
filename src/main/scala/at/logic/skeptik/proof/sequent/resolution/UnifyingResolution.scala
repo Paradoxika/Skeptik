@@ -53,11 +53,26 @@ object UnifyingResolution extends CanRenameVariables {
     //should be == 1?
     //see  https://github.com/jgorzny/Skeptik/commit/ad7ac312b5e777c96726588b15bd7f52002ac7ff#commitcomment-6761034
     //but causes error
+//    val l = unifiablePairs.length
+//    if(unifiablePairs.length > 1) {
+//      println(unifiablePairs.length, unifiablePairs.size)
+//      println(unifiablePairs)
+//      println(leftPremise)
+//      println(rightPremise)
+//      println(leftPremiseClean)
+//      println(l)
+//    } else {
+//      println("one more?")
+//    }
+    //if (unifiablePairs.length == 1) {
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-    } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
-    else throw new Exception("Resolution: the resolvent is ambiguous.")
+    } else if (unifiablePairs.length == 0) {
+      throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+    } else {
+      throw new Exception("Resolution: the resolvent is ambiguous.")
+    }
   }
   def unapply(p: SequentProofNode) = p match {
     case p: UnifyingResolution => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
@@ -72,7 +87,7 @@ trait CanRenameVariables {
     case Some(_) => true
   }
 
-  def getSetOfVarsFromPremise(pn: SequentProofNode) = {
+  def getSetOfVars(pn: SequentProofNode) = {
     val ante = pn.conclusion.ant
     val succ = pn.conclusion.suc
 
@@ -118,7 +133,7 @@ trait CanRenameVariables {
 
     //check if there is a variable in both  
 
-    val sharedVars = getSetOfVarsFromPremise(leftPremiseR).intersect(getSetOfVarsFromPremise(rightPremiseR))
+    val sharedVars = getSetOfVars(leftPremiseR).intersect(getSetOfVars(rightPremiseR))
 
     // if we just resolve these two clauses we would get the following WRONG resolvent:
 
@@ -153,7 +168,7 @@ trait CanRenameVariables {
       //Find, and assign a new name
       //first diff is so that we don't use a variable that is shared
       //second/third diff is so that we don't use a variable appearing in the formula already
-      val availableVars = unifiableVariables.diff(sharedVars.union(getSetOfVarsFromPremise(leftPremiseR).union(getSetOfVarsFromPremise(rightPremiseR))))
+      val availableVars = unifiableVariables.diff(sharedVars.union(getSetOfVars(leftPremiseR).union(getSetOfVars(rightPremiseR))))
       
       def incrementCounter(start: Int): Int = {
         if (unifiableVariables.contains(new Var("NEW" + start,i))) {

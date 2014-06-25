@@ -25,10 +25,10 @@ object FOLowerUnits
     var vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>
       if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) {
-        vars = vars union getSetOfVarsFromPremise(node)
+        vars = vars union getSetOfVars(node)
         node :: acc
       } else {
-        vars = vars union getSetOfVarsFromPremise(node)
+        vars = vars union getSetOfVars(node)
         acc
       }
     }

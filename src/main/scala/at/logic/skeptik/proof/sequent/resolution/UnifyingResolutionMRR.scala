@@ -48,7 +48,7 @@ object UnifyingResolutionMRR extends CanRenameVariables{
           con = Contraction(ax)(unifiableVariables)
         }
       ax
-    } else if (unifiablePairs.length == 0) throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+    } else if (unifiablePairs.length == 0) throw new Exception("Resolution (MRR): the conclusions of the given premises are not resolvable.")
     else throw new Exception("Resolution: the resolvent is ambiguous.")
   }
   

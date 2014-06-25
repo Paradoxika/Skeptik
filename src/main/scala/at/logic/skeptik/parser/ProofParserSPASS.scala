@@ -77,7 +77,11 @@ trait SPASSParsers
       try {
         ax = UnifyingResolution(firstPremise, secondPremise)(vars)
       } catch {
-        case e: Exception => ax = UnifyingResolution(secondPremise, firstPremise)(vars)
+        case e: Exception => {
+//          println(ln + "\n" + firstPremise +"\n" + secondPremise)
+//          println("caught! " + e)
+          ax = UnifyingResolution(secondPremise, firstPremise)(vars)
+        }
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
