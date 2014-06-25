@@ -43,7 +43,23 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 
 }
 
-object UnifyingResolution extends CanRenameVariables {
+object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
+  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
+
+    val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
+
+    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+    
+    if (unifiablePairs.length > 0) {
+      findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean)
+    } else if (unifiablePairs.length == 0) {
+      throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+    } else {
+      //Should never really be reached in this constructor
+      throw new Exception("Resolution: the resolvent is ambiguous.")
+    }
+  }
+
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
 
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
@@ -53,18 +69,6 @@ object UnifyingResolution extends CanRenameVariables {
     //should be == 1?
     //see  https://github.com/jgorzny/Skeptik/commit/ad7ac312b5e777c96726588b15bd7f52002ac7ff#commitcomment-6761034
     //but causes error
-//    val l = unifiablePairs.length
-//    if(unifiablePairs.length > 1) {
-//      println(unifiablePairs.length, unifiablePairs.size)
-//      println(unifiablePairs)
-//      println(leftPremise)
-//      println(rightPremise)
-//      println(leftPremiseClean)
-//      println(l)
-//    } else {
-//      println("one more?")
-//    }
-    //if (unifiablePairs.length == 1) {
     if (unifiablePairs.length > 0) {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
@@ -113,15 +117,14 @@ trait CanRenameVariables {
 
         }
       } else if (e.length > 1) {
-        getVarSet(e.head).union(getVarSet(e.tail:_*))
+        getVarSet(e.head).union(getVarSet(e.tail: _*))
       } else {
         Set[Var]()
-      } 
+      }
 
-    getVarSet(ante:_*).union(getVarSet(succ:_*))
+    getVarSet(ante: _*).union(getVarSet(succ: _*))
   }
-  
-   
+
   def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): SequentProofNode = {
 
     // For example, suppose we are trying to resolve:
@@ -169,29 +172,28 @@ trait CanRenameVariables {
       //first diff is so that we don't use a variable that is shared
       //second/third diff is so that we don't use a variable appearing in the formula already
       val availableVars = unifiableVariables.diff(sharedVars.union(getSetOfVars(leftPremiseR).union(getSetOfVars(rightPremiseR))))
-      
+
       def incrementCounter(start: Int): Int = {
-        if (unifiableVariables.contains(new Var("NEW" + start,i))) {
+        if (unifiableVariables.contains(new Var("NEW" + start, i))) {
           incrementCounter(start + 1)
         } else {
           start
         }
       }
-        
+
       val kvs = for (v <- sharedVars) yield {
         val replacement = availableVars.headOption getOrElse {
           val newVar = new Var("NEW" + incrementCounter(count), i)
           unifiableVariables += newVar
           newVar
         } // get a suitable variable from availableVars (must be a different Var in each iteration of this loop) or create a new one...
-        
-        if (availableVars.contains(replacement)) {  availableVars.remove(replacement)  }
+
+        if (availableVars.contains(replacement)) { availableVars.remove(replacement) }
         (v -> replacement)
       }
 
-      
       val sub = Substitution(kvs.toSeq: _*)
-      
+
       //Substitute the new name into one of the premises; let say the left one 
 
       val newAnt = for (a <- leftPremiseR.conclusion.ant) yield sub(a)
@@ -209,3 +211,77 @@ trait CanRenameVariables {
     }
   }
 }
+
+trait FindDesiredSequent {
+  def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode, rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode)(implicit unifiableVariables: MSet[Var]): UnifyingResolution = {
+      if (pairs.length == 0) {
+        throw new Exception("Resolution: Cannot find desired resolvent")
+      } else {
+        val (auxL, auxR) = pairs(0)
+        val computedResolution = new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+
+        val computedSequent = computedResolution.conclusion.toSeqSequent
+
+        def checkAnt(computed: Sequent, desired: Sequent): Boolean = {
+          if (computed.ant.size == desired.ant.size) {
+        	  //TODO: ensure that this means a match is found.
+              var matched = false;
+              for(f <- computed.ant) {
+                for(g <- desired.ant) {
+                  val u = unify((f,g) :: Nil)
+                  u match {
+                    case Some(_) => matched = true
+                    case None => matched = matched
+                  }
+                }
+              }
+              matched
+          } else {
+            false
+          }
+        }
+        
+        def checkSuc(computed: Sequent, desired: Sequent): Boolean = {
+          if (computed.suc.size == desired.suc.size) {
+        	  //How can I check that they are the same modulo names? Unif
+              var matched = false;
+              for(f <- computed.ant) {
+                for(g <- desired.ant) {
+                  val u = unify((f,g) :: Nil)
+                  u match {
+                    case Some(_) => matched = true
+                    case None => matched = matched
+                  }
+                }
+              }
+              matched
+          } else {
+            false
+          }
+        }
+
+        def desiredFound(computed: Sequent, desired: Sequent): Boolean = {
+          if (computed.logicalSize == desired.logicalSize) {
+            if (checkAnt(computed, desired)) {
+              if (checkSuc(computed, desired)) {
+                true
+              } else {
+                false
+              }
+            } else {
+              false
+            }
+          } else {
+            false
+          }
+        }
+
+        if (desiredFound(computedSequent, desired)) {
+          computedResolution
+        } else {
+          findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean)
+        }
+      }
+    }
+}
+

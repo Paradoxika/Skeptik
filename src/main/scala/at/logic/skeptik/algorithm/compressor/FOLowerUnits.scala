@@ -96,8 +96,6 @@ object FOLowerUnits
 
   private def processResolution(left: SequentProofNode, right: SequentProofNode, map: MMap[SequentProofNode, List[Sequent]]) = {
     if (isUnitClause(left.conclusion)) {
-//      map.put(left, left.conclusion :: map.getOrElse(left, Nil))
-//      println("putting in: " + left + " ---> " +  left.conclusion :: map.getOrElse(left, Nil))
       if(map.contains(left)){
         val otherClauses = map.get(left).get
         map.remove(left)
@@ -108,8 +106,6 @@ object FOLowerUnits
       println("after in   L: " + left + " ---> " +  map.get(left).get)
     }
     if (isUnitClause(right.conclusion)) {
-//      map.put(right, right.conclusion :: map.getOrElse(right, Nil))
-//      println("putting in: " + right + " ---> " +  right.conclusion :: map.getOrElse(right, Nil))
        if(map.contains(right)){
         val otherClauses = map.get(right).get
         map.remove(right)
@@ -157,7 +153,6 @@ object FOLowerUnits
     var toRemove = MSet[SequentProofNode]()
     for (k <- premiseMap.keysIterator) {
       if (premiseMap.get(k) == Nil){
-        //never being reached?
         toRemove.add(k)
       }
     }
