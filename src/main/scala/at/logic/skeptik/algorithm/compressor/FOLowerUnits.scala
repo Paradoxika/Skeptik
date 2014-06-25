@@ -44,6 +44,8 @@ object FOLowerUnits
     if (l.length > 1) {
       val first = l.head
       val second = l.tail.head
+      
+      println(l)
       //TODO: these are definitely wrong. need to pass the aux formulas from the premise I think
       val mgu = unify((first.ant.head, second.suc.head) :: Nil)(vars) match {
         case None => {
@@ -73,24 +75,49 @@ object FOLowerUnits
     def visitForUnifiability(node: SequentProofNode, fixedPremises: Seq[Any]) = node match {
       //TODO: does this check if it is an MRR node?
       case UnifyingResolution(left, right, _, _) => processResolution(left, right, premiseMap)
+      case _ => node
     }
 
+    
     proof.foldDown(visitForUnifiability)
-
+    println("after fold down? " + vars)
+    println("pMap: " + premiseMap)
+    
     for (k <- premiseMap.keysIterator) {
+      println("in loop, key: " + k)
+       println("in loop, get: " + premiseMap.get(k))
       if (!checkListUnifiability(premiseMap.get(k), vars)){
     	  premiseMap.put(k, Nil)
       }
     }
+    println("returing from checkUnifiability")
     premiseMap
   }
 
   private def processResolution(left: SequentProofNode, right: SequentProofNode, map: MMap[SequentProofNode, List[Sequent]]) = {
     if (isUnitClause(left.conclusion)) {
-      map.put(left, left.conclusion :: map.getOrElse(left, Nil))
+//      map.put(left, left.conclusion :: map.getOrElse(left, Nil))
+//      println("putting in: " + left + " ---> " +  left.conclusion :: map.getOrElse(left, Nil))
+      if(map.contains(left)){
+        val otherClauses = map.get(left).get
+        map.remove(left)
+        map.put(left, (left.conclusion :: otherClauses).distinct)
+      } else {
+        map.put(left, left.conclusion :: Nil)        
+      }
+      println("after in   L: " + left + " ---> " +  map.get(left).get)
     }
     if (isUnitClause(right.conclusion)) {
-      map.put(right, right.conclusion :: map.getOrElse(right, Nil))
+//      map.put(right, right.conclusion :: map.getOrElse(right, Nil))
+//      println("putting in: " + right + " ---> " +  right.conclusion :: map.getOrElse(right, Nil))
+       if(map.contains(right)){
+        val otherClauses = map.get(right).get
+        map.remove(right)
+        map.put(right, (right.conclusion :: otherClauses).distinct)
+      } else {
+        map.put(right, right.conclusion :: Nil)        
+      }
+      println("after in R: " + right + " ---> " +  map.get(right).get)
     }
   }
 
@@ -118,22 +145,30 @@ object FOLowerUnits
 
   def apply(proof: Proof[SequentProofNode]) = {
     val collected = collectUnits(proof)
+    
     val units = collected._1
     var vars = collected._2
-    val premiseMap = checkUnifiability(proof, vars)
+
+    //Good up to here ( (r C) is not collected since the length after it is too small)
     
+    val premiseMap = checkUnifiability(proof, vars)
+    println("here?")
 
     var toRemove = MSet[SequentProofNode]()
     for (k <- premiseMap.keysIterator) {
       if (premiseMap.get(k) == Nil){
+        //never being reached?
         toRemove.add(k)
       }
     }
+    println("premiseMap: " + premiseMap)
+    println("toRemove: " + toRemove)
     val unitsClean = units.filter(toRemove.contains(_))
     
     val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
 
     val root = unitsClean.map(fixMap).foldLeft(fixMap(proof.root))((left, right) => try { UnifyingResolution(left, right)(vars) } catch { case e: Exception => left })
+    println("Done?!")
     Proof(root)
   }
 
