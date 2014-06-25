@@ -73,11 +73,19 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
-      var ax = null.asInstanceOf[Node]
+      val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
+      
+      var ax = null.asInstanceOf[Node] //TODO: change this
+      
+                //TODO: move this; shouldn't be here, but makes it easier for testing
+          val test = UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
+      
       try {
+        
         ax = UnifyingResolution(firstPremise, secondPremise)(vars)
       } catch {
         case e: Exception => {
+          
 //          println(ln + "\n" + firstPremise +"\n" + secondPremise)
 //          println("caught! " + e)
           ax = UnifyingResolution(secondPremise, firstPremise)(vars)

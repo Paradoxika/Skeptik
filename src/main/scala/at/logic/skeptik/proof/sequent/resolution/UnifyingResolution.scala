@@ -214,6 +214,8 @@ trait CanRenameVariables {
 
 trait FindDesiredSequent {
   def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode, rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode)(implicit unifiableVariables: MSet[Var]): UnifyingResolution = {
+      println("desired: " + desired)
+    
       if (pairs.length == 0) {
         throw new Exception("Resolution: Cannot find desired resolvent")
       } else {
@@ -221,21 +223,26 @@ trait FindDesiredSequent {
         val computedResolution = new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
 
         val computedSequent = computedResolution.conclusion.toSeqSequent
-
+    
+        println("computed(" + pairs.length +"): " + computedSequent)
+        
         def checkAnt(computed: Sequent, desired: Sequent): Boolean = {
           if (computed.ant.size == desired.ant.size) {
         	  //TODO: ensure that this means a match is found.
-              var matched = false;
+              var matchedAnt = false;
+              if(computed.ant.size == 0) {
+                matchedAnt = true
+              }
               for(f <- computed.ant) {
                 for(g <- desired.ant) {
                   val u = unify((f,g) :: Nil)
                   u match {
-                    case Some(_) => matched = true
-                    case None => matched = matched
+                    case Some(_) => matchedAnt = true
+                    case None => matchedAnt = matchedAnt
                   }
                 }
-              }
-              matched
+              }     
+              matchedAnt
           } else {
             false
           }
@@ -243,11 +250,11 @@ trait FindDesiredSequent {
         
         def checkSuc(computed: Sequent, desired: Sequent): Boolean = {
           if (computed.suc.size == desired.suc.size) {
-        	  //How can I check that they are the same modulo names? Unif
               var matched = false;
-              for(f <- computed.ant) {
-                for(g <- desired.ant) {
+              for(f <- computed.suc) {
+                for(g <- desired.suc) {
                   val u = unify((f,g) :: Nil)
+//                  println("mgu: " + u)
                   u match {
                     case Some(_) => matched = true
                     case None => matched = matched
@@ -262,18 +269,16 @@ trait FindDesiredSequent {
 
         def desiredFound(computed: Sequent, desired: Sequent): Boolean = {
           if (computed.logicalSize == desired.logicalSize) {
+//            println("A")
             if (checkAnt(computed, desired)) {
+//              println("B")
               if (checkSuc(computed, desired)) {
-                true
-              } else {
-                false
+//                println("C")
+               return true
               }
-            } else {
-              false
             }
-          } else {
-            false
-          }
+          } 
+          false
         }
 
         if (desiredFound(computedSequent, desired)) {
