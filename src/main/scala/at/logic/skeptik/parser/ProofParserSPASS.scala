@@ -78,7 +78,13 @@ trait SPASSParsers
       var ax = null.asInstanceOf[Node] //TODO: change this
       
                 //TODO: move this; shouldn't be here, but makes it easier for testing
+      try {
           val test = UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
+      } catch {
+        case _ => { println("caught test")
+             val test2 = UnifyingResolution(secondPremise,firstPremise, desiredSequent)(vars)
+        }
+      }
       
       try {
         
