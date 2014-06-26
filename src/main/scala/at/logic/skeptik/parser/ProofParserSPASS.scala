@@ -113,18 +113,22 @@ trait SPASSParsers
         lastPremise = proofMap.getOrElse(lastNode, throw new Exception("Error!"))
       }
 
-      //TODO: use desiredSequent; but this will make it complicated: the desired sequent is after contraction
-      var ax = null.asInstanceOf[Node]
+      var ax = null.asInstanceOf[Node] //TODO: change this?
       if (firstNode != secondNode) {
-        ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+        //ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+        ax = UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
 
         try {
           ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
         } catch {
-          case e: Exception => ax = UnifyingResolutionMRR(secondPremise, firstPremise)(vars)
+          case e: Exception => {
+            //ax = UnifyingResolutionMRR(secondPremise, firstPremise)(vars)
+            ax = UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
+          }
         }
       } else {
-        ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise)(vars)
+        //ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise)(vars)
+         ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise, desiredSequent)(vars)
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)

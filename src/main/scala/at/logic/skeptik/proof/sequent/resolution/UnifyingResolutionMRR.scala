@@ -80,6 +80,21 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent{
     
   }
   
+  
+  def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode, 
+      thirdPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    
+        val con = Contraction(secondPremise)(unifiableVariables)
+        val conRes =  UnifyingResolutionMRR(thirdPremise, con, desired)(unifiableVariables)
+        //Since all examples so far have the first two premises referencing the same line, I'm doing this:
+        if (conRes.conclusion.suc.length == 0 && conRes.conclusion.suc.length == 0) {
+          conRes
+        } else {
+          throw new MRRException("3-way MRR failed.")
+        }
+    
+  }
+  
   def unapply(p: SequentProofNode) = p match {
     case p: UnifyingResolution => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
     case _ => None
