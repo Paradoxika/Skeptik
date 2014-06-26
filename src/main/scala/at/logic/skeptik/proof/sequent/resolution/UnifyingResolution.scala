@@ -210,27 +210,26 @@ trait CanRenameVariables {
 }
 
 trait FindDesiredSequent {
-  def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode, 
-      rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)
-      (implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+  def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
+    rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
     if (pairs.length == 0) {
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
       val (auxL, auxR) = pairs(0)
       val computedResolution = {
-        if (isMRR) { 
-        var ax = null.asInstanceOf[SequentProofNode]
-        ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-        var con = Contraction(ax)(unifiableVariables)
-        //If they're ever equal, contraction did nothing; discard the contraction
-        while (!con.conclusion.equals(ax.conclusion)) {
-          ax = con
-          con = Contraction(ax)(unifiableVariables)
-        }
-        ax 
+        if (isMRR) {
+          var ax = null.asInstanceOf[SequentProofNode]
+          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          var con = Contraction(ax)(unifiableVariables)
+          //If they're ever equal, contraction did nothing; discard the contraction
+          while (!con.conclusion.equals(ax.conclusion)) {
+            ax = con
+            con = Contraction(ax)(unifiableVariables)
+          }
+          ax
         } else {
-          new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean) 
-         }
+          new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+        }
       }
 
       val computedSequent = computedResolution.conclusion.toSeqSequent
@@ -262,7 +261,7 @@ trait FindDesiredSequent {
           var matched = false;
           if (computed.suc.size == 0) {
             matched = true
-          }          
+          }
           for (f <- computed.suc) {
             for (g <- desired.suc) {
               val u = unify((f, g) :: Nil)

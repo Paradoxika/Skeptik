@@ -24,7 +24,7 @@ trait SPASSParsers
 
   private var proofMap = new MMap[Int, Node]
 
-  private val vars = Set[Var]() 
+  private val vars = Set[Var]()
 
   private var exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
@@ -74,16 +74,14 @@ trait SPASSParsers
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
       val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
-      
+
       var ax = null.asInstanceOf[Node] //TODO: change this
-      
+
       try {
-        ax =  UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
+        ax = UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
-        case e: Exception => {          
-//          println(ln + "\n" + firstPremise +"\n" + secondPremise)
-//          println("caught! " + e)
-          ax = UnifyingResolution(secondPremise,firstPremise, desiredSequent)(vars)
+        case e: Exception => {
+          ax = UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
         }
       }
 
@@ -104,8 +102,7 @@ trait SPASSParsers
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
       val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
-      
-      
+
       var lastPremise = null.asInstanceOf[Node]
       if (firstNode == secondNode) {
         val lastRef = refs.last
@@ -115,20 +112,17 @@ trait SPASSParsers
 
       var ax = null.asInstanceOf[Node] //TODO: change this?
       if (firstNode != secondNode) {
-        //ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
         ax = UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
 
         try {
           ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
         } catch {
           case e: Exception => {
-            //ax = UnifyingResolutionMRR(secondPremise, firstPremise)(vars)
             ax = UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
       } else {
-        //ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise)(vars)
-         ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise, desiredSequent)(vars)
+        ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise, desiredSequent)(vars)
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)

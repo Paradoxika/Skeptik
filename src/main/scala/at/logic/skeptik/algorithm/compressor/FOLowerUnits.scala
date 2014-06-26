@@ -44,10 +44,36 @@ object FOLowerUnits
     if (l.length > 1) {
       val first = l.head
       val second = l.tail.head
+
+      if(first.logicalSize == 1 && second.logicalSize == 1) {
+        if(first.ant.size == 1) {
+          if(second.suc.size == 1){
+            if (first.ant.head == second.suc.head){
+              return checkListUnif(l.tail, vars)
+            }
+          }
+        } else {
+          if (second.ant.size == 1){
+            if (first.suc.size == 1){
+              if (first.suc.head == second.ant.head) {
+                return checkListUnif(l.tail, vars)
+              }              
+            }
+          }
+        }
+      }
       
-      println(l)
       //TODO: these are definitely wrong. need to pass the aux formulas from the premise I think
-      val mgu = unify((first.ant.head, second.suc.head) :: Nil)(vars) match {
+      val mgu = {
+        try { 
+        unify((first.ant.head, second.suc.head) :: Nil)(vars)
+        } catch {
+          case e: Exception => {
+                unify((first.suc.head, second.ant.head) :: Nil)(vars)
+          }
+        }
+      }
+      val mguResult = mgu match {
         case None => {
           false
         }
@@ -55,7 +81,7 @@ object FOLowerUnits
           true
         }
       }
-      if (mgu) {
+      if (mguResult) {
         checkListUnif(l.tail, vars)
       } else {
         false
@@ -78,42 +104,43 @@ object FOLowerUnits
       case _ => node
     }
 
-    
     proof.foldDown(visitForUnifiability)
-    println("after fold down? " + vars)
-    println("pMap: " + premiseMap)
-    
+
     for (k <- premiseMap.keysIterator) {
-      println("in loop, key: " + k)
-       println("in loop, get: " + premiseMap.get(k))
-      if (!checkListUnifiability(premiseMap.get(k), vars)){
-    	  premiseMap.put(k, Nil)
+      if (!checkListUnifiability(premiseMap.get(k), vars)) {
+        premiseMap.put(k, Nil)
       }
     }
-    println("returing from checkUnifiability")
     premiseMap
   }
 
   private def processResolution(left: SequentProofNode, right: SequentProofNode, map: MMap[SequentProofNode, List[Sequent]]) = {
-    if (isUnitClause(left.conclusion)) {
-      if(map.contains(left)){
-        val otherClauses = map.get(left).get
-        map.remove(left)
-        map.put(left, (left.conclusion :: otherClauses).distinct)
-      } else {
-        map.put(left, left.conclusion :: Nil)        
+    //TODO (from (1)): it's not enough to check if something is a unit; once we have a map for unit -> formulas, 
+    //we also need to check non-unit clauses to see if they contain that unit; that's what's being resolved against,
+    //and we need to add this to the list
+    
+    if (isUnitClause(left.conclusion) && isUnitClause(right.conclusion)) {
+    	//Do nothing - if both are units, they must be the same, so they would have to be resolvable.?
+      //TODO: check
+    } else {
+      if (isUnitClause(left.conclusion)) {
+        if (map.contains(left)) {
+          val otherClauses = map.get(left).get
+          map.remove(left)
+          map.put(left, (left.conclusion :: right.conclusion :: otherClauses).distinct)
+        } else {
+          map.put(left, (left.conclusion :: right.conclusion :: Nil).distinct)
+        }
       }
-      println("after in   L: " + left + " ---> " +  map.get(left).get)
-    }
-    if (isUnitClause(right.conclusion)) {
-       if(map.contains(right)){
-        val otherClauses = map.get(right).get
-        map.remove(right)
-        map.put(right, (right.conclusion :: otherClauses).distinct)
-      } else {
-        map.put(right, right.conclusion :: Nil)        
+      if (isUnitClause(right.conclusion)) {
+        if (map.contains(right)) {
+          val otherClauses = map.get(right).get
+          map.remove(right)
+          map.put(right, (right.conclusion :: left.conclusion ::  otherClauses).distinct)
+        } else {
+          map.put(right, right.conclusion :: left.conclusion :: Nil)          
+        }
       }
-      println("after in R: " + right + " ---> " +  map.get(right).get)
     }
   }
 
@@ -141,29 +168,33 @@ object FOLowerUnits
 
   def apply(proof: Proof[SequentProofNode]) = {
     val collected = collectUnits(proof)
-    
+
     val units = collected._1
     var vars = collected._2
 
     //Good up to here ( (r C) is not collected since the length after it is too small)
-    
+
     val premiseMap = checkUnifiability(proof, vars)
-    println("here?")
+    println("Unifiability checked.")
 
     var toRemove = MSet[SequentProofNode]()
     for (k <- premiseMap.keysIterator) {
-      if (premiseMap.get(k) == Nil){
+      if (premiseMap.get(k) == Nil) {
         toRemove.add(k)
       }
     }
     println("premiseMap: " + premiseMap)
+    //TODO: the premise map is still wrong ( (p A) should have at least one entry in the list. 
+    //I think the issue is that the (p A) formula moves to a different side, and I'm not yet catching that.
+    // see (1) above
+    
     println("toRemove: " + toRemove)
     val unitsClean = units.filter(toRemove.contains(_))
-    
+
     val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
 
     val root = unitsClean.map(fixMap).foldLeft(fixMap(proof.root))((left, right) => try { UnifyingResolution(left, right)(vars) } catch { case e: Exception => left })
-    println("Done?!")
+    println("Done?")
     Proof(root)
   }
 
