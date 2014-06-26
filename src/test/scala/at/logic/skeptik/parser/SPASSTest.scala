@@ -10,5 +10,9 @@ object SPASSTest {
     
     val proof3 = ProofParserSPASS.read("examples/proofs/SPASS/example2.spass")
     println(proof3)
+    
+    
+    val proof4 = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
+    println(proof4)
   }
 }

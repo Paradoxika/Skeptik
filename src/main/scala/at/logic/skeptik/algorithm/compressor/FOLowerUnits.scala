@@ -119,6 +119,8 @@ object FOLowerUnits
     //we also need to check non-unit clauses to see if they contain that unit; that's what's being resolved against,
     //and we need to add this to the list
     
+    println("PR: " + left + " ----- " + right)
+    
     if (isUnitClause(left.conclusion) && isUnitClause(right.conclusion)) {
     	//Do nothing - if both are units, they must be the same, so they would have to be resolvable.?
       //TODO: check
@@ -179,6 +181,7 @@ object FOLowerUnits
 
     var toRemove = MSet[SequentProofNode]()
     for (k <- premiseMap.keysIterator) {
+      println("PM: " + k + " ------ " + premiseMap.get(k))
       if (premiseMap.get(k) == Nil) {
         toRemove.add(k)
       }
