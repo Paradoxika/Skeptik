@@ -51,7 +51,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
     if (unifiablePairs.length > 0) {
-      findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean)
+      findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
     } else {
@@ -66,10 +66,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
-    //should be == 1?
-    //see  https://github.com/jgorzny/Skeptik/commit/ad7ac312b5e777c96726588b15bd7f52002ac7ff#commitcomment-6761034
-    //but causes error
-    if (unifiablePairs.length > 0) {
+    if (unifiablePairs.length == 1) {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
     } else if (unifiablePairs.length == 0) {
@@ -213,18 +210,19 @@ trait CanRenameVariables {
 }
 
 trait FindDesiredSequent {
-  def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode, rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode)(implicit unifiableVariables: MSet[Var]): UnifyingResolution = {
-    println("desired: " + desired)
-
+  def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode, 
+      rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)
+      (implicit unifiableVariables: MSet[Var]): UnifyingResolution = {
     if (pairs.length == 0) {
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
       val (auxL, auxR) = pairs(0)
-      val computedResolution = new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+      val computedResolution = {
+        if (isMRR) { new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)}
+        else {new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean) }
+      }
 
       val computedSequent = computedResolution.conclusion.toSeqSequent
-
-      println("computed(" + pairs.length + "): " + computedSequent)
 
       def checkAnt(computed: Sequent, desired: Sequent): Boolean = {
         if (computed.ant.size == desired.ant.size) {
@@ -257,7 +255,6 @@ trait FindDesiredSequent {
           for (f <- computed.suc) {
             for (g <- desired.suc) {
               val u = unify((f, g) :: Nil)
-              //                  println("mgu: " + u)
               u match {
                 case Some(_) => matched = true
                 case None => matched = matched
@@ -272,15 +269,12 @@ trait FindDesiredSequent {
 
       def desiredFound(computed: Sequent, desired: Sequent): Boolean = {
         if (computed == desired) {
-          println("COMPUTED:" + computed + "\n" + "COMPUTED:" + desired )
+          //TODO: make sure this is well behaved
           return true
         } else {
           if (computed.logicalSize == desired.logicalSize) {
-            //            println("A")
             if (checkAnt(computed, desired)) {
-              //              println("B")
               if (checkSuc(computed, desired)) {
-                //                println("C")
                 return true
               }
             }
@@ -292,7 +286,7 @@ trait FindDesiredSequent {
       if (desiredFound(computedSequent, desired)) {
         computedResolution
       } else {
-        findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean)
+        findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR)
       }
     }
   }

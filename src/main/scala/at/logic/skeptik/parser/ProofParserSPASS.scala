@@ -77,24 +77,13 @@ trait SPASSParsers
       
       var ax = null.asInstanceOf[Node] //TODO: change this
       
-                //TODO: move this; shouldn't be here, but makes it easier for testing
       try {
-          val test = UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
+        ax =  UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
-        case _ => { println("caught test")
-             val test2 = UnifyingResolution(secondPremise,firstPremise, desiredSequent)(vars)
-        }
-      }
-      
-      try {
-        
-        ax = UnifyingResolution(firstPremise, secondPremise)(vars)
-      } catch {
-        case e: Exception => {
-          
+        case e: Exception => {          
 //          println(ln + "\n" + firstPremise +"\n" + secondPremise)
 //          println("caught! " + e)
-          ax = UnifyingResolution(secondPremise, firstPremise)(vars)
+          ax = UnifyingResolution(secondPremise,firstPremise, desiredSequent)(vars)
         }
       }
 
@@ -114,6 +103,9 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
+      val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
+      
+      
       var lastPremise = null.asInstanceOf[Node]
       if (firstNode == secondNode) {
         val lastRef = refs.last
@@ -121,6 +113,7 @@ trait SPASSParsers
         lastPremise = proofMap.getOrElse(lastNode, throw new Exception("Error!"))
       }
 
+      //TODO: use desiredSequent; but this will make it complicated: the desired sequent is after contraction
       var ax = null.asInstanceOf[Node]
       if (firstNode != secondNode) {
         ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)

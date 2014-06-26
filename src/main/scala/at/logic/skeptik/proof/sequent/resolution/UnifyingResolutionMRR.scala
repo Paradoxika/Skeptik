@@ -26,17 +26,32 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode,override 
   
 }
 
-object UnifyingResolutionMRR extends CanRenameVariables{
+object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent{
+  
+  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
+
+    val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
+
+    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+
+    if (unifiablePairs.length > 0) {
+      findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, true)
+    } else if (unifiablePairs.length == 0) {
+      throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+    } else {
+      //Should never really be reached in this constructor
+      throw new Exception("Resolution: the resolvent is ambiguous.")
+    }
+  }  
+  
+  
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     val leftPremiseClean =  fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
     
-     //should be == 1?
-    //see  https://github.com/jgorzny/Skeptik/commit/ad7ac312b5e777c96726588b15bd7f52002ac7ff#commitcomment-6761034
-    //but causes error
-    if (unifiablePairs.length > 0) {
+    if (unifiablePairs.length == 1) {
       
       val (auxL, auxR) = unifiablePairs(0)
       var ax = null.asInstanceOf[SequentProofNode]
