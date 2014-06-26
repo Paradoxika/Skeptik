@@ -12,7 +12,6 @@ scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "2.3.12",
-  //"junit" % "junit" % "4.11" % "test",
   "com.github.scopt" %% "scopt" % "3.2.0",
   "org.scala-lang" % "scala-actors" % "2.10.2",
   "org.scala-lang" % "scala-library" % "2.11.1",
