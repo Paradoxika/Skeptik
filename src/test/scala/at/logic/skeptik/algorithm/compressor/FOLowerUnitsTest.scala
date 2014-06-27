@@ -10,5 +10,10 @@ object FOLowerUnitsTest {
     println(proof)
     
     FOLowerUnits(proof)
+    
+    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
+    println(proofA)
+    
+    FOLowerUnits(proofA)    
   }
 }
