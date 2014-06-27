@@ -145,10 +145,9 @@ extends JavaTokenParsers with RegexParsers {
   
   def neg: Parser[Int] = """-[1-9][0-9]*""".r ^^ { _.toInt }
   
-  def literals: Parser[List[E]] = ("*" | (lits <~ "0")) ^^ {
-    case "*" => List[E]()
-    case l: List[E] => l
-  }
+  def literals: Parser[List[E]] = (ommittedLits | (lits <~ "0"))
+  
+  def ommittedLits: Parser[List[E]] = "*" ^^ { case _ => List[E]() } 
   
   def lits: Parser[List[E]] = rep(lit)
   

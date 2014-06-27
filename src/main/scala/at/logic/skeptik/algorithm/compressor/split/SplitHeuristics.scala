@@ -7,7 +7,7 @@ import at.logic.skeptik.proof.sequent.lk.R
 import at.logic.skeptik.expression.E
 import scala.collection.mutable.{HashMap => MMap,HashSet => MSet}
 import scala.collection.immutable.{HashSet => ISet}
-import org.specs2.internal.scalaz._
+import scalaz._
 import Scalaz._
 
 /**

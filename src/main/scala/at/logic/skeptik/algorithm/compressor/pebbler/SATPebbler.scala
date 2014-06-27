@@ -127,7 +127,7 @@ object Executer {
   def executeMini(fileName: String, parameters: String): Stream[String] = {
     val call = "minisat " + parameters + " " + fileName
     call.!
-    val contents = Process(call).lines
+    val contents = Process(call).lineStream
     contents
   }
 }
