@@ -42,34 +42,35 @@ object FOLowerUnits
 
   private def checkListUnif(l: List[Sequent], vars: MSet[Var]): Boolean = {
     if (l.length > 1) {
+      //TODO: test this section (example1 does not use this one)
       val first = l.head
       val second = l.tail.head
 
-      if(first.logicalSize == 1 && second.logicalSize == 1) {
-        if(first.ant.size == 1) {
-          if(second.suc.size == 1){
-            if (first.ant.head == second.suc.head){
+      if (first.logicalSize == 1 && second.logicalSize == 1) {
+        if (first.ant.size == 1) {
+          if (second.suc.size == 1) {
+            if (first.ant.head == second.suc.head) {
               return checkListUnif(l.tail, vars)
             }
           }
         } else {
-          if (second.ant.size == 1){
-            if (first.suc.size == 1){
+          if (second.ant.size == 1) {
+            if (first.suc.size == 1) {
               if (first.suc.head == second.ant.head) {
                 return checkListUnif(l.tail, vars)
-              }              
+              }
             }
           }
         }
       }
-      
+
       //TODO: these are definitely wrong. need to pass the aux formulas from the premise I think
       val mgu = {
-        try { 
-        unify((first.ant.head, second.suc.head) :: Nil)(vars)
+        try {
+          unify((first.ant.head, second.suc.head) :: Nil)(vars)
         } catch {
           case e: Exception => {
-                unify((first.suc.head, second.ant.head) :: Nil)(vars)
+            unify((first.suc.head, second.ant.head) :: Nil)(vars)
           }
         }
       }
@@ -118,29 +119,42 @@ object FOLowerUnits
     //TODO (from (1)): it's not enough to check if something is a unit; once we have a map for unit -> formulas, 
     //we also need to check non-unit clauses to see if they contain that unit; that's what's being resolved against,
     //and we need to add this to the list
-    
-    println("PR: " + left + " ----- " + right)
-    
+
     if (isUnitClause(left.conclusion) && isUnitClause(right.conclusion)) {
-    	//Do nothing - if both are units, they must be the same, so they would have to be resolvable.?
+      //Do nothing - if both are units, they must be the same, so they would have to be resolvable.?
       //TODO: check
     } else {
       if (isUnitClause(left.conclusion)) {
-        if (map.contains(left)) {
-          val otherClauses = map.get(left).get
-          map.remove(left)
-          map.put(left, (left.conclusion :: right.conclusion :: otherClauses).distinct)
-        } else {
-          map.put(left, (left.conclusion :: right.conclusion :: Nil).distinct)
+        left match {
+          case Axiom(c) => {
+            if (map.contains(left)) {
+              val otherClauses = map.get(left).get
+              map.remove(left)
+              map.put(left, (right.conclusion :: otherClauses).distinct)
+            } else {
+              map.put(left, (right.conclusion :: Nil).distinct)
+            }
+          }
+          case _ => {
+            //Do nothing
+          }
         }
+
       }
       if (isUnitClause(right.conclusion)) {
-        if (map.contains(right)) {
-          val otherClauses = map.get(right).get
-          map.remove(right)
-          map.put(right, (right.conclusion :: left.conclusion ::  otherClauses).distinct)
-        } else {
-          map.put(right, right.conclusion :: left.conclusion :: Nil)          
+        right match {
+          case Axiom(c) => {
+            if (map.contains(right)) {
+              val otherClauses = map.get(right).get
+              map.remove(right)
+              map.put(right, (left.conclusion :: otherClauses).distinct)
+            } else {
+              map.put(right, left.conclusion :: Nil)
+            }
+          }
+          case _ => {
+            //Do nothing
+          }
         }
       }
     }
@@ -190,7 +204,7 @@ object FOLowerUnits
     //TODO: the premise map is still wrong ( (p A) should have at least one entry in the list. 
     //I think the issue is that the (p A) formula moves to a different side, and I'm not yet catching that.
     // see (1) above
-    
+
     println("toRemove: " + toRemove)
     val unitsClean = units.filter(toRemove.contains(_))
 
