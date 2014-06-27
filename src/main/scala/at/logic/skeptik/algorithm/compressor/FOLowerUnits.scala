@@ -3,6 +3,7 @@ package at.logic.skeptik.algorithm.compressor
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.Axiom
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import collection.mutable.{ Queue, HashMap => MMap }
@@ -116,9 +117,6 @@ object FOLowerUnits
   }
 
   private def processResolution(left: SequentProofNode, right: SequentProofNode, map: MMap[SequentProofNode, List[Sequent]]) = {
-    //TODO (from (1)): it's not enough to check if something is a unit; once we have a map for unit -> formulas, 
-    //we also need to check non-unit clauses to see if they contain that unit; that's what's being resolved against,
-    //and we need to add this to the list
 
     if (isUnitClause(left.conclusion) && isUnitClause(right.conclusion)) {
       //Do nothing - if both are units, they must be the same, so they would have to be resolvable.?
@@ -167,13 +165,16 @@ object FOLowerUnits
       lazy val fixedLeft = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
 
-      //TODO: does this check if it is an MRR node?
+      //TODO: does this check if it is an MRR/Contraction node?
       val fixedP = node match {
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => fixedRight
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => fixedLeft
-        case UnifyingResolution(left, right, _, _) => UnifyingResolution(fixedLeft, fixedRight)(vars)
-        case _ => node
+        //Need MRR since we might have to contract, in order to avoid ambiguous resolution
+        case UnifyingResolution(left, right, _, _) => UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
+        case _ => {
+          node
+        }
       }
       if (node == proof.root || unitsSet.contains(node)) fixMap.update(node, fixedP)
       fixedP
@@ -186,33 +187,37 @@ object FOLowerUnits
     val collected = collectUnits(proof)
 
     val units = collected._1
-    var vars = collected._2
-
-    //Good up to here ( (r C) is not collected since the length after it is too small)
-
+    val vars = collected._2
+    
     val premiseMap = checkUnifiability(proof, vars)
-    println("Unifiability checked.")
 
-    var toRemove = MSet[SequentProofNode]()
+    val toRemove = MSet[SequentProofNode]()
     for (k <- premiseMap.keysIterator) {
-      println("PM: " + k + " ------ " + premiseMap.get(k))
       if (premiseMap.get(k) == Nil) {
         toRemove.add(k)
       }
     }
-    println("premiseMap: " + premiseMap)
-    //TODO: the premise map is still wrong ( (p A) should have at least one entry in the list. 
-    //I think the issue is that the (p A) formula moves to a different side, and I'm not yet catching that.
-    // see (1) above
 
-    println("toRemove: " + toRemove)
-    val unitsClean = units.filter(toRemove.contains(_))
+    val unitsClean = units.filter((x: SequentProofNode) => !toRemove.contains(x))
 
     val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
 
-    val root = unitsClean.map(fixMap).foldLeft(fixMap(proof.root))((left, right) => try { UnifyingResolution(left, right)(vars) } catch { case e: Exception => left })
-    println("Done?")
-    Proof(root)
+    //TODO: is the name appropriate?
+    def replace(left: SequentProofNode, right: SequentProofNode) = {
+      try {
+        UnifyingResolution(left, right)(vars)
+      } catch {
+        case e: Exception => {
+          left
+        }
+      }
+    }
+
+    val root = unitsClean.map(fixMap).foldLeft(fixMap(proof.root))(replace)
+
+    val p = Proof(root)
+    println(p)
+    p
   }
 
 }
