@@ -147,7 +147,7 @@ object FOLowerUnits
               map.remove(right)
               map.put(right, (left.conclusion :: otherClauses).distinct)
             } else {
-              map.put(right, left.conclusion :: Nil)
+              map.put(right, (left.conclusion :: Nil).distinct)
             }
           }
           case _ => {
@@ -176,7 +176,12 @@ object FOLowerUnits
           node
         }
       }
-      if (node == proof.root || unitsSet.contains(node)) fixMap.update(node, fixedP)
+      if (node == proof.root || unitsSet.contains(node)) {
+        //        println(node + " --- " + fixedP + " --- ")
+        //        println(node == proof.root)
+        fixMap.update(node, fixedP)
+
+      }
       fixedP
     }
     proof.foldDown(visit)
@@ -188,7 +193,7 @@ object FOLowerUnits
 
     val units = collected._1
     val vars = collected._2
-    
+
     val premiseMap = checkUnifiability(proof, vars)
 
     val toRemove = MSet[SequentProofNode]()
@@ -202,13 +207,23 @@ object FOLowerUnits
 
     val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
 
+    for (k <- fixMap.keysIterator) {
+      println("FM: " + k + " ---> " + fixMap.get(k))
+    }
+
     //TODO: is the name appropriate?
     def replace(left: SequentProofNode, right: SequentProofNode) = {
       try {
         UnifyingResolution(left, right)(vars)
       } catch {
         case e: Exception => {
-          left
+          try {
+            UnifyingResolution(right, left)(vars)
+          } catch {
+            case e: Exception => {
+              left
+            }
+          }
         }
       }
     }
