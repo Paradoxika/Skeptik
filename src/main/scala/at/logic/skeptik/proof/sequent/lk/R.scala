@@ -16,7 +16,6 @@ extends AbstractCut {
   override def auxFormulasMap = Map(leftPremise -> Sequent()(auxL),
                                     rightPremise -> Sequent(auxR)())    
   
-  //override def auxFormulasMap: Map[SequentProofNode, Sequent] = throw new Exception("Not implemented")
   override def mainFormulas : Sequent = Sequent()()
   override def conclusionContext : Sequent = conclusion
 

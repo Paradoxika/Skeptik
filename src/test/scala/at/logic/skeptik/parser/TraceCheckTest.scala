@@ -1,6 +1,5 @@
 package at.logic.skeptik.parser
 
-import at.logic.skeptik.parser.ProofParserTraceCheck
 import at.logic.skeptik.algorithm.compressor.subsumption._
 
 object TraceCheckTest {
