@@ -6,19 +6,19 @@ import at.logic.skeptik.parser.ProofParserSPASS
 object FOLowerUnitsTest {
   def main(args: Array[String]):Unit = {
     
-//    val proof = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
+    val proof = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
 //    println(proof)
-//    FOLowerUnits(proof)
+    FOLowerUnits(proof)
 //    
-//    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
+    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
 //    println(proofA)
 //    
-//    FOLowerUnits(proofA)    
+    FOLowerUnits(proofA)    
     
     
-    val proofq = ProofParserSPASS.read("examples/proofs/SPASS/example4q.spass")
-    println(proofq)
-    
-    FOLowerUnits(proofq)    
+//    val proofq = ProofParserSPASS.read("examples/proofs/SPASS/example4q.spass")
+//    println(proofq)
+//    
+//    FOLowerUnits(proofq)    
   }
 }

@@ -64,30 +64,15 @@ object FOLowerUnits
         }
       }
 
-      //TODO: these are definitely wrong. need to pass the aux formulas from the premise I think
-      //Except that we don't have the entire premises; and even if we do, they could be axiom nodes
-      //namely, not have auxL/auxR defined. A workaround might be to resolve (as if it were the proof)
-      //and use that resolution node's auxL/auxR? but then we're computing this and throwing it away,
-      //so this is inefficient. 
-      val mgu = {
-        try {
-          println("FA: " + first.ant +" ------> SS: " + second.suc)
-          unify((first.ant.head, second.suc.head) :: Nil)(vars)
-        } catch {
-          case e: Exception => {
-                      println("FS: " + first.suc +" ------> SA: " + second.ant)
-            unify((first.suc.head, second.ant.head) :: Nil)(vars)
-          }
-        }
+      def isUnifiableWrapper(p: (E, E)) ={
+        isUnifiable(p)(vars)
       }
-      val mguResult = mgu match {
-        case None => {
-          false
-        }
-        case Some(u) => {
-          true
-        }
-      }
+        
+      val unifiablePairsA = (for (auxL <- first.ant; auxR <- second.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
+      val unifiablePairsB = (for (auxL <- first.suc; auxR <- second.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
+
+      val mguResult = unifiablePairsA.length > 0 || unifiablePairsB.length > 0 
+
       if (mguResult) {
         checkListUnif(l.tail, vars)
       } else {
@@ -104,7 +89,6 @@ object FOLowerUnits
     //traverse the proof &
     // collect clauses being unified against units
 
-    //TODO: why do I need fixedPremises?
     def visitForUnifiability(node: SequentProofNode, fixedPremises: Seq[Any]) = node match {
       case UnifyingResolution(left, right, _, _) => processResolution(left, right, premiseMap)
       case UnifyingResolutionMRR(left, right, _, _) => processResolution(left, right, premiseMap)
@@ -114,11 +98,6 @@ object FOLowerUnits
     proof.foldDown(visitForUnifiability)
 
     for (k <- premiseMap.keysIterator) {
-      println(premiseMap.get(k))
-      if(k.isInstanceOf[UnifyingResolution]){
-        println("L: " + k.asInstanceOf[UnifyingResolution].auxL)
-        println("r: " + k.asInstanceOf[UnifyingResolution].auxR) 
-      }
       if (!checkListUnifiability(premiseMap.get(k), vars)) {
         premiseMap.put(k, Nil)
       }
@@ -217,12 +196,7 @@ object FOLowerUnits
 
     val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
 
-//    for (k <- fixMap.keysIterator) {
-//      println("FM: " + k + " ---> " + fixMap.get(k))
-//    }
-
-    //TODO: is the name appropriate?
-    def replace(left: SequentProofNode, right: SequentProofNode) = {
+    def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
       try {
         UnifyingResolution(left, right)(vars)
       } catch {
@@ -238,7 +212,7 @@ object FOLowerUnits
       }
     }
 
-    val root = unitsClean.map(fixMap).foldLeft(fixMap(proof.root))(replace)
+    val root = unitsClean.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
     val p = Proof(root)
     println(p)
