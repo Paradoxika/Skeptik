@@ -8,7 +8,6 @@ object FOLowerUnitsTest {
     
 //    val proof = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
 //    println(proof)
-//    
 //    FOLowerUnits(proof)
 //    
 //    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")

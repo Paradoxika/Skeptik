@@ -43,7 +43,6 @@ object FOLowerUnits
 
   private def checkListUnif(l: List[Sequent], vars: MSet[Var]): Boolean = {
     if (l.length > 1) {
-      //TODO: test this section (example1 does not use this one)
       val first = l.head
       val second = l.tail.head
 
@@ -66,11 +65,17 @@ object FOLowerUnits
       }
 
       //TODO: these are definitely wrong. need to pass the aux formulas from the premise I think
+      //Except that we don't have the entire premises; and even if we do, they could be axiom nodes
+      //namely, not have auxL/auxR defined. A workaround might be to resolve (as if it were the proof)
+      //and use that resolution node's auxL/auxR? but then we're computing this and throwing it away,
+      //so this is inefficient. 
       val mgu = {
         try {
+          println("FA: " + first.ant +" ------> SS: " + second.suc)
           unify((first.ant.head, second.suc.head) :: Nil)(vars)
         } catch {
           case e: Exception => {
+                      println("FS: " + first.suc +" ------> SA: " + second.ant)
             unify((first.suc.head, second.ant.head) :: Nil)(vars)
           }
         }
@@ -101,14 +106,19 @@ object FOLowerUnits
 
     //TODO: why do I need fixedPremises?
     def visitForUnifiability(node: SequentProofNode, fixedPremises: Seq[Any]) = node match {
-      //TODO: does this check if it is an MRR node?
       case UnifyingResolution(left, right, _, _) => processResolution(left, right, premiseMap)
+      case UnifyingResolutionMRR(left, right, _, _) => processResolution(left, right, premiseMap)
       case _ => node
     }
 
     proof.foldDown(visitForUnifiability)
 
     for (k <- premiseMap.keysIterator) {
+      println(premiseMap.get(k))
+      if(k.isInstanceOf[UnifyingResolution]){
+        println("L: " + k.asInstanceOf[UnifyingResolution].auxL)
+        println("r: " + k.asInstanceOf[UnifyingResolution].auxR) 
+      }
       if (!checkListUnifiability(premiseMap.get(k), vars)) {
         premiseMap.put(k, Nil)
       }
