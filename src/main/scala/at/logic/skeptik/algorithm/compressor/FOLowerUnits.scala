@@ -207,9 +207,9 @@ object FOLowerUnits
 
     val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
 
-    for (k <- fixMap.keysIterator) {
-      println("FM: " + k + " ---> " + fixMap.get(k))
-    }
+//    for (k <- fixMap.keysIterator) {
+//      println("FM: " + k + " ---> " + fixMap.get(k))
+//    }
 
     //TODO: is the name appropriate?
     def replace(left: SequentProofNode, right: SequentProofNode) = {
