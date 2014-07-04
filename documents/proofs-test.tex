@@ -1,11 +1,35 @@
 \documentclass[12pt]{article}
 \usepackage{bussproofs}
-\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{ amssymb }
+\usepackage{amsthm}
 \usepackage{latexsym}
 \usepackage[landscape]{geometry}
 \marginparwidth=0pt
 %\hoffset=-10cm
 %\voffset=-5cm
+
+\newtheorem{thm}{Theorem}[section]
+
+% most others are numbered together with theorems
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{exmp}[thm]{Example}
+%%
+% just an example of what will happen if you skip the [thm]
+% part -- conjectures will be numbered consecutively
+\newtheorem{conj}{Conjecture}
+\newtheorem{prob}{Problem}
+\newtheorem{claim}{Claim}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{property}{Property}[section]
+\theoremstyle{remark}
+\newtheorem{rem}{Remark}[section]
+\newtheorem{notation}{Notation}
+
 \begin{document}
 \section{Local Redundancy}
 We first consider an example first posed by Postan:
@@ -116,26 +140,12 @@ The requirement for being pairwise unifiable is also seen in proof 1 and 2, but 
 
 which is the 'potentially' globally reduction example from the original lower units paper.
 
-However, I'm not yet entirely convinced this the whole picture. In particular, I am concerned about proof  structures -- maybe unnecessarily. Basically, I'm concerned that there might be cases were the formulas are pair-wise unifiable, but moving the unit lower breaks the proof. To this end, I've considered the following questions, regarding potential units from being lowerable:
+\begin{thm}
+Let $S$ be the set of premises being resolved against a unit clause $u$. Then $u$ can be lowered if, $|S|>1$ and for every distinct $\eta,\eta' \in S$, $\eta$ and $\eta'$ are unifiable.
+\end{thm}
 
-\begin{itemize}
-\item Can a unit be required in the different proof tree branch, at the same 'depth', so that if we lowered it, we couldn't use the original resolvent, thus making the proof longer? (Basically, we draw the proof like in Bruno's pictures, is there a case where somewhere on say, level two (from the top), we have a resolvent using our unit and some other formula, that we need at some lower level, wherein if we lower the unit we have to do this work anyways?)
-\begin{itemize}
-\item From experiments (see proofs 6,7), this looks like it's not an issue; as long as some pair of formulas can be resolved later, we've still traded a resolution for a contraction.
-\end{itemize}
-
-\item Can a unit be created from some other resolutions, the intermediate results of which are necessary below the usage of the unit formula, but above where the unit would be placed after lowering it?
-\begin{itemize}
-\item Probably not an issue: we have to compute the unit anyways, so just compute until we get the parts we need, and hold off on computing the actual unit before it necessary, in the lowered position.
-\end{itemize}
-
-\item Can a unit be in such a location of the proof, that it is necessary in the next step so that it can't be placed lower?
-\begin{itemize}
-\item From experiments (see proofs 8,9), this looks like it's not an issue. 
-\end{itemize}
-
-\end{itemize}
-
-Lastly, a concern is 'how low' should the unit be lowered; I think this is entirely covered by the rest of the algorithm; that is, if we can lower it, the techniques from the propositional case should also determine this.
+\begin{proof}
+Assume that $S$ is defined as above, and is pairwise unifiable. Order the elements from the top of the proof to the bottom (and break ties left-right), so that $\eta_1$ is the top-left-most premise resolved against $u$. In particular, $\eta_1$ contains $\overline{u}_1'$, and we have that $P=\phi[\phi_1[\eta_1 \odot u] \odot  r_1]$. Consider instead $\phi[r_1 \cup \overline{u}_1']$, the proof obtained by removing the resolution $\phi_1[\eta_1 \odot u] \odot  r_1$ with just $\phi' = \eta_1 \odot r_1$ and then moving the subtree of $\phi$ to be the subtree of $\phi'$. Note that $\phi'$ contains $\overline{u}_1'$ still, and so the resulting subtree would have more occurrences of $\overline{u}_1'$. In particular, the final node in the proof is $\overline{u}_1'$ instead of $\bot$.  Since $|S|>1$, at some other point, there exists $\eta_2$ such that $\eta_2$ is also resolved against $u$ (with $\eta_2$ contains $\overline{u}_2'$. So consider  $\phi[r_2 \cup \overline{u}_2']$ and follow an argument similar to that for $\eta_1$; now the final proof node has $\overline{u}_1' \cup \overline{u}_2'$ instead of $\overline{u}_1'$. By assumption, $\overline{u}_1'$ and $\overline{u}_2'$ are pair-wise unifiable. So we can contract these terms, and then resolve against $u$, to complete the proof.
+\end{proof}
 
 \end{document}
