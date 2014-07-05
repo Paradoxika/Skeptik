@@ -26,7 +26,24 @@ object FOLowerUnits
     var vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>
       if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) {
-        vars = vars union getSetOfVars(node)
+        println("unit: " + node)
+        val children = proof.childrenOf(node)
+        //This gets the child of the unit, but really we want the other parent of the child of the unit.
+        val childrenConclusionsSeq = for(c <- children) yield {
+          
+          vars = vars union getSetOfVars(c)
+          println("c: " + c)
+          println("c's important stuff? " + c.conclusion )          
+          c.conclusion
+        }
+        vars = vars union getSetOfVars(node)        
+        println(checkListUnif(childrenConclusionsSeq.toList, vars))
+        if (checkListUnif(childrenConclusionsSeq.toList, vars)) {
+          node :: acc
+        } else {
+          acc
+        }
+        //comment this out for new behaviour
         node :: acc
       } else {
         vars = vars union getSetOfVars(node)
@@ -184,16 +201,21 @@ object FOLowerUnits
     val vars = collected._2
 
     val premiseMap = checkUnifiability(proof, vars)
-
+    
+    
     val toRemove = MSet[SequentProofNode]()
     for (k <- premiseMap.keysIterator) {
+      println(premiseMap.get(k))
       if (premiseMap.get(k) == Nil) {
         toRemove.add(k)
       }
     }
 
     val unitsClean = units.filter((x: SequentProofNode) => !toRemove.contains(x))
-
+    println(units)
+    //make this change for new behaviour
+//    val unitsClean = units
+    
     val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
 
     def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {

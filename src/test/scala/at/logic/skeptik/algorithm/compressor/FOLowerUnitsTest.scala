@@ -7,13 +7,13 @@ object FOLowerUnitsTest {
   def main(args: Array[String]):Unit = {
     
     val proof = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
-//    println(proof)
+    println(proof)
     FOLowerUnits(proof)
 //    
-    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
+//    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
 //    println(proofA)
 //    
-    FOLowerUnits(proofA)    
+//    FOLowerUnits(proofA)    
     
     
 //    val proofq = ProofParserSPASS.read("examples/proofs/SPASS/example4q.spass")
