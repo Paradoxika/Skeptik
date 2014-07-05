@@ -26,36 +26,30 @@ object FOLowerUnits
     var vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>
       if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) {
-        println("unit: " + node)
         val children = proof.childrenOf(node)
         //This gets the child of the unit, but really we want the other parent of the child of the unit.
-        val childrenConclusionsSeq = for(c <- children) yield {
-          
+        //so we do the following:
+        val childrensParentsConclusionsSeqSeq = for(c <- children) yield {
+          val parentsConclusions = for(p <- c.premises) yield{
+            p.conclusion
+          }
           vars = vars union getSetOfVars(c)
-          println("c: " + c)
-          println("c's important stuff? " + c.conclusion )          
-          c.conclusion
+          parentsConclusions
         }
+        val temp = childrensParentsConclusionsSeqSeq.flatten
         vars = vars union getSetOfVars(node)        
-        println(checkListUnif(childrenConclusionsSeq.toList, vars))
-        if (checkListUnif(childrenConclusionsSeq.toList, vars)) {
+        if (checkListUnif(childrensParentsConclusionsSeqSeq.flatten.toList, vars)) {
           node :: acc
         } else {
           acc
         }
-        //comment this out for new behaviour
-        node :: acc
+
       } else {
         vars = vars union getSetOfVars(node)
         acc
       }
     }
     (unitsList, vars)
-  }
-
-  private def checkListUnifiability(list: Option[List[Sequent]], vars: MSet[Var]) = list match {
-    case Some(l) => checkListUnif(l, vars)
-    case None => false
   }
 
   private def checkListUnif(l: List[Sequent], vars: MSet[Var]): Boolean = {
@@ -98,28 +92,6 @@ object FOLowerUnits
     } else {
       true
     }
-  }
-
-  private def checkUnifiability(proof: Proof[SequentProofNode], vars: MSet[Var]) = {
-    var premiseMap = MMap[SequentProofNode, List[Sequent]]()
-
-    //traverse the proof &
-    // collect clauses being unified against units
-
-    def visitForUnifiability(node: SequentProofNode, fixedPremises: Seq[Any]) = node match {
-      case UnifyingResolution(left, right, _, _) => processResolution(left, right, premiseMap)
-      case UnifyingResolutionMRR(left, right, _, _) => processResolution(left, right, premiseMap)
-      case _ => node
-    }
-
-    proof.foldDown(visitForUnifiability)
-
-    for (k <- premiseMap.keysIterator) {
-      if (!checkListUnifiability(premiseMap.get(k), vars)) {
-        premiseMap.put(k, Nil)
-      }
-    }
-    premiseMap
   }
 
   private def processResolution(left: SequentProofNode, right: SequentProofNode, map: MMap[SequentProofNode, List[Sequent]]) = {
@@ -199,24 +171,8 @@ object FOLowerUnits
 
     val units = collected._1
     val vars = collected._2
-
-    val premiseMap = checkUnifiability(proof, vars)
     
-    
-    val toRemove = MSet[SequentProofNode]()
-    for (k <- premiseMap.keysIterator) {
-      println(premiseMap.get(k))
-      if (premiseMap.get(k) == Nil) {
-        toRemove.add(k)
-      }
-    }
-
-    val unitsClean = units.filter((x: SequentProofNode) => !toRemove.contains(x))
-    println(units)
-    //make this change for new behaviour
-//    val unitsClean = units
-    
-    val fixMap = fixProofNodes(unitsClean.toSet, proof, vars)
+    val fixMap = fixProofNodes(units.toSet, proof, vars)
 
     def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
       try {
@@ -234,7 +190,7 @@ object FOLowerUnits
       }
     }
 
-    val root = unitsClean.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
+    val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
     val p = Proof(root)
     println(p)
