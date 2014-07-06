@@ -57,24 +57,6 @@ object FOLowerUnits
       val first = l.head
       val second = l.tail.head
 
-      if (first.logicalSize == 1 && second.logicalSize == 1) {
-        if (first.ant.size == 1) {
-          if (second.suc.size == 1) {
-            if (first.ant.head == second.suc.head) {
-              return checkListUnif(l.tail, vars)
-            }
-          }
-        } else {
-          if (second.ant.size == 1) {
-            if (first.suc.size == 1) {
-              if (first.suc.head == second.ant.head) {
-                return checkListUnif(l.tail, vars)
-              }
-            }
-          }
-        }
-      }
-
       def isUnifiableWrapper(p: (E, E)) ={
         isUnifiable(p)(vars)
       }
@@ -155,8 +137,6 @@ object FOLowerUnits
         }
       }
       if (node == proof.root || unitsSet.contains(node)) {
-        //        println(node + " --- " + fixedP + " --- ")
-        //        println(node == proof.root)
         fixMap.update(node, fixedP)
 
       }
