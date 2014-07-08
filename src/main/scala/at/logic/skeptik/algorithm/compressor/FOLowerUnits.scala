@@ -19,9 +19,6 @@ object FOLowerUnits
 
   // ToDo: optimize this by interlacing collectUnits and fixProofNodes
 
-  //I think this method is okay with FOL proofs (nothing changes),
-  //but somewhere after this is called we should check the unifiability constraints?
-  //or in here as we collect them?
   private def collectUnits(proof: Proof[SequentProofNode]) = {
     var vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>

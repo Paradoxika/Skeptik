@@ -30,6 +30,8 @@
 \newtheorem{rem}{Remark}[section]
 \newtheorem{notation}{Notation}
 
+
+\newcommand{\clause}[1]{ \lfloor{#1} \rfloor}
 \begin{document}
 \section{Local Redundancy}
 We first consider an example first posed by Postan:
@@ -138,19 +140,23 @@ The requirement for being pairwise unifiable is also seen in proof 1 and 2, but 
 \BinaryInfC{$\bot$}
 \end{prooftree}
 
-which is the 'potentially' globally reduction example from the original lower units paper.
+which is the 'potentially' globally reduction example from the original lower units paper.\\
+
+
+\newpage
+Let $\clause{x}$ denote a clause consisting of the formula $x$.
 
 \begin{thm}
 Let $S$ be the set of premises being resolved against a unit clause $u$. Then $u$ can be lowered if, for every distinct $\eta_1,\eta_2 \in S$, $\eta_1$ and $\eta_2$ are unifiable.
 \end{thm}
 
 \begin{proof}
-We proceed by induction. Base case: $|S|=1$. In this case, the unit $u$ is only involved in exactly one resolution; let $\eta$ be the premise resolved against $u$ so that we have $P=\phi[\phi_1[\eta \odot_{\sigma} u] \odot_{\sigma_r}  r]$. Consider instead $\phi[\phi' \cup \overline{u}']$, the proof obtained by replacing the resolution $\phi_1[\eta \odot_\sigma u] \odot_{\sigma_r}  r$ with just $\phi' = \phi_1[\eta] \odot_{\sigma_{r'}} r$ and maintaining the subproof of $\phi$. Note that $\phi'$ contains $\overline{u}'$ still, and so the resulting subproof would have more occurrences of $\overline{u}'$. In particular, the final node in the proof is $\overline{u}'$ instead of $\bot$. But then we can resolve against the $u$ to complete the proof.
+We proceed by induction. Base case: $|S|=1$. In this case, the unit $\clause{u}$ is only involved in exactly one resolution; let $\clause{\eta}$ be the premise resolved against $\clause{u}$ so that we have $P=\phi[\phi_1[\phi_\eta[\eta] \odot_{\sigma} \phi_u[u]] \odot_{\sigma_r}  \phi_r[r]]$. Note that $\clause{\eta}$ contains $\clause{\overline{u}'}$, a negated version of $\clause{u}$, which would be resolved out in conclusion of $\phi$, and let $\sigma_u$ be a unifier of $\clause{\overline{u}'}$ and $\clause{u}$. Consider instead $P'=\phi[\phi']$, the proof obtained by replacing the resolution $\phi_1[\phi_\eta[\eta] \odot_{\sigma} \phi_u[u]] \odot_{\sigma_r}  \phi_r[r]$ with just $\phi' = \phi_\eta[\eta] \odot_{\sigma_{r'}} \phi_r[r]$ and maintaining the subsequent subproof of $\phi$. Note that all nodes of $\phi'$ contain $\clause{\overline{u}'}$. In particular, the final node in the proof $P'$ is $\clause{\overline{u}'}$ instead of $\clause{\bot}$. But then we can resolve against $\phi_u[u]$ using $\sigma_u$ to complete the proof.
 
-Assume the result holds for all $|S|\le n$, and consider $|S|=n+1$. Assume that $S$ is defined as above, and is pairwise unifiable. Order the elements from the top of the proof to the bottom (and break ties left-right), so that $\eta_1$ is the top-left-most premise resolved against $u$. In particular, $\eta_1$ contains $\overline{u}_1'$, and we have that $P=\phi[\phi_1[\eta_1 \odot_{\sigma_1} u] \odot_{\sigma_{r_1}}  r_1]$. Consider instead $\phi[\phi_1' \cup \overline{u}_1']$, the proof obtained by replacing the resolution $\phi_1[\eta_1 \odot_{\sigma_1} u] \odot_{\sigma_{r_1}}  r_1$ with just $\phi_1' = \phi_1[\eta_1] \odot_{\sigma_{r_1'}} r_1$ and maintaining the subproof of $\phi$. Note that $\phi_1'$ contains $\overline{u}_1'$ still, and so the resulting subproof would have more occurrences of $\overline{u}_1'$. In particular, the final node in the proof is $\overline{u}_1'$ instead of $\bot$.  
-Consider $S'=S\setminus\eta_1$: since $|S|=n+1>1$, $|S'| \le n$. Apply the induction hypothesis to the premises in $S'$ to get a  resolution $\phi_2[\eta_2 \odot_{\sigma_2} u] \odot_{\sigma_{r_2}}  r_2$ (where $\eta_2$ contains $\overline{u}_2'$);  we can construct $\phi_2' = \phi_2[\eta_2] \odot_{\sigma_{r_2'}} r_2$. Consider  $\phi[\phi_2' \cup \overline{u}_2']$ and follow an argument similar to that for $\eta_1$; the final proof node has $\overline{u}_1' \cup \overline{u}_2'$ instead of $\overline{u}_1'$ where $\overline{u}_2'$ is the result of lower applied by the induction hypothesis.  By assumption, $\overline{u}_1'$ and $\overline{u}_2'$ are pair-wise unifiable. So we can contract these terms, and then resolve against $u$, to complete the proof.
+Assume the result holds for all $|S|\le n$, and consider $|S|=n+1$. Assume that $S$ is defined as above, and is pairwise unifiable. Order the elements from the top of the proof to the bottom (and break ties left-right), so that $\clause{\eta_1}$ is the top-left-most premise resolved against $\clause{u}$. In particular, $\clause{\eta_1}$ contains $\clause{\overline{u}_1'}$, and we have that $P=\phi[\phi_1[\phi_{\eta_1}[\eta_1] \odot_{\sigma_1} \phi_u[u]] \odot_{\sigma_{r_1}} \phi_{r_1}[r_1]]$. Consider instead $\phi[\phi_1']$, the proof obtained by replacing the resolution $\phi_1[\phi_{\eta_1}[\eta_1] \odot_{\sigma_1} \phi_u[u]] \odot_{\sigma_{r_1}} \phi_{r_1}[r_1]$ with just $\phi_1' = \phi_{\eta_1}[\eta_1] \odot_{\sigma_{r_1'}} \phi_{r_1}[r_1]$ and maintaining the subproof of $\phi$. Note that all nodes of $\phi_1'$ contain $\overline{u}_1'$ still. In particular, the final node in the proof is $\clause{\overline{u}_1'}$ instead of $\clause{\bot}$.  
+
+Consider $S'=S\setminus\clause{\eta_1}$: since $|S|=n+1>1$, $|S'| = |S|-1 \le n$. Apply the induction hypothesis to the premises in $S'$ to get a  resolution $\phi_2[\phi_{\eta_2}[\eta_2] \odot_{\sigma_2} \phi_u[u]] \odot_{\sigma_{r_2}} \phi_{r_2}[r_2]$ (where $\clause{\eta_2}$ contains $\clause{\overline{u}_2'}$);  we can construct $\phi_2' = \phi_{\eta_2}[\eta_2] \odot_{\sigma_{r_2'}} \phi_{r_2}[r_2]$. Consider  $\phi[\phi_2']$ and follow an argument similar to that for $\clause{\eta_1}$; the final proof node has $\clause{\overline{u}_1'} \cup \clause{\overline{u}_2'}$ instead of $\clause{\overline{u}_1'}$ where $\clause{\overline{u}_2'}$ is the result of the lower, after contraction, but before the final resolution with $\phi_u[u]$, applied by the induction hypothesis.  By assumption, $\clause{\overline{u}_1'}$ and $\clause{\overline{u}_2'}$ are pair-wise unifiable by some unifier $\sigma_{1,2}$. We can therefore contract $\sigma_{1,2}(\clause{\overline{u}_1'} \cup \clause{\overline{u}_2'})$ and call the result $\clause{\eta_{1,2}}$. Now $\clause{\eta_{1,2}}$ and $\clause{u}$ must be unifiable by assumption with some unifier $\sigma_u$, so we can replace the last node in the proof with $\phi_{\eta_{1,2}}[\eta_{1,2}]\odot_{\sigma_u} \phi_u[u]$ to complete the proof.
 \end{proof}
 
-{\bf TODO: notation change in progress}
 
 \end{document}
