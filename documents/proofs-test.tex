@@ -6,8 +6,8 @@
 \usepackage{latexsym}
 \usepackage[landscape]{geometry}
 \marginparwidth=0pt
-%\hoffset=-10cm
-%\voffset=-5cm
+\hoffset=-2cm
+\voffset=-1cm
 
 \newtheorem{thm}{Theorem}[section]
 
@@ -75,7 +75,8 @@ Proceeds exactly the same as in the paper.\\
 \subsection{RecyclePivots}
 Again, proceeds like in the paper. 
 
-\section{Lower Units - Research Notes}
+\section{Lower Units}
+\subsection{Research Notes}
 First, I consider the proofs 1-5 that were provided by Bruno on the Skeptik dev mailing list. In order to be explicit, I outline the case of compression from proof 1 to proof 2:
 \begin{itemize}
 \item Lower $P(X)$ so that the terms using it were resolved against each other instead of with $P(X)$
@@ -123,7 +124,7 @@ but if we delay the resolution with $P(y,x)$ we get
 \BinaryInfC{$\bot$}
 \end{prooftree}
 
-and now we actually the same number of resolution rules. {\bf TODO: -no, we can still use a contraction, and reduce the proof}
+and now we actually the same number of resolution rules. No, we can still use a contraction, and reduce the proof.
 
 The requirement for being pairwise unifiable is also seen in proof 1 and 2, but further, this is lacking the case of proof 3: $P(a)$ and $P(b)$ is not unifiable, and thus proof 5 is not actually compressed. But if $P(b)$ had been $P(B)$, then we would have been fine. It also fails in the following example:
 
@@ -144,6 +145,7 @@ which is the 'potentially' globally reduction example from the original lower un
 
 
 \newpage
+\subsection{Results}
 Let $\clause{x}$ denote a clause consisting of the formula $x$.
 
 \begin{thm}
@@ -157,6 +159,35 @@ Assume the result holds for all $|S|\le n$, and consider $|S|=n+1$. Assume that 
 
 Consider $S'=S\setminus\clause{\eta_1}$: since $|S|=n+1>1$, $|S'| = |S|-1 \le n$. Apply the induction hypothesis to the premises in $S'$ to get a  resolution $\phi_2[\phi_{\eta_2}[\eta_2] \odot_{\sigma_2} \phi_u[u]] \odot_{\sigma_{r_2}} \phi_{r_2}[r_2]$ (where $\clause{\eta_2}$ contains $\clause{\overline{u}_2'}$);  we can construct $\phi_2' = \phi_{\eta_2}[\eta_2] \odot_{\sigma_{r_2'}} \phi_{r_2}[r_2]$. Consider  $\phi[\phi_2']$ and follow an argument similar to that for $\clause{\eta_1}$; the final proof node has $\clause{\overline{u}_1'} \cup \clause{\overline{u}_2'}$ instead of $\clause{\overline{u}_1'}$ where $\clause{\overline{u}_2'}$ is the result of the lower, after contraction, but before the final resolution with $\phi_u[u]$, applied by the induction hypothesis.  By assumption, $\clause{\overline{u}_1'}$ and $\clause{\overline{u}_2'}$ are pair-wise unifiable by some unifier $\sigma_{1,2}$. We can therefore contract $\sigma_{1,2}(\clause{\overline{u}_1'} \cup \clause{\overline{u}_2'})$ and call the result $\clause{\eta_{1,2}}$. Now $\clause{\eta_{1,2}}$ and $\clause{u}$ must be unifiable by assumption with some unifier $\sigma_u$, so we can replace the last node in the proof with $\phi_{\eta_{1,2}}[\eta_{1,2}]\odot_{\sigma_u} \phi_u[u]$ to complete the proof.
 \end{proof}
+
+\newpage
+\section{Recycle Pivots}
+\subsection{Research Notes}
+
+From the looks of some toy examples, I again conjecture we can recycle pivots when the formulas being moved are pairwise unifiable. Example from the video, trivially made first-order:
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\e $A(X)C(Y)D(Z)$}
+\AxiomC{$D(Z)$ \e $A(X)C(Y)$}
+\BinaryInfC{\e $A(X)C(Y)$}
+\AxiomC{$A(X)$ \e $C(Y)$}
+\BinaryInfC{c:  \e $C(Y)$}
+
+\AxiomC{$C(Y)$\e}
+\AxiomC{$D(Z)$ \e $C(Y)$}
+\BinaryInfC{$D(Z)$\e}
+\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+\BinaryInfC{$A(X)C(Y)$\e}
+
+\BinaryInfC{$A(X)$\e}
+
+\AxiomC{\e $A(X)$}
+
+\BinaryInfC{$\bot$}
+
+\end{prooftree}
+
 
 
 \end{document}
