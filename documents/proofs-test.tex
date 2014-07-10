@@ -167,7 +167,7 @@ Consider $S'=S\setminus\clause{\eta_1}$: since $|S|=n+1>1$, $|S'| = |S|-1 \le n$
 \section{Recycle Pivots}
 \subsection{Research Notes}
 
-From the looks of some toy examples, I again conjecture we can recycle pivots when the formulas being moved are pairwise unifiable. Example from the video, trivially made first-order (should there be a contraction at the "c: "?):
+From the looks of some toy examples, I again conjecture we can recycle pivots when the formulas being moved are pairwise unifiable. Example from the video, trivially made first-order (should there be a contraction at the ``c: "?):
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
@@ -298,5 +298,13 @@ Now we need to deal with the last remaining broken proof section (what is left i
 
 \end{prooftree}
 
-And we have the desired shorter proof.
+And we have the desired shorter proof. So looking at this, my first conjecture is as follows:
+
+\begin{conj}
+\label{conj: recycle-cond}
+A pivot can be recycled if, for every safe formula collected, all formula containing it that are lowered when attempting to regularize with that safe formula, is unifiable with the safe formula.
+\end{conj}
+
+For example, the $C(Y)\e$ we lower first in the second traversal, must be unifiable with the $C(Y)\e$ we collected going up on the first traversal.
+
 \end{document}
