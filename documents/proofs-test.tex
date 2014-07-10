@@ -5,8 +5,11 @@
 \usepackage{amsthm}
 \usepackage{latexsym}
 \usepackage[landscape]{geometry}
+\usepackage{color}
+
+
 \marginparwidth=0pt
-\hoffset=-2cm
+\hoffset=-3.5cm
 \voffset=-1cm
 
 \newtheorem{thm}{Theorem}[section]
@@ -164,7 +167,7 @@ Consider $S'=S\setminus\clause{\eta_1}$: since $|S|=n+1>1$, $|S'| = |S|-1 \le n$
 \section{Recycle Pivots}
 \subsection{Research Notes}
 
-From the looks of some toy examples, I again conjecture we can recycle pivots when the formulas being moved are pairwise unifiable. Example from the video, trivially made first-order:
+From the looks of some toy examples, I again conjecture we can recycle pivots when the formulas being moved are pairwise unifiable. Example from the video, trivially made first-order (should there be a contraction at the "c: "?):
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
@@ -188,6 +191,112 @@ From the looks of some toy examples, I again conjecture we can recycle pivots wh
 
 \end{prooftree}
 
+Which is, after the first (bottom-up) traversal:
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
+\AxiomC{$A(X)$ \e $C(Y)$}
+\RightLabel{\scriptsize $A(X)$}
+\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{$C(Y)$\e}
+\AxiomC{{\color{red}$D(Z)$ \e $C(Y)$ }}
+\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{$D(Z)$\e $\{A(X)C(Y)D(Z)\e \}$}
+\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+\RightLabel{\scriptsize $D(Z)$}
+\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{$A(X)$\e $\{A(X)\e\}$}
+
+\AxiomC{\e $A(X)$}
+\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{$\bot$ $\{ \}$} 
+
+\end{prooftree}
+
+\def\e{\mbox{\ $\vdash$\ }}
+
+Now we start the second (top-down) traversal. We replace $D(Z)$ with $C(Y) \e$ since $ C(Y) \e$ is in $D(Z)$'s safe formulas, and we replace with the left parent of $D(Z)$ since that is the one that contains the safe formula $C(Y) \e$.
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
+\AxiomC{$A(X)$ \e $C(Y)$}
+%\RightLabel{\scriptsize $A(X)$}
+\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{$C(Y)$\e}
+\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+%\RightLabel{\scriptsize $D(Z)$}
+\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+%\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{$A(X)$\e $\{A(X)\e\}$}
+
+\AxiomC{\e $A(X)$}
+%\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{$\bot$ $\{ \}$} 
+
+\end{prooftree}
+
+Now we lower $C(Y) \e$ again, because it is also in $A(X)C(Y)\e$'s safe formulas, and we pick the left because the right parent might have unsafe formulas (e.g. $\e D(Z)$), but the left has only safe formulas.
 
 
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
+\AxiomC{$A(X)$ \e $C(Y)$}
+%\RightLabel{\scriptsize $A(X)$}
+\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{$C(Y)$\e}
+%\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+%\RightLabel{\scriptsize $D(Z)$}
+%\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+%\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{$A(X)$\e $\{A(X)\e\}$}
+
+\AxiomC{\e $A(X)$}
+%\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{$\bot$ $\{ \}$} 
+
+\end{prooftree}
+
+Now we need to deal with the last remaining broken proof section (what is left in red). Since $A(X) \e C(Y)$ is safe with respect to the line under it, we lower it:
+
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+%\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
+%\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+%\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
+\AxiomC{$A(X)$ \e $C(Y)$}
+%\RightLabel{\scriptsize $A(X)$}
+%\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{$C(Y)$\e}
+%\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+%\RightLabel{\scriptsize $D(Z)$}
+%\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+%\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{$A(X)$\e }
+
+\AxiomC{\e $A(X)$}
+%\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{$\bot$ } 
+
+\end{prooftree}
+
+And we have the desired shorter proof.
 \end{document}
