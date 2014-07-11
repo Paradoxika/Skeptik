@@ -13,7 +13,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MSet[Var])
-  extends SequentProofNode with Unary {
+  extends SequentProofNode with Unary with CanRenameVariables {
 
   //TODO: test these
   def conclusionContext = makeContextSeq()
@@ -64,29 +64,79 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
     }
   }
 
-  def makeMainSeq(): Sequent = {
-    //if it's in the context, it must be in the premise's conclusion, and ours
-    val sA = addAntecedents(conclusion.ant.filter(e => premise.conclusion.ant.contains(e)).toList)
-    val sS = addSuccedents(conclusion.ant.filter(e => premise.conclusion.ant.contains(e)).toList)
-    val sFinal = sA union sS
-    sFinal
-  }
-
   val antContraction = contract(premise.conclusion.ant)(unifiableVariables)
   val sucContraction = contract(premise.conclusion.suc)(unifiableVariables)
+
+  val contraction = contractB(premise.conclusion)(unifiableVariables)
 
   val antContracted = antContraction._1.length > 0
   val sucContracted = sucContraction._1.length > 0
   val contracted = antContracted || sucContracted
 
-  def newAnt = antContraction._1
-  def newSuc = sucContraction._1
+  //  def newAnt = antContraction._1
+  //  def newSuc = sucContraction._
+
+  def newAnt = contraction._1
+  def newSuc = contraction._2
 
   //Each contraction application contracts at most one pair of formulas
   override lazy val conclusion = {
     val antecedent = newAnt
     val succedent = newSuc
     new Sequent(antecedent, succedent)
+  }
+
+  def contractB(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
+
+    //    println("seq: " + seq)
+    def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
+      case None => false
+      case Some(_) => true
+    }
+    def isUnifiableWrapper(p: (E, E)) = {
+      isUnifiable(p)(unifiableVariables) && !(p._1.equals(p._2))
+    }
+
+    val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
+    val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
+    val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
+
+    if (finalUnifiablePairsList.length > 0) {
+      val p = finalUnifiablePairsList.head
+
+      //        val seqRight = Sequent()(p._2)
+      //      val rightPremise = new Axiom(seqRight)
+      //      val seqLeft = Sequent(p._1)()
+      //      val leftPremise = new Axiom(seqLeft)
+      //       val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
+      //      val pp = (p._2, leftPremiseClean.conclusion.ant.head)
+      //       println("pp: " + pp)
+
+      val sub = unify(p :: Nil)(unifiableVariables) match {
+        // case None => None
+        case Some(u) => {
+          //          println(pp)
+          u
+        }
+      }
+      //      println("sub: " + sub)
+      val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
+      val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
+      //             println(cleanSuc)
+      //             println(cleanAnt)
+
+      //For testing only: ---
+      //             val sA = addAntecedents(cleanAnt.distinct.toList)
+      //      val sS = addSuccedents(cleanSuc.distinct.toList)
+      //            val seqOut = sS union sA
+      //      val axOut = Axiom(seqOut)
+      //      println(axOut)
+      // ---------
+
+      (cleanAnt.distinct, cleanSuc.distinct)
+    } else {
+      (seq.ant, seq.suc)
+    }
   }
 
   def contract(formulas: Seq[E])(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
@@ -144,17 +194,22 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
 
   }
 
-  def contractPair(f1: E, f2: E, vars: MSet[Var]): Boolean = { //} f1 match {
+  def contractPair(f1: E, f2: E, vars: MSet[Var]): Boolean = {
     def isUnifiable(p: (E, E)) = unify(p :: Nil)(vars) match {
       case None => false
-      case Some(_) => true
+      case Some(u) => {
+        //        println("f1: " + f1)
+        //        println("f2: " + f2)
+        //        println("mgu: " + u)
+        true
+      }
     }
     isUnifiable((f1, f2))
   }
 
 }
 
-object Contraction {
+object Contraction extends FindDesiredSequent {
   def apply(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
     new Contraction(premise)
   }

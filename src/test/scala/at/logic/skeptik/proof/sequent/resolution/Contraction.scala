@@ -24,20 +24,20 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   //First test case
   //(eq (f X) 2), (eq (f NEW2) 2) ⊢
-  val f1 = AppRec(e, List(App(f, x), two))
-  val f2 = AppRec(e, List(App(f, n), two))
+  val f1A = AppRec(e, List(App(f, x), two))
+  val f2A = AppRec(e, List(App(f, n), two))
 
   //  println("f1: " + f1)
   //  println("f2: " + f2)
 
-  val seqF2 = Sequent(f2)()
-  val seq = f1 +: seqF2
+  val seqF2A = Sequent(f2A)()
+  val seqA = f1A +: seqF2A
 
   //  println(seq)
 
-  val premise = new Axiom(seq)
+  val premiseA = new Axiom(seqA)
 
-  val con = Contraction(premise)(usedVars)
+  val conA = Contraction(premiseA)(usedVars)
 
   //Second test case
   //(eq X 2), (eq (f NEW2) 2) ⊢
@@ -53,7 +53,6 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val conB = Contraction(premiseB)(usedVars)
 
   //third test case
-  //First test case
   //(eq (f X) 2), (eq (f NEW2) 2) ⊢
   val f1C = AppRec(e, List(App(f, x), two))
   val f2C = AppRec(e, List(App(f, n), three))
@@ -70,10 +69,27 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   val conC = Contraction(premiseC)(usedVars)
 
+  //fourth test case
+  //given {A(X), A(b) |- B(X)}, the result should be {A(b) |- B(b)}.
+  val A = new Var("a", i -> i)
+  val B = new Var("b", i -> i)
+  val b = new Var("b", i)
+
+
+  val seqDtemp = Sequent(App(A, x))(App(B, x))
+  val seqD = App(A,b) +: seqDtemp
+  val premiseD = new Axiom(seqD)
+
+  val expectedD = Sequent(App(A, b))(App(B, b))
+  
+  val conD = Contraction(premiseD)(usedVars)
+
+  
+
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
-      println("con: " + con.conclusion)
-      Sequent(f2)() must beEqualTo(con.conclusion)
+      println("conA: " + conA.conclusion)
+      Sequent(f2A)() must beEqualTo(conA.conclusion)
     }
     "return the correct resolvent when unifying (f NEW2) with X" in {
       println("conB: " + conB.conclusion)
@@ -82,6 +98,10 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "return the correct resolvent when no contraction is possible" in {
       println("conC: " + conC.conclusion)
       seqC must beEqualTo(conC.conclusion)
+    }
+     "return the correct resolvent necessary to contract to a specific variable" in {
+      println("conD: " + conD.conclusion)
+      expectedD must beEqualTo(conD.conclusion)
     }
   }
 }

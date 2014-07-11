@@ -33,7 +33,7 @@ trait SPASSParsers
   //returns the actual proof
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {
-      println("Parsed line labelled " + count + "; done.")
+      println("Parsed line " + lineCounter + "; done.")
       val p = Proof(list.last)
       exprMap = new MMap[String, E]
       lineCounter = 0
@@ -86,8 +86,8 @@ trait SPASSParsers
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
-      //                  println("Parsed: " + ln + ":" + ay)
-      //                  println("Computed: " + ln + ":" + ax)
+//                        println("Parsed: " + ln + ":" + ay)
+//                        println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
@@ -126,8 +126,8 @@ trait SPASSParsers
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
-      //            println("Parsed MRR: " + ln + ":" + ay)
-      //            println("Computed MRR: " + ln + ":" + ax)
+//                  println("Parsed MRR: " + ln + ":" + ay)
+//                  println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
@@ -158,7 +158,6 @@ trait SPASSParsers
 
       addToExprMap(count, addToExprMap(count, 0, a), s)
 
-      updateLineCounter
       (a, s)
     }
   }

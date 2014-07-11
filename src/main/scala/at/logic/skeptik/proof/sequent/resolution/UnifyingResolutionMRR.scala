@@ -81,14 +81,33 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
   def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode,
     thirdPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    //Note that it's assumed that firstPremise = secondPremise when this is called.
 
-    val con = Contraction(secondPremise)(unifiableVariables)
-    val conRes = UnifyingResolutionMRR(thirdPremise, con, desired)(unifiableVariables)
-    //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-    if (conRes.conclusion.suc.length == 0 && conRes.conclusion.suc.length == 0) {
-      conRes
+    //Further, this could either be generalized to n-way MRR, if all n formulas
+    // are on the same SPASS proof line (as they are assumed to be now)
+    
+    //Or using contraction, we could avoid the need for this all together?
+    
+    if (firstPremise.conclusion.ant.length > 0) {
+      val newDesired = Sequent(firstPremise.conclusion.ant.head)()
+      val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
+      val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
+      //Since all examples so far have the first two premises referencing the same line, I'm doing this:
+      if (secondRes.conclusion.suc.length == 0 && secondRes.conclusion.suc.length == 0) {
+        secondRes
+      } else {
+        throw new MRRException("3-way MRR failed (with desired sequent).")
+      }
     } else {
-      throw new MRRException("3-way MRR failed (with desired sequent).")
+      val newDesired = Sequent(firstPremise.conclusion.suc.head)()
+      val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
+      val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
+      //Since all examples so far have the first two premises referencing the same line, I'm doing this:
+      if (secondRes.conclusion.suc.length == 0 && secondRes.conclusion.suc.length == 0) {
+        secondRes
+      } else {
+        throw new MRRException("3-way MRR failed (with desired sequent).")
+      }
     }
 
   }
