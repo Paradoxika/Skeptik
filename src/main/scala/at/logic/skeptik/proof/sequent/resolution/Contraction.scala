@@ -132,10 +132,11 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
       //      val axOut = Axiom(seqOut)
       //      println(axOut)
       // ---------
-
+      
+      //(cleanAnt.distinct.toList, cleanSuc.distinct.toList)
       contractB(seqOut)
     } else {
-      (seq.ant, seq.suc)
+      (seq.ant.distinct, seq.suc.distinct)
     }
   }
 

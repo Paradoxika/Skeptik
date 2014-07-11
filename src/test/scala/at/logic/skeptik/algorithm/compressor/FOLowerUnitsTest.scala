@@ -10,13 +10,13 @@ object FOLowerUnitsTest {
     println(proof)
     FOLowerUnits(proof)
     
-    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
-    println(proofA)
-    FOLowerUnits(proofA)    
-    
-    
-    val proofq = ProofParserSPASS.read("examples/proofs/SPASS/example4q.spass")
-    println(proofq)
-    FOLowerUnits(proofq)    
+//    val proofA = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
+//    println(proofA)
+//    FOLowerUnits(proofA)    
+//    
+//    
+//    val proofq = ProofParserSPASS.read("examples/proofs/SPASS/example4q.spass")
+//    println(proofq)
+//    FOLowerUnits(proofq)    
   }
 }

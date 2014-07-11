@@ -4,6 +4,7 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.Axiom
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
+import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import collection.mutable.{ Queue, HashMap => MMap }
@@ -26,15 +27,15 @@ object FOLowerUnits
         val children = proof.childrenOf(node)
         //This gets the child of the unit, but really we want the other parent of the child of the unit.
         //so we do the following:
-        val childrensParentsConclusionsSeqSeq = for(c <- children) yield {
-          val parentsConclusions = for(p <- c.premises) yield{
+        val childrensParentsConclusionsSeqSeq = for (c <- children) yield {
+          val parentsConclusions = for (p <- c.premises) yield {
             p.conclusion
           }
           vars = vars union getSetOfVars(c)
           parentsConclusions
         }
         val temp = childrensParentsConclusionsSeqSeq.flatten
-        vars = vars union getSetOfVars(node)        
+        vars = vars union getSetOfVars(node)
         if (checkListUnif(childrensParentsConclusionsSeqSeq.flatten.toList, vars)) {
           node :: acc
         } else {
@@ -54,14 +55,14 @@ object FOLowerUnits
       val first = l.head
       val second = l.tail.head
 
-      def isUnifiableWrapper(p: (E, E)) ={
+      def isUnifiableWrapper(p: (E, E)) = {
         isUnifiable(p)(vars)
       }
-        
+
       val unifiablePairsA = (for (auxL <- first.ant; auxR <- second.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
       val unifiablePairsB = (for (auxL <- first.suc; auxR <- second.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
 
-      val mguResult = unifiablePairsA.length > 0 || unifiablePairsB.length > 0 
+      val mguResult = unifiablePairsA.length > 0 || unifiablePairsB.length > 0
 
       if (mguResult) {
         checkListUnif(l.tail, vars)
@@ -72,7 +73,6 @@ object FOLowerUnits
       true
     }
   }
-
 
   private def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
     val fixMap = MMap[SequentProofNode, SequentProofNode]()
@@ -87,7 +87,7 @@ object FOLowerUnits
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => fixedRight
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => fixedLeft
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
-        case UnifyingResolution(left, right, _, _) => UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
+        case UnifyingResolution(left, right, _, _) => UnifyingResolution(fixedLeft, fixedRight)(vars)
         case _ => {
           node
         }
@@ -102,21 +102,47 @@ object FOLowerUnits
     fixMap
   }
 
+  def contractAndUnify(left: SequentProofNode, right: SequentProofNode, vars: MSet[Var]) = {
+    if (isUnitClause(left.conclusion)) {
+      if (isUnitClause(right.conclusion)) {
+        //Both units; no need to contract either
+        UnifyingResolution(left, right)(vars)
+
+      } else {
+        //only right is non-unit
+        UnifyingResolution(left, Contraction(right)(vars))(vars)
+      }
+    } else {
+      if (isUnitClause(right.conclusion)) {
+        //only left is non-unit
+        UnifyingResolution(Contraction(left)(vars), right)(vars)
+      } else {
+        //both are non-units 
+        //Should never happen, since we are lowering a unit.
+        throw new Exception("Tried to lower a non-unit")
+      }
+    }
+  }
+
   def apply(proof: Proof[SequentProofNode]) = {
     val collected = collectUnits(proof)
 
     val units = collected._1
     val vars = collected._2
-    
+
     val fixMap = fixProofNodes(units.toSet, proof, vars)
 
     def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
       try {
-        UnifyingResolution(left, right)(vars)
+        contractAndUnify(left, right, vars)
+        //UnifyingResolution(left, right)(vars)
+
       } catch {
         case e: Exception => {
           try {
-            UnifyingResolution(right, left)(vars)
+             contractAndUnify(right, left, vars)
+            //UnifyingResolution(left, right)(vars)
+
           } catch {
             case e: Exception => {
               left
