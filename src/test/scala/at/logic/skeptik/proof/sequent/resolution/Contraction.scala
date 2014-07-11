@@ -15,13 +15,16 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   var usedVars = Set[Var]()
   val x = new Var("X", i)
+  val y = new Var("Y", i)
+
   val n = new Var("NEW2", i)
   val e = new Var("eq", i -> (i -> i))
   val f = new Var("f", i -> i)
   val two = new Var("2", i)
   val three = new Var("3", i)
   usedVars += x
-
+  usedVars += y
+  
   //First test case
   //(eq (f X) 2), (eq (f NEW2) 2) ⊢
   val f1A = AppRec(e, List(App(f, x), two))
@@ -84,7 +87,18 @@ class ContractionSpecification extends SpecificationWithJUnit {
   
   val conD = Contraction(premiseD)(usedVars)
 
-  
+  //fifth test case
+  //multiple contractions: {A(X), A(b), B(Y), B(a) |- }, the result should be {A(b), B(a) |-}.
+    val a = new Var("a", i)
+  val seqEtemp1 = Sequent(App(A, x))()
+  val seqEtemp2 = App(A,b) +: seqEtemp1
+  val seqEtemp3 = App(B,y) +: seqEtemp2
+  val seqE = App(B,a) +: seqEtemp3
+  val premiseE = new Axiom(seqE)
+  val conE = Contraction(premiseE)(usedVars)
+  val expSeqETemp = Sequent(App(A, b))()
+  val expectedE = App(B, a) +: expSeqETemp
+
 
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
@@ -103,5 +117,9 @@ class ContractionSpecification extends SpecificationWithJUnit {
       println("conD: " + conD.conclusion)
       expectedD must beEqualTo(conD.conclusion)
     }
+     "return the correct resolvent necessary to contract multiple terms" in {
+      println("conE: " + conE.conclusion)
+      expectedE must beEqualTo(conE.conclusion)
+    }     
   }
 }

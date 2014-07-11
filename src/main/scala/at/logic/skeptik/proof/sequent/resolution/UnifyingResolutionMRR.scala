@@ -81,7 +81,9 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
   def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode,
     thirdPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-    //Note that it's assumed that firstPremise = secondPremise when this is called.
+    //Note that it's assumed that firstPremise = secondPremise when this is called, and that each
+    //has formulas in exactly one of it's antecedent or succedent.
+    //TODO: generalize.
 
     //Further, this could either be generalized to n-way MRR, if all n formulas
     // are on the same SPASS proof line (as they are assumed to be now)
