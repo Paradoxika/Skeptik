@@ -99,7 +99,6 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
-
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
 
@@ -118,11 +117,10 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
           u
         }
       }
-      //      println("sub: " + sub)
+
       val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
       val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
-      //             println(cleanSuc)
-      //             println(cleanAnt)
+
 
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)

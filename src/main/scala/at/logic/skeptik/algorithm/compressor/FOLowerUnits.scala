@@ -87,7 +87,7 @@ object FOLowerUnits
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => fixedRight
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => fixedLeft
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
-        case UnifyingResolution(left, right, _, _) => UnifyingResolution(fixedLeft, fixedRight)(vars)
+        case UnifyingResolution(left, right, _, _) => UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
         case _ => {
           node
         }
