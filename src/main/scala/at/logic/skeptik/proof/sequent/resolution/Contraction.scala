@@ -79,7 +79,6 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
   def newAnt = contraction._1
   def newSuc = contraction._2
 
-  //Each contraction application contracts at most one pair of formulas
   override lazy val conclusion = {
     val antecedent = newAnt
     val succedent = newSuc
@@ -125,15 +124,16 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
       //             println(cleanSuc)
       //             println(cleanAnt)
 
+      val sA = addAntecedents(cleanAnt.distinct.toList)
+      val sS = addSuccedents(cleanSuc.distinct.toList)
+      val seqOut = sS union sA
+
       //For testing only: ---
-      //             val sA = addAntecedents(cleanAnt.distinct.toList)
-      //      val sS = addSuccedents(cleanSuc.distinct.toList)
-      //            val seqOut = sS union sA
       //      val axOut = Axiom(seqOut)
       //      println(axOut)
       // ---------
 
-      (cleanAnt.distinct, cleanSuc.distinct)
+      contractB(seqOut)
     } else {
       (seq.ant, seq.suc)
     }
