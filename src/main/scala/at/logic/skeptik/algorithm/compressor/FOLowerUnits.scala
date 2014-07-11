@@ -29,14 +29,16 @@ object FOLowerUnits
         //so we do the following:
         val childrensParentsConclusionsSeqSeq = for (c <- children) yield {
           val parentsConclusions = for (p <- c.premises) yield {
-            p.conclusion
+            //Picks out (all) u_k in c_k
+            getUnitLiteral(p.conclusion, node.conclusion, vars)
           }
           vars = vars union getSetOfVars(c)
-          parentsConclusions
+          parentsConclusions.filter(_.length > 0)
         }
-        val temp = childrensParentsConclusionsSeqSeq.flatten
+        val listOfUnits = childrensParentsConclusionsSeqSeq(0).flatten.toList
+
         vars = vars union getSetOfVars(node)
-        if (checkListUnif(childrensParentsConclusionsSeqSeq.flatten.toList, vars)) {
+        if (checkListUnif(listOfUnits, vars)) {
           node :: acc
         } else {
           acc
@@ -50,6 +52,33 @@ object FOLowerUnits
     (unitsList, vars)
   }
 
+  
+  def getUnitLiteral(seq: Sequent, unit: Sequent, vars: MSet[Var]) = {
+    if(unit.ant.length > 0) {
+      //positive polarity, only need to check negative polarity of seq
+      val out = for(l <- seq.suc) yield {
+          if(isUnifiable((l, unit.ant.head))(vars)){
+        	Sequent()(l)
+          } else {
+            Sequent()()
+          }
+      }
+      out.filter(_ != Sequent()())
+    } else if(unit.suc.length > 0) {
+      //negative polarity, only need to check positive polarity of seq
+      val out = for(l <- seq.ant) yield {
+          if(isUnifiable((l, unit.suc.head))(vars)){
+        	Sequent(l)()
+          } else {
+            Sequent()()
+          }
+      }
+      out.filter(_ != Sequent()())
+    } else {
+      Seq[Sequent]()
+    }   
+  }
+  
   private def checkListUnif(l: List[Sequent], vars: MSet[Var]): Boolean = {
     if (l.length > 1) {
       val first = l.head
@@ -59,6 +88,7 @@ object FOLowerUnits
         isUnifiable(p)(vars)
       }
 
+      //Note that the list being passed in now only consists of unit sequents (the literal resolved against the unit)
       val unifiablePairsA = (for (auxL <- first.ant; auxR <- second.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
       val unifiablePairsB = (for (auxL <- first.suc; auxR <- second.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
 
