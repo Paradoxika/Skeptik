@@ -73,47 +73,6 @@ object FOLowerUnits
     }
   }
 
-  private def processResolution(left: SequentProofNode, right: SequentProofNode, map: MMap[SequentProofNode, List[Sequent]]) = {
-
-    if (isUnitClause(left.conclusion) && isUnitClause(right.conclusion)) {
-      //Do nothing - if both are units, they must be the same, so they would have to be resolvable.?
-      //TODO: check
-    } else {
-      if (isUnitClause(left.conclusion)) {
-        left match {
-          case Axiom(c) => {
-            if (map.contains(left)) {
-              val otherClauses = map.get(left).get
-              map.remove(left)
-              map.put(left, (right.conclusion :: otherClauses).distinct)
-            } else {
-              map.put(left, (right.conclusion :: Nil).distinct)
-            }
-          }
-          case _ => {
-            //Do nothing
-          }
-        }
-
-      }
-      if (isUnitClause(right.conclusion)) {
-        right match {
-          case Axiom(c) => {
-            if (map.contains(right)) {
-              val otherClauses = map.get(right).get
-              map.remove(right)
-              map.put(right, (left.conclusion :: otherClauses).distinct)
-            } else {
-              map.put(right, (left.conclusion :: Nil).distinct)
-            }
-          }
-          case _ => {
-            //Do nothing
-          }
-        }
-      }
-    }
-  }
 
   private def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
     val fixMap = MMap[SequentProofNode, SequentProofNode]()

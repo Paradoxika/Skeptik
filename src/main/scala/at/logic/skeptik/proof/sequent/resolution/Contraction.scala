@@ -209,8 +209,8 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
 
 }
 
-object Contraction extends FindDesiredSequent {
+object Contraction {
   def apply(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
     new Contraction(premise)
-  }
+  } 
 }
