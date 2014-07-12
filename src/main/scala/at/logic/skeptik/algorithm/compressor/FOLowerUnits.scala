@@ -58,28 +58,28 @@ object FOLowerUnits
       //positive polarity, only need to check negative polarity of seq
       val out = for(l <- seq.suc) yield {
           if(isUnifiable((l, unit.ant.head))(vars)){
-        	Sequent()(l)
+        	l
           } else {
-            Sequent()()
+            null.asInstanceOf[E]
           }
       }
-      out.filter(_ != Sequent()())
+      out.filter(_ != null)
     } else if(unit.suc.length > 0) {
       //negative polarity, only need to check positive polarity of seq
       val out = for(l <- seq.ant) yield {
           if(isUnifiable((l, unit.suc.head))(vars)){
-        	Sequent(l)()
+        	l
           } else {
-            Sequent()()
+            null.asInstanceOf[E]
           }
       }
-      out.filter(_ != Sequent()())
+      out.filter(_ != null)
     } else {
-      Seq[Sequent]()
+      Seq[E]()
     }   
   }
   
-  private def checkListUnif(l: List[Sequent], vars: MSet[Var]): Boolean = {
+  private def checkListUnif(l: List[E], vars: MSet[Var]): Boolean = {
     if (l.length > 1) {
       val first = l.head
       val second = l.tail.head
@@ -87,12 +87,8 @@ object FOLowerUnits
       def isUnifiableWrapper(p: (E, E)) = {
         isUnifiable(p)(vars)
       }
-
-      //Note that the list being passed in now only consists of unit sequents (the literal resolved against the unit)
-      val unifiablePairsA = (for (auxL <- first.ant; auxR <- second.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
-      val unifiablePairsB = (for (auxL <- first.suc; auxR <- second.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
-
-      val mguResult = unifiablePairsA.length > 0 || unifiablePairsB.length > 0
+            
+      val mguResult = isUnifiable(first, second)(vars)
 
       if (mguResult) {
         checkListUnif(l.tail, vars)

@@ -89,7 +89,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   //fifth test case
   //multiple contractions: {A(X), A(b), B(Y), B(a) |- }, the result should be {A(b), B(a) |-}.
-    val a = new Var("a", i)
+  val a = new Var("a", i)
   val seqEtemp1 = Sequent(App(A, x))()
   val seqEtemp2 = App(A,b) +: seqEtemp1
   val seqEtemp3 = App(B,y) +: seqEtemp2
@@ -99,7 +99,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val expSeqETemp = Sequent(App(A, b))()
   val expectedE = App(B, a) +: expSeqETemp
 
-
+  
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
       println("conA: " + conA.conclusion)
