@@ -12,7 +12,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
-class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MSet[Var])
+class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit unifiableVariables: MSet[Var])
   extends SequentProofNode with Unary with CanRenameVariables {
 
   //TODO: test these
@@ -67,7 +67,7 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
   val antContraction = contract(premise.conclusion.ant)(unifiableVariables)
   val sucContraction = contract(premise.conclusion.suc)(unifiableVariables)
 
-  val contraction = contractB(premise.conclusion)(unifiableVariables)
+  val contraction = checkOrContract(premise.conclusion, desired)(unifiableVariables)
 
   val antContracted = antContraction._1.length > 0
   val sucContracted = sucContraction._1.length > 0
@@ -85,9 +85,71 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
     new Sequent(antecedent, succedent)
   }
 
+  def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
+    if (desired.logicalSize == 0) {
+      contractB(premise)
+    } else {
+      require(desiredIsSafe(premise, desired))
+      (desired.ant, desired.suc)
+    }
+  }
+
+  def wasUnified(o: Option[Substitution]) = o match {
+    case None => false
+    case Some(_) => true
+  }
+
+  def desiredIsSafe(premise: Sequent, desired: Sequent): Boolean = {
+    val allSubs = for {
+
+      premiseLiteral <- premise.suc
+
+      val instances = for {
+        desiredLiteral <- desired.suc
+        val unifier = unify((premiseLiteral, desiredLiteral) :: Nil)
+        if !unifier.isEmpty
+      } yield (desiredLiteral, unifier.get)
+
+      val subs = for {
+        pair <- instances
+        if (pair._2.size > 0)
+      } yield pair._2
+
+      if (subs.length > 0)
+
+    } yield subs
+    val allSubsClean = allSubs.flatten.distinct
+    //allSubsClean might contain multiple substitutions for the same variable
+    //now we have to see if at least one of them is good for each variable
+
+
+    val subMap = new MMap[Var, List[Substitution]]()
+    for (sub <- allSubsClean) {
+
+      for (key <- sub.keys) {
+
+        val currentList = subMap.get(key)
+        if (currentList.isEmpty) {
+          subMap.put(key, List[Substitution](sub))
+        } else {
+          subMap.update(key, sub :: currentList.get )
+          true
+        }
+
+      }
+
+    }
+    
+    println(subMap)
+    //TODO: now check all combinations. for now, brute force them
+
+    //println(allSubsClean)
+    //TODO: stub:
+    true;
+  }
+
   def contractB(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
 
-    //    println("seq: " + seq)
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(_) => true
@@ -121,7 +183,6 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
       val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
       val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
 
-
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)
       val seqOut = sS union sA
@@ -130,7 +191,7 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
       //      val axOut = Axiom(seqOut)
       //      println(axOut)
       // ---------
-      
+
       //(cleanAnt.distinct.toList, cleanSuc.distinct.toList)
       contractB(seqOut)
     } else {
@@ -138,6 +199,8 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
     }
   }
 
+  //TODO: remove this code: for now, it is intentionally being kept so I can see what data is being used in constructing
+  //the aux formulas for this class. Once I fix those, this code should be removed.
   def contract(formulas: Seq[E])(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
     //Want to do pair-wise comparison for formulas in the antecedent of the premise
 
@@ -210,6 +273,9 @@ class Contraction(val premise: SequentProofNode)(implicit unifiableVariables: MS
 
 object Contraction {
   def apply(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
-    new Contraction(premise)
-  } 
+    new Contraction(premise, Sequent()())
+  }
+  def apply(premise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
+    new Contraction(premise, desired)
+  }
 }

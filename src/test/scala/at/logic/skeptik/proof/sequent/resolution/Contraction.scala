@@ -100,6 +100,20 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val expectedE = App(B, a) +: expSeqETemp
 
   
+  //Sixth test case
+  //"|- A(a), A(X), B(X), B(b)"
+  val seqFtemp1 = Sequent()(App(A, x))
+  val seqFtemp2 = seqFtemp1 + App(A, a)
+  val seqFtemp3 = seqFtemp2 + App(B, b)
+  val seqFtemp4 = seqFtemp3 + App(B, x)
+  val premiseF = new Axiom(seqFtemp4)
+
+  val expSeqFTemp = Sequent()(App(A,a))
+  val expectedF =  expSeqFTemp + App(A, b) + App(B, b)
+  
+  val conF = Contraction(premiseF, expectedF)(usedVars)
+
+  
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
       println("conA: " + conA.conclusion)
@@ -120,6 +134,11 @@ class ContractionSpecification extends SpecificationWithJUnit {
      "return the correct resolvent necessary to contract multiple terms" in {
       println("conE: " + conE.conclusion)
       expectedE must beEqualTo(conE.conclusion)
+    }
+     
+     "return the correct resolvent when the desired one is provided, and a literal in the premise can be unified with many in the desired" in {
+      println("conF: " + conF.conclusion)
+      expectedF must beEqualTo(conF.conclusion)
     }     
   }
 }
