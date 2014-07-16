@@ -24,7 +24,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val three = new Var("3", i)
   usedVars += x
   usedVars += y
-  
+
   //First test case
   //(eq (f X) 2), (eq (f NEW2) 2) ⊢
   val f1A = AppRec(e, List(App(f, x), two))
@@ -50,7 +50,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val seqF2B = Sequent(f2B)()
   val seqB = f1B +: seqF2B
 
-//  println("SeqB: " + seqB)
+  //  println("SeqB: " + seqB)
   val premiseB = new Axiom(seqB)
 
   val conB = Contraction(premiseB)(usedVars)
@@ -78,28 +78,26 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val B = new Var("b", i -> i)
   val b = new Var("b", i)
 
-
   val seqDtemp = Sequent(App(A, x))(App(B, x))
-  val seqD = App(A,b) +: seqDtemp
+  val seqD = App(A, b) +: seqDtemp
   val premiseD = new Axiom(seqD)
 
   val expectedD = Sequent(App(A, b))(App(B, b))
-  
+
   val conD = Contraction(premiseD)(usedVars)
 
   //fifth test case
   //multiple contractions: {A(X), A(b), B(Y), B(a) |- }, the result should be {A(b), B(a) |-}.
   val a = new Var("a", i)
   val seqEtemp1 = Sequent(App(A, x))()
-  val seqEtemp2 = App(A,b) +: seqEtemp1
-  val seqEtemp3 = App(B,y) +: seqEtemp2
-  val seqE = App(B,a) +: seqEtemp3
+  val seqEtemp2 = App(A, b) +: seqEtemp1
+  val seqEtemp3 = App(B, y) +: seqEtemp2
+  val seqE = App(B, a) +: seqEtemp3
   val premiseE = new Axiom(seqE)
   val conE = Contraction(premiseE)(usedVars)
   val expSeqETemp = Sequent(App(A, b))()
   val expectedE = App(B, a) +: expSeqETemp
 
-  
   //Sixth test case
   //"|- A(a), A(X), B(X), B(b)"
   val seqFtemp1 = Sequent()(App(A, x))
@@ -108,17 +106,24 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val seqFtemp4 = seqFtemp3 + App(B, x)
   val premiseF = new Axiom(seqFtemp4)
 
-  val expSeqFTemp = Sequent()(App(A,a))
-  val expectedF =  expSeqFTemp + App(A, b) + App(B, b)
-  
+  val expSeqFTemp = Sequent()(App(A, a))
+  val expectedF = expSeqFTemp + App(A, b) + App(B, b)
+
   val conF = Contraction(premiseF, expectedF)(usedVars)
 
   //Seventh test case
   //given: "|- P(a), P(X), Q(X), Q(b)". 
   //desired (wrong) conclusion is "|- P(a), Q(b)"
   val premiseG = premiseF
-  val expectedG = Sequent()(App(A,a)) + App(B,b)
-  
+  val expectedG = Sequent()(App(A, a)) + App(B, b)
+
+  //eighth test case 
+  //premise: "|- A(Y), A(X)"
+  //desired: "|- A(Y), A(X), A(NEW2)" 
+  val seqH = Sequent()(App(A, y)) + App(A, x)
+  val premiseH = Axiom(seqH)
+  val expectedH = Sequent()(App(A, y)) + App(A, x) + App(A, n)
+
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
       println("conA: " + conA.conclusion)
@@ -132,22 +137,26 @@ class ContractionSpecification extends SpecificationWithJUnit {
       println("conC: " + conC.conclusion)
       seqC must beEqualTo(conC.conclusion)
     }
-     "return the correct resolvent necessary to contract to a specific variable" in {
+    "return the correct resolvent necessary to contract to a specific variable" in {
       println("conD: " + conD.conclusion)
       expectedD must beEqualTo(conD.conclusion)
     }
-     "return the correct resolvent necessary to contract multiple terms" in {
+    "return the correct resolvent necessary to contract multiple terms" in {
       println("conE: " + conE.conclusion)
       expectedE must beEqualTo(conE.conclusion)
     }
-     
-     "return the correct resolvent when the desired one is provided, and a literal in the premise can be unified with many in the desired" in {
+
+    "return the correct resolvent when the desired one is provided, and a literal in the premise can be unified with many in the desired" in {
       println("conF: " + conF.conclusion)
       expectedF must beEqualTo(conF.conclusion)
-    }     
-     
+    }
+
     "fail a requirement when the desired contraction is not valid" in {
       Contraction(premiseG, expectedG)(usedVars) must throwA[IllegalArgumentException]
+    }
+
+    "fail a requirement if the desired sequent is longer than the premise" in {
+      Contraction(premiseH, expectedH)(usedVars) must throwA[IllegalArgumentException]
     }
   }
 }
