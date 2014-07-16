@@ -113,6 +113,11 @@ class ContractionSpecification extends SpecificationWithJUnit {
   
   val conF = Contraction(premiseF, expectedF)(usedVars)
 
+  //Seventh test case
+  //given: "|- P(a), P(X), Q(X), Q(b)". 
+  //desired (wrong) conclusion is "|- P(a), Q(b)"
+  val premiseG = premiseF
+  val expectedG = Sequent()(App(A,a)) + App(B,b)
   
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
@@ -140,5 +145,9 @@ class ContractionSpecification extends SpecificationWithJUnit {
       println("conF: " + conF.conclusion)
       expectedF must beEqualTo(conF.conclusion)
     }     
+     
+    "fail a requirement when the desired contraction is not valid" in {
+      Contraction(premiseG, expectedG)(usedVars) must throwA[IllegalArgumentException]
+    }
   }
 }

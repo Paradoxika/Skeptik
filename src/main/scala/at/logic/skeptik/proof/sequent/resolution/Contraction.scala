@@ -89,7 +89,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     if (desired.logicalSize == 0) {
       contractB(premise)
     } else {
-      require(desiredIsSafe(premise, desired))
+      desiredIsSafe(premise, desired)
       (desired.ant, desired.suc)
     }
   }
@@ -99,8 +99,8 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     case Some(_) => true
   }
 
-  def desiredIsSafe(premise: Sequent, desired: Sequent): Boolean = {
-    val allSubs = for {
+  def desiredIsSafe(premise: Sequent, desired: Sequent) = {
+    val allSubsSuc = for {
 
       premiseLiteral <- premise.suc
 
@@ -118,36 +118,93 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       if (subs.length > 0)
 
     } yield subs
-    val allSubsClean = allSubs.flatten.distinct
-    //allSubsClean might contain multiple substitutions for the same variable
-    //now we have to see if at least one of them is good for each variable
-
-
-    val subMap = new MMap[Var, List[Substitution]]()
-    for (sub <- allSubsClean) {
-
-      for (key <- sub.keys) {
-
-        val currentList = subMap.get(key)
-        if (currentList.isEmpty) {
-          subMap.put(key, List[Substitution](sub))
-        } else {
-          subMap.update(key, sub :: currentList.get )
-          true
-        }
-
-      }
-
-    }
+//    println(allSubs)
     
-    println(subMap)
-    //TODO: now check all combinations. for now, brute force them
-
+    buildMap(allSubsSuc)
+    
+//    val allSubsClean = allSubs.flatten.distinct
+//    //allSubsClean might contain multiple substitutions for the same variable
+//    //now we have to see if at least one of them is good for each variable
+//    //println(allSubsClean)
+//
+//    val subMap = new MMap[Var, List[Substitution]]()
+//    for (sub <- allSubsClean) {
+//
+//      for (key <- sub.keys) {
+//
+//        val currentList = subMap.get(key)
+//        if (currentList.isEmpty) {
+//          subMap.put(key, List[Substitution](sub))
+//        } else {
+//          subMap.update(key, sub :: currentList.get )
+//        }
+//
+//      }
+//
+//    }
+//    
+//    //println(subMap)
+//    //TODO: now check all combinations. for now, brute force them
+//    checkValid(Set[Var](), subMap, Set[Substitution]())
+    
     //println(allSubsClean)
     //TODO: stub:
-    true;
+    //true;
   }
 
+  def buildMap(subs: Seq[Seq[Substitution]]) = {
+    val listOfMaps = for {subList <- subs 
+      val tempMap = makeSubMap(subList)
+    } yield tempMap
+    println(listOfMaps)
+    mergeMaps(listOfMaps)
+  }
+  
+  def mergeMaps(listOfMaps: Seq[MMap[Var,Set[E]]]) = {
+    val finalMap = MMap[Var, Set[E]]()
+    for(tempMap <- listOfMaps) {
+      for(key <- tempMap.keySet){
+        if(finalMap.keySet.contains(key)){
+          val currentSubs = finalMap.get(key).get
+          val newSubs = tempMap.get(key).get
+          val intersection = currentSubs.intersect(newSubs)
+          require(intersection.size > 0)
+          finalMap.update(key, intersection)
+        } else {
+          finalMap.put(key, tempMap.get(key).get)
+        }
+      }
+    }
+    finalMap
+  }
+  
+  def makeSubMap(subList: Seq[Substitution]) = {
+   val tempMap = MMap[Var, Set[E]]()
+      for(sub <- subList) {
+        for(replacement <- sub){
+          val newExprSet = tempMap.getOrElse(replacement._1, Set[E]()).union(Set[E](replacement._2))
+          tempMap.update(replacement._1, newExprSet)
+        }
+      }
+   tempMap
+  }
+  
+  def checkValid(ignoreSet: Set[Var], map: MMap[Var, List[Substitution]], subs: Set[Substitution]): Boolean ={
+    if(ignoreSet.intersect(map.keySet).equals(map.keySet)){
+      println(subs)
+      false
+    } else {
+      val newKey = (map.keySet.diff(ignoreSet)).head
+      val keySubs = map.get(newKey).get
+      for(newSub <- keySubs){
+        if (checkValid(ignoreSet + newKey, map, subs + newSub)) {
+          return true
+        }
+      }
+      false
+    }
+  }
+  
   def contractB(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
