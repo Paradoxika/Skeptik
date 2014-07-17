@@ -52,33 +52,32 @@ object FOLowerUnits
     (unitsList, vars)
   }
 
-  
   def getUnitLiteral(seq: Sequent, unit: Sequent, vars: MSet[Var]) = {
-    if(unit.ant.length > 0) {
+    if (unit.ant.length > 0) {
       //positive polarity, only need to check negative polarity of seq
-      val out = for(l <- seq.suc) yield {
-          if(isUnifiable((l, unit.ant.head))(vars)){
-        	l
-          } else {
-            null.asInstanceOf[E]
-          }
+      val out = for (l <- seq.suc) yield {
+        if (isUnifiable((l, unit.ant.head))(vars)) {
+          l
+        } else {
+          null.asInstanceOf[E]
+        }
       }
       out.filter(_ != null)
-    } else if(unit.suc.length > 0) {
+    } else if (unit.suc.length > 0) {
       //negative polarity, only need to check positive polarity of seq
-      val out = for(l <- seq.ant) yield {
-          if(isUnifiable((l, unit.suc.head))(vars)){
-        	l
-          } else {
-            null.asInstanceOf[E]
-          }
+      val out = for (l <- seq.ant) yield {
+        if (isUnifiable((l, unit.suc.head))(vars)) {
+          l
+        } else {
+          null.asInstanceOf[E]
+        }
       }
       out.filter(_ != null)
     } else {
       Seq[E]()
-    }   
+    }
   }
-  
+
   private def checkListUnif(l: List[E], vars: MSet[Var]): Boolean = {
     if (l.length > 1) {
       val first = l.head
@@ -87,7 +86,7 @@ object FOLowerUnits
       def isUnifiableWrapper(p: (E, E)) = {
         isUnifiable(p)(vars)
       }
-            
+
       val mguResult = isUnifiable(first, second)(vars)
 
       if (mguResult) {
@@ -136,12 +135,23 @@ object FOLowerUnits
 
       } else {
         //only right is non-unit
-        UnifyingResolution(left, Contraction(right)(vars))(vars)
+        val contracted = Contraction(right)(vars)
+        if (contracted.conclusion.logicalSize < right.conclusion.logicalSize) {
+          UnifyingResolution(left, contracted)(vars)
+        } else {
+          UnifyingResolution(left, right)(vars)
+        }
       }
     } else {
       if (isUnitClause(right.conclusion)) {
         //only left is non-unit
-        UnifyingResolution(Contraction(left)(vars), right)(vars)
+        val contracted = Contraction(left)(vars)
+        if (contracted.conclusion.logicalSize < left.conclusion.logicalSize) {
+          UnifyingResolution(contracted, right)(vars)
+        } else {
+          UnifyingResolution(left, right)(vars)
+
+        }
       } else {
         //both are non-units 
         //Should never happen, since we are lowering a unit.
@@ -162,13 +172,11 @@ object FOLowerUnits
       try {
         contractAndUnify(left, right, vars)
         //UnifyingResolution(left, right)(vars)
-
       } catch {
         case e: Exception => {
           try {
-             contractAndUnify(right, left, vars)
+            contractAndUnify(right, left, vars)
             //UnifyingResolution(left, right)(vars)
-
           } catch {
             case e: Exception => {
               left

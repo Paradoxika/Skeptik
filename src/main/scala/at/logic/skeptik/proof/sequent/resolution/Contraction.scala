@@ -74,7 +74,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   val contracted = antContracted || sucContracted
 
   //  def newAnt = antContraction._1
-  //  def newSuc = sucContraction._
+  //  def newSuc = sucContraction._1
 
   def newAnt = contraction._1
   def newSuc = contraction._2
@@ -86,7 +86,9 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
-    require(premise.logicalSize > desired.logicalSize)
+    if(premise.logicalSize > 0) {
+    	require(premise.logicalSize > desired.logicalSize)
+    }
     if (desired.logicalSize == 0) {
       contractB(premise)
     } else {
@@ -184,19 +186,9 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
-
-      //        val seqRight = Sequent()(p._2)
-      //      val rightPremise = new Axiom(seqRight)
-      //      val seqLeft = Sequent(p._1)()
-      //      val leftPremise = new Axiom(seqLeft)
-      //       val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
-      //      val pp = (p._2, leftPremiseClean.conclusion.ant.head)
-      //       println("pp: " + pp)
-
       val sub = unify(p :: Nil)(unifiableVariables) match {
         // case None => None
         case Some(u) => {
-          //          println(pp)
           u
         }
       }
