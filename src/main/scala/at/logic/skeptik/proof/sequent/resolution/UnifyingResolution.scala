@@ -221,8 +221,7 @@ trait FindDesiredSequent {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-          println(desired)
-          println(ax.conclusion)
+
           if(desired.logicalSize < ax.conclusion.logicalSize) {
             Contraction(ax, desired)(unifiableVariables)
           } else {

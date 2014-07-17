@@ -77,6 +77,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val A = new Var("a", i -> i)
   val B = new Var("b", i -> i)
   val b = new Var("b", i)
+  val c = new Var("c", i)
 
   val seqDtemp = Sequent(App(A, x))(App(B, x))
   val seqD = App(A, b) +: seqDtemp
@@ -124,6 +125,14 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val premiseH = Axiom(seqH)
   val expectedH = Sequent()(App(A, y)) + App(A, x) + App(A, n)
 
+  //ninth test case 
+  //premise: "|- A(Y), A(X), B(a)"
+  //desired: "|- A(Y) B(b)"
+  //should fail
+  val seqI = Sequent()(App(A,y)) + App(A,x) + App(B,c)
+  val premiseI = Axiom(seqI)
+  val expectedI = Sequent()(App(A,y)) + App(B,b)
+  
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
       println("conA: " + conA.conclusion)
@@ -157,6 +166,10 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
     "fail a requirement if the desired sequent is longer than the premise" in {
       Contraction(premiseH, expectedH)(usedVars) must throwA[IllegalArgumentException]
+    }
+    
+    "fail a requirement if a literal that has no unifier is not in the desired premise" in {
+      Contraction(premiseI, expectedI)(usedVars) must throwA[IllegalArgumentException]
     }
   }
 }

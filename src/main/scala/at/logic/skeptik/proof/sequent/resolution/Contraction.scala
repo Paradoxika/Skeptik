@@ -86,8 +86,8 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
-    if(premise.logicalSize > 0) {
-    	require(premise.logicalSize > desired.logicalSize)
+    if (premise.logicalSize > 0) {
+      require(premise.logicalSize > desired.logicalSize)
     }
     if (desired.logicalSize == 0) {
       contractB(premise)
@@ -95,11 +95,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
       (desired.ant, desired.suc)
     }
-  }
-
-  def wasUnified(o: Option[Substitution]) = o match {
-    case None => false
-    case Some(_) => true
   }
 
   def desiredIsSafe(premise: Sequent, desired: Sequent) = {
@@ -113,15 +108,18 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def getMaps(premiseHalf: Seq[E], desiredHalf: Seq[E]): Seq[Seq[Substitution]] = {
-    val allSubsSuc = for {
+    val allSubs = for {
 
-      premiseLiteral <- premiseHalf 
+      premiseLiteral <- premiseHalf
 
       val instances = for {
-        desiredLiteral <- desiredHalf 
+        desiredLiteral <- desiredHalf
         val unifier = unify((premiseLiteral, desiredLiteral) :: Nil)
+
         if !unifier.isEmpty
       } yield (desiredLiteral, unifier.get)
+
+      val temporaryVariable = checkEmpty(instances, premiseLiteral, desiredHalf)
 
       val subs = for {
         pair <- instances
@@ -131,7 +129,17 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       if (subs.length > 0)
 
     } yield subs
-    allSubsSuc
+    allSubs
+  }
+
+  //If no unifier was found, this exact literal had better be in the relevant half of the desired sequent
+  //note that if the literal IS contained, an empty substitution is returned before we get here
+  //but this is still required as I can't put a require statement in a for loop
+  def checkEmpty(instances: Seq[(E, Substitution)], literal: E, desiredHalf: Seq[E]) {
+    if (instances.length == 0) {
+      require(desiredHalf.contains(literal))
+    }
+    instances
   }
 
   def buildMap(subs: Seq[Seq[Substitution]]) = {
