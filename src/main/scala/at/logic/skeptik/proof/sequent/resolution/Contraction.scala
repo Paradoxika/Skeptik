@@ -139,7 +139,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     if (instances.length == 0) {
       require(desiredHalf.contains(literal))
     }
-    instances
   }
 
   def buildMap(subs: Seq[Seq[Substitution]]) = {
