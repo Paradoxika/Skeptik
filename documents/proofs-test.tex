@@ -4,13 +4,13 @@
 \usepackage{ amssymb }
 \usepackage{amsthm}
 \usepackage{latexsym}
-\usepackage[landscape]{geometry}
+\usepackage{geometry}
 \usepackage{color}
 
 
 \marginparwidth=0pt
-\hoffset=-3.5cm
-\voffset=-1cm
+\hoffset=-1cm
+%\voffset=-1cm
 
 \newtheorem{thm}{Theorem}[section]
 
@@ -54,21 +54,21 @@ We consider example 2, from the LU/RPI paper, modified for first order predicate
 \begin{prooftree}
 \def\fCenter{\mbox{\ $\vdash$\ }}
 
-\AxiomC{$\eta_1$: $\neg P(A)$}
-\AxiomC{$\eta_3$: $P(A),Q(B)$}
-\BinaryInfC{$\eta_4$: $Q(B)$}
-\AxiomC{$\eta_2$: $P(A), R(C), \neg Q(B)$}
-\BinaryInfC{$\eta_5$: $P(A), R(C)$}
-\AxiomC{$\eta_1$: $\neg P(A)$}
-\BinaryInfC{$\eta_6$: $R(C)$}
+\AxiomC{\scriptsize $\eta_1$: $\neg P(A)$}
+\AxiomC{\scriptsize $\eta_3$: $P(A),Q(B)$}
+\BinaryInfC{\scriptsize $\eta_4$: $Q(B)$}
+\AxiomC{\scriptsize $\eta_2$: $P(A), R(C), \neg Q(B)$}
+\BinaryInfC{\scriptsize $\eta_5$: $P(A), R(C)$}
+\AxiomC{\scriptsize$\eta_1$: $\neg P(A)$}
+\BinaryInfC{\scriptsize $\eta_6$: $R(C)$}
 
-\AxiomC{$\eta_4$: $Q(B)$}
-\AxiomC{$\eta_7$: $P(A), \neg Q(B), \neg R(C)$}
-\BinaryInfC{$\eta_8$: $P(A), \neg R(C)$}
-\AxiomC{$\eta_1$: $\neg P(A)$}
-\BinaryInfC{$\eta_9$: $\neg R(C)$}
+\AxiomC{\scriptsize$\eta_4$: $Q(B)$}
+\AxiomC{ \scriptsize$\eta_7$: $P(A), \neg Q(B), \neg R(C)$}
+\BinaryInfC{\scriptsize$\eta_8$: $P(A), \neg R(C)$}
+\AxiomC{\scriptsize$\eta_1$: $\neg P(A)$}
+\BinaryInfC{\scriptsize$\eta_9$: $\neg R(C)$}
 
-\BinaryInfC{$\bot$}
+\BinaryInfC{\scriptsize$\bot$}
 \end{prooftree}
 
 \subsection{Lower Units}
@@ -93,38 +93,38 @@ In order to generalize, I think the best place to start was see under what condi
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
-\AxiomC{\e$P(y,x)$}
-\AxiomC{$P(A,x)$ \e $Q(A),R(B)$}
-\BinaryInfC{\e $Q(y), R(B)$}
-\AxiomC{$Q(y)$ \e $Q(x)$}
-\BinaryInfC{\e $R(B), Q(x)$}
+\AxiomC{\scriptsize \e$P(y,x)$}
+\AxiomC{\scriptsize$P(A,x)$ \e $Q(A),R(B)$}
+\BinaryInfC{\scriptsize\e $Q(y), R(B)$}
+\AxiomC{\scriptsize$Q(y)$ \e $Q(x)$}
+\BinaryInfC{\scriptsize\e $R(B), Q(x)$}
 
-\AxiomC{$Q(A), P(y,A)$\e}
-\AxiomC{\e$P(y,x)$}
-\BinaryInfC{$Q(x)$\e}
+\AxiomC{\scriptsize$Q(A), P(y,A)$\e}
+\AxiomC{\scriptsize\e$P(y,x)$}
+\BinaryInfC{\scriptsize$Q(x)$\e}
 
-\BinaryInfC{\e$R(B)$}
-\AxiomC{$R(B)$\e}
+\BinaryInfC{\scriptsize\e$R(B)$}
+\AxiomC{\scriptsize$R(B)$\e}
 
-\BinaryInfC{$\bot$}
+\BinaryInfC{\scriptsize$\bot$}
 \end{prooftree}
 
 but if we delay the resolution with $P(y,x)$ we get
 
 \begin{prooftree}
-\def\e{\mbox{\ $\vdash$\ }}
-\AxiomC{$P(A,x)$\e $Q(A),R(B)$}
-\AxiomC{$Q(y)$ \e$Q(x)$}
-\BinaryInfC{$P(y,x)$\e$Q(x),R(B)$}
+\def\e{\scriptsize\mbox{\ $\vdash$\ }}
+\AxiomC{\scriptsize$P(A,x)$\e $Q(A),R(B)$}
+\AxiomC{\scriptsize$Q(y)$ \e$Q(x)$}
+\BinaryInfC{\scriptsize$P(y,x)$\e$Q(x),R(B)$}
 
-\AxiomC{$Q(A), P(y,A)$\e}
-\BinaryInfC{$P(y,x), P(x,y)$\e $R(B)$}
-\AxiomC{$R(B)$\e}
-\BinaryInfC{$P(y,x),P(y,A)$\e}
-\AxiomC{\e $P(y,x)$}
-\BinaryInfC{$P(y,x)$}
-\AxiomC{\e $P(y,x)$}
-\BinaryInfC{$\bot$}
+\AxiomC{\scriptsize$Q(A), P(y,A)$\e}
+\BinaryInfC{\scriptsize$P(y,x), P(x,y)$\e $R(B)$}
+\AxiomC{\scriptsize$R(B)$\e}
+\BinaryInfC{\scriptsize$P(y,x),P(y,A)$\e}
+\AxiomC{\scriptsize\e $P(y,x)$}
+\BinaryInfC{\scriptsize$P(y,x)$}
+\AxiomC{\scriptsize\e $P(y,x)$}
+\BinaryInfC{\scriptsize$\bot$}
 \end{prooftree}
 
 and now we actually the same number of resolution rules. No, we can still use a contraction, and reduce the proof.
@@ -167,27 +167,27 @@ Consider $S'=S\setminus\clause{\eta_1}$: since $|S|=n+1>1$, $|S'| = |S|-1 \le n$
 \section{Recycle Pivots}
 \subsection{Research Notes}
 
-From the looks of some toy examples, I again conjecture we can recycle pivots when the formulas being moved are pairwise unifiable. Example from the video, trivially made first-order (should there be a contraction at the ``c: "?):
+Example from the video, trivially made first-order (note that in some proofs there should be a contraction at the ``c: "; I will assume terms are always contracted after a resolution, if possible):
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
-\AxiomC{\e $A(X)C(Y)D(Z)$}
-\AxiomC{$D(Z)$ \e $A(X)C(Y)$}
-\BinaryInfC{\e $A(X)C(Y)$}
-\AxiomC{$A(X)$ \e $C(Y)$}
-\BinaryInfC{c:  \e $C(Y)$}
+\AxiomC{\scriptsize\e $A(X)C(Y)D(Z)$}
+\AxiomC{\scriptsize$D(Z)$ \e $A(X)C(Y)$}
+\BinaryInfC{\scriptsize\e $A(X)C(Y)$}
+\AxiomC{\scriptsize$A(X)$ \e $C(Y)$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$}
 
-\AxiomC{$C(Y)$\e}
-\AxiomC{$D(Z)$ \e $C(Y)$}
-\BinaryInfC{$D(Z)$\e}
-\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
-\BinaryInfC{$A(X)C(Y)$\e}
+\AxiomC{\scriptsize$C(Y)$\e}
+\AxiomC{\scriptsize$D(Z)$ \e $C(Y)$}
+\BinaryInfC{\scriptsize$D(Z)$\e}
+\AxiomC{\scriptsize$A(X) C(Y)$ \e $D(Z)$}
+\BinaryInfC{\scriptsize$A(X)C(Y)$\e}
 
-\BinaryInfC{$A(X)$\e}
+\BinaryInfC{\scriptsize$A(X)$\e}
 
-\AxiomC{\e $A(X)$}
+\AxiomC{\scriptsize\e $A(X)$}
 
-\BinaryInfC{$\bot$}
+\BinaryInfC{\scriptsize$\bot$}
 
 \end{prooftree}
 
@@ -195,27 +195,27 @@ Which is, after the first (bottom-up) traversal:
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
-\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
-\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
-\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
-\AxiomC{$A(X)$ \e $C(Y)$}
+\AxiomC{\scriptsize {\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{\scriptsize {\color{red}\e $A(X)C(Y)$}}
+\AxiomC{\scriptsize$A(X)$ \e $C(Y)$}
 \RightLabel{\scriptsize $A(X)$}
-\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
 
-\AxiomC{$C(Y)$\e}
-\AxiomC{{\color{red}$D(Z)$ \e $C(Y)$ }}
+\AxiomC{\scriptsize $C(Y)$\e}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $C(Y)$ }}
 \RightLabel{\scriptsize $C(Y)$}
-\BinaryInfC{$D(Z)$\e $\{A(X)C(Y)D(Z)\e \}$}
-\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+\BinaryInfC{\scriptsize $D(Z)$\e $\{A(X)C(Y)D(Z)\e \}$}
+\AxiomC{\scriptsize$A(X) C(Y)$ \e $D(Z)$}
 \RightLabel{\scriptsize $D(Z)$}
-\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+\BinaryInfC{\scriptsize $A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
 
 \RightLabel{\scriptsize $C(Y)$}
-\BinaryInfC{$A(X)$\e $\{A(X)\e\}$}
+\BinaryInfC{\scriptsize $A(X)$\e $\{A(X)\e\}$}
 
-\AxiomC{\e $A(X)$}
+\AxiomC{\scriptsize \e $A(X)$}
 \LeftLabel{\scriptsize $A(X)$}
-\BinaryInfC{$\bot$ $\{ \}$} 
+\BinaryInfC{\scriptsize$\bot$ $\{ \}$} 
 
 \end{prooftree}
 
@@ -225,24 +225,24 @@ Now we start the second (top-down) traversal. We replace $D(Z)$ with $C(Y) \e$ s
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
-\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
-\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
-\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
-\AxiomC{$A(X)$ \e $C(Y)$}
+\AxiomC{\scriptsize {\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{\scriptsize {\color{red}\e $A(X)C(Y)$}}
+\AxiomC{\scriptsize$A(X)$ \e $C(Y)$}
 %\RightLabel{\scriptsize $A(X)$}
-\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
 
-\AxiomC{$C(Y)$\e}
-\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+\AxiomC{\scriptsize $C(Y)$\e}
+\AxiomC{\scriptsize $A(X) C(Y)$ \e $D(Z)$}
 %\RightLabel{\scriptsize $D(Z)$}
-\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+\BinaryInfC{\scriptsize $A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
 
 %\RightLabel{\scriptsize $C(Y)$}
-\BinaryInfC{$A(X)$\e $\{A(X)\e\}$}
+\BinaryInfC{\scriptsize $A(X)$\e $\{A(X)\e\}$}
 
-\AxiomC{\e $A(X)$}
+\AxiomC{\scriptsize \e $A(X)$}
 %\LeftLabel{\scriptsize $A(X)$}
-\BinaryInfC{$\bot$ $\{ \}$} 
+\BinaryInfC{\scriptsize $\bot$ $\{ \}$} 
 
 \end{prooftree}
 
@@ -251,24 +251,24 @@ Now we lower $C(Y) \e$ again, because it is also in $A(X)C(Y)\e$'s safe formulas
 
 \begin{prooftree}
 \def\e{\mbox{\ $\vdash$\ }}
-\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
-\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
-\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
-\AxiomC{$A(X)$ \e $C(Y)$}
+\AxiomC{\scriptsize {\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{\scriptsize {\color{red}\e $A(X)C(Y)$}}
+\AxiomC{\scriptsize $A(X)$ \e $C(Y)$}
 %\RightLabel{\scriptsize $A(X)$}
-\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
 
-\AxiomC{$C(Y)$\e}
+\AxiomC{\scriptsize $C(Y)$\e}
 %\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
 %\RightLabel{\scriptsize $D(Z)$}
 %\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
 
 %\RightLabel{\scriptsize $C(Y)$}
-\BinaryInfC{$A(X)$\e $\{A(X)\e\}$}
+\BinaryInfC{\scriptsize $A(X)$\e $\{A(X)\e\}$}
 
-\AxiomC{\e $A(X)$}
+\AxiomC{\scriptsize \e $A(X)$}
 %\LeftLabel{\scriptsize $A(X)$}
-\BinaryInfC{$\bot$ $\{ \}$} 
+\BinaryInfC{\scriptsize $\bot$ $\{ \}$} 
 
 \end{prooftree}
 
@@ -298,16 +298,12 @@ Now we need to deal with the last remaining broken proof section (what is left i
 
 \end{prooftree}
 
-And we have the desired shorter proof. So looking at this, my first conjecture is as follows:
+And we have the desired shorter proof.
 
-\begin{conj}
-\label{conj: recycle-cond}
-A pivot can be recycled if, for every safe formula collected, all formula containing it that are lowered when attempting to regularize with that safe formula, is unifiable with the safe formula.
-\end{conj}
+ 
+\subsection{Examples from Bruno's post}
 
-For example, the $C(Y)\e$ we lower first in the second traversal, must be unifiable with the $C(Y)\e$ we collected going up on the first traversal.
-\newpage 
-Examples from Bruno's post. Safe literals for $\eta$: $\{\e P(a,X),C\}$. Pivot for $\eta \rightarrow \eta^*$: \e $Z$. \\
+Safe literals for $\eta$: $\{\e P(a,X),C\}$. Pivot for $\eta \rightarrow \eta^*$: \e $Z$. \\
 When $Z=P(a,X)$:
 
 \begin{prooftree}
@@ -350,6 +346,50 @@ When $Z=P(W,X)$:
 \end{prooftree}
 
 Again, regularizable: we can can take the right parent of the resolution that would produce $\eta^*$. The right parent contains a more general form of the safe literal $P(a,X)$? (Will study this further)
+
+\subsection{Ideas}
+
+After studying the last case in greater detail, I provide the following two conjectures; the first is the 
+weaker version, while the second appears to capture more cases, so is likely better. The first is included only for completeness, or in case I discover a counter-example to the second one. Both are based off of the observation that regularization can proceed if a safe literal is found above some $\eta^*$ which is somehow more general. The two conjectures differ in what is allowed as 'somehow more generall.
+
+\begin{conj}[Weak Recycle Condition]\label{recycle-cond-weak}
+If there is a parent in $\eta$ (the resolution resulting in $\eta^*$) contains an exact copy of a safe literal of $\eta^*$, or a parent containing the most general form of a safe literal of $\eta^*$, then regularization is possible.
+\end{conj}
+
+I define a most general form of a literal as that literal but containing only universally quantified variables.
+
+This certainly captures what happens with the last of Bruno's examples, but misses some cases, e.g. when $Z=P(W,b)$:
+
+\begin{prooftree}
+\AxiomC{$\eta$: \e $P(W,b)$}
+\AxiomC{$P(W,b)$ \e $C$}
+\BinaryInfC{$\eta^*$: \e $C$}
+\AxiomC{$C$ \e $P(a,X)$}
+\BinaryInfC{\e $P(a,X)$}
+\AxiomC{$P(Y,b)$ \e }
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+In this case, regularization should be possible, and the final resolution in the proof would be
+
+\begin{prooftree}
+\AxiomC{\e $P(a,b)$}
+\AxiomC{$P(Y,b)$ \e }
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+which is fine. So I thought of the following conjecture:
+\begin{conj}[Strong Recycle Condition]\label{recycle-cond-strong}
+If there is a parent in $\eta$ (the resolution resulting in $\eta^*$) contains an exact copy of a safe literal of $\eta^*$, or a parent containing the most general form of a safe literal of $\eta^*$, or a consistent but still more general form of the safe literal, then regularization is possible.
+\end{conj}
+
+A consistent but still more general form of the safe literal is a bit harder to define. We will say that a literal $X$ is a consistent but more still general form (``CMGF'') of the safe literal $Y$ if for every resolution where $Y$ is the pivot, $X$ can be used in place of $Y$, and $X$ contains more universally quantified variables than $Y$. An example of a literal that is \emph{not} a consistent but still more general form of the safe literal $P(a,b)$ is $Z=P(X,c)$; the resolution would not be possible with $Z$ in place of the safe literal.
+
+Since a literal is considered safe for nodes above the resolution that uses it as a pivot, I also think that checking if a literal is a CMGF of the safe literal should be fairly straightforward. When the bottom-up traversal happens, we can also identify with each safe literal the substitutions made in the unification during the resolution. In fact, I think we would only need the substitutions that take a universally quantified variable to a specific variable (lower case letter). Then, when checking if regularization is possible, we apply that unifier to the safe literal, and then attempt to unify the result with the suspected CMGF; if the second unification is possible, the literal is in fact a CMGF; otherwise it is not. 
+
+To illustrate, I describe this on the last example. During the bottom up traversal, when $C$ would get the safe literal $P(a,X)$, it instead gets the pair $(P(a,X),\{X \rightarrow b\})$. Now when checking if we can regularize $C$, we look at $P(W,b)$ and $P(a,b)$ (which is $P(a,X)$ with $X \rightarrow b$ applied to it), and see if they can be unified; they can, so we can regularize $C$. Similarly, $Z=P(W,c)$ would fail: it's not unifiable with $P(a,b)$.
+
+
 
 
 \end{document}
