@@ -97,7 +97,7 @@ abstract class CongruenceNew(
             A.updateLookup(A.lookup + ((ru,rx) -> lv))
           }
           case Some(lu) => {
-            val y = if (lu != lv) {
+            val y = if (A.rep(lu) != A.rep(lv)) {
               deduced += ((lu,lv))
               A.updateLookup(A.lookup + ((ru,rx) -> lv))
             }
@@ -115,7 +115,7 @@ abstract class CongruenceNew(
             A.updateLookup(A.lookup + ((rx,ru) -> lv))
           }
           case Some(lu) => {
-            val y = if (lu != lv) {
+            val y = if (A.rep(lu) != A.rep(lv)) {
               deduced += ((lu,lv))
               A.updateLookup(A.lookup + ((rx,ru) -> lv))
             }
@@ -142,6 +142,7 @@ abstract class CongruenceNew(
 //      require(cL.lookup.forall(l => newRep.contains(l._1._1) && newRep.contains(l._1._2)))
 //      require(newRight.forall(l => l._2.forall(r => cL.lookup.isDefinedAt((newRep(l._1),newRep(r))))))
 //      require(newLeft.forall(l => l._2.forall(r => cL.lookup.isDefinedAt((newRep(r),newRep(l._1))))))
+//      System.out.println("after union: " + (s,t) + " " + cL.lookup);
       newCon(newRep,newCclass,cL.lookup,newLeft,newRight,cL.g)
     }
     else this

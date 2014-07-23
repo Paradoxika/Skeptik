@@ -16,7 +16,7 @@ object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = 3
+    val testcase = -8
     
     val t = o
     
@@ -67,9 +67,9 @@ object CongruenceDebug {
     implicit val eqReferences = MMap[(E,E),EqW]()
     implicit val reflMap = MMap[E,N]()
     
-    val set = Set(EqW(a,b),EqW(b,a))
+//    val set = Set(EqW(a,b),EqW(b,a))
     
-    println("set: " + set)
+//    println("set: " + set)
     
 //    var con: AbstractCongruence = FibonacciCongruence(eqReferences)
     var con2: AbstractCongruence = new ProofTreeCongruence()
@@ -77,6 +77,25 @@ object CongruenceDebug {
 //    var con: AbstractCongruence = ProofTreeConNew(eqReferences)
     
     testcase match {
+      
+      case -8 => {
+        val t1 = App(App(f1,a),e);
+        val t2 = App(App(f1,d),e);
+        con = con.addEquality(EqW(c1,t1));
+        con = con.addEquality(EqW(a,c));
+        con = con.addEquality(EqW(b,c));
+//        con = con.addEquality(EqW(a1,d));
+//        con = con.addEquality(EqW(a2,d));
+//        con = con.addEquality(EqW(a3,d));
+        con = con.addEquality(EqW(c,d));
+        con = con.addEquality(EqW(c2,t2));
+//        con = con.addEquality(EqW(e,b));
+        con = con.updateLazy
+//        con = con.addEquality(EqW(c2,c1));
+        val path = con.explain(c1, c2)
+        println(con.g)
+        println(path)
+      }
       
       case -7 => {
         con = con.addEquality(EqW(a,b)).updateLazy

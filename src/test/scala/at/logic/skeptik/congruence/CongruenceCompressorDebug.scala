@@ -15,9 +15,9 @@ object CongruenceCompressorDebug {
 
   def main(args: Array[String]):Unit = {
 
-    val multiple = true
+    val multiple = false
     val reader = new Input("F:/Proofs/QF_UF/seq_files")
-    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
+//    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size6.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size8.smt2"
 //      val file = "F:/Proofs/QF_UF/SEQ/SEQ017_size5.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ005_size8.smt2"
@@ -25,7 +25,7 @@ object CongruenceCompressorDebug {
 //      val file = "F:/Proofs/QF_UF/SEQ/SEQ032_size2.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size6.smt2"
-//      val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
+      val file = "F:/Proofs/QF_UF/SEQ/SEQ010_size8.smt2"
 //    val file = "F:/Proofs/QF_UF/SEQ/SEQ015_size2.smt2"
 //    val file = "experiments/congruence/resolveBug.s"
 //      val file = "experiments/congruence/resolveBug10_1.smtb"
@@ -48,12 +48,15 @@ object CongruenceCompressorDebug {
       }
     }
     else {
+      val t = System.currentTimeMillis()
       val proof = parser.read(file)
       println("finished parsing")
 //      println(proof)
-      val t = System.currentTimeMillis()
+      val t2 = System.currentTimeMillis()
+      val parseTime = t2 - t
+      println("Parsing time: " + parseTime)
       val newProof = FibonacciCNewNew(proof)
-      val timeReq = System.currentTimeMillis() - t
+      val timeReq = System.currentTimeMillis() - t2
       println("time: " + timeReq + "ms")
 //      println(proof)
       val measures = measure(proof)
