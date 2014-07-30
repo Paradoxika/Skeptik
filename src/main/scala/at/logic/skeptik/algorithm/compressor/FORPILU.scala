@@ -102,7 +102,6 @@ abstract class FOAbstractRPILUAlgorithm
 
   // Main functions
 
-      
   //TODO: the error that I think is below, might be here instead: fixedPremises might not be updating correctly.
   protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
     println("fixedPremises: " + fixedPremises)
@@ -114,27 +113,27 @@ abstract class FOAbstractRPILUAlgorithm
       // If we've got a proof of false, we propagate it down the proof
       //      case R(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) =>
       case UnifyingResolution(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) => {
-//        println("A")
+        //        println("A")
         fixedLeft
-      }        
-        
+      }
+
       //      case R(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) =>
-      case UnifyingResolution(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) =>{ 
-//        println("B")
+      case UnifyingResolution(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) => {
+        //        println("B")
         fixedRight
       }
 
       // Delete nodes and edges
-            
+
       //      case R(left, right, _, _) if edgesToDelete.isMarked(p, left) =>
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
-//        println("C")
+        //        println("C")
         println("replacing with: " + fixedRight)
         fixedRight
       }
       //      case R(left, right, _, _) if edgesToDelete.isMarked(p, right) =>
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
-//        println("D")
+        //        println("D")
         fixedLeft
       }
 
@@ -145,14 +144,14 @@ abstract class FOAbstractRPILUAlgorithm
       // Main case (rebuild a resolution)
       //      case R(left, right, pivot, _) => R(fixedLeft, fixedRight, pivot, true)
       case UnifyingResolution(left, right, pivot, _) => {
-//        println("r: " + right + " and l: " + left)
-        println("fr: " + fixedRight + " and fl: " + fixedLeft + " (" + unifiableVariables +")")
+        //        println("r: " + right + " and l: " + left)
+        println("fr: " + fixedRight + " and fl: " + fixedLeft + " (" + unifiableVariables + ")")
         try {
-           UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
-         // UnifyingResolution( left, right)(unifiableVariables)
+          UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
+          // UnifyingResolution( left, right)(unifiableVariables)
         } catch {
           case e: Exception => {
-            UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)  
+            UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
           }
         }
       }
@@ -214,25 +213,24 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm with CanRenameVariables {
 
-  
   //TODO: error here (or when it's called)
   protected def checkForRes(safeLiteralsHalf: Set[E], isAntecedent: Boolean, auxL: E, auxR: E, unifiableVars: MSet[Var]): Boolean = {
-    
+
     if (safeLiteralsHalf.size < 1) {
       return false
     }
 
     println("safe: (" + isAntecedent + ") " + safeLiteralsHalf)
     //    println("pivot: " + auxL + " and " + auxR)
-    
+
     for (safeLit <- safeLiteralsHalf) {
-      println("attempting to unify " + safeLit + " and " + auxL + " using " +  unifiableVars)
+      println("attempting to unify " + safeLit + " and " + auxL + " using " + unifiableVars)
       unify((auxL, safeLit) :: Nil)(unifiableVars) match {
         case Some(_) => {
           return true
         }
         case None => {
-           return false
+          return false
         }
       }
     }
@@ -248,6 +246,48 @@ trait FOCollectEdgesUsingSafeLiterals
     out
   }
 
+  protected def nodeContainsSafeOnly(p: SequentProofNode, safeAnt: Set[E], safeSuc: Set[E], unifiableVars: MSet[Var]): Boolean = {
+   println("p : " + p.conclusion)
+   println("safeAnt: " + safeAnt)
+   println("safeSuc: " + safeSuc)
+    for (lit <- p.conclusion.suc) {
+      var wasFound = false
+      for (safeLit <- safeSuc) {
+        //      println("attempting to unify " + safeLit + " and " + auxL + " using " +  unifiableVars)
+        unify((lit, safeLit) :: Nil)(unifiableVars) match {
+          case Some(_) => {
+            wasFound = true
+          }
+          case None => {
+
+          }
+        }
+      }
+      if(!wasFound){
+        return false
+      }
+    }
+    
+    for (lit <- p.conclusion.ant) {
+      var wasFound = false
+      for (safeLit <- safeAnt) {
+        //      println("attempting to unify " + safeLit + " and " + auxL + " using " +  unifiableVars)
+        unify((lit, safeLit) :: Nil)(unifiableVars) match {
+          case Some(_) => {
+            wasFound = true
+          }
+          case None => {
+
+          }
+        }
+      }
+      if(!wasFound){
+        return false
+      }
+    }    
+    true
+  }
+
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new EdgesToDelete()
 
@@ -261,7 +301,8 @@ trait FOCollectEdgesUsingSafeLiterals
         //        case R(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
         //TODO: check
         //      case UnifyingResolution(left, right, _, _) if safeLiterals.suc contains left.conclusion.toSetSequent.suc.head => {
-        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars) => {
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars) &&
+        nodeContainsSafeOnly(left, safeLiterals.ant, safeLiterals.suc, unifiableVars)) => {
           println("left: " + left)
           println("right: " + right)
           println("auxL: " + auxL)
@@ -272,7 +313,7 @@ trait FOCollectEdgesUsingSafeLiterals
         //        case UnifyingResolution(left, right, _, _) if safeLiterals.ant contains right.conclusion.toSetSequent.ant.head => {
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, true, auxR, auxL, unifiableVars) => {
 
-                    println("MARKED l: " + p)
+          println("MARKED l: " + p)
           edgesToDelete.markLeftEdge(p)
         }
 
@@ -297,24 +338,24 @@ trait FOUnitsCollectingBeforeFixing
   }
 
   //this code is not used?
-//  protected def mapFixedProofNodes(proofsToMap: Set[SequentProofNode],
-//    edgesToDelete: EdgesToDelete,
-//    nodeCollection: Proof[SequentProofNode]) = {
-//    val fixMap = MMap[SequentProofNode, SequentProofNode]()
-//    val unifiableVars = getAllVars(nodeCollection);
-//
-//    nodeCollection foldDown { (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =>
-//      {
-//        val result = fixProofNodes(edgesToDelete,  unifiableVars)(p, fixedPremises)
-//        if (proofsToMap contains p) {
-//          println("updating " + p + " ---> " + result)
-//          fixMap.update(p, result)
-//        }
-//        result
-//      }
-//    }
-//    fixMap
-//  }
+  //  protected def mapFixedProofNodes(proofsToMap: Set[SequentProofNode],
+  //    edgesToDelete: EdgesToDelete,
+  //    nodeCollection: Proof[SequentProofNode]) = {
+  //    val fixMap = MMap[SequentProofNode, SequentProofNode]()
+  //    val unifiableVars = getAllVars(nodeCollection);
+  //
+  //    nodeCollection foldDown { (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =>
+  //      {
+  //        val result = fixProofNodes(edgesToDelete,  unifiableVars)(p, fixedPremises)
+  //        if (proofsToMap contains p) {
+  //          println("updating " + p + " ---> " + result)
+  //          fixMap.update(p, result)
+  //        }
+  //        result
+  //      }
+  //    }
+  //    fixMap
+  //  }
 }
 
 trait FOIntersection
