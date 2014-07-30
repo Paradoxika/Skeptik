@@ -65,7 +65,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-
+    
     if (unifiablePairs.length == 1) {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)

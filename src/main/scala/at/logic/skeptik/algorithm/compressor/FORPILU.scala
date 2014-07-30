@@ -102,7 +102,10 @@ abstract class FOAbstractRPILUAlgorithm
 
   // Main functions
 
+      
+  //TODO: the error that I think is below, might be here instead: fixedPremises might not be updating correctly.
   protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+    println("fixedPremises: " + fixedPremises)
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
     p match {
@@ -129,7 +132,7 @@ abstract class FOAbstractRPILUAlgorithm
       //      case R(left, right, _, _) if edgesToDelete.isMarked(p, left) =>
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
 //        println("C")
-//        println(fixedLeft)
+        println("replacing with: " + fixedLeft)
         fixedLeft
         //fixedRight
       }
@@ -148,7 +151,7 @@ abstract class FOAbstractRPILUAlgorithm
       //      case R(left, right, pivot, _) => R(fixedLeft, fixedRight, pivot, true)
       case UnifyingResolution(left, right, pivot, _) => {
 //        println("r: " + right + " and l: " + left)
-//        println("fr: " + fixedRight + " and fl: " + fixedLeft)
+        println("fr: " + fixedRight + " and fl: " + fixedLeft + " (" + unifiableVariables +")")
         try {
            UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
          // UnifyingResolution( left, right)(unifiableVariables)
@@ -216,14 +219,15 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm with CanRenameVariables {
 
+  
   //TODO: error here (or when it's called)
-  protected def checkForRes(safeLiteralsHalf: Set[E], isAntecendent: Boolean, auxL: E, auxR: E, unifiableVars: MSet[Var]): Boolean = {
+  protected def checkForRes(safeLiteralsHalf: Set[E], isAntecedent: Boolean, auxL: E, auxR: E, unifiableVars: MSet[Var]): Boolean = {
     
     if (safeLiteralsHalf.size < 1) {
       return false
     }
 
-    println("safe: " + safeLiteralsHalf)
+    println("safe: (" + isAntecedent + ") " + safeLiteralsHalf)
     //    println("pivot: " + auxL + " and " + auxR)
     
     for (safeLit <- safeLiteralsHalf) {
@@ -233,7 +237,7 @@ trait FOCollectEdgesUsingSafeLiterals
           return true
         }
         case None => {
-          // return false
+           return false
         }
       }
     }
@@ -263,8 +267,10 @@ trait FOCollectEdgesUsingSafeLiterals
         //TODO: check
         //      case UnifyingResolution(left, right, _, _) if safeLiterals.suc contains left.conclusion.toSetSequent.suc.head => {
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars) => {
+          println("left: " + left)
+          println("right: " + right)
           println("auxL: " + auxL)
-          println("auxR: " + auxR)
+          //println("auxR: " + auxR)
           println("MARKED l: " + p)
           edgesToDelete.markLeftEdge(p)
         }
@@ -295,21 +301,25 @@ trait FOUnitsCollectingBeforeFixing
     out
   }
 
-  protected def mapFixedProofNodes(proofsToMap: Set[SequentProofNode],
-    edgesToDelete: EdgesToDelete,
-    nodeCollection: Proof[SequentProofNode]) = {
-    val fixMap = MMap[SequentProofNode, SequentProofNode]()
-    val unifiableVars = getAllVars(nodeCollection);
-
-    nodeCollection foldDown { (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =>
-      {
-        val result = fixProofNodes(edgesToDelete,  unifiableVars)(p, fixedPremises)
-        if (proofsToMap contains p) fixMap.update(p, result)
-        result
-      }
-    }
-    fixMap
-  }
+  //this code is not used?
+//  protected def mapFixedProofNodes(proofsToMap: Set[SequentProofNode],
+//    edgesToDelete: EdgesToDelete,
+//    nodeCollection: Proof[SequentProofNode]) = {
+//    val fixMap = MMap[SequentProofNode, SequentProofNode]()
+//    val unifiableVars = getAllVars(nodeCollection);
+//
+//    nodeCollection foldDown { (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =>
+//      {
+//        val result = fixProofNodes(edgesToDelete,  unifiableVars)(p, fixedPremises)
+//        if (proofsToMap contains p) {
+//          println("updating " + p + " ---> " + result)
+//          fixMap.update(p, result)
+//        }
+//        result
+//      }
+//    }
+//    fixMap
+//  }
 }
 
 trait FOIntersection

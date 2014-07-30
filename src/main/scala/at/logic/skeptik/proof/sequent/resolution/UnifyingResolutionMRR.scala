@@ -50,6 +50,8 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
+        println(leftPremise + " URMRR " + rightPremise)
+    
     if (unifiablePairs.length == 1) {
 
       val (auxL, auxR) = unifiablePairs(0)
