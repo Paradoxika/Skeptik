@@ -217,7 +217,8 @@ trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm with CanRenameVariables {
 
   //TODO: error here (or when it's called)
-  protected def checkForRes(safeLiteralsHalf: Set[E], auxL: E, auxR: E, unifiableVars: MSet[Var]): Boolean = {
+  protected def checkForRes(safeLiteralsHalf: Set[E], isAntecendent: Boolean, auxL: E, auxR: E, unifiableVars: MSet[Var]): Boolean = {
+    
     if (safeLiteralsHalf.size < 1) {
       return false
     }
@@ -261,12 +262,14 @@ trait FOCollectEdgesUsingSafeLiterals
         //        case R(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
         //TODO: check
         //      case UnifyingResolution(left, right, _, _) if safeLiterals.suc contains left.conclusion.toSetSequent.suc.head => {
-        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.suc, auxL, auxR, unifiableVars) => {
-                    println("MARKED l: " + p)
+        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars) => {
+          println("auxL: " + auxL)
+          println("auxR: " + auxR)
+          println("MARKED l: " + p)
           edgesToDelete.markLeftEdge(p)
         }
         //        case UnifyingResolution(left, right, _, _) if safeLiterals.ant contains right.conclusion.toSetSequent.ant.head => {
-        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxL, auxR, unifiableVars) => {
+        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, true, auxR, auxL, unifiableVars) => {
 
                     println("MARKED r: " + p)
           edgesToDelete.markLeftEdge(p)
