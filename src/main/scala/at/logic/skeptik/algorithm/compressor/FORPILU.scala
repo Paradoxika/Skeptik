@@ -125,22 +125,17 @@ abstract class FOAbstractRPILUAlgorithm
       }
 
       // Delete nodes and edges
-      
-      //TODO: note that I changed fixedRight to fixedLeft, and vice versa,
-      //when compared with the non-FO version. Is this necessary?
-      
+            
       //      case R(left, right, _, _) if edgesToDelete.isMarked(p, left) =>
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
 //        println("C")
-        println("replacing with: " + fixedLeft)
-        fixedLeft
-        //fixedRight
+        println("replacing with: " + fixedRight)
+        fixedRight
       }
       //      case R(left, right, _, _) if edgesToDelete.isMarked(p, right) =>
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
 //        println("D")
-        fixedRight
-        //fixedLeft
+        fixedLeft
       }
 
       // If premises haven't been changed, we keep the proof as is (memory optimization)
@@ -271,13 +266,13 @@ trait FOCollectEdgesUsingSafeLiterals
           println("right: " + right)
           println("auxL: " + auxL)
           //println("auxR: " + auxR)
-          println("MARKED l: " + p)
-          edgesToDelete.markLeftEdge(p)
+          println("MARKED r: " + p)
+          edgesToDelete.markRightEdge(p)
         }
         //        case UnifyingResolution(left, right, _, _) if safeLiterals.ant contains right.conclusion.toSetSequent.ant.head => {
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, true, auxR, auxL, unifiableVars) => {
 
-                    println("MARKED r: " + p)
+                    println("MARKED l: " + p)
           edgesToDelete.markLeftEdge(p)
         }
 
