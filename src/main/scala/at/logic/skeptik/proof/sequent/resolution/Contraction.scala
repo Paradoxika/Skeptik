@@ -298,4 +298,10 @@ object Contraction {
   def apply(premise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
     new Contraction(premise, desired)
   }
+  
+  //TODO: test this:
+ def unapply(p: SequentProofNode) = p match {
+    case p: UnifyingResolution => Some((p.leftPremise, p.auxL, p.auxR))
+    case _ => None
+  }  
 }
