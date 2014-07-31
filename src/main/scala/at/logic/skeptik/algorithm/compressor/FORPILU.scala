@@ -14,6 +14,11 @@ import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 
+  //TODO: actually I think what is being considered safe is wrong. safeSuc is the same in both instances, 
+  //when it definitely should not be (the polarity of one of the literals should be different).
+
+
+
 abstract class FOAbstractRPILUAlgorithm
   extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
@@ -148,7 +153,7 @@ abstract class FOAbstractRPILUAlgorithm
         println("fr: " + fixedRight + " and fl: " + fixedLeft + " (" + unifiableVariables + ")")
         try {
           UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
-          // UnifyingResolution( left, right)(unifiableVariables)
+         //  UnifyingResolution( left, right)(unifiableVariables)
         } catch {
           case e: Exception => {
             UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
@@ -182,6 +187,7 @@ abstract class FOAbstractRPIAlgorithm
     }
 
   //TODO: can merge these two functions? or at least do it smarter?
+  //TODO: is the bug here?!
   protected def addLiteralSmart(seq: IClause, auxR: E, left: SequentProofNode, right: SequentProofNode): IClause = {
     val uVars = new MSet[Var]() union getSetOfVars(left) union getSetOfVars(right)
     for (lit <- seq.suc) {
@@ -246,6 +252,8 @@ trait FOCollectEdgesUsingSafeLiterals
     out
   }
 
+  
+  
   protected def nodeContainsSafeOnly(p: SequentProofNode, safeAnt: Set[E], safeSuc: Set[E], unifiableVars: MSet[Var]): Boolean = {
    println("p : " + p.conclusion)
    println("safeAnt: " + safeAnt)
