@@ -84,6 +84,10 @@ abstract class FOAbstractRPILUAlgorithm
           //          println("Case B")
           deleteNode(node)
           true
+        //        case UnifyingResolutionMRR(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
+        //          //          println("Case B")
+        //          deleteNode(node)
+        //          true          
         case _ => false
       }
     }
@@ -92,6 +96,11 @@ abstract class FOAbstractRPILUAlgorithm
       case UnifyingResolution(left, right, _, _) => if (parent == left) LeftDS
       else if (parent == right) RightDS
       else throw new Exception("Unable to find parent in child")
+
+      //      case UnifyingResolutionMRR(left, right, _, _) => if (parent == left) LeftDS
+      //      else if (parent == right) RightDS
+      //      else throw new Exception("Unable to find parent in child")
+
       case _ => throw new Exception("This function should never be called with child not being a UR")
     }
 
@@ -99,10 +108,9 @@ abstract class FOAbstractRPILUAlgorithm
 
   // Utility functions
 
-//  protected def isUnit(proof: SequentProofNode, nodeCollection: Proof[SequentProofNode]) =
+  //  protected def isUnit(proof: SequentProofNode, nodeCollection: Proof[SequentProofNode]) =
   protected def isUnit(proof: SequentProofNode) =
-    ( (proof.conclusion.ant.length + proof.conclusion.suc.length == 1) 
-    //&& (nodeCollection.childrenOf(proof).length > 1)
+    ((proof.conclusion.ant.length + proof.conclusion.suc.length == 1) //&& (nodeCollection.childrenOf(proof).length > 1)
     )
 
   // Main functions
@@ -160,7 +168,53 @@ abstract class FOAbstractRPILUAlgorithm
           }
         }
       }
-      
+
+      //      // If we've got a proof of false, we propagate it down the proof
+      //      //      case R(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) =>
+      //      case UnifyingResolutionMRR(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) => {
+      //        //        println("A")
+      //        fixedLeft
+      //      }
+      //
+      //      //      case R(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) =>
+      //      case UnifyingResolutionMRR(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) => {
+      //        //        println("B")
+      //        fixedRight
+      //      }
+      //
+      //      // Delete nodes and edges
+      //
+      //      //      case R(left, right, _, _) if edgesToDelete.isMarked(p, left) =>
+      //      case UnifyingResolutionMRR(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
+      //        //        println("C")
+      //        println("replacing with: " + fixedRight)
+      //        fixedRight
+      //      }
+      //      //      case R(left, right, _, _) if edgesToDelete.isMarked(p, right) =>
+      //      case UnifyingResolutionMRR(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
+      //        //        println("D")
+      //        fixedLeft
+      //      }
+      //
+      //      // If premises haven't been changed, we keep the proof as is (memory optimization)
+      //      //      case R(left, right, _, _) if (left eq fixedLeft) && (right eq fixedRight) => p
+      //      case UnifyingResolutionMRR(left, right, _, _) if (left eq fixedLeft) && (right eq fixedRight) => p
+      //
+      //      // Main case (rebuild a resolution)
+      //      //      case R(left, right, pivot, _) => R(fixedLeft, fixedRight, pivot, true)
+      //      case UnifyingResolutionMRR(left, right, pivot, _) => {
+      //        //        println("r: " + right + " and l: " + left)
+      //        println("fr: " + fixedRight + " and fl: " + fixedLeft + " (" + unifiableVariables + ")")
+      //        try {
+      //          UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
+      //          //  UnifyingResolution( left, right)(unifiableVariables)
+      //        } catch {
+      //          case e: Exception => {
+      //            UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+      //          }
+      //        }
+      //      }
+
       // When the inference is not R, nothing is done 
       case _ => {
         println("doing nothing: " + p)
@@ -225,19 +279,19 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm with CanRenameVariables {
 
-  //TODO: error here (or when it's called)
+  //TODO: error here (or when it's called) -- No, I now think the bottom-up run is being performed correctly.
   protected def checkForRes(safeLiteralsHalf: Set[E], isAntecedent: Boolean, auxL: E, auxR: E, unifiableVars: MSet[Var]): Boolean = {
 
     if (safeLiteralsHalf.size < 1) {
       return false
     }
 
-    println("safe: (" + isAntecedent + ") " + safeLiteralsHalf)
+    //    println("safe: (" + isAntecedent + ") " + safeLiteralsHalf)
     //    println("pivot: " + auxL + " and " + auxR)
 
     if (isAntecedent) {
       for (safeLit <- safeLiteralsHalf) {
-        println("attempting to unify " + safeLit + " and auxL" + auxL + " using " + unifiableVars)
+        //        println("attempting to unify " + safeLit + " and auxL" + auxL + " using " + unifiableVars)
         unify((auxL, safeLit) :: Nil)(unifiableVars) match {
           case Some(_) => {
             return true
@@ -249,21 +303,21 @@ trait FOCollectEdgesUsingSafeLiterals
       }
     } else {
       for (safeLit <- safeLiteralsHalf) {
-        println("attempting to unify " + safeLit + " and auxR " + auxR + " using " + unifiableVars)
+        //        println("attempting to unify " + safeLit + " and auxR " + auxR + " using " + unifiableVars)
         unify((auxR, safeLit) :: Nil)(unifiableVars) match {
           case Some(_) => {
-            println("some!")
+            //            println("some!")
             return true
           }
           case None => {
-            println("none!")
+            //            println("none!")
             //return false
           }
         }
       }
     }
     //If this is false, the other proof works.
-    true 
+    true
     //false
   }
 
@@ -275,50 +329,6 @@ trait FOCollectEdgesUsingSafeLiterals
     out
   }
 
-  protected def nodeContainsSafeOnly(p: SequentProofNode, safeAnt: Set[E], safeSuc: Set[E], unifiableVars: MSet[Var]): Boolean = {
-    println("p : " + p.conclusion)
-    println("safeAnt: " + safeAnt)
-    println("safeSuc: " + safeSuc)
-    for (lit <- p.conclusion.suc) {
-      println("lit(s):" + lit)
-      var wasFound = false
-      for (safeLit <- safeSuc) {
-        //      println("attempting to unify " + safeLit + " and " + auxL + " using " +  unifiableVars)
-        unify((lit, safeLit) :: Nil)(unifiableVars) match {
-          case Some(_) => {
-            wasFound = true
-          }
-          case None => {
-            wasFound = wasFound
-          }
-        }
-      }
-      if (!wasFound) {
-        return false
-      }
-    }
-
-    for (lit <- p.conclusion.ant) {
-      println("lit(a):" + lit)
-      var wasFound = false
-      for (safeLit <- safeAnt) {
-        println("attempting to unify (ant) " + safeLit + " and " + lit + " using " + unifiableVars)
-        unify((lit, safeLit) :: Nil)(unifiableVars) match {
-          case Some(_) => {
-            wasFound = true
-          }
-          case None => {
-            wasFound = wasFound
-          }
-        }
-      }
-      if (!wasFound) {
-        return false
-      }
-    }
-    true
-  }
-
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new EdgesToDelete()
 
@@ -326,25 +336,21 @@ trait FOCollectEdgesUsingSafeLiterals
 
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-            println(safeLiterals + " are safe for " + p + " (before checking if p matches)")
+      //            println(safeLiterals + " are safe for " + p + " (before checking if p matches)")
       p match {
         //        case R(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markRightEdge(p)
         //        case R(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
         //TODO: check
         //      case UnifyingResolution(left, right, _, _) if safeLiterals.suc contains left.conclusion.toSetSequent.suc.head => {
-        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars) 
-             //&& nodeContainsSafeOnly(right, safeLiterals.ant, safeLiterals.suc, unifiableVars)
-        ) => {
-          println("left: " + left)
-          println("right: " + right)
-          println("auxL: " + auxL)
-          println("auxR: " + auxR)
-          println("MARKED r: " + p)
-          //if(isUnit(left)){
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars)) => {
+          //          println("left: " + left)
+          //          println("right: " + right)
+          //          println("auxL: " + auxL)
+          //          println("auxR: " + auxR)
+          //          println("MARKED r: " + p)
+
           edgesToDelete.markRightEdge(p)
-          //}
-          println("right is marked? " + edgesToDelete.isMarked(p, right) + " --> " + nodeContainsSafeOnly(right, safeLiterals.ant, safeLiterals.suc, unifiableVars))
-          println("left is marked? " + edgesToDelete.isMarked(p, left) + " --> " + nodeContainsSafeOnly(left, safeLiterals.ant, safeLiterals.suc, unifiableVars))
+
         }
         //        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars)
         //            && nodeContainsSafeOnly(left, safeLiterals.ant, safeLiterals.suc, unifiableVars)
@@ -357,11 +363,11 @@ trait FOCollectEdgesUsingSafeLiterals
         //          edgesToDelete.markRightEdge(p)
         //        }        
         //        case UnifyingResolution(left, right, _, _) if safeLiterals.ant contains right.conclusion.toSetSequent.ant.head => {
-                case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, true, auxL, auxR, unifiableVars) => {
-        
-                  println("MARKED l: " + p)
-                  edgesToDelete.markLeftEdge(p)
-                }
+        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, true, auxL, auxR, unifiableVars) => {
+
+          //                  println("MARKED l: " + p)
+          edgesToDelete.markLeftEdge(p)
+        }
 
         case _ =>
       }

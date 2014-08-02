@@ -14,7 +14,7 @@ extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals {
 //      println("empty edges")
       proof 
     } else {
-//      println("non-empty edges")
+      println("non-empty edges: STARTING TOP DOWN.")
           val unifiableVars = getAllVars(proof);
 
       Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars)))
