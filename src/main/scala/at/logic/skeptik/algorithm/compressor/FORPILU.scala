@@ -106,13 +106,6 @@ abstract class FOAbstractRPILUAlgorithm
 
   }
 
-  // Utility functions
-
-  //  protected def isUnit(proof: SequentProofNode, nodeCollection: Proof[SequentProofNode]) =
-  protected def isUnit(proof: SequentProofNode) =
-    ((proof.conclusion.ant.length + proof.conclusion.suc.length == 1) //&& (nodeCollection.childrenOf(proof).length > 1)
-    )
-
   // Main functions
 
   //TODO: the error that I think is below, might be here instead: fixedPremises might not be updating correctly.
@@ -286,25 +279,25 @@ trait FOCollectEdgesUsingSafeLiterals
       return false
     }
 
-    //    println("safe: (" + isAntecedent + ") " + safeLiteralsHalf)
-    //    println("pivot: " + auxL + " and " + auxR)
+//        println("safe: (" + isAntecedent + ") " + safeLiteralsHalf)
+//        println("pivot: " + auxL + " and " + auxR)
 
     if (isAntecedent) {
       for (safeLit <- safeLiteralsHalf) {
         //        println("attempting to unify " + safeLit + " and auxL" + auxL + " using " + unifiableVars)
-        unify((auxL, safeLit) :: Nil)(unifiableVars) match {
+        unify((auxR, safeLit) :: Nil)(unifiableVars) match {
           case Some(_) => {
             return true
           }
           case None => {
-            return false
+            //return false
           }
         }
       }
     } else {
       for (safeLit <- safeLiteralsHalf) {
         //        println("attempting to unify " + safeLit + " and auxR " + auxR + " using " + unifiableVars)
-        unify((auxR, safeLit) :: Nil)(unifiableVars) match {
+        unify((auxL, safeLit) :: Nil)(unifiableVars) match {
           case Some(_) => {
             //            println("some!")
             return true
@@ -336,7 +329,7 @@ trait FOCollectEdgesUsingSafeLiterals
 
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-      //            println(safeLiterals + " are safe for " + p + " (before checking if p matches)")
+                  println(safeLiterals + " are safe for " + p + " (before checking if p matches)" )
       p match {
         //        case R(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markRightEdge(p)
         //        case R(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
@@ -344,10 +337,10 @@ trait FOCollectEdgesUsingSafeLiterals
         //      case UnifyingResolution(left, right, _, _) if safeLiterals.suc contains left.conclusion.toSetSequent.suc.head => {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars)) => {
           //          println("left: " + left)
-          //          println("right: " + right)
+                    println("right: " + right)
           //          println("auxL: " + auxL)
           //          println("auxR: " + auxR)
-          //          println("MARKED r: " + p)
+                    println("MARKED r: " + p)
 
           edgesToDelete.markRightEdge(p)
 
@@ -410,11 +403,12 @@ trait FOUnitsCollectingBeforeFixing
   //  }
 }
 
+//TODO: probably want to contract things in the intersection to save memory.
 trait FOIntersection
   extends FOAbstractRPIAlgorithm {
   protected def computeSafeLiterals(proof: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
-    edgesToDelete: EdgesToDelete): IClause =
+    edgesToDelete: EdgesToDelete): IClause = {
     childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof) } match {
       case Nil =>
         if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
@@ -422,4 +416,5 @@ trait FOIntersection
       case h :: t =>
         t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) => acc intersect safeLiteralsFromChild(v, proof, edgesToDelete) }
     }
+  }
 }

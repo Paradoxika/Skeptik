@@ -8,7 +8,7 @@ object FORPITest {
     
     val proof = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1.spass")
     println(proof)
-    val result = FORecyclePivots(proof)
+    val result = FORecyclePivotsWithIntersection(proof)
     println(result)
     
     val proofb = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1b.spass")
