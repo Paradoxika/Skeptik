@@ -11,12 +11,15 @@ import at.logic.skeptik.proof._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.Queue
 import at.logic.skeptik.algorithm.compressor.congruence._
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
+import at.logic.skeptik.proof.sequent.lk.Axiom
+import at.logic.skeptik.proof.sequent.lk.R
 
 object CongruenceDebug {
   def main(args: Array[String]):Unit = {
 //    val proof = ProofParserVeriT.read("F:/Proofs/QF_UF/QG-classification/qg6/iso_icl_sk004.smt2")
 //    CongruenceTest(proof)
-    val testcase = -8
+    val testcase = -2
     
     val t = o
     
@@ -108,6 +111,7 @@ object CongruenceDebug {
         val t1 = App(App(f1,a),b)
         val t2 = App(App(f1,t1),b)
         con = con.addEquality(EqW(a,t1)).addNode(t2)
+        con = con.updateLazy
         val path = con.explain(t1, t2)
         println(path)
         val proof = path.get.toProof.get
@@ -119,9 +123,12 @@ object CongruenceDebug {
       
       case -5 => {
         con = con.addEquality(EqW(a,b)).addEquality(EqW(b,c)).addEquality(EqW(c,e)).addEquality(EqW(e,d))
-        val path = con.explain(a, d)
+        con = con.updateLazy
+        val path = con.explain(a, d).get
+        println(con.g)
+        println(path)
         
-        val proof = path.get.toProof.get
+        val proof = path.toProof.get
         
         println(proof)
         println(measure(proof))
@@ -132,6 +139,7 @@ object CongruenceDebug {
         val t1 = App(App(f1,a),b)
         val t2 = App(App(f1,b),a)
         con = con.addEquality(EqW(a,c)).addEquality(EqW(b,c)).addNode(t1).addNode(t2)
+        con = con.updateLazy
         println(eqReferences)
         val path = con.explain(t1,t2)
         
@@ -143,6 +151,7 @@ object CongruenceDebug {
         val t1 = App(App(f1,a),b)
         val t2 = App(App(f1,b),a)
         con = con.addEquality(EqW(a,b,false)).addEquality(EqW(b,a,false)).addNode(t1).addNode(t2)
+        con = con.updateLazy
         println(eqReferences)
         val path = con.explain(t1,t2)
         
@@ -169,11 +178,16 @@ object CongruenceDebug {
         val eq1 = EqW(a,b)
         println((v1,v2))
         con = con.addEquality(eq1).addNode(v1).addNode(v2)
+        con = con.updateLazy
         println("congruent?" + con.isCongruent(v1, v2))
         val path = con.explain(v1, v2).get
         println(path.toString(true))
         val proof = path.toProof.get
         println(proof)
+        val resnode = Axiom(new Sequent(Seq(),Seq(eq1.equality)))
+        val newProof = Proof(R(proof.root,resnode).asInstanceOf[N])
+        println(newProof)
+        FibonacciCNew(newProof)
         println(origSubterms(v1))
       }
       
@@ -187,6 +201,7 @@ object CongruenceDebug {
         val eq3 = EqW(c,e)
         println(t1 + ": " + t1.t + " and " + t2 + " : " + t2.t)
         con = con.addEquality(eq1).addEquality(eq2).addEquality(eq3).addNode(t1).addNode(t2)
+        con = con.updateLazy
 //        con = con.addEquality(eq1).addEquality(eq2)
         println(con.g)
 //        
@@ -377,7 +392,7 @@ object CongruenceDebug {
         println(allEqs)
         
         con = con.addAll(allEqs)
-        
+        con = con.updateLazy
         val path = con.explain(t2,t6)
         val proof = path.get.toProof.get
         println(path)
