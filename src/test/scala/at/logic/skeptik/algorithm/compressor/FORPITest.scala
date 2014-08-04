@@ -11,6 +11,7 @@ object FORPITest {
     val result = FORecyclePivotsWithIntersection(proof)
     println(result)
     
+    //Bruno's
     val proofb = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1b.spass")
     println(proofb)
     val resultb = FORecyclePivots(proofb)
