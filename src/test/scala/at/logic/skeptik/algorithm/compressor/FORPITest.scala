@@ -16,6 +16,12 @@ object FORPITest {
     println(proofb)
     val resultb = FORecyclePivots(proofb)
     println(resultb)    
+    
+    //Should not change the proof
+    val proofc = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1c.spass")
+    println(proofc)
+    val resultc = FORecyclePivots(proofc)
+    println(resultc)   
      
   }
 }

@@ -14,8 +14,6 @@ import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 
-//TODO: actually I think what is being considered safe is wrong. safeSuc is the same in both instances, 
-//when it definitely should not be (the polarity of one of the literals should be different).
 
 abstract class FOAbstractRPILUAlgorithm
   extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
@@ -108,7 +106,6 @@ abstract class FOAbstractRPILUAlgorithm
 
   // Main functions
 
-  //TODO: the error that I think is below, might be here instead: fixedPremises might not be updating correctly.
   protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
     //    println("fixing " + p)
     //    println("fixedPremises: " + fixedPremises)
@@ -163,6 +160,9 @@ abstract class FOAbstractRPILUAlgorithm
           }
         } catch {
           //TODO: can I always just replace it with the one on the left? This seems sketchy.
+          //See skype conversation:
+          // "When a fixed parent p of a node n does not contain the pivot it should contain, then n should be replaced by p ."
+          //TODO: implement that.
           case e: Exception => {
             fixedLeft
           }
@@ -343,26 +343,6 @@ trait FOUnitsCollectingBeforeFixing
     }
     out
   }
-
-  //this code is not used?
-  //  protected def mapFixedProofNodes(proofsToMap: Set[SequentProofNode],
-  //    edgesToDelete: EdgesToDelete,
-  //    nodeCollection: Proof[SequentProofNode]) = {
-  //    val fixMap = MMap[SequentProofNode, SequentProofNode]()
-  //    val unifiableVars = getAllVars(nodeCollection);
-  //
-  //    nodeCollection foldDown { (p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) =>
-  //      {
-  //        val result = fixProofNodes(edgesToDelete,  unifiableVars)(p, fixedPremises)
-  //        if (proofsToMap contains p) {
-  //          println("updating " + p + " ---> " + result)
-  //          fixMap.update(p, result)
-  //        }
-  //        result
-  //      }
-  //    }
-  //    fixMap
-  //  }
 }
 
 //TODO: probably want to contract things in the intersection to save memory.
