@@ -22,13 +22,23 @@ object FORPITest {
     println(proofc)
     val resultc = FORecyclePivots(proofc)
     println(resultc)   
-     
-    println("STARTING LAST")
-    
+         
     //Should change the proof
     val proofd = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1d.spass")
     println(proofd)
     val resultd = FORecyclePivots(proofd)
     println(resultd)       
+    
+    //Should change the proof
+    val proofe = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1e.spass")
+    println(proofe)
+    val resulte = FORecyclePivots(proofe)
+    println(resulte) 
+    
+        //Should change the proof
+    val prooff = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1f.spass")
+    println(prooff)
+    val resultf = FORecyclePivots(prooff)
+    println(resultf)  
   }
 }

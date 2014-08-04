@@ -287,7 +287,7 @@ trait FOCollectEdgesUsingSafeLiterals
 
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-      println(safeLiterals + " are safe for " + p + " (before checking if p matches)")
+//      println(safeLiterals + " are safe for " + p + " (before checking if p matches)")
       p match {
         //        case R(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markRightEdge(p)
         //        case R(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
