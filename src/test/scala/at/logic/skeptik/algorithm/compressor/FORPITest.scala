@@ -23,6 +23,8 @@ object FORPITest {
     val resultc = FORecyclePivots(proofc)
     println(resultc)   
      
+    println("STARTING LAST")
+    
     //Should change the proof
     val proofd = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1d.spass")
     println(proofd)

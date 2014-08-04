@@ -9,7 +9,8 @@ abstract class FORecyclePivots
 extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals {
 
   def apply(proof: Proof[SequentProofNode]) = {
-    val edgesToDelete = collectEdgesToDelete(proof)
+    val unifiableVars = getAllVars(proof);
+    val edgesToDelete = collectEdgesToDelete(proof, unifiableVars)
     if (edgesToDelete.isEmpty) {
 //      println("empty edges")
       proof 

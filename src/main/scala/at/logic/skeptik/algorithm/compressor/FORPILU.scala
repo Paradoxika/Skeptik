@@ -14,7 +14,6 @@ import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 
-
 abstract class FOAbstractRPILUAlgorithm
   extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
 
@@ -171,7 +170,7 @@ abstract class FOAbstractRPILUAlgorithm
 
       // When the inference is not R, nothing is done 
       case _ => {
-//        println("doing nothing: " + p)
+        //        println("doing nothing: " + p)
         p
       }
     }
@@ -233,9 +232,10 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm with CanRenameVariables {
 
-  //TODO: error here (or when it's called) -- No, I now think the bottom-up run is being performed correctly.
   protected def checkForRes(safeLiteralsHalf: Set[E], isAntecedent: Boolean, auxL: E, auxR: E, unifiableVars: MSet[Var], p: SequentProofNode): Boolean = {
 
+    //TODO: unifiableVars might not contain the variables in the aux formulae. There is a workaround implemented below,
+    //but there's probably a better way to do this.
     if (safeLiteralsHalf.size < 1) {
       return false
     }
@@ -246,7 +246,7 @@ trait FOCollectEdgesUsingSafeLiterals
     if (isAntecedent) {
       for (safeLit <- safeLiteralsHalf) {
         //        println("attempting to unify " + safeLit + " and auxL" + auxL + " using " + unifiableVars)
-        unify((auxR, safeLit) :: Nil)(unifiableVars) match {
+        unify((auxR, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(auxL)()))) match {
           case Some(_) => {
             return true
           }
@@ -257,8 +257,8 @@ trait FOCollectEdgesUsingSafeLiterals
       }
     } else {
       for (safeLit <- safeLiteralsHalf) {
-        //        println("attempting to unify " + safeLit + " and auxR " + auxR + " using " + unifiableVars)
-        unify((auxL, safeLit) :: Nil)(unifiableVars) match {
+        //                println("attempting to unify " + safeLit + " and auxL " + auxL + " using " + unifiableVars)
+        unify((auxL, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(auxL)()))) match {
           case Some(_) => {
             //            println("some!")
             return true
@@ -271,8 +271,6 @@ trait FOCollectEdgesUsingSafeLiterals
       }
     }
     //    println("returning false...")
-    //If this is false, the other proof works.
-    //true
     false
   }
 
@@ -284,14 +282,12 @@ trait FOCollectEdgesUsingSafeLiterals
     out
   }
 
-  protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
+  protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode], unifiableVars: MSet[Var]) = {
     val edgesToDelete = new EdgesToDelete()
-
-    val unifiableVars = getAllVars(nodeCollection);
 
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-//      println(safeLiterals + " are safe for " + p + " (before checking if p matches)")
+      println(safeLiterals + " are safe for " + p + " (before checking if p matches)")
       p match {
         //        case R(_,_,auxL,_) if safeLiterals.suc contains auxL => edgesToDelete.markRightEdge(p)
         //        case R(_,_,_,auxR) if safeLiterals.ant contains auxR => edgesToDelete.markLeftEdge(p)
@@ -302,7 +298,7 @@ trait FOCollectEdgesUsingSafeLiterals
           //          println("right: " + right)
           //          println("auxL: " + auxL)
           //          println("auxR: " + auxR)
-          //          println("MARKED r: " + p)
+          //                   println("MARKED r: " + p)
 
           edgesToDelete.markRightEdge(p)
 
