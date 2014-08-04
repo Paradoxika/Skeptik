@@ -171,7 +171,7 @@ abstract class FOAbstractRPILUAlgorithm
 
       // When the inference is not R, nothing is done 
       case _ => {
-        println("doing nothing: " + p)
+//        println("doing nothing: " + p)
         p
       }
     }
