@@ -78,11 +78,9 @@ abstract class FOAbstractRPILUAlgorithm
         case _ if ((edges contains node) && edges(node)._2) => true
         //        case R(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
         case UnifyingResolution(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
-          //          println("Case B")
           deleteNode(node)
           true
         //        case UnifyingResolutionMRR(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
-        //          //          println("Case B")
         //          deleteNode(node)
         //          true          
         case _ => false
@@ -148,14 +146,15 @@ abstract class FOAbstractRPILUAlgorithm
           // "When a fixed parent p of a node n does not contain the pivot it should contain, then n should be replaced by p ."
           //TODO: implement that.
           case e: Exception => {
+            println(pivot + " and " + fixedLeft + " and " + left + " and " + right + " and " + fixedRight)
+            println(UnifyingResolutionMRR(left, right)(unifiableVariables))
             fixedLeft
           }
         }
       }
 
-      // When the inference is not R, nothing is done 
+      // When the inference is not UR, nothing is done 
       case _ => {
-        //        println("doing nothing: " + p)
         p
       }
     }
@@ -169,39 +168,34 @@ abstract class FOAbstractRPIAlgorithm
     parent: SequentProofNode, edgesToDelete: EdgesToDelete) =
     childWithSafeLiterals match {
       case (child @ UnifyingResolution(left, right, _, auxR), safeLiterals) if left == parent =>
-        if (edgesToDelete.isMarked(child, right)) safeLiterals else addLiteralSmart(safeLiterals, auxR, left, right) //(safeLiterals + auxR)
+        if (edgesToDelete.isMarked(child, right)) safeLiterals else  addLiteralSmart(safeLiterals, auxR, false, left, right)
       case (child @ UnifyingResolution(left, right, auxL, _), safeLiterals) if right == parent =>
-        if (edgesToDelete.isMarked(child, left)) safeLiterals else addLiteralSmartB(safeLiterals, auxL, left, right) //(auxL +: safeLiterals)
+        if (edgesToDelete.isMarked(child, left)) safeLiterals else  addLiteralSmart(safeLiterals, auxL, true, left, right)
 
       case (_, safeLiterals) => safeLiterals
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
     }
 
-  //TODO: can merge these two functions? or at least do it smarter?
-  //Adds to succedent
-  protected def addLiteralSmart(seq: IClause, auxR: E, left: SequentProofNode, right: SequentProofNode): IClause = {
+  protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
     val uVars = new MSet[Var]() union getSetOfVars(left) union getSetOfVars(right)
-    for (lit <- seq.suc) {
-      unify((lit, auxR) :: Nil)(uVars) match {
+    val seqHalf = if (addToAntecedent) {
+      seq.ant 
+    } else {
+      seq.suc
+    }
+    for (lit <- seqHalf) {
+      unify((lit, aux) :: Nil)(uVars) match {
         case None => {}
         case Some(_) => { return seq }
       }
     }
-    seq + auxR
-  }
-
-  //Adds to antecedent
-  protected def addLiteralSmartB(seq: IClause, auxL: E, left: SequentProofNode, right: SequentProofNode): IClause = {
-    val uVars = new MSet[Var]() union getSetOfVars(left) union getSetOfVars(right)
-    for (lit <- seq.ant) {
-      unify((lit, auxL) :: Nil)(uVars) match {
-        case None => {}
-        case Some(_) => { return seq }
-      }
+    if(addToAntecedent) {
+      aux +: seq
+    } else { 
+      seq + aux
     }
-    auxL +: seq
   }
-
+  
   protected def computeSafeLiterals(proof: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
     edgesToDelete: EdgesToDelete): IClause
@@ -211,7 +205,7 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm with CanRenameVariables {
 
-  protected def checkForRes(safeLiteralsHalf: Set[E], isAntecedent: Boolean, auxL: E, auxR: E, unifiableVars: MSet[Var]): Boolean = {
+  protected def checkForRes(safeLiteralsHalf: Set[E], aux: E, unifiableVars: MSet[Var]): Boolean = {
 
     //TODO: unifiableVars might not contain the variables in the aux formulae. There is a workaround implemented below,
     //but there's probably a better way to do this.
@@ -219,26 +213,13 @@ trait FOCollectEdgesUsingSafeLiterals
       return false
     }
 
-    if (isAntecedent) {
-      for (safeLit <- safeLiteralsHalf) {
-        unify((auxR, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(auxL)()))) match {
-          case Some(_) => {
-            return true
-          }
-          case None => {
-            //Do nothing
-          }
+    for (safeLit <- safeLiteralsHalf) {
+      unify((aux, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(aux)()))) match {
+        case Some(_) => {
+          return true
         }
-      }
-    } else {
-      for (safeLit <- safeLiteralsHalf) {
-        unify((auxL, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(auxL)()))) match {
-          case Some(_) => {
-            return true
-          }
-          case None => {
-            //Do nothing
-          }
+        case None => {
+          //Do nothing
         }
       }
     }
@@ -259,12 +240,11 @@ trait FOCollectEdgesUsingSafeLiterals
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
-        //TODO: check
-        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, false, auxL, auxR, unifiableVars)) => {
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL, unifiableVars)) => {
           edgesToDelete.markRightEdge(p)
 
         }
-        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, true, auxL, auxR, unifiableVars) => {
+        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR, unifiableVars) => {
           edgesToDelete.markLeftEdge(p)
         }
 
