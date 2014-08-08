@@ -34,6 +34,8 @@ package object compressor {
     "RPI3LUV" -> LowerUnivalentsBeforeRecyclePivots,
 
     "FOLU" -> FOLowerUnits,
+    "FORP" -> FORecyclePivots,
+    "FORPI" -> FORecyclePivotsWithIntersection,
     
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),

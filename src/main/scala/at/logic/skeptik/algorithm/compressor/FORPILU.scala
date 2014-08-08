@@ -146,7 +146,9 @@ abstract class FOAbstractRPILUAlgorithm
           // "When a fixed parent p of a node n does not contain the pivot it should contain, then n should be replaced by p ."
           //TODO: implement that.
           case e: Exception => {
-            println(pivot + " and " + fixedLeft + " and " + left + " and " + right + " and " + fixedRight)
+            println("pivot: " + pivot)
+            println(" fixedLeft: " + fixedLeft + " and fixedRight: " + fixedRight)
+            println(" left: " + left + " and right: " + right)
             println(UnifyingResolutionMRR(left, right)(unifiableVariables))
             fixedLeft
           }

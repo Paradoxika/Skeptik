@@ -171,12 +171,10 @@ object FOLowerUnits
     def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
       try {
         contractAndUnify(left, right, vars)
-        //UnifyingResolution(left, right)(vars)
       } catch {
         case e: Exception => {
           try {
             contractAndUnify(right, left, vars)
-            //UnifyingResolution(left, right)(vars)
           } catch {
             case e: Exception => {
               left
