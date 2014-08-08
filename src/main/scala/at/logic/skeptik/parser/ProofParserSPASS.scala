@@ -22,20 +22,19 @@ trait SPASSParsers
   private var count = 1 //the count of the line as given by the SPASS proof
   private var lineCounter = 0 //the actual line number, as in the file
 
-  private var proofMap = new MMap[Int, Node]
+  private val proofMap = new MMap[Int, Node]
 
   private val vars = Set[Var]()
 
-  private var exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
+  private val exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
-  private var varMap = new MMap[String, E] //will map variable names to an expression object for that variable
+  private val varMap = new MMap[String, E] //will map variable names to an expression object for that variable
 
   //returns the actual proof
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {
       println("Parsed line " + lineCounter + "; done.")
       val p = Proof(list.last)
-      exprMap = new MMap[String, E]
       lineCounter = 0
       p
     }
@@ -75,19 +74,17 @@ trait SPASSParsers
 
       val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
 
-      var ax = null.asInstanceOf[Node] //TODO: change this
-
-      try {
-        ax = UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
+      var ax = try {
+        UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
         case e: Exception => {
-          ax = UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
+          UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
         }
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
-//                        println("Parsed: " + ln + ":" + ay)
-//                        println("Computed: " + ln + ":" + ax)
+      //                        println("Parsed: " + ln + ":" + ay)
+      //                        println("Computed: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
@@ -110,24 +107,23 @@ trait SPASSParsers
         lastPremise = proofMap.getOrElse(lastNode, throw new Exception("Error!"))
       }
 
-      var ax = null.asInstanceOf[Node] //TODO: change this?
-      if (firstNode != secondNode) {
-        ax = UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
+      var ax = if (firstNode != secondNode) {
+        UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
 
         try {
-          ax = UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
+          UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
         } catch {
           case e: Exception => {
-            ax = UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
+            UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
       } else {
-        ax = UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise, desiredSequent)(vars)
+        UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise, desiredSequent)(vars)
       }
 
       val ay = newAxiomFromLists(seq._1, seq._2)
-//                  println("Parsed MRR: " + ln + ":" + ay)
-//                  println("Computed MRR: " + ln + ":" + ax)
+      //                  println("Parsed MRR: " + ln + ":" + ay)
+      //                  println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
@@ -220,14 +216,17 @@ trait SPASSParsers
 
   def variable: Parser[E] = name ^^ {
     case s => {
-      //TODO: clean this up; remove 'vars' all together?
-      // see https://github.com/jgorzny/Skeptik/commit/32dc9b6d9ddd1a3d18c514c9e4d05660ef2ec7bc#commitcomment-6760631
-      val hasLowerCaseFirst = s.charAt(0).isLower
-      if (!hasLowerCaseFirst) {
-        vars += new Var(s.toString, i)
-      }
-      varMap.getOrElseUpdate(s, new Var(s.toString, i))
+      varMap.getOrElseUpdate(s, updateVars(s))
     }
+  }
+
+  def updateVars(s: String) = {
+    val hasLowerCaseFirst = s.charAt(0).isLower
+    val stringExpr = new Var(s.toString, i)
+    if (!hasLowerCaseFirst) {
+      vars += stringExpr
+    }
+    stringExpr
   }
 
   def name: Parser[String] = "[a-zA-Z0-9]+".r ^^ {

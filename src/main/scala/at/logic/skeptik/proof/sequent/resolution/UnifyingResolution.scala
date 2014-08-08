@@ -236,7 +236,6 @@ trait FindDesiredSequent {
 
       def checkAnt(computed: Sequent, desired: Sequent): Boolean = {
         if (computed.ant.size == desired.ant.size) {
-          //TODO: ensure that this means a match is found.
           var matchedAnt = false;
           if (computed.ant.size == 0) {
             matchedAnt = true
@@ -279,7 +278,6 @@ trait FindDesiredSequent {
 
       def desiredFound(computed: Sequent, desired: Sequent): Boolean = {
         if (computed == desired) {
-          //TODO: make sure this is well behaved
           return true
         } else {
           if (computed.logicalSize == desired.logicalSize) {
