@@ -12,10 +12,45 @@ import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
+import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 
 abstract class FOAbstractRPILUAlgorithm
-  extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
+  extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with FindDesiredSequent with CanRenameVariables {
+
+  protected def checkForRes(safeLiteralsHalf: Set[E], aux: E, unifiableVars: MSet[Var]): Boolean = {
+
+    if (safeLiteralsHalf.size < 1) {
+      return false
+    }
+
+    /* 
+     * unifiableVars might not contain the variables in the aux formulae. When UR(MRR) generates the auxL/auxR formulae,
+     * it may rename the variables in one premise to a new premise that we just haven't seen yet (and which is resolved out
+     * in that resolution and thus never really visible in the proof, so we need to check for new variables and
+     * add them to our list of unifiable variables or the unification might fail.
+     */
+
+    /*  For example,
+     * 
+     *  p(X) |- q(a)     with    q(X) |- 
+     * 
+     *  UR might rename the right X as Y, then resolve out to get P(X) |-
+     *  And while UR used q(Y) |- and recorded the aux formula as such, it didn't rename
+     *  the right premise, so we never see the variable Y, even though it can be unified.
+     */
+    for (safeLit <- safeLiteralsHalf) {
+      unify((aux, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(aux)()))) match {
+        case Some(_) => {
+          return true
+        }
+        case None => {
+          //Do nothing
+        }
+      }
+    }
+    false
+  }
 
   class EdgesToDelete {
 
@@ -76,10 +111,9 @@ abstract class FOAbstractRPILUAlgorithm
       // may be optimized (edgesToDelete contains node is checked 3 times)
       node match {
         case _ if ((edges contains node) && edges(node)._2) => true
-        //        case R(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
         case UnifyingResolution(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
           deleteNode(node)
-          true    
+          true
         case _ => false
       }
     }
@@ -120,29 +154,29 @@ abstract class FOAbstractRPILUAlgorithm
       // If premises haven't been changed, we keep the proof as is (memory optimization)
       case UnifyingResolution(left, right, _, _) if (left eq fixedLeft) && (right eq fixedRight) => p
 
+      case UnifyingResolution(left, right, pivot, _) if (desiredFound(fixedLeft.conclusion, p.conclusion)(unifiableVariables)) => {
+        //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
+        //the fixed parent; so the pivot better be missing.
+        assert(!checkForRes(fixedLeft.conclusion.toSetSequent.suc, pivot, unifiableVariables))
+        fixedLeft
+      }
+      case UnifyingResolution(left, right, _, pivot) if (desiredFound(fixedRight.conclusion, p.conclusion)(unifiableVariables)) => {
+        //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
+        //the fixed parent; so the pivot better be missing.
+        assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot, unifiableVariables))
+        fixedRight
+      }
+
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, pivot, _) => {
         try {
-          try {
-            UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
-          } catch {
-            case e: Exception => {
-              UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
-            }
-          }
+          UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
         } catch {
-          //TODO: can I always just replace it with the one on the left? This seems sketchy.
-          //See skype conversation:
-          // "When a fixed parent p of a node n does not contain the pivot it should contain, then n should be replaced by p ."
-          //TODO: implement that.
           case e: Exception => {
-            println("pivot: " + pivot)
-            println(" fixedLeft: " + fixedLeft + " and fixedRight: " + fixedRight)
-            println(" left: " + left + " and right: " + right)
-            println(UnifyingResolutionMRR(left, right)(unifiableVariables))
-            fixedLeft
+            UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
           }
         }
+
       }
 
       // When the inference is not UR, nothing is done 
@@ -160,9 +194,9 @@ abstract class FOAbstractRPIAlgorithm
     parent: SequentProofNode, edgesToDelete: EdgesToDelete) =
     childWithSafeLiterals match {
       case (child @ UnifyingResolution(left, right, _, auxR), safeLiterals) if left == parent =>
-        if (edgesToDelete.isMarked(child, right)) safeLiterals else  addLiteralSmart(safeLiterals, auxR, false, left, right)
+        if (edgesToDelete.isMarked(child, right)) safeLiterals else addLiteralSmart(safeLiterals, auxR, false, left, right)
       case (child @ UnifyingResolution(left, right, auxL, _), safeLiterals) if right == parent =>
-        if (edgesToDelete.isMarked(child, left)) safeLiterals else  addLiteralSmart(safeLiterals, auxL, true, left, right)
+        if (edgesToDelete.isMarked(child, left)) safeLiterals else addLiteralSmart(safeLiterals, auxL, true, left, right)
 
       case (_, safeLiterals) => safeLiterals
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
@@ -171,7 +205,7 @@ abstract class FOAbstractRPIAlgorithm
   protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
     val uVars = new MSet[Var]() union getSetOfVars(left) union getSetOfVars(right)
     val seqHalf = if (addToAntecedent) {
-      seq.ant 
+      seq.ant
     } else {
       seq.suc
     }
@@ -181,13 +215,13 @@ abstract class FOAbstractRPIAlgorithm
         case Some(_) => { return seq }
       }
     }
-    if(addToAntecedent) {
+    if (addToAntecedent) {
       aux +: seq
-    } else { 
+    } else {
       seq + aux
     }
   }
-  
+
   protected def computeSafeLiterals(proof: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
     edgesToDelete: EdgesToDelete): IClause
@@ -195,28 +229,7 @@ abstract class FOAbstractRPIAlgorithm
 }
 
 trait FOCollectEdgesUsingSafeLiterals
-  extends FOAbstractRPIAlgorithm with CanRenameVariables {
-
-  protected def checkForRes(safeLiteralsHalf: Set[E], aux: E, unifiableVars: MSet[Var]): Boolean = {
-
-    //TODO: unifiableVars might not contain the variables in the aux formulae. There is a workaround implemented below,
-    //but there's probably a better way to do this.
-    if (safeLiteralsHalf.size < 1) {
-      return false
-    }
-
-    for (safeLit <- safeLiteralsHalf) {
-      unify((aux, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(aux)()))) match {
-        case Some(_) => {
-          return true
-        }
-        case None => {
-          //Do nothing
-        }
-      }
-    }
-    false
-  }
+  extends FOAbstractRPIAlgorithm {
 
   protected def getAllVars(proof: Proof[SequentProofNode]): MSet[Var] = {
     var out = MSet[Var]()

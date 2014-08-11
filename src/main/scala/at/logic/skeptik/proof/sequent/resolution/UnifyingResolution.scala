@@ -65,7 +65,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-    
+
     if (unifiablePairs.length == 1) {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
@@ -210,9 +210,66 @@ trait CanRenameVariables {
 }
 
 trait FindDesiredSequent {
+  def checkAnt(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
+    if (computed.ant.size == desired.ant.size) {
+      var matchedAnt = false;
+      if (computed.ant.size == 0) {
+        matchedAnt = true
+      }
+      for (f <- computed.ant) {
+        for (g <- desired.ant) {
+          val u = unify((f, g) :: Nil)
+          u match {
+            case Some(_) => matchedAnt = true
+            case None => matchedAnt = matchedAnt
+          }
+        }
+      }
+      matchedAnt
+    } else {
+      false
+    }
+  }
+
+  def checkSuc(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
+    if (computed.suc.size == desired.suc.size) {
+      var matched = false;
+      if (computed.suc.size == 0) {
+        matched = true
+      }
+      for (f <- computed.suc) {
+        for (g <- desired.suc) {
+          val u = unify((f, g) :: Nil)
+          u match {
+            case Some(_) => matched = true
+            case None => matched = matched
+          }
+        }
+      }
+      matched
+    } else {
+      false
+    }
+  }
+
+  def desiredFound(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
+    if (computed == desired) {
+      return true
+    } else {
+      if (computed.logicalSize == desired.logicalSize) {
+        if (checkAnt(computed, desired)) {
+          if (checkSuc(computed, desired)) {
+            return true
+          }
+        }
+      }
+      false
+    }
+  }
+
   def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-    
+
     if (pairs.length == 0) {
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
@@ -222,7 +279,7 @@ trait FindDesiredSequent {
           var ax = null.asInstanceOf[SequentProofNode]
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
 
-          if(desired.logicalSize < ax.conclusion.logicalSize) {
+          if (desired.logicalSize < ax.conclusion.logicalSize) {
             Contraction(ax, desired)(unifiableVariables)
           } else {
             ax
@@ -233,63 +290,6 @@ trait FindDesiredSequent {
       }
 
       val computedSequent = computedResolution.conclusion.toSeqSequent
-
-      def checkAnt(computed: Sequent, desired: Sequent): Boolean = {
-        if (computed.ant.size == desired.ant.size) {
-          var matchedAnt = false;
-          if (computed.ant.size == 0) {
-            matchedAnt = true
-          }
-          for (f <- computed.ant) {
-            for (g <- desired.ant) {
-              val u = unify((f, g) :: Nil)
-              u match {
-                case Some(_) => matchedAnt = true
-                case None => matchedAnt = matchedAnt
-              }
-            }
-          }
-          matchedAnt
-        } else {
-          false
-        }
-      }
-
-      def checkSuc(computed: Sequent, desired: Sequent): Boolean = {
-        if (computed.suc.size == desired.suc.size) {
-          var matched = false;
-          if (computed.suc.size == 0) {
-            matched = true
-          }
-          for (f <- computed.suc) {
-            for (g <- desired.suc) {
-              val u = unify((f, g) :: Nil)
-              u match {
-                case Some(_) => matched = true
-                case None => matched = matched
-              }
-            }
-          }
-          matched
-        } else {
-          false
-        }
-      }
-
-      def desiredFound(computed: Sequent, desired: Sequent): Boolean = {
-        if (computed == desired) {
-          return true
-        } else {
-          if (computed.logicalSize == desired.logicalSize) {
-            if (checkAnt(computed, desired)) {
-              if (checkSuc(computed, desired)) {
-                return true
-              }
-            }
-          }
-          false
-        }
-      }
 
       if (desiredFound(computedSequent, desired)) {
         computedResolution

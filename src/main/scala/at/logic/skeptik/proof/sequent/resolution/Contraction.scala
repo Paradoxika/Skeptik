@@ -194,7 +194,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
       val sub = unify(p :: Nil)(unifiableVariables) match {
-        // case None => None
+        case None => throw new Exception("Contraction failed.")
         case Some(u) => {
           u
         }
@@ -207,12 +207,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       val sS = addSuccedents(cleanSuc.distinct.toList)
       val seqOut = sS union sA
 
-      //For testing only: ---
-      //      val axOut = Axiom(seqOut)
-      //      println(axOut)
-      // ---------
-
-      //(cleanAnt.distinct.toList, cleanSuc.distinct.toList)
       contractB(seqOut)
     } else {
       (seq.ant.distinct, seq.suc.distinct)
