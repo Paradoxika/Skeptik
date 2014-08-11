@@ -161,7 +161,7 @@ trait SPASSParsers
   def antecedent: Parser[List[E]] = rep(formulaList)
   def succedent: Parser[List[E]] = rep(formulaList)
 
-  //All the additional symbols can be ignored----
+  //All the additional symbols can be ignored, but still must be parsed----
   def formulaList: Parser[E] = (termType1 | maximalTerm | termType2 | term)
   def termType1: Parser[E] = term ~ "*+" ^^ {
     case ~(t, _) => t
@@ -184,9 +184,14 @@ trait SPASSParsers
     case ~(~(n, _), _) => n
   }
 
-  //TODO: get complete list from SPASS documentation
-  def inferenceRule: Parser[String] = "Inp" | "Res:" | "Spt:" | "Con:" | "MRR:" | "UnC:"
+  def inferenceRule: Parser[String] = "Inp" | "Res:" | "Con:" | "MRR:" | otherInferenceRule
 
+  //Other inference rules are currently treated as axioms when parsed.
+  //Must be 3 letters with an optional ":"
+  def otherInferenceRule: Parser[String] = "[a-zA-Z]{3}:*".r ^^ {
+    case s => s
+  } 
+  
   def func: Parser[E] = name ~ "(" ~ repsep(term, ",") ~ ")" ^^ {
     case ~(~(~(name, _), args), _) => {
       val arrow = getArrow(args)
