@@ -79,31 +79,21 @@ abstract class FOAbstractRPILUAlgorithm
         //        case R(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
         case UnifyingResolution(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
           deleteNode(node)
-          true
-        //        case UnifyingResolutionMRR(left, right, _, _) if (isMarked(node, left) && isMarked(node, right)) =>
-        //          deleteNode(node)
-        //          true          
+          true    
         case _ => false
       }
     }
 
-    //TODO: do I need to match MRR nodes? probably.
     protected def sideOf(parent: SequentProofNode, child: SequentProofNode) = child match {
       case UnifyingResolution(left, right, _, _) => if (parent == left) LeftDS
       else if (parent == right) RightDS
       else throw new Exception("Unable to find parent in child")
-
-      //      case UnifyingResolutionMRR(left, right, _, _) => if (parent == left) LeftDS
-      //      else if (parent == right) RightDS
-      //      else throw new Exception("Unable to find parent in child")
-
       case _ => throw new Exception("This function should never be called with child not being a UR")
     }
 
   }
 
   // Main functions
-  //TODO: do I need to match MRR nodes? probably.
   protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;

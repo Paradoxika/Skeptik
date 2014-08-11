@@ -280,9 +280,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     def isUnifiable(p: (E, E)) = unify(p :: Nil)(vars) match {
       case None => false
       case Some(u) => {
-        //        println("f1: " + f1)
-        //        println("f2: " + f2)
-        //        println("mgu: " + u)
         true
       }
     }
@@ -299,9 +296,8 @@ object Contraction {
     new Contraction(premise, desired)
   }
   
-  //TODO: test this:
  def unapply(p: SequentProofNode) = p match {
-    case p: UnifyingResolution => Some((p.leftPremise, p.auxL, p.auxR))
+    case p: Contraction => Some((p.premise, p.desired))
     case _ => None
   }  
 }

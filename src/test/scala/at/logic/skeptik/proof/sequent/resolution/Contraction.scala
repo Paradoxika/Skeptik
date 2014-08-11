@@ -30,13 +30,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val f1A = AppRec(e, List(App(f, x), two))
   val f2A = AppRec(e, List(App(f, n), two))
 
-  //  println("f1: " + f1)
-  //  println("f2: " + f2)
-
   val seqF2A = Sequent(f2A)()
   val seqA = f1A +: seqF2A
-
-  //  println(seq)
 
   val premiseA = new Axiom(seqA)
 
@@ -133,30 +128,28 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val premiseI = Axiom(seqI)
   val expectedI = Sequent()(App(A,y)) + App(B,b)
   
+  //Tenth test case: testing unapply
+  val conG =  conA 
+  
+  
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
-      println("conA: " + conA.conclusion)
       Sequent(f2A)() must beEqualTo(conA.conclusion)
     }
     "return the correct resolvent when unifying (f NEW2) with X" in {
-      println("conB: " + conB.conclusion)
       Sequent(f2B)() must beEqualTo(conB.conclusion)
     }
     "return the correct resolvent when no contraction is possible" in {
-      println("conC: " + conC.conclusion)
       seqC must beEqualTo(conC.conclusion)
     }
     "return the correct resolvent necessary to contract to a specific variable" in {
-      println("conD: " + conD.conclusion)
       expectedD must beEqualTo(conD.conclusion)
     }
     "return the correct resolvent necessary to contract multiple terms" in {
-      println("conE: " + conE.conclusion)
       expectedE must beEqualTo(conE.conclusion)
     }
 
     "return the correct resolvent when the desired one is provided, and a literal in the premise can be unified with many in the desired" in {
-      println("conF: " + conF.conclusion)
       expectedF must beEqualTo(conF.conclusion)
     }
 
@@ -170,6 +163,13 @@ class ContractionSpecification extends SpecificationWithJUnit {
     
     "fail a requirement if a literal that has no unifier is not in the desired premise" in {
       Contraction(premiseI, expectedI)(usedVars) must throwA[IllegalArgumentException]
+    }
+    
+    "be matched correctly" in {
+      { conG match {
+        case Contraction(g, d) => true
+        case _ => false
+      } } must beEqualTo(true)
     }
   }
 }

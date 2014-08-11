@@ -46,5 +46,11 @@ object FORPITest {
     println(proofg)
     val resultg = FORecyclePivots(proofg)
     println(resultg)
+    
+    //Should change the proof -- MRR test
+    val proofh = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1h.spass")
+    println(proofh)
+    val resulth = FORecyclePivots(proofh)
+    println(resulth)    
   }
 }
