@@ -40,10 +40,10 @@ abstract class FOAbstractRPILUAlgorithm
      *  the right premise, so we never see the variable Y, even though it can be unified.
      */
 
-    //TODO: see https://github.com/jgorzny/Skeptik/commit/13694d652419889d6e789e4754f063a327ef0682#commitcomment-7354663
     //TODO: see https://github.com/jgorzny/Skeptik/commit/13694d652419889d6e789e4754f063a327ef0682#commitcomment-7354774
     for (safeLit <- safeLiteralsHalf) {
-      unify((aux, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(aux)()))) match {
+      unify((aux, safeLit) :: Nil)(unifiableVars union getSetOfVars(aux)) match {
+//            unify((aux, safeLit) :: Nil)(getSetOfVars(aux)) match {
         case Some(_) => {
           return true
         }
@@ -152,10 +152,11 @@ abstract class FOAbstractRPIAlgorithm
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
     }
 
-  //TODO: see
-  //https://github.com/jgorzny/Skeptik/commit/f2ea0a4195518b41fc7633f9ea9d6de05582c250#commitcomment-7355803
-  protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
-    val uVars = new MSet[Var]() union getSetOfVars(left) union getSetOfVars(right)
+
+  protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {    
+    //Restrict MartelliMontanari to tell whether "aux" is more general (and not just unifiable) 
+    // by passing only the variables of "aux" as unifiable variables.
+    val uVars = new MSet[Var]() union getSetOfVars(aux)
     val seqHalf = if (addToAntecedent) {
       seq.ant
     } else {

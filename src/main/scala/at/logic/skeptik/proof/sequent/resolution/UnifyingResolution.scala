@@ -88,38 +88,38 @@ trait CanRenameVariables {
     case Some(_) => true
   }
 
-  def getSetOfVars(pn: SequentProofNode) = {
+  def getSetOfVars(e: E*): MSet[Var] =
+    if (e.length == 1) {
+      e.head match {
+        case App(e1, e2) => {
+          getSetOfVars(e1).union(getSetOfVars(e2))
+        }
+        case Abs(v, e1) => {
+          getSetOfVars(v).union(getSetOfVars(e1))
+        }
+        case v: Var => {
+          //Only care if the variable starts with a capital         
+          val hasLowerCaseFirst = v.name.charAt(0).isLower
+          val notAnInt = v.name.charAt(0).isLetter
+          if (!hasLowerCaseFirst && notAnInt) {
+            MSet[Var](v)
+          } else {
+            MSet[Var]()
+          }
+        }
+
+      }
+    } else if (e.length > 1) {
+      getSetOfVars(e.head).union(getSetOfVars(e.tail: _*))
+    } else {
+      MSet[Var]()
+    }
+
+  def getSetOfVars(pn: SequentProofNode): MSet[Var] = {
     val ante = pn.conclusion.ant
     val succ = pn.conclusion.suc
 
-    def getVarSet(e: E*): Set[Var] =
-      if (e.length == 1) {
-        e.head match {
-          case App(e1, e2) => {
-            getVarSet(e1).union(getVarSet(e2))
-          }
-          case Abs(v, e1) => {
-            getVarSet(v).union(getVarSet(e1))
-          }
-          case v: Var => {
-            //Only care if the variable starts with a capital         
-            val hasLowerCaseFirst = v.name.charAt(0).isLower
-            val notAnInt = v.name.charAt(0).isLetter
-            if (!hasLowerCaseFirst && notAnInt) {
-              Set[Var](v)
-            } else {
-              Set[Var]()
-            }
-          }
-
-        }
-      } else if (e.length > 1) {
-        getVarSet(e.head).union(getVarSet(e.tail: _*))
-      } else {
-        Set[Var]()
-      }
-
-    getVarSet(ante: _*).union(getVarSet(succ: _*))
+    getSetOfVars(ante: _*).union(getSetOfVars(succ: _*))
   }
 
   def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): SequentProofNode = {
