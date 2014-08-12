@@ -5,7 +5,7 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.judgment.immutable.SetSequent
 
 abstract class FORecyclePivots
-  extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals {
+  extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with FOUnitsCollectingBeforeFixing {
 
   def apply(proof: Proof[SequentProofNode]) = {
     val unifiableVars = getAllVars(proof);

@@ -39,7 +39,7 @@ abstract class FOAbstractRPILUAlgorithm
      *  And while UR used q(Y) |- and recorded the aux formula as such, it didn't rename
      *  the right premise, so we never see the variable Y, even though it can be unified.
      */
-    
+
     //TODO: see https://github.com/jgorzny/Skeptik/commit/13694d652419889d6e789e4754f063a327ef0682#commitcomment-7354663
     //TODO: see https://github.com/jgorzny/Skeptik/commit/13694d652419889d6e789e4754f063a327ef0682#commitcomment-7354774
     for (safeLit <- safeLiteralsHalf) {
@@ -183,15 +183,6 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm {
 
-  protected def getAllVars(proof: Proof[SequentProofNode]): MSet[Var] = {
-    //TODO: switch to val
-    var out = MSet[Var]()
-    for (n <- proof) {
-      out = out union getSetOfVars(n)
-    }
-    out
-  }
-
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode], unifiableVars: MSet[Var]) = {
     val edgesToDelete = new FOEdgesToDelete()
 
@@ -218,11 +209,13 @@ trait FOCollectEdgesUsingSafeLiterals
 trait FOUnitsCollectingBeforeFixing
   extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
-  //TODO: this appears somewhere else. remove it
   protected def getAllVars(proof: Proof[SequentProofNode]): MSet[Var] = {
-    var out = MSet[Var]()
+    val out = MSet[Var]()
     for (n <- proof) {
-      out = out union getSetOfVars(n)
+      val vars = getSetOfVars(n)
+      for (v <- vars) {
+        out += v
+      }
     }
     out
   }
