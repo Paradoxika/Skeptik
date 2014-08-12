@@ -29,7 +29,7 @@ trait FOoutIntersection
 
   protected def computeSafeLiterals(node: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
-    edgesToDelete: EdgesToDelete): SetSequent =
+    edgesToDelete: FOEdgesToDelete): SetSequent =
     if (childrensSafeLiterals.length == 1)
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     else
@@ -42,7 +42,7 @@ trait FOconclusionSequent
 
   protected def computeSafeLiterals(node: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
-    edgesToDelete: EdgesToDelete): SetSequent =
+    edgesToDelete: FOEdgesToDelete): SetSequent =
     if (childrensSafeLiterals.length == 1)
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     else

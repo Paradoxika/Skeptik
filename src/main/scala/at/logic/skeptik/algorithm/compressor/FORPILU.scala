@@ -16,7 +16,7 @@ import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 
 abstract class FOAbstractRPILUAlgorithm
-  extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with FindDesiredSequent with CanRenameVariables {
+  extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 
   protected def checkForRes(safeLiteralsHalf: Set[E], aux: E, unifiableVars: MSet[Var]): Boolean = {
 
@@ -39,6 +39,9 @@ abstract class FOAbstractRPILUAlgorithm
      *  And while UR used q(Y) |- and recorded the aux formula as such, it didn't rename
      *  the right premise, so we never see the variable Y, even though it can be unified.
      */
+    
+    //TODO: see https://github.com/jgorzny/Skeptik/commit/13694d652419889d6e789e4754f063a327ef0682#commitcomment-7354663
+    //TODO: see https://github.com/jgorzny/Skeptik/commit/13694d652419889d6e789e4754f063a327ef0682#commitcomment-7354774
     for (safeLit <- safeLiteralsHalf) {
       unify((aux, safeLit) :: Nil)(unifiableVars union getSetOfVars(Axiom(Sequent(aux)()))) match {
         case Some(_) => {
@@ -52,62 +55,9 @@ abstract class FOAbstractRPILUAlgorithm
     false
   }
 
-  class EdgesToDelete {
+  class FOEdgesToDelete extends EdgesToDelete {
 
-    protected sealed abstract class DeletedSide
-    protected case object NoDS extends DeletedSide
-    protected case object LeftDS extends DeletedSide
-    protected case object RightDS extends DeletedSide
-    protected case object BothDS extends DeletedSide
-
-    val edges = MMap[SequentProofNode, (DeletedSide, Boolean)]()
-
-    private def otherSide(side: DeletedSide) = side match {
-      case LeftDS => RightDS
-      case RightDS => LeftDS
-      case _ => NoDS
-    }
-
-    def markEdge(node: SequentProofNode, premiseSide: DeletedSide) = {
-      edges(node) = edges.get(node) match {
-        case None => (premiseSide, false)
-        case Some((BothDS, _)) => (BothDS, true)
-        case Some((side, _)) if side == otherSide(premiseSide) => (BothDS, true)
-        case Some((_, del)) => (premiseSide, del)
-      }
-    }
-
-    def markEdge(child: SequentProofNode, premise: SequentProofNode): Unit =
-      markEdge(child, sideOf(premise, child))
-
-    def markBothEdges(node: SequentProofNode) = { edges(node) = (BothDS, true) }
-
-    def markLeftEdge(node: SequentProofNode) = markEdge(node, LeftDS)
-
-    def markRightEdge(node: SequentProofNode) = markEdge(node, RightDS)
-
-    def deleteNode(node: SequentProofNode) =
-      edges(node) = (edges.getOrElse(node, (NoDS, true))._1, true)
-
-    def deletedSide(node: SequentProofNode) =
-      edges.get(node) match {
-        case Some((NoDS, _)) => None
-        case Some((s, _)) => Some(s)
-        case None => None
-      }
-
-    def isEmpty = edges.isEmpty
-
-    def isMarked(node: SequentProofNode, premise: SequentProofNode): Boolean = {
-      (edges.get(node) match {
-        case None => false
-        case Some((BothDS, _)) => true
-        case Some((NoDS, true)) => false
-        case Some((side, _)) => side == sideOf(premise, node)
-      }) || nodeIsMarked(premise)
-    }
-
-    def nodeIsMarked(node: SequentProofNode): Boolean = {
+    override def nodeIsMarked(node: SequentProofNode): Boolean = {
       // may be optimized (edgesToDelete contains node is checked 3 times)
       node match {
         case _ if ((edges contains node) && edges(node)._2) => true
@@ -118,7 +68,7 @@ abstract class FOAbstractRPILUAlgorithm
       }
     }
 
-    protected def sideOf(parent: SequentProofNode, child: SequentProofNode) = child match {
+    override protected def sideOf(parent: SequentProofNode, child: SequentProofNode) = child match {
       case UnifyingResolution(left, right, _, _) => if (parent == left) LeftDS
       else if (parent == right) RightDS
       else throw new Exception("Unable to find parent in child")
@@ -191,7 +141,7 @@ abstract class FOAbstractRPIAlgorithm
   extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
   protected def safeLiteralsFromChild(childWithSafeLiterals: (SequentProofNode, IClause),
-    parent: SequentProofNode, edgesToDelete: EdgesToDelete) =
+    parent: SequentProofNode, edgesToDelete: FOEdgesToDelete) =
     childWithSafeLiterals match {
       case (child @ UnifyingResolution(left, right, _, auxR), safeLiterals) if left == parent =>
         if (edgesToDelete.isMarked(child, right)) safeLiterals else addLiteralSmart(safeLiterals, auxR, false, left, right)
@@ -202,6 +152,8 @@ abstract class FOAbstractRPIAlgorithm
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
     }
 
+  //TODO: see
+  //https://github.com/jgorzny/Skeptik/commit/f2ea0a4195518b41fc7633f9ea9d6de05582c250#commitcomment-7355803
   protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
     val uVars = new MSet[Var]() union getSetOfVars(left) union getSetOfVars(right)
     val seqHalf = if (addToAntecedent) {
@@ -224,7 +176,7 @@ abstract class FOAbstractRPIAlgorithm
 
   protected def computeSafeLiterals(proof: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
-    edgesToDelete: EdgesToDelete): IClause
+    edgesToDelete: FOEdgesToDelete): IClause
 
 }
 
@@ -232,6 +184,7 @@ trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm {
 
   protected def getAllVars(proof: Proof[SequentProofNode]): MSet[Var] = {
+    //TODO: switch to val
     var out = MSet[Var]()
     for (n <- proof) {
       out = out union getSetOfVars(n)
@@ -240,7 +193,7 @@ trait FOCollectEdgesUsingSafeLiterals
   }
 
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode], unifiableVars: MSet[Var]) = {
-    val edgesToDelete = new EdgesToDelete()
+    val edgesToDelete = new FOEdgesToDelete()
 
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
@@ -265,6 +218,7 @@ trait FOCollectEdgesUsingSafeLiterals
 trait FOUnitsCollectingBeforeFixing
   extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
+  //TODO: this appears somewhere else. remove it
   protected def getAllVars(proof: Proof[SequentProofNode]): MSet[Var] = {
     var out = MSet[Var]()
     for (n <- proof) {
@@ -279,7 +233,7 @@ trait FOIntersection
   extends FOAbstractRPIAlgorithm {
   protected def computeSafeLiterals(proof: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
-    edgesToDelete: EdgesToDelete): IClause = {
+    edgesToDelete: FOEdgesToDelete): IClause = {
     childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof) } match {
       case Nil =>
         if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
