@@ -18,7 +18,7 @@ import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 abstract class FOAbstractRPILUAlgorithm
   extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 
-  protected def checkForRes(safeLiteralsHalf: Set[E], aux: E, unifiableVars: MSet[Var]): Boolean = {
+  protected def checkForRes(safeLiteralsHalf: Set[E], aux: E): Boolean = {
 
     if (safeLiteralsHalf.size < 1) {
       return false
@@ -105,13 +105,13 @@ abstract class FOAbstractRPILUAlgorithm
       case UnifyingResolution(left, right, pivot, _) if (desiredFound(fixedLeft.conclusion, p.conclusion)(unifiableVariables)) => {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
-        assert(!checkForRes(fixedLeft.conclusion.toSetSequent.suc, pivot, unifiableVariables))
+        assert(!checkForRes(fixedLeft.conclusion.toSetSequent.suc, pivot))
         fixedLeft
       }
       case UnifyingResolution(left, right, _, pivot) if (desiredFound(fixedRight.conclusion, p.conclusion)(unifiableVariables)) => {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
-        assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot, unifiableVariables))
+        assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))
         fixedRight
       }
 
@@ -181,17 +181,17 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm {
 
-  protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode], unifiableVars: MSet[Var]) = {
+  protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new FOEdgesToDelete()
 
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
-        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL, unifiableVars)) => {
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
           edgesToDelete.markRightEdge(p)
 
         }
-        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR, unifiableVars) => {
+        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
           edgesToDelete.markLeftEdge(p)
         }
 

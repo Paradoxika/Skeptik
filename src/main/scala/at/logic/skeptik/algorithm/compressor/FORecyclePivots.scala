@@ -9,7 +9,7 @@ abstract class FORecyclePivots
 
   def apply(proof: Proof[SequentProofNode]) = {
     val unifiableVars = getAllVars(proof);
-    val edgesToDelete = collectEdgesToDelete(proof, unifiableVars)
+    val edgesToDelete = collectEdgesToDelete(proof)
     if (edgesToDelete.isEmpty) {
       proof
     } else {
