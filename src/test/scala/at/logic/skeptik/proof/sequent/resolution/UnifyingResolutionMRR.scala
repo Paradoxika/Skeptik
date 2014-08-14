@@ -45,32 +45,39 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
 
   //p(X) |- q(a) r(Z)     with    q(X) p(a) |- r(U)
   // -> p(a) |- r(Z) r(U)
-  val leftSeqC = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a)) + App(Var("r",i->i),z)
-  val rightSeqC = Sequent(App(Var("q", i -> i), x))(App(Var("r",i->i),u))
+  val leftSeqC = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a)) + App(Var("r", i -> i), z)
+  val rightSeqC = Sequent(App(Var("q", i -> i), x))(App(Var("r", i -> i), u))
   val rightSeqC2 = App(Var("p", i -> i), a) +: rightSeqC
   val leftNodeC = new Axiom(leftSeqC)
   val rightNodeC = new Axiom(rightSeqC2)
 
-  val desiredC =  Sequent(App(Var("p", i -> i), a))(App(Var("r", i -> i), z)) + App(Var("r",i->i),u)
+  val desiredC = Sequent(App(Var("p", i -> i), a))(App(Var("r", i -> i), z)) + App(Var("r", i -> i), u)
   val urC = UnifyingResolutionMRR(leftNodeC, rightNodeC, desiredC)(usedVars)
 
   //p(X) |- q(a) r(Z)     with    q(X) p(a) |- r(U)
   // -> p(a) |- r(Z)
-  val leftSeqD = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a)) + App(Var("r",i->i),z)
-  val rightSeqD = Sequent(App(Var("q", i -> i), x))(App(Var("r",i->i),u))
+  val leftSeqD = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a)) + App(Var("r", i -> i), z)
+  val rightSeqD = Sequent(App(Var("q", i -> i), x))(App(Var("r", i -> i), u))
   val rightSeqD2 = App(Var("p", i -> i), a) +: rightSeqD
   val leftNodeD = new Axiom(leftSeqD)
   val rightNodeD = new Axiom(rightSeqD2)
 
-  val desiredD =  Sequent(App(Var("p", i -> i), a))(App(Var("r", i -> i), z))
+  val desiredD = Sequent(App(Var("p", i -> i), a))(App(Var("r", i -> i), z))
   val urD = UnifyingResolutionMRR(leftNodeD, rightNodeD, desiredD)(usedVars)
 
   //Test 3-way MRR
-  //TODO:
-  
-  //Test n-way MRR
-  //TODO: 
-  
+  val desiredE = Sequent()()
+  val leftSeqE = Sequent(App(Var("q", i -> i), a))()
+  val leftSeqEB = App(Var("q", i -> i), y) +: leftSeqE
+
+  val rightSeqE = Sequent()(App(Var("q", i -> i), x))
+  val leftNodeEB = new Axiom(leftSeqEB)
+
+  val rightNodeE = new Axiom(rightSeqE)
+
+  val urE = UnifyingResolutionMRR(leftNodeEB, leftNodeEB, rightNodeE, desiredE)(usedVars)
+
+
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution and a contraction" in {
       Sequent(App(Var("p", i -> i), y))() must beEqualTo(ur.conclusion)
@@ -84,6 +91,9 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
     "return the correct resolvent when necessary to make a substitution and multiple contractions" in {
       desiredD must beEqualTo(urD.conclusion)
     }
-    
+    "return the correct resolvent in 3-way MRR" in {
+      desiredE must beEqualTo(urE.conclusion)
+    }
+
   }
 }
