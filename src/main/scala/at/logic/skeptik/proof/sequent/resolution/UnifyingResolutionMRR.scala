@@ -83,12 +83,10 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     thirdPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
     //Note that it's assumed that firstPremise = secondPremise when this is called, and that each
     //has formulas in exactly one of it's antecedent or succedent.
-    //TODO: generalize.
-
-    //Further, this could either be generalized to n-way MRR, if all n formulas
-    // are on the same SPASS proof line (as they are assumed to be now)
     
-    //Or using contraction, we could avoid the need for this all together?
+    //Note that 'desiredFound' checks if two sequents are equal via some unifier; we require this
+    //(it's the assumption made above)
+	assert(desiredFound(firstPremise.conclusion, secondPremise.conclusion))
     
     if (firstPremise.conclusion.ant.length > 0) {
       val newDesired = Sequent(firstPremise.conclusion.ant.head)()
@@ -112,6 +110,21 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
       }
     }
 
+  }
+  
+  //Generalizes the above to allow for n formulas
+  //TODO: test this
+  def apply(premises: List[SequentProofNode], rightPremise: SequentProofNode, desired: Sequent)
+   (implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    if(premises.length == 1){
+      UnifyingResolutionMRR(premises.head, rightPremise, desired: Sequent)
+    } else if(premises.length > 1){
+    	assert(desiredFound(premises.head.conclusion, premises.tail.head.conclusion))
+    	UnifyingResolutionMRR(premises.tail, rightPremise, desired: Sequent)
+    } else {
+      throw new MRRException("n-way MRR failed; some formula not equal")
+    }
+    
   }
 
   def unapply(p: SequentProofNode) = p match {

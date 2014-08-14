@@ -59,6 +59,12 @@ object FORPITest {
     val proofh = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1h.spass")
     println(proofh)
     val resulth = FORecyclePivots(proofh)
-    println(resulth)    
+    println(resulth) 
+    
+    
+    //TODO: add another example that tests intersection where a pivot is shared
+    
+    //TODO: add another example that tests intersection where a pivot is not shared (but similar)
+    
   }
 }
