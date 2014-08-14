@@ -1,6 +1,3 @@
-Parsed 50 lines.
-Parsed 100 lines.
-Parsed line 148; done.
 1: { ⊢ (eq (f U) 0), (eq (f U) 1), (eq (f U) 2), (eq (f U) 3), (eq (f U) 4)} 	: Axiom()[]
 2: { ⊢ (le U U)} 	: Axiom()[]
 3: {(eq (f V) 0), (eq (f U) 0), (le (s U) V) ⊢ } 	: Axiom()[]

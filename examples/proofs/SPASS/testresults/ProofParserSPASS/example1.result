@@ -1,4 +1,3 @@
-Parsed line 6; done.
 1: { ⊢ (p X), (q X B)} 	: Axiom()[]
 2: {(p A) ⊢ } 	: Axiom()[]
 3: { ⊢ (q A B)} 	: UnifyingResolution(1, 2)[]
