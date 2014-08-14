@@ -77,7 +77,6 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
 
   val urE = UnifyingResolutionMRR(leftNodeEB, leftNodeEB, rightNodeE, desiredE)(usedVars)
 
-
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution and a contraction" in {
       Sequent(App(Var("p", i -> i), y))() must beEqualTo(ur.conclusion)

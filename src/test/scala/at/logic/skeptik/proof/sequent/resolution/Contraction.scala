@@ -124,26 +124,21 @@ class ContractionSpecification extends SpecificationWithJUnit {
   //premise: "|- A(Y), A(X), B(a)"
   //desired: "|- A(Y) B(b)"
   //should fail
-  val seqI = Sequent()(App(A,y)) + App(A,x) + App(B,c)
+  val seqI = Sequent()(App(A, y)) + App(A, x) + App(B, c)
   val premiseI = Axiom(seqI)
-  val expectedI = Sequent()(App(A,y)) + App(B,b)
-  
+  val expectedI = Sequent()(App(A, y)) + App(B, b)
+
   //Tenth test case: testing unapply
-  val conG =  conA 
-  
+  val conG = conA
+
   //Eleventh: test aux formulae
-  //TODO: this one works; convert
-  println("conA: " + conA)
-  println("auxA: " + conA.auxFormulas)
-  
-  //12th: aux again
-  //TODO: this one fails; convert anyways
-  println("conE: " + conE)
-  println("auxE: " + conE.auxFormulas)
- 
-  //13th: test conclusion context
-  //TODO: this
-  
+  //uses conA
+  val expectedAuxA = "(eq (f X) 2) ⊢ "
+
+  //12th: check main formula
+  //uses conE
+  val expectedMainA = "(a b), (b a) ⊢"
+
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
       Sequent(f2A)() must beEqualTo(conA.conclusion)
@@ -172,16 +167,26 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "fail a requirement if the desired sequent is longer than the premise" in {
       Contraction(premiseH, expectedH)(usedVars) must throwA[IllegalArgumentException]
     }
-    
+
     "fail a requirement if a literal that has no unifier is not in the desired premise" in {
       Contraction(premiseI, expectedI)(usedVars) must throwA[IllegalArgumentException]
     }
-    
+
     "be matched correctly" in {
-      { conG match {
-        case Contraction(g, d) => true
-        case _ => false
-      } } must beEqualTo(true)
+      {
+        conG match {
+          case Contraction(g, d) => true
+          case _ => false
+        }
+      } must beEqualTo(true)
+    }
+
+    "provide the correct aux formula" in {
+      conA.auxFormulas.toString.trim must beEqualTo(expectedAuxA.trim)
+    }
+
+    "provide the correct main formula" in {
+      conE.mainFormulas.toString.trim must beEqualTo(expectedMainA.trim)
     }
   }
 }

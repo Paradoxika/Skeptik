@@ -49,7 +49,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-    
+
     if (unifiablePairs.length == 1) {
 
       val (auxL, auxR) = unifiablePairs(0)
@@ -84,10 +84,10 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     //Note that it's assumed that firstPremise = secondPremise when this is called, and that each
     //has formulas in exactly one of it's antecedent or succedent.
     //(this is a very specific case of resolution)
-    
-	assert(firstPremise.conclusion eq secondPremise.conclusion)
 
-	if (firstPremise.conclusion.ant.length > 0) {
+    assert(firstPremise.conclusion eq secondPremise.conclusion)
+
+    if (firstPremise.conclusion.ant.length > 0) {
       val newDesired = Sequent(firstPremise.conclusion.ant.head)()
       val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
       val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
@@ -110,9 +110,6 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     }
 
   }
-  
-    
-  
 
   def unapply(p: SequentProofNode) = p match {
     case p: UnifyingResolutionMRR => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
