@@ -131,6 +131,18 @@ class ContractionSpecification extends SpecificationWithJUnit {
   //Tenth test case: testing unapply
   val conG =  conA 
   
+  //Eleventh: test aux formulae
+  //TODO: this one works; convert
+  println("conA: " + conA)
+  println("auxA: " + conA.auxFormulas)
+  
+  //12th: aux again
+  //TODO: this one fails; convert anyways
+  println("conE: " + conE)
+  println("auxE: " + conE.auxFormulas)
+ 
+  //13th: test conclusion context
+  //TODO: this
   
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
