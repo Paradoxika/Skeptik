@@ -65,7 +65,11 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
   val desiredD =  Sequent(App(Var("p", i -> i), a))(App(Var("r", i -> i), z))
   val urD = UnifyingResolutionMRR(leftNodeD, rightNodeD, desiredD)(usedVars)
 
+  //Test 3-way MRR
+  //TODO:
   
+  //Test n-way MRR
+  //TODO: 
   
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution and a contraction" in {
