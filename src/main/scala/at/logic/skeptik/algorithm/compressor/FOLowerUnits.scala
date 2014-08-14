@@ -106,7 +106,6 @@ object FOLowerUnits
       lazy val fixedLeft = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
 
-      //TODO: does this check if it is an MRR/Contraction node?
       val fixedP = node match {
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => fixedRight
@@ -187,7 +186,6 @@ object FOLowerUnits
     val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
     val p = Proof(root)
-    println(p)
     p
   }
 
