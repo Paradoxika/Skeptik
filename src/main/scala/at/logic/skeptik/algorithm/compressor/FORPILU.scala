@@ -75,12 +75,36 @@ abstract class FOAbstractRPILUAlgorithm
 
   }
 
+  protected def isMRRContraction(c: Contraction): Boolean = {
+    if (c.premises.size == 1) {
+      c.premises.head match {
+        case UnifyingResolutionMRR(_, _, _, _) => return true
+        case _ => return false
+      }
+    }
+    false
+  }
+
   // Main functions
   protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
     p match {
       case Axiom(conclusion) => p
+
+      case Contraction(a, b) if isMRRContraction(p.asInstanceOf[Contraction]) => {
+        val mrr = p.premises.head
+        mrr match {
+          case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(mrr, left) => {
+            fixedRight
+          }
+          case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(mrr, right) => {
+            println("B")
+            fixedLeft
+          }
+          case _ => p
+        }
+      }
 
       // If we've got a proof of false, we propagate it down the proof
       case UnifyingResolution(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) => {

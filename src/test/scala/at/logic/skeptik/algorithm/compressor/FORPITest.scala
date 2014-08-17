@@ -9,11 +9,13 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class FORPILUSpecification extends SpecificationWithJUnit {
 
+  //Variants of Bruno's proof
+  
   val proofa = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1.spass")
   val resulta = FORecyclePivotsWithIntersection(proofa).toString
   val expecteda = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FORPILU/FORPIexample1.result").mkString
 
-  //Bruno's -- should change
+  //should change
   val proofb = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample1b.spass")
   val resultb = FORecyclePivots(proofb).toString
   val expectedb = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FORPILU/FORPIexample1b.result").mkString
@@ -48,8 +50,11 @@ class FORPILUSpecification extends SpecificationWithJUnit {
   val resulth = FORecyclePivots(proofh).toString
   val expectedh = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FORPILU/FORPIexample1h.result").mkString
 
-  //TODO: add another example that tests intersection where a pivot is shared
-
+  //Example from the video, trivially made first-order
+  val proof2a = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample2.spass")
+  val result2a = FORecyclePivotsWithIntersection(proof2a).toString
+  val expected2a = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FORPILU/FORPIexample2.result").mkString
+  
   //TODO: add another example that tests intersection where a pivot is not shared (but similar)    
 
   //TODO: give these meaninful names
@@ -77,6 +82,9 @@ class FORPILUSpecification extends SpecificationWithJUnit {
     }
     "Parse the proof correctly" in {
       resulth.trim must beEqualTo(expectedh.trim)
+    }
+    "Handle intersection (and contractions) correctly" in {
+      result2a.trim must beEqualTo(expected2a.trim)
     }
   }
 }

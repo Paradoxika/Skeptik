@@ -13,8 +13,6 @@ abstract class FORecyclePivots
     if (edgesToDelete.isEmpty) {
       proof
     } else {
-      val unifiableVars = getAllVars(proof);
-
       Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars)))
     }
 
