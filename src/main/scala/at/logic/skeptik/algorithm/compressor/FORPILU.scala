@@ -233,7 +233,6 @@ trait FOUnitsCollectingBeforeFixing
   }
 }
 
-//TODO: do we want to contract things in the intersection to save memory?
 trait FOIntersection
   extends FOAbstractRPIAlgorithm {
   protected def computeSafeLiterals(proof: SequentProofNode,
