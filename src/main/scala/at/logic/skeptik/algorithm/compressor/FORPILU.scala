@@ -86,24 +86,15 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   // Main functions
-  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
     p match {
       case Axiom(conclusion) => p
 
-      case Contraction(a, b) if isMRRContraction(p.asInstanceOf[Contraction]) => {
+      case Contraction(_, _) if isMRRContraction(p.asInstanceOf[Contraction]) => {
         val mrr = p.premises.head
-        mrr match {
-          case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(mrr, left) => {
-            fixedRight
-          }
-          case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(mrr, right) => {
-            println("B")
-            fixedLeft
-          }
-          case _ => p
-        }
+        fixProofNodes(edgesToDelete, unifiableVariables)(mrr, fixedPremises)
       }
 
       // If we've got a proof of false, we propagate it down the proof
@@ -218,7 +209,6 @@ trait FOCollectEdgesUsingSafeLiterals
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
           edgesToDelete.markLeftEdge(p)
         }
-
         case _ =>
       }
       (p, safeLiterals)

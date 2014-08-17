@@ -77,6 +77,25 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
 
   val urE = UnifyingResolutionMRR(leftNodeEB, leftNodeEB, rightNodeE, desiredE)(usedVars)
 
+  //Test aux formula
+  val leftSeqF = App(Var("p", i -> i), y) +: Sequent(App(Var("q", i -> i), a))()
+  val rightSeqF = Sequent()(App(Var("q", i -> i), x))
+  val leftNodeF = new Axiom(leftSeqF)
+  val rightNodeF = new Axiom(rightSeqF)
+  val urF = UnifyingResolutionMRR(rightNodeF, leftNodeF)(usedVars)
+  val urFMRR = urF.asInstanceOf[UnifyingResolutionMRR]
+  val computedAuxF = urFMRR.auxL + " " + urFMRR.auxR
+  val expectedAuxF = "(q X)" + " " + "(q a)"
+
+  val leftSeqG = Sequent(App(Var("q", i -> i), a))()
+  val rightSeqG = Sequent()(App(Var("q", i -> i), x))
+  val leftNodeG = new Axiom(leftSeqG)
+  val rightNodeG = new Axiom(rightSeqG)
+  val urG = UnifyingResolutionMRR(rightNodeG, leftNodeG)(usedVars)
+  val urGMRR = urG.asInstanceOf[UnifyingResolutionMRR]
+  val computedAuxG = urGMRR.auxL + " " + urGMRR.auxR
+  val expectedAuxG = "(q X)" + " " + "(q a)"
+
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution and a contraction" in {
       Sequent(App(Var("p", i -> i), y))() must beEqualTo(ur.conclusion)
@@ -93,6 +112,11 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
     "return the correct resolvent in 3-way MRR" in {
       desiredE must beEqualTo(urE.conclusion)
     }
-
+    "compute the correct aux formulas (with no others present)" in {
+      computedAuxF must beEqualTo(expectedAuxF)
+    }
+    "compute the correct aux formulas (with others present)" in {
+      computedAuxG must beEqualTo(expectedAuxG)
+    }
   }
 }
