@@ -128,7 +128,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
     if (!resProof2.conclusion.isEmpty) println("non empty clause! " + resProof2)
 //    resProof
 //    println("all eq comp: " + comp + " tried: " + tried)
-    DAGify(resProof2)
+//    DAGify(resProof2)
+    resProof2
   }
   
   
