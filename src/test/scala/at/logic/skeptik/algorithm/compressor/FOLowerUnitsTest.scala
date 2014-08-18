@@ -14,7 +14,6 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit {
 
   val proofb = ProofParserSPASS.read("examples/proofs/SPASS/example2.spass")
   val computedb = FOLowerUnits(proofb).toString
-  //println(computedb)
   val expectedb = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example2.result").mkString
 
   val proofc = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
