@@ -4,7 +4,7 @@
 4: { ⊢ (p Y)} 	: Contraction(3)[]
 5: { ⊢ (q Y), (r X)} 	: Axiom()[]
 6: {(p X), (q Y) ⊢ (r Z)} 	: Axiom()[]
-7: {(p X) ⊢ (r NEW1), (r Z)} 	: UnifyingResolutionMRR(5, 6)[]
+7: {(p X) ⊢ (r C), (r Z)} 	: UnifyingResolutionMRR(5, 6)[]
 8: {(p X) ⊢ (r Z)} 	: Contraction(7)[]
 9: { ⊢ (r Z)} 	: UnifyingResolution(4, 8)[]
 10: {(r Y) ⊢ } 	: Axiom()[]
