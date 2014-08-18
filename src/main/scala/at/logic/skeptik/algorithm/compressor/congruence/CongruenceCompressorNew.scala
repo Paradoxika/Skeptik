@@ -72,7 +72,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                     val oldSize = leftEqs.size
                    
                     val line = oldSize + ", " + newSize + ", " + theorylemma + "\n"
-                    output.write(line)
+//                    output.write(line)
                     
 //                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
   //                    println("compressing")
@@ -128,8 +128,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
     if (!resProof2.conclusion.isEmpty) println("non empty clause! " + resProof2)
 //    resProof
 //    println("all eq comp: " + comp + " tried: " + tried)
-//    DAGify(resProof2)
-    resProof2
+    DAGify(resProof2)
+//    resProof2
   }
   
   
