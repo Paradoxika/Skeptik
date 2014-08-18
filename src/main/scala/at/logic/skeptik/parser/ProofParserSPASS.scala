@@ -74,7 +74,7 @@ trait SPASSParsers
 
       val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
 
-      var ax = try {
+      val ax = try {
         UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
         case e: Exception => {
@@ -100,14 +100,13 @@ trait SPASSParsers
 
       val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
 
-      var lastPremise = null.asInstanceOf[Node]
-      if (firstNode == secondNode) {
+      val lastPremise =  if (firstNode == secondNode) {
         val lastRef = refs.last
         val lastNode = lastRef.first
-        lastPremise = proofMap.getOrElse(lastNode, throw new Exception("Error!"))
-      }
+        proofMap.getOrElse(lastNode, throw new Exception("Error!"))
+      } else { null }
 
-      var ax = if (firstNode != secondNode) {
+      val ax = if (firstNode != secondNode) {
         UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
 
         try {
