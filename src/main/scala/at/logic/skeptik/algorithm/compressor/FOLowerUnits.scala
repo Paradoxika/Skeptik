@@ -21,7 +21,7 @@ object FOLowerUnits
   // ToDo: optimize this by interlacing collectUnits and fixProofNodes
 
   private def collectUnits(proof: Proof[SequentProofNode]) = {
-    var vars = MSet[Var]()
+    val vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>
       if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) {
         val children = proof.childrenOf(node)
@@ -32,12 +32,18 @@ object FOLowerUnits
             //Picks out (all) u_k in c_k
             getUnitLiteral(p.conclusion, node.conclusion, vars)
           }
-          vars = vars union getSetOfVars(c)
+          val varsC = getSetOfVars(c)
+          for (v <- varsC) {
+            vars += v
+          }
           parentsConclusions.filter(_.length > 0)
         }
         val listOfUnits = childrensParentsConclusionsSeqSeq(0).flatten.toList
 
-        vars = vars union getSetOfVars(node)
+        val varsN = getSetOfVars(node)
+        for (v <- varsN) {
+          vars += v
+        }
         if (checkListUnif(listOfUnits, vars)) {
           node :: acc
         } else {
@@ -45,7 +51,10 @@ object FOLowerUnits
         }
 
       } else {
-        vars = vars union getSetOfVars(node)
+        val varsN = getSetOfVars(node)
+        for (v <- varsN) {
+          vars += v
+        }
         acc
       }
     }
