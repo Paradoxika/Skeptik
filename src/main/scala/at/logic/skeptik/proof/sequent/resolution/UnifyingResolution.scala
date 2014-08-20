@@ -49,11 +49,11 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-
+    
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
-      throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+      throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A")
     } else {
       //Should never really be reached in this constructor
       throw new Exception("Resolution: the resolvent is ambiguous.")
@@ -70,7 +70,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
     } else if (unifiablePairs.length == 0) {
-      throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+      throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B")
     } else {
       throw new Exception("Resolution: the resolvent is ambiguous.")
     }
@@ -210,40 +210,43 @@ trait CanRenameVariables {
 }
 
 trait FindDesiredSequent {
-  def checkAnt(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
-    if (computed.ant.size == desired.ant.size) {
-      var matchedAnt = false;
-      if (computed.ant.size == 0) {
-        matchedAnt = true
-      }
-      for (f <- computed.ant) {
-        for (g <- desired.ant) {
-          val u = unify((f, g) :: Nil)
-          u match {
-            case Some(_) => matchedAnt = true
-            case None => matchedAnt = matchedAnt
-          }
-        }
-      }
-      matchedAnt
-    } else {
-      false
-    }
-  }
 
-  def checkSuc(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
-    if (computed.suc.size == desired.suc.size) {
+  def checkHalf(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
+    if (computed.size == desired.size) {
       var matched = false;
-      if (computed.suc.size == 0) {
+      if (computed.size == 0) {
         matched = true
       }
-      for (f <- computed.suc) {
-        for (g <- desired.suc) {
+      //make sure each computed is in the desired
+      for (f <- computed) {
+        matched = false
+        for (g <- desired) {
           val u = unify((f, g) :: Nil)
           u match {
             case Some(_) => matched = true
-            case None => matched = matched
+            case None => {
+              matched = matched
+            }
           }
+        }
+        if (!matched) {
+          return false
+        }
+      }
+      //make sure each desired is in the computed
+      for (g <- desired) {
+        matched = false
+        for (f <- computed) {
+          val u = unify((f, g) :: Nil)
+          u match {
+            case Some(_) => matched = true
+            case None => {
+              matched = matched
+            }
+          }
+        }
+        if (!matched) {
+          return false
         }
       }
       matched
@@ -257,8 +260,10 @@ trait FindDesiredSequent {
       return true
     } else {
       if (computed.logicalSize == desired.logicalSize) {
-        if (checkAnt(computed, desired)) {
-          if (checkSuc(computed, desired)) {
+        if (checkHalf(computed.ant, desired.ant)) {
+
+          if (checkHalf(computed.suc, desired.suc)) {
+
             return true
           }
         }
@@ -291,7 +296,7 @@ trait FindDesiredSequent {
 
       val computedSequent = computedResolution.conclusion.toSeqSequent
 
-      if (desiredFound(computedSequent, desired)) {
+      if (desiredFound(desired, computedSequent)) {
         computedResolution
       } else {
         findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR)
