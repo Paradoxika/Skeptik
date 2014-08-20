@@ -22,7 +22,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
 //    var comp = 0
 //    var tried = 0
     
-    val directory = "$GLOBAL/bigproofs_test/"
+    val directory = "/global/lv70340/AFellner/expsize/"
     val filename = "proof_"+proof.hashCode
     val output = new FileOutput(directory + filename)
     val header = "original, produced, theorylemma\n"
@@ -72,7 +72,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                     val oldSize = leftEqs.size
                    
                     val line = oldSize + ", " + newSize + ", " + theorylemma + "\n"
-//                    output.write(line)
+                    output.write(line)
                     
 //                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
   //                    println("compressing")
