@@ -10,6 +10,7 @@ scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
 scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
+
 libraryDependencies ++= Seq(
   "org.specs2" %% "specs2" % "2.3.12",
   "com.github.scopt" %% "scopt" % "3.2.0",

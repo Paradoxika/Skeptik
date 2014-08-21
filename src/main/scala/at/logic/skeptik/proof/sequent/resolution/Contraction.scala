@@ -57,16 +57,16 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
       premiseLiteral <- premiseHalf
 
-      val instances = for {
+      instances = for {
         desiredLiteral <- desiredHalf
-        val unifier = unify((premiseLiteral, desiredLiteral) :: Nil)
+        unifier = unify((premiseLiteral, desiredLiteral) :: Nil)
 
         if !unifier.isEmpty
       } yield (desiredLiteral, unifier.get)
 
       if(checkEmpty(instances, premiseLiteral, desiredHalf))
       
-      val subs = for {
+      subs = for {
         pair <- instances
         if (pair._2.size > 0)
       } yield pair._2
@@ -91,7 +91,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   def buildMap(subs: Seq[Seq[Substitution]]) = {
     val listOfMaps = for {
       subList <- subs
-      val tempMap = makeSubMap(subList)
+      tempMap = makeSubMap(subList)
     } yield tempMap
     mergeMaps(listOfMaps)
   }
