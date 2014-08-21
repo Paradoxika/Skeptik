@@ -49,7 +49,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-    
+
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
@@ -211,6 +211,28 @@ trait CanRenameVariables {
 
 trait FindDesiredSequent {
 
+  def isValidName(v: Var): Boolean = {
+    val hasLowerCaseFirst = v.name.charAt(0).isLower
+    val notAnInt = v.name.charAt(0).isLetter
+    notAnInt && !hasLowerCaseFirst
+  }
+
+  def checkSubstitutions(s: Substitution): Boolean = {
+    for (e <- s.values) {
+      e match {
+        case Var(name, _) => {
+          if (!isValidName(e.asInstanceOf[Var])) {
+            return false
+          }
+        }
+        case _ => {
+          return false
+        }
+      }
+    }
+    true
+  }
+
   def checkHalf(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size == desired.size) {
       var matched = false;
@@ -223,7 +245,11 @@ trait FindDesiredSequent {
         for (g <- desired) {
           val u = unify((f, g) :: Nil)
           u match {
-            case Some(_) => matched = true
+            case Some(s) => {
+              if (checkSubstitutions(s)) {
+                matched = true
+              }
+            }
             case None => {
               matched = matched
             }
@@ -239,7 +265,11 @@ trait FindDesiredSequent {
         for (f <- computed) {
           val u = unify((f, g) :: Nil)
           u match {
-            case Some(_) => matched = true
+            case Some(s) => {
+              if (checkSubstitutions(s)) {
+                matched = true
+              }
+            }
             case None => {
               matched = matched
             }
