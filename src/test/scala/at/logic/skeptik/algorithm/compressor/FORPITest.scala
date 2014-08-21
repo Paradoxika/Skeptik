@@ -59,6 +59,7 @@ class FORPILUSpecification extends SpecificationWithJUnit {
   //tests if 'more general' idea works in intersection
   val proof2b = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample2b.spass")
   val result2b = FORecyclePivotsWithIntersection(proof2b).toString
+  println(result2b)
   val expected2b = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FORPILU/FORPIexample2b.result").mkString
 
   //should not change the proof; checks 'more general' idea in intersection
