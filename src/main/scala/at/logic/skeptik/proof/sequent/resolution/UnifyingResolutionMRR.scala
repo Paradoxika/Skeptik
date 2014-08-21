@@ -87,26 +87,28 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
     assert(firstPremise.conclusion eq secondPremise.conclusion)
 
-    if (firstPremise.conclusion.ant.length > 0) {
+    if (firstPremise.conclusion.ant.length > 0 && firstPremise.conclusion.suc.length == 0) {
       val newDesired = Sequent(firstPremise.conclusion.ant.head)()
       val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
       val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
       //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-      if (secondRes.conclusion.suc.length == 0 && secondRes.conclusion.suc.length == 0) {
+      if (secondRes.conclusion.suc.length == 0 && firstRes.conclusion.suc.length == 0) {
+        secondRes
+      } else {
+        throw new MRRException("3-way MRR failed (with desired sequent).")
+      }
+    } else if(firstPremise.conclusion.suc.length > 0 && firstPremise.conclusion.ant.length == 0) {
+      val newDesired = Sequent()(firstPremise.conclusion.suc.head)
+      val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
+      val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
+      //Since all examples so far have the first two premises referencing the same line, I'm doing this:
+      if (secondRes.conclusion.ant.length == 0 && firstRes.conclusion.ant.length == 0) {
         secondRes
       } else {
         throw new MRRException("3-way MRR failed (with desired sequent).")
       }
     } else {
-      val newDesired = Sequent(firstPremise.conclusion.suc.head)()
-      val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
-      val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
-      //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-      if (secondRes.conclusion.suc.length == 0 && secondRes.conclusion.suc.length == 0) {
-        secondRes
-      } else {
-        throw new MRRException("3-way MRR failed (with desired sequent).")
-      }
+       throw new MRRException("3-way MRR failed: usage assumption failed (with desired sequent).")
     }
 
   }
