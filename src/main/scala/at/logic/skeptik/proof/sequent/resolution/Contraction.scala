@@ -64,8 +64,8 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
         if !unifier.isEmpty
       } yield (desiredLiteral, unifier.get)
 
-      val temporaryVariable = checkEmpty(instances, premiseLiteral, desiredHalf)
-
+      if(checkEmpty(instances, premiseLiteral, desiredHalf))
+      
       val subs = for {
         pair <- instances
         if (pair._2.size > 0)
@@ -80,10 +80,12 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   //If no unifier was found, this exact literal had better be in the relevant half of the desired sequent
   //note that if the literal IS contained, an empty substitution is returned before we get here
   //but this is still required as I can't put a require statement in a for loop
-  def checkEmpty(instances: Seq[(E, Substitution)], literal: E, desiredHalf: Seq[E]) {
+  def checkEmpty(instances: Seq[(E, Substitution)], literal: E, desiredHalf: Seq[E]): Boolean = {
     if (instances.length == 0) {
       require(desiredHalf.contains(literal))
     }
+    //always return true here; note that if the requirement fails, we won't get here anyways
+    true    
   }
 
   def buildMap(subs: Seq[Seq[Substitution]]) = {
