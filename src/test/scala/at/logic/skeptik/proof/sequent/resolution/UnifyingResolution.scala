@@ -68,6 +68,8 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val findSeqTest3A = Sequent()(App(App(Var("a", i -> (i -> i)), c), u))
   val findSeqTest3B = Sequent()(App(App(Var("a", i -> (i -> i)), c), v))
 
+  //println("Are they alpha equal? " + (App(App(Var("a", i -> (i -> i)), c), u) =+= App(App(Var("a", i -> (i -> i)), c), v)))
+  
   val findSeqTest4A = Sequent()(App(App(Var("a", i -> (i -> i)), v), u))
   val findSeqTest4B = Sequent()(App(App(Var("a", i -> (i -> i)), v), u))
   

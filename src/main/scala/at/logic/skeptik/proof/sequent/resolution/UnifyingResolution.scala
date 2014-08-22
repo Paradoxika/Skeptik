@@ -49,9 +49,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-    //    println("left: " + leftPremiseClean)
-    //    println("right: " + rightPremise)
-    //    //println("vars: " + unifiableVariables)
+    
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
@@ -237,71 +235,6 @@ trait FindDesiredSequent extends FindsVars {
     true
   }
 
-  //brute force; possibly broken
-  def checkHelper(c: Seq[E], d: Seq[E], allCVars: MSet[Var], usedCVars: MSet[Var],
-    dVars: MSet[Var], subPairs: List[(Var, Var)]): Boolean = {
-
-    //    println("used: " + usedCVars)
-    val remainingVars = allCVars.diff(usedCVars)
-    if (remainingVars.size == 0) {
-      //      println("no more; " + subPairs)
-      //      return false
-      val oldC = addAntecedents(c.toList)
-      val oldD = addAntecedents(d.toList)
-      val newSub = Substitution(subPairs: _*)
-      val newCes = for (a <- c) yield newSub(a)
-      val newC = addAntecedents(newCes.toList)
-
-      val dif = oldD.diff(newC)
-      return dif.equals(Sequent()())
-    }
-    //    val oldC = addAntecedents(c.toList)
-    //    val oldD = addAntecedents(d.toList)
-    //    val oldDifSize = oldC.diff(oldD).size
-    //    println("old dif: " + oldC.diff(oldD) + " " + oldDifSize)
-    for (u <- remainingVars) {
-      for (v <- dVars) {
-        val subPair = (u, v)
-        //        println("subPair: " + subPair)
-        //println("sub: " + sub)        
-        //        val newC = for (a <- c) yield sub(a)
-        //        val newD = for (a <- d) yield sub(a)
-        //        val sC = addAntecedents(newC.toList)
-        //        val sD = addAntecedents(newD.toList)
-        //        val dif = sC.diff(sD)
-        //println("dif: " + dif)        
-        //        if (dif.equals(Sequent()())) {
-        //          return true
-        //        }
-        //        if (dif.size < oldDifSize) {
-        if (checkHelper(c, d, allCVars, usedCVars union MSet[Var](u), dVars,
-          (subPair :: subPairs))) {
-          return true
-          //          }
-        }
-      }
-    }
-    false
-  }
-
-  def checkHelperAlpha(computed: Seq[E], desired: Seq[E]): Boolean = {
-    if (computed.size != desired.size) {
-      return false
-    } else if (computed.size == 0 && desired.size == 0) {
-      return true
-    }
-
-    for (f <- computed) {
-      for (g <- desired) {
-        if (g =+= f) {
-          return checkHelperAlpha(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
-        }
-      }
-
-    }
-    false
-  }
-
   def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size != desired.size) {
       return false
@@ -330,74 +263,22 @@ trait FindDesiredSequent extends FindsVars {
 
   def checkHalf(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size == desired.size) {
-//      var matched = false;
       if (computed.size == 0) {
-        //        matched = true
         return true
       }
-      val cVars = getSetOfVars(computed: _*)
-      val dVars = getSetOfVars(desired: _*)
-      //checkHelper(computed, desired, cVars, MSet[Var](), dVars, List[(Var, Var)]())
-//      checkHelperAlpha(computed, desired)
        checkHelperAlphaManual(computed, desired)
-      //            //make sure each computed is in the desired
-      //            for (f <- computed) {
-      //              matched = false
-      //              for (g <- desired) {
-      //                val u = unify((f, g) :: Nil)
-      //                u match {
-      //                  case Some(s) => {
-      //                    if (checkSubstitutions(s)) {
-      //                      matched = true
-      //                    }
-      //                  }
-      //                  case None => {
-      //                    matched = matched
-      //                  }
-      //                }
-      //              }
-      //              if (!matched) {
-      //                return false
-      //              }
-      //            }
-      //            //make sure each desired is in the computed
-      //            for (g <- desired) {
-      //              matched = false
-      //              for (f <- computed) {
-      //                val u = unify((f, g) :: Nil)
-      //                u match {
-      //                  case Some(s) => {
-      //                    if (checkSubstitutions(s)) {
-      //                      matched = true
-      //                    }
-      //                  }
-      //                  case None => {
-      //                    matched = matched
-      //                  }
-      //                }
-      //              }
-      //              if (!matched) {
-      //                return false
-      //              }
-      //            }
-      //            matched
     } else {
       false
     }
   }
 
   def desiredFound(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
-    //    println("computed: " + computed)
-    //    println("desired: " + desired)
     if (computed == desired) {
-      //      println("asdasd")
       return true
     } else {
       if (computed.logicalSize == desired.logicalSize) {
         if (checkHalf(computed.ant, desired.ant)) {
-          //          println("ant passed")
           if (checkHalf(computed.suc, desired.suc)) {
-
             return true
           }
         }
