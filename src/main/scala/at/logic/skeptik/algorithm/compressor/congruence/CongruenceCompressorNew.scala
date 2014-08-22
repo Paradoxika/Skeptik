@@ -76,7 +76,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                     
 //                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
   //                    println("compressing")
-                    proof.root
+                    if (newSize < oldSize) proof.root
+                    else fixedNode
                   }
                   case None => fixedNode
                 }
