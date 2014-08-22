@@ -22,8 +22,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
 //    var comp = 0
 //    var tried = 0
     
-    val directory = "/global/lv70340/AFellner/expsize/"
-    val filename = "proof_"+proof.hashCode
+    val directory = "/global/lv70340/AFellner/expsize_9/"
+    val filename = this.getClass()+ "_proof_"+proof.hashCode
     val output = new FileOutput(directory + filename)
     val header = "original, produced, theorylemma\n"
     output.write(header)
@@ -57,6 +57,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
 //        if (fixedNode.conclusion.suc.size == 1 && fixedNode.conclusion.suc.forall(EqW.isEq(_))) 
 //          resolveWithMap.update(fixedNode.conclusion.suc.last, resolveWithMap.getOrElse(fixedNode.conclusion.suc.last, MSet[N]()) += fixedNode)
         val resNode = if (lowTheoryLemma.contains(node)) {
+//          System.out.println(node.conclusion + " is theorylemma");
 //          tried = tried + 1
           val con = newCon.addAll(leftEqs)
           val eqToMap = rightEqs.map(eq => {
@@ -70,13 +71,16 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                   case Some(proof) => {
                     val newSize = proof.root.conclusion.ant.size
                     val oldSize = leftEqs.size
-                   
+                   if ((newSize - oldSize) > 5) {
+//                     System.out.println("new: " + proof.root.conclusion + " is longer than old:\n" + fixedNode.conclusion);
+                     System.out.println(proof.size + " vs " + Proof(node).size)
+                   }
                     val line = oldSize + ", " + newSize + ", " + theorylemma + "\n"
                     output.write(line)
                     
 //                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
   //                    println("compressing")
-                    if (newSize < oldSize) proof.root
+                    if (newSize <= oldSize) proof.root
                     else fixedNode
                   }
                   case None => fixedNode

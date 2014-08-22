@@ -190,8 +190,8 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
     
   def buildDeduction(dds: Set[EquationPath], eq: EqW) (implicit eqReferences: MMap[(E,E),EqW], reflMap: MMap[E,N]) = {
     val (refl,reflRest) = dds.partition(_.isReflexive)
-    val (roots,eqs) = reflRest.foldLeft((Set[N](),Seq[E]()))({(A,B) => 
-
+//    val (roots,eqs) = reflRest.foldLeft((Set[N](),Seq[E]()))({(A,B) => 
+    val (roots,eqs) = dds.foldLeft((Set[N](),Seq[E]()))({(A,B) => 
       val exSym = A._1.find(node => {
         val nodeEq = EqW(node.conclusion.suc.last)
         nodeEq.l == B.lastVert && nodeEq.r == B.firstVert
