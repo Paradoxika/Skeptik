@@ -73,7 +73,7 @@ trait SPASSParsers
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
       val desiredSequent = newAxiomFromLists(seq._1, seq._2).conclusion.toSeqSequent
-
+      
       val ax = try {
         UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {

@@ -4,7 +4,6 @@ package resolution
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
-import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import collection.mutable.Set
 
 import org.junit.runner.RunWith
@@ -12,7 +11,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class UnifyingResolutionSpecification extends SpecificationWithJUnit {
+class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsVars {
 
   var usedVars = Set[Var]()
   val x = new Var("X", i)
@@ -62,7 +61,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
   var d = new Var("d", i)
   val findSeqTest1A = Sequent()(App(App(Var("a", i -> (i -> i)), c), u))
   val findSeqTest1B = Sequent()(App(App(Var("a", i -> (i -> i)), v), d))
-
+  
   val findSeqTest2A = Sequent()(App(App(Var("a", i -> (i -> i)), c), u))
   val findSeqTest2B = Sequent()(App(App(Var("a", i -> (i -> i)), c), d))
 
@@ -71,7 +70,14 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
 
   val findSeqTest4A = Sequent()(App(App(Var("a", i -> (i -> i)), v), u))
   val findSeqTest4B = Sequent()(App(App(Var("a", i -> (i -> i)), v), u))
+  
+  val findSeqTest5A = Sequent(App(Var("q", i -> i), x))()
+  val findSeqTest5B = App(Var("q", i -> i),v) +: Sequent(App(Var("q", i -> i), u))()  
 
+  
+  val findSeqTest6A = App(Var("p", i -> i),x) +: App(Var("q", i -> i),v) +: Sequent(App(Var("q", i -> i), u))()
+  val findSeqTest6B = App(Var("p", i -> i),x) +: App(Var("p", i -> i),v) +: Sequent(App(Var("q", i -> i), u))()
+ 
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
       Sequent(App(Var("p", i -> i), Var("NEW0", i)))() must beEqualTo(ur.conclusion)
@@ -96,5 +102,11 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit {
     "check that they're equal mod renaming (2 universal vars)" in {
       tester.checkHalf(findSeqTest4A.suc, findSeqTest4B.suc)(usedVars) must beEqualTo(true)
     }
+    "check that they're equal mod renaming (different length)" in {
+      tester.checkHalf(findSeqTest5A.ant, findSeqTest5B.ant)(usedVars) must beEqualTo(false)
+    }    
+    "check that they're equal mod renaming (different distribution of formulas)" in {
+      tester.checkHalf(findSeqTest6A.ant, findSeqTest6B.ant)(usedVars) must beEqualTo(false)
+    }      
   }
 }
