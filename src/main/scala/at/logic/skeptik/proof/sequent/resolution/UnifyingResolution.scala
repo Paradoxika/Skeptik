@@ -49,7 +49,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-    
+
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
@@ -213,6 +213,71 @@ trait CanRenameVariables extends FindsVars {
 
 trait FindDesiredSequent extends FindsVars {
 
+  def intersectMaps(a: MMap[Var, Set[Var]], b: MMap[Var, Set[Var]]): MMap[Var, Set[Var]] = {
+    val out = MMap[Var, Set[Var]]()
+    
+    val sharedKeys = (a.keySet).intersect(b.keySet)
+    for(sKey <- sharedKeys){
+      out.put(sKey, a.get(sKey).get intersect b.get(sKey).get)
+    }
+    val aOnlyKeys = (a.keySet) -- sharedKeys
+    for(aKey <- aOnlyKeys){
+      out.put(aKey, a.get(aKey).get)
+    }
+    val bOnlyKeys = (b.keySet) -- sharedKeys
+    for(bKey <- bOnlyKeys){
+      out.put(bKey, b.get(bKey).get)
+    }    
+    
+    out
+  }
+  
+  def validMap(m: MMap[Var, Set[Var]]):Boolean = {
+    for(k <- m.keySet){
+      if(m.get(k).get.size == 0){
+        return false
+      }
+    }
+    true
+  }
+  
+  def generateSubstitutionOptions(computed: Seq[E], desired: Seq[E]) = {
+    val map = new MMap[Var, Set[Var]]()
+    for (c <- computed) {
+      val cVars = getSetOfVars(c)
+      for (d <- desired) {
+        val dVars = getSetOfVars(d)
+
+        for (dv <- dVars) {
+          val u = unify((c, d) :: Nil)(cVars union dVars)
+          u match {
+            case Some(s) => {
+              if (checkSubstitutions(s)) {
+                //make sure it's just a renaming
+                
+                //so that var could have gone to any of the variables in d; add them all
+                for (cv <- cVars) {
+                  if (map.keySet.contains(cv)) {
+                    //update that set
+                    map.put(cv, map.get(cv).get ++ dVars)
+                  } else {
+                    //add a new set
+                    //note the conversion is safe since checkSubstitutions already confirms it's a var
+                    map.put(cv, Set[Var]() ++ dVars)
+                  }
+                }
+
+              }
+            }
+            case None => {
+            }
+          }
+        }
+      }
+    }
+    map
+  }
+
   def isValidName(v: Var): Boolean = {
     val hasLowerCaseFirst = v.name.charAt(0).isLower
     val notAnInt = v.name.charAt(0).isLetter
@@ -243,12 +308,13 @@ trait FindDesiredSequent extends FindsVars {
     }
 
     for (f <- computed) {
-      
+
       for (g <- desired) {
         val u = unify((f, g) :: Nil)
         u match {
           case Some(s) => {
             if (checkSubstitutions(s)) {
+              //add current subs to this (not checkSubs is used above! modify with care)
               return checkHelperAlphaManual(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
             }
           }
@@ -263,10 +329,7 @@ trait FindDesiredSequent extends FindsVars {
 
   def checkHalf(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size == desired.size) {
-      if (computed.size == 0) {
-        return true
-      }
-       checkHelperAlphaManual(computed, desired)
+      checkHelperAlphaManual(computed, desired)
     } else {
       false
     }
@@ -277,6 +340,13 @@ trait FindDesiredSequent extends FindsVars {
       return true
     } else {
       if (computed.logicalSize == desired.logicalSize) {
+        val antMap = generateSubstitutionOptions(computed.ant, desired.ant)
+        val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
+        val intersectedMap = intersectMaps(antMap, sucMap)
+      
+        if(!validMap(intersectedMap)) {
+          return false
+        }
         if (checkHalf(computed.ant, desired.ant)) {
           if (checkHalf(computed.suc, desired.suc)) {
             return true

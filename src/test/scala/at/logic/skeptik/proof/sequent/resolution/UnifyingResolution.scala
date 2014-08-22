@@ -79,7 +79,11 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   
   val findSeqTest6A = App(Var("p", i -> i),x) +: App(Var("q", i -> i),v) +: Sequent(App(Var("q", i -> i), u))()
   val findSeqTest6B = App(Var("p", i -> i),x) +: App(Var("p", i -> i),v) +: Sequent(App(Var("q", i -> i), u))()
- 
+  
+  val findSeqTest7A = App(Var("p", i -> i),x) +: App(Var("q", i -> i),y) +: (Sequent()(App(Var("r", i -> i), y)) + App(Var("s", i -> i), x))
+  val findSeqTest7B = App(Var("p", i -> i),u) +: App(Var("q", i -> i),v) +: (Sequent()(App(Var("r", i -> i), u)) + App(Var("s", i -> i), v))  
+  
+  
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
       Sequent(App(Var("p", i -> i), Var("NEW0", i)))() must beEqualTo(ur.conclusion)
@@ -109,6 +113,9 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     }    
     "check that they're equal mod renaming (different distribution of formulas)" in {
       tester.checkHalf(findSeqTest6A.ant, findSeqTest6B.ant)(usedVars) must beEqualTo(false)
+    }     
+    "check that they're equal mod renaming (different distribution of formulas)" in {
+      tester.desiredFound(findSeqTest7A, findSeqTest7B)(usedVars) must beEqualTo(false)
     }      
   }
 }
