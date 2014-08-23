@@ -22,7 +22,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
 //    var comp = 0
 //    var tried = 0
     
-    val directory = "/global/lv70340/AFellner/explsize_10/"
+    val directory = "/global/lv70340/AFellner/explsize_11/"
     val filename = this.getClass.getSimpleName + "_proof_"+proof.hashCode
     val output = new FileOutput(directory + filename)
     val header = "original, produced, theorylemma\n"
@@ -80,8 +80,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                     
 //                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
   //                    println("compressing")
-                    if (newSize <= oldSize) proof.root
-//                    if (proof.size <= Proof(node).size) proof.root
+//                    if (newSize <= oldSize) proof.root
+                    if (proof.size <= Proof(node).size) proof.root
                     else fixedNode
                   }
                   case None => fixedNode
