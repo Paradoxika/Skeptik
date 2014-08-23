@@ -8,7 +8,6 @@ import collection.immutable.Set
 import collection.mutable.{ HashMap => MMap, Set => MSet }
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
-
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
@@ -100,27 +99,77 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   cMap.put(y, Set[Var](x))
 
   val dMap = MMap[Var, Set[Var]]()
-  dMap.put(x, Set[Var]())  
-  
-  val eMap = MMap[Var, Set[Var]]()
-  eMap.put(x, Set[Var](x) + y) 
-  
-  //checkHelperAlphaManual
+  dMap.put(x, Set[Var]())
 
+  val eMap = MMap[Var, Set[Var]]()
+  eMap.put(x, Set[Var](x) + y)
+
+  //checkHelperAlphaManual
+  //true
+  val chSeq1A = Seq[E](App(Var("q", i -> i), x))
+  val chSeq1B = Seq[E](App(Var("q", i -> i), y))
+
+  //false
+  val chSeq2A = Seq[E](App(Var("q", i -> i), x))
+  val chSeq2B = Seq[E](App(Var("q", i -> i), c))  
+
+  //true
+  val chSeq4A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u)) 
+  val chSeq4B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u)) 
+  
+  //false
+  val chSeq5A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u)) 
+  val chSeq5B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u)) ++  Seq[E](App(Var("p", i -> i), v))
+  
+  //false
+  val chSeq6A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u))  ++  Seq[E](App(Var("p", i -> i), v))
+  val chSeq6B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u))
+  
+  //false
+  val chSeq7A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u)) 
+  val chSeq7B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u)) ++  Seq[E](App(Var("p", i -> i), c))
+  
   //checkSubstitutions
   val varToAbsSub = Substitution((x, App(Var("a", i -> (i -> i)), c)))
   val varToVar = Substitution((x, y))
-  val varToSVar = Substitution((x,c))
-  val varToSVars = Substitution((x,c), (y, x))
-  val varToSVarE = Substitution((x,c), (y, App(Var("a", i -> (i -> i)), c)))
-  val varToSVarEVar = Substitution((x,c), (y, App(Var("a", i -> (i -> i)), u)))
-  val varToVars = Substitution((x,y), (y, x))
-  
+  val varToSVar = Substitution((x, c))
+  val varToSVars = Substitution((x, c), (y, x))
+  val varToSVarE = Substitution((x, c), (y, App(Var("a", i -> (i -> i)), c)))
+  val varToSVarEVar = Substitution((x, c), (y, App(Var("a", i -> (i -> i)), u)))
+  val varToVars = Substitution((x, y), (y, x))
+
   //generateSubstitutionOptions
-  
+  //empty map
+  val gsSeq1A = Seq[E](App(Var("q", i -> i), x))
+  val gsSeq1B = Seq[E](App(Var("q", i -> i), c))
+
+  //empty map
+  val gsSeq2A = Seq[E](App(Var("q", i -> i), x))
+  val gsSeq2B = Seq[E](App(Var("p", i -> i), y))
+
+  val gsMap3 = MMap[Var, Set[Var]]()
+  gsMap3.put(x, Set[Var](y))
+  val gsSeq3A = Seq[E](App(Var("q", i -> i), x))
+  val gsSeq3B = Seq[E](App(Var("q", i -> i), y))
+
+  val gsMap4 = MMap[Var, Set[Var]]()
+  gsMap4.put(x, Set[Var](y) + u)
+  val gsSeq4A = Seq[E](App(Var("q", i -> i), x))
+  val gsSeq4B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("q", i -> i), u))
+
+  val gsMap5 = MMap[Var, Set[Var]]()
+  gsMap5.put(x, Set[Var](y))
+  gsMap5.put(u, Set[Var](v))
+  val gsSeq5A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u))
+  val gsSeq5B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), v))
+
+  val gsMap6 = MMap[Var, Set[Var]]()
+  gsMap6.put(x, Set[Var](y))
+  val gsSeq6A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u))
+  val gsSeq6B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), Var("1", i)))
+
   //validMap
   //uses above
-  
 
   //------checkUnifiableVariableName trait tests
   //isValidName
@@ -128,23 +177,22 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   }
   val nameTester = new ValidNameTest
 
-  
   //------FindsVars trait tests  
   class varsTest extends FindsVars {
   }
   val varsTester = new varsTest
-    
+
   //getSetOfVars - proof node
   val vAc = new Axiom(Sequent(App(Var("a", i -> (i -> i)), c))())
-  
+
   val vAX = new Axiom(Sequent(App(Var("a", i -> (i -> i)), x))())
-  
+
   val vAcX = new Axiom(App(Var("a", i -> (i -> i)), x) +: Sequent(App(Var("a", i -> (i -> i)), x))())
-  
+
   val vAXY = new Axiom(Sequent(App(Var("a", i -> (i -> i)), x))(App(Var("b", i -> (i -> i)), y)))
-  
+
   val vAX1 = new Axiom(Sequent(App(Var("a", i -> (i -> i)), x))(App(Var("b", i -> (i -> i)), Var("1", i))))
-  
+
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
       Sequent(App(Var("p", i -> i), Var("NEW0", i)))() must beEqualTo(ur.conclusion)
@@ -195,36 +243,72 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     }
     "intersect maps correctly (0 empty maps; no var's set is empty)" in {
       tester.intersectMaps(aMap, eMap) must beEqualTo(aMap)
-    }   
+    }
     "valid map correctly checks empty map" in {
       tester.validMap(emptyMap) must beEqualTo(true)
-    }  
+    }
     "valid map correctly checks empty var set" in {
       tester.validMap(dMap) must beEqualTo(false)
-    } 
+    }
     "valid map correctly checks nonempty var set" in {
       tester.validMap(aMap) must beEqualTo(true)
-    }    
+    }
     "check substitution correctly checks righthand side is var (false)" in {
       tester.checkSubstitutions(varToAbsSub) must beEqualTo(false)
-    }  
+    }
     "check substitution correctly checks righthand side is var (true)" in {
       tester.checkSubstitutions(varToVar) must beEqualTo(true)
-    } 
+    }
     "check substitution correctly checks righthand side is a universal var" in {
       tester.checkSubstitutions(varToSVar) must beEqualTo(false)
-    } 
+    }
     "check substitution correctly checks righthand side is var (many right hand sides; one true, one false)" in {
       tester.checkSubstitutions(varToSVars) must beEqualTo(false)
-    }     
+    }
     "check substitution correctly checks righthand side is var (many right; one non-var)" in {
       tester.checkSubstitutions(varToSVarE) must beEqualTo(false)
-    } 
+    }
     "check substitution correctly checks righthand sides (many right; none good)" in {
       tester.checkSubstitutions(varToSVarEVar) must beEqualTo(false)
-    }  
+    }
     "check substitution correctly checks righthand sides (many right; all good)" in {
-      tester.checkSubstitutions(varToVars) must beEqualTo(false)
+      tester.checkSubstitutions(varToVars) must beEqualTo(true)
+    }
+    "generateSubstitutionOptions should return the empty map" in {
+      tester.generateSubstitutionOptions(gsSeq1A, gsSeq1B) must beEqualTo(emptyMap)
+    }
+    "generateSubstitutionOptions should return the empty map" in {
+      tester.generateSubstitutionOptions(gsSeq2A, gsSeq2B) must beEqualTo(emptyMap)
+    }
+    "generateSubstitutionOptions should return the correct map" in {
+      tester.generateSubstitutionOptions(gsSeq3A, gsSeq3B) must beEqualTo(gsMap3)
+    }
+    "generateSubstitutionOptions should return the correct map" in {
+      tester.generateSubstitutionOptions(gsSeq4A, gsSeq4B) must beEqualTo(gsMap4)
+    }
+    "generateSubstitutionOptions should return the correct map" in {
+      tester.generateSubstitutionOptions(gsSeq5A, gsSeq5B) must beEqualTo(gsMap5)
+    }
+    "generateSubstitutionOptions should return the correct map" in {
+      tester.generateSubstitutionOptions(gsSeq6A, gsSeq6B) must beEqualTo(gsMap6)
+    }
+    "checkHelperAlphaManual should return the correct result (x->y; true)" in {
+      tester.checkHelperAlphaManual(chSeq1A, chSeq1B)(usedVars) must beEqualTo(true)
+    }
+    "checkHelperAlphaManual should return the correct result (x->c; false)" in {
+      tester.checkHelperAlphaManual(chSeq2A, chSeq2B)(usedVars) must beEqualTo(false)
+    }
+    "checkHelperAlphaManual should return the correct result (even distribution)" in {
+      tester.checkHelperAlphaManual(chSeq4A, chSeq4B)(usedVars) must beEqualTo(true)
+    }
+    "checkHelperAlphaManual should return the correct result (longer desired)" in {
+      tester.checkHelperAlphaManual(chSeq5A, chSeq5B)(usedVars) must beEqualTo(false)
+    }
+    "checkHelperAlphaManual should return the correct result (longer computed)" in {
+      tester.checkHelperAlphaManual(chSeq6A, chSeq6B)(usedVars) must beEqualTo(false)
+    }
+    "checkHelperAlphaManual should return the correct result (number in desired; longer)" in {
+      tester.checkHelperAlphaManual(chSeq7A, chSeq7B)(usedVars) must beEqualTo(false)
     }    
   }
   "checkUnifiableVariableName" should {
@@ -259,6 +343,6 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     }
     "ignore numbers vars" in {
       varsTester.getSetOfVars(vAX1) must beEqualTo(Set[Var](x))
-    }    
+    }
   }
 }
