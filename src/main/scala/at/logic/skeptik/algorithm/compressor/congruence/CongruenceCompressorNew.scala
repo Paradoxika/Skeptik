@@ -22,7 +22,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
 //    var comp = 0
 //    var tried = 0
     
-    val directory = "/global/lv70340/AFellner/explsize_11/"
+    val directory = "/global/lv70340/AFellner/explsize_12/"
     val filename = this.getClass.getSimpleName + "_proof_"+proof.hashCode
     val output = new FileOutput(directory + filename)
     val header = "original, produced, theorylemma\n"
