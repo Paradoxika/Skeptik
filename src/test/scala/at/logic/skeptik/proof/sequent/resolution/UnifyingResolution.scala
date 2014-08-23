@@ -6,6 +6,8 @@ import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
 import collection.immutable.Set
 import collection.mutable.{ HashMap => MMap, Set => MSet }
+import at.logic.skeptik.expression.substitution.immutable.Substitution
+
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
@@ -106,7 +108,14 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   //checkHelperAlphaManual
 
   //checkSubstitutions
-
+  val varToAbsSub = Substitution((x, App(Var("a", i -> (i -> i)), c)))
+  val varToVar = Substitution((x, y))
+  val varToSVar = Substitution((x,c))
+  val varToSVars = Substitution((x,c), (y, x))
+  val varToSVarE = Substitution((x,c), (y, App(Var("a", i -> (i -> i)), c)))
+  val varToSVarEVar = Substitution((x,c), (y, App(Var("a", i -> (i -> i)), u)))
+  val varToVars = Substitution((x,y), (y, x))
+  
   //generateSubstitutionOptions
   
   //validMap
@@ -195,7 +204,28 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     } 
     "valid map correctly checks nonempty var set" in {
       tester.validMap(aMap) must beEqualTo(true)
+    }    
+    "check substitution correctly checks righthand side is var (false)" in {
+      tester.checkSubstitutions(varToAbsSub) must beEqualTo(false)
+    }  
+    "check substitution correctly checks righthand side is var (true)" in {
+      tester.checkSubstitutions(varToVar) must beEqualTo(true)
+    } 
+    "check substitution correctly checks righthand side is a universal var" in {
+      tester.checkSubstitutions(varToSVar) must beEqualTo(false)
+    } 
+    "check substitution correctly checks righthand side is var (many right hand sides; one true, one false)" in {
+      tester.checkSubstitutions(varToSVars) must beEqualTo(false)
     }     
+    "check substitution correctly checks righthand side is var (many right; one non-var)" in {
+      tester.checkSubstitutions(varToSVarE) must beEqualTo(false)
+    } 
+    "check substitution correctly checks righthand sides (many right; none good)" in {
+      tester.checkSubstitutions(varToSVarEVar) must beEqualTo(false)
+    }  
+    "check substitution correctly checks righthand sides (many right; all good)" in {
+      tester.checkSubstitutions(varToVars) must beEqualTo(false)
+    }    
   }
   "checkUnifiableVariableName" should {
     "return true for X" in {
