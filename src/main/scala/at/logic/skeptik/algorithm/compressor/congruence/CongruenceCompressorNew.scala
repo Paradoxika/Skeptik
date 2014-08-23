@@ -56,7 +56,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
         
 //        if (fixedNode.conclusion.suc.size == 1 && fixedNode.conclusion.suc.forall(EqW.isEq(_))) 
 //          resolveWithMap.update(fixedNode.conclusion.suc.last, resolveWithMap.getOrElse(fixedNode.conclusion.suc.last, MSet[N]()) += fixedNode)
-        val resNode = if (lowTheoryLemma.contains(node)) {
+//        val resNode = if (lowTheoryLemma.contains(node)) {
+        val resNode = if (true) {
 //          System.out.println(node.conclusion + " is theorylemma");
 //          tried = tried + 1
           val con = newCon.addAll(leftEqs)
@@ -80,8 +81,8 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                     
 //                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
   //                    println("compressing")
-//                    if (newSize <= oldSize) proof.root
-                    if (proof.size <= Proof(node).size) proof.root
+                    if (newSize <= oldSize) proof.root
+//                    if (proof.size <= Proof(node).size) proof.root
                     else fixedNode
                   }
                   case None => fixedNode
