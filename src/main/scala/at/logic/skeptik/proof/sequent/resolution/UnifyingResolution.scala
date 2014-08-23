@@ -82,7 +82,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 
 }
 
-trait FindsVars {
+trait FindsVars extends checkUnifiableVariableName {
   def getSetOfVars(e: E*): MSet[Var] =
     if (e.length == 1) {
       e.head match {
@@ -93,10 +93,7 @@ trait FindsVars {
           getSetOfVars(v).union(getSetOfVars(e1))
         }
         case v: Var => {
-          //Only care if the variable starts with a capital         
-          val hasLowerCaseFirst = v.name.charAt(0).isLower
-          val notAnInt = v.name.charAt(0).isLetter
-          if (!hasLowerCaseFirst && notAnInt) {
+          if (isValidName(v)) {
             MSet[Var](v)
           } else {
             MSet[Var]()
@@ -211,7 +208,15 @@ trait CanRenameVariables extends FindsVars {
   }
 }
 
-trait FindDesiredSequent extends FindsVars {
+trait checkUnifiableVariableName {
+    def isValidName(v: Var): Boolean = {
+    val hasLowerCaseFirst = v.name.charAt(0).isLower
+    val notAnInt = v.name.charAt(0).isLetter
+    notAnInt && !hasLowerCaseFirst
+  }
+}
+
+trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
 
   def intersectMaps(a: MMap[Var, Set[Var]], b: MMap[Var, Set[Var]]): MMap[Var, Set[Var]] = {
     val out = MMap[Var, Set[Var]]()
@@ -278,11 +283,7 @@ trait FindDesiredSequent extends FindsVars {
     map
   }
 
-  def isValidName(v: Var): Boolean = {
-    val hasLowerCaseFirst = v.name.charAt(0).isLower
-    val notAnInt = v.name.charAt(0).isLetter
-    notAnInt && !hasLowerCaseFirst
-  }
+
 
   def checkSubstitutions(s: Substitution): Boolean = {
     for (e <- s.values) {

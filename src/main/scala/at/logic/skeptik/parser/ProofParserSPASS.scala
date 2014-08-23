@@ -17,7 +17,7 @@ import at.logic.skeptik.expression.substitution.immutable.Substitution
 object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
 
 trait SPASSParsers
-  extends JavaTokenParsers with RegexParsers {
+  extends JavaTokenParsers with RegexParsers with checkUnifiableVariableName {
 
   private var count = 1 //the count of the line as given by the SPASS proof
   private var lineCounter = 0 //the actual line number, as in the file
@@ -226,11 +226,11 @@ trait SPASSParsers
 
   def updateVars(s: String) = {
     val hasLowerCaseFirst = s.charAt(0).isLower
-    val stringExpr = new Var(s.toString, i)
-    if (!hasLowerCaseFirst) {
-      vars += stringExpr
+    val v = new Var(s.toString, i)
+    if (isValidName(v)) {
+      vars += v
     }
-    stringExpr
+    v
   }
 
   def name: Parser[String] = "[a-zA-Z0-9]+".r ^^ {
