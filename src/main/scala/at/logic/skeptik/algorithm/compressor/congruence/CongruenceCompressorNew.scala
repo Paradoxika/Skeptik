@@ -13,16 +13,19 @@ import at.logic.skeptik.congruence.structure.{EqW,EquationPath}
 
 abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNodes {
   
+  
   def newCon(implicit eqReferences: MMap[(E,E),EqW]): AbstractCongruence
   
   def apply(proof: Proof[N]) = {
+    
+//    System.out.println("compressing with congruence")
     implicit val eqReferences = MMap[(E,E),EqW]()
     implicit val reflMap = MMap[E,N]()
 //    val resolveWithMap = MMap[E,MSet[N]]()
 //    var comp = 0
 //    var tried = 0
     
-    val directory = "/global/lv70340/AFellner/explsize_12/"
+    val directory = "/global/lv70340/AFellner/explsize_13/"
     val filename = this.getClass.getSimpleName + "_proof_"+proof.hashCode
     val output = new FileOutput(directory + filename)
     val header = "original, produced, theorylemma\n"
@@ -81,7 +84,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
                     
 //                    comp = comp + (fixedNode.conclusion.size - proof.root.conclusion.size)
   //                    println("compressing")
-                    if (newSize <= oldSize) proof.root
+                    if (newSize < oldSize || (newSize == oldSize && proof.size < Proof(fixedNode).size)) proof.root
 //                    if (proof.size <= Proof(node).size) proof.root
                     else fixedNode
                   }
@@ -107,7 +110,7 @@ abstract class CongruenceCompressorNew extends (Proof[N] => Proof[N]) with fixNo
         (resNode,theorylemma)
       }
     }
-    proof foldDown classifyNodes
+//    proof foldDown classifyNodes
 //    println(lowTheoryLemma)
     val newProof = (proof foldDown traversal)._1
     
