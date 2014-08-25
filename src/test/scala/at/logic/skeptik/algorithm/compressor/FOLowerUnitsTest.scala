@@ -1,17 +1,30 @@
 package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.parser.ProofParserSPASS
+import at.logic.skeptik.parser.SequentParser
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
+import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.proof.sequent.lk.Axiom
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
+import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
+import at.logic.skeptik.proof.sequent.resolution.Contraction
+import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
+import collection.mutable.{ HashMap => MMap, Set => MSet }
+import at.logic.skeptik.expression._
 
 @RunWith(classOf[JUnitRunner])
-class FOLowerUnitsSpecification extends SpecificationWithJUnit {
-
+class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEquality {
+  
   val proofa = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
   val computeda = FOLowerUnits(proofa).toString
   val expecteda = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example1.result").mkString
-
+println(checkProofs(FOLowerUnits(proofa), "examples/proofs/SPASS/testresults/FOLowerUnits/example1.result"))
+  
+  
   val proofb = ProofParserSPASS.read("examples/proofs/SPASS/example2.spass")
   val computedb = FOLowerUnits(proofb).toString
   val expectedb = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example2.result").mkString
@@ -77,5 +90,42 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit {
     "Compress the ninth proof correctly (unit is relatively least general)" in {
       computedi.trim must beEqualTo(expectedi.trim)
     }       
+  }
+}
+
+trait checkProofEquality extends FindDesiredSequent {
+  def checkProofs(p: Proof[SequentProofNode], s: String): Boolean = {
+
+    val proofNodes = p.nodes;
+    val proofNodesReversed = proofNodes.reverse
+    
+    val input = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example1.result")
+    val lines = input.getLines
+    
+    
+    val sequents = for(l <- lines) yield SequentParser(l)
+    val traversableSequents = sequents.toTraversable
+    
+    if(proofNodesReversed.size != traversableSequents.size){
+      return false
+    }
+
+    checkSequents(proofNodesReversed, traversableSequents)
+  }
+  
+  def checkSequents(nodes: Seq[SequentProofNode], seqs: Traversable[Sequent]): Boolean = {
+    if(nodes.length == 0) {
+      return true
+    }   
+    
+    val vars = 
+      getSetOfVars(nodes.head) union  getSetOfVars(seqs.head.ant: _*) union  getSetOfVars(seqs.head.suc: _*)
+   
+    
+    if (desiredFound(nodes.head.conclusion, seqs.head)(vars)){
+      return checkSequents(nodes.tail, seqs.tail)
+    } else {
+      false
+    }
   }
 }
