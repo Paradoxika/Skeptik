@@ -18,78 +18,67 @@ import at.logic.skeptik.expression._
 
 @RunWith(classOf[JUnitRunner])
 class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEquality {
-  
+
   val proofa = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
-  val computeda = FOLowerUnits(proofa).toString
-  val expecteda = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example1.result").mkString
-println(checkProofs(FOLowerUnits(proofa), "examples/proofs/SPASS/testresults/FOLowerUnits/example1.result"))
-  
-  
+  val resulta = checkProofs(FOLowerUnits(proofa), "examples/proofs/SPASS/testresults/FOLowerUnits/example1.result")
+
   val proofb = ProofParserSPASS.read("examples/proofs/SPASS/example2.spass")
-  val computedb = FOLowerUnits(proofb).toString
-  val expectedb = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example2.result").mkString
-  
+  val resultb = checkProofs(FOLowerUnits(proofb), "examples/proofs/SPASS/testresults/FOLowerUnits/example2.result")
+
   val proofc = ProofParserSPASS.read("examples/proofs/SPASS/example3.spass")
-  val computedc = FOLowerUnits(proofc).toString
-  val expectedc = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example3.result").mkString
+  val resultc = checkProofs(FOLowerUnits(proofc), "examples/proofs/SPASS/testresults/FOLowerUnits/example3.result")
 
   val proofd = ProofParserSPASS.read("examples/proofs/SPASS/example4q.spass")
-  val computedd = FOLowerUnits(proofd).toString
-  val expectedd = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example4q.result").mkString
+  val resultd = checkProofs(FOLowerUnits(proofd), "examples/proofs/SPASS/testresults/FOLowerUnits/example4q.result")
 
   //5: some specific variables
   val proofe = ProofParserSPASS.read("examples/proofs/SPASS/example5.spass")
-  val computede = FOLowerUnits(proofe).toString
-  val expectede = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example5.result").mkString
+  val resulte = checkProofs(FOLowerUnits(proofe), "examples/proofs/SPASS/testresults/FOLowerUnits/example5.result")
 
   //6: mix of universal/non-universal 
   val prooff = ProofParserSPASS.read("examples/proofs/SPASS/example6.spass")
-  val computedf = FOLowerUnits(prooff).toString
-  val expectedf = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example6.result").mkString
+  val resultf = checkProofs(FOLowerUnits(prooff), "examples/proofs/SPASS/testresults/FOLowerUnits/example6.result")
 
   //7: unit is resolved against several nodes, but still lowered correctly:
   val proofg = ProofParserSPASS.read("examples/proofs/SPASS/example7.spass")
-  val computedg = FOLowerUnits(proofg).toString
-  val expectedg = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example7.result").mkString
+  val resultg = checkProofs(FOLowerUnits(proofg), "examples/proofs/SPASS/testresults/FOLowerUnits/example7.result")
 
   //8: unit can't be lowered
   val proofh = ProofParserSPASS.read("examples/proofs/SPASS/example8.spass")
-  val computedh = FOLowerUnits(proofh).toString
-  val expectedh = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example8.result").mkString  
-  
+  val resulth = checkProofs(FOLowerUnits(proofh), "examples/proofs/SPASS/testresults/FOLowerUnits/example8.result")
+
   //9: the unit is the relativley least general form 
   val proofi = ProofParserSPASS.read("examples/proofs/SPASS/example9.spass")
-  val computedi = FOLowerUnits(proofi).toString
-  val expectedi = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example9.result").mkString    
-  
+  val resulti = checkProofs(FOLowerUnits(proofi), "examples/proofs/SPASS/testresults/FOLowerUnits/example9.result")
+
   "FOLowerUnits" should {
     "Compress the first proof correctly (example proof; no MRR required)" in {
-      computeda.trim must beEqualTo(expecteda.trim)
+      resulta must beEqualTo(true)
     }
     "Compress the second proof correctly (when lowering requires a non-unit resolution)" in {
-      computedb.trim must beEqualTo(expectedb.trim)
+      resultb must beEqualTo(true)
     }
     "Compress the third proof correctly (MRR required)" in {
-      computedc.trim must beEqualTo(expectedc.trim)
+      resultc must beEqualTo(true)
     }
     "Compress the fourth proof correctly (larger; MRR required)" in {
-      computedd.trim must beEqualTo(expectedd.trim)
+      resultd must beEqualTo(true)
     }
     "Compress the fifth proof correctly (all specific variables)" in {
-      computede.trim must beEqualTo(expectede.trim)
+      resulte must beEqualTo(true)
     }
     "Compress the sixth proof correctly (not all universal variables)" in {
-      computedf.trim must beEqualTo(expectedf.trim)
-    }    
+      resultf must beEqualTo(true)
+    }
     "Compress the seventh proof correctly (unit resolved against several clauses; lowered)" in {
-      computedg.trim must beEqualTo(expectedg.trim)
-    }     
+      resultg must beEqualTo(true)
+    }
     "Compress the eigth proof correctly (unit cannot be lowered)" in {
-      computedh.trim must beEqualTo(expectedh.trim)
-    }   
+      resulth must beEqualTo(true)
+    }
     "Compress the ninth proof correctly (unit is relatively least general)" in {
-      computedi.trim must beEqualTo(expectedi.trim)
-    }       
+      resulti must beEqualTo(true)
+    }
   }
 }
 
@@ -98,31 +87,29 @@ trait checkProofEquality extends FindDesiredSequent {
 
     val proofNodes = p.nodes;
     val proofNodesReversed = proofNodes.reverse
-    
-    val input = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/FOLowerUnits/example1.result")
+
+    val input = scala.io.Source.fromFile(s)
     val lines = input.getLines
-    
-    
-    val sequents = for(l <- lines) yield SequentParser(l)
+
+    val sequents = for (l <- lines) yield SequentParser(l)
     val traversableSequents = sequents.toTraversable
-    
-    if(proofNodesReversed.size != traversableSequents.size){
+
+    if (proofNodesReversed.size != traversableSequents.size) {
       return false
     }
 
     checkSequents(proofNodesReversed, traversableSequents)
   }
-  
+
   def checkSequents(nodes: Seq[SequentProofNode], seqs: Traversable[Sequent]): Boolean = {
-    if(nodes.length == 0) {
+    if (nodes.length == 0) {
       return true
-    }   
-    
-    val vars = 
-      getSetOfVars(nodes.head) union  getSetOfVars(seqs.head.ant: _*) union  getSetOfVars(seqs.head.suc: _*)
-   
-    
-    if (desiredFound(nodes.head.conclusion, seqs.head)(vars)){
+    }
+
+    val vars =
+      getSetOfVars(nodes.head) union getSetOfVars(seqs.head.ant: _*) union getSetOfVars(seqs.head.suc: _*)
+
+    if (desiredFound(nodes.head.conclusion, seqs.head)(vars)) {
       return checkSequents(nodes.tail, seqs.tail)
     } else {
       false

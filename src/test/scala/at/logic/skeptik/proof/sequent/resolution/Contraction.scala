@@ -55,13 +55,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val f1C = AppRec(e, List(App(f, x), two))
   val f2C = AppRec(e, List(App(f, n), three))
 
-  //  println("f1: " + f1)
-  //  println("f2: " + f2)
-
   val seqF2C = Sequent(f2C)()
   val seqC = f1C +: seqF2C
-
-  //  println("seqC: " + seqC)
 
   val premiseC = new Axiom(seqC)
 
@@ -138,6 +133,46 @@ class ContractionSpecification extends SpecificationWithJUnit {
   //12th: check main formula
   //uses conE
   val expectedMainA = "(a b), (b a) ⊢"
+
+  //TODO: Method level tests
+  //conclusion
+
+  //contraction
+
+  //auxFormulas
+
+  //buildMap
+
+  //checkEmpty
+
+  //checkOrContract
+
+  //conclusionContext
+
+  //contract
+
+  //desiredIsSafe
+
+  //getMaps
+
+  //mainFormulas
+
+  //makeSubMap
+
+  //mergeMaps
+
+  //newAnt
+
+  //newSuc
+
+  //TODO:
+  //object (apply) tests
+
+  //2 no desired
+
+  //2+desired
+
+  //unapply
 
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {

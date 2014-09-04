@@ -13,13 +13,45 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsVars {
+class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsVars with FindDesiredSequent {
 
   var usedVars = MSet[Var]()
   val x = new Var("X", i)
   val a = new Var("a", i)
   usedVars += x
+  val y = new Var("Y", i)
+  usedVars += y
 
+  //The following code is used to test the following methods:
+  //conclusionContext
+  //mgu
+  //rightPremise
+  //leftPremise
+  //auxL
+  //auxR  
+  //leftAuxFormulas
+  //rightAuxFormulas  
+  val URleftSeq = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a))
+  val URrightSeq = Sequent(App(Var("q", i -> i), x))()
+  val URleftNode = new Axiom(URleftSeq)
+  val URrightNode = new Axiom(URrightSeq)
+  val URur = UnifyingResolution(URleftNode, URrightNode)(usedVars)
+
+  //leftClean -- no shared
+  val URleftSeqB = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a))
+  val URrightSeqB = Sequent(App(Var("q", i -> i), y))()
+  val URleftNodeB = new Axiom(URleftSeqB)
+  val URrightNodeB = new Axiom(URrightSeqB)
+  val URurB = UnifyingResolution(URleftNodeB, URrightNodeB)(usedVars)
+
+  //leftClean -- shared
+  val URleftSeqC = Sequent(App(Var("p", i -> i), y))(App(Var("q", i -> i), a))
+  val URrightSeqC = Sequent(App(Var("q", i -> i), y))()
+  val URleftNodeC = new Axiom(URleftSeqC)
+  val URrightNodeC = new Axiom(URrightSeqC)
+  val URurC = UnifyingResolution(URleftNodeC, URrightNodeC)(usedVars)
+
+  //object (apply) tests
   //p(X) |- q(a)     with    q(X) |- 
   val leftSeq = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a))
   val rightSeq = Sequent(App(Var("q", i -> i), x))()
@@ -30,8 +62,6 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val ur = UnifyingResolution(leftNode, rightNode)(usedVars)
 
   //Test case 2
-  val y = new Var("Y", i)
-  usedVars += y
   val leftSeqB = Sequent(App(Var("p", i -> i), x))(App(Var("q", i -> i), a))
   val rightSeqB = Sequent(App(Var("q", i -> i), y))()
   val leftNodeB = new Axiom(leftSeqB)
@@ -45,19 +75,61 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   var u = new Var("U", i)
   var v = new Var("V", i)
   var w = new Var("W", i)
+  var z = new Var("Z", i)
   val rightSeqC = Sequent(App(App(Var("le", i -> (i -> o)), AppRec(new Var("max", i -> (i -> i)), List(u, v))), w))(App(App(Var("le", i -> (i -> o)), v), w))
   usedVars += u
   usedVars += v
   usedVars += w
-
+  usedVars += z
   val leftNodeC = new Axiom(leftSeqC)
   val rightNodeC = new Axiom(rightSeqC)
   val urC = UnifyingResolution(leftNodeC, rightNodeC)(usedVars)
+
+  // test apply with a desired sequent
+  val leftNodeD = Axiom(Sequent()(App(Var("p", i -> i), x)))
+  val rightNodeD = Axiom(Sequent(App(Var("p", i -> i), y))(App(Var("q", i -> i), z)))
+  val desiredD = Sequent()(App(Var("q", i -> i), z))
+  val urD = UnifyingResolution(leftNodeD, rightNodeD, desiredD)(usedVars)
+
+  val desiredE = Sequent()(App(Var("q", i -> i), a))
+
+  //test unapply
+  val resultF = urD match {
+    case u: UnifyingResolution => true
+    case _ => false
+  }
 
   class FindDesiredTest extends FindDesiredSequent {
   }
 
   val tester = new FindDesiredTest
+
+  //empty pairs
+  val FDSpairsA = Seq[(E, E)]()
+  val FDSdesiredA = Sequent()() //doesn't matter
+  val FDSleftA = Axiom(Sequent()())
+  val FDSrightA = Axiom(Sequent()())
+  val FDSleftCleanA = Axiom(Sequent()())
+
+  //requires no recursive call
+  val FDSpairsB = Seq[(E, E)]((App(Var("p", i -> i), x), App(Var("p", i -> i), y)))
+  val FDSdesiredB = Sequent()()
+  val FDSleftB = Axiom(Sequent()(App(Var("p", i -> i), x)))
+  val FDSrightB = Axiom(Sequent(App(Var("p", i -> i), y))())
+  val FDSleftCleanB = FDSleftB
+
+  val FDSresultB = tester.findDesiredSequent(FDSpairsB, FDSdesiredB, FDSleftB, FDSrightB, FDSleftCleanB, false)(usedVars)
+  val FDSexpectedB = UnifyingResolution(FDSleftB, FDSrightB)(usedVars)
+
+  //requires recursive call
+  val FDSpairsC = Seq[(E, E)]((App(Var("p", i -> i), x), App(Var("p", i -> i), z))) ++ Seq[(E, E)]((App(Var("q", i -> i), a), App(Var("q", i -> i), y)))
+  val FDSdesiredC = Sequent(App(Var("p", i -> i), y))(App(Var("p", i -> i), x))
+  val FDSleftC = Axiom(Sequent()(App(Var("p", i -> i), x)) + App(Var("q", i -> i), a))
+  val FDSrightC = Axiom(App(Var("q", i -> i), y) +: Sequent(App(Var("p", i -> i), z))())
+  val FDSleftCleanC = FDSleftC
+  val FDSresultC = tester.findDesiredSequent(FDSpairsC, FDSdesiredC, FDSleftC, FDSrightC, FDSleftCleanC, false)(usedVars)
+  val FDSexpectedC = Sequent(App(Var("p", i -> i), z))(App(Var("p", i -> i), x))
+
   //tester.checkHalf(computed, desired)
   var c = new Var("c", i)
   var d = new Var("d", i)
@@ -111,24 +183,24 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
 
   //false
   val chSeq2A = Seq[E](App(Var("q", i -> i), x))
-  val chSeq2B = Seq[E](App(Var("q", i -> i), c))  
+  val chSeq2B = Seq[E](App(Var("q", i -> i), c))
 
   //true
-  val chSeq4A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u)) 
-  val chSeq4B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u)) 
-  
+  val chSeq4A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u))
+  val chSeq4B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), u))
+
   //false
-  val chSeq5A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u)) 
-  val chSeq5B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u)) ++  Seq[E](App(Var("p", i -> i), v))
-  
+  val chSeq5A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u))
+  val chSeq5B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), u)) ++ Seq[E](App(Var("p", i -> i), v))
+
   //false
-  val chSeq6A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u))  ++  Seq[E](App(Var("p", i -> i), v))
-  val chSeq6B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u))
-  
+  val chSeq6A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u)) ++ Seq[E](App(Var("p", i -> i), v))
+  val chSeq6B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), u))
+
   //false
-  val chSeq7A = Seq[E](App(Var("q", i -> i), x)) ++  Seq[E](App(Var("p", i -> i), u)) 
-  val chSeq7B = Seq[E](App(Var("q", i -> i), y)) ++  Seq[E](App(Var("p", i -> i), u)) ++  Seq[E](App(Var("p", i -> i), c))
-  
+  val chSeq7A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u))
+  val chSeq7B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), u)) ++ Seq[E](App(Var("p", i -> i), c))
+
   //checkSubstitutions
   val varToAbsSub = Substitution((x, App(Var("a", i -> (i -> i)), c)))
   val varToVar = Substitution((x, y))
@@ -182,7 +254,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   }
   val varsTester = new varsTest
 
-  //getSetOfVars - proof node
+  //getSetOfVars - proof node (overloaded method not tested; inputs would be the same but passed in differently)
   val vAc = new Axiom(Sequent(App(Var("a", i -> (i -> i)), c))())
 
   val vAX = new Axiom(Sequent(App(Var("a", i -> (i -> i)), x))())
@@ -193,9 +265,72 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
 
   val vAX1 = new Axiom(Sequent(App(Var("a", i -> (i -> i)), x))(App(Var("b", i -> (i -> i)), Var("1", i))))
 
+  //CanRenameVariables----
+  class Renamer extends CanRenameVariables {
+  }
+  val renameTester = new Renamer
+  //fixSharedNoFilter
+  //1 empty node
+  val rename1lefta = Axiom(Sequent()())
+  val rename1righta = Axiom(Sequent()(App(Var("p", i -> i), z)))
+  val rename1expecteda = rename1lefta
+  val rename1outa = renameTester.fixSharedNoFilter(rename1lefta, rename1righta, 0, usedVars)
+
+  //1 shared variable
+  val rename1leftb = Axiom(Sequent()(App(Var("q", i -> i), z)))
+  val rename1rightb = Axiom(Sequent()(App(Var("p", i -> i), z)))
+  val rename1expectedb = Axiom(Sequent()(App(Var("q", i -> i), Var("NEW0", i)))).conclusion
+  val rename1outb = renameTester.fixSharedNoFilter(rename1leftb, rename1rightb, 0, usedVars).conclusion
+  val rename1bFinal = desiredFound(rename1expectedb, rename1outb)(usedVars)
+
+  //2 shared variables
+  val rename1leftc = Axiom(Sequent(App(Var("q", i -> i), y))(App(Var("q", i -> i), z)))
+  val rename1rightc = Axiom(Sequent(App(Var("q", i -> i), y))(App(Var("p", i -> i), z)))
+  val rename1expectedc = Axiom(Sequent(App(Var("q", i -> i), x))(App(Var("q", i -> i), Var("NEW0", i)))).conclusion
+  val rename1outc = renameTester.fixSharedNoFilter(rename1leftc, rename1rightc, 0, usedVars).conclusion
+  val rename1cFinal = desiredFound(rename1expectedc, rename1outc)(usedVars)
+
+  //no shared variables
+  val rename1leftd = Axiom(Sequent()(App(Var("p", i -> i), x)))
+  val rename1rightd = Axiom(Sequent()(App(Var("p", i -> i), z)))
+  val rename1expectedd = rename1leftd
+  val rename1outd = renameTester.fixSharedNoFilter(rename1leftd, rename1rightd, 0, usedVars)
+
+  //isUnifiable
+  val rename2a = (App(Var("p", i -> i), x), App(Var("p", i -> i), z))
+  val rename2b = (App(Var("p", i -> i), x), App(Var("q", i -> i), z))
+  val rename2c = (App(Var("p", i -> i), a), App(Var("p", i -> i), z))
+  val rename2d = (App(Var("p", i -> i), x), App(Var("p", i -> i), Var("1", i)))
+
+  "CanRenameVariables" should {
+    "not worry about shared variables if one node is empty" in {
+      rename1outa must beEqualTo(rename1expecteda)
+    }
+    "handle 1 shared variable correctly" in {
+      rename1bFinal must beEqualTo(true)
+    }
+    "handle 2 shared variables correctly" in {
+      rename1cFinal must beEqualTo(true)
+    }
+    "handle 0 shared variables correctly" in {
+      rename1outd must beEqualTo(rename1expectedd)
+    }
+    "report true for unifiable pair" in {
+      renameTester.isUnifiable(rename2a)(usedVars) must beEqualTo(true)
+    }
+    "report false for non-unifiable pair" in {
+      renameTester.isUnifiable(rename2b)(usedVars) must beEqualTo(false)
+    }
+    "report true for unifiable pair (specific)" in {
+      renameTester.isUnifiable(rename2c)(usedVars) must beEqualTo(true)
+    }
+    "report true for unifiable pair (specific number)" in {
+      renameTester.isUnifiable(rename2d)(usedVars) must beEqualTo(true)
+    }
+  }
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
-      Sequent(App(Var("p", i -> i), Var("NEW0", i)))() must beEqualTo(ur.conclusion)
+      desiredFound(Sequent(App(Var("p", i -> i), Var("NEW0", i)))(), ur.conclusion)(usedVars) must beEqualTo(true)
     }
     "return the correct resolvent when no substituion necessary" in {
       Sequent(App(Var("p", i -> i), x))() must beEqualTo(urB.conclusion)
@@ -203,8 +338,56 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     "return the correct resolvent taken from the example" in {
       Sequent()(App(App(Var("le", i -> (i -> o)), v), AppRec(new Var("max", i -> (i -> i)), List(u, v)))) must beEqualTo(urC.conclusion)
     }
+    "return the desired resolvent" in {
+      desiredD must beEqualTo(urD.conclusion)
+    }
+    "throw an exception if the desired sequent can't be found" in {
+      UnifyingResolution(leftNodeD, rightNodeD, desiredE)(usedVars) must throwA[Exception]
+    }
+    "implement unapply correctly" in {
+      resultF must beEqualTo(true)
+    }
+    "return the correct leftPremise" in {
+      URur.leftPremise must beEqualTo(URleftNode)
+    }
+    "return the correct rightPremise" in {
+      URur.rightPremise must beEqualTo(URrightNode)
+    }
+    "return the correct clean left (no shared)" in {
+      URurB.leftClean must beEqualTo(URleftNodeB)
+    }
+    "return the correct clean left (shared)" in {
+      desiredFound(URurC.leftClean.conclusion, URleftNodeC.conclusion)(usedVars) must beEqualTo(true)
+    }
+    "return the correct auxL" in {
+      desiredFound(Sequent()(URur.auxL), Sequent()(App(Var("q", i -> i), a)))(usedVars) must beEqualTo(true)
+    }
+    "return the correct auxR" in {
+      desiredFound(Sequent()(URur.auxR), Sequent()(App(Var("q", i -> i), y)))(usedVars) must beEqualTo(true)
+    }
+    "return the correct leftAuxFormulas" in {
+      desiredFound(URur.leftAuxFormulas, Sequent()(App(Var("q", i -> i), a)))(usedVars) must beEqualTo(true)
+    }
+    "return the correct rightAuxFormulas" in {
+      desiredFound(URur.rightAuxFormulas, Sequent(App(Var("q", i -> i), y))())(usedVars) must beEqualTo(true)
+    }
+    "return the correct mgu" in {
+      URur.mgu must beEqualTo(Substitution((x, a)))
+    }
+    "return the correct conclusion context" in {
+      desiredFound(URur.conclusionContext, Sequent(App(Var("p", i -> i), y))())(usedVars) must beEqualTo(true)
+    }
   }
   "FindDesiredSequent" should {
+    "Throw an exception as the recursive base case" in {
+      tester.findDesiredSequent(FDSpairsA, FDSdesiredA, FDSleftA, FDSrightA, FDSleftCleanA, false)(usedVars) must throwA[Exception]
+    }
+    "Handle an easy case (no recursion) in finding the desired sequent" in {
+      FDSexpectedB.asInstanceOf[UnifyingResolution].conclusion.equals(FDSresultB.conclusion) must beEqualTo(true)
+    }
+    "Recurse correctly in finding the desired sequent" in {
+      FDSresultC.conclusion must beEqualTo(FDSexpectedC)
+    }
     "check that a unification is not applied for a sequent half (2 specific vars)" in {
       tester.checkHalf(findSeqTest1A.suc, findSeqTest1B.suc)(usedVars) must beEqualTo(false)
     }
@@ -309,7 +492,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     }
     "checkHelperAlphaManual should return the correct result (number in desired; longer)" in {
       tester.checkHelperAlphaManual(chSeq7A, chSeq7B)(usedVars) must beEqualTo(false)
-    }    
+    }
   }
   "checkUnifiableVariableName" should {
     "return true for X" in {

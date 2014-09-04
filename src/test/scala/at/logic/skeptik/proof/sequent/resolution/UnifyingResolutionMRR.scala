@@ -11,7 +11,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
+class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with FindDesiredSequent {
 
   var usedVars = Set[Var]()
   val x = new Var("X", i)
@@ -96,6 +96,60 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
   val computedAuxG = urGMRR.auxL + " " + urGMRR.auxR
   val expectedAuxG = "(q X)" + " " + "(q a)"
 
+  //conclusionContext
+  val urH = UnifyingResolutionMRR(rightNodeF, leftNodeF)(usedVars)
+  val urHCC = urH.conclusionContext
+  val expectedH = Sequent(App(Var("p", i -> i), y))()
+
+  //object (apply) tests
+  //2 no desired
+  val urI = UnifyingResolutionMRR(rightNodeF, leftNodeF)(usedVars)
+  val expectedI = Sequent(App(Var("p", i -> i), y))()
+
+  //2+desired
+  val desiredJ = Sequent(App(Var("p", i -> i), x))()
+  val urJ = UnifyingResolutionMRR(rightNodeF, leftNodeF, desiredJ)(usedVars)
+  val expectedJ = desiredJ
+  val resultJ = desiredFound(desiredJ, urJ.conclusion)(usedVars)
+
+  //2+bad desired
+  val desiredK = Sequent(App(Var("p", i -> i), a))()
+
+  //3 no desired
+  val desiredL = Sequent()()
+  val leftSeqL = Sequent(App(Var("q", i -> i), a))()
+  val leftSeqLB = App(Var("q", i -> i), y) +: leftSeqL
+
+  val rightSeqL = Sequent()(App(Var("q", i -> i), x))
+  val leftNodeLB = new Axiom(leftSeqLB)
+
+  val rightNodeL = new Axiom(rightSeqL)
+
+  val urL = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
+  val expectedL = Sequent()()
+
+  //3+desired
+  //see above (test 'E')
+
+  //unapply
+  val urM = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
+  val outM = urM match {
+    case u: UnifyingResolutionMRR => true
+    case _ => false
+  }
+
+  val urN = UnifyingResolutionMRR(rightNodeF, leftNodeF, desiredJ)(usedVars)
+  val outN = urN match {
+    case u: UnifyingResolutionMRR => true
+    case _ => false
+  }
+
+  val urO = UnifyingResolutionMRR(rightNodeF, leftNodeF)(usedVars)
+  val outO = urO match {
+    case u: UnifyingResolutionMRR => true
+    case _ => false
+  }
+
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution and a contraction" in {
       Sequent(App(Var("p", i -> i), y))() must beEqualTo(ur.conclusion)
@@ -117,6 +171,30 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit {
     }
     "compute the correct aux formulas (with others present)" in {
       computedAuxG must beEqualTo(expectedAuxG)
+    }
+    "return the correct conclusion context" in {
+      expectedH must beEqualTo(urHCC)
+    }
+    "resolve two nodes without specifying a desired sequent" in {
+      expectedI must beEqualTo(urI.conclusion)
+    }
+    "resolve two nodes with specifying a desired sequent" in {
+      resultJ must beEqualTo(true)
+    }
+    "throw an exception when the desired sequent is unobtainable" in {
+      UnifyingResolutionMRR(rightNodeF, leftNodeF, desiredK)(usedVars) must throwA[Exception]
+    }
+    "resolve three nodes to empty correctly" in {
+      urL.conclusion must beEqualTo(expectedL)
+    }
+    "pattern match using unapply correctly (3-way)" in {
+      outM must beEqualTo(true)
+    }
+    "pattern match using unapply correctly (2-way; desired)" in {
+      outN must beEqualTo(true)
+    }
+    "pattern match using unapply correctly (2-way)" in {
+      outO must beEqualTo(true)
     }
   }
 }

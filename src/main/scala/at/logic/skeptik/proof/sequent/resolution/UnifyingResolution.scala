@@ -382,6 +382,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
 
       val computedSequent = computedResolution.conclusion.toSeqSequent
 
+
       if (desiredFound(desired, computedSequent)) {
         computedResolution
       } else {
