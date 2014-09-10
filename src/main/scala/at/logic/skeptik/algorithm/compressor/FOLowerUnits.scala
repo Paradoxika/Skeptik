@@ -20,7 +20,7 @@ object FOLowerUnits
 
   // ToDo: optimize this by interlacing collectUnits and fixProofNodes
 
-  private def collectUnits(proof: Proof[SequentProofNode]) = {
+  def collectUnits(proof: Proof[SequentProofNode]) = {
     val vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>
       if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) {
@@ -31,7 +31,7 @@ object FOLowerUnits
           val parentsConclusions = for (p <- c.premises) yield {
             //Picks out (all) u_k in c_k
             getUnitLiteral(p.conclusion, node.conclusion, vars)
-            
+
           }
           val varsC = getSetOfVars(c)
           for (v <- varsC) {
@@ -65,12 +65,12 @@ object FOLowerUnits
   def getUnitLiteral(seq: Sequent, unit: Sequent, vars: MSet[Var]) = {
     if (unit.ant.length > 0) {
       //positive polarity, only need to check negative polarity of seq
-      
-        val varsN = getSetOfVars(seq.suc: _*)
-        for (v <- varsN) {
-          vars += v
-        }         
-      
+
+      val varsN = getSetOfVars(seq.suc: _*)
+      for (v <- varsN) {
+        vars += v
+      }
+
       val out = for (l <- seq.suc) yield {
         if (isUnifiable((l, unit.ant.head))(vars)) {
           l
@@ -81,12 +81,12 @@ object FOLowerUnits
       out.filter(_ != null)
     } else if (unit.suc.length > 0) {
       //negative polarity, only need to check positive polarity of seq
-      
-              val varsN = getSetOfVars(seq.ant: _*)
-        for (v <- varsN) {
-          vars += v
-        }   
-      
+
+      val varsN = getSetOfVars(seq.ant: _*)
+      for (v <- varsN) {
+        vars += v
+      }
+
       val out = for (l <- seq.ant) yield {
         if (isUnifiable((l, unit.suc.head))(vars)) {
           l
@@ -100,11 +100,11 @@ object FOLowerUnits
     }
   }
 
-  private def checkListUnif(l: List[E], vars: MSet[Var]): Boolean = {
+  def checkListUnif(l: List[E], vars: MSet[Var]): Boolean = {
     if (l.length > 1) {
       val first = l.head
       val second = l.tail.head
-      
+
       def isUnifiableWrapper(p: (E, E)) = {
         isUnifiable(p)(vars)
       }
@@ -124,7 +124,7 @@ object FOLowerUnits
     }
   }
 
-  private def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
+  def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
     val fixMap = MMap[SequentProofNode, SequentProofNode]()
 
     def visit(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
@@ -138,8 +138,8 @@ object FOLowerUnits
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
         case UnifyingResolution(left, right, _, _) => {
           UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
-        } 
-        case Contraction(_,_) => {
+        }
+        case Contraction(_, _) => {
           //For contractions, we pick a fixed node (but both are equal, so either works)
           //the fixed node is the same as the contraction syntactically, but has
           //the correct premise node in the fixed proof
@@ -186,8 +186,8 @@ object FOLowerUnits
 
         }
       } else {
-        //both are non-units 
-    	UnifyingResolution(left, right)(vars)
+        //both are non-units
+        UnifyingResolution(left, right)(vars)
       }
     }
   }
@@ -205,7 +205,7 @@ object FOLowerUnits
         contractAndUnify(left, right, vars)
       } catch {
         case e: Exception => {
-            contractAndUnify(right, left, vars)
+          contractAndUnify(right, left, vars)
         }
       }
     }

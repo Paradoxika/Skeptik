@@ -13,7 +13,7 @@ import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
-import collection.mutable.{ HashMap => MMap, Set => MSet }
+import collection.mutable.{ HashMap => MMap, HashSet => MSet }
 import at.logic.skeptik.expression._
 
 @RunWith(classOf[JUnitRunner])
@@ -51,6 +51,115 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   val proofi = ProofParserSPASS.read("examples/proofs/SPASS/example9.spass")
   val resulti = checkProofs(FOLowerUnits(proofi), "examples/proofs/SPASS/testresults/FOLowerUnits/example9.result")
 
+  var usedVars = MSet[Var]()
+  val x = new Var("X", i)
+  val a = new Var("a", i)
+  usedVars += x
+  val y = new Var("Y", i)
+  usedVars += y
+  val u = new Var("U", i)
+  usedVars += u
+  val v = new Var("V", i)
+  usedVars += v  
+
+  //method level tests
+  //apply
+  //-- tested above; skipped
+
+  //collectUnits
+  //'Empty' proof
+  val collect1result = FOLowerUnits.collectUnits(Proof(Axiom(Sequent()())))
+  val collect1expected = (List[SequentProofNode](), MSet[Var]())
+
+  //One unit, one var -- note nothing is lowered, since the unit is never resolved against anything, so the unit
+  // is not returned
+  val collect2result = FOLowerUnits.collectUnits(Proof(Axiom(Sequent(App(Var("q", i -> i), x))())))
+  val collect2expected = (List[SequentProofNode](), MSet[Var](x))
+  
+  //one units, no vars -- note nothing is lowered, since the unit is never resolved against anything, so the unit
+  // is not returned
+  val collect3result = FOLowerUnits.collectUnits(Proof(Axiom(Sequent(App(Var("q", i -> i), a))())))
+  val collect3expected = (List[SequentProofNode](), MSet[Var]())
+
+  //fixProofNodes
+  //empty
+  val emptyAx = Axiom(Sequent()())
+  val emptyProof = Proof[SequentProofNode](emptyAx)
+  val fixProof1result = FOLowerUnits.fixProofNodes(Set[SequentProofNode](), emptyProof, MSet[Var]())
+  val fixProof1expected = MMap[SequentProofNode, SequentProofNode]()
+  fixProof1expected.update(emptyAx, emptyAx)
+
+  //contractAndUnify
+  //left is unit, right not
+  val unitTest = Axiom(App(Var("q", i -> i), x) +: Sequent(App(Var("q", i -> i), a))())
+  val unitTestB = Axiom(Sequent()(App(Var("q", i -> i), a)))
+  val conUnif1result = FOLowerUnits.contractAndUnify(unitTestB, unitTest, usedVars)
+  
+  //left is unit, right unit
+  val unitTestC = Axiom(Sequent(App(Var("q", i -> i), a))())
+  val conUnif2result = FOLowerUnits.contractAndUnify(unitTestB, unitTestC, usedVars)
+  
+  //left is not unit, right unit
+  val nonUnitTest = Axiom(Sequent()(App(Var("p", i -> i), x)) + App(Var("p", i -> i), y))
+  val unitTestD = Axiom(Sequent(App(Var("p", i -> i), a))())
+  val conUnif3result = FOLowerUnits.contractAndUnify(nonUnitTest, unitTestD, usedVars)
+    
+  //left is not unit, right is not unit 
+  val nonUnitTestB = Axiom(Sequent()(App(Var("p", i -> i), x)) + App(Var("q", i -> i), y))  
+  val unitTestE = Axiom(App(Var("p", i -> i), u) +: Sequent(App(Var("r", i -> i), v))())
+  val conUnif4result = FOLowerUnits.contractAndUnify(nonUnitTestB, unitTestE, usedVars)  
+    
+  
+  //checkListUnif
+  //empty list
+  val checkListUnif1a = List[E]()
+  val checkListUnif1result = FOLowerUnits.checkListUnif(checkListUnif1a, usedVars)
+  val checkListUnif1expected = false
+
+  //list is unifiable - single
+  val checkListUnif2a = List[E](App(Var("q", i -> i), x))
+  val checkListUnif2result = FOLowerUnits.checkListUnif(checkListUnif2a, usedVars)
+  val checkListUnif2expected = true
+
+  //list is not unifiable
+  val checkListUnif3a = List[E](App(Var("q", i -> i), x)) ++ List[E](App(Var("r", i -> i), x))
+  val checkListUnif3result = FOLowerUnits.checkListUnif(checkListUnif3a, usedVars)
+  val checkListUnif3expected = false
+
+  //list is unifiable - many
+  val checkListUnif4a = List[E](App(Var("q", i -> i), x)) ++ List[E](App(Var("q", i -> i), y)) ++ List[E](App(Var("q", i -> i), u))
+  val checkListUnif4result = FOLowerUnits.checkListUnif(checkListUnif4a, usedVars)
+  val checkListUnif4expected = true
+
+  //getUnitLiteral
+  //unit in ant
+  val getUnit1a = Sequent(App(Var("q", i -> i), x))()
+  val getUnit1b = Sequent()(App(Var("q", i -> i), y)) + App(Var("p", i -> i), x)
+  val getUnit1result = FOLowerUnits.getUnitLiteral(getUnit1b, getUnit1a, usedVars)
+  val getUnit1expected = Seq[E](App(Var("q", i -> i), y))
+
+  //unit is suc
+  val getUnit2a = Sequent()(App(Var("q", i -> i), x))
+  val getUnit2b = App(Var("p", i -> i), x) +: Sequent(App(Var("q", i -> i), x))()
+  val getUnit2result = FOLowerUnits.getUnitLiteral(getUnit2b, getUnit2a, usedVars)
+  val getUnit2expected = Seq[E](App(Var("q", i -> i), x))
+
+  //unit in ant; given sequent doesn't have the unit
+  val getUnit3a = Sequent(App(Var("q", i -> i), x))()
+  val getUnit3b = Sequent()(App(Var("r", i -> i), y)) + App(Var("p", i -> i), x)
+  val getUnit3result = FOLowerUnits.getUnitLiteral(getUnit3b, getUnit3a, usedVars)
+  val getUnit3expected = Seq[E]()
+
+  //isUnitClause
+  //empty
+  val isUnit1 = Sequent()()
+
+  //unit
+  val isUnit2 = Sequent(App(Var("q", i -> i), x))()
+
+  //non-unit
+  val isUnit3 = Sequent(App(Var("q", i -> i), x))(App(Var("r", i -> i), y))
+
   "FOLowerUnits" should {
     "Compress the first proof correctly (example proof; no MRR required)" in {
       resulta must beEqualTo(true)
@@ -78,6 +187,61 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
     }
     "Compress the ninth proof correctly (unit is relatively least general)" in {
       resulti must beEqualTo(true)
+    }
+    "determine if a clause is unit (empty)" in {
+      FOLowerUnits.isUnitClause(isUnit1) must beEqualTo(false)
+    }
+    "determine if a clause is unit (unit)" in {
+      FOLowerUnits.isUnitClause(isUnit2) must beEqualTo(true)
+
+    }
+    "determine if a clause is unit (non-unit)" in {
+      FOLowerUnits.isUnitClause(isUnit3) must beEqualTo(false)
+    }
+    "get the formula corresponding to the pivot unit correctly (ant)" in {
+      getUnit1result must beEqualTo(getUnit1expected)
+    }
+    "get the formula corresponding to the pivot unit correctly (suc)" in {
+      getUnit2result must beEqualTo(getUnit2expected)
+    }
+    "get the formula corresponding to the pivot unit correctly (not present)" in {
+      getUnit3result must beEqualTo(getUnit3expected)
+    }
+    "check that list of formulas are unifiable (empty)" in {
+      checkListUnif1result must beEqualTo(checkListUnif1expected)
+    }
+    "check that list of formulas are unifiable (single)" in {
+      checkListUnif2result must beEqualTo(checkListUnif2expected)
+    }
+    "check that list of formulas are unifiable (non-unifiable)" in {
+      checkListUnif3result must beEqualTo(checkListUnif3expected)
+    }
+    "check that list of formulas are unifiable (many)" in {
+      checkListUnif4result must beEqualTo(checkListUnif4expected)
+    }
+    "collect units and unifiable variables correctly (no units, no vars)" in {
+      collect1expected must beEqualTo(collect1result)
+    }
+    "collect units and unifiable variables correctly (one units, one var)" in {
+      collect2expected must beEqualTo(collect2result)
+    }
+    "collect units and unifiable variables correctly (one units, no vars)" in {
+      collect3expected must beEqualTo(collect3result)
+    }    
+    "contract and unify correctly (unit, unit)" in {
+      conUnif1result.conclusion must beEqualTo(Sequent()())
+    }
+    "contract and unify correctly (unit, nonunit)" in {
+      conUnif2result.conclusion must beEqualTo(Sequent()())
+    }
+    "contract and unify correctly (nonunit, unit)" in {
+      conUnif3result.conclusion must beEqualTo(Sequent()())
+    }
+    "contract and unify correctly (nonunit, nonunit)" in {
+      conUnif4result.conclusion must beEqualTo(Sequent(App(Var("r", i -> i), v))(App(Var("q", i -> i), y)))
+    }    
+    "fix proof nodes correctly (empty proof)" in {
+      fixProof1result must beEqualTo(fixProof1expected)
     }
   }
 }
