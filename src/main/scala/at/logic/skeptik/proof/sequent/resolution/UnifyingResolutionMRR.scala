@@ -17,10 +17,15 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode, override
   extends UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftClean) {
 
   override val conclusionContext = {
-    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
-      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
-    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-      rightPremise.conclusion.suc.map(e => mgu(e))
+//    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
+//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
+//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
+//      rightPremise.conclusion.suc.map(e => mgu(e))
+    
+        val antecedent = leftClean.conclusion.ant.map(e => makeAllMGUReplacementsAgain(e,mgu)) ++
+      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>  makeAllMGUReplacementsAgain(e,mgu))
+    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
+      rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though    
     new Sequent(antecedent, succedent)
   }
 
@@ -37,10 +42,13 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, true)
     } else if (unifiablePairs.length == 0) {
-      throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+      System.err.println("left:    " + leftPremise)
+      System.err.println("right:   " + rightPremise)
+      System.err.println("desired: " + desired)
+      throw new Exception("Resolution (MRR): the conclusions of the given premises are not resolvable.")
     } else {
       //Should never really be reached in this constructor
-      throw new Exception("Resolution: the resolvent is ambiguous.")
+      throw new Exception("Resolution (MRR): the resolvent is ambiguous.")
     }
   }
 

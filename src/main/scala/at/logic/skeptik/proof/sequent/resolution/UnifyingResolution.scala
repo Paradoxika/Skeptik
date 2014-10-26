@@ -29,15 +29,57 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       throw new Exception("Resolution: given premise clauses are not resolvable.")
     }
     case Some(u) => {
+      println(u)
       u
     }
   }
 
+  //TODO: implement this CORRECTLY
+  //TODO: test that this DOES NOT BREAK ANYTHING
+  def mguTest(sub: Substitution): Substitution = {
+    if (sub.size > 1){
+      val first = sub.head
+      val firstV = first._1
+      val firstE = sub.tail(first._2)  
+      val recur = mguTest(sub.tail)
+      Substitution((firstV, firstE))
+    } else {
+      sub
+    }
+  }
+  
+  //this also fixes it. is it correct?
+  def makeAllMGUReplacementsAgain(e: E, sub: Substitution): E = {
+    if(sub.size > 0) {
+      val first = sub.head      
+      val firstV = first._1
+      val firstE = first._2  
+      val firstS = Substitution((firstV, firstE))
+      makeAllMGUReplacementsAgain(firstS(e), sub.tail)
+    } else {
+      e
+    }
+  }
+  
   override val conclusionContext = {
-    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
-      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
-    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-      rightPremise.conclusion.suc.map(e => mgu(e))
+//    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
+//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
+//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
+//    rightPremise.conclusion.suc.map(e => mgu(e))
+//      
+    
+        val antecedent = leftClean.conclusion.ant.map(e => makeAllMGUReplacementsAgain(e,mgu)) ++
+      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>  makeAllMGUReplacementsAgain(e,mgu))
+    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
+      rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though
+    
+    println("before mgu: " + rightPremise.conclusion.suc)
+println("MGU: " + mgu)
+
+//      println("thisB: " +  rightPremise.conclusion.suc.map(e => mgu(e)))
+//      println("thisC: " + rightPremise.conclusion.suc.map(e => mguTest(mgu)(e) ))//this fixes it - not always!
+//      println("thisD: " + rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) )) //so does this
+      
     new Sequent(antecedent, succedent)
   }
 
@@ -49,10 +91,12 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-
+//println("length: " + unifiablePairs.length)
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
+//      println("left: " + leftPremise)
+//      println("right: " + rightPremise)
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A")
     } else {
       //Should never really be reached in this constructor
@@ -216,7 +260,7 @@ trait checkUnifiableVariableName {
   }
 }
 
-trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
+trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {
 
   def intersectMaps(a: MMap[Var, Set[Var]], b: MMap[Var, Set[Var]]): MMap[Var, Set[Var]] = {
     val out = MMap[Var, Set[Var]]()
@@ -239,37 +283,82 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
   
   def validMap(m: MMap[Var, Set[Var]]):Boolean = {
     for(k <- m.keySet){
-      if(m.get(k).get.size == 0){
+      println("k: " + k + " --> " + m.get(k).get)
+//      if(m.get(k).get.size == 0){
+      if(m.get(k).get.size != 1){
+      
         return false
       }
     }
     true
   }
   
+  def convertTypes(in: List[(E, E)]): List[(Var, E)] = {
+    if (in.length > 0) {
+      val h = in.head
+      val newH = (h._1.asInstanceOf[Var] , h._2)
+      println("headlist: " + List[(Var, E)](newH) )
+      List[(Var, E)](newH) ++ convertTypes(in.tail)
+    } else {
+      List[(Var, E)]()
+    }
+  }
+  
   def generateSubstitutionOptions(computed: Seq[E], desired: Seq[E]) = {
+//    println("C-s: " + computed)
+//    println("D-s: " + desired)
     val map = new MMap[Var, Set[Var]]()
     for (c <- computed) {
       val cVars = getSetOfVars(c)
       for (d <- desired) {
         val dVars = getSetOfVars(d)
 
-        for (dv <- dVars) {
-          val u = unify((c, d) :: Nil)(cVars union dVars)
+//        for (dv <- dVars) {
+        
+          val cAxiom = new Axiom(Sequent(c)())
+          val dAxiom = new Axiom(Sequent(d)())
+          val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, cVars union dVars)
+          val dClean = dAxiomClean.conclusion.ant.head
+          
+          //should never not be able to unify -- one is the other, but with new variable names
+          val dToCleanSub = (unify((d, dClean)::Nil)(cVars union dVars)).get
+          val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
+//          println("d-clean: " + dToCleanSub)
+          val inverseSubsCasted = convertTypes(inverseSubs.toList)
+//          println("casted: " + inverseSubsCasted)
+//          println("inverse: " + Substitution(inverseSubsCasted: _*))
+          val inverseSub =  Substitution(inverseSubsCasted: _*)
+          
+//          val u = unify((c, d) :: Nil)(cVars union dVars) //NEED TO CLEAN THESE VARS
+          val u = unify((c, dClean) :: Nil)(cVars union dVars)
+          
           u match {
             case Some(s) => {
               if (checkSubstitutions(s)) {
                 //make sure it's just a renaming
                 
                 //so that var could have gone to any of the variables in d; add them all
+                //NO -- it can only go to what the sub said it could!
+                
+//                println("cvars: " + cVars + " for " + c)
+//                println("sub: " + s)
                 for (cv <- cVars) {
+                 
+//                val sub = getValidSubstitution(s, cv)
+                val sub = inverseSub(getValidSubstitution(s, cv))
+//                println(cv + " -> " + sub)
+                val realVars = getSetOfVars(sub)
                   if (map.keySet.contains(cv)) {
                     //update that set
-                    map.put(cv, map.get(cv).get ++ dVars)
+//                    map.put(cv, map.get(cv).get ++ dVars)
+                    map.put(cv, map.get(cv).get ++ realVars)
                   } else {
                     //add a new set
                     //note the conversion is safe since checkSubstitutions already confirms it's a var
-                    map.put(cv, Set[Var]() ++ dVars)
+//                    map.put(cv, Set[Var]() ++ dVars)
+                                        map.put(cv, Set[Var]() ++ realVars)
                   }
+                
                 }
 
               }
@@ -277,7 +366,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
             case None => {
             }
           }
-        }
+//        }
       }
     }
     map
@@ -299,6 +388,20 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
       }
     }
     true
+  }
+  
+   def getValidSubstitution(s: Substitution, v: Var): E = {
+    for (k <- s.keys) {
+      if (k.equals(v)) {
+              s.get(k).get match {
+        case Var(name, _) => {
+          return s.get(k).get
+        }
+      }
+
+      }
+    }
+    v
   }
 
   def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
@@ -342,9 +445,13 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
     } else {
       if (computed.logicalSize == desired.logicalSize) {
         val antMap = generateSubstitutionOptions(computed.ant, desired.ant)
+//        println("---")
         val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
         val intersectedMap = intersectMaps(antMap, sucMap)
       
+//        println("AM: " + antMap)
+//        println("SM: " + sucMap)
+//        println("before validity check: " + computed + " and " + desired)
         if(!validMap(intersectedMap)) {
           return false
         }
@@ -362,26 +469,37 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName {
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
+//      println("DESIRED: " + desired)
+//      println("left: " + leftPremise)
+//      println("right: " + rightPremise)
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
+//      println(pairs.length)
       val (auxL, auxR) = pairs(0)
+//      println(auxL)
+//      println(auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-
+//println("hereA")
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             Contraction(ax, desired)(unifiableVariables)
           } else {
             ax
           }
+          
         } else {
+//          println("hereB " + rightPremise)
           new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
         }
       }
 
+      
+      
       val computedSequent = computedResolution.conclusion.toSeqSequent
-
+println("C: " + computedSequent)
+      println("D: " + desired)
 
       if (desiredFound(desired, computedSequent)) {
         computedResolution
