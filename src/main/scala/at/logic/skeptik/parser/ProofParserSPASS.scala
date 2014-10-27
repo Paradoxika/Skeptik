@@ -42,7 +42,7 @@ trait SPASSParsers
 
   def updateLineCounter = {
     lineCounter += 1
-//println("last parsed: " + lineCounter)
+println("last parsed: " + lineCounter)
     
     if (lineCounter % 50 == 0) {
       println("Parsed " + lineCounter + " lines.")
@@ -63,13 +63,13 @@ trait SPASSParsers
     }
   }
 
-  def line: Parser[Node] = number ~ "[" ~ number ~ ":" ~ inferenceRule ~ repsep(ref, ",") ~ lowPriority ~ sequent ^^ {
+  def line: Parser[Node] = number ~ "[" ~ splitNumber ~ ":" ~ inferenceRule ~ repsep(ref, ",") ~ lowPriority ~ sequent ^^ {
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), lp), seq) => {
 //      val ax = newAxiomFromLists(seq._1.reverse, lp ++ seq._2)//the order matters?!?
-      val ax = newAxiomFromLists(seq._1, lp ++ seq._2)
+      val ax = newAxiomFromLists(lp ++ seq._1, seq._2)
       proofMap += (ln -> ax)
       updateLineCounter
-      println("Parsed: " + ln + ":" + ax)
+//      println("Parsed: " + ln + ":" + ax)
       ax
     }
 
@@ -82,7 +82,7 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
-      val desiredSequent = newAxiomFromLists(seq._1, lp ++ seq._2).conclusion.toSeqSequent
+      val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
       
       
       val ax = try {
@@ -98,7 +98,7 @@ trait SPASSParsers
       }
 
       
-      val ay = newAxiomFromLists(seq._1, lp ++ seq._2)
+      val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
       println("Left:  " + ln + ": " + firstPremise)
       println("Right: " + ln + ": " + secondPremise)
                               println("Parsed: " + ln + ":" + ay)
@@ -117,7 +117,7 @@ trait SPASSParsers
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
-      val desiredSequent = newAxiomFromLists(seq._1, lp ++ seq._2).conclusion.toSeqSequent
+      val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
       val lastPremise =  if (firstNode == secondNode) {
         val lastRef = refs.last
@@ -141,7 +141,7 @@ trait SPASSParsers
         UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise, desiredSequent)(vars)
       }
 
-      val ay = newAxiomFromLists(seq._1, lp ++ seq._2)
+      val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
       //                  println("Parsed MRR: " + ln + ":" + ay)
       //                  println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
@@ -150,7 +150,7 @@ trait SPASSParsers
     }
     //For now, treat the other inference rules as new axioms
     case ~(~(~(~(~(~(~(ln, _), _), _), _), refs), lp), seq) => {
-      val ax = newAxiomFromLists(seq._1, lp ++ seq._2)
+      val ax = newAxiomFromLists(lp ++ seq._1, seq._2)
       proofMap += (ln -> ax)
       ax
     }
@@ -209,7 +209,10 @@ trait SPASSParsers
   //Other inference rules are currently treated as axioms when parsed.
   //Must be 3 letters with an optional ":"
   def otherInferenceRule: Parser[String] = "[a-zA-Z]{3}:*".r ^^ {
-    case s => s
+    case s => {
+      throw new ParserException("Unsupported rule used; aborting.")
+      s
+    }
   } 
   
   def func: Parser[E] = name ~ "(" ~ repsep(term, ",") ~ ")" ^^ {
@@ -236,6 +239,16 @@ trait SPASSParsers
   }
 
   def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
+  
+  def splitNumber: Parser[Int] = """\d+""".r ^^ {
+    case s: String => {
+      val out = s.toInt
+      if (out > 0) {
+        throw new ParserException("Splitting not supported!")
+      }
+      out
+    }
+  }
 
   def term: Parser[E] = (func | num | variable)
 

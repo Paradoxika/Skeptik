@@ -29,7 +29,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       throw new Exception("Resolution: given premise clauses are not resolvable.")
     }
     case Some(u) => {
-      println(u)
+//      println(u)
       u
     }
   }
@@ -73,8 +73,8 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
       rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though
     
-    println("before mgu: " + rightPremise.conclusion.suc)
-println("MGU: " + mgu)
+//    println("before mgu: " + rightPremise.conclusion.suc)
+//println("MGU: " + mgu)
 
 //      println("thisB: " +  rightPremise.conclusion.suc.map(e => mgu(e)))
 //      println("thisC: " + rightPremise.conclusion.suc.map(e => mguTest(mgu)(e) ))//this fixes it - not always!
@@ -283,7 +283,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   
   def validMap(m: MMap[Var, Set[Var]]):Boolean = {
     for(k <- m.keySet){
-      println("k: " + k + " --> " + m.get(k).get)
+//      println("k: " + k + " --> " + m.get(k).get)
 //      if(m.get(k).get.size == 0){
       if(m.get(k).get.size != 1){
       
@@ -297,7 +297,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     if (in.length > 0) {
       val h = in.head
       val newH = (h._1.asInstanceOf[Var] , h._2)
-      println("headlist: " + List[(Var, E)](newH) )
       List[(Var, E)](newH) ++ convertTypes(in.tail)
     } else {
       List[(Var, E)]()
