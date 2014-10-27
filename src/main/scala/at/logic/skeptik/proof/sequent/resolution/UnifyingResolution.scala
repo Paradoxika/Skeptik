@@ -15,7 +15,7 @@ import at.logic.skeptik.parser.ProofParserSPASS
 class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: SequentProofNode,
   val auxL: E, val auxR: E, val leftClean: SequentProofNode)(implicit unifiableVariables: MSet[Var])
   extends SequentProofNode with Binary
-  with NoMainFormula {
+  with NoMainFormula with CanRenameVariables {
 
   def leftAuxFormulas: SeqSequent = Sequent()(auxL)
   def rightAuxFormulas: SeqSequent = Sequent(auxR)()
@@ -29,7 +29,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       throw new Exception("Resolution: given premise clauses are not resolvable.")
     }
     case Some(u) => {
-//      println(u)
+      println(u)
       u
     }
   }
@@ -61,18 +61,56 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     }
   }
   
+  //
+  def splitSub(sub: Substitution, a: MSet[Var], b: MSet[Var]): (Substitution, Substitution) = {
+    var la = List[(Var, E)]();
+    var lb = List[(Var, E)]();
+    for(k <- sub) {
+      if(a.contains(k._1)){
+        la = la ++ List[(Var, E)](k);
+      } else if (b.contains(k._1)){
+        lb = lb ++ List[(Var, E)](k);
+      }
+    }
+    (Substitution(la: _*), Substitution(lb: _*))
+  }
+  
+  //
+  def applySub(sub: Substitution, app: Substitution): Substitution = {
+    var l = List[(Var, E)]();
+    for(k <- sub){
+      val newPair = (k._1, app(k._2))
+      l = l ++ List[(Var, E)](newPair);
+    }
+    Substitution(l: _*)
+  }
+  
+  //
+  def makeSpecifc(e: E, sub: Substitution, left: SequentProofNode, right: SequentProofNode): E = {
+    val newSubs = splitSub(sub, getSetOfVars(left), getSetOfVars(right))
+    val finalSub = applySub(applySub(sub, newSubs._1), newSubs._2)
+    finalSub(e)
+  }
+  
   override val conclusionContext = {
-//    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
-//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
-//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-//    rightPremise.conclusion.suc.map(e => mgu(e))
-//      
+    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
+      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
+    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
+    rightPremise.conclusion.suc.map(e => mgu(e))
+ 
     
-        val antecedent = leftClean.conclusion.ant.map(e => makeAllMGUReplacementsAgain(e,mgu)) ++
-      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>  makeAllMGUReplacementsAgain(e,mgu))
-    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
-      rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though
+//        val antecedent = leftClean.conclusion.ant.map(e => makeAllMGUReplacementsAgain(e,mgu)) ++
+//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>  makeAllMGUReplacementsAgain(e,mgu))
+//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
+//      rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though
     
+    
+//        val antecedent = leftClean.conclusion.ant.map(e => makeSpecifc(e,mgu, leftClean, rightPremise)) ++
+//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>   makeSpecifc(e,mgu, leftClean, rightPremise))
+//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>   makeSpecifc(e,mgu, leftClean, rightPremise)) ++
+//      rightPremise.conclusion.suc.map(e =>  makeSpecifc(e,mgu, leftClean, rightPremise) ) //doesn't fix everything though    
+    
+//    
 //    println("before mgu: " + rightPremise.conclusion.suc)
 //println("MGU: " + mgu)
 
@@ -95,8 +133,8 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
-//      println("left: " + leftPremise)
-//      println("right: " + rightPremise)
+      println("left: " + leftPremise)
+      println("right: " + rightPremise)
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A")
     } else {
       //Should never really be reached in this constructor
@@ -257,6 +295,12 @@ trait checkUnifiableVariableName {
     val hasLowerCaseFirst = v.name.charAt(0).isLower
     val notAnInt = v.name.charAt(0).isLetter
     notAnInt && !hasLowerCaseFirst
+  }
+    
+    def isValidNameB(v: Var): Boolean = {
+    val hasLowerCaseFirst = v.name.charAt(0).isLower
+    val notAnInt = v.name.charAt(0).isLetter
+    notAnInt //&& !hasLowerCaseFirst
   }
 }
 
@@ -469,8 +513,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
     if (pairs.length == 0) {
 //      println("DESIRED: " + desired)
-//      println("left: " + leftPremise)
-//      println("right: " + rightPremise)
+      println("left: " + leftPremiseClean)
+      println("right: " + rightPremise)
+      
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
 //      println(pairs.length)

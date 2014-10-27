@@ -69,7 +69,7 @@ println("last parsed: " + lineCounter)
       val ax = newAxiomFromLists(lp ++ seq._1, seq._2)
       proofMap += (ln -> ax)
       updateLineCounter
-//      println("Parsed: " + ln + ":" + ax)
+      println("Parsed: " + ln + ":" + ax)
       ax
     }
 
