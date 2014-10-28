@@ -37,7 +37,6 @@ object MartelliMontanari {
 
           
           eqs = for (eq <- eqs.tail) yield {
-            //println("   Eq: " + eq +  " ; SubEq: " + (sub(eq._1),sub(eq._2)))
             (sub(eq._1),sub(eq._2)) 
           }
         } 

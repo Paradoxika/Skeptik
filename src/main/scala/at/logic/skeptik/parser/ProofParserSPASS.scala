@@ -65,7 +65,6 @@ println("last parsed: " + lineCounter)
 
   def line: Parser[Node] = number ~ "[" ~ splitNumber ~ ":" ~ inferenceRule ~ repsep(ref, ",") ~ lowPriority ~ sequent ^^ {
     case ~(~(~(~(~(~(~(ln, _), _), _), "Inp"), _), lp), seq) => {
-//      val ax = newAxiomFromLists(seq._1.reverse, lp ++ seq._2)//the order matters?!?
       val ax = newAxiomFromLists(lp ++ seq._1, seq._2)
       proofMap += (ln -> ax)
       updateLineCounter
@@ -147,6 +146,18 @@ println("last parsed: " + lineCounter)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
+    }
+    case ~(~(~(~(~(~(~(ln, _), _), _), "Con:"), refs), lp), seq) => {
+     def firstRef = refs.head
+      def firstNode = firstRef.first
+      val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
+      
+      val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
+
+      val con = Contraction(firstPremise, desiredSequent)(vars)
+      proofMap += (ln -> con)
+      updateLineCounter      
+      con
     }
     //For now, treat the other inference rules as new axioms
     case ~(~(~(~(~(~(~(ln, _), _), _), _), refs), lp), seq) => {
