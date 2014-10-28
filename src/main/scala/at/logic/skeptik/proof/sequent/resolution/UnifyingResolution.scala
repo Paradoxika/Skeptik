@@ -109,7 +109,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 //      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>   makeSpecifc(e,mgu, leftClean, rightPremise))
 //    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>   makeSpecifc(e,mgu, leftClean, rightPremise)) ++
 //      rightPremise.conclusion.suc.map(e =>  makeSpecifc(e,mgu, leftClean, rightPremise) ) //doesn't fix everything though    
-    
+//    
 //    
 //    println("before mgu: " + rightPremise.conclusion.suc)
 //println("MGU: " + mgu)
@@ -329,8 +329,22 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     for(k <- m.keySet){
 //      println("k: " + k + " --> " + m.get(k).get)
 //      if(m.get(k).get.size == 0){
-      if(m.get(k).get.size != 1){
-      
+      if(m.get(k).get.size != 1){      
+        return false
+      }
+    }
+    true
+  }
+  
+  
+    def validMapB(m: MMap[Var, Set[Var]], vars: MSet[Var]):Boolean = {
+    for(k <- m.keySet){
+//      println("k: " + k + " --> " + m.get(k).get)
+//      if(m.get(k).get.size == 0){
+      if(vars.contains(k) && m.get(k).get.size != 1){      
+        return false
+      }
+      if(!vars.contains(k) &&  m.get(k).get.size == 0){
         return false
       }
     }
@@ -405,11 +419,13 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
                 }
 
               }
+              
             }
             case None => {
             }
           }
 //        }
+        
       }
     }
     map
@@ -492,12 +508,20 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
         val intersectedMap = intersectMaps(antMap, sucMap)
       
-//        println("AM: " + antMap)
-//        println("SM: " + sucMap)
-//        println("before validity check: " + computed + " and " + desired)
-        if(!validMap(intersectedMap)) {
+        println("AM: " + antMap)
+        println("SM: " + sucMap)
+        println("IM: " + intersectedMap)
+        println("before validity check: " + computed + " and " + desired)
+        
+                val commonVars = getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc))
+println("common: " + commonVars)
+        
+//        if(!validMap(intersectedMap)) {
+//          return false
+//        }
+        if(!validMapB(intersectedMap, commonVars)) {
           return false
-        }
+        }        
         if (checkHalf(computed.ant, desired.ant)) {
           if (checkHalf(computed.suc, desired.suc)) {
             return true

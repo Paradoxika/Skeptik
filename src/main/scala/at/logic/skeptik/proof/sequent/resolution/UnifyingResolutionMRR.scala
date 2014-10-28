@@ -17,15 +17,15 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode, override
   extends UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftClean) {
 
   override val conclusionContext = {
-//    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
-//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
-//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-//      rightPremise.conclusion.suc.map(e => mgu(e))
+    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
+      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
+    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
+      rightPremise.conclusion.suc.map(e => mgu(e))
     
-        val antecedent = leftClean.conclusion.ant.map(e => makeAllMGUReplacementsAgain(e,mgu)) ++
-      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>  makeAllMGUReplacementsAgain(e,mgu))
-    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
-      rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though    
+//        val antecedent = leftClean.conclusion.ant.map(e => makeAllMGUReplacementsAgain(e,mgu)) ++
+//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>  makeAllMGUReplacementsAgain(e,mgu))
+//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
+//      rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though    
     new Sequent(antecedent, succedent)
   }
 

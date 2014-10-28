@@ -13,9 +13,6 @@ object MartelliMontanari {
     var counter = 0 
     
     while (!eqs.isEmpty) {
-      //println()
-      //println("Eqs: " + eqs)
-      //println("Head: " + eqs.head)
       
       counter = counter + 1
 //      if (counter > 100) { //10 is too small.
@@ -30,10 +27,14 @@ object MartelliMontanari {
         case (v1:Var,v2:Var) if (v1 == v2) => eqs = eqs.tail 
         case (v:Var,e:E) if variables contains v => {
           // without occur-check
-          mgu += (v -> e) 
+          
           val sub = Substitution(v -> e)
-//          println("mgu sub: " + sub)
-          //println("MGU: " + mgu)
+          for(p <- mgu) {
+            mgu.update(p._1, sub(p._2))
+          }
+          mgu += (v -> e) 
+          
+
           
           eqs = for (eq <- eqs.tail) yield {
             //println("   Eq: " + eq +  " ; SubEq: " + (sub(eq._1),sub(eq._2)))
