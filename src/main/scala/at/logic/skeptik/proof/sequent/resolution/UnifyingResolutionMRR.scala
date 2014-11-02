@@ -20,12 +20,7 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode, override
     val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
       (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-      rightPremise.conclusion.suc.map(e => mgu(e))
-    
-//        val antecedent = leftClean.conclusion.ant.map(e => makeAllMGUReplacementsAgain(e,mgu)) ++
-//      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e =>  makeAllMGUReplacementsAgain(e,mgu))
-//    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e =>  makeAllMGUReplacementsAgain(e,mgu)) ++
-//      rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) ) //doesn't fix everything though    
+      rightPremise.conclusion.suc.map(e => mgu(e))   
     new Sequent(antecedent, succedent)
   }
 
@@ -45,10 +40,10 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
       System.err.println("left:    " + leftPremise)
       System.err.println("right:   " + rightPremise)
       System.err.println("desired: " + desired)
-      throw new Exception("Resolution (MRR): the conclusions of the given premises are not resolvable.")
+      throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.")
     } else {
       //Should never really be reached in this constructor
-      throw new Exception("Resolution (MRR): the resolvent is ambiguous.")
+      throw new MRRException("Resolution (MRR): the resolvent is ambiguous.")
     }
   }
 
@@ -70,8 +65,8 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
         con = Contraction(ax)(unifiableVariables)
       }
       ax
-    } else if (unifiablePairs.length == 0) throw new Exception("Resolution (MRR): the conclusions of the given premises are not resolvable.")
-    else throw new Exception("Resolution: the resolvent is ambiguous.")
+    } else if (unifiablePairs.length == 0) throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.")
+    else throw new MRRException("Resolution: the resolvent is ambiguous.")
   }
 
   def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode, thirdPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
