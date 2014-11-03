@@ -42,8 +42,8 @@ trait SPASSParsers
 
   def updateLineCounter = {
     lineCounter += 1
-println("last parsed: " + lineCounter)
-    
+    println("last parsed: " + lineCounter)
+
     if (lineCounter % 50 == 0) {
       println("Parsed " + lineCounter + " lines.")
     }
@@ -56,9 +56,9 @@ println("last parsed: " + lineCounter)
 
     new Axiom(sFinal)
   }
-  
+
   def lowPriority: Parser[List[E]] = "]" ~ rep(formulaList) ~ "||" ^^ {
-    case ~(~(_,l),_) => {
+    case ~(~(_, l), _) => {
       l
     }
   }
@@ -82,8 +82,7 @@ println("last parsed: " + lineCounter)
       val secondPremise = proofMap.getOrElse(secondNode, throw new Exception("Error!"))
 
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
-      
-      
+
       val ax = try {
         UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
@@ -96,12 +95,11 @@ println("last parsed: " + lineCounter)
         }
       }
 
-      
       val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
       println("Left:  " + ln + ": " + firstPremise)
       println("Right: " + ln + ": " + secondPremise)
-                              println("Parsed: " + ln + ":" + ay)
-                              println("Computed: " + ln + ":" + ax)
+      println("Parsed: " + ln + ":" + ay)
+      println("Computed: " + ln + ":" + ax)
 
       proofMap += (ln -> ax)
       updateLineCounter
@@ -118,13 +116,12 @@ println("last parsed: " + lineCounter)
 
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
-
       val ax = if (refs.length == 2) {
         try {
-                  UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
+          UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
         } catch {
           case e: Exception => {
-//            e.printStackTrace()
+//          e.printStackTrace()
             UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
@@ -140,15 +137,15 @@ println("last parsed: " + lineCounter)
       ax
     }
     case ~(~(~(~(~(~(~(ln, _), _), _), "Con:"), refs), lp), seq) => {
-     def firstRef = refs.head
+      def firstRef = refs.head
       def firstNode = firstRef.first
       val firstPremise = proofMap.getOrElse(firstNode, throw new Exception("Error!"))
-      
+
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
       val con = Contraction(firstPremise, desiredSequent)(vars)
       proofMap += (ln -> con)
-      updateLineCounter      
+      updateLineCounter
       con
     }
     //For now, treat the other inference rules as new axioms
@@ -160,14 +157,14 @@ println("last parsed: " + lineCounter)
   }
 
   def getAllNodes(r: List[Ref]): List[Node] = {
-    if(r.length == 0) {
+    if (r.length == 0) {
       List[Node]()
     } else {
       val premise = proofMap.getOrElse(r.head.first, throw new Exception("Error!"))
       List[Node](premise) ++ getAllNodes(r.tail)
     }
   }
-  
+
   def sequent: Parser[(List[E], List[E])] = antecedent ~ "->" ~ succedent ~ "." ^^ {
     case ~(~(~(a, _), s), _) => {
 
@@ -225,8 +222,8 @@ println("last parsed: " + lineCounter)
       throw new ParserException("Unsupported rule used; aborting.")
       s
     }
-  } 
-  
+  }
+
   def func: Parser[E] = name ~ "(" ~ repsep(term, ",") ~ ")" ^^ {
     case ~(~(~(name, _), args), _) => {
       val arrow = getArrow(args)
@@ -251,7 +248,7 @@ println("last parsed: " + lineCounter)
   }
 
   def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
-  
+
   def splitNumber: Parser[Int] = """\d+""".r ^^ {
     case s: String => {
       val out = s.toInt
