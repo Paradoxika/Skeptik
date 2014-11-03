@@ -116,6 +116,25 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
   }
 
+  
+  def apply(premises: List[SequentProofNode], desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+	  //Find the special node
+      val repeats = premises.diff(premises.distinct).distinct
+      require(repeats.size == 1)
+      var special = repeats.head
+      
+      require(desired.logicalSize == 0) //for now, only for concluding proofs.
+      val others = repeats.filterNot(_ eq special)
+      
+      for(p <- others){
+        special = UnifyingResolution(special, p)
+      }
+      
+      assert(special.conclusion.logicalSize == 0)
+      special
+    
+  }  
+  
   def unapply(p: SequentProofNode) = p match {
     case p: UnifyingResolutionMRR => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
     case _ => None

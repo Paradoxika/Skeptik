@@ -450,10 +450,10 @@ println("b: " + desired)
         val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
         val intersectedMap = intersectMaps(antMap, sucMap)
       
-        println("AM: " + antMap)
-        println("SM: " + sucMap)
-        println("IM: " + intersectedMap)
-        println("before validity check: " + computed + " and " + desired)
+//        println("AM: " + antMap)
+//        println("SM: " + sucMap)
+//        println("IM: " + intersectedMap)
+//        println("before validity check: " + computed + " and " + desired)
         
         
 //        if(!validMap(intersectedMap)) {
