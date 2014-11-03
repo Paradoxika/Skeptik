@@ -75,7 +75,7 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
 
   val rightNodeE = new Axiom(rightSeqE)
 
-  val urE = UnifyingResolutionMRR(leftNodeEB, leftNodeEB, rightNodeE, desiredE)(usedVars)
+//  val urE = UnifyingResolutionMRR(leftNodeEB, leftNodeEB, rightNodeE, desiredE)(usedVars)
 
   //Test aux formula
   val leftSeqF = App(Var("p", i -> i), y) +: Sequent(App(Var("q", i -> i), a))()
@@ -125,18 +125,18 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
 
   val rightNodeL = new Axiom(rightSeqL)
 
-  val urL = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
-  val expectedL = Sequent()()
+//  val urL = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
+//  val expectedL = Sequent()()
 
   //3+desired
   //see above (test 'E')
 
   //unapply
-  val urM = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
-  val outM = urM match {
-    case u: UnifyingResolutionMRR => true
-    case _ => false
-  }
+//  val urM = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
+//  val outM = urM match {
+//    case u: UnifyingResolutionMRR => true
+//    case _ => false
+//  }
 
   val urN = UnifyingResolutionMRR(rightNodeF, leftNodeF, desiredJ)(usedVars)
   val outN = urN match {
@@ -163,9 +163,9 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
     "return the correct resolvent when necessary to make a substitution and multiple contractions" in {
       desiredD must beEqualTo(urD.conclusion)
     }
-    "return the correct resolvent in 3-way MRR" in {
-      desiredE must beEqualTo(urE.conclusion)
-    }
+//    "return the correct resolvent in 3-way MRR" in {
+//      desiredE must beEqualTo(urE.conclusion)
+//    }
     "compute the correct aux formulas (with no others present)" in {
       computedAuxF must beEqualTo(expectedAuxF)
     }
@@ -184,12 +184,12 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
     "throw an exception when the desired sequent is unobtainable" in {
       UnifyingResolutionMRR(rightNodeF, leftNodeF, desiredK)(usedVars) must throwA[Exception]
     }
-    "resolve three nodes to empty correctly" in {
-      urL.conclusion must beEqualTo(expectedL)
-    }
-    "pattern match using unapply correctly (3-way)" in {
-      outM must beEqualTo(true)
-    }
+//    "resolve three nodes to empty correctly" in {
+//      urL.conclusion must beEqualTo(expectedL)
+//    }
+//    "pattern match using unapply correctly (3-way)" in {
+//      outM must beEqualTo(true)
+//    }
     "pattern match using unapply correctly (2-way; desired)" in {
       outN must beEqualTo(true)
     }
