@@ -118,17 +118,9 @@ println("last parsed: " + lineCounter)
 
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
-      val lastPremise =  if (firstNode == secondNode) {
-        val lastRef = refs.last
-        val lastNode = lastRef.first
-        proofMap.getOrElse(lastNode, throw new Exception("Error!"))
-      } else { null }
 
-      val ax = if (firstNode != secondNode) {
-//        UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
-
+      val ax = if (refs.length == 2) {
         try {
-//          UnifyingResolutionMRR(firstPremise, secondPremise)(vars)
                   UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
         } catch {
           case e: Exception => {
@@ -137,7 +129,7 @@ println("last parsed: " + lineCounter)
           }
         }
       } else {
-        UnifyingResolutionMRR(firstPremise, secondPremise, lastPremise, desiredSequent)(vars)
+        UnifyingResolutionMRR(getAllNodes(refs), desiredSequent)(vars)
       }
 
       val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
@@ -167,6 +159,15 @@ println("last parsed: " + lineCounter)
     }
   }
 
+  def getAllNodes(r: List[Ref]): List[Node] = {
+    if(r.length == 0) {
+      List[Node]()
+    } else {
+      val premise = proofMap.getOrElse(r.head.first, throw new Exception("Error!"))
+      List[Node](premise) ++ getAllNodes(r.tail)
+    }
+  }
+  
   def sequent: Parser[(List[E], List[E])] = antecedent ~ "->" ~ succedent ~ "." ^^ {
     case ~(~(~(a, _), s), _) => {
 

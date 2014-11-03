@@ -20,7 +20,7 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode, override
     val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
       (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-      rightPremise.conclusion.suc.map(e => mgu(e))   
+      rightPremise.conclusion.suc.map(e => mgu(e))
     new Sequent(antecedent, succedent)
   }
 
@@ -100,7 +100,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
       } else {
         throw new MRRException("3-way MRR failed (with desired sequent).")
       }
-    } else if(firstPremise.conclusion.suc.length > 0 && firstPremise.conclusion.ant.length == 0) {
+    } else if (firstPremise.conclusion.suc.length > 0 && firstPremise.conclusion.ant.length == 0) {
       val newDesired = Sequent()(firstPremise.conclusion.suc.head)
       val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
       val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
@@ -111,30 +111,34 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
         throw new MRRException("3-way MRR failed (with desired sequent).")
       }
     } else {
-       throw new MRRException("3-way MRR failed: usage assumption failed (with desired sequent).")
+      throw new MRRException("3-way MRR failed: usage assumption failed (with desired sequent).")
     }
 
   }
 
-  
   def apply(premises: List[SequentProofNode], desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-	  //Find the special node
-      val repeats = premises.diff(premises.distinct).distinct
-      require(repeats.size == 1)
-      var special = repeats.head
-      
-      require(desired.logicalSize == 0) //for now, only for concluding proofs.
-      val others = repeats.filterNot(_ eq special)
-      
-      for(p <- others){
-        special = UnifyingResolution(special, p)
+    //Find the special node
+    val repeats = premises.diff(premises.distinct).distinct
+    require(repeats.size == 1)
+    var special = repeats.head
+
+    require(desired.logicalSize == 0) //for now, only for concluding proofs.
+    val others = premises.filterNot(_ eq special)
+
+    for (p <- others) {
+      try {
+        special = UnifyingResolution(p, special)
+      } catch {
+        case e: Exception => {
+          special = UnifyingResolution(p, special)
+        }
       }
-      
-      assert(special.conclusion.logicalSize == 0)
-      special
-    
-  }  
-  
+    }
+
+    assert(special.conclusion.logicalSize == 0)
+    special
+  }
+
   def unapply(p: SequentProofNode) = p match {
     case p: UnifyingResolutionMRR => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
     case _ => None
