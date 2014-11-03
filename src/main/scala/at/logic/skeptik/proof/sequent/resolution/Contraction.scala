@@ -18,7 +18,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   def conclusionContext = conclusion
   def auxFormulas = premise.mainFormulas diff conclusion
   def mainFormulas = conclusion intersect premise.mainFormulas
-  
+
   val contraction = checkOrContract(premise.conclusion, desired)(unifiableVariables)
 
   def newAnt = contraction._1
@@ -64,8 +64,8 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
         if !unifier.isEmpty
       } yield (desiredLiteral, unifier.get)
 
-      if(checkEmpty(instances, premiseLiteral, desiredHalf))
-      
+      if (checkEmpty(instances, premiseLiteral, desiredHalf))
+
       subs = for {
         pair <- instances
         if (pair._2.size > 0)
@@ -85,7 +85,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       require(desiredHalf.contains(literal))
     }
     //always return true here; note that if the requirement fails, we won't get here anyways
-    true    
+    true
   }
 
   def buildMap(subs: Seq[Seq[Substitution]]) = {
@@ -125,6 +125,17 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     tempMap
   }
 
+  //move to trait
+  def convertTypes(in: List[(E, E)]): List[(Var, E)] = {
+    if (in.length > 0) {
+      val h = in.head
+      val newH = (h._1.asInstanceOf[Var], h._2)
+      List[(Var, E)](newH) ++ convertTypes(in.tail)
+    } else {
+      List[(Var, E)]()
+    }
+  }
+
   def contract(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
@@ -138,9 +149,9 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
-    println("-->" + finalUnifiablePairsList)
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
+
       val sub = unify(p :: Nil)(unifiableVariables) match {
         case None => throw new Exception("Contraction failed.")
         case Some(u) => {
@@ -150,14 +161,64 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
       val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
       val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
-
+      println(cleanSuc)
+      println(cleanAnt)
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)
+
+      //      val sA = addAntecedents(contractHelper(unifiablePairsD, seq.ant))
+      //      val sS = addSuccedents(contractHelper(unifiablePairsC, seq.suc))
       val seqOut = sS union sA
 
       contract(seqOut)
     } else {
       (seq.ant.distinct, seq.suc.distinct)
+    }
+  }
+
+  //TODO: either fix this or remove it. Removing it seems smarter.
+  def contractHelper(finalUnifiablePairsList: Seq[(E, E)], halfSeq: Seq[E]) = {
+    if (finalUnifiablePairsList.length > 0) {
+      val p = finalUnifiablePairsList.head
+
+      //      val c = p._1
+      //      val d = p._2
+      //      val cAxiom = new Axiom(Sequent(c)())
+      //      val dAxiom = new Axiom(Sequent(d)())
+      //      val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, unifiableVariables)
+      //      val dClean = dAxiomClean.conclusion.ant.head
+      //      println("c: " + c)
+      //      println("d: " + dClean)
+      //      //should never not be able to unify -- one is the other, but with new variable names
+      //      val dToCleanSub = (unify((d, dClean) :: Nil)(unifiableVariables)).get
+      //      val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
+      //      val inverseSubsCasted = convertTypes(inverseSubs.toList)
+      //      val inverseSub = Substitution(inverseSubsCasted: _*)
+      //      val u = unify((c, dClean) :: Nil)(unifiableVariables)
+      //      println("u: " + u)
+      //
+      //      //need to clean this fix up
+      //      val sub = u.get
+      //      println("a: " + halfSeq)
+      //      val oldAnt = (halfSeq.filterNot(_ eq c)).filterNot(_ eq d)
+      //      println("b: " + oldAnt)
+      //
+      //      val newAnt = oldAnt ++ Seq[E](dClean) ++ Seq[E](sub(c))
+      //      println("new: " + newAnt)
+      //      //      val cleanAnt = newAnt //(for (auxL <- seq.ant) yield sub(auxL))
+
+      val sub = unify(p :: Nil)(unifiableVariables) match {
+        case None => throw new Exception("Contraction failed.")
+        case Some(u) => {
+          u
+        }
+      }
+      val cleanAnt = (for (auxL <- halfSeq) yield sub(auxL))
+
+      println(cleanAnt)
+      cleanAnt.distinct.toList
+    } else {
+      halfSeq.toList
     }
   }
 
@@ -170,9 +231,9 @@ object Contraction {
   def apply(premise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
     new Contraction(premise, desired)
   }
-  
- def unapply(p: SequentProofNode) = p match {
+
+  def unapply(p: SequentProofNode) = p match {
     case p: Contraction => Some((p.premise, p.desired))
     case _ => None
-  }  
+  }
 }

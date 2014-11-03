@@ -14,10 +14,13 @@ object MartelliMontanari {
     
     while (!eqs.isEmpty) {
       
+//      println("mgu: " + mgu)
+      
       counter = counter + 1
 //      if (counter > 100) { //10 is too small.
 //        println("counter maxed out")
 //        return None
+//        println("mgu: " + mgu)
 //      }
       
       

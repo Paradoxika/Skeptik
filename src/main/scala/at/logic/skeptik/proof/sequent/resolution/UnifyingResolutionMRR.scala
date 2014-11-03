@@ -66,7 +66,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
       }
       ax
     } else if (unifiablePairs.length == 0) throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.")
-    else throw new MRRException("Resolution: the resolvent is ambiguous.")
+    else throw new MRRException("Resolution (MRR): the resolvent is ambiguous.")
   }
 
 //  def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode, thirdPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
@@ -130,15 +130,15 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
       println("p: " + p)
       println("spec: " + special)
       try {
-        special = UnifyingResolution(p, special)
+        special = UnifyingResolutionMRR(p, special)
       } catch {
         case e: Exception => {
-//          if(e.getMessage().equals("Resolution: the resolvent is ambiguous.")) {
-//            special = UnifyingResolution(Contraction(special), p)
-//          } else {
+          if(e.getMessage().equals("Resolution (MRR): the resolvent is ambiguous.")) {
+            special = fixAmbiguity(p, special)
+          } else {
            e.printStackTrace()
-           special = UnifyingResolution(special, p)
-//          }
+           special = UnifyingResolutionMRR(special, p)
+          }
         }
       }
     }
@@ -151,7 +151,62 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     case p: UnifyingResolutionMRR => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
     case _ => None
   }
+  
+  
+  def fixAmbiguity(l: SequentProofNode, r: SequentProofNode)(implicit unifibaleVars: MSet[Var]): SequentProofNode = {
+    val unifiablePairs = (for (auxL <- l.conclusion.suc; auxR <- r.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+
+    val lSize = l.conclusion.suc.size + l.conclusion.ant.size
+    val rSize = r.conclusion.suc.size + r.conclusion.ant.size
+    
+    println("l: " + l + " " + l.conclusion.suc.size + " " + l.conclusion.ant.size)
+    println("r: " + r)
+    
+    assert(unifiablePairs.size > 0) //should always be >1 on the initial call
+    if(lSize > 1){
+      //l is the special node
+      if(l.conclusion.ant.size > 0){
+        assert(r.conclusion.suc.size == 1)
+        
+        val newDesired = addAntecedents(l.conclusion.ant.tail.toList)
+        val newRes = UnifyingResolutionMRR(l, r, newDesired)
+        fixAmbiguity(newRes, r)
+      } else {
+        assert(r.conclusion.ant.size == 1)
+        
+        val newDesired = addAntecedents(l.conclusion.suc.tail.toList)
+        val newRes = UnifyingResolutionMRR(l, r, newDesired)
+        fixAmbiguity(newRes, r)        
+      }
+      
+    } else if (rSize > 1) {
+      //r is the special node
+      if(r.conclusion.ant.size > 0){
+        assert(l.conclusion.suc.size == 1)
+        
+        val newDesired = addAntecedents(r.conclusion.ant.tail.toList)
+        val newRes = UnifyingResolutionMRR(l, r, newDesired)
+        fixAmbiguity(l, newRes)
+      } else {
+        assert(l.conclusion.ant.size == 1)
+        
+        val newDesired = addAntecedents(r.conclusion.suc.tail.toList)
+        val newRes = UnifyingResolutionMRR(l, r, newDesired)
+        fixAmbiguity(l, newRes)        
+      }      
+    } else {
+      //base case
+      println("in base " + unifibaleVars)
+      val out = UnifyingResolutionMRR(l,r)
+      println(out)
+      out
+    }
+  }
 }
 
-case class MRRException(error: String) extends Exception
+case class MRRException(error: String) extends Exception {
+  override def getMessage: String = {
+    error
+  }
+}
 
