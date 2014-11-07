@@ -126,6 +126,7 @@ trait SPASSParsers
           }
         }
       } else {
+        println("hehre : " + desiredSequent )
         UnifyingResolutionMRR(getAllNodes(refs), desiredSequent)(vars)
       }
 
