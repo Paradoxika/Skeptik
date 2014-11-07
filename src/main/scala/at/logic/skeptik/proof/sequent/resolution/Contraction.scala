@@ -151,7 +151,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
           val newSubs = tempMap.get(key).get
           val intersection = currentSubs.intersect(newSubs)
           println("IT IS HERE? " + key)
-          //require(intersection.size > 0)
+          require(intersection.size > 0)
           println("NO")
           finalMap.update(key, intersection)
         } else {

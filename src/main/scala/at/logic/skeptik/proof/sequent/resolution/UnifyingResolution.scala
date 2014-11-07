@@ -526,8 +526,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 //          println("hered: " + desired)
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try{ 
-            println("before con: " + ax)
-            Contraction(ax, desired)(unifiableVariables)
+//            println("before con: " + ax)
+
+                    val desiredSequentClean = fixSharedNoFilter(Axiom(desired), ax, 0, unifiableVariables).conclusion
+              
+            Contraction(ax, desiredSequentClean)(unifiableVariables)
             } catch {
               case e: Exception => {
                 println("REQ FAIL")
