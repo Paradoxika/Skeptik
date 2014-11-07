@@ -496,9 +496,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 //          println("hered: " + desired)
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try{ 
+            println("before con: " + ax)
             Contraction(ax, desired)(unifiableVariables)
             } catch {
               case e: Exception => {
+                println("REQ FAIL")
                 ax //do nothing with this; we can't contract it anyways
               }
             }

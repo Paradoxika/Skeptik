@@ -428,13 +428,13 @@ class ContractionSpecification extends SpecificationWithJUnit {
       conJ.checkEmpty(ce3ins, ce3E, ce3des) must beEqualTo(true)
     }
     "check if the supplied desired sequent is safe - both empty" in {
-      conJ.desiredIsSafe(ds1seqA, ds1seqB) must beEqualTo((): Unit) //don't care what it returns (in fact, it's not specified)
+      conJ.desiredIsSafe(ds1seqA, ds1seqB)(usedVars) must beEqualTo((): Unit) //don't care what it returns (in fact, it's not specified)
     }
     "check if the supplied desired sequent is safe - not safe" in {
-      conJ.desiredIsSafe(ds2seqA, ds2seqB) must throwA[Exception]
+      conJ.desiredIsSafe(ds2seqA, ds2seqB)(usedVars) must throwA[Exception]
     }
     "check if the supplied desired sequent is safe - safe" in {
-      conJ.desiredIsSafe(ds3seqA, ds3seqB) must beEqualTo((): Unit) //don't care what it returns (in fact, it's not specified)
+      conJ.desiredIsSafe(ds3seqA, ds3seqB)(usedVars) must beEqualTo((): Unit) //don't care what it returns (in fact, it's not specified)
     }
     "check if a desired sequent was supplied -- both empty" in {
       conJ.checkOrContract(coc1seqA, coc1seqB)(usedVars) must beEqualTo((List(), List()))

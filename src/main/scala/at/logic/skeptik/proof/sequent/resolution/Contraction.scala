@@ -42,11 +42,16 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     }
   }
 
-  def desiredIsSafe(premise: Sequent, desired: Sequent) = {
-    val sucMaps = getMaps(premise.suc, desired.suc)
+  def desiredIsSafe(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
+    
+    val desiredClean = fixSharedNoFilter(Axiom(premise), Axiom(desired), 0, unifiableVariables).conclusion
+    
+    val sucMaps = getMaps(premise.suc, desiredClean.suc)
 
-    val antMaps = getMaps(premise.ant, desired.ant)
-
+    val antMaps = getMaps(premise.ant, desiredClean.ant)
+println("MAPS BUILT")
+println("ANTMAP: " + antMaps)
+println("SUCMAP: " + sucMaps)
     val allMaps = antMaps ++ sucMaps
     val finalMerge = buildMap(allMaps)
 
@@ -104,7 +109,9 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
           val currentSubs = finalMap.get(key).get
           val newSubs = tempMap.get(key).get
           val intersection = currentSubs.intersect(newSubs)
+          println("IT IS HERE?")
           require(intersection.size > 0)
+          println("NO")
           finalMap.update(key, intersection)
         } else {
           finalMap.put(key, tempMap.get(key).get)
@@ -165,60 +172,11 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       println(cleanAnt)
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)
-
-      //      val sA = addAntecedents(contractHelper(unifiablePairsD, seq.ant))
-      //      val sS = addSuccedents(contractHelper(unifiablePairsC, seq.suc))
       val seqOut = sS union sA
 
       contract(seqOut)
     } else {
       (seq.ant.distinct, seq.suc.distinct)
-    }
-  }
-
-  //TODO: either fix this or remove it. Removing it seems smarter.
-  def contractHelper(finalUnifiablePairsList: Seq[(E, E)], halfSeq: Seq[E]) = {
-    if (finalUnifiablePairsList.length > 0) {
-      val p = finalUnifiablePairsList.head
-
-      //      val c = p._1
-      //      val d = p._2
-      //      val cAxiom = new Axiom(Sequent(c)())
-      //      val dAxiom = new Axiom(Sequent(d)())
-      //      val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, unifiableVariables)
-      //      val dClean = dAxiomClean.conclusion.ant.head
-      //      println("c: " + c)
-      //      println("d: " + dClean)
-      //      //should never not be able to unify -- one is the other, but with new variable names
-      //      val dToCleanSub = (unify((d, dClean) :: Nil)(unifiableVariables)).get
-      //      val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
-      //      val inverseSubsCasted = convertTypes(inverseSubs.toList)
-      //      val inverseSub = Substitution(inverseSubsCasted: _*)
-      //      val u = unify((c, dClean) :: Nil)(unifiableVariables)
-      //      println("u: " + u)
-      //
-      //      //need to clean this fix up
-      //      val sub = u.get
-      //      println("a: " + halfSeq)
-      //      val oldAnt = (halfSeq.filterNot(_ eq c)).filterNot(_ eq d)
-      //      println("b: " + oldAnt)
-      //
-      //      val newAnt = oldAnt ++ Seq[E](dClean) ++ Seq[E](sub(c))
-      //      println("new: " + newAnt)
-      //      //      val cleanAnt = newAnt //(for (auxL <- seq.ant) yield sub(auxL))
-
-      val sub = unify(p :: Nil)(unifiableVariables) match {
-        case None => throw new Exception("Contraction failed.")
-        case Some(u) => {
-          u
-        }
-      }
-      val cleanAnt = (for (auxL <- halfSeq) yield sub(auxL))
-
-      println(cleanAnt)
-      cleanAnt.distinct.toList
-    } else {
-      halfSeq.toList
     }
   }
 
