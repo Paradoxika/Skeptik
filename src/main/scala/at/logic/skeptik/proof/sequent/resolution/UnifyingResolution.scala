@@ -227,11 +227,11 @@ trait checkUnifiableVariableName {
     notAnInt && !hasLowerCaseFirst
   }
 
-  def isValidNameB(v: Var): Boolean = {
-    val hasLowerCaseFirst = v.name.charAt(0).isLower
-    val notAnInt = v.name.charAt(0).isLetter
-    notAnInt //&& !hasLowerCaseFirst
-  }
+//  def isValidNameB(v: Var): Boolean = {
+//    val hasLowerCaseFirst = v.name.charAt(0).isLower
+//    val notAnInt = v.name.charAt(0).isLetter
+//    notAnInt //&& !hasLowerCaseFirst
+//  }
 }
 
 trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {

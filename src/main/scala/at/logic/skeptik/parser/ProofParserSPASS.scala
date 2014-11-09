@@ -131,8 +131,8 @@ trait SPASSParsers
       }
 
       val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
-      //                  println("Parsed MRR: " + ln + ":" + ay)
-      //                  println("Computed MRR: " + ln + ":" + ax)
+                        println("Parsed MRR: " + ln + ":" + ay)
+                        println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax
