@@ -129,7 +129,8 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       instances = for {
         desiredLiteral <- desiredHalf
         //        unifier = unifyClean(premiseLiteral, desiredLiteral) 
-        unifier = unify((premiseLiteral, desiredLiteral) :: Nil)
+        unifier = unify((desiredLiteral, premiseLiteral) :: Nil)
+        
         if unifyDebugger(unifier, premiseLiteral, desiredLiteral)
         if !unifier.isEmpty
 //      } yield (desiredLiteral, addInverse(unifier.get))
