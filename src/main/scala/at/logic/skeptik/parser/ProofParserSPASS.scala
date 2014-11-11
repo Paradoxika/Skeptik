@@ -42,7 +42,6 @@ trait SPASSParsers
 
   def updateLineCounter = {
     lineCounter += 1
-    println("last parsed: " + lineCounter)
 
     if (lineCounter % 50 == 0) {
       println("Parsed " + lineCounter + " lines.")
@@ -68,7 +67,7 @@ trait SPASSParsers
       val ax = newAxiomFromLists(lp ++ seq._1, seq._2)
       proofMap += (ln -> ax)
       updateLineCounter
-      println("Parsed: " + ln + ":" + ax)
+      //      println("Parsed: " + ln + ":" + ax)
       ax
     }
 
@@ -88,18 +87,18 @@ trait SPASSParsers
       } catch {
         case e: Exception => {
           e.printStackTrace()
-          println("---")
-          println("left: " + firstPremise)
-          println("right: " + secondPremise)
+          //          println("---")
+          //          println("left: " + firstPremise)
+          //          println("right: " + secondPremise)
           UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
         }
       }
 
       val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
-      println("Left:  " + ln + ": " + firstPremise)
-      println("Right: " + ln + ": " + secondPremise)
-      println("Parsed: " + ln + ":" + ay)
-      println("Computed: " + ln + ":" + ax)
+      //      println("Left:  " + ln + ": " + firstPremise)
+      //      println("Right: " + ln + ": " + secondPremise)
+      //      println("Parsed: " + ln + ":" + ay)
+      //      println("Computed: " + ln + ":" + ax)
 
       proofMap += (ln -> ax)
       updateLineCounter
@@ -121,18 +120,17 @@ trait SPASSParsers
           UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
         } catch {
           case e: Exception => {
-          e.printStackTrace()
+            e.printStackTrace()
             UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
       } else {
-        println("hehre : " + desiredSequent )
         UnifyingResolutionMRR(getAllNodes(refs), desiredSequent)(vars)
       }
 
       val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
-                        println("Parsed MRR: " + ln + ":" + ay)
-                        println("Computed MRR: " + ln + ":" + ax)
+      //      println("Parsed MRR: " + ln + ":" + ay)
+      //      println("Computed MRR: " + ln + ":" + ax)
       proofMap += (ln -> ax)
       updateLineCounter
       ax

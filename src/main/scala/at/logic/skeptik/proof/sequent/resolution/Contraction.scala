@@ -13,7 +13,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit unifiableVariables: MSet[Var])
-  extends SequentProofNode with Unary with CanRenameVariables with FindsVars {
+  extends SequentProofNode with Unary with CanRenameVariables with FindsVars with FindDesiredSequent {
 
   def conclusionContext = conclusion
   def auxFormulas = premise.mainFormulas diff conclusion
@@ -37,106 +37,37 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     if (desired.logicalSize == 0) {
       contract(premise)
     } else {
-      desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
+      val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
+      val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
+      if (!desiredFound(premiseDistinct, desiredDistinct)) {
+        desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
+      }
       (desired.ant, desired.suc)
     }
   }
 
   def desiredIsSafe(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
-    //
-    //        val desiredClean = fixSharedNoFilter(Axiom(premise), Axiom(desired), 0, unifiableVariables).conclusion
-    //        println("dclean (con): " + desiredClean)
-    //    
-    //        val sucMaps = getMaps(premise.suc, desiredClean.suc)
-    //        val antMaps = getMaps(premise.ant, desiredClean.ant)
 
     val sucMaps = getMaps(premise.suc, desired.suc)
     val antMaps = getMaps(premise.ant, desired.ant)
-    println("MAPS BUILT")
-    println("ANTMAP: " + antMaps)
-    println("SUCMAP: " + sucMaps)
+
     val allMaps = antMaps ++ sucMaps
     val finalMerge = buildMap(allMaps, desired)
 
   }
 
-//  def unifyClean(c: E, d: E) = {
-//
-//    val cAxiom = new Axiom(Sequent(c)())
-//    val dAxiom = new Axiom(Sequent(d)())
-//    val vars = getSetOfVars(cAxiom) union getSetOfVars(dAxiom)
-//    val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, vars)
-//    val dClean = dAxiomClean.conclusion.ant.head
-//
-//    //should never not be able to unify -- one is the other, but with new variable names
-//    val dToCleanSub = (unify((d, dClean) :: Nil)(vars)).get
-//    val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
-//    //          println("d-clean: " + dToCleanSub)
-//    val inverseSubsCasted = convertTypes(inverseSubs.toList)
-//    //          println("casted: " + inverseSubsCasted)
-//    //          println("inverse: " + Substitution(inverseSubsCasted: _*))
-//    val inverseSub = Substitution(inverseSubsCasted: _*)
-//
-//    val u = unify((c, dClean) :: Nil)(vars)
-//
-//    (u, inverseSub)
-//  }
-
-//  def reverseClean(p: E, d: E, uni: Substitution, inv: Substitution): Substitution = {
-//    println("unifying: " + p + " AND " + d)
-//    println("UNI: " + uni)
-//    println("INV: " + inv)
-//
-//    //    val fixed = for { p <- uni     
-//    //    } yield (p._1, inv(p._2))
-//    val fixed = for {
-//      p <- inv
-//    } yield (p._1, uni(p._2))
-//    fixed
-//    //uni
-//  }
-//
-  def unifyDebugger(o: Option[Substitution], p: E, d: E): Boolean = {
-    println(o + " for " + p + " and " + d)
-    true
-  }
-//
-  def addInverse(sub: Substitution): Substitution = {
-    val toAdd = MSet[(Var, E)]()
-    for (p <- sub) {
-      p._2 match {
-        case Var(n, i) => {
-          if (isValidName(Var(n, i))) {
-            toAdd.add((Var(n, i), p._1))
-          }
-        }
-        case _ => {}
-      }
-    }
-    val allSubs = toAdd.toList ++ sub.toList
-    val out = Substitution(allSubs: _*)
-    println("out: " + out)
-    out
-  }
-
   def getMaps(premiseHalf: Seq[E], desiredHalf: Seq[E]): Seq[Seq[Substitution]] = {
-    println("ph: " + premiseHalf)
-    println("dh: " + desiredHalf)
+
     val allSubs = for {
 
       premiseLiteral <- premiseHalf
 
       instances = for {
         desiredLiteral <- desiredHalf
-        //        unifier = unifyClean(premiseLiteral, desiredLiteral) 
         unifier = unify((desiredLiteral, premiseLiteral) :: Nil)
-        
-        if unifyDebugger(unifier, premiseLiteral, desiredLiteral)
+
         if !unifier.isEmpty
-//      } yield (desiredLiteral, addInverse(unifier.get))
       } yield (desiredLiteral, unifier.get)
-        
-      //      } yield (desiredLiteral, reverseClean(premiseLiteral, desiredLiteral, unifier._1.get, unifier._2))
 
       if (checkEmpty(instances, premiseLiteral, desiredHalf))
 
@@ -158,7 +89,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     if (instances.length == 0) {
       require(desiredHalf.contains(literal))
     }
-    println("inst: " + instances)
     //always return true here; note that if the requirement fails, we won't get here anyways
     true
   }
@@ -171,30 +101,25 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     mergeMaps(listOfMaps, desired)
   }
 
-  //
   def isNotUsed(v: Var, seq: Sequent): Boolean = {
     val seqVars = getSetOfVars(seq.ant: _*) union getSetOfVars(seq.suc: _*)
     return seqVars.contains(v)
   }
-  
+
   def mergeMaps(listOfMaps: Seq[MMap[Var, Set[E]]], desired: Sequent) = {
     val finalMap = MMap[Var, Set[E]]()
     for (tempMap <- listOfMaps) {
-      println("current map: " + tempMap)
       for (key <- tempMap.keySet) {
         if (finalMap.keySet.contains(key)) {
           val currentSubs = finalMap.get(key).get
           val newSubs = tempMap.get(key).get
           val intersection = currentSubs.intersect(newSubs)
-          println("IT IS HERE? " + key)
           require(intersection.size > 0 || isNotUsed(key, desired))
-          println("NO")
           finalMap.update(key, intersection)
         } else {
           finalMap.put(key, tempMap.get(key).get)
         }
       }
-      println("cleared a map")
     }
     finalMap
   }
@@ -208,17 +133,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       }
     }
     tempMap
-  }
-
-  //move to trait
-  def convertTypes(in: List[(E, E)]): List[(Var, E)] = {
-    if (in.length > 0) {
-      val h = in.head
-      val newH = (h._1.asInstanceOf[Var], h._2)
-      List[(Var, E)](newH) ++ convertTypes(in.tail)
-    } else {
-      List[(Var, E)]()
-    }
   }
 
   def contract(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
@@ -246,8 +160,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
       val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
       val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
-      println(cleanSuc)
-      println(cleanAnt)
+
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)
       val seqOut = sS union sA

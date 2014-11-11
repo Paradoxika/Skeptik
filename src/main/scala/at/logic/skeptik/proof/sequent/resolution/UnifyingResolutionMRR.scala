@@ -22,7 +22,7 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode, override
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
     new Sequent(antecedent, succedent)
-      
+
   }
 
 }
@@ -38,9 +38,6 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, true)
     } else if (unifiablePairs.length == 0) {
-      System.err.println("left:    " + leftPremise)
-      System.err.println("right:   " + rightPremise)
-      System.err.println("desired: " + desired)
       throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.")
     } else {
       //Should never really be reached in this constructor
@@ -120,22 +117,20 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
   def apply(premises: List[SequentProofNode], desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
     //Find the special node
     val repeats = premises.diff(premises.distinct).distinct
-//    require(repeats.size == 1)
-    if(repeats.size != 0) {
+    //    require(repeats.size == 1)
+    if (repeats.size != 0) {
       throw new MRRException("MRR assumption failed")
-    }    
+    }
     var special = repeats.head
 
-//    require(desired.logicalSize == 0) //for now, only for concluding proofs.
-    if(desired.logicalSize != 0) {
+    //    require(desired.logicalSize == 0) //for now, only for concluding proofs.
+    if (desired.logicalSize != 0) {
       throw new MRRException("MRR assumption failed")
     }
     val others = premises.filterNot(_ eq special)
 
     //TODO: clean nested try-catch blocks.
     for (p <- others) {
-      println("p: " + p)
-      println("spec: " + special)
       try {
         special = UnifyingResolutionMRR(p, special)
       } catch {
@@ -173,20 +168,17 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     val lSize = l.conclusion.suc.size + l.conclusion.ant.size
     val rSize = r.conclusion.suc.size + r.conclusion.ant.size
 
-    println("l: " + l + " " + l.conclusion.suc.size + " " + l.conclusion.ant.size)
-    println("r: " + r)
-
-//    assert(unifiablePairs.size > 0) //should always be >1 on the initial call
+    //    assert(unifiablePairs.size > 0) //should always be >1 on the initial call
     if (lSize > 1) {
       //l is the special node
       if (l.conclusion.ant.size > 0) {
-//        assert(r.conclusion.suc.size == 1)
+        //        assert(r.conclusion.suc.size == 1)
 
         val newDesired = addAntecedents(l.conclusion.ant.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)
         fixAmbiguity(newRes, r)
       } else {
-//        assert(r.conclusion.ant.size == 1)
+        //        assert(r.conclusion.ant.size == 1)
 
         val newDesired = addAntecedents(l.conclusion.suc.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)
@@ -196,13 +188,13 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     } else if (rSize > 1) {
       //r is the special node
       if (r.conclusion.ant.size > 0) {
-//        assert(l.conclusion.suc.size == 1)
+        //        assert(l.conclusion.suc.size == 1)
 
         val newDesired = addAntecedents(r.conclusion.ant.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)
         fixAmbiguity(l, newRes)
       } else {
-//        assert(l.conclusion.ant.size == 1)
+        //        assert(l.conclusion.ant.size == 1)
 
         val newDesired = addAntecedents(r.conclusion.suc.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)
@@ -210,9 +202,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
       }
     } else {
       //base case
-      println("in base " + unifibaleVars)
       val out = UnifyingResolutionMRR(l, r)
-      println(out)
       out
     }
   }

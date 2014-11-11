@@ -29,7 +29,6 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       throw new Exception("Resolution: given premise clauses are not resolvable.")
     }
     case Some(u) => {
-      println(u)
       u
     }
   }
@@ -39,14 +38,6 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
-
-    //    println("before mgu: " + rightPremise.conclusion.suc)
-    //println("MGU: " + mgu)
-
-    //      println("thisB: " +  rightPremise.conclusion.suc.map(e => mgu(e)))
-    //      println("thisC: " + rightPremise.conclusion.suc.map(e => mguTest(mgu)(e) ))//this fixes it - not always!
-    //      println("thisD: " + rightPremise.conclusion.suc.map(e => makeAllMGUReplacementsAgain(e, mgu) )) //so does this
-
     new Sequent(antecedent, succedent)
   }
 
@@ -54,16 +45,12 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
 
 object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
-    //println("here1 " + unifiableVariables)
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-    println("length: " + unifiablePairs.length)
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
     } else if (unifiablePairs.length == 0) {
-      println("left: " + leftPremise)
-      println("right: " + rightPremise)
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A")
     } else {
       //Should never really be reached in this constructor
@@ -74,7 +61,6 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
 
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
-    //println("here2 " + unifiableVariables)
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
     if (unifiablePairs.length == 1) {
@@ -227,11 +213,11 @@ trait checkUnifiableVariableName {
     notAnInt && !hasLowerCaseFirst
   }
 
-//  def isValidNameB(v: Var): Boolean = {
-//    val hasLowerCaseFirst = v.name.charAt(0).isLower
-//    val notAnInt = v.name.charAt(0).isLetter
-//    notAnInt //&& !hasLowerCaseFirst
-//  }
+  //  def isValidNameB(v: Var): Boolean = {
+  //    val hasLowerCaseFirst = v.name.charAt(0).isLower
+  //    val notAnInt = v.name.charAt(0).isLetter
+  //    notAnInt //&& !hasLowerCaseFirst
+  //  }
 }
 
 trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {
@@ -257,8 +243,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
   def validMap(m: MMap[Var, Set[Var]]): Boolean = {
     for (k <- m.keySet) {
-      //      println("k: " + k + " --> " + m.get(k).get)
-      //      if(m.get(k).get.size == 0){
       if (m.get(k).get.size != 1) {
         return false
       }
@@ -268,8 +252,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
   def validMapB(m: MMap[Var, Set[Var]], vars: MSet[Var]): Boolean = {
     for (k <- m.keySet) {
-      //      println("k: " + k + " --> " + m.get(k).get)
-      //      if(m.get(k).get.size == 0){
       if (vars.contains(k) && m.get(k).get.size != 1) {
         return false
       }
@@ -291,17 +273,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def generateSubstitutionOptions(computed: Seq[E], desired: Seq[E]) = {
-    //    println("C-s: " + computed)
-    //    println("D-s: " + desired)
     val map = new MMap[Var, Set[Var]]()
     for (c <- computed) {
       val cVars = getSetOfVars(c)
       for (d <- desired) {
         val dVars = getSetOfVars(d)
-
-        //        for (dv <- dVars) {
-
-        //        println("ALL THE VARS: " + (cVars union dVars))
 
         val cAxiom = new Axiom(Sequent(c)())
         val dAxiom = new Axiom(Sequent(d)())
@@ -311,13 +287,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         //should never not be able to unify -- one is the other, but with new variable names
         val dToCleanSub = (unify((d, dClean) :: Nil)(cVars union dVars)).get
         val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
-        //          println("d-clean: " + dToCleanSub)
         val inverseSubsCasted = convertTypes(inverseSubs.toList)
-        //          println("casted: " + inverseSubsCasted)
-        //          println("inverse: " + Substitution(inverseSubsCasted: _*))
         val inverseSub = Substitution(inverseSubsCasted: _*)
 
-        //          val u = unify((c, d) :: Nil)(cVars union dVars) //NEED TO CLEAN THESE VARS
         val u = unify((c, dClean) :: Nil)(cVars union dVars)
 
         u match {
@@ -328,22 +300,16 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
               //so that var could have gone to any of the variables in d; add them all
               //NO -- it can only go to what the sub said it could!
 
-              //                println("cvars: " + cVars + " for " + c)
-              //                println("sub: " + s)
               for (cv <- cVars) {
 
-                //                val sub = getValidSubstitution(s, cv)
                 val sub = inverseSub(getValidSubstitution(s, cv))
-                //                println(cv + " -> " + sub)
                 val realVars = getSetOfVars(sub)
                 if (map.keySet.contains(cv)) {
                   //update that set
-                  //                    map.put(cv, map.get(cv).get ++ dVars)
                   map.put(cv, map.get(cv).get ++ realVars)
                 } else {
                   //add a new set
                   //note the conversion is safe since checkSubstitutions already confirms it's a var
-                  //                    map.put(cv, Set[Var]() ++ dVars)
                   map.put(cv, Set[Var]() ++ realVars)
                 }
 
@@ -355,7 +321,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
           case None => {
           }
         }
-        //        }
 
       }
     }
@@ -403,21 +368,16 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     //should never not be able to unify -- one is the other, but with new variable names
     val dToCleanSub = (unify((d, dClean) :: Nil)(vars)).get
     val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
-    //          println("d-clean: " + dToCleanSub)
     val inverseSubsCasted = convertTypes(inverseSubs.toList)
-    //          println("casted: " + inverseSubsCasted)
-    //          println("inverse: " + Substitution(inverseSubsCasted: _*))
     val inverseSub = Substitution(inverseSubsCasted: _*)
 
     val u = unify((c, dClean) :: Nil)(vars)
 
     (u, inverseSub)
-  }  
-  
+  }
+
   def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size != desired.size) {
-      println("a: " + computed)
-      println("b: " + desired)
       return false
     } else if (computed.size == 0 && desired.size == 0) {
       return true
@@ -427,10 +387,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
       for (g <- desired) {
         val u = unify((f, g) :: Nil)
-//        val u = unifyClean(f,g)._1
         u match {
           case Some(s) => {
-            println("s: " + s)
             if (checkSubstitutions(s)) {
               //add current subs to this (not checkSubs is used above! modify with care)
               return checkHelperAlphaManual(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
@@ -458,35 +416,20 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       return true
     } else {
       if (computed.logicalSize == desired.logicalSize) {
-      //  val computedVars = getSetOfVars(computed.ant) intersect getSetOfVars(computed.ant)
-        if(getSetOfVars(Axiom(computed)).size != getSetOfVars(Axiom(desired)).size) {
+        if (getSetOfVars(Axiom(computed)).size != getSetOfVars(Axiom(desired)).size) {
           return false
         }
-        
-        val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
-        //union (getSetOfVars(Axiom(desired.ant)) intersect getSetOfVars(Axiom(desired.suc)))
 
-        println("common: " + commonVars)
+        val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
 
         val antMap = generateSubstitutionOptions(computed.ant, desired.ant)
-        //        println("---")
         val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
         val intersectedMap = intersectMaps(antMap, sucMap)
 
-        //        println("AM: " + antMap)
-        //        println("SM: " + sucMap)
-        //        println("IM: " + intersectedMap)
-        //        println("before validity check: " + computed + " and " + desired)
-
-        //        if(!validMap(intersectedMap)) {
-        //          return false
-        //        }
         if (!validMapB(intersectedMap, commonVars)) {
           return false
         }
-        println("here?")
         if (checkHalf(computed.ant.distinct, desired.ant.distinct)) {
-          println("ant good")
           if (checkHalf(computed.suc.distinct, desired.suc.distinct)) {
             return true
           }
@@ -500,40 +443,22 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
-      //      println("DESIRED: " + desired)
-      println("left: " + leftPremise)
-      println("leftclean: " + leftPremiseClean)
-      println("right: " + rightPremise)
-
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
-      //      println(pairs.length)
       val (auxL, auxR) = pairs(0)
-      println("**NOW TESTING: " + auxL + " AND " + auxR)
-      //      println(auxL)
-      //      println(auxR)
 
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-//          println("leftC: " + leftPremiseClean)
-//          println("right: " + rightPremise)
-//          println("left: " + leftPremise)
-//          println("here: " + ax)
-//          println("herecc: " + ax.conclusionContext)
-//          println("herec: " + ax.conclusion)
-//          println("hered: " + desired)
           if (desired.logicalSize < ax.conclusion.logicalSize) {
-            try{ 
-//            println("before con: " + ax)
+            try {
 
-                    val desiredSequentClean = fixSharedNoFilter(Axiom(desired), ax, 0, unifiableVariables).conclusion
-              
-            Contraction(ax, desiredSequentClean)(unifiableVariables)
+              val desiredSequentClean = fixSharedNoFilter(Axiom(desired), ax, 0, unifiableVariables).conclusion
+
+              Contraction(ax, desiredSequentClean)(unifiableVariables)
             } catch {
               case e: Exception => {
-                println("REQ FAIL")
                 ax //do nothing with this; we can't contract it anyways
               }
             }
@@ -542,17 +467,14 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
           }
 
         } else {
-          //          println("hereB " + rightPremise)
           new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
         }
       }
       val computedSequent = computedResolution.conclusion.toSeqSequent
 
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
-      println("C': " + computedSequentClean)
-      println("D': " + desired)
+
       if (desiredFound(desired, computedSequentClean)) {
-        println("found")
         computedResolution
       } else {
         findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR)
