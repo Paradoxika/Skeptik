@@ -67,53 +67,6 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     else throw new MRRException("Resolution (MRR): the resolvent is ambiguous.")
   }
 
-  //  def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode, thirdPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-  //
-  //    val con = Contraction(secondPremise)(unifiableVariables)
-  //    val conRes = UnifyingResolutionMRR(thirdPremise, con)(unifiableVariables)
-  //    //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-  //    if (conRes.conclusion.suc.length == 0 && conRes.conclusion.suc.length == 0) {
-  //      conRes
-  //    } else {
-  //      throw new MRRException("3-way MRR failed.")
-  //    }
-  //
-  //  }
-
-  //  def apply(firstPremise: SequentProofNode, secondPremise: SequentProofNode,
-  //    thirdPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-  //    //Note that it's assumed that firstPremise = secondPremise when this is called, and that each
-  //    //has formulas in exactly one of it's antecedent or succedent.
-  //    //(this is a very specific case of resolution)
-  //
-  //    assert(firstPremise.conclusion eq secondPremise.conclusion)
-  //
-  //    if (firstPremise.conclusion.ant.length > 0 && firstPremise.conclusion.suc.length == 0) {
-  //      val newDesired = Sequent(firstPremise.conclusion.ant.head)()
-  //      val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
-  //      val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
-  //      //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-  //      if (secondRes.conclusion.suc.length == 0 && firstRes.conclusion.suc.length == 0) {
-  //        secondRes
-  //      } else {
-  //        throw new MRRException("3-way MRR failed (with desired sequent).")
-  //      }
-  //    } else if (firstPremise.conclusion.suc.length > 0 && firstPremise.conclusion.ant.length == 0) {
-  //      val newDesired = Sequent()(firstPremise.conclusion.suc.head)
-  //      val firstRes = UnifyingResolutionMRR(thirdPremise, secondPremise, newDesired)(unifiableVariables)
-  //      val secondRes = UnifyingResolutionMRR(thirdPremise, firstRes, desired)(unifiableVariables)
-  //      //Since all examples so far have the first two premises referencing the same line, I'm doing this:
-  //      if (secondRes.conclusion.ant.length == 0 && firstRes.conclusion.ant.length == 0) {
-  //        secondRes
-  //      } else {
-  //        throw new MRRException("3-way MRR failed (with desired sequent).")
-  //      }
-  //    } else {
-  //      throw new MRRException("3-way MRR failed: usage assumption failed (with desired sequent).")
-  //    }
-  //
-  //  }
-
   def apply(premises: List[SequentProofNode], desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
     //Find the special node
     val repeats = premises.diff(premises.distinct).distinct
