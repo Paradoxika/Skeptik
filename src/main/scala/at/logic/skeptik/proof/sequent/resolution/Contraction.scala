@@ -137,9 +137,35 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
   def contract(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
 
+    def occurCheck(p: (E, E), u: Substitution): Boolean = {
+      val first = p._1
+      val second = p._2
+
+      for (sp <- u.toList) {
+        val v = sp._1
+        val e = sp._2
+        if (getSetOfVars(first) contains v) {
+          //check if the second contains e
+          if(e.occursIn(second)){
+            return false
+          }
+        } else {
+          //   getSetOfVars(second) contains v SHOULD BE TRUE
+          if(e.occursIn(first)){
+            return false
+          }
+        }
+      }
+
+      true
+
+    }
+
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
-      case Some(_) => true
+      case Some(u) => {
+        occurCheck(p, u)
+      }
     }
     def isUnifiableWrapper(p: (E, E)) = {
       isUnifiable(p)(unifiableVariables) && !(p._1.equals(p._2))
@@ -148,6 +174,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
+    println(finalUnifiablePairsList)
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
 

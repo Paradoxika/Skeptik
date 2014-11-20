@@ -48,7 +48,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
-
+println(leftPremiseClean)
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
     if (unifiablePairs.length == 1) {
@@ -56,9 +56,11 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
       val (auxL, auxR) = unifiablePairs(0)
       var ax = null.asInstanceOf[SequentProofNode]
       ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+              println("ax: " + ax)
       var con = Contraction(ax)(unifiableVariables)
       //If they're ever equal, contraction did nothing; discard the contraction
       while (!con.conclusion.equals(ax.conclusion)) {
+
         ax = con
         con = Contraction(ax)(unifiableVariables)
       }

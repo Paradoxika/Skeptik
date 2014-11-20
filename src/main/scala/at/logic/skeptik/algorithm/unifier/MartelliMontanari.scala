@@ -6,6 +6,7 @@ import at.logic.skeptik.expression.substitution.immutable.Substitution
 import at.logic.skeptik.expression.substitution.mutable.{ Substitution => MSub }
 
 object MartelliMontanari {
+
   def apply(equations: Iterable[(E, E)])(implicit variables: MSet[Var]): Option[Substitution] = {
     var eqs = equations.toSeq
     val mgu = new MSub
@@ -35,10 +36,10 @@ object MartelliMontanari {
             mgu.update(p._1, sub(p._2))
           }
           mgu += (v -> e)
-
           eqs = for (eq <- eqs.tail) yield {
             (sub(eq._1), sub(eq._2))
           }
+
         }
         case (e: E, v: Var) if variables contains v => eqs = Seq((v, e)) ++ eqs.tail
         case _ => return {
