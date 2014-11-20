@@ -459,16 +459,16 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "recursively contract correctly - things to contract" in {
       conJ.contract(con2seqA)(usedVars) must beEqualTo((List(App(A, y), App(B, y)), List()))
     }
-    "get the write substitution maps for a sequent half -- both empty" in {
+    "get the right substitution maps for a sequent half -- both empty" in {
       conJ.getMaps(gm1seqA, gm1seqB) must beEqualTo(Seq[Seq[Substitution]]())
     }
-    "get the write substitution maps for a sequent half -- both identical" in {
+    "get the right substitution maps for a sequent half -- both identical" in {
       conJ.getMaps(gm2seqA, gm2seqB) must beEqualTo(Seq[Seq[Substitution]]())
     }
-    "get the write substitution maps for a sequent half -- both unifiable" in {
-      conJ.getMaps(gm3seqA, gm3seqB) must beEqualTo(Seq[Seq[Substitution]](Seq[Substitution](Substitution((y, x)))))
+    "get the right substitution maps for a sequent half -- both unifiable" in {
+      conJ.getMaps(gm3seqA, gm3seqB) must beEqualTo(Seq[Seq[Substitution]](Seq[Substitution](Substitution((x, y)))))
     }
-    "get the write substitution maps for a sequent half -- no match" in {
+    "get the right substitution maps for a sequent half -- no match" in {
       conJ.getMaps(gm4seqA, gm4seqB) must throwA[Exception]
     }
   }

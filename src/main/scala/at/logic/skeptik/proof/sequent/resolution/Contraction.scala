@@ -144,26 +144,27 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       for (sp <- u.toList) {
         val v = sp._1
         val e = sp._2
-        if (getSetOfVars(first) contains v) {
-          //check if the second contains e
-          if(e.occursIn(second)){
-            return false
-          }
-        } else {
-          //   getSetOfVars(second) contains v SHOULD BE TRUE
-          if(e.occursIn(first)){
-            return false
+        if (!e.isInstanceOf[Var]) {
+          if (getSetOfVars(first) contains v) {
+            //check if the second contains e
+            if (e.occursIn(second) && (getSetOfVars(e) contains v)) {
+              return false
+            }
+          } else if (getSetOfVars(second) contains v) {
+            if (e.occursIn(first)  && (getSetOfVars(e) contains v)) {
+              return false
+            }
           }
         }
       }
-
+      
       true
-
     }
 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
+        //true
         occurCheck(p, u)
       }
     }
