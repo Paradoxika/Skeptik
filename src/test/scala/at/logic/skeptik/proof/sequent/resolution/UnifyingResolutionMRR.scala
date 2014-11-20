@@ -158,10 +158,10 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
       App(Var("p", i -> i), a) +: Sequent(App(Var("p", i -> i), b))() must beEqualTo(urB.conclusion)
     }
     "return the correct resolvent when necessary to make a substitution and a contraction, but not all contractions" in {
-      desiredC must beEqualTo(urC.conclusion)
+       desiredFound(desiredC, urC.conclusion)(usedVars) must beEqualTo(true)
     }
     "return the correct resolvent when necessary to make a substitution and multiple contractions" in {
-      desiredD must beEqualTo(urD.conclusion)
+      desiredFound(desiredD,urD.conclusion)(usedVars)  must beEqualTo(true)
     }
 //    "return the correct resolvent in 3-way MRR" in {
 //      desiredE must beEqualTo(urE.conclusion)

@@ -67,7 +67,9 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
     } else if (unifiablePairs.length == 0) {
+      println("going to throw an error...")
       println(leftPremise)
+      println(leftPremiseClean)
       println(rightPremise)
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B")
     } else {
@@ -117,9 +119,39 @@ trait FindsVars extends checkUnifiableVariableName {
 }
 
 trait CanRenameVariables extends FindsVars {
+  
+    def occurCheck(p: (E, E), u: Substitution): Boolean = {
+      val first = p._1
+      val second = p._2
+
+      for (sp <- u.toList) {
+        val v = sp._1
+        val e = sp._2
+        if (!e.isInstanceOf[Var]) {
+          if (getSetOfVars(first) contains v) {
+            //check if the second contains e
+            if (e.occursIn(second) && (getSetOfVars(e) contains v)) {
+              return false
+            }
+          } else if (getSetOfVars(second) contains v) {
+            if (e.occursIn(first)  && (getSetOfVars(e) contains v)) {
+              return false
+            }
+          }
+        }
+      }
+      
+      true
+    }  
+  
   def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
     case None => false
-    case Some(_) => true
+    case Some(u) => {
+//      println(u)
+//      true
+        occurCheck(p, u)
+      
+    }
   }
 
   def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): SequentProofNode = {

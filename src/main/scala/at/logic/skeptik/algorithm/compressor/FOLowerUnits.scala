@@ -24,6 +24,7 @@ object FOLowerUnits
   def cleanUpLists(in: IndexedSeq[Seq[Seq[E]]]) = {
     var out = List[E]()
     for(outer <- in){
+      println("o: " + outer)
       for(inner <- outer){
         out = out ++ inner 
       }
@@ -47,7 +48,7 @@ object FOLowerUnits
           val parentsConclusions = for (p <- c.premises) yield {
             //Picks out (all) u_k in c_k
             val o = getUnitLiteral(p.conclusion, node.conclusion, vars)//
-//            println("o: " + o)
+            println("ul: " + o)
             o
 
           }
@@ -65,7 +66,7 @@ object FOLowerUnits
        
         val listOfUnits =  cleanUpLists(childrensParentsConclusionsSeqSeq)
 
-//        println("L of U: " + listOfUnits)
+        println("L of U: " + listOfUnits)
         val varsN = getSetOfVars(node)
         for (v <- varsN) {
           vars += v
@@ -89,7 +90,7 @@ object FOLowerUnits
   }
 
   def getUnitLiteral(seq: Sequent, unit: Sequent, vars: MSet[Var]) = {
-//    println("checking for " + unit + " in " + seq)
+    println("checking for " + unit + " in " + seq)
     if (unit.ant.length > 0) {
       //positive polarity, only need to check negative polarity of seq
 
@@ -103,6 +104,9 @@ object FOLowerUnits
         if (isUnifiable((l, unit.ant.head))(vars)) {
 //          println("good")
           l
+        } else if (isUnifiable((unit.ant.head, l))(vars))  {
+//          println("better")
+          l          
         } else {
           null.asInstanceOf[E]
         }
@@ -121,6 +125,8 @@ object FOLowerUnits
       val out = for (l <- seq.ant) yield {
         if (isUnifiable((l, unit.suc.head))(vars)) {
           l
+        } else if (isUnifiable((unit.suc.head, l))(vars))  {
+          l            
         } else {
           null.asInstanceOf[E]
         }
@@ -295,18 +301,21 @@ object FOLowerUnits
 
     def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
       try {
+        println("A")
         contractAndUnify(left, right, vars)
       } catch {
         case e: Exception => {
+          println("B")
+          e.printStackTrace()
           contractAndUnify(right, left, vars)
         }
       }
     }
 
     println("fixMap built")
-//    for (k <- fixMap.keySet) {
-//      println(k + " -----> " + fixMap.get(k))
-//    }
+    for (k <- fixMap.keySet) {
+      println(k + " -----> " + fixMap.get(k))
+    }
 
     val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
