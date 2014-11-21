@@ -164,7 +164,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
-//        println("P: " + p)        
 //        true
         occurCheck(p, u)
       }
@@ -176,7 +175,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
-    println(finalUnifiablePairsList)
+//    println(finalUnifiablePairsList)
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
 
