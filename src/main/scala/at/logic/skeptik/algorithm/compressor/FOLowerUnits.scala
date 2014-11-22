@@ -13,6 +13,8 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.expression._
 import collection.mutable.{ HashSet => MSet }
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
+import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
+import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 
 object FOLowerUnits
   extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVariables with FindDesiredSequent {
@@ -23,30 +25,29 @@ object FOLowerUnits
 
   def cleanUpLists(in: IndexedSeq[Seq[Seq[E]]]) = {
     var out = List[E]()
-    for(outer <- in){
-      for(inner <- outer){
-        out = out ++ inner 
+    for (outer <- in) {
+      for (inner <- outer) {
+        out = out ++ inner
       }
     }
-    
+
     out.distinct
   }
-  
-  
+
   def collectUnits(proof: Proof[SequentProofNode]) = {
     val vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>
       if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) {
         val children = proof.childrenOf(node)
-       
-//        println("children are: " + children)
+
+        //        println("children are: " + children)
         //This gets the child of the unit, but really we want the other parent of the child of the unit.
         //so we do the following:
         val childrensParentsConclusionsSeqSeq = for (c <- children) yield {
           val parentsConclusions = for (p <- c.premises) yield {
             //Picks out (all) u_k in c_k
-            val o = getUnitLiteral(p.conclusion, node.conclusion, vars)//
-//            println("ul: " + o)
+            val o = getUnitLiteral(p.conclusion, node.conclusion, vars) //
+            //            println("ul: " + o)
             o
 
           }
@@ -56,15 +57,14 @@ object FOLowerUnits
           }
           parentsConclusions.filter(_.length > 0)
         }
-//        println("big: " + childrensParentsConclusionsSeqSeq)
-//        cleanUpLists(childrensParentsConclusionsSeqSeq)
-//        val listOfUnits = childrensParentsConclusionsSeqSeq(0).flatten.toList//this line is bugged!
-//        //why use only the first entry! that's wrong!
-        
-       
-        val listOfUnits =  cleanUpLists(childrensParentsConclusionsSeqSeq)
+        //        println("big: " + childrensParentsConclusionsSeqSeq)
+        //        cleanUpLists(childrensParentsConclusionsSeqSeq)
+        //        val listOfUnits = childrensParentsConclusionsSeqSeq(0).flatten.toList//this line is bugged!
+        //        //why use only the first entry! that's wrong!
 
-//        println("L of U: " + listOfUnits)
+        val listOfUnits = cleanUpLists(childrensParentsConclusionsSeqSeq)
+
+        //        println("L of U: " + listOfUnits)
         val varsN = getSetOfVars(node)
         for (v <- varsN) {
           vars += v
@@ -88,7 +88,7 @@ object FOLowerUnits
   }
 
   def getUnitLiteral(seq: Sequent, unit: Sequent, vars: MSet[Var]) = {
-//    println("checking for " + unit + " in " + seq)
+    //    println("checking for " + unit + " in " + seq)
     if (unit.ant.length > 0) {
       //positive polarity, only need to check negative polarity of seq
 
@@ -98,19 +98,19 @@ object FOLowerUnits
       }
 
       val out = for (l <- seq.suc) yield {
-//        println("l: " + l)
+        //        println("l: " + l)
         if (isUnifiable((l, unit.ant.head))(vars)) {
-//          println("good")
+          //          println("good")
           l
-        } else if (isUnifiable((unit.ant.head, l))(vars))  {
-//          println("better")
-          l          
+        } else if (isUnifiable((unit.ant.head, l))(vars)) {
+          //          println("better")
+          l
         } else {
           null.asInstanceOf[E]
         }
       }
-//      println("out: " + out)
-//      println("out filtered: " + out.filter(_ != null))
+      //      println("out: " + out)
+      //      println("out filtered: " + out.filter(_ != null))
       out.filter(_ != null)
     } else if (unit.suc.length > 0) {
       //negative polarity, only need to check positive polarity of seq
@@ -123,8 +123,8 @@ object FOLowerUnits
       val out = for (l <- seq.ant) yield {
         if (isUnifiable((l, unit.suc.head))(vars)) {
           l
-        } else if (isUnifiable((unit.suc.head, l))(vars))  {
-          l            
+        } else if (isUnifiable((unit.suc.head, l))(vars)) {
+          l
         } else {
           null.asInstanceOf[E]
         }
@@ -136,7 +136,7 @@ object FOLowerUnits
   }
 
   def checkListUnif(l: List[E], vars: MSet[Var]): Boolean = {
-//    println("list: " + l)
+    //    println("list: " + l)
     if (l.length > 1) {
       val first = l.head
       val second = l.tail.head
@@ -176,55 +176,64 @@ object FOLowerUnits
   def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
     val fixMap = MMap[SequentProofNode, SequentProofNode]()
 
-//    println("units really are: " + unitsSet)
+    //    println("units really are: " + unitsSet)
     def visit(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
-//      println("visiting: " + node)
+      //      println("visiting: " + node)
       lazy val fixedLeft = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
 
       val fixedP = node match {
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
-//          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-//          println("using " + fixedRight)
+          //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
+          //          println("using " + fixedRight)
           fixedRight
         }
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => {
-//          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-//          println("using " + fixedLeft)
+          //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
+          //          println("using " + fixedLeft)
           fixedLeft
         }
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
         case UnifyingResolution(left, right, _, _) => {
-//          println("attempting to resolve the following:")
-//          println("left: " + fixedLeft + " (l: " + left + ")")
-//          println("right: " + fixedRight + " (r: " + right + ")")
-//          println(vars)
+          //          println("attempting to resolve the following:")
+          //          println("left: " + fixedLeft + " (l: " + left + ")")
+          //          println("right: " + fixedRight + " (r: " + right + ")")
+          //          println(vars)
           try {
             UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
           } catch {
             case e: Exception => {
               if (e.getMessage != null) {
                 if (e.getMessage.equals("Resolution (MRR): the resolvent is ambiguous.")) {
-                                    println("caught for " + node)
-          println("left: " + fixedLeft + " (l: " + left + ")")
-          println("right: " + fixedRight + " (r: " + right + ")")                                    
+                  println("caught for " + node)
+                  println("left: " + fixedLeft + " (l: " + left + ")")
+                  println("right: " + fixedRight + " (r: " + right + ")")
                   //                  println(proof.childrenOf.contains(fixedLeft))
                   //                  println(proof.childrenOf.contains(fixedRight))
 
                   val frChildren = childrenOfFixed(proof, fixedRight, vars)
                   val flChildren = childrenOfFixed(proof, fixedLeft, vars)
 
-//                                    val flChildren = proof.childrenOf.get(fixedLeft).get
-//                                    val frChildren = proof.childrenOf.get(fixedRight).get
+                  //                                    val flChildren = proof.childrenOf.get(fixedLeft).get
+                  //                                    val frChildren = proof.childrenOf.get(fixedRight).get
                   //                  val flChildren = proof.childrenOf.get(left).get
                   //                  val frChildren = proof.childrenOf.get(right).get 
 
                   println("flC: " + flChildren)
                   println("frC: " + frChildren)
+
+                  //instead of this, look for the fixed left or fixed right that does not contain
+                  //a unit, but should contain a unit.
+                  //and try all subsets of the lowered units with it until we find the corresponding
+                  //original left or right node (when it's unified, we know we've found it)
+                  //then, use the original conclusion with the opposite of each unit found
+                  //as the desired sequent, thereby avoiding ambiguous resolution errors.
+                  checkResolvent(unitsSet, right, fixedRight)(vars)//test this
+
                   val child = flChildren.intersect(frChildren).head
-//                  println("child: " + child)
-//                  println("node: " + node)
+                  //                  println("child: " + child)
+                  //                  println("node: " + node)
                   UnifyingResolutionMRR(fixedLeft, fixedRight, child.conclusion)(vars)
                 } else {
                   throw new Exception("Compression failed!")
@@ -247,14 +256,66 @@ object FOLowerUnits
         }
       }
       if (node == proof.root || unitsSet.contains(node)) {
+        println("updating map: " + node + " ---> " + fixedP)
         fixMap.update(node, fixedP)
       }
-//      println("node: " + node)
-//      println("fixedP: " + fixedP)
+      //      println("node: " + node)
+      //      println("fixedP: " + fixedP)
       fixedP
     }
     proof.foldDown(visit)
     fixMap
+  }
+
+  //untested
+  def checkResolvent(units: Set[SequentProofNode], actual: SequentProofNode, fixed: SequentProofNode)
+  	(implicit unifiableVars: MSet[Var]): Sequent = {
+    if (units.size < 1) { return null }
+    val u = units.head
+    if (u.conclusion.ant.size > 0) {
+      val newAnt = addAntecedents(fixed.conclusion.ant.toList)
+      val newSuc = addSuccedents(fixed.conclusion.suc.toList ++ u.conclusion.ant.toList)
+      val newConclusion = newSuc union newAnt
+      if(desiredFound(actual.conclusion, newConclusion)(unifiableVars) ||
+          desiredFound(newConclusion, actual.conclusion)(unifiableVars)) {
+        return newConclusion
+      } else {
+        val recursiveA = checkResolvent(units.tail, actual, Axiom(newConclusion))
+        val recursiveB = checkResolvent(units.tail, actual, fixed)
+        
+        if (recursiveA != null) {
+          return recursiveA
+        } else if (recursiveB != null) {
+          return recursiveB
+        } else {
+          throw new Exception("FOLowerUnits Failed")
+        }
+      }
+
+    } else if (u.conclusion.suc.size > 0) {
+      val newAnt = addAntecedents(fixed.conclusion.ant.toList ++ u.conclusion.suc.toList)
+      val newSuc = addSuccedents(fixed.conclusion.suc.toList)
+      val newConclusion = newSuc union newAnt
+      if(desiredFound(actual.conclusion, newConclusion)(unifiableVars) ||
+          desiredFound(newConclusion, actual.conclusion)(unifiableVars)) {
+        return newConclusion
+      } else {
+        val recursiveA = checkResolvent(units.tail, actual, Axiom(newConclusion))
+        val recursiveB = checkResolvent(units.tail, actual, fixed)
+        
+        if (recursiveA != null) {
+          return recursiveA
+        } else if (recursiveB != null) {
+          return recursiveB
+        } else {
+          throw new Exception("FOLowerUnits Failed")
+        }
+      }
+      
+    } else {
+      throw new Exception("FOLowerUnits failed")
+    }
+
   }
 
   def contractAndUnify(left: SequentProofNode, right: SequentProofNode, vars: MSet[Var]) = {
@@ -297,19 +358,19 @@ object FOLowerUnits
 
     println("lowerable units are: " + units)
 
-    if(units.length == 0){
+    if (units.length == 0) {
       return proof
     }
-    
+
     val fixMap = fixProofNodes(units.toSet, proof, vars)
 
     def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
       try {
-//        println("A")
+        //        println("A")
         contractAndUnify(left, right, vars)
       } catch {
         case e: Exception => {
-//          println("B")
+          //          println("B")
           e.printStackTrace()
           contractAndUnify(right, left, vars)
         }
@@ -317,9 +378,9 @@ object FOLowerUnits
     }
 
     println("fixMap built")
-//    for (k <- fixMap.keySet) {
-//      println(k + " -----> " + fixMap.get(k))
-//    }
+    //    for (k <- fixMap.keySet) {
+    //      println(k + " -----> " + fixMap.get(k))
+    //    }
 
     val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
