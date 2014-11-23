@@ -32,6 +32,7 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       u
     }
   }
+  
 
   override val conclusionContext = {
     val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++

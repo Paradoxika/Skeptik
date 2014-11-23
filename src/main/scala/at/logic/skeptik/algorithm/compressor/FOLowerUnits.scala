@@ -229,8 +229,18 @@ object FOLowerUnits
                   //original left or right node (when it's unified, we know we've found it)
                   //then, use the original conclusion with the opposite of each unit found
                   //as the desired sequent, thereby avoiding ambiguous resolution errors.
-                  checkResolvent(unitsSet, right, fixedRight)(vars)//test this
-
+                  //                  checkResolvent(unitsSet, right, fixedRight)(vars)//test this
+                  //                  checkResolvent(unitsSet, fixedRight, right)(vars)//test this
+                  println("nc: " + node.conclusion)
+                  val newGoal = addUnit(node.conclusion, unitsSet)
+                  println("new goal: " + newGoal)
+                  println("auxL: " + node.asInstanceOf[UnifyingResolution].auxL )
+                  println("auxR: " + node.asInstanceOf[UnifyingResolution].auxR )
+                  println(node.asInstanceOf[UnifyingResolution].mgu )
+                  
+                  findOriginal(unitsSet.head, fixedLeft, right, fixedRight, node.conclusion)(vars)
+                  
+                  println("success: " + UnifyingResolutionMRR(fixedLeft, fixedRight, newGoal)(vars))
                   val child = flChildren.intersect(frChildren).head
                   //                  println("child: " + child)
                   //                  println("node: " + node)
@@ -267,51 +277,130 @@ object FOLowerUnits
     fixMap
   }
 
-  //untested
-  def checkResolvent(units: Set[SequentProofNode], actual: SequentProofNode, fixed: SequentProofNode)
-  	(implicit unifiableVars: MSet[Var]): Sequent = {
+  //remove things from the fixed, until we *can* find the original
+  //then the thing removed must have been removed by resolution with a unit
+  //in the original proof.
+  
+  //assume left is good
+  def findOriginal(unit: SequentProofNode, left: SequentProofNode, right: SequentProofNode, rightFixed: SequentProofNode, originalSeq: Sequent)
+    	(implicit unifiableVars: MSet[Var]) = {
+    println("os: " + originalSeq)
+    if (unit.conclusion.suc.size > 0) {
+    //find something to remove from the fixed entry
+      val us =  findUnifiableFormula(unit.conclusion.suc.head, rightFixed.conclusion.ant)
+       for (uf <- us){
+//    	val uf = findUnifiableFormula(unit.conclusion.suc.head, rightFixed.conclusion.ant)
+    	val newRightConclusionAnt = rightFixed.conclusion.ant.filter(_ != uf)
+    	val newRightConclusion = addAntecedents(newRightConclusionAnt.toList) union addSuccedents(rightFixed.conclusion.suc.toList)  
+    	  //addSuccedents(newRightConclusionSuc.toList) union addAntecedents(rightFixed.conclusion.ant.toList)
+    	println("newRightConclusion: " + newRightConclusion)
+    	val newRightBeforeUni = Axiom(newRightConclusion)
+    	
+    	val newRight = unifySequents(right, newRightBeforeUni)
+    	println("newRight: " + newRight)
+    	try {
+    	UnifyingResolution(left, newRight, originalSeq)
+    	println("X")
+    	} catch {
+    	  case e: Exception => {}
+    	}
+       }
+    }
+  }
+  
+  //
+  def unifySequents(right: SequentProofNode, newRight: SequentProofNode)(implicit uVars: MSet[Var]): SequentProofNode = {
+	  if(desiredFound(right.conclusion, newRight.conclusion)) {
+	    right
+	  } else {
+	    null
+	  }
+  }
+  
+  //
+  def findUnifiableFormula(f: E, seqHalf: Seq[E])(implicit uVars: MSet[Var]):MSet[E] = {
+    val out = MSet[E]()  
+    for(sf <- seqHalf){
+        if(isUnifiable((f, sf))){
+           out.add(sf)
+        }
+        if(isUnifiable((sf,f))){
+          out.add(sf)
+        }
+      }
+      out
+  }
+  
+  
+  //
+  def addUnit(con: Sequent, units: Set[SequentProofNode]): Sequent = {
     if (units.size < 1) { return null }
     val u = units.head
     if (u.conclusion.ant.size > 0) {
-      val newAnt = addAntecedents(fixed.conclusion.ant.toList)
-      val newSuc = addSuccedents(fixed.conclusion.suc.toList ++ u.conclusion.ant.toList)
+      val newAnt = addAntecedents(con.ant.toList)
+      val newSuc = addSuccedents(con.suc.toList ++ u.conclusion.ant.toList)
       val newConclusion = newSuc union newAnt
-      if(desiredFound(actual.conclusion, newConclusion)(unifiableVars) ||
-          desiredFound(newConclusion, actual.conclusion)(unifiableVars)) {
+      newConclusion
+    } else if (u.conclusion.suc.size > 0) {
+      val newAnt = addAntecedents(con.ant.toList ++ u.conclusion.suc.toList)
+      val newSuc = addSuccedents(con.suc.toList)
+      val newConclusion = newSuc union newAnt
+      newConclusion
+    } else {
+      throw new Exception("FOLowerUnits can't find the thing")
+    }
+
+  }
+
+  //untested
+  def checkResolvent(units: Set[SequentProofNode], actual: SequentProofNode, fixed: SequentProofNode)(implicit unifiableVars: MSet[Var]): Sequent = {
+    println("Enterted checkResolvent")
+    println("a: " + actual)
+    println("f: " + fixed)
+    println("u: " + units)
+    if (units.size < 1) { return null }
+    val u = units.head
+    if (u.conclusion.ant.size > 0) {
+      val newAnt = addAntecedents(actual.conclusion.ant.toList)
+      val newSuc = addSuccedents(actual.conclusion.suc.toList ++ u.conclusion.ant.toList)
+      val newConclusion = newSuc union newAnt
+      if (desiredFound(fixed.conclusion, newConclusion)(unifiableVars) ||
+        desiredFound(newConclusion, fixed.conclusion)(unifiableVars)) {
         return newConclusion
       } else {
         val recursiveA = checkResolvent(units.tail, actual, Axiom(newConclusion))
         val recursiveB = checkResolvent(units.tail, actual, fixed)
-        
+
         if (recursiveA != null) {
           return recursiveA
         } else if (recursiveB != null) {
           return recursiveB
         } else {
-          throw new Exception("FOLowerUnits Failed")
+          throw new Exception("FOLowerUnits Failed A")
         }
       }
 
     } else if (u.conclusion.suc.size > 0) {
-      val newAnt = addAntecedents(fixed.conclusion.ant.toList ++ u.conclusion.suc.toList)
-      val newSuc = addSuccedents(fixed.conclusion.suc.toList)
+      val newAnt = addAntecedents(actual.conclusion.ant.toList ++ u.conclusion.suc.toList)
+      val newSuc = addSuccedents(actual.conclusion.suc.toList)
       val newConclusion = newSuc union newAnt
-      if(desiredFound(actual.conclusion, newConclusion)(unifiableVars) ||
-          desiredFound(newConclusion, actual.conclusion)(unifiableVars)) {
+      println("nc: " + newConclusion)
+      if (desiredFound(fixed.conclusion, newConclusion)(unifiableVars) ||
+        desiredFound(newConclusion, fixed.conclusion)(unifiableVars)) {
         return newConclusion
       } else {
         val recursiveA = checkResolvent(units.tail, actual, Axiom(newConclusion))
         val recursiveB = checkResolvent(units.tail, actual, fixed)
-        
+
         if (recursiveA != null) {
           return recursiveA
         } else if (recursiveB != null) {
           return recursiveB
         } else {
-          throw new Exception("FOLowerUnits Failed")
+          throw new Exception("FOLowerUnits Failed B")
         }
       }
-      
+
     } else {
       throw new Exception("FOLowerUnits failed")
     }
