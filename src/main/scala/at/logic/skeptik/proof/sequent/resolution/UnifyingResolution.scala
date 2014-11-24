@@ -501,14 +501,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
-          println("leftPremise: " + leftPremise)
-          println("leftPremiseC: " + leftPremiseClean)
-          println("rightPremise: " + rightPremise)
           ax =  new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-          println("ax: " + ax)
-          println("auxL: " + auxL)
-          println("auxR: " + auxR)
-          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
+          
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
 
@@ -539,6 +533,69 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       }
     }
   }
+
+ def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
+    rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+
+    if (pairs.length == 0) {
+      throw new Exception("Resolution: Cannot find desired resolvent")
+    } else {
+
+      val (auxL, auxR) = pairs(0)
+
+
+
+      val computedResolution = {
+        if (isMRR) {
+          var ax = null.asInstanceOf[SequentProofNode]
+//          println("leftPremise: " + leftPremise)
+//          println("leftPremiseC: " + leftPremiseClean)
+//          println("rightPremise: " + rightPremise)
+          ax =  new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+//          println("ax: " + ax)
+//          println("auxL: " + auxL)
+//          println("auxR: " + auxR)
+//          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
+          if (desired.logicalSize < ax.conclusion.logicalSize) {
+            try {
+
+              val desiredSequentClean = fixSharedNoFilter(Axiom(desired), ax, 0, unifiableVariables).conclusion
+
+              Contraction(ax, desiredSequentClean)(unifiableVariables)
+            } catch {
+              case e: Exception => {
+                ax //do nothing with this; we can't contract it anyways
+              }
+            }
+          } else {
+            ax
+          }
+
+        } else {
+          new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+        }
+      }
+      val computedSequent = computedResolution.conclusion.toSeqSequent
+
+      val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
+
+      def applyRelaxation(seq: Sequent, relax: Substitution): Sequent = {
+        val newAnt = seq.ant.map(e => relax(e))
+        val newSuc = seq.suc.map(e => relax(e))
+        val out = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+        out
+      }
+      
+      val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
+      
+      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed)) {
+        computedResolution
+      } else {
+        findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR)
+      }
+    }
+  }
+  
   
 }
 
