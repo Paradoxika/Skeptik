@@ -239,16 +239,19 @@ object FOLowerUnits
                   println("auxR: " + node.asInstanceOf[UnifyingResolution].auxR)
                   println(node.asInstanceOf[UnifyingResolution].mgu)
 
-                  findCorrected(node.asInstanceOf[UnifyingResolution].auxR, unitsSet.head.conclusion.suc.head,
+                  val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxR, unitsSet.head.conclusion.suc.head,
                     fixedRight, right.conclusion, true, node.asInstanceOf[UnifyingResolution].mgu)(vars)
-
+                  val newGoal = addCarry(node.conclusion, carry, unitsSet.head)
+                  println("newGoal: " + newGoal)
+                  
                   //                  findOriginal(unitsSet.head, fixedLeft, right, fixedRight, node.conclusion)(vars)
 
                   //                  println("success: " + UnifyingResolutionMRR(fixedLeft, fixedRight, newGoal)(vars))
-                  val child = flChildren.intersect(frChildren).head
+//                  val child = flChildren.intersect(frChildren).head
                   //                  println("child: " + child)
                   //                  println("node: " + node)
-                  UnifyingResolutionMRR(fixedLeft, fixedRight, child.conclusion)(vars)
+                  
+                  UnifyingResolutionMRR(fixedLeft, fixedRight, newGoal)(vars)
                 } else {
                   throw new Exception("Compression failed!")
                 }
@@ -281,25 +284,40 @@ object FOLowerUnits
     fixMap
   }
 
+  def addCarry(con: Sequent, carry: E, unit: SequentProofNode): Sequent = {
+    if(unit.conclusion.ant.size > 0){
+      addAntecedents(con.ant.toList) union addSuccedents(con.suc.toList ++ List[E](carry))
+    } else if (unit.conclusion.suc.size > 0){
+      addAntecedents(con.ant.toList ++ List[E](carry)) union addSuccedents(con.suc.toList)
+    } else {
+      null
+    }
+  }
+  
+  //
+  //TODO: consider case where aux in suc
   def findCorrected(aux: E, unit: E, fixed: SequentProofNode, original: Sequent, auxInAnt: Boolean, mgu: Substitution)(implicit uVars: MSet[Var]): E = {
     if (auxInAnt) {
       for (f <- fixed.conclusion.ant) {
         val u = getUnifier((f, aux))
+//        val u = getUnifier((aux, f))
+        
         def filterFunc(expr: E)(implicit uVars: MSet[Var]): Boolean = {
           !desiredFound(Sequent(expr)(), Sequent(unit)())
         }
 
         if (u != null) {
 //          println("ant before filter: " + fixed.conclusion.ant.map(e => u(e)).filter(filterFunc))
-          val newAnt = fixed.conclusion.ant.map(e => u(e)).filter(_ != unit).filter(filterFunc)
+          val newAnt = fixed.conclusion.ant.map(e => u(e)).filter(filterFunc)
+          
           val newSuc = fixed.conclusion.suc.map(e => u(e))
           val newConclusion = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-          println("u: " + u)
-          println("newCon: " + newConclusion)
-          println("original: " + original)
+//          println("u: " + u)
+//          println("newCon: " + newConclusion)
+//          println("original: " + original)
           if (desiredFound(newConclusion, original)) {
             println("F: " + f)
-            println("newUnit: " + mgu(u(unit)))
+//            println("newUnit: " + mgu(u(unit)))
             return mgu(u(unit))
           }
         }
