@@ -493,12 +493,22 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     if (pairs.length == 0) {
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
+
       val (auxL, auxR) = pairs(0)
+
+
 
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
-          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          println("leftPremise: " + leftPremise)
+          println("leftPremiseC: " + leftPremiseClean)
+          println("rightPremise: " + rightPremise)
+          ax =  new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          println("ax: " + ax)
+          println("auxL: " + auxL)
+          println("auxR: " + auxR)
+          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
 
@@ -529,5 +539,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       }
     }
   }
+  
 }
 

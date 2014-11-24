@@ -45,6 +45,34 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     }
   }
 
+ def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, desired: Sequent, renaming: Substitution)(implicit unifiableVariables: MSet[Var]) = {
+
+    val renamed = applyRename(leftPremise, renaming)
+    println("renamed left: " + renamed)
+val renamedB = applyRename(rightPremise, renaming)    
+    println("renamed right: " + renamedB)
+    val leftPremiseClean = fixSharedNoFilter(renamed, rightPremise, 0, unifiableVariables)
+println("left clean: " + leftPremiseClean)
+    val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.ant; auxR <- rightPremise.conclusion.suc) yield (auxL, auxR)).filter(isUnifiable)
+println("pairs: " + unifiablePairs)
+    if (unifiablePairs.length > 0) {
+      findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, true)
+    } else if (unifiablePairs.length == 0) {
+      throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.")
+    } else {
+      //Should never really be reached in this constructor
+      throw new MRRException("Resolution (MRR): the resolvent is ambiguous.")
+    }
+  }  
+  
+ 
+ def applyRename(p: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+   val newAnt = p.conclusion.ant.map(e => sub(e))
+   val newSuc = p.conclusion.suc.map(e => sub(e))
+   val newSeq = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+   Axiom(newSeq)
+ }
+  
   def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)

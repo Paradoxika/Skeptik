@@ -241,7 +241,7 @@ object FOLowerUnits
 
                   val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxR, unitsSet.head.conclusion.suc.head,
                     fixedRight, right.conclusion, true, node.asInstanceOf[UnifyingResolution].mgu)(vars)
-                  val newGoal = addCarry(node.conclusion, carry, unitsSet.head)
+                  val newGoal = addCarry(node.conclusion, carry._1, unitsSet.head)
                   println("newGoal: " + newGoal)
                   
                   //                  findOriginal(unitsSet.head, fixedLeft, right, fixedRight, node.conclusion)(vars)
@@ -251,7 +251,7 @@ object FOLowerUnits
                   //                  println("child: " + child)
                   //                  println("node: " + node)
                   
-                  UnifyingResolutionMRR(fixedLeft, fixedRight, newGoal)(vars)
+                  UnifyingResolutionMRR(fixedRight, fixedLeft, newGoal, carry._2)(vars)
                 } else {
                   throw new Exception("Compression failed!")
                 }
@@ -296,7 +296,8 @@ object FOLowerUnits
   
   //
   //TODO: consider case where aux in suc
-  def findCorrected(aux: E, unit: E, fixed: SequentProofNode, original: Sequent, auxInAnt: Boolean, mgu: Substitution)(implicit uVars: MSet[Var]): E = {
+  def findCorrected(aux: E, unit: E, fixed: SequentProofNode, original: Sequent, auxInAnt: Boolean, mgu: Substitution)
+  (implicit uVars: MSet[Var]): (E, Substitution) = {
     if (auxInAnt) {
       for (f <- fixed.conclusion.ant) {
         val u = getUnifier((f, aux))
@@ -312,13 +313,13 @@ object FOLowerUnits
           
           val newSuc = fixed.conclusion.suc.map(e => u(e))
           val newConclusion = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-//          println("u: " + u)
+          println("u: " + u)
 //          println("newCon: " + newConclusion)
 //          println("original: " + original)
           if (desiredFound(newConclusion, original)) {
             println("F: " + f)
 //            println("newUnit: " + mgu(u(unit)))
-            return mgu(u(unit))
+            return (mgu(u(unit)), u)
           }
         }
       }
