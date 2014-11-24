@@ -154,6 +154,19 @@ trait CanRenameVariables extends FindsVars {
       
     }
   }
+  
+  def getUnifier(p: (E, E))(implicit unifiableVariables: MSet[Var]): Substitution = unify(p :: Nil)(unifiableVariables) match {
+    case None => null
+    case Some(u) => {
+//      println(u)
+//      true
+        if(occurCheck(p, u)){
+        u
+        } else {
+          null
+        }
+    }
+  }  
 
   def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): SequentProofNode = {
 
