@@ -32,7 +32,6 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       u
     }
   }
-  
 
   override val conclusionContext = {
     val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
@@ -120,53 +119,53 @@ trait FindsVars extends checkUnifiableVariableName {
 }
 
 trait CanRenameVariables extends FindsVars {
-  
-    def occurCheck(p: (E, E), u: Substitution): Boolean = {
-      val first = p._1
-      val second = p._2
 
-      for (sp <- u.toList) {
-        val v = sp._1
-        val e = sp._2
-        if (!e.isInstanceOf[Var]) {
-          if (getSetOfVars(first) contains v) {
-            //check if the second contains e
-            if (e.occursIn(second) && (getSetOfVars(e) contains v)) {
-              return false
-            }
-          } else if (getSetOfVars(second) contains v) {
-            if (e.occursIn(first)  && (getSetOfVars(e) contains v)) {
-              return false
-            }
+  def occurCheck(p: (E, E), u: Substitution): Boolean = {
+    val first = p._1
+    val second = p._2
+
+    for (sp <- u.toList) {
+      val v = sp._1
+      val e = sp._2
+      if (!e.isInstanceOf[Var]) {
+        if (getSetOfVars(first) contains v) {
+          //check if the second contains e
+          if (e.occursIn(second) && (getSetOfVars(e) contains v)) {
+            return false
+          }
+        } else if (getSetOfVars(second) contains v) {
+          if (e.occursIn(first) && (getSetOfVars(e) contains v)) {
+            return false
           }
         }
       }
-      
-      true
-    }  
-  
+    }
+
+    true
+  }
+
   def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
     case None => false
     case Some(u) => {
-//      println(u)
-//      true
-        occurCheck(p, u)
-      
+      //      println(u)
+      //      true
+      occurCheck(p, u)
+
     }
   }
-  
+
   def getUnifier(p: (E, E))(implicit unifiableVariables: MSet[Var]): Substitution = unify(p :: Nil)(unifiableVariables) match {
     case None => null
     case Some(u) => {
-//      println(u)
-//      true
-        if(occurCheck(p, u)){
+      //      println(u)
+      //      true
+      if (occurCheck(p, u)) {
         u
-        } else {
-          null
-        }
+      } else {
+        null
+      }
     }
-  }  
+  }
 
   def fixSharedNoFilter(leftPremiseR: SequentProofNode, rightPremiseR: SequentProofNode, count: Int, unifiableVariables: MSet[Var]): SequentProofNode = {
 
@@ -496,13 +495,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
       val (auxL, auxR) = pairs(0)
 
-
-
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
-          ax =  new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-          
+          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
 
@@ -534,7 +531,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
   }
 
- def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
+  def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
@@ -543,19 +540,17 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
       val (auxL, auxR) = pairs(0)
 
-
-
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
-//          println("leftPremise: " + leftPremise)
-//          println("leftPremiseC: " + leftPremiseClean)
-//          println("rightPremise: " + rightPremise)
-          ax =  new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
-//          println("ax: " + ax)
-//          println("auxL: " + auxL)
-//          println("auxR: " + auxR)
-//          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
+          //          println("leftPremise: " + leftPremise)
+          //          println("leftPremiseC: " + leftPremiseClean)
+          //          println("rightPremise: " + rightPremise)
+          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          //          println("ax: " + ax)
+          //          println("auxL: " + auxL)
+          //          println("auxR: " + auxR)
+          //          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
 
@@ -585,9 +580,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         val out = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
         out
       }
-      
+
       val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
-      
+
       if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed)) {
         computedResolution
       } else {
@@ -595,7 +590,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       }
     }
   }
-  
-  
+
 }
 
