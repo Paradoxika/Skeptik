@@ -295,81 +295,51 @@ object FOLowerUnits
     } else if (unit.conclusion.suc.size > 0) {
       addAntecedents(con.ant.toList ++ List[E](carry)) union addSuccedents(con.suc.toList)
     } else {
-      null
+      null //stub; error //TODO: throw something or handle this when function called
     }
   }
 
   //
   //TODO: consider case where aux in suc
   def findCorrected(aux: E, unit: E, fixed: SequentProofNode, original: Sequent, auxInAnt: Boolean, mgu: Substitution)(implicit uVars: MSet[Var]): (E, Substitution) = {
+
+    def filterFunc(expr: E)(implicit uVars: MSet[Var]): Boolean = {
+      !desiredFound(Sequent(expr)(), Sequent(unit)())
+    }
+
     if (auxInAnt) {
       for (f <- fixed.conclusion.ant) {
         val u = getUnifier((f, aux))
-        //        val u = getUnifier((aux, f))
-
-        def filterFunc(expr: E)(implicit uVars: MSet[Var]): Boolean = {
-          !desiredFound(Sequent(expr)(), Sequent(unit)())
-        }
-
         if (u != null) {
-          //          println("ant before filter: " + fixed.conclusion.ant.map(e => u(e)).filter(filterFunc))
           val newAnt = fixed.conclusion.ant.map(e => u(e)).filter(filterFunc)
 
           val newSuc = fixed.conclusion.suc.map(e => u(e))
           val newConclusion = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-          println("u: " + u)
-          //          println("newCon: " + newConclusion)
-          //          println("original: " + original)
+
           if (desiredFound(newConclusion, original)) {
-            println("F: " + f)
-            //            println("newUnit: " + mgu(u(unit)))
             return (mgu(u(unit)), u)
           }
         }
       }
-      null
+      null //stub; error //TODO: throw something
+    } else {
+      for (f <- fixed.conclusion.suc) {
+        val u = getUnifier((f, aux))
+
+        if (u != null) {
+          val newAnt = fixed.conclusion.ant.map(e => u(e))
+
+          val newSuc = fixed.conclusion.suc.map(e => u(e)).filter(filterFunc)
+          val newConclusion = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+
+          if (desiredFound(newConclusion, original)) {
+            return (mgu(u(unit)), u)
+          }
+        }
+      }
+      null //stub; error //TODO: throw something
     }
-    null
   }
-
-//  //remove things from the fixed, until we *can* find the original
-//  //then the thing removed must have been removed by resolution with a unit
-//  //in the original proof.
-//
-//  //assume left is good
-//  def findOriginal(unit: SequentProofNode, left: SequentProofNode, right: SequentProofNode, rightFixed: SequentProofNode, originalSeq: Sequent)(implicit unifiableVars: MSet[Var]) = {
-//    println("os: " + originalSeq)
-//    if (unit.conclusion.suc.size > 0) {
-//      //find something to remove from the fixed entry
-//      val us = findUnifiableFormula(unit.conclusion.suc.head, rightFixed.conclusion.ant)
-//      for (uf <- us) {
-//        //    	val uf = findUnifiableFormula(unit.conclusion.suc.head, rightFixed.conclusion.ant)
-//        val newRightConclusionAnt = rightFixed.conclusion.ant.filter(_ != uf)
-//        val newRightConclusion = addAntecedents(newRightConclusionAnt.toList) union addSuccedents(rightFixed.conclusion.suc.toList)
-//        //addSuccedents(newRightConclusionSuc.toList) union addAntecedents(rightFixed.conclusion.ant.toList)
-//        println("newRightConclusion: " + newRightConclusion)
-//        val newRightBeforeUni = Axiom(newRightConclusion)
-//
-//        val newRight = unifySequents(right, newRightBeforeUni)
-//        println("newRight: " + newRight)
-//        try {
-//          UnifyingResolution(left, newRight, originalSeq)
-//          println("X")
-//        } catch {
-//          case e: Exception => {}
-//        }
-//      }
-//    }
-//  }
-
-//  //
-//  def unifySequents(right: SequentProofNode, newRight: SequentProofNode)(implicit uVars: MSet[Var]): SequentProofNode = {
-//    if (desiredFound(right.conclusion, newRight.conclusion)) {
-//      right
-//    } else {
-//      null
-//    }
-//  }
 
   //
   def findUnifiableFormula(f: E, seqHalf: Seq[E])(implicit uVars: MSet[Var]): MSet[E] = {
@@ -385,85 +355,10 @@ object FOLowerUnits
     out
   }
 
-//  //
-//  def addUnit(con: Sequent, units: Set[SequentProofNode]): Sequent = {
-//    if (units.size < 1) { return null }
-//    val u = units.head
-//    if (u.conclusion.ant.size > 0) {
-//      val newAnt = addAntecedents(con.ant.toList)
-//      val newSuc = addSuccedents(con.suc.toList ++ u.conclusion.ant.toList)
-//      val newConclusion = newSuc union newAnt
-//      newConclusion
-//    } else if (u.conclusion.suc.size > 0) {
-//      val newAnt = addAntecedents(con.ant.toList ++ u.conclusion.suc.toList)
-//      val newSuc = addSuccedents(con.suc.toList)
-//      val newConclusion = newSuc union newAnt
-//      newConclusion
-//    } else {
-//      throw new Exception("FOLowerUnits can't find the thing")
-//    }
-//
-//  }
-
-//  //untested
-//  def checkResolvent(units: Set[SequentProofNode], actual: SequentProofNode, fixed: SequentProofNode)(implicit unifiableVars: MSet[Var]): Sequent = {
-//    println("Enterted checkResolvent")
-//    println("a: " + actual)
-//    println("f: " + fixed)
-//    println("u: " + units)
-//    if (units.size < 1) { return null }
-//    val u = units.head
-//    if (u.conclusion.ant.size > 0) {
-//      val newAnt = addAntecedents(actual.conclusion.ant.toList)
-//      val newSuc = addSuccedents(actual.conclusion.suc.toList ++ u.conclusion.ant.toList)
-//      val newConclusion = newSuc union newAnt
-//      if (desiredFound(fixed.conclusion, newConclusion)(unifiableVars) ||
-//        desiredFound(newConclusion, fixed.conclusion)(unifiableVars)) {
-//        return newConclusion
-//      } else {
-//        val recursiveA = checkResolvent(units.tail, actual, Axiom(newConclusion))
-//        val recursiveB = checkResolvent(units.tail, actual, fixed)
-//
-//        if (recursiveA != null) {
-//          return recursiveA
-//        } else if (recursiveB != null) {
-//          return recursiveB
-//        } else {
-//          throw new Exception("FOLowerUnits Failed A")
-//        }
-//      }
-//
-//    } else if (u.conclusion.suc.size > 0) {
-//      val newAnt = addAntecedents(actual.conclusion.ant.toList ++ u.conclusion.suc.toList)
-//      val newSuc = addSuccedents(actual.conclusion.suc.toList)
-//      val newConclusion = newSuc union newAnt
-//      println("nc: " + newConclusion)
-//      if (desiredFound(fixed.conclusion, newConclusion)(unifiableVars) ||
-//        desiredFound(newConclusion, fixed.conclusion)(unifiableVars)) {
-//        return newConclusion
-//      } else {
-//        val recursiveA = checkResolvent(units.tail, actual, Axiom(newConclusion))
-//        val recursiveB = checkResolvent(units.tail, actual, fixed)
-//
-//        if (recursiveA != null) {
-//          return recursiveA
-//        } else if (recursiveB != null) {
-//          return recursiveB
-//        } else {
-//          throw new Exception("FOLowerUnits Failed B")
-//        }
-//      }
-//
-//    } else {
-//      throw new Exception("FOLowerUnits failed")
-//    }
-//
-//  }
-
   def contractAndUnify(left: SequentProofNode, right: SequentProofNode, vars: MSet[Var]) = {
     if (isUnitClause(left.conclusion)) {
       if (isUnitClause(right.conclusion)) {
-        println("A")
+        //        println("A")
         //Both units; no need to contract either
         UnifyingResolution(left, right)(vars)
 
@@ -471,18 +366,20 @@ object FOLowerUnits
         //only right is non-unit
         val contracted = Contraction(right)(vars)
         if (contracted.conclusion.logicalSize < right.conclusion.logicalSize) {
-          println("B")
-          UnifyingResolution(left, contracted)(vars)
+          //          println("B")
+          //          UnifyingResolution(left, contracted)(vars)
+          finishResolution(left, contracted, true)(vars)
         } else {
-          println("C")
+          //          println("C")
           //          UnifyingResolution(left, right)(vars)
-          try {
-            UnifyingResolution(left, right)(vars)
-          } catch {
-            case e: Exception => {
-              multipleResolution(left, right, true)(vars)
-            }
-          }
+          //          try {
+          //            UnifyingResolution(left, right)(vars)
+          //          } catch {
+          //            case e: Exception => {
+          //              multipleResolution(left, right, true)(vars)
+          //            }
+          //          }
+          finishResolution(left, right, true)(vars)
         }
       }
     } else {
@@ -490,21 +387,35 @@ object FOLowerUnits
         //only left is non-unit
         val contracted = Contraction(left)(vars)
         if (contracted.conclusion.logicalSize < left.conclusion.logicalSize) {
-          println("D")
-          UnifyingResolution(contracted, right)(vars)
+          //          println("D")
+          //          UnifyingResolution(contracted, right)(vars)
+          finishResolution(contracted, right, false)(vars)
         } else {
-          println("E")
-          UnifyingResolution(left, right)(vars)
+          //          println("E")
+          //          UnifyingResolution(left, right)(vars)
+          finishResolution(left, right, false)(vars)
 
         }
       } else {
         //both are non-units
-        println("F")
+        //        println("F")
         UnifyingResolution(left, right)(vars)
       }
     }
   }
 
+  def finishResolution(left: SequentProofNode, right: SequentProofNode, leftIsUnit: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    try {
+      UnifyingResolution(left, right)(unifiableVariables)
+    } catch {
+      case e: Exception => {
+        //TODO: make sure it's the exception we want (ambiguous resolution)
+        multipleResolution(left, right, leftIsUnit)(unifiableVariables)
+      }
+    }
+  }
+
+  //TODO: can probably avoid code reuse by introducing helper functions
   def multipleResolution(left: SequentProofNode, right: SequentProofNode, leftIsUnit: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
     if (leftIsUnit) {
       //left is unit

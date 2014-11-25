@@ -288,16 +288,16 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     out
   }
 
-  def validMap(m: MMap[Var, Set[Var]]): Boolean = {
-    for (k <- m.keySet) {
-      if (m.get(k).get.size != 1) {
-        return false
-      }
-    }
-    true
-  }
+//  def validMap(m: MMap[Var, Set[Var]]): Boolean = {
+//    for (k <- m.keySet) {
+//      if (m.get(k).get.size != 1) {
+//        return false
+//      }
+//    }
+//    true
+//  }
 
-  def validMapB(m: MMap[Var, Set[Var]], vars: MSet[Var]): Boolean = {
+  def validMap(m: MMap[Var, Set[Var]], vars: MSet[Var]): Boolean = {
     for (k <- m.keySet) {
       if (vars.contains(k) && m.get(k).get.size != 1) {
         return false
@@ -397,6 +397,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
           case Var(name, _) => {
             return s.get(k).get
           }
+          case _ => {
+            //do nothing
+          }
         }
 
       }
@@ -404,24 +407,24 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     v
   }
 
-  def unifyClean(c: E, d: E) = {
-
-    val cAxiom = new Axiom(Sequent(c)())
-    val dAxiom = new Axiom(Sequent(d)())
-    val vars = getSetOfVars(cAxiom) union getSetOfVars(dAxiom)
-    val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, vars)
-    val dClean = dAxiomClean.conclusion.ant.head
-
-    //should never not be able to unify -- one is the other, but with new variable names
-    val dToCleanSub = (unify((d, dClean) :: Nil)(vars)).get
-    val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
-    val inverseSubsCasted = convertTypes(inverseSubs.toList)
-    val inverseSub = Substitution(inverseSubsCasted: _*)
-
-    val u = unify((c, dClean) :: Nil)(vars)
-
-    (u, inverseSub)
-  }
+  //  def unifyClean(c: E, d: E) = {
+  //
+  //    val cAxiom = new Axiom(Sequent(c)())
+  //    val dAxiom = new Axiom(Sequent(d)())
+  //    val vars = getSetOfVars(cAxiom) union getSetOfVars(dAxiom)
+  //    val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, vars)
+  //    val dClean = dAxiomClean.conclusion.ant.head
+  //
+  //    //should never not be able to unify -- one is the other, but with new variable names
+  //    val dToCleanSub = (unify((d, dClean) :: Nil)(vars)).get
+  //    val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
+  //    val inverseSubsCasted = convertTypes(inverseSubs.toList)
+  //    val inverseSub = Substitution(inverseSubsCasted: _*)
+  //
+  //    val u = unify((c, dClean) :: Nil)(vars)
+  //
+  //    (u, inverseSub)
+  //  }
 
   def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size != desired.size) {
@@ -473,7 +476,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
         val intersectedMap = intersectMaps(antMap, sucMap)
 
-        if (!validMapB(intersectedMap, commonVars)) {
+        if (!validMap(intersectedMap, commonVars)) {
           return false
         }
         if (checkHalf(computed.ant.distinct, desired.ant.distinct)) {
