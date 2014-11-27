@@ -240,8 +240,13 @@ object FOLowerUnits
                   println(node.asInstanceOf[UnifyingResolution].mgu)
                   val oMGU = node.asInstanceOf[UnifyingResolution].mgu
 
-                  val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxR, unitsSet.head.conclusion.suc.head,
-                    fixedRight, right.conclusion, true, node.asInstanceOf[UnifyingResolution].mgu)(vars)
+                  //                  val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxR, unitsSet.head.conclusion.suc.head,
+                  //                    fixedRight, right.conclusion, true, node.asInstanceOf[UnifyingResolution].mgu)(vars)
+                  println("rc: " + right.conclusion)
+                  println("lc: " + left.conclusion)
+                  val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxL, getUnitE(unitsSet.head),
+                    fixedLeft, left.conclusion, false, node.asInstanceOf[UnifyingResolution].mgu)(vars)
+                  println(carry._1)
                   val newGoal = addCarry(node.conclusion, carry._1, unitsSet.head)
                   println("newGoal: " + newGoal)
 
@@ -289,6 +294,7 @@ object FOLowerUnits
     fixMap
   }
 
+  //
   def addCarry(con: Sequent, carry: E, unit: SequentProofNode): Sequent = {
     if (unit.conclusion.ant.size > 0) {
       addAntecedents(con.ant.toList) union addSuccedents(con.suc.toList ++ List[E](carry))
@@ -300,11 +306,30 @@ object FOLowerUnits
   }
 
   //
-  //TODO: consider case where aux in suc
+  def getUnitE(unit: SequentProofNode): E = {
+    if (unit.conclusion.ant.size > 0) {
+      unit.conclusion.ant.head
+    } else if (unit.conclusion.suc.size > 0) {
+      unit.conclusion.suc.head
+    } else {
+      null //stub //TODO: throw error?
+    }
+  }
+
+  //
   def findCorrected(aux: E, unit: E, fixed: SequentProofNode, original: Sequent, auxInAnt: Boolean, mgu: Substitution)(implicit uVars: MSet[Var]): (E, Substitution) = {
 
     def filterFunc(expr: E)(implicit uVars: MSet[Var]): Boolean = {
       !desiredFound(Sequent(expr)(), Sequent(unit)())
+    }
+
+    def removeOnce(s: Seq[E], e: E): Seq[E] = {
+      val h = s.head
+      if (filterFunc(h)) {
+        s.tail
+      } else {
+        removeOnce(s.tail, e) ++ List[E](h)
+      }
     }
 
     if (auxInAnt) {
@@ -315,6 +340,9 @@ object FOLowerUnits
 
           val newSuc = fixed.conclusion.suc.map(e => u(e))
           val newConclusion = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+      println("o: " + original)
+          
+          println("new: " + newConclusion)
 
           if (desiredFound(newConclusion, original)) {
             return (mgu(u(unit)), u)
@@ -323,16 +351,20 @@ object FOLowerUnits
       }
       null //stub; error //TODO: throw something
     } else {
+      println("o: " + original)
       for (f <- fixed.conclusion.suc) {
+        
         val u = getUnifier((f, aux))
 
         if (u != null) {
           val newAnt = fixed.conclusion.ant.map(e => u(e))
+          println("B " + removeOnce(fixed.conclusion.suc.map(e => u(e)), u(f)))
 
-          val newSuc = fixed.conclusion.suc.map(e => u(e)).filter(filterFunc)
+          val newSuc = removeOnce(fixed.conclusion.suc.map(e => u(e)), u(f))//fixed.conclusion.suc.map(e => u(e)).filter(filterFunc) //can't filter, must remove *one* copy
           val newConclusion = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-
+          println("new: " + newConclusion)
           if (desiredFound(newConclusion, original)) {
+            println("C")
             return (mgu(u(unit)), u)
           }
         }
