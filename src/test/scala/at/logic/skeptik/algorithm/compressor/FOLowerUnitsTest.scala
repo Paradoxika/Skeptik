@@ -21,6 +21,7 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
 
   val proofa = ProofParserSPASS.read("examples/proofs/SPASS/example1.spass")
   val resulta = checkProofs(FOLowerUnits(proofa), "examples/proofs/SPASS/testresults/FOLowerUnits/example1.result")
+  
 
   val proofb = ProofParserSPASS.read("examples/proofs/SPASS/example2.spass")
   val resultb = checkProofs(FOLowerUnits(proofb), "examples/proofs/SPASS/testresults/FOLowerUnits/example2.result")
