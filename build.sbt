@@ -17,9 +17,8 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-library" % "2.11.1",
   "org.scala-lang.modules" % "scala-parser-combinators_2.11" % "1.0.2",
   "org.scala-lang" % "scala-library" % "2.11.1", // apparently needed because of timeout and deprecated actors library
-  "com.github.scala-incubator.io" % "scala-io-file_2.11" % "0.4.3-1") // seems inactive
-
-libraryDependencies += "org.scalaz" % "scalaz-core_2.11" % "7.1.0-RC1" intransitive()
+  "com.github.scala-incubator.io" % "scala-io-file_2.11" % "0.4.3-1", // seems inactive
+  "org.scalaz" % "scalaz-core_2.10" % "7.1.0")
 
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))

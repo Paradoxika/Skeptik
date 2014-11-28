@@ -5,29 +5,29 @@ import at.logic.skeptik.congruence.structure._
 import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 
-class ProofTreeConNew(
+class ProofTreeCon(
     rep: Map[E,E], 
     cclass: Map[E,Set[E]], 
     lookup: Map[(E,E),E], 
     lN: Map[E,Set[E]], 
     rN: Map[E,Set[E]], 
     g: ProofForest)
-    (implicit eqReferences: MMap[(E,E),EqW]) extends CongruenceNew(rep,cclass,lookup,lN,rN,g) {
+    (implicit eqReferences: MMap[(E,E),EqW]) extends Congruence(rep,cclass,lookup,lN,rN,g) {
 
   def explain(u: E, v: E): Option[EquationPath] = {
     g.explain(u,v)
   }
   
-  def newCon(rep: Map[E,E], cclass: Map[E,Set[E]],lookup: Map[(E,E),E], lN: Map[E,Set[E]], rN: Map[E,Set[E]],g: CongruenceGraph): CongruenceNew = {
+  def newCon(rep: Map[E,E], cclass: Map[E,Set[E]],lookup: Map[(E,E),E], lN: Map[E,Set[E]], rN: Map[E,Set[E]],g: CongruenceGraph): Congruence = {
     if (g.isInstanceOf[ProofForest]) 
-      new ProofTreeConNew(rep,cclass,lookup,lN,rN,g.asInstanceOf[ProofForest])
+      new ProofTreeCon(rep,cclass,lookup,lN,rN,g.asInstanceOf[ProofForest])
     else
       this
   }
 }
 
-object ProofTreeConNew {
+object ProofTreeCon {
   def apply(implicit eqReferences: MMap[(E,E),EqW]) = {
-    new ProofTreeConNew(Map[E,E](),Map[E,Set[E]](),Map[(E,E),E](),Map[E,Set[E]](),Map[E,Set[E]](),new ProofForest())
+    new ProofTreeCon(Map[E,E](),Map[E,Set[E]](),Map[(E,E),E](),Map[E,Set[E]](),Map[E,Set[E]](),new ProofForest())
   }
 }

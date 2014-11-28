@@ -38,7 +38,7 @@ object CongruenceCompressorDebug {
         println("parsing " + singleFile)
         val proof = parser.read(singleFile)
         println("finished parsing")
-        val newProof = FibonacciCNewNew(proof)
+        val newProof = FibonacciCongruence(proof)
 //        val newProof2 = FibonacciCNewNew(proof)
         println(measure(proof))
         println(measure(newProof))
@@ -55,7 +55,7 @@ object CongruenceCompressorDebug {
       val t2 = System.currentTimeMillis()
       val parseTime = t2 - t
       println("Parsing time: " + parseTime)
-      val newProof = FibonacciCNewNew(proof)
+      val newProof = FibonacciCongruence(proof)
       val timeReq = System.currentTimeMillis() - t2
       println("time: " + timeReq + "ms")
 //      println(proof)

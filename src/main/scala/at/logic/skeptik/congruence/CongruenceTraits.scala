@@ -17,36 +17,18 @@ trait lazyRes {
 
 trait ArrayStructure {
   def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ArrayCongruence(new FindTable(), Queue[(E,E)](), new ArrayGraph)
+    ArrayCon(eqReferences)
   }
 }
 
 trait FibonacciStructure {
   def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new FibonacciCongruence(new FindTable(), Queue[(E,E)](), new FibonacciGraph)
+    FibCon(eqReferences)
   }
 }
 
 trait ProofTreeStructure {
   def newCon(implicit eqReferences: MMap[(E,E),EqW]): Congruence = {
-    new ProofTreeCongruence(new FindTable(), Queue[(E,E)](), ProofForest())
-  }
-}
-
-trait ArrayStructureNew {
-  def newCon(implicit eqReferences: MMap[(E,E),EqW]): CongruenceNew = {
-    ArrayConNew(eqReferences)
-  }
-}
-
-trait FibonacciStructureNew {
-  def newCon(implicit eqReferences: MMap[(E,E),EqW]): CongruenceNew = {
-    FibConNew(eqReferences)
-  }
-}
-
-trait ProofTreeStructureNew {
-  def newCon(implicit eqReferences: MMap[(E,E),EqW]): CongruenceNew = {
-    ProofTreeConNew(eqReferences)
+    ProofTreeCon(eqReferences)
   }
 }

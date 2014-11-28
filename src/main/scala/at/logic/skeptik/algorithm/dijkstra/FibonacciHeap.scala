@@ -50,18 +50,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     case Some(node) => Some(node.element) 
   }
   
-//  def addAllChildToRoot(node: FNode) {
-//     node.child.foreach(ch => {
-//      var nextChild = ch.right
-//      while (nextChild != ch) {
-//        val thisChild = nextChild
-//        nextChild = nextChild.right
-//        addToRoot(thisChild)
-//      }
-//      addToRoot(ch)
-//    })
-//  }
-  
   def addAllChildToRoot(node: FNode) {
      node.child.foreach(_.asSequence().foreach(ch => {
       addToRoot(ch)
@@ -82,8 +70,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
         consolidate
       }
       n = n - 1
-//      if (min.isDefined) println((correctlyChained(min.get) && correctlyChained(minNode) && correctlyChained(min.get.left)) + " " + min.get.toString(true) + " " + min.get.left.toString(true) + " " + minNode.toString(true))
-//      else println("empty")
       Some(minNode.element)
     }
   }
@@ -91,19 +77,11 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
   def consolidate = min match {
     case None => 
     case Some (minNode) => {
-//      val dN = 2*Math.log(n).toInt+1
-//      val dN = n // log(n) should suffice
-//      val A = new Array[FNode](dN)
       val A = MMap[Int,FNode]()
       val rootSeq = minNode.asSequence()
       rootSeq.foreach(node => {
-//      var node = minNode.right
-//      while(node != minNode) {
-//        val nextNode = node.right
-//        println(node + " ~ " + minNode)
         var x = node
         var d = x.degree
-//        println(x + " degree " + d)
         var dNode = x
         while (A.isDefinedAt(d)) {
           var y = A(d)
@@ -112,20 +90,15 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
             y = x
             x = xy
           }
-//          println("link " + y + " to " + x)
           link(y,x)
           A -= d
           if (d+1 < A.size) d = d + 1
         }
         
         A+=(d -> x)
-//        node = nextNode
-//        println("A after " + x + " ::: " + A.mkString(","))
       })
       min = None
-//      println("A: " + A.mkString(","))
       A.values.foreach(node => {
-//        println("remain: " + node)
         addToRoot(node)
       })
     }
@@ -136,8 +109,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     parent.addChild(child)
     parent.degree = parent.degree + 1
     child.marked = false
-//    println("child: " + child.toString(true))
-//    println("parent: " + parent.toString(true))
   }
   
   def accessNodeMap(elem: T1) = nodeMap.get(elem)
@@ -172,20 +143,13 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       }
       case _ => 
     }
-//    println(min)
-//    println(nodeMap.map(n => n._1 + " ch: " + n._2.child).mkString(","))
-//    println(nodeMap.map(n => n._1 + " parent: " + n._2.parent).mkString(","))
-//    println(nodeMap.map(n => n._1 + " left: " + n._2.left).mkString(","))
-//    println(nodeMap.map(n => n._1 + " right: " + n._2.right).mkString(","))
   }
   
   def cut(x: FNode, y: FNode) = {
     y.removeChild(x)
     addToRoot(x)
-//    println("after adding " + x + " to root: " + x.toString(true))
     x.marked = false
     y.degree = y.degree - 1
-//    println("after cut child of " + special + " = " + special.child)
   }
   
   def cascading_cut(y: FNode): Unit = {
@@ -199,7 +163,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
         }
       }
     }
-//    println("after cascadind cut child of " + special + " = " + special.child)
   }
   
   def delete(elem: T1) = accessNodeMap(elem) match {
@@ -246,8 +209,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       val x = this
       val y = x.left
       val z = x.right
-//      x.parent = None
-//      x.child = None
       y.right = z
       z.left = y
       x.left = x
@@ -255,16 +216,10 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       if (!correctlyChained(y)) {
         println("y: " + y.toString(true))
       }
-//      if (!correctlyChained(x)) {
-//        println("x: " + x.toString(true))
-//      }
       if (!correctlyChained(z)) {
         println("z: " + z.toString(true))
       }
       require(correctlyChained(y) && correctlyChained(z)  && correctlyChained(x))
-//      println("removing " + this)
-//      println("resulting left " + y.toString(true))
-//      println("resulting right " + z.toString(true))
     }
     
     def removeChild(that: FNode) = child match {
@@ -279,9 +234,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     }
     
     def addChild(that: FNode) = {
-//      println("adding " + that + " to " + this)
-//      println("that's 1st child: " + that.child)
-//      println(this + " gets child: " + that)
       that.left = that
       that.right = that
       that.parent = Some(this)
@@ -294,7 +246,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
           firstChild.addLeft(that)
         }
       }
-//      println("after adding " + that + " to " + this + " its child: " + this.child.get.toString(true))
     }
     
     def addLeft(that: FNode) = { //y <-> x ~~> y <-> z <-> x
@@ -305,7 +256,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
       z.left = y
       x.left = z
       z.right = x
-//      println("after adding " + that + " to " + this + ": " + this.toString(true))
     }
     
     def addRight(that: FNode) = { //x <-> y ~~> x <-> z <-> y
@@ -321,9 +271,7 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     @tailrec
     final def asSequence(initSeq: List[FNode] = List()): List[FNode] = {
       require(this == left.right && this == right.left)
-//      println("here in asSequence for " + this + " m: " + min)
       if (initSeq.size > 0) {
-//        println(this.left + " <-> " + this + " <-> " + this.right + " iSH: "+ initSeq.head)
         if (initSeq.last == this) initSeq
         else right.asSequence(initSeq.::(this))
       }

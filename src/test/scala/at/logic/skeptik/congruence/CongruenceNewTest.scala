@@ -47,7 +47,7 @@ object CongruenceNewTest {
     
     implicit val eqReferences = MMap[(E,E),EqW]()
     
-    var con: CongruenceNew = ArrayConNew(eqReferences)
+    var con: Congruence = ArrayCon(eqReferences)
     
     
     testcase match {

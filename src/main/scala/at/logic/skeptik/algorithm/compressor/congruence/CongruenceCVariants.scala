@@ -11,23 +11,10 @@ trait local {
   def globalAxioms = false
 }
 
-object ArrayC extends CongruenceCompressor with ArrayStructure with local
+object ArrayCongruence extends CongruenceCompressor with ArrayStructure
 
-object FibonacciC extends CongruenceCompressor with FibonacciStructure with local
+object FibonacciCongruence extends CongruenceCompressor with FibonacciStructure
 
-object ProofTreeC extends CongruenceCompressor with ProofTreeStructure with local
-
-
-object ArrayCNew extends CongruenceCompressorNew with ArrayStructure
-
-object FibonacciCNew extends CongruenceCompressorNew with FibonacciStructure
-
-object ProofTreeCNew extends CongruenceCompressorNew with ProofTreeStructure
-
-object ArrayCNewNew extends CongruenceCompressorNew with ArrayStructureNew
-
-object FibonacciCNewNew extends CongruenceCompressorNew with FibonacciStructureNew
-
-object ProofTreeCNewNew extends CongruenceCompressorNew with ProofTreeStructureNew
+object ProofTreeCongruence extends CongruenceCompressor with ProofTreeStructure
 
 

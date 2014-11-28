@@ -75,8 +75,7 @@ object CongruenceDebug {
 //    println("set: " + set)
     
 //    var con: AbstractCongruence = FibonacciCongruence(eqReferences)
-    var con2: AbstractCongruence = new ProofTreeCongruence()
-    var con: AbstractCongruence = FibConNew(eqReferences)
+    var con: AbstractCongruence = FibCon(eqReferences)
 //    var con: AbstractCongruence = ProofTreeConNew(eqReferences)
     
     testcase match {
@@ -158,12 +157,12 @@ object CongruenceDebug {
         println(path)
         println(path.get.toProof)
         
-        con2 = con2.addEquality(EqW(a,b,false)).addEquality(EqW(b,a,false)).addNode(t1).addNode(t2)
-        val path2 = con2.explain(t1,t2)
-        val proof = path2.get.toProof.get
-        println(path2)
-        println(proof)
-        println(ProofTreeCNewNew(proof))
+//        con2 = con2.addEquality(EqW(a,b,false)).addEquality(EqW(b,a,false)).addNode(t1).addNode(t2)
+//        val path2 = con2.explain(t1,t2)
+//        val proof = path2.get.toProof.get
+//        println(path2)
+//        println(proof)
+//        println(ProofTreeCongruence(proof))
       }
       
       case -2 => {
@@ -187,7 +186,7 @@ object CongruenceDebug {
         val resnode = Axiom(new Sequent(Seq(),Seq(eq1.equality)))
         val newProof = Proof(R(proof.root,resnode).asInstanceOf[N])
         println(newProof)
-        FibonacciCNew(newProof)
+        FibonacciCongruence(newProof)
         println(origSubterms(v1))
       }
       
@@ -445,7 +444,7 @@ object CongruenceDebug {
         println("BUILDING PROOF")
         val proof = path.get.toProof.get
         println("full proof:\n" + proof)
-        println(ProofTreeCNewNew(proof))
+        println(ProofTreeCongruence(proof))
       }
       case 6 => {
         val op = new Var("op",Arrow(t,Arrow(t,t)))

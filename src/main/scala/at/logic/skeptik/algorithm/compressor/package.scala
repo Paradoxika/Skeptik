@@ -34,15 +34,9 @@ package object compressor {
     "LUVRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI3LUV" -> LowerUnivalentsBeforeRecyclePivots,
 
-    "ArrayC" -> ArrayC,
-    "FibC" -> FibonacciC,
-    "PtC" -> ProofTreeC,
-    "ACNew" -> ArrayCNew,
-    "FCNew" -> FibonacciCNew,
-    "PCNew" -> ProofTreeCNew,
-    "ACNewNew" -> ArrayCNewNew,
-    "FCNewNew" -> FibonacciCNewNew,
-    "PCNewNew" -> ProofTreeCNewNew,
+    "ArrayC" -> ArrayCongruence,
+    "FibC" -> FibonacciCongruence,
+    "PtC" -> ProofTreeCongruence,
     
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),
