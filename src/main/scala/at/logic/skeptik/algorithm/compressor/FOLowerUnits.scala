@@ -243,11 +243,17 @@ object FOLowerUnits
                   println("auxR: " + node.asInstanceOf[UnifyingResolution].auxR)
                   println(node.asInstanceOf[UnifyingResolution].mgu)
                   val oMGU = node.asInstanceOf[UnifyingResolution].mgu
-                  val cb = oMGU(getCarry(right, isAntUnit(unitsSet.head)))
-                  val newGoalB = addCarry(node.conclusion, cb, unitsSet.head)
+                  println("omgu: " + oMGU)
+//                  val cb = oMGU(getCarry(right, isAntUnit(unitsSet.head)))
+//                  val newGoalB = addCarry(node.conclusion, cb, unitsSet.head)
+//                  println("THIS ONE: " + newGoalB)
 
-                  println("THIS ONE: " + newGoalB)
-
+                  val cbb = oMGU(getCarryB(right, isAntUnit(unitsSet.head)))
+                  val newGoalC = addCarry(node.conclusion, cbb, unitsSet.head)
+                  println("NC: " + newGoalC)
+                  
+                  println("ND: " + addCarry(node.conclusion, getCarryB(right, isAntUnit(unitsSet.head)), unitsSet.head))
+                  
                   //                  val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxR, unitsSet.head.conclusion.suc.head,
                   //                    fixedRight, right.conclusion, true, node.asInstanceOf[UnifyingResolution].mgu)(vars)
                   println("rc: " + right.conclusion)
@@ -267,9 +273,17 @@ object FOLowerUnits
 
                   //                  UnifyingResolutionMRR(fixedRight, fixedLeft, newGoal, carry._2)(vars)
                   //                  println("CARRY: " + carry._2)
-
-                  //                  UnifyingResolutionMRR(fixedLeft, fixedRight, newGoal, oMGU)(vars)
-                  UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalB)(vars)
+                  
+                  //TODO: make this better?
+//                  try {
+//                    UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalB, oMGU)(vars)
+//                  } catch {
+//                    case e: Exception => {
+//                      println("what?")
+                      UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalC, oMGU)(vars)
+//                    }
+//                  }
+                  //                  UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalB)(vars)
 
                 } else {
                   throw new Exception("Compression failed!")
@@ -312,6 +326,21 @@ object FOLowerUnits
   }
 
   def getCarry(original: SequentProofNode, isAntUnit: Boolean) = {
+    //    println("omgu: " + original.asInstanceOf[UnifyingResolution].mgu)//TODO: use this to solve it?
+    println("ORIGINAL: " + original)
+    val omgu = original.asInstanceOf[UnifyingResolution].mgu
+    
+    if (isAntUnit) {
+      omgu(original.asInstanceOf[UnifyingResolution].auxL)
+      //      original.asInstanceOf[UnifyingResolution].auxL
+    } else {
+      omgu(original.asInstanceOf[UnifyingResolution].auxR)
+      //      original.asInstanceOf[UnifyingResolution].auxR
+    }
+  }
+
+  def getCarryB(original: SequentProofNode, isAntUnit: Boolean) = {
+    println("original in carryB: " + original)
     if (isAntUnit) {
       original.asInstanceOf[UnifyingResolution].auxL
     } else {
