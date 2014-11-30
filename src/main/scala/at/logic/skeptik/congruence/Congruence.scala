@@ -5,6 +5,10 @@ import at.logic.skeptik.expression._
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 
 
+/**
+ * Congruence closure algorithm as described in Space & Congruence Compression of Proofs
+ */
+
 abstract class Congruence(
     val rep: Map[E,E], 
     val cclass: Map[E,Set[E]], 

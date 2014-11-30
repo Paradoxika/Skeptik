@@ -106,8 +106,8 @@ object ProofCompressionCLI {
 
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { c =>
-
-      val measures = Seq("length","coreSize","height","space","time","transLength")
+    //,"transLength") transLength could be interesting for congruence algorithms
+      val measures = Seq("length","coreSize","height","space","time")
       
       val prettyTable = new HumanReadableTable(measures)
       val stats = new CumulativeStats(measures, c.algorithms)

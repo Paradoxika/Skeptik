@@ -9,7 +9,7 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 package object proof {
   def measure[N <: ProofNode[Judgment,N]](p: Proof[N]) = {
     var length = 0
-    var transLength = 0
+    var transLength = 0 //measure that takes measures EqTransitive nodes of the form (a = b, b = c, c = d => a = d) as 3 
     var coreSize = 0
     val childrenVisited = MMap[N,Int]()
     var currentPebbles = 0 //indicates the current number of pebbles required
@@ -27,13 +27,14 @@ package object proof {
         currentPebbles += step
         maxPebble = currentPebbles max maxPebble
         length += 1
-        if (n.isInstanceOf[EqTransitive]) {
-          transLength += (n.asInstanceOf[SequentProofNode].conclusion.ant.size - 2)*2 + 1
-        }
-        else transLength += 1
+//        if (n.isInstanceOf[EqTransitive]) {
+//          transLength += (n.asInstanceOf[SequentProofNode].conclusion.ant.size - 2)*2 + 1
+//        }
+//        else transLength += 1
         if (n.premises.length == 0) coreSize += 1
         max(heights, (x:Int)=>x, default = 0) + 1
       } 
-    Map("length" -> length, "coreSize" -> coreSize, "height" -> height, "space" -> maxPebble, "transLength" -> transLength)
+    Map("length" -> length, "coreSize" -> coreSize, "height" -> height, "space" -> maxPebble)
+    //, "transLength" -> transLength) for Congruence algorithm
   }
 }
