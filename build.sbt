@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
   "com.github.scopt" % "scopt_2.11" % "3.2.0",
   "org.scala-lang" % "scala-actors" % "2.11.1",
   "org.scala-lang" % "scala-library" % "2.11.1",
+  "org.scala-lang" % "scala-xml" % "2.11.0-M4",
   "org.scala-lang.modules" % "scala-parser-combinators_2.11" % "1.0.2",
   "org.scala-lang" % "scala-library" % "2.11.1", // apparently needed because of timeout and deprecated actors library
   "com.github.scala-incubator.io" % "scala-io-file_2.11" % "0.4.3-1", // seems inactive
