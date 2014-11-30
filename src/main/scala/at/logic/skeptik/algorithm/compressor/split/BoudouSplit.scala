@@ -6,6 +6,8 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof.sequent.lk.R
 import at.logic.skeptik.algorithm.compressor.Timeout
 
+import annotation.tailrec
+
 
 abstract class BoudouSplit
 extends Split with AbstractSplitHeuristic {

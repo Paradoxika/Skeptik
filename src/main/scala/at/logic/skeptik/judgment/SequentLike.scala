@@ -21,7 +21,7 @@ trait SequentLike[+Repr <: SequentLike[Repr]] {
   def size = width + 1
   def logicalSize = ((ant ++ suc).map(_.logicalSize) :\ 0)(_ + _ + 1) 
  
-  def isEmpty = ant.isEmpty || suc.isEmpty
+  def isEmpty = ant.isEmpty && suc.isEmpty
   def antContains(f:E) = ant.contains(f)
   def sucContains(f:E) = suc.contains(f)
   def contains(f:E) = antContains(f) || sucContains(f)

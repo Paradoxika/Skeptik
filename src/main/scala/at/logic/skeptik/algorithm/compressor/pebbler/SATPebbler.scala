@@ -7,127 +7,186 @@ import at.logic.skeptik.proof.measure
 import at.logic.skeptik.util.io.{Input,Output,NoOutput,StandardOutput,FileOutput}
 import scala.sys.process._
 
+/**
+ * Translate problem of pebbling proof with k pebbles into SAT instance, 
+ * as described in Space and Congruence Compression of Proofs
+ */
+
 object SATPebbler {
 
-//   var clauses = 0
-  
-  def correctPebbling(proof: Proof[N], file: Output) = {
+  def dimacs(k: Int, proof: Proof[N], out: FileOutput) = {
+    
     val n = proof.size
-    for (m <- 1 to n) {
-      file.write(m + " ")
-    }    
-    file.write("0\n")
-//    clauses = clauses + 1
-    for (i <- 1 to n) {
-      val node = proof.nodes(n - i)
-      val premises = node.premises
-//      if (node.premises.isEmpty) println((n-i + 1) + " ~ " + node)
-      val premiseNumbers = premises.map(pr => n - proof.nodes.indexOf(pr))
-//      println(i +  " has Premises: " + premiseNumbers.mkString(","))
-      
-      for (l <- (1 to n) diff Seq(i)) { //Only 1 pebble in the beginning
-        file.write(-i + " " + -l + " 0\n")
-//        clauses = clauses + 1
-      }
-      if (!premises.isEmpty) {
-        file.write(-i + " 0\n")
-//        clauses = clauses + 1
-      }
-      for (j <- 0 to (n-2)) {
-        //Node i was pebbled at time j+1
-        val notIPebbled = (i + n*j) + " " + -(i + n*(j+1))
-        
-//        out = out + "c only one pebble\n"
-        //Only 1 Pebble per turn
-        for (h <- (1 to n) diff Seq(i)) {
-          file.write(notIPebbled + " " + (h + n*j) + " " + -(h + n*(j+1)) + " 0\n")
-//          out = out + notIPebbled + " " + -(h + n*j) + " " + (h + n*(j+1)) + " 0\n"
-//          clauses = clauses + 1
-        }
-//        out = out + "c ------\n"
-        
-        //Correct pebbling
-//        clauses = clauses + premiseNumbers.size
-        file.write("c premises have to be pebbled\n")
-        premiseNumbers.foreach(prN => file.write(notIPebbled + " " + (prN + j*n) + " 0\n"))
-//        if (premiseNumbers.isEmpty) {
-////          println(i + " has no Premises " + node.premises.isEmpty)
-//          out = out + notIPebbled + " 0\n"
-//          clauses = clauses + 1
-//        }
-        file.write("c ------\n")
-      }
+    
+    val axioms = proof.nodes.filter(node => node.premises.isEmpty).map(n - proof.nodes.indexOf(_))
+    
+    var clauses = 0
+    
+    def p(pebble: Int, node: Int, time: Int) = pebble + (node-1) * k + (time-1) * k * n
+    
+    def bigNodeDisjunction(pebble: Int, nodes: Range, time: Int) = {
+      (p(pebble, nodes.min, time) to p(pebble, nodes.max, time) by n).mkString(" ") + " 0\n"
     }
-    file.write((n*n) + " 0\n")
-//    clauses = clauses + 1
-//    out
+    
+    def notP1orNotP2(pebble1: Int, node1: Int, time1: Int, pebble2: Int, node2: Int, time2: Int) = {
+      -p(pebble1,node1,time1) + " " + -p(pebble2, node2, time2) + " "
+    }
+
+    def pebbleRoot = {
+//      clauses = clauses + 1
+      (p(1,n,n) to p(k,n,n)).mkString(" ") + " 0\n"
+    }
+    
+    def oneNodePerPebble = {
+      (1 to k).map(x => {
+        (1 to n).map(j => {
+          (1 to n).map(t => {
+            (1 to (j-1)).map(i => {
+//              clauses = clauses + 1
+              notP1orNotP2(x,j,t,x,i,t) + " 0\n"
+            }).mkString("")
+          }).mkString("")
+        }).mkString("")
+      }).mkString("")
+    }
+    
+    def atLeast1Init = {
+//      clauses = clauses + 1
+      (1 to k).map(x => {
+        axioms.map(j => {
+          p(x,j,1) + " "
+        }).mkString("")
+      }).mkString("") + "0\n"
+    }
+    
+    def onlyAxiomsInit = {
+      (1 to k).map(x => {
+        ((1 to n) diff axioms).map(j => {
+//          clauses = clauses + 1
+          -p(x,j,1) + " 0\n"
+        }).mkString("")
+      }).mkString("")
+    }
+    
+    def atMost1Init = {
+      (p(1,1,1) to p(k,n,1)).map(i => {
+        (1 to (i-1)).map(j => {
+//          clauses = clauses + 1
+          -i + " " + -j + " 0\n"
+        }).mkString("")
+      }).mkString("")
+    }
+    
+    def pebbling = {
+      (1 to k).foreach(x => {
+        out.appendAll(
+        (1 to n).map(j => {
+          (1 to (n -1)).map(t => {
+            proof.nodes(n-j).premises.map(n-proof.nodes.indexOf(_)).map(i => {
+//              clauses = clauses + 1
+              ((1 to k) diff Seq(x)).map(y => {
+                (p(y,i,t) + " ").toString()
+              }).mkString("") + (p(x,j,t) + " " + -p(x,j,(t+1)) + " 0\n").toString()
+            }) union
+            (1 to n).map(i => {
+              (1 to (x-1)).map(y => {
+//                clauses = clauses + 1
+                (p(x,j,t) + " " + -p(x,j,(t+1)) + " " + p(y,i,t) + " " + -p(y,i,(t+1)) + " 0\n").toString()
+              })
+            }).flatten
+          }).flatten
+        }).flatten)
+      })
+    }
+    
+    out.prepend("p cnf " + (k*n*n) + " " + 0 +"\n")
+    println("header written")    
+    out.write("c one node per pebble\n" + oneNodePerPebble)
+    println("one node per pebble written")
+    out.write("c at least 1 init\n" +atLeast1Init)
+    println("at least 1 init written")
+    out.write("c at most 1 init\n" + atMost1Init)
+    println("at most 1 init written")
+    out.write("c only axioms init\n" + onlyAxiomsInit)
+    println("only axioms init written")
+    out.write("c correct pebbling\n")
+    pebbling
+    println("correct pebbling written")
+    out.write("c root pebbled\n" +pebbleRoot)
+    println("root pebbled written")
   }
   
-  def karySubset(proof: Proof[N], k: Int, file: Output): Unit = {
-    val n = proof.size
-    for (i <- 0 to (n-1)) {
-      val low = 1 + i*n
-      val high = (i+1)*n
-      val subsets = -high to -low combinations k+1
-      file.write(subsets.map(_.mkString(" ")).mkString(" 0\n") + " 0\n")
-//      subsets.foreach(s => {
-//        clauses = clauses + 1
-//        out = out + s.mkString(" ") + " 0\n"
-//      })
-    }
-  }
-  
-  def interpretSAT(filename: String, proof: Proof[N]) = {
+  def interpretSAT(filename: String, proof: Proof[N], k: Int) = {
     val n = proof.size
     val in = Input(filename)
     val lines = in.lines
+    var permutation: Seq[N] = Seq[N]()
     if (lines.size > 1) {
       val assign = lines.last.split(" ").map(_.toInt)
-      for (i <- 0 to (n-1)) {
-        for (j <- 0 to (n-1)) {
-          if (i == 0) {
-            if (assign(j + i*n) > 0) {
-              println("init " + (j + 1))
-            }
-          }
-          else {
-            if ((assign(j + (i-1)*n) < 0) && (assign(j + i*n) > 0)) { 
-              println("pebble " + (j + 1))
-            }
-            else if ((assign(j + (i-1)*n) > 0) && (assign(j + i*n) < 0)) {
-              println("unpebble " + (j + 1))
-            }
+      val pos = assign.filter(_ > 0)
+      pos.foreach(p => {
+        val (x,j,t) = intToNode(p,n,k)
+        if (t > 1) {
+//          println(x,j,t + " -> " + trippleToInt(x,j,t-1,n,k))
+          if (assign(trippleToInt(x,j,t-1,n,k) - 1) < 0) {
+            permutation = permutation :+ proof.nodes(proof.size - j)
+            println("pebble " + intToNode(p,n,k))
           }
         }
-        println("-----")
-      }
+        else {
+          permutation = permutation :+ proof.nodes(proof.size - j)
+          println("pebble " + intToNode(p,n,k))
+        }
+//        if (t < n) {
+//          if (assign(trippleToInt(x,j,t+1,n,k) - 1) < 0) println("unpebble " + intToNode(trippleToInt(x,j,t+1,n,k),n,k))
+//        }
+      })
+//      (0 to (n*k)-1).map(numb => {
+//        if (assign(numb) > 0) {
+//          println("init " + intToNode(numb,n,k))
+//        }
+//      })
+      println(permutation.size + " ~ " + proof.size)
+      new Proof(proof.root, permutation.reverse.toIndexedSeq)
     }
+    else {
+      println("UNSAT")
+      proof
+    }
+    
+  }
+  
+  def trippleToInt(pebble: Int, node: Int, time: Int, n: Int, k: Int) = pebble + (node-1) * k + (time-1) * k * n
+  
+  def intToNode(number: Int, n: Int, k: Int) = {
+    (((number - 1) % k) + 1,(((number-1) / k) % n) + 1,(((((number - 1) / k / n) % n)) + 1))
   }
   
   def main(args: Array[String]): Unit = {
-    val proof = ProofParserVeriT.read("examples/proofs/VeriT/eq_diamond2.smt2")
-    val out = new FileOutput("experiments/SATPebble")
+    val k = 12
+    val proof = ProofParserVeriT.read("examples/proofs/VeriT/eq_diamond3.smt2")
+    
+    
+    val out = new FileOutput("experiments/SATPebble2")
     out.clear
-    println(proof)
-//    proof.nodes.foreach(println)
-    out.write("p cnf " + (proof.size*proof.size) + " 0\n")
-    karySubset(proof, 4, out)
-//    println(subs)
-    correctPebbling(proof, out)
-//    println(corr)
-//    out.write("p cnf " + (proof.size*proof.size) + " " + clauses + "\n" + corr + subs)
-    Executer.executeMini("experiments/msat", "experiments/SATPebble")
-    interpretSAT("experiments/msat", proof)
+    val d = dimacs(k,proof,out)
+    
+//    out.write(d)
+    
+    Executer.executeMini("experiments/msat2", "experiments/SATPebble2")
+    val outproof = interpretSAT("experiments/msat2", proof,k)
+    println(outproof)
+    println("SATProof: " + measure(outproof)("space"))
+    println("original: " + measure(proof)("space"))
   }
 }
-
 
 object Executer {
 
   def executeMini(fileName: String, parameters: String): Stream[String] = {
     val call = "minisat " + parameters + " " + fileName
     call.!
-    val contents = Process(call).lines
+    val contents = Process(call).lineStream
     contents
   }
 }

@@ -4,22 +4,23 @@ organization := "at.logic"
 
 version := "1.0"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.11.1"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
 scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
 libraryDependencies ++= Seq(
-  "org.specs2" % "specs2_2.10.1-RC1" % "1.13",
-  "junit" % "junit" % "4.11" % "test",
-  "commons-lang" % "commons-lang" % "2.6",
-  "org.scala-lang" % "scala-actors" % "2.10.2",
-  "com.github.scopt" % "scopt_2.10" % "3.1.0",
-  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2",
-  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2",
-  "org.scalaz" % "scalaz-core_2.10" % "7.0.3"
-)
+  "org.specs2" % "specs2_2.10" % "2.3.13",
+  "com.github.scopt" % "scopt_2.11" % "3.2.0",
+  "org.scala-lang" % "scala-actors" % "2.11.1",
+  "org.scala-lang" % "scala-library" % "2.11.1",
+  "org.scala-lang" % "scala-xml" % "2.11.0-M4",
+  "org.scala-lang.modules" % "scala-parser-combinators_2.11" % "1.0.2",
+  "org.scala-lang" % "scala-library" % "2.11.1", // apparently needed because of timeout and deprecated actors library
+  "com.github.scala-incubator.io" % "scala-io-file_2.11" % "0.4.3-1", // seems inactive
+  "org.scalaz" % "scalaz-core_2.10" % "7.1.0")
+
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
 

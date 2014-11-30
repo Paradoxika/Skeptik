@@ -3,7 +3,8 @@ package sequent
 package lk
 
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.expression.E
+import at.logic.skeptik.expression._
+import at.logic.skeptik.expression.formula._
 
 // ToDo: This class should eventually use SetSequent instead of SeqSequent.
 class R(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E) 
@@ -15,7 +16,6 @@ extends AbstractCut {
   override def auxFormulasMap = Map(leftPremise -> Sequent()(auxL),
                                     rightPremise -> Sequent(auxR)())    
   
-  //override def auxFormulasMap: Map[SequentProofNode, Sequent] = throw new Exception("Not implemented")
   override def mainFormulas : Sequent = Sequent()()
   override def conclusionContext : Sequent = conclusion
 
@@ -38,7 +38,16 @@ object R {
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
       case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
       case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
-      case _ => throw new Exception("Auxiliary formulas not found.")
+//      case (None, None) => {
+//        (leftPremise.conclusion.ant.find(_ == pivot), rightPremise.conclusion.suc.find(_ == pivot)) match {
+//          case (Some(auxL), Some(auxR)) => new R(rightPremise, leftPremise, auxR, auxL)
+//          case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
+//          case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
+//          case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
+//          case _ => throw new Exception("Auxiliary formulas not found.\n"+leftPremise.conclusion + "\n" + rightPremise.conclusion + "\n" + pivot)
+//        }
+//      }
+      case _ => throw new Exception("Auxiliary formulas not found.\n"+leftPremise.conclusion + "\n" + rightPremise.conclusion + "\n" + pivot)
     } 
   
   def apply(premise1:SequentProofNode, premise2:SequentProofNode) = {
@@ -47,15 +56,26 @@ object R {
       return None
     }
     findPivots(premise1,premise2) match {
-      case Some((auxL,auxR)) => new R(premise1,premise2,auxL,auxR)
+      case Some((auxL,auxR)) => {
+        new R(premise1,premise2,auxL,auxR)
+      }
       case None => findPivots(premise2,premise1) match {
         case Some((auxL,auxR)) => new R(premise2,premise1,auxL,auxR)
-        case None => throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+        case None => {
+//          println("Not resolvable:")
+//          println(premise1 + " class: " + premise1.getClass)
+//          println(Proof(premise1))
+//          println(premise2 + " class: " + premise2.getClass)
+          throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
+        }
       }
     }
   }
+
   def unapply(p: SequentProofNode) = p match {
     case p: R => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
     case _ => None
   }
 }
+
+  
