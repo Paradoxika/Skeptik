@@ -177,6 +177,8 @@ object FOLowerUnits
   def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
     val fixMap = MMap[SequentProofNode, SequentProofNode]()
 
+    val carryMap = MMap[SequentProofNode, E]()
+
     //    println("units really are: " + unitsSet)
     def visit(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
       //      println("visiting: " + node)
@@ -188,11 +190,16 @@ object FOLowerUnits
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
           //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
           println("using " + fixedRight + " for " + node.conclusion)
+          println(fixedRight + " --r> " + node.asInstanceOf[UnifyingResolution].auxR)
+          carryMap.update(fixedRight, node.asInstanceOf[UnifyingResolution].auxR)
           fixedRight
         }
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => {
           //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
           println("using " + fixedLeft + " for " + node.conclusion)
+          println(fixedLeft + " --l> " + node.asInstanceOf[UnifyingResolution].auxL)
+
+          carryMap.update(fixedLeft, node.asInstanceOf[UnifyingResolution].auxL)
           fixedLeft
         }
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
@@ -241,23 +248,29 @@ object FOLowerUnits
                   //                  println("new goal: " + newGoal)
                   println("auxL: " + node.asInstanceOf[UnifyingResolution].auxL)
                   println("auxR: " + node.asInstanceOf[UnifyingResolution].auxR)
-                  println(node.asInstanceOf[UnifyingResolution].mgu)
                   val oMGU = node.asInstanceOf[UnifyingResolution].mgu
                   println("omgu: " + oMGU)
-//                  val cb = oMGU(getCarry(right, isAntUnit(unitsSet.head)))
-//                  val newGoalB = addCarry(node.conclusion, cb, unitsSet.head)
-//                  println("THIS ONE: " + newGoalB)
+                  //                  val cb = oMGU(getCarry(right, isAntUnit(unitsSet.head)))
+                  //                  val newGoalB = addCarry(node.conclusion, cb, unitsSet.head)
+                  //                  println("THIS ONE: " + newGoalB)
 
-                  val cbb = oMGU(getCarryB(right, isAntUnit(unitsSet.head)))
+                  //                  val cbb = oMGU(getCarryB(right, isAntUnit(unitsSet.head)))
+                  //                  val newGoalC = addCarry(node.conclusion, cbb, unitsSet.head)
+                  //                  println("NC: " + newGoalC)
+                  val carry = getCarryC(fixedRight, carryMap, isAntUnit(unitsSet.head))
+                  println("carry: " + carry)
+                  val cbb = oMGU(carry)
+                  println("carryo: " + cbb)
                   val newGoalC = addCarry(node.conclusion, cbb, unitsSet.head)
                   println("NC: " + newGoalC)
-                  
-                  println("ND: " + addCarry(node.conclusion, getCarryB(right, isAntUnit(unitsSet.head)), unitsSet.head))
-                  
+                  val newGoalB = addCarry(node.conclusion, carry, unitsSet.head)
+
+                  //                  println("ND: " + addCarry(node.conclusion, getCarryB(right, isAntUnit(unitsSet.head)), unitsSet.head))
+
                   //                  val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxR, unitsSet.head.conclusion.suc.head,
                   //                    fixedRight, right.conclusion, true, node.asInstanceOf[UnifyingResolution].mgu)(vars)
-                  println("rc: " + right.conclusion)
-                  println("lc: " + left.conclusion)
+                  //                  println("rc: " + right.conclusion)
+                  //                  println("lc: " + left.conclusion)
                   //                  val carry = findCorrected(node.asInstanceOf[UnifyingResolution].auxL, getUnitE(unitsSet.head),
                   //                    fixedRight, right.conclusion, false, node.asInstanceOf[UnifyingResolution].mgu)(vars)
                   //                  println(carry._1)
@@ -273,14 +286,14 @@ object FOLowerUnits
 
                   //                  UnifyingResolutionMRR(fixedRight, fixedLeft, newGoal, carry._2)(vars)
                   //                  println("CARRY: " + carry._2)
-                  
+
                   //TODO: make this better?
 //                  try {
 //                    UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalB, oMGU)(vars)
 //                  } catch {
 //                    case e: Exception => {
-//                      println("what?")
-                      UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalC, oMGU)(vars)
+                      //                      println("what?")
+                      UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalB, oMGU)(vars)
 //                    }
 //                  }
                   //                  UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalB)(vars)
@@ -329,7 +342,7 @@ object FOLowerUnits
     //    println("omgu: " + original.asInstanceOf[UnifyingResolution].mgu)//TODO: use this to solve it?
     println("ORIGINAL: " + original)
     val omgu = original.asInstanceOf[UnifyingResolution].mgu
-    
+
     if (isAntUnit) {
       omgu(original.asInstanceOf[UnifyingResolution].auxL)
       //      original.asInstanceOf[UnifyingResolution].auxL
@@ -346,6 +359,15 @@ object FOLowerUnits
     } else {
       original.asInstanceOf[UnifyingResolution].auxR
     }
+  }
+
+  def getCarryC(original: SequentProofNode, map: MMap[SequentProofNode, E], isAntUnit: Boolean) = {
+    println("looking for " + original + " in the map..")
+    //    map.get(original) match {
+    //      case Some(u) => { u }
+    //      case None => getCarryB(original, isAntUnit)
+    //    }
+    map.get(original).get
   }
 
   //

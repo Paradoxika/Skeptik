@@ -635,7 +635,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
     } else {
 
       val (auxL, auxR) = pairs(0)
-
+println("MRR auxl: " + auxL)
+println("MRR auxR: " + auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
@@ -671,8 +672,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
       println("computed: " + computedSequentClean)
       def applyRelaxation(seq: Sequent, relax: Substitution): Sequent = {
-        val newAnt = seq.ant.map(e => relax(e))
-        val newSuc = seq.suc.map(e => relax(e))
+        val newAnt = seq.ant.map(e => relax(e)).distinct
+        val newSuc = seq.suc.map(e => relax(e)).distinct
         val out = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
         out
       }
@@ -694,6 +695,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
     if (desiredFound(a, b)) {
       return true
     }
+//    println("a: " + a)
+//    println("b: " + b)
   
     def moreGeneralFound(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
       if (computed == desired) {
