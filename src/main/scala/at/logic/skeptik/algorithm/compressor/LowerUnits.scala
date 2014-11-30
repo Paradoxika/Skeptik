@@ -1,46 +1,46 @@
 package at.logic.skeptik.algorithm.compressor
 
-import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{Axiom,R}
-import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import collection.mutable.{Queue, HashMap => MMap}
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Clause}
+import collection.mutable.{HashMap => MMap}
 import at.logic.skeptik.proof.Proof
 
-object LowerUnits 
-extends (Proof[SequentProofNode] => Proof[SequentProofNode]) {
-  // ToDo: optimize this by interlacing collectUnits and fixProofNodes
-  private def collectUnits(proof: Proof[SequentProofNode]) = {
-    def isUnitClause(s:Sequent) = s.ant.length + s.suc.length == 1
-    (proof :\ (Nil:List[SequentProofNode])) { (node, acc) =>
-      if (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1) node::acc else acc
-    }
+import scala.language.postfixOps
+
+object LowerUnits extends (Proof[Node] => Proof[Node]) {
+  
+  private def collectUnits(proof: Proof[Node]) = {
+    def isUnitClause(c:Clause) = c.ant.length + c.suc.length == 1
+    
+    proof filter { node => (isUnitClause(node.conclusion) && proof.childrenOf(node).length > 1)}
   }
 
-  private def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode]) = {
-    val fixMap = MMap[SequentProofNode,SequentProofNode]()
+  private def fixProof(units: Set[Node], proof: Proof[Node]) = {
+    val fixed = MMap[Node,Node]()
 
-    def visit (node: SequentProofNode, fixedPremises: Seq[SequentProofNode]) = {
+    proof foldDown { (node: Node, fixedPremises: Seq[Node]) => 
       lazy val fixedLeft  = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
       val fixedP = node match {
         case Axiom(conclusion) => node
-        case R(left,right,_,_) if unitsSet contains left => fixedRight
-        case R(left,right,_,_) if unitsSet contains right => fixedLeft
+        case R(left,right,_,_) if units contains left => fixedRight
+        case R(left,right,_,_) if units contains right => fixedLeft
         case R(left,right,pivot,_) => R(fixedLeft, fixedRight, pivot)
         case _ => node
       }
-      if (node == proof.root || unitsSet.contains(node)) fixMap.update(node, fixedP)
-      fixedP
+      if (node == proof.root || (units contains node) ) fixed(node) = fixedP
+      fixedP 
     }
-    proof.foldDown(visit)
-    fixMap
+    fixed
   }
 
-  def apply(proof: Proof[SequentProofNode]) = {
+  def apply(proof: Proof[Node]) = {
     val units   = collectUnits(proof)
-    val fixMap  = fixProofNodes(units.toSet, proof)
-    val root = units.map(fixMap).foldLeft(fixMap(proof.root))((left,right) => try {R(left,right)} catch {case e:Exception => left})
+    val fixed  = fixProof(units.toSet, proof)
+    val root = (fixed(proof.root) /: (units map fixed)) {
+      (left,right) => try {R(left,right)} catch {case e:Exception => left}
+    }
     Proof(root)
   }
-
 }
