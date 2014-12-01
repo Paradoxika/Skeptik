@@ -287,6 +287,25 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
     out
   }
+  
+    def intersectMapsB(a: MMap[Var, Set[E]], b: MMap[Var, Set[E]]): MMap[Var, Set[E]] = {
+    val out = MMap[Var, Set[E]]()
+
+    val sharedKeys = (a.keySet).intersect(b.keySet)
+    for (sKey <- sharedKeys) {
+      out.put(sKey, a.get(sKey).get intersect b.get(sKey).get)
+    }
+    val aOnlyKeys = (a.keySet) -- sharedKeys
+    for (aKey <- aOnlyKeys) {
+      out.put(aKey, a.get(aKey).get)
+    }
+    val bOnlyKeys = (b.keySet) -- sharedKeys
+    for (bKey <- bOnlyKeys) {
+      out.put(bKey, b.get(bKey).get)
+    }
+
+    out
+  }
 
   //  def validMap(m: MMap[Var, Set[Var]]): Boolean = {
   //    for (k <- m.keySet) {
@@ -298,6 +317,18 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   //  }
 
   def validMap(m: MMap[Var, Set[Var]], vars: MSet[Var]): Boolean = {
+    for (k <- m.keySet) {
+      if (vars.contains(k) && m.get(k).get.size != 1) {
+        return false
+      }
+      if (!vars.contains(k) && m.get(k).get.size == 0) {
+        return false
+      }
+    }
+    true
+  }
+  
+    def validMapB(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
     for (k <- m.keySet) {
       if (vars.contains(k) && m.get(k).get.size != 1) {
         return false
@@ -376,7 +407,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
 //
     def generateSubstitutionOptionsB(computed: Seq[E], desired: Seq[E]) = {
-    val map = new MMap[Var, Set[Var]]()
+    val map = new MMap[Var, Set[E]]()
     for (c <- computed) {
       val cVars = getSetOfVars(c)
       for (d <- desired) {
@@ -477,25 +508,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     v
   }  
 
-  //  def unifyClean(c: E, d: E) = {
-  //
-  //    val cAxiom = new Axiom(Sequent(c)())
-  //    val dAxiom = new Axiom(Sequent(d)())
-  //    val vars = getSetOfVars(cAxiom) union getSetOfVars(dAxiom)
-  //    val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, vars)
-  //    val dClean = dAxiomClean.conclusion.ant.head
-  //
-  //    //should never not be able to unify -- one is the other, but with new variable names
-  //    val dToCleanSub = (unify((d, dClean) :: Nil)(vars)).get
-  //    val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
-  //    val inverseSubsCasted = convertTypes(inverseSubs.toList)
-  //    val inverseSub = Substitution(inverseSubsCasted: _*)
-  //
-  //    val u = unify((c, dClean) :: Nil)(vars)
-  //
-  //    (u, inverseSub)
-  //  }
-
   def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size != desired.size) {
       return false
@@ -538,7 +550,7 @@ def checkHelperAlphaManualB(computed: Seq[E], desired: Seq[E])(implicit unifiabl
         u match {
           case Some(s) => {
               //add current subs to this (not checkSubs is used above! modify with care)
-              return checkHelperAlphaManual(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
+              return checkHelperAlphaManualB(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
             
           }
           case None => {
@@ -698,7 +710,6 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
 //      println("moreGeneral? " + isMoreGeneral(desired, computedSequentRelaxed))
 //      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(desired, computedSequentRelaxed)) {
       if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(computedSequentClean, desired)) {
-      
         computedResolution
       } else {
         findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR, relaxation)
@@ -719,18 +730,21 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
         return true
       } else {
         if ((computed.ant.size + computed.suc.size) == (desired.ant.size + desired.suc.size)) {
-
+println("A")
           val commonVars = (getSetOfVars(Axiom(desired.ant))intersect getSetOfVars(Axiom(desired.suc)))
-
+println("B " + commonVars)
           val antMap = generateSubstitutionOptionsB(computed.ant, desired.ant)
+println("amap: " + antMap)
           val sucMap = generateSubstitutionOptionsB(computed.suc, desired.suc)
-          val intersectedMap = intersectMaps(antMap, sucMap)
-//println("imap: " + intersectedMap)
-          if (!validMap(intersectedMap, commonVars)) {
+println("smap: " + sucMap)          
+          val intersectedMap = intersectMapsB(antMap, sucMap)
+println("imap: " + intersectedMap)
+          if (!validMapB(intersectedMap, commonVars)) {
             return false
           }
-//println("checking halves..")
+println("checking halves..")
           if (checkHalfB(computed.ant.distinct, desired.ant.distinct)(unifiableVars)) {
+            println("ant good..")
             if (checkHalfB(computed.suc.distinct, desired.suc.distinct)(unifiableVars)) {
               return true
             }
