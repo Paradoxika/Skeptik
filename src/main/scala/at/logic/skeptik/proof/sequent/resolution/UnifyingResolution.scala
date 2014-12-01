@@ -428,22 +428,17 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
         u match {
           case Some(s) => {
-              //make sure it's just a renaming
-
-              //so that var could have gone to any of the variables in d; add them all
-              //NO -- it can only go to what the sub said it could!
 
               for (cv <- cVars) {
 
                 val sub = inverseSub(getValidSubstitutionB(s, cv))
-                val realVars = getSetOfVars(sub)
                 if (map.keySet.contains(cv)) {
                   //update that set
-                  map.put(cv, map.get(cv).get ++ realVars)
+                  map.put(cv, map.get(cv).get ++ Set[E](sub))
                 } else {
                   //add a new set
                   //note the conversion is safe since checkSubstitutions already confirms it's a var
-                  map.put(cv, Set[Var]() ++ realVars)
+                  map.put(cv, Set[E](sub))
                 }
 
               }
