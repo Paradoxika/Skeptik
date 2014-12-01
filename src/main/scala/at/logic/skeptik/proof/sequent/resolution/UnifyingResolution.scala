@@ -404,7 +404,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
               for (cv <- cVars) {
 
-                val sub = inverseSub(getValidSubstitution(s, cv))
+                val sub = inverseSub(getValidSubstitutionB(s, cv))
                 val realVars = getSetOfVars(sub)
                 if (map.keySet.contains(cv)) {
                   //update that set
@@ -462,6 +462,20 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
     v
   }
+  
+  def getValidSubstitutionB(s: Substitution, v: Var): E = {
+    for (k <- s.keys) {
+      if (k.equals(v)) {
+        s.get(k).get match {
+          case _ => {
+            return s.get(k).get
+          }
+        }
+
+      }
+    }
+    v
+  }  
 
   //  def unifyClean(c: E, d: E) = {
   //
@@ -635,8 +649,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
     } else {
 
       val (auxL, auxR) = pairs(0)
-println("MRR auxl: " + auxL)
-println("MRR auxR: " + auxR)
+//println("MRR auxl: " + auxL)
+//println("MRR auxR: " + auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
@@ -670,7 +684,7 @@ println("MRR auxR: " + auxR)
       val computedSequent = computedResolution.conclusion.toSeqSequent
 
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
-      println("computed: " + computedSequentClean)
+//      println("computed: " + computedSequentClean)
       def applyRelaxation(seq: Sequent, relax: Substitution): Sequent = {
         val newAnt = seq.ant.map(e => relax(e)).distinct
         val newSuc = seq.suc.map(e => relax(e)).distinct
@@ -679,10 +693,12 @@ println("MRR auxR: " + auxR)
       }
 
       val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
-      println("computed relaxed: " + computedSequentRelaxed)
-      println("desired: " + desired)
-      println("moreGeneral? " + isMoreGeneral(desired, computedSequentRelaxed))
-      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(desired, computedSequentRelaxed)) {
+//      println("computed relaxed: " + computedSequentRelaxed)
+//      println("desired: " + desired)
+//      println("moreGeneral? " + isMoreGeneral(desired, computedSequentRelaxed))
+//      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(desired, computedSequentRelaxed)) {
+      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(computedSequentClean, desired)) {
+      
         computedResolution
       } else {
         findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR, relaxation)
@@ -704,7 +720,7 @@ println("MRR auxR: " + auxR)
       } else {
         if ((computed.ant.size + computed.suc.size) == (desired.ant.size + desired.suc.size)) {
 
-          val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
+          val commonVars = (getSetOfVars(Axiom(desired.ant))intersect getSetOfVars(Axiom(desired.suc)))
 
           val antMap = generateSubstitutionOptionsB(computed.ant, desired.ant)
           val sucMap = generateSubstitutionOptionsB(computed.suc, desired.suc)
