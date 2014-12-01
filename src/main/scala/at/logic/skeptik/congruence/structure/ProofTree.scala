@@ -21,8 +21,6 @@ case class ProofForest(
   }
   
   def addEdge(u: E, v: E, eq: Option[EqW]) = {
-//    println("before: " + this)
-//    println("adding: " + (u,v,eq))
     val uR = root(u)
     val vR = root(v)
     val res = if (uR != vR) {
@@ -36,7 +34,6 @@ case class ProofForest(
       }
     }
     else this
-//    println("result:" + res)
     res
   }
   
@@ -57,10 +54,8 @@ case class ProofForest(
   def ncaPath(u: E, v: E) = {
     val p1 = rootPath(u)
     val p2 = rootPath(v)
-//    println("node / root: " + (u,p1)  + " and " + (v,p2))
     if (p1.lastOption.getOrElse((u,None,u))._3 == p2.lastOption.getOrElse((v,None,v))._3) {
       val path = p1.diff(p2) ++ reversePathList(p2.diff(p1))
-//      if (root(u) != root(v) && !path.isEmpty) println("building path for non congruent terms: " + (u,v))
       path
     }
     else List()
@@ -85,7 +80,6 @@ case class ProofForest(
         Some(y)
       }
       else {
-//        println("no explanation for " + (u,v))
         None
       }
     }
@@ -93,38 +87,29 @@ case class ProofForest(
       val x = explainAlongPath(path)
       
       if (!(((x.firstVert == u) && (x.lastVert == v)) || ((x.firstVert == v) && (x.lastVert == u)))){
-//        println("faulty expl for " + (u,v) + "\n"+path)
       }
       Some(x)
     }
   }
     
   def explainAlongPath(path: List[(E,Option[EqW],E)])(implicit eqReferences: MMap[(E,E),EqW]): EquationPath = {
-//    println(path)
     val (t1,eq,t2) = path.head
     var end = false
     val realEq = eq.getOrElse({
-      val x = EqW(t1,t2,false) //Probably causing bugs!
-//      if (x.toString == "((f1 c_1) = (f1 (f1 c_2 c_3)))") println("creating ((f1 c_1) = (f1 (f1 c_2 c_3))) in explainAlongPath")
-//      if (x.toString == "((f1 c_1) = (f1 (f1 c_2 c_3)))") println("creating ((f1 c_1) = (f1 (f1 c_2 c_3))) in explainAlongPath")
+      val x = EqW(t1,t2,false)
       x
     })
-//    if (!eq.isDefined) println("EQ NOT DEFINED IN EXPLAIN OF PROOFTREE")
     val deduceTrees = buildDD(t1,eq,t2)
-//    println(eq + " real eq: " + realEq)
     val eqL = EqLabel(realEq,deduceTrees)
     val nextEdge = if (path.size > 1)
       explainAlongPath(path.tail)
     else {
-//      println(path + " ending!")
       end = true
       val x = new EquationPath(t2,None)
-//      println(x)
       x
     }
     val eqEdge = EqTreeEdge(nextEdge,eqL)
     val y = new EquationPath(t1,Some(eqEdge))
-//    if (end) println(y)
     y
   }
   
@@ -140,7 +125,6 @@ case class ProofForest(
   }
   
   private def insertEdge(u: E, uRoot: E, v: E, vRoot: E, eq: Option[EqW]): ProofForest = {
-//    println("adding " + v + " to " + u)
     val reversed = reverseToRoot(v)
     val finalSize = reversed.rootSize.updated(uRoot,reversed.rootSize(uRoot) + reversed.rootSize(vRoot)) - v
     val finalNext = reversed.next.updated(v, (u,eq))
@@ -148,7 +132,6 @@ case class ProofForest(
   }
   
   def reverseToRoot(u: E): ProofForest = {
-//    println("reversing " + u)
     val path = rootPath(u)
     val revNext = path.foldLeft(next)({(A,B) =>
       val (node1,eq,node2) = B

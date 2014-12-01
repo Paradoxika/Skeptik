@@ -52,19 +52,6 @@ case class App(val function: E, val argument: E) extends E {
   }
 }
 
-case class EqExpr(val function: E, val argument: E) extends E {
-  require(function.t.asInstanceOf[Arrow].t1 == argument.t)
-  def copy = new EqExpr(function.copy,argument.copy)
-  override lazy val t = function.t.asInstanceOf[Arrow].t2
-  def logicalSize = function.logicalSize + argument.logicalSize + 1
-  override def toString = this match {
-    case EqExpr(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
-  }
-  def =+=(that:EqExpr) = {
-    
-  }
-}
-
 object AppRec {
   def apply(p: E, args: Iterable[E]) = (p /: args)((p,a) => App(p,a))
   def unapply(e:E) = e match {

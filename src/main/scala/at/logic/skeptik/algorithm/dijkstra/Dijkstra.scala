@@ -106,7 +106,7 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
   def isDiscounted(l: T2): Boolean = {
     if (l.isInstanceOf[EqLabel]) {
       val lEqL = l.asInstanceOf[EqLabel]
-      val eq = lEqL._1
+      val eq = lEqL.equation
       discount.contains(eq)
     }
     else false
@@ -117,14 +117,7 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
      *         which is: - its weight in the graph if the edge is not discounted
      *                   - its weight in the graph - 1 if it is
      */
-    def w(u: T1, l: T2, v: T1): Int // = {
-//      val w1 = g.weights.getOrElse((u,l,v), Integer.MAX_VALUE) // could be improved!
-////      if (isDiscounted(l)) {
-////        w1 - 1
-////      }
-////      else w1
-//      w1
-//    }
+    def w(u: T1, l: T2, v: T1): Int
   
   /**
    * @return the shortest path between s and target in the graph g where
@@ -231,12 +224,8 @@ abstract class Dijkstra[T1,T2](implicit val eqReferences: MMap[(E,E),EqW]) {
 abstract class EquationDijkstra(implicit eqReferences: MMap[(E,E),EqW] = MMap[(E,E),EqW]()) extends Dijkstra[E,EqLabel] {
   
   override def makeAdjacent(l: EqLabel, g: WGraph[E,EqLabel]): WGraph[E,EqLabel] = {
-//    l._2.foldLeft(g)({(A,B) =>
-//      B.originalEqs.foldLeft((A,Set[E])(op)
-//    })
-    val x = l._2.map(_.originalEqs)
+    val x = l.deducePaths.map(_.originalEqs)
     val y = x.flatten
-//    g.addUndirectedEdge((B,), weight)
     var gOut = y.foldLeft(g)({(A,B) => 
       val label = EqLabel(B,Set[EquationPath]())
       A.addUndirectedEdge((B.l,label,B.r),0)

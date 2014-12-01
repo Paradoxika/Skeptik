@@ -123,7 +123,6 @@ object EqCongruent {
       conclusion.ant.exists(lit => EqW.isEq(lit) && EqW(lit) == EqW(tuple._1,tuple._2))
     })
     require(correct)
-//    println(correct)
     new EqCongruent(conclusion)
   }
   def apply(expl: Seq[E], eq: E): EqCongruent = { //Semantics are not checked (yet)

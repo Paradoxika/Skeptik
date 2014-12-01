@@ -73,8 +73,6 @@ abstract class Congruence(
       var realEq = eq
       while (!deduced.isEmpty) {
         val (u,v) = deduced.head
-//        c = c.updateGraph(c.g.lazyAddEdge(u, v, realEq))
-//        realEq = None
         deduced -= ((u,v))
         if (c.rep(u) != c.rep(v)) {
           c = c.union(u, v, deduced)
@@ -86,6 +84,7 @@ abstract class Congruence(
   }
   
   def union(s: E, t: E, deduced: MSet[(E,E)]): Congruence = {
+    //Requirement that should be satisfied
 //    require(rN.forall(l => l._2.forall(r => lookup.isDefinedAt((rep(l._1),rep(r))))))
 //    require(lN.forall(l => l._2.forall(r => lookup.isDefinedAt((rep(r),rep(l._1))))))
     val c0 = this.updateGraph(g.lazyAddEdge(s, t, None))
@@ -146,7 +145,6 @@ abstract class Congruence(
 //      require(cL.lookup.forall(l => newRep.contains(l._1._1) && newRep.contains(l._1._2)))
 //      require(newRight.forall(l => l._2.forall(r => cL.lookup.isDefinedAt((newRep(l._1),newRep(r))))))
 //      require(newLeft.forall(l => l._2.forall(r => cL.lookup.isDefinedAt((newRep(r),newRep(l._1))))))
-//      System.out.println("after union: " + (s,t) + " " + cL.lookup);
       newCon(newRep,newCclass,cL.lookup,newLeft,newRight,cL.g)
     }
     else this

@@ -6,9 +6,7 @@ import scala.annotation.tailrec
 
 class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     extends MyPriorityQueue[T1,T2] {
-  
-//  println("new heap")
-  
+
   var min: Option[FNode] = None
   var n: Int = 0
   val nodeMap = MMap[T1,FNode]()
@@ -60,7 +58,6 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
     case None => None
     case Some(minNode) => {
       nodeMap -= (minNode.element)
-//      if (deleted.contains(minNode)) println("extracting deleted: " + minNode)
       addAllChildToRoot(minNode)
       val r = minNode.right
       minNode.remove
@@ -122,18 +119,15 @@ class FibonacciHeap[T1,T2 <% Ordered[T2]](absoluteMin: T2)
         elemNode.parent match {
           
           case Some(y) if (y.key > value) => {
-            
-//            println("parent of " + elemNode + " is " + y)
-//            println("at this point child of " + special + " = " + special.child)
             cut(elemNode,y)
             
             cascading_cut(y)
           }
-          case Some(y) => // println(y + " < " + elemNode)
+          case Some(y) =>
           case None => 
         }
       }
-      case Some(elemNode) => //println(elemNode + " < " + value)
+      case Some(elemNode) =>
       case None => 
     }
     min match {

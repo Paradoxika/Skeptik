@@ -13,11 +13,11 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 import at.logic.skeptik.expression.Var
 
-//@RunWith(classOf[JUnitRunner])
-//class RecycleUnitsSpecification extends SpecificationWithJUnit {
-//  
-  object RecycleUnitsTest {
-  def main(args: Array[String]):Unit = {
+@RunWith(classOf[JUnitRunner])
+class RecycleUnitsSpecification extends SpecificationWithJUnit {
+  
+//  object RecycleUnitsTest {
+//  def main(args: Array[String]):Unit = {
 
   val testcase = 1
   
@@ -86,15 +86,12 @@ import at.logic.skeptik.expression.Var
     result
   }
 
-//  println(printProof(proof))
 
   val compproof = RecycleUnits.apply(proof)
-  println(measure(compproof))
-  
-//  "RecycleUnits" should {
-//    "compress the proof" in {
-//      
-//      proof.size must beGreaterThan(compproof.size)
-//    }
+
+  "RecycleUnits" should {
+    "compress the proof" in {
+      proof.size must beGreaterThan(compproof.size)
+    }
   }
 }

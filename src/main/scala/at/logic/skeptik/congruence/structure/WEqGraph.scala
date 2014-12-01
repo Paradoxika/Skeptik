@@ -5,6 +5,10 @@ import at.logic.skeptik.algorithm.dijkstra._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.Queue
 
+/**
+ * weighted graph with E vertices and EqLabel edges
+ */
+
 abstract class WEqGraph(
     val graph: WGraph[E,EqLabel] = new WGraph[E,EqLabel](),
     val edges: Map[(E,E),Option[EqW]],
@@ -32,7 +36,6 @@ abstract class WEqGraph(
     val newG = newWEqGraph(graph,newLazy,order)
     eq match {
       case None => {
-//        println("here")
         val paths = newG.buildDD(u,None,v)
         
         val eqAll = paths.foldLeft(Set[EqW]())({(A,B) => 
@@ -44,7 +47,6 @@ abstract class WEqGraph(
         newG.addEdge(u, v, eqLabel, weight)
       }
       case Some(e) => {
-//        println("here_2")
         newG.addEdge(u, v, EqLabel(e,Set[EquationPath]()), 1)
       }
     }

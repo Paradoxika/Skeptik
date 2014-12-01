@@ -39,18 +39,6 @@ class EqW(val equality :E) {
     equality.t != o
   }
   
-  
-//  override def equals(other: Any) = {
-//    val res = other match {
-//      case that: EqW => {
-//        ((this.l == that.l) && (this.r == that.r) || (this.l == that.r) && (this.r == that.l))
-//      }
-//      case _ => false
-//    }
-////    println("checking " + this + " == " + other + " ?: " + res)
-//    res
-//  }
-  
   override def toString = equality.toString
 }
 
@@ -94,9 +82,7 @@ object EqW {
         x
       }))}
     else {
-      
       val x = new EqW(App(App(eqVar,t1),t2))
-//      println("apply EqW two arg for: " + (t1,t2) + " creating " + x)
       eqReferences.update((t1,t2),x)
       x
     }
@@ -105,7 +91,6 @@ object EqW {
     
   def apply(eq: E)(implicit eqReferences: MMap[(E,E),EqW]): EqW = {
     if (isEq(eq)) {
-//      println("apply EqW one arg for: " + eq)
       val newEq = new EqW(eq)
       val (t1,t2) = (newEq.l,newEq.r)
       eqReferences.update((t1,t2),newEq)

@@ -38,15 +38,6 @@ object R {
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
       case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
       case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
-//      case (None, None) => {
-//        (leftPremise.conclusion.ant.find(_ == pivot), rightPremise.conclusion.suc.find(_ == pivot)) match {
-//          case (Some(auxL), Some(auxR)) => new R(rightPremise, leftPremise, auxR, auxL)
-//          case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
-//          case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
-//          case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
-//          case _ => throw new Exception("Auxiliary formulas not found.\n"+leftPremise.conclusion + "\n" + rightPremise.conclusion + "\n" + pivot)
-//        }
-//      }
       case _ => throw new Exception("Auxiliary formulas not found.\n"+leftPremise.conclusion + "\n" + rightPremise.conclusion + "\n" + pivot)
     } 
   
@@ -62,10 +53,6 @@ object R {
       case None => findPivots(premise2,premise1) match {
         case Some((auxL,auxR)) => new R(premise2,premise1,auxL,auxR)
         case None => {
-//          println("Not resolvable:")
-//          println(premise1 + " class: " + premise1.getClass)
-//          println(Proof(premise1))
-//          println(premise2 + " class: " + premise2.getClass)
           throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
         }
       }

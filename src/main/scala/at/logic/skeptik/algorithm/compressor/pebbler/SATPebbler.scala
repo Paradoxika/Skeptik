@@ -127,7 +127,6 @@ object SATPebbler {
       pos.foreach(p => {
         val (x,j,t) = intToNode(p,n,k)
         if (t > 1) {
-//          println(x,j,t + " -> " + trippleToInt(x,j,t-1,n,k))
           if (assign(trippleToInt(x,j,t-1,n,k) - 1) < 0) {
             permutation = permutation :+ proof.nodes(proof.size - j)
             println("pebble " + intToNode(p,n,k))
@@ -137,15 +136,7 @@ object SATPebbler {
           permutation = permutation :+ proof.nodes(proof.size - j)
           println("pebble " + intToNode(p,n,k))
         }
-//        if (t < n) {
-//          if (assign(trippleToInt(x,j,t+1,n,k) - 1) < 0) println("unpebble " + intToNode(trippleToInt(x,j,t+1,n,k),n,k))
-//        }
       })
-//      (0 to (n*k)-1).map(numb => {
-//        if (assign(numb) > 0) {
-//          println("init " + intToNode(numb,n,k))
-//        }
-//      })
       println(permutation.size + " ~ " + proof.size)
       new Proof(proof.root, permutation.reverse.toIndexedSeq)
     }
