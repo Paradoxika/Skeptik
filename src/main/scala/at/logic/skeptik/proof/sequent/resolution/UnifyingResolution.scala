@@ -684,7 +684,6 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       val computedSequent = computedResolution.conclusion.toSeqSequent
 
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
-//      println("computed: " + computedSequentClean)
       def applyRelaxation(seq: Sequent, relax: Substitution): Sequent = {
         val newAnt = seq.ant.map(e => relax(e)).distinct
         val newSuc = seq.suc.map(e => relax(e)).distinct
@@ -693,8 +692,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       }
 
       val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
-//      println("computed relaxed: " + computedSequentRelaxed)
-//      println("desired: " + desired)
+      println("computed: " + computedSequentClean)      
+      println("computed relaxed: " + computedSequentRelaxed)
+      println("desired: " + desired)
 //      println("moreGeneral? " + isMoreGeneral(desired, computedSequentRelaxed))
 //      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(desired, computedSequentRelaxed)) {
       if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(computedSequentClean, desired)) {
