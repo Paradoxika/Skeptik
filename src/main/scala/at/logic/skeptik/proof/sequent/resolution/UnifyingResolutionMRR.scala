@@ -13,15 +13,19 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class UnifyingResolutionMRR(override val leftPremise: SequentProofNode, override val rightPremise: SequentProofNode,
-  override val auxL: E, override val auxR: E, override val leftClean: SequentProofNode)(implicit unifiableVariables: MSet[Var])
-  extends UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftClean) {
+  override val auxL: E, override val auxR: E, override val leftClean: SequentProofNode, override val overRide: Substitution)(implicit unifiableVariables: MSet[Var])
+  extends UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftClean, overRide) {
 
   override val conclusionContext = {
     val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
       (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
-    new Sequent(antecedent, succedent)
+    if (overRide == null) {
+      new Sequent(antecedent, succedent)
+    } else {
+      new Sequent(antecedent.map(e => overRide(e)), succedent.map(e => overRide(e)))
+    }
 
   }
 
@@ -49,6 +53,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+//    println("up: " + unifiablePairs)
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, true, relaxation)
     } else if (unifiablePairs.length == 0) {
@@ -75,7 +80,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
       val (auxL, auxR) = unifiablePairs(0)
       var ax = null.asInstanceOf[SequentProofNode]
-      ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+      ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
       var con = Contraction(ax)(unifiableVariables)
       //If they're ever equal, contraction did nothing; discard the contraction
       while (!con.conclusion.equals(ax.conclusion)) {

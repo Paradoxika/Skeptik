@@ -13,7 +13,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: SequentProofNode,
-  val auxL: E, val auxR: E, val leftClean: SequentProofNode)(implicit unifiableVariables: MSet[Var])
+  val auxL: E, val auxR: E, val leftClean: SequentProofNode, val overRide: Substitution)(implicit unifiableVariables: MSet[Var])
   extends SequentProofNode with Binary
   with NoMainFormula with CanRenameVariables {
 
@@ -38,7 +38,11 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
-    new Sequent(antecedent, succedent)
+    if (overRide == null) {
+    	new Sequent(antecedent, succedent) 
+    } else {
+      new Sequent(antecedent.map(e => overRide(e)), succedent.map(e => overRide(e))) 
+    }
   }
 
 }
@@ -65,12 +69,12 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 
     if (unifiablePairs.length == 1) {
       val (auxL, auxR) = unifiablePairs(0)
-      new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+      new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
     } else if (unifiablePairs.length == 0) {
-      println("going to throw an error...")
-      println(leftPremise)
-      println(leftPremiseClean)
-      println(rightPremise)
+//      println("going to throw an error...")
+//      println(leftPremise)
+//      println(leftPremiseClean)
+//      println(rightPremise)
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B")
     } else {
       throw new Exception("Resolution: the resolvent is ambiguous.")
@@ -615,7 +619,7 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
-          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
 
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
@@ -633,7 +637,7 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
           }
 
         } else {
-          new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
         }
       }
       val computedSequent = computedResolution.conclusion.toSeqSequent
@@ -664,7 +668,7 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
           //          println("leftPremise: " + leftPremise)
           //          println("leftPremiseC: " + leftPremiseClean)
           //          println("rightPremise: " + rightPremise)
-          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, relaxation)
           //          println("ax: " + ax)
           //          println("auxL: " + auxL)
           //          println("auxR: " + auxR)
@@ -685,7 +689,7 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
           }
 
         } else {
-          new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean)
+          new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
         }
       }
       val computedSequent = computedResolution.conclusion.toSeqSequent
@@ -699,9 +703,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       }
 
       val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
-      println("computed: " + computedSequentClean)      
-      println("computed relaxed: " + computedSequentRelaxed)
-      println("desired: " + desired)
+//      println("computed: " + computedSequentClean)      
+//      println("computed relaxed: " + computedSequentRelaxed)
+//      println("desired: " + desired)
 //      println("moreGeneral? " + isMoreGeneral(desired, computedSequentRelaxed))
 //      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(desired, computedSequentRelaxed)) {
       if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(computedSequentClean, desired)) {
@@ -725,21 +729,21 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
         return true
       } else {
         if ((computed.ant.size + computed.suc.size) == (desired.ant.size + desired.suc.size)) {
-println("A")
+//println("A")
           val commonVars = (getSetOfVars(Axiom(desired.ant))intersect getSetOfVars(Axiom(desired.suc)))
-println("B " + commonVars)
+//println("B " + commonVars)
           val antMap = generateSubstitutionOptionsB(computed.ant, desired.ant)
-println("amap: " + antMap)
+//println("amap: " + antMap)
           val sucMap = generateSubstitutionOptionsB(computed.suc, desired.suc)
-println("smap: " + sucMap)          
+//println("smap: " + sucMap)          
           val intersectedMap = intersectMapsB(antMap, sucMap)
-println("imap: " + intersectedMap)
+//println("imap: " + intersectedMap)
           if (!validMapB(intersectedMap, commonVars)) {
             return false
           }
-println("checking halves..")
+//println("checking halves..")
           if (checkHalfB(computed.ant.distinct, desired.ant.distinct)(unifiableVars)) {
-            println("ant good..")
+//            println("ant good..")
             if (checkHalfB(computed.suc.distinct, desired.suc.distinct)(unifiableVars)) {
               return true
             }
