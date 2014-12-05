@@ -235,9 +235,9 @@ object FOLowerUnits
               if (e.getMessage != null) {
                 if (e.getMessage.equals("Resolution (MRR): the resolvent is ambiguous.")) {
 
-//                  println("caught for " + node)
-//                  println("fixed left: " + fixedLeft)
-//                  println("fixed right: " + fixedRight)
+                  println("caught for " + node)
+                  println("fixed left: " + fixedLeft)
+                  println("fixed right: " + fixedRight)
 //                  println(" (l: " + left + ")")
 //                  println(" (r: " + right + ")")
 //
@@ -298,10 +298,10 @@ object FOLowerUnits
                     val stuff = test3(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
 
                     val newGoalD = stuff._1
-//                    println("FINAL newGoalD: " + newGoalD)
+                    println("FINAL newGoalD: " + newGoalD)
 
-                    val out = UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD, stuff._2)(vars)
-//                    println("FINAL COMPUTED: " + out.conclusion)
+                    val out = UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD, oMGU)(vars)
+                    println("FINAL COMPUTED: " + out.conclusion)
                     //                  println("final carry: " + (List[E](stuff._3) ++ List[E](stuff._4)))
                     //                  carryMap.update(out, List[E](stuff._3) ++ List[E](stuff._4))
 //                    println("final carry: " + stuff._3 + " and " + stuff._4)
@@ -318,7 +318,7 @@ object FOLowerUnits
                       val newGoalD = stuff._1
 //                      println("FINAL newGoalD: " + newGoalD)
                       val out = UnifyingResolutionMRR(newFixedLeft, newFixedRight, ad, stuff._2)(vars)
-//                      println("FINAL COMPUTED: " + out.conclusion)
+                      println("FINAL COMPUTED: " + out.conclusion)
                       //                  println("final carry: " + (List[E](stuff._3) ++ List[E](stuff._4)))
                       //                  carryMap.update(out, List[E](stuff._3) ++ List[E](stuff._4))
 //                      println("final carry: " + stuff._3 + " and " + stuff._4)
@@ -331,10 +331,10 @@ object FOLowerUnits
                   }
 
                 } else {
-                  throw new Exception("Compression failed!")
+                  throw new Exception("Compression failed! A")
                 }
               } else {
-                throw new Exception("Compression failed!")
+                throw new Exception("Compression failed! B")
               }
             }
           }
@@ -351,7 +351,7 @@ object FOLowerUnits
         }
       }
       if (node == proof.root || unitsSet.contains(node)) {
-//        println("updating map: " + node + " ---> " + fixedP)
+        println("updating map: " + node + " ---> " + fixedP)
         fixMap.update(node, fixedP)
       }
       //      println("node: " + node)
@@ -512,19 +512,8 @@ object FOLowerUnits
         //only right is non-unit
         val contracted = Contraction(right)(vars)
         if (contracted.conclusion.logicalSize < right.conclusion.logicalSize) {
-          //          println("B")
-          //          UnifyingResolution(left, contracted)(vars)
           finishResolution(left, contracted, true)(vars)
         } else {
-          //          println("C")
-          //          UnifyingResolution(left, right)(vars)
-          //          try {
-          //            UnifyingResolution(left, right)(vars)
-          //          } catch {
-          //            case e: Exception => {
-          //              multipleResolution(left, right, true)(vars)
-          //            }
-          //          }
           finishResolution(left, right, true)(vars)
         }
       }
@@ -582,6 +571,9 @@ object FOLowerUnits
 
   //TODO: can probably avoid code reuse by introducing helper functions
   def multipleResolution(left: SequentProofNode, right: SequentProofNode, leftIsUnit: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    println("left: " + left)
+    println("right: " + right)
+    println("b: " + leftIsUnit)
     if (leftIsUnit) {
       //left is unit
       if (left.conclusion.suc.size > 0) {
@@ -648,7 +640,7 @@ object FOLowerUnits
     val units = collected._1
     val vars = collected._2
 
-//    println("lowerable units are: " + units)
+    println("lowerable units are: " + units)
 
     if (units.length == 0) {
       return proof
@@ -671,9 +663,9 @@ object FOLowerUnits
     }
 
 //    println("fixMap built")
-    //    for (k <- fixMap.keySet) {
-    //      println(k + " -----> " + fixMap.get(k))
-    //    }
+//        for (k <- fixMap.keySet) {
+//          println(k + " -----> " + fixMap.get(k))
+//        }
 
     val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
