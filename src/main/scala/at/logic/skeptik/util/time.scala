@@ -1,10 +1,17 @@
 package at.logic.skeptik.util
 
-import scala.actors.Futures.{awaitAll, future}
+import scala.language.postfixOps
+import scala.concurrent._
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object time {
-  // ToDo: The future is not killed after timeout 
-  def timeout[R](time: Long)(f: => R): Option[R] = awaitAll(time, future { f }).head.asInstanceOf[Option[R]]
+  // ToDo: Use Duration for time
+
+  def timeout[R](time: Long)(f: => R): Option[R] = 
+    try { Some(Await.result(Future { f }, time millis)) } catch {
+      case e: TimeoutException => None
+    }
 
   def timeout[R](time: Long, default: R)(f: => R): R = timeout(time)(f).getOrElse(default)
   
