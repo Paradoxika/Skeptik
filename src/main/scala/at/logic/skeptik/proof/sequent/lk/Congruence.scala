@@ -164,4 +164,9 @@ object EqSymmetry {
   def apply(eq: EqW) = {
     new EqSymmetry(new Sequent(Seq(eq.equality),Seq(eq.reverseEquality)))
   }
+
+  def unapply(p: SequentProofNode) = p match {
+    case p: EqSymmetry => Some(p.conclusion)
+    case _ => None
+  }
 }
