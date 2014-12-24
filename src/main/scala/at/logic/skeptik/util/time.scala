@@ -1,20 +1,8 @@
 package at.logic.skeptik.util
 
-import scala.language.postfixOps
-import scala.concurrent._
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-
 object time {
   // ToDo: Use Duration for time
 
-  def timeout[R](time: Long)(f: => R): Option[R] = 
-    try { Some(Await.result(Future { f }, time millis)) } catch {
-      case e: TimeoutException => None
-    }
-
-  def timeout[R](time: Long, default: R)(f: => R): R = timeout(time)(f).getOrElse(default)
-  
   case class Timed[+R](result:R, time: Double)
   def timed[R](f: => R): Timed[R] = {
     System.gc()
