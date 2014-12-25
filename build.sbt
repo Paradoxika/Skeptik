@@ -20,7 +20,6 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.1.0",
   "org.specs2" %% "specs2" % "2.4.15" % "test",
   "com.github.scopt" %% "scopt" % "3.3.0",
-  "org.scala-lang" % "scala-actors" % "2.11.4",
   "org.scala-lang" % "scala-library" % "2.11.4",
   "org.scala-lang" % "scala-xml" % "2.11.0-M4",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",

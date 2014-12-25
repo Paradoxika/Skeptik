@@ -4,7 +4,7 @@ package smt
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => N}
 import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
-
+import at.logic.skeptik.proof.sequent.lk.{EqReflexive, EqTransitive, EqCongruent, EqSymmetry}
 
 trait ProofE extends SequentE {
   def omitConclusion: Boolean
@@ -35,7 +35,7 @@ trait ProofE extends SequentE {
           flush()
         }    
         n match {
-          case Axiom(conclusion) => {
+          case Axiom(_) => {
             val name = beginInference("input")
             endInference()
             name // chain containing only the name of the axiom
@@ -51,6 +51,26 @@ trait ProofE extends SequentE {
               endInference(!omitConclusion)
               name // chain containing only the name of the resolution node
             }
+          }
+          case EqReflexive(_) => {
+            val name = beginInference("eq_reflexive")
+            endInference()
+            name
+          }
+          case EqTransitive(_) => {
+            val name = beginInference("eq_transitive")
+            endInference()
+            name
+          }
+          case EqCongruent(_) => {
+            val name = beginInference("eq_congruent")
+            endInference()
+            name
+          }
+          case EqSymmetry(_) => {
+            val name = beginInference("eq_symmetric")
+            endInference()
+            name
           }
           case UncheckedInference(infName, premises, conclusion) => {
             val name = beginInference(infName)
