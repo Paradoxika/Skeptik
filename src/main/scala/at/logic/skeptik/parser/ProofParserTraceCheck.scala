@@ -54,6 +54,10 @@ extends JavaTokenParsers with RegexParsers {
     case wl => throw new Exception("Wrong line " + wl)
   }
   
+  // ToDo: There is a bug somewhere in the method below. 
+  // It is transforming DAGs into trees.
+  
+  
   /**
    * Resolves the clauses represented by a list of indices in the correct order.
    * 
