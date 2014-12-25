@@ -40,6 +40,8 @@ extends JavaTokenParsers with RegexParsers {
   
   def clause: Parser[Int] = pos ~ literals ~ antecedents ^^ {
     case ~(~(p, l), a) => {
+        println("" + p + l.mkString(" ", " ", " 0") + a.mkString(" ", " ", " 0"))
+      
         if (l.isEmpty && a.isEmpty) throw new Exception("Invalid input at " + p + " ~ " + l)
         else {
           clauseNumbers += (p -> (l,a))
