@@ -2,15 +2,15 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>at.logic</groupId>
-    <artifactId>skeptik_2.10</artifactId>
+    <artifactId>skeptik_2.11</artifactId>
     <packaging>jar</packaging>
     <description>Skeptik</description>
     <url>http://github.com/Paradoxika/Skeptik</url>
     <version>1.0</version>
     <licenses>
         <license>
-            <name>GNU GPL v3</name>
-            <url>http://www.gnu.org/licenses/gpl.html</url>
+            <name>CC BY-NC-SA</name>
+            <url>http://creativecommons.org/licenses/by-nc-sa/3.0/</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -83,28 +83,42 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.10.0-RC3</version>
+            <version>2.11.1</version>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2_2.10</artifactId>
-            <version>1.12.3</version>
+            <artifactId>specs2_2.11</artifactId>
+            <version>2.3.12</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
+            <groupId>com.github.scopt</groupId>
+            <artifactId>scopt_2.11</artifactId>
+            <version>3.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-actors</artifactId>
-            <version>2.10.0-RC3</version>
+            <version>2.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-parser-combinators_2.11</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang.plugins</groupId>
+            <artifactId>scala-continuations-library_2.11</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.scala-incubator.io</groupId>
+            <artifactId>scala-io-file_2.11</artifactId>
+            <version>0.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalaz</groupId>
+            <artifactId>scalaz-core_2.11</artifactId>
+            <version>7.0.6</version>
         </dependency>
     </dependencies>
 </project>

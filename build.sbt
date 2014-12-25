@@ -2,23 +2,33 @@ name := "Skeptik"
 
 organization := "at.logic"
 
-version := "1.0"
+version := "1.1"
 
-scalaVersion := "2.10.0"
+scalaVersion := "2.11.4"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
 scalacOptions in (Compile, doc) ++= Seq("-diagrams","-implicits")
 
+scalacOptions in Test ++= Seq("-Yrangepos")
+
+resolvers ++= Seq("snapshots", "releases", "public").map(Resolver.sonatypeRepo)
+
+resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2" % "1.12.3",
-  "junit" % "junit" % "4.11" % "test",
-  "commons-lang" % "commons-lang" % "2.6",
-  "org.scala-lang" % "scala-actors" % "2.10.0-RC3"
-)
+  "org.scalaz" %% "scalaz-core" % "7.1.0",
+  "org.specs2" %% "specs2" % "2.4.15" % "test",
+  "com.github.scopt" %% "scopt" % "3.3.0",
+  "org.scala-lang" % "scala-library" % "2.11.4",
+  "org.scala-lang" % "scala-xml" % "2.11.0-M4",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",
+  "org.scala-lang" % "scala-library" % "2.11.4", // apparently needed because of timeout and deprecated actors library
+  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1" // seems inactive
+  )
 
-licenses := Seq("GNU GPL v3" -> url("http://www.gnu.org/licenses/gpl.html"))
+
+licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
 
 homepage := Some(url("http://github.com/Paradoxika/Skeptik"))
 
@@ -99,6 +109,3 @@ pomExtra := (
 		</plugins>
 	</reporting>
 )
-
-// OneJar Settings
-seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)

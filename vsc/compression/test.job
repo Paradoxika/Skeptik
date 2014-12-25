@@ -1,0 +1,9 @@
+#$ -N SkeptikComp                     # declares job name                
+#$ -pe mpich1 1                       # requests 1 core with 32 GB
+#$ -V                                 # imports all environment variables
+#$ -m beas                            # notifies of job's beginning, end, abortion and rescheduling
+#$ -l h_rt=00:30:00                   # runs job for a maximum time of hh:mm:ss
+
+SLICE=$( printf 'slice.%02d' $SGE_TASK_ID )
+
+java -d64 -Xmx26624M -Xss1024M -jar skeptik.jar -a Children -a LastChild -a Distance3 -m stdout:// -h pebbling.hout -p $( cat "${SLICE}" )

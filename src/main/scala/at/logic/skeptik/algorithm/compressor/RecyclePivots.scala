@@ -2,9 +2,8 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.Proof
-import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
-import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
-import collection._
+import at.logic.skeptik.judgment.immutable.SetSequent
+
 
 abstract class RecyclePivots
 extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
@@ -16,26 +15,42 @@ extends AbstractRPIAlgorithm with CollectEdgesUsingSafeLiterals {
 
 }
 
-// Intersection trait is defined is RPILU.scala
+// Intersection trait is defined in RPILU.scala
 
 trait outIntersection
 extends AbstractRPIAlgorithm {
 
   protected def computeSafeLiterals(node: SequentProofNode,
-                                    childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
-                                    edgesToDelete: EdgesToDelete ) : IClause =
+                                    childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
+                                    edgesToDelete: EdgesToDelete ) : SetSequent =
     if (childrensSafeLiterals.length == 1)
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     else
-      IClause()
+      SetSequent()
+
+}
+
+trait conclusionSequent
+extends AbstractRPIAlgorithm {
+
+  protected def computeSafeLiterals(node: SequentProofNode,
+                                    childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
+                                    edgesToDelete: EdgesToDelete ) : SetSequent =
+    if (childrensSafeLiterals.length == 1)
+      safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
+    else
+      node.conclusion.toSetSequent
 
 }
 
 object RecyclePivots
-extends RecyclePivots with outIntersection with IdempotentAlgorithm[SequentProofNode]
+extends RecyclePivots with outIntersection
 
 object RecyclePivotsWithIntersection
-extends RecyclePivots with Intersection with RepeatableWhileCompressingAlgorithm[SequentProofNode]
+extends RecyclePivots with Intersection
 
-object IdempotentRecyclePivotsWithIntersection
-extends RecyclePivots with Intersection with IdempotentAlgorithm[SequentProofNode]
+object RecyclePivotsWithConclusionSequent
+extends RecyclePivots with conclusionSequent
+
+//object IdempotentRecyclePivotsWithIntersection
+//extends RecyclePivots with Intersection with IdempotentAlgorithm[SequentProofNode]

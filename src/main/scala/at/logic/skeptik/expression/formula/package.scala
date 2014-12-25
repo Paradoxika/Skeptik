@@ -5,14 +5,24 @@ package object formula {
 
   // Logical Symbols and Connectives
   
+  def booleanFunctionType(arity: Int): T = if (arity == 0) o 
+                                           else (o -> booleanFunctionType(arity - 1)) 
+  
+  class BigConnective(symbol: String) {
+    def apply(arity: Int) = if (arity == 2) new Var(symbol, booleanFunctionType(arity)) with Infix
+                            else new Var(symbol, booleanFunctionType(arity))
+  }                                         
+                                           
   val andS = unicodeOrElse("\u2227","&") // "∧"
-  def andC = new Var(andS, o -> (o -> o)) with Infix
+  val andC = new Var(andS, o -> (o -> o)) with Infix
+  val bigAndC = new BigConnective(andS)
   
   val orS = unicodeOrElse("\u2228","|")
-  def orC = new Var(orS, o -> (o -> o)) with Infix
+  val orC = new Var(orS, o -> (o -> o)) with Infix
+  val bigOrC = new BigConnective(orS)
   
   val impS = unicodeOrElse("\u2192","->")
-  def impC = new Var(impS, o -> (o -> o)) with Infix
+  val impC = new Var(impS, o -> (o -> o)) with Infix
 
   val allS = unicodeOrElse("\u2200","A")
   def allC(t:T) = Var(allS, (t -> o ) -> o)
@@ -21,7 +31,10 @@ package object formula {
   def exC(t:T) = Var(exS, (t -> o ) -> o)
   
   val negS = unicodeOrElse("\u00AC","-")
-  def negC = Var(negS, o -> o)
+  val negC = Var(negS, o -> o)
+  
+  val eqS = "="
+  def eqC(t:T) = new Var(eqS, (t -> (t -> o))) with Infix 
   
   def isLogicalConnective(c:E) = c match {
     case Var(n,_) if (n == andS || n == orS || n == impS || 
@@ -43,4 +56,7 @@ package object formula {
   
   def ex(v:Var) = (f:E) => Ex(v,f)
   def ∃(v:Var) = all(v)
+  
+  def bigOr(args: Iterable[E]) = AppRec(bigOrC(args.size), args)
+  def bigAnd(args: Iterable[E]) = AppRec(bigAndC(args.size), args)
 }
