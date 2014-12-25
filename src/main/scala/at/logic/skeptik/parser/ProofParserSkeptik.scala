@@ -11,7 +11,7 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
 
-object ProofParserSkeptik extends ProofParser[Node] with SkeptikParsers
+object ProofParserSkeptik extends ProofCombinatorParser[Node] with SkeptikParsers
 
 trait SkeptikParsers
 extends JavaTokenParsers with RegexParsers {

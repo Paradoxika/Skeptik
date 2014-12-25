@@ -24,7 +24,7 @@ import at.logic.skeptik.expression.formula._
  * 
  */
 
-object ProofParserTraceCheck extends ProofParser[Node] with TraceCheckParsers
+object ProofParserTraceCheck extends ProofCombinatorParser[Node] with TraceCheckParsers
 
 trait TraceCheckParsers
 extends JavaTokenParsers with RegexParsers {

@@ -2,7 +2,7 @@ package at.logic.skeptik
 
 
 import at.logic.skeptik.parser.AlgorithmParser
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,ProofParserTraceCheck}
+import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,ProofParserTraceCheck,ProofParserDRUP}
 import at.logic.skeptik.exporter.Exporter
 import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
 import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
@@ -27,7 +27,9 @@ object ProofCompressionCLI {
                     moutHeader: Boolean = true)                
 
   
-  private def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.s', '.sd' and '.tc'"                 
+  private def unknownFormat(filename: String) = 
+    "Unknown proof format for " + filename + 
+    ". Supported formats are '.smt2', '.s', '.sd', '.tc' and '.drup'"                 
   
   private def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
@@ -62,9 +64,9 @@ object ProofCompressionCLI {
     opt[String]('f', "format") action { (v, c) => 
       c.copy(format = v) 
     } validate { v =>
-      if (Seq("smt2", "smtbc", "smtb", "tc", "s", "sd") contains v) success 
+      if (Seq("smt2", "smtbc", "smtb", "tc", "s", "sd", "drup") contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> (either 'smt2', 'smtbc' 's' or 'sd') to output compressed proofs\n") valueName("<format>")
+    } text("use <format> (either 'smt2', 'smtbc', 'tc', 'drup', 's' or 'sd') to output compressed proofs\n") valueName("<format>")
  
 
     opt[String]('m', "mout") action { (v, c) =>
@@ -124,6 +126,7 @@ object ProofCompressionCLI {
           case ".skeptik"  => ProofParserSkeptik
           case ".s" => ProofParserSkeptik
           case ".tc" => ProofParserTraceCheck
+          case ".drup" => ProofParserDRUP
           case _ => throw new Exception(unknownFormat(filename))
         }
         
@@ -143,9 +146,6 @@ object ProofCompressionCLI {
         prettyTable.processInput(proofName, measurements)
         csv.processInput(proofName, measurements)
   
-
-
-        
         
         // Compressing the proof
         for (a <- c.algorithms) {

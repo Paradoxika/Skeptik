@@ -11,7 +11,7 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.ArrayBuffer
 
-object ProofParserVeriT extends ProofParser[Node] with VeriTParsers
+object ProofParserVeriT extends ProofCombinatorParser[Node] with VeriTParsers
 
 trait VeriTParsers
 extends JavaTokenParsers with RegexParsers {
