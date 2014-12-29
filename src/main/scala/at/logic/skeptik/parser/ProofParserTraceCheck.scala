@@ -3,6 +3,7 @@ package at.logic.skeptik.parser
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import scala.util.parsing.combinator._
 import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import collection.immutable.{HashMap => Map, HashSet => Set}
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
@@ -29,9 +30,11 @@ object ProofParserTraceCheck extends ProofParser[Node] with TraceCheckParsers
 trait TraceCheckParsers
 extends JavaTokenParsers with RegexParsers {
   
-  private var proofMap = new MMap[Int,Node]
-  private var varMap = new MMap[Int,E]
+  private val proofMap = new MMap[Int,Node]
+  private val varMap = new MMap[Int,E]
   private val clauseNumbers = new MMap[Int,(List[E],List[Int])]
+  val nodeMap = MMap[Sequent,Node]()
+  val processedMap = MMap[List[Int],Node]();
   var maxClause = 0
 
   def proof: Parser[Proof[Node]] = rep(clause) ^^ { list => 
@@ -77,8 +80,6 @@ extends JavaTokenParsers with RegexParsers {
         else negOc += (v -> MSet[Node](clause))
       })
     })
-//    println(clauseNumbers)
-//    println(posOc,negOc)
     //start recursion
     res(posOc,negOc)
   }
@@ -110,7 +111,8 @@ extends JavaTokenParsers with RegexParsers {
       case Some(p) => {
         val posClause = posOc(p).last
         val negClause = negOc(p).last
-        val newClause = R(posClause,negClause,p,false)
+        val resolvent = R(posClause,negClause,p,false)
+        val newClause = nodeMap.getOrElseUpdate(resolvent.conclusion, resolvent)
         newClause.conclusion.suc.foreach(v => {
           posOc(v) -= posClause
           posOc(v) -= negClause
@@ -128,16 +130,16 @@ extends JavaTokenParsers with RegexParsers {
       }
     }
   }
-  
-//  def getNode(index: Int) = proofMap.getOrElse(index, throw new Exception("Clause not defined yet"))
-  
+    
   def getNode(index: Int): Node = {
     val tuple = clauseNumbers(index)
     if (tuple._2.isEmpty) {
-      new Axiom(tuple._1)
+      val ax = new Axiom(tuple._1)
+      val con = ax.conclusion
+      nodeMap.getOrElseUpdate(con, ax)
     }
     else {
-      resolveClauses(tuple._2)
+      processedMap.getOrElseUpdate(tuple._2,resolveClauses(tuple._2))
     }
   }
   
