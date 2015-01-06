@@ -10,7 +10,6 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
-//import scala.collection.mutable.ArrayBuffer
 
 /**
  * The syntax of a trace is as follows:
@@ -28,10 +27,9 @@ import at.logic.skeptik.expression.formula._
 object ProofParserTraceCheck extends ProofCombinatorParser[Node] with TraceCheckParsers
 
 trait TraceCheckParsers
-extends JavaTokenParsers with RegexParsers {
+extends BasicTraceCheckParsers {
   
   private val proofMap = new MMap[Int,Node]
-  private val varMap = new MMap[Int,E]
   private val clauseNumbers = new MMap[Int,(List[E],List[Int])]
   val nodeMap = MMap[Sequent,Node]()
   val processedMap = MMap[List[Int],Node]();
@@ -143,6 +141,12 @@ extends JavaTokenParsers with RegexParsers {
       processedMap.getOrElseUpdate(tuple._2,resolveClauses(tuple._2))
     }
   }
+}
+  
+trait BasicTraceCheckParsers
+extends JavaTokenParsers with RegexParsers {
+ 
+  private val varMap = new MMap[Int,E]
   
   def pos: Parser[Int] = """[1-9][0-9]*""".r ^^ { _.toInt }
   
