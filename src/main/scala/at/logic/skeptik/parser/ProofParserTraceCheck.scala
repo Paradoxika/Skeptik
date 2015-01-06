@@ -43,8 +43,6 @@ extends JavaTokenParsers with RegexParsers {
   
   def clause: Parser[Int] = pos ~ literals ~ antecedents ^^ {
     case ~(~(p, l), a) => {
-        println("" + p + l.mkString(" ", " ", " 0") + a.mkString(" ", " ", " 0"))
-      
         if (l.isEmpty && a.isEmpty) throw new Exception("Invalid input at " + p + " ~ " + l)
         else {
           clauseNumbers += (p -> (l,a))
@@ -56,10 +54,6 @@ extends JavaTokenParsers with RegexParsers {
       }
     case wl => throw new Exception("Wrong line " + wl)
   }
-  
-  // ToDo: There is a bug somewhere in the method below. 
-  // It is transforming DAGs into trees.
-  
   
   /**
    * Resolves the clauses represented by a list of indices in the correct order.
