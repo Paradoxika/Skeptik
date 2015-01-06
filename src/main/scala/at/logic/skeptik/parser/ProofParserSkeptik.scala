@@ -19,12 +19,15 @@ extends JavaTokenParsers with RegexParsers {
   private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[Int,E]
 
-  def proof: Parser[Proof[Node]] = rep1(line) ^^ { list => 
-    val p = Proof(list.last)
+  def reset() = {
     proofMap = new MMap[String,Node]
     exprMap = new MMap[Int,E]
-    p
   }
+  
+  def proof: Parser[Proof[Node]] = rep1(line) ^^ { list => 
+    Proof(list.last)
+  }
+  
   def line: Parser[Node] = proofName ~ "=" ~ subproof ^^ {
     case ~(~(n, _), p) => proofMap += (n -> p); p
     case wl => throw new Exception("Wrong line " + wl)

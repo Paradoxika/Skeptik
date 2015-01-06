@@ -26,21 +26,23 @@ object ProofParserTraceCheckOrdered extends ProofCombinatorParser[Node] with Tra
 
 trait TraceCheckOrderedParsers
 extends BasicTraceCheckParsers {
+  def reset() = {
+    proofMap = new MMap[Int,Node]
+    varMap = new MMap[Int,E]
+  }
   
   private var proofMap = new MMap[Int,Node]
 
   def proof: Parser[Proof[Node]] = rep(clause) ^^ { list => 
-    val p = Proof(list.last)
-    proofMap = new MMap[Int,Node]
-    p
+    Proof(list.last)
   }
+  
   def clause: Parser[Node] = pos ~ literals ~ antecedents ^^ {
     case ~(~(p, l), List()) => {
         if (l.isEmpty) throw new Exception("Invalid input")
         else {
           val ax = new Axiom(l)
           proofMap += (p -> ax)
-//          println("read axiom " + ax)
           ax
         }
       }
@@ -48,7 +50,6 @@ extends BasicTraceCheckParsers {
       val n = a.tail.foldLeft(getNode(a.head)) ({ 
         (left, right) => {
             val r = getNode(right)
-//            println("trying to resolve " + left + " with " + r)
             R(left, r)
           }
         })

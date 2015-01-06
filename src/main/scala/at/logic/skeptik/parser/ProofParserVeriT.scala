@@ -20,13 +20,16 @@ extends JavaTokenParsers with RegexParsers {
   private val proofArray = new ArrayBuffer[Node]()
   private var exprMap = new MMap[Int,E]
   private var bindMap = new MMap[String,E]
-
-  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
-    val p = Proof(list.last)
-//    proofMap = new MMap[Int,Node]
+  
+  def reset() = {
     proofArray.clear
     exprMap = new MMap[Int,E]
-    p
+    bindMap = new MMap[String,E]
+  }
+  
+
+  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
+    Proof(list.last)
   }
   def line: Parser[Node] = "(set"  ~> proofName ~ "(" ~ inference <~ "))" ^^ {
     case ~(~(n, _), p) => {

@@ -29,12 +29,22 @@ object ProofParserTraceCheck extends ProofCombinatorParser[Node] with TraceCheck
 trait TraceCheckParsers
 extends BasicTraceCheckParsers {
   
-  private val proofMap = new MMap[Int,Node]
-  private val clauseNumbers = new MMap[Int,(List[E],List[Int])]
-  val nodeMap = MMap[Sequent,Node]()
-  val processedMap = MMap[List[Int],Node]();
+  private var proofMap = new MMap[Int,Node]
+  private var clauseNumbers = new MMap[Int,(List[E],List[Int])]
+  var nodeMap = MMap[Sequent,Node]()
+  var processedMap = MMap[List[Int],Node]();
   var maxClause = 0
 
+  def reset() = {
+    proofMap = new MMap[Int,Node]
+    varMap = new MMap[Int,E]
+    clauseNumbers = new MMap[Int,(List[E],List[Int])]
+    nodeMap = MMap[Sequent,Node]()
+    processedMap = MMap[List[Int],Node]();
+    maxClause = 0
+  }
+  
+  
   def proof: Parser[Proof[Node]] = rep(clause) ^^ { list => 
     Proof(getNode(list.last))
   }
@@ -146,7 +156,7 @@ extends BasicTraceCheckParsers {
 trait BasicTraceCheckParsers
 extends JavaTokenParsers with RegexParsers {
  
-  private val varMap = new MMap[Int,E]
+  var varMap = new MMap[Int,E]
   
   def pos: Parser[Int] = """[1-9][0-9]*""".r ^^ { _.toInt }
   
