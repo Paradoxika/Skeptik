@@ -32,6 +32,6 @@ object ProofParserDRUP extends ProofParser[N] {
     "rm " + name + ".temp.tc" ! ;
     
     // println("reading tracecheck")
-    ProofParserTraceCheck.read(name + ".tc")
+    ProofParserTraceCheckOrdered.read(name + ".tc")
   }
 }
