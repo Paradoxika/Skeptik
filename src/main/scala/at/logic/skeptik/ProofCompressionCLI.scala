@@ -1,8 +1,6 @@
 package at.logic.skeptik
 
-
-import at.logic.skeptik.parser.AlgorithmParser
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,ProofParserTraceCheck,ProofParserDRUP}
+import at.logic.skeptik.parser._
 import at.logic.skeptik.exporter.Exporter
 import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
 import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
@@ -29,7 +27,7 @@ object ProofCompressionCLI {
   
   private def unknownFormat(filename: String) = 
     "Unknown proof format for " + filename + 
-    ". Supported formats are '.smt2', '.s', '.sd', '.tc' and '.drup'"                 
+    ". Supported formats are '.smt2', '.s', '.sd', '.tc', '.tco' and '.drup'"                 
   
   private def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
@@ -64,9 +62,9 @@ object ProofCompressionCLI {
     opt[String]('f', "format") action { (v, c) => 
       c.copy(format = v) 
     } validate { v =>
-      if (Seq("smt2", "smtbc", "smtb", "tc", "s", "sd", "drup") contains v) success 
+      if (Seq("smt2", "smtbc", "smtb", "tc", "tco", "s", "sd", "drup") contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> (either 'smt2', 'smtbc', 'tc', 'drup', 's' or 'sd') to output compressed proofs\n") valueName("<format>")
+    } text("use <format> (either 'smt2', 'smtbc', 'tc', 'tco', 'drup', 's' or 'sd') to output compressed proofs\n") valueName("<format>")
  
 
     opt[String]('m', "mout") action { (v, c) =>
@@ -126,6 +124,7 @@ object ProofCompressionCLI {
           case ".skeptik"  => ProofParserSkeptik
           case ".s" => ProofParserSkeptik
           case ".tc" => ProofParserTraceCheck
+          case ".tco" => ProofParserTraceCheckOrdered
           case ".drup" => ProofParserDRUP
           case _ => throw new Exception(unknownFormat(filename))
         }
