@@ -101,17 +101,13 @@ object FOLowerUnits
       val out = for (l <- seq.suc) yield {
         //        println("l: " + l)
         if (isUnifiable((l, unit.ant.head))(vars)) {
-          //          println("good")
           l
         } else if (isUnifiable((unit.ant.head, l))(vars)) {
-          //          println("better")
           l
         } else {
           null.asInstanceOf[E]
         }
       }
-      //      println("out: " + out)
-      //      println("out filtered: " + out.filter(_ != null))
       out.filter(_ != null)
     } else if (unit.suc.length > 0) {
       //negative polarity, only need to check positive polarity of seq

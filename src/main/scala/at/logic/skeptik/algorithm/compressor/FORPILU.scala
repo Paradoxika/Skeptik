@@ -86,7 +86,7 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   // Main functions
-  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
+  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var], auxMap: MMap[SequentProofNode, E])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
     p match {
@@ -94,7 +94,7 @@ abstract class FOAbstractRPILUAlgorithm
 
       case Contraction(_, _) if isMRRContraction(p.asInstanceOf[Contraction]) => {
         val mrr = p.premises.head
-        fixProofNodes(edgesToDelete, unifiableVariables)(mrr, fixedPremises)
+        fixProofNodes(edgesToDelete, unifiableVariables, auxMap)(mrr, fixedPremises)
       }
 
       // If we've got a proof of false, we propagate it down the proof
@@ -131,11 +131,18 @@ abstract class FOAbstractRPILUAlgorithm
       }
 
       // Main case (rebuild a resolution)
-      case UnifyingResolution(left, right, pivot, _) => {
+      case UnifyingResolution(left, right, auxL, auxR) => {
+        println("Error found")
+        println("auxL: " + auxL)
+        println("auxR: " + auxR)
+        println("l: " + left)
+        println("r: " + right)
         try {
+          println("error - first")
           UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
         } catch {
           case e: Exception => {
+            println("error - second")
             UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
           }
         }
@@ -198,15 +205,21 @@ trait FOCollectEdgesUsingSafeLiterals
 
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new FOEdgesToDelete()
-
+    var auxMap = new MMap[SequentProofNode, E]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
+          println("p: " + p + " and right: " + right + " edge marked")
+          println("other edge: " +  left)
+          auxMap.put(p, auxL)
           edgesToDelete.markRightEdge(p)
 
         }
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
+          println("p: " + p + " and right: " + left + " edge marked")
+          println("other edge: " +  right)
+          auxMap.put(p, auxR)
           edgesToDelete.markLeftEdge(p)
         }
         case _ =>
@@ -214,7 +227,7 @@ trait FOCollectEdgesUsingSafeLiterals
       (p, safeLiterals)
     }
     nodeCollection.bottomUp(visit)
-    edgesToDelete
+    (edgesToDelete, auxMap)
   }
 }
 
