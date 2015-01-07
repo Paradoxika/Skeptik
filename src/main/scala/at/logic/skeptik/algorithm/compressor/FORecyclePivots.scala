@@ -12,10 +12,11 @@ abstract class FORecyclePivots
     val firstPassResults = collectEdgesToDelete(proof)
     val edgesToDelete = firstPassResults._1
     val auxMap = firstPassResults._2
+    val mguMap = firstPassResults._3
     if (edgesToDelete.isEmpty) {
       proof
     } else {
-      Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, auxMap)))
+      Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, auxMap, mguMap)))
     }
 
   }

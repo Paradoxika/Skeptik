@@ -14,6 +14,7 @@ import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
+import at.logic.skeptik.expression.substitution.immutable.Substitution
 
 abstract class FOAbstractRPILUAlgorithm
   extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
@@ -86,15 +87,16 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   // Main functions
-  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var], auxMap: MMap[SequentProofNode, E])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
+  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var], auxMap: MMap[SequentProofNode, E], mguMap: MMap[SequentProofNode, Substitution])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
+//    println("auxMap: " + auxMap)
     p match {
       case Axiom(conclusion) => p
 
       case Contraction(_, _) if isMRRContraction(p.asInstanceOf[Contraction]) => {
         val mrr = p.premises.head
-        fixProofNodes(edgesToDelete, unifiableVariables, auxMap)(mrr, fixedPremises)
+        fixProofNodes(edgesToDelete, unifiableVariables, auxMap, mguMap)(mrr, fixedPremises)
       }
 
       // If we've got a proof of false, we propagate it down the proof
@@ -137,6 +139,16 @@ abstract class FOAbstractRPILUAlgorithm
         println("auxR: " + auxR)
         println("l: " + left)
         println("r: " + right)
+        //TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
+        
+        if(!auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty){
+          println("ncL: " + mguMap.get(left).get(auxMap.get(left).get))
+        }
+        
+        if(!auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty){
+          println("ncR: " + mguMap.get(right).get(auxMap.get(right).get))
+        }        
+        
         try {
           println("error - first")
           UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
@@ -206,6 +218,7 @@ trait FOCollectEdgesUsingSafeLiterals
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new FOEdgesToDelete()
     var auxMap = new MMap[SequentProofNode, E]()
+    var mguMap = new MMap[SequentProofNode, Substitution]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
@@ -213,6 +226,7 @@ trait FOCollectEdgesUsingSafeLiterals
           println("p: " + p + " and right: " + right + " edge marked")
           println("other edge: " +  left)
           auxMap.put(p, auxL)
+          mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markRightEdge(p)
 
         }
@@ -220,6 +234,7 @@ trait FOCollectEdgesUsingSafeLiterals
           println("p: " + p + " and right: " + left + " edge marked")
           println("other edge: " +  right)
           auxMap.put(p, auxR)
+          mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markLeftEdge(p)
         }
         case _ =>
@@ -227,7 +242,7 @@ trait FOCollectEdgesUsingSafeLiterals
       (p, safeLiterals)
     }
     nodeCollection.bottomUp(visit)
-    (edgesToDelete, auxMap)
+    (edgesToDelete, auxMap, mguMap)
   }
 }
 
