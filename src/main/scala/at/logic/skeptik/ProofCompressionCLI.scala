@@ -24,10 +24,21 @@ object ProofCompressionCLI {
                     mout: Output = NoOutput, // machine-readable output
                     moutHeader: Boolean = true)                
 
-  
+  val proofParsers = Map(
+    ".smt2"  -> ProofParserVeriT,
+    ".smtb"  -> ProofParserVeriT,
+    ".smtbc"  -> ProofParserVeriT,
+    ".skeptik"  -> ProofParserSkeptik,
+    ".s" -> ProofParserSkeptik,
+    ".tc" -> ProofParserTraceCheck,
+    ".tco" -> ProofParserTraceCheckOrdered,
+    ".tct" -> ProofParserTraceCheckTrim,
+    ".drup" -> ProofParserDRUP
+  ) 
+                    
   private def unknownFormat(filename: String) = 
     "Unknown proof format for " + filename + 
-    ". Supported formats are '.smt2', '.s', '.sd', '.tc', '.tco' and '.drup'"                 
+    ". Supported input formats are: " + proofParsers.keys.mkString(", ")                 
   
   private def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
@@ -119,15 +130,7 @@ object ProofCompressionCLI {
         
         val proofFormat = ("""\.[^\.]+$""".r findFirstIn filename) getOrElse { throw new Exception(unknownFormat(filename)) }
         val proofName = filename.split(proofFormat)(0) // filename without extension
-        val proofParser = proofFormat match {
-          case ".smt2"  => ProofParserVeriT
-          case ".skeptik"  => ProofParserSkeptik
-          case ".s" => ProofParserSkeptik
-          case ".tc" => ProofParserTraceCheck
-          case ".tco" => ProofParserTraceCheckOrdered
-          case ".drup" => ProofParserDRUP
-          case _ => throw new Exception(unknownFormat(filename))
-        }
+        val proofParser = proofParsers.getOrElse(proofFormat, {throw new Exception(unknownFormat(filename))})
         
         // Reading the proof
         c.hout.write("Reading and checking proof '"+ filename +"' ...")
