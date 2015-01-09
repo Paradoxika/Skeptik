@@ -10,7 +10,7 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
 
 /**
- * The syntax of a trace is as follows:
+ * The grammar for traces is:
  *    
  * <trace>       = { <clause> }
  * <clause>      = <pos> <literals> <antecedents>
@@ -20,6 +20,14 @@ import at.logic.skeptik.expression.formula._
  * <pos>         =  "1" |  "2" | .... | <max-idx>
  * <neg>         = "-"<pos>
  * 
+ * Additionally, an ordered trace satisfies the additional conditions that:
+ * 
+ * 1) antecedents must be resolved from left to right; 
+ * 
+ * 2) for a clause N with antecedents A_1, A_2,... A_m, 
+ *    it must be the case that A_i < N and A_i occurs above N in the file.
+ *    
+ * Thanks to the ordering, more efficient parsing is possible.   
  */
 
 object ProofParserTraceCheckOrdered extends ProofCombinatorParser[Node] with TraceCheckOrderedParsers

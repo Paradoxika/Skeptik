@@ -9,6 +9,42 @@ import java.io.{File, FileReader, FileWriter, BufferedReader}
 import language.postfixOps 
 import sys.process._
 
+
+/**
+ * The grammar for traces is:
+ *    
+ * <trace>       = { <clause> }
+ * <clause>      = <pos> <literals> <antecedents>
+ * <literals>    = "*" | { <lit> } "0"
+ * <antecedents> = { <pos> } "0"
+ * <lit>         = <pos> | <neg>
+ * <pos>         =  "1" |  "2" | .... | <max-idx>
+ * <neg>         = "-"<pos>
+ * 
+ * ProofParserTraceCheckTrim is an alternative to ProofParserTraceCheck.
+ * 
+ * It converts the trace to a DRUP proof and
+ * then parses it using ProofParserDRUP.
+ * 
+ * For large unordered traces, this parser might be faster, 
+ * because the reconstruction of unordered resolution chains by 
+ * ProofParserTraceCheck might not be as efficient as the parsing
+ * of ordered resolution chains by ProofParserTraceCheckOrdered within 
+ * ProofParserTraceCheck.
+ * 
+ * For small traces, however, the overhead of external 
+ * process calls, conversions and file IO might not be worth.
+ * 
+ * Issues:
+ * 
+ * 1) ProofParserTraceCheckTrim currently does not support traces containing "*".
+ * 
+ * 2) The conversions rely on external command line tools 
+ *    (e.g. sort, sed, cut, grep) that are not available in all operating systems.
+ *   
+ */
+
+
 object ProofParserTraceCheckTrim extends ProofParser[N] {
   def read(filename: String) : Proof[N] = {
     val filenameSplit = filename.split('.')
@@ -52,8 +88,8 @@ object ProofParserTraceCheckTrim extends ProofParser[N] {
     val p = ProofParserDRUP.read(name + ".temporary.drup")
     
     println("deleting temporary files")
-    "rm " + name + ".temporary.drup" ! ;
-    "rm " + name + ".temporary.cnf" ! ;
+    //"rm " + name + ".temporary.drup" ! ;
+    //"rm " + name + ".temporary.cnf" ! ;
     "rm " + name + ".aux.cnf" ! ;
     
     p

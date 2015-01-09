@@ -12,7 +12,7 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
 
 /**
- * The syntax of a trace is as follows:
+ * The grammar for traces is:
  *    
  * <trace>       = { <clause> }
  * <clause>      = <pos> <literals> <antecedents>
@@ -21,6 +21,7 @@ import at.logic.skeptik.expression.formula._
  * <lit>         = <pos> | <neg>
  * <pos>         =  "1" |  "2" | .... | <max-idx>
  * <neg>         = "-"<pos>
+ * 
  * 
  */
 

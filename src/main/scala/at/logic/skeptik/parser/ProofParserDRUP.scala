@@ -10,6 +10,27 @@ import java.io.File
 import language.postfixOps 
 import sys.process._
 
+
+/**
+ * A DRUP proof is simply a list of clauses that have been learned 
+ * by a SAT-solver during proof search, in chronological order. 
+ * 
+ * This parser makes an external call to Marijn Heule's DRAT-Trim tool
+ * to convert the DRUP proof to an ordered trace, and then parses the 
+ * ordered trace using ProofParserTraceCheckOrdered.
+ * 
+ * 
+ * Issues:
+ * 
+ * 1) Currently, a pre-compiled DRAT-Trim executable is used. 
+ *    As it was compiled for Mac OSX Yosemite, it is unlikely to
+ *    work in other operating systems. In other operating systems,
+ *    DRAT-Trim's source, available in the "\lib\drat-trim" folder
+ *    must be manually compiled.
+ *   
+ */
+
+
 object ProofParserDRUP extends ProofParser[N] {
   def read(filename: String) : Proof[N] = {
     val filenameSplit = filename.split('.')
@@ -28,8 +49,8 @@ object ProofParserDRUP extends ProofParser[N] {
     Process("sort " + name + ".temp.tc -n") #>> new File(name + ".tco") !
     
     println("deleting temporary files")
-    "rm " + name + ".lemmas.drup" ! ;
-    "rm " + name + ".temp.tc" ! ;
+    //"rm " + name + ".lemmas.drup" ! ;
+    //"rm " + name + ".temp.tc" ! ;
     
     println("reading tracecheck file")
     println(name)
