@@ -4,7 +4,6 @@ package lk
 
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.expression._
-import at.logic.skeptik.expression.formula._
 
 // ToDo: This class should eventually use SetSequent instead of SeqSequent.
 class R(val leftPremise:SequentProofNode, val rightPremise:SequentProofNode, val auxL:E, val auxR:E) 
@@ -24,9 +23,20 @@ extends AbstractCut {
                 (rightPremise.conclusion.suc ++ (leftPremise.conclusion.suc.filterNot(_ eq auxL))).distinct)
 }
 
+object R extends RCompanion[R] {
+  protected def create(leftPremise:SequentProofNode, rightPremise:SequentProofNode, auxL:E, auxR:E) = 
+    new R(leftPremise:SequentProofNode, rightPremise:SequentProofNode, auxL:E, auxR:E)
+  
+  def unapply(p: SequentProofNode) = p match {
+    case p: R => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
+    case _ => None
+  }
+}
 
-object R {
-  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL:E, auxR:E) = new R(leftPremise,rightPremise,auxL,auxR)
+abstract class RCompanion[+T <: R] {
+  protected def create(leftPremise:SequentProofNode, rightPremise:SequentProofNode, auxL:E, auxR:E): T
+  
+  def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, auxL:E, auxR:E) = create(leftPremise,rightPremise,auxL,auxR)
   
   def apply(leftPremise: SequentProofNode, 
             rightPremise: SequentProofNode, 
@@ -34,7 +44,7 @@ object R {
             returnPremiseOnfailure: Boolean = false,
             choosePremise: ((SequentProofNode, SequentProofNode) => SequentProofNode) = (l,r) => if (l.conclusion.width < r.conclusion.width) l else r ) = 
     (leftPremise.conclusion.suc.find(_ == pivot), rightPremise.conclusion.ant.find(_ == pivot)) match {
-      case (Some(auxL), Some(auxR)) => new R(leftPremise, rightPremise, auxL, auxR)
+      case (Some(auxL), Some(auxR)) => create(leftPremise, rightPremise, auxL, auxR)
       case (None, Some(auxR)) if returnPremiseOnfailure => leftPremise
       case (Some(auxL), None) if returnPremiseOnfailure => rightPremise
       case (None, None) if returnPremiseOnfailure => choosePremise(leftPremise, rightPremise)
@@ -48,10 +58,10 @@ object R {
     }
     findPivots(premise1,premise2) match {
       case Some((auxL,auxR)) => {
-        new R(premise1,premise2,auxL,auxR)
+        create(premise1,premise2,auxL,auxR)
       }
       case None => findPivots(premise2,premise1) match {
-        case Some((auxL,auxR)) => new R(premise2,premise1,auxL,auxR)
+        case Some((auxL,auxR)) => create(premise2,premise1,auxL,auxR)
         case None => {
           throw new Exception("Resolution: the conclusions of the given premises are not resolvable.")
         }
@@ -59,10 +69,4 @@ object R {
     }
   }
 
-  def unapply(p: SequentProofNode) = p match {
-    case p: R => Some((p.leftPremise,p.rightPremise,p.auxL,p.auxR))
-    case _ => None
-  }
 }
-
-  
