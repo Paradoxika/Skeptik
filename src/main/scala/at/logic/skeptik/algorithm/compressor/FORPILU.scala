@@ -222,9 +222,12 @@ abstract class FOAbstractRPILUAlgorithm
     val rightRemainder = findRemainder(fRightClean, auxR, oldMGU, rightEq)
     println("rightRemainder: " + rightRemainder)
 
-    val newTarget = rightRemainder.union(leftRemainder)
+    val tempLeft = Axiom(leftRemainder)
+    val tempRight = Axiom(rightRemainder)
+    val cleanLeftRemainder = fixSharedNoFilter(tempLeft, tempRight, 0, unifiableVariables).conclusion
+    
+    val newTarget = rightRemainder.union(cleanLeftRemainder)
     println("newTarget: " + newTarget)
-    val testL = new FOSubstitution(fLeft, oldMGU)
     
     val finalLeft = if(leftEq) {
       new FOSubstitution(fLeft, oldMGU)
@@ -238,6 +241,7 @@ abstract class FOAbstractRPILUAlgorithm
       fRight
     }    
     
+    //TODO: try-catch, reverse arguments
     val out = UnifyingResolution(finalLeft, finalRight, newTarget)
     println("okay...")
     println(out)
