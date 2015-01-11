@@ -10,6 +10,7 @@ import collection.mutable.{ HashMap => MMap, HashSet => MSet }
 import collection.Map
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
+import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
@@ -110,9 +111,16 @@ abstract class FOAbstractRPILUAlgorithm
 
       // Delete nodes and edges
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
-        fixedRight
+        println("using fixedRight - " + fixedRight)
+        val sub = p.asInstanceOf[UnifyingResolution].mgu
+        println(" which would have been used after this sub: " + sub)
+        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)
+        println("to be this: " + newNode)
+        //fixedRight
+        newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
+        println("using fixedLeft - " + fixedLeft)
         fixedLeft
       }
 
@@ -139,10 +147,15 @@ abstract class FOAbstractRPILUAlgorithm
         println("auxR: " + auxR)
         println("l: " + left)
         println("r: " + right)
+        println("fl: " + fixedLeft)
+        println("fr: " + fixedRight)
         //TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
         
         if(!auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty){
-          println("ncL: " + mguMap.get(left).get(auxMap.get(left).get))
+          println("old mgu      : " + mguMap.get(left).get)
+          println("new mgu      : " + p.asInstanceOf[UnifyingResolution].mgu)
+          println("ncL          : " + auxMap.get(left).get)
+          println("ncL (applied): " + mguMap.get(left).get(auxMap.get(left).get))
         }
         
         if(!auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty){
@@ -224,7 +237,7 @@ trait FOCollectEdgesUsingSafeLiterals
       p match {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
           println("p: " + p + " and right: " + right + " edge marked")
-          println("other edge: " +  left)
+          println("other edge: " +  left + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
           auxMap.put(p, auxL)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markRightEdge(p)
@@ -232,7 +245,7 @@ trait FOCollectEdgesUsingSafeLiterals
         }
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
           println("p: " + p + " and right: " + left + " edge marked")
-          println("other edge: " +  right)
+          println("other edge: " +  right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markLeftEdge(p)
