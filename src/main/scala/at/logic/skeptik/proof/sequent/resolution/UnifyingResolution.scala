@@ -611,11 +611,17 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
+      println("must be here?")
+      println("left: " + leftPremise)
+      println("right: " + rightPremise)      
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
 
       val (auxL, auxR) = pairs(0)
 
+      println("trying ")
+      println(auxL)
+      println(auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
@@ -644,6 +650,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
 
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
 
+      println("computed: " + computedSequentClean) 
+      println("desired: " + desired)
+      
       if (desiredFound(desired, computedSequentClean)) {
         computedResolution
       } else {
@@ -656,7 +665,10 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
-      throw new Exception("Resolution: Cannot find desired resolvent")
+//      println("must be here?")
+//      println("left: " + leftPremise)
+//      println("right: " + rightPremise)
+      throw new Exception("Resolution: Cannot find desired resolvent (B)")
     } else {
 
       val (auxL, auxR) = pairs(0)
@@ -703,9 +715,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       }
 
       val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
-//      println("computed: " + computedSequentClean)      
+      println("computed: " + computedSequentClean)      
 //      println("computed relaxed: " + computedSequentRelaxed)
-//      println("desired: " + desired)
+      println("desired: " + desired)
 //      println("moreGeneral? " + isMoreGeneral(desired, computedSequentRelaxed))
 //      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(desired, computedSequentRelaxed)) {
       if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(computedSequentClean, desired)) {

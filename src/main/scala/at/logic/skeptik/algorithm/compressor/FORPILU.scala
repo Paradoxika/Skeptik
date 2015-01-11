@@ -16,6 +16,8 @@ import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 import at.logic.skeptik.expression.substitution.immutable.Substitution
+import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
+import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 
 abstract class FOAbstractRPILUAlgorithm
   extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
@@ -91,7 +93,9 @@ abstract class FOAbstractRPILUAlgorithm
   protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var], auxMap: MMap[SequentProofNode, E], mguMap: MMap[SequentProofNode, Substitution])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
-//    println("auxMap: " + auxMap)
+
+    var resMap = new MMap[SequentProofNode, MSet[Substitution]]()
+    //    println("auxMap: " + auxMap)
     p match {
       case Axiom(conclusion) => p
 
@@ -111,13 +115,25 @@ abstract class FOAbstractRPILUAlgorithm
 
       // Delete nodes and edges
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
-        println("using fixedRight - " + fixedRight)
+        //        println("using fixedRight - " + fixedRight)
         val sub = p.asInstanceOf[UnifyingResolution].mgu
-        println(" which would have been used after this sub: " + sub)
-        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)
-        println("to be this: " + newNode)
-        //fixedRight
-        newNode
+        val al = p.asInstanceOf[UnifyingResolution].auxL
+        val ar = p.asInstanceOf[UnifyingResolution].auxR
+        println("al: " + al)
+        println("ar: " + ar)
+        //        println(" which would have been used after this sub: " + sub)
+        //        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)
+        //        println("to be this: " + newNode)
+        val set = resMap.get(p)
+        if (set.isEmpty) {
+          val newSet = MSet[Substitution](sub)
+          resMap.put(p, newSet)
+        } else {
+          set.get.add(sub)
+        }
+
+        fixedRight
+        //newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
         println("using fixedLeft - " + fixedLeft)
@@ -150,24 +166,27 @@ abstract class FOAbstractRPILUAlgorithm
         println("fl: " + fixedLeft)
         println("fr: " + fixedRight)
         //TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
-        
-        if(!auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty){
-          println("old mgu      : " + mguMap.get(left).get)
+
+        if (!auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty) {
+          val oldMGU = mguMap.get(left).get
+          println("old mgu      : " + oldMGU)
           println("new mgu      : " + p.asInstanceOf[UnifyingResolution].mgu)
           println("ncL          : " + auxMap.get(left).get)
           println("ncL (applied): " + mguMap.get(left).get(auxMap.get(left).get))
+          fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+
         }
-        
-        if(!auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty){
+
+        if (!auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty) {
           println("ncR: " + mguMap.get(right).get(auxMap.get(right).get))
-        }        
-        
+        }
+
         try {
           println("error - first")
           UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
         } catch {
           case e: Exception => {
-            println("error - second")
+            println("error - second " + e.getMessage())
             UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
           }
         }
@@ -180,6 +199,53 @@ abstract class FOAbstractRPILUAlgorithm
       }
     }
   }
+
+  def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
+//    val fLeftClean = if (!fLeft.equals(left)) {
+//      new FOSubstitution(fLeft, oldMGU).conclusion
+//    } else {
+//      fLeft.conclusion
+//    }
+    val leftRemainder = findRemainder(fLeft.conclusion, auxL, oldMGU, !fLeft.equals(left))
+    println("leftRemainder: " + leftRemainder)
+    
+//    val fRightClean = if (!fRight.equals(right)) {
+//      new FOSubstitution(fRight, oldMGU).conclusion
+//    } else {
+//      fRight.conclusion
+//    }
+    val rightRemainder = findRemainder(fRight.conclusion, auxR, oldMGU, !fRight.equals(right))
+    println("rightRemainder: " + rightRemainder)
+    
+    val newTarget = rightRemainder.union(leftRemainder)
+    println("newTarget: " + newTarget)
+    val out = UnifyingResolution(fLeft, fRight, newTarget)
+    println("okay...")
+    println(out)
+    
+  }
+
+  def findRemainder(seq: Sequent, target: E, mgu: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): Sequent = {
+    //TODO: what if the target is in both ant and suc?? Should only be removed once. 
+    //Need to track where it is, and only remove it from that.
+    val out = addAntecedents(checkHalf(seq.ant, target, mgu, applySub).toList) union addSuccedents(checkHalf(seq.suc, target, mgu, applySub).toList)
+//    (new FOSubstitution(Axiom(out), mgu)).conclusion
+    out
+  }
+
+  def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): Seq[E] = {
+    if (half.size == 0) {
+      Seq[E]()
+    } else {
+      val found = if(applySub) { sub(half.head) =+= target } else { half.head =+= target }
+      if (found) {
+        half.tail
+      } else {
+        Seq[E](half.head) ++ checkHalf(half.tail, target, sub, applySub)
+      }
+    }
+  }
+
 }
 
 abstract class FOAbstractRPIAlgorithm
@@ -236,8 +302,9 @@ trait FOCollectEdgesUsingSafeLiterals
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       p match {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
-          println("p: " + p + " and right: " + right + " edge marked")
-          println("other edge: " +  left + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
+          //          println("p: " + p + " and right: " + right + " edge marked")
+          //          println("other edge: " +  left + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
+          println("p, auxL: " + p + "   " + auxL)
           auxMap.put(p, auxL)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markRightEdge(p)
@@ -245,7 +312,9 @@ trait FOCollectEdgesUsingSafeLiterals
         }
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
           println("p: " + p + " and right: " + left + " edge marked")
-          println("other edge: " +  right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
+          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
+          println("p, auxR: " + p + "   " + auxR)
+
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markLeftEdge(p)
