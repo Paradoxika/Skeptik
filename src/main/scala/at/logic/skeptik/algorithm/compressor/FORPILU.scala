@@ -166,6 +166,7 @@ abstract class FOAbstractRPILUAlgorithm
         println("fl: " + fixedLeft)
         println("fr: " + fixedRight)
         //TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
+        //   --- necessary now? 
 
         if (!auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty) {
           val oldMGU = mguMap.get(left).get
@@ -173,6 +174,8 @@ abstract class FOAbstractRPILUAlgorithm
           println("new mgu      : " + p.asInstanceOf[UnifyingResolution].mgu)
           println("ncL          : " + auxMap.get(left).get)
           println("ncL (applied): " + mguMap.get(left).get(auxMap.get(left).get))
+
+          //TODO: generalize this call/move it
           fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 
         }
@@ -202,6 +205,8 @@ abstract class FOAbstractRPILUAlgorithm
 
   def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
     val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
+    println("--> " + newMGU)
+    //TODO: use this new MGU to find the actual, final, desired sequent
 
     val leftEq = !fLeft.equals(left)
     val rightEq = !fRight.equals(right)
@@ -220,32 +225,42 @@ abstract class FOAbstractRPILUAlgorithm
       fRight.conclusion
     }
     val rightRemainder = findRemainder(fRightClean, auxR, oldMGU, rightEq)
+
+    //TODO: this for the left? 
+    //TODO: do this conditionally only?
+    val rightRemainderWithNewMGU = (new FOSubstitution(Axiom(rightRemainder), newMGU)).conclusion
     println("rightRemainder: " + rightRemainder)
+    println("rrwithnewmgu :  " + rightRemainderWithNewMGU)
 
     val tempLeft = Axiom(leftRemainder)
-    val tempRight = Axiom(rightRemainder)
+    val tempRight = Axiom(rightRemainderWithNewMGU)
     val cleanLeftRemainder = fixSharedNoFilter(tempLeft, tempRight, 0, unifiableVariables).conclusion
-    
-    val newTarget = rightRemainder.union(cleanLeftRemainder)
+
+    val newTarget = rightRemainderWithNewMGU.union(cleanLeftRemainder)
     println("newTarget: " + newTarget)
-    
-    val finalLeft = if(leftEq) {
+
+    val finalLeft = if (leftEq) {
       new FOSubstitution(fLeft, oldMGU)
     } else {
       fLeft
     }
-    
-    val finalRight = if(rightEq) {
+
+    val finalRight = if (rightEq) {
       new FOSubstitution(fRight, oldMGU)
     } else {
       fRight
-    }    
-    
-    //TODO: try-catch, reverse arguments
-    val out = UnifyingResolution(finalLeft, finalRight, newTarget)
-    println("okay...")
-    println(out)
+    }
 
+    val out = try {
+      UnifyingResolution(finalLeft, finalRight, newTarget)
+    } catch {
+      case e: Exception => {
+        UnifyingResolution(finalRight, finalLeft, newTarget)
+      }
+    }
+    println("okay... " + out)
+
+    out
   }
 
   def findRemainder(seq: Sequent, target: E, mgu: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): Sequent = {
