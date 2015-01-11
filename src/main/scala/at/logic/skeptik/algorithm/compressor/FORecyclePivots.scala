@@ -10,6 +10,7 @@ abstract class FORecyclePivots
   def apply(proof: Proof[SequentProofNode]) = {
     val unifiableVars = getAllVars(proof);
     val firstPassResults = collectEdgesToDelete(proof)
+    //TODO: are all these maps necessary? Check.
     val edgesToDelete = firstPassResults._1
     val auxMap = firstPassResults._2
     val mguMap = firstPassResults._3

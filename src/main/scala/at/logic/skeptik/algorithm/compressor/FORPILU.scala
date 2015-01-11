@@ -158,7 +158,7 @@ abstract class FOAbstractRPILUAlgorithm
 
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, auxL, auxR) => {
-        println("Error found")
+//        println("Error found")
         println("auxL: " + auxL)
         println("auxR: " + auxR)
         println("l: " + left)
@@ -168,29 +168,63 @@ abstract class FOAbstractRPILUAlgorithm
         //TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
         //   --- necessary now? 
 
-        if (!auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty) {
-          val oldMGU = mguMap.get(left).get
-          println("old mgu      : " + oldMGU)
-          println("new mgu      : " + p.asInstanceOf[UnifyingResolution].mgu)
-          println("ncL          : " + auxMap.get(left).get)
-          println("ncL (applied): " + mguMap.get(left).get(auxMap.get(left).get))
+        val nonEmptyLeftMap = !auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty
+        val nonEmptyRightMap = !auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty
 
-          //TODO: generalize this call/move it
-          fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-
+        if(nonEmptyRightMap) {
+          println("right is non empty!") //TODO: at some point, I'll need to finish this case.
         }
+        
+        //        if (nonEmptyLeftMap) {
+        //          //TODO: what if there are multiple 'oldMGU's? e.g. from left and right
+        //          val oldMGU = mguMap.get(left).get
+        //          println("old mgu      : " + oldMGU)
+        //          println("new mgu      : " + p.asInstanceOf[UnifyingResolution].mgu)
+        //          println("ncL          : " + auxMap.get(left).get)
+        //          println("ncL (applied): " + mguMap.get(left).get(auxMap.get(left).get))
+        //
+        //          //TODO: generalize this call/move it
+        //          fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+        //
+        //        }
+        //
+        //        if (nonEmptyRightMap) {
+        //          println("ncR: " + mguMap.get(right).get(auxMap.get(right).get))
+        //        }
 
-        if (!auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty) {
-          println("ncR: " + mguMap.get(right).get(auxMap.get(right).get))
-        }
+        val ambiguousErrorString = "Resolution (MRR): the resolvent is ambiguous."
 
+        //TODO: clean this up?
         try {
-          println("error - first")
+//          println("error - first")
           UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
         } catch {
           case e: Exception => {
             println("error - second " + e.getMessage())
-            UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+            if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
+              if (nonEmptyLeftMap && !nonEmptyRightMap) {
+                val oldMGU = mguMap.get(left).get
+                fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+              } else {
+                //TODO: change this branch
+                println("STUB HIT -- probably not correct!")
+                UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables) //stub
+              }
+            } else {
+
+              try {
+                UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+              } catch {
+                case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
+                    val oldMGU = mguMap.get(left).get
+                    fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+                }
+                case e: Exception => {
+                  println("ERROR")
+                  throw new Exception("BAD!")
+                }
+              }
+            }
           }
         }
 
@@ -198,6 +232,7 @@ abstract class FOAbstractRPILUAlgorithm
 
       // When the inference is not UR, nothing is done 
       case _ => {
+        println("ignoring: " + p) //TODO: remove
         p
       }
     }
@@ -205,8 +240,6 @@ abstract class FOAbstractRPILUAlgorithm
 
   def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
     val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
-    println("--> " + newMGU)
-    //TODO: use this new MGU to find the actual, final, desired sequent
 
     val leftEq = !fLeft.equals(left)
     val rightEq = !fRight.equals(right)
@@ -338,6 +371,7 @@ trait FOCollectEdgesUsingSafeLiterals
     var mguMap = new MMap[SequentProofNode, Substitution]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
+      println("SAFE LITERALS for " + p + " => " + safeLiterals)
       p match {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
           //          println("p: " + p + " and right: " + right + " edge marked")
