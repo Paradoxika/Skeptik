@@ -626,7 +626,6 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
-
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
 
@@ -652,6 +651,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
 
       println("computed: " + computedSequentClean) 
       println("desired: " + desired)
+      if(computedResolution.isInstanceOf[UnifyingResolution]) {
+        println("mgu: " + computedResolution.asInstanceOf[UnifyingResolution].mgu)
+      }
       
       if (desiredFound(desired, computedSequentClean)) {
         computedResolution

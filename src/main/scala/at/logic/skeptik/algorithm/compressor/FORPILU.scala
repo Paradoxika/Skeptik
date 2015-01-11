@@ -201,35 +201,54 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
-//    val fLeftClean = if (!fLeft.equals(left)) {
-//      new FOSubstitution(fLeft, oldMGU).conclusion
-//    } else {
-//      fLeft.conclusion
-//    }
-    val leftRemainder = findRemainder(fLeft.conclusion, auxL, oldMGU, !fLeft.equals(left))
+    val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
+
+    val leftEq = !fLeft.equals(left)
+    val rightEq = !fRight.equals(right)
+
+    val fLeftClean = if (!fLeft.equals(left)) {
+      new FOSubstitution(fLeft, oldMGU).conclusion
+    } else {
+      fLeft.conclusion
+    }
+    val leftRemainder = findRemainder(fLeftClean, auxL, oldMGU, leftEq)
     println("leftRemainder: " + leftRemainder)
-    
-//    val fRightClean = if (!fRight.equals(right)) {
-//      new FOSubstitution(fRight, oldMGU).conclusion
-//    } else {
-//      fRight.conclusion
-//    }
-    val rightRemainder = findRemainder(fRight.conclusion, auxR, oldMGU, !fRight.equals(right))
+
+    val fRightClean = if (!fRight.equals(right)) {
+      new FOSubstitution(fRight, oldMGU).conclusion
+    } else {
+      fRight.conclusion
+    }
+    val rightRemainder = findRemainder(fRightClean, auxR, oldMGU, rightEq)
     println("rightRemainder: " + rightRemainder)
-    
+
     val newTarget = rightRemainder.union(leftRemainder)
     println("newTarget: " + newTarget)
-    val out = UnifyingResolution(fLeft, fRight, newTarget)
+    val testL = new FOSubstitution(fLeft, oldMGU)
+    
+    val finalLeft = if(leftEq) {
+      new FOSubstitution(fLeft, oldMGU)
+    } else {
+      fLeft
+    }
+    
+    val finalRight = if(rightEq) {
+      new FOSubstitution(fRight, oldMGU)
+    } else {
+      fRight
+    }    
+    
+    val out = UnifyingResolution(finalLeft, finalRight, newTarget)
     println("okay...")
     println(out)
-    
+
   }
 
   def findRemainder(seq: Sequent, target: E, mgu: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): Sequent = {
     //TODO: what if the target is in both ant and suc?? Should only be removed once. 
     //Need to track where it is, and only remove it from that.
     val out = addAntecedents(checkHalf(seq.ant, target, mgu, applySub).toList) union addSuccedents(checkHalf(seq.suc, target, mgu, applySub).toList)
-//    (new FOSubstitution(Axiom(out), mgu)).conclusion
+    //    (new FOSubstitution(Axiom(out), mgu)).conclusion
     out
   }
 
@@ -237,7 +256,7 @@ abstract class FOAbstractRPILUAlgorithm
     if (half.size == 0) {
       Seq[E]()
     } else {
-      val found = if(applySub) { sub(half.head) =+= target } else { half.head =+= target }
+      val found = if (applySub) { sub(half.head) =+= target } else { half.head =+= target }
       if (found) {
         half.tail
       } else {
