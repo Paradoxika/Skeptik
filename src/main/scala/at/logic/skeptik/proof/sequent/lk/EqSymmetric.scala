@@ -13,6 +13,7 @@ object EqSymmetric {
   def apply(eq: EqW) = {
     new EqSymmetric(new Sequent(Seq(eq.equality),Seq(eq.reverseEquality)))
   }
+  def apply(conclusion: Sequent) = new EqSymmetric(conclusion)
 
   def unapply(p: SequentProofNode) = p match {
     case p: EqSymmetric => Some(p.conclusion)

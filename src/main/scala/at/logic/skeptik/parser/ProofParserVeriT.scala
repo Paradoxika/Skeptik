@@ -6,7 +6,7 @@ import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
-import at.logic.skeptik.proof.sequent.lk.{TheoryR, EqCongruent,EqTransitive,EqReflexive,EqSymmetric}
+import at.logic.skeptik.proof.sequent.lk.{TheoryR, TheoryLemma, EqCongruent,EqTransitive,EqReflexive,EqSymmetric}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -50,15 +50,21 @@ extends JavaTokenParsers with RegexParsers {
     }
   }
   
-  def inference: Parser[Node] = (resolution | axiom | equality | unchecked)
+  def inference: Parser[Node] = (resolution | axiom | theory | unchecked)
   
   def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ 
     (createChain(_)((l, r) => R(l, r)))
   
-  def equality: Parser[Node] = (eq_congruent | eq_reflexive | eq_transitive | th_resolution)
+  def theory: Parser[Node] = (eq_axiom | th_lemma | th_resolution)
+  
+  def eq_axiom: Parser[Node] = (eq_congruent | eq_reflexive | eq_transitive )
   
   def eq_congruent: Parser[Node] = "eq_congruent" ~> conclusion ^^ {
     list => EqCongruent(list)
+  }
+ 
+  def eq_symmetric: Parser[Node] = "eq_symmetric" ~> conclusion ^^ {
+    list => EqSymmetric(list)
   }
   
   def eq_reflexive: Parser[Node] = "eq_reflexive" ~> conclusion ^^ {
@@ -67,6 +73,10 @@ extends JavaTokenParsers with RegexParsers {
   
   def eq_transitive: Parser[Node] = "eq_transitive" ~> conclusion ^^ {
     list => EqTransitive(list)
+  }
+  
+  def th_lemma: Parser[Node] = "th_lemma" ~> conclusion ^^ {
+    list => TheoryLemma(list)
   }
   
   def th_resolution: Parser[Node] = "th_resolution" ~> premises <~ conclusion ^^ 
