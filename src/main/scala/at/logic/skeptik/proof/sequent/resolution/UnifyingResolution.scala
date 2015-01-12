@@ -619,9 +619,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
 
       val (auxL, auxR) = pairs(0)
 
-      println("trying ")
-      println(auxL)
-      println(auxR)
+//      println("trying ")
+//      println(auxL)
+//      println(auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
@@ -649,8 +649,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
 
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
 //
-      println("computed: " + computedSequentClean) 
-      println("desired: " + desired)
+//      println("computed: " + computedSequentClean) 
+//      println("desired: " + desired)
 //      if(computedResolution.isInstanceOf[UnifyingResolution]) {
 //        println("mgu: " + computedResolution.asInstanceOf[UnifyingResolution].mgu)
 //      }
