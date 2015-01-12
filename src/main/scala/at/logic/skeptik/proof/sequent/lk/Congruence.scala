@@ -11,23 +11,11 @@ import at.logic.skeptik.congruence.structure.EqW
 
 
 /**
- * EqAxioms is the superclass of all equality axioms (reflexivity, transitivity and congruence)
- * equality axioms are special types of SequentProofNodes
- */
-
-abstract class EqAxiom(override val mainFormulas: Sequent) extends SequentProofNode
-  with Nullary with NoImplicitContraction {
-  def getConclusionEq: E = {
-    conclusion.suc.last
-  }
-}
-
-/**
  * EqReflexive is an axiom with the conclusion ( |- u = u )
  * 
  * I'm not sure whether this axiom really has to be used
  */
-class EqReflexive(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
+class EqReflexive(mainFormulas: Sequent) extends TheoryAxiom(mainFormulas)
 
 /**
  * companion object of EqReflexive
@@ -58,7 +46,7 @@ object EqReflexive {
  * 
  * left side can be any transitivity chain of equalities and the right side is the equality between the first and last element of the chain
  */
-class EqTransitive(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
+class EqTransitive(mainFormulas: Sequent) extends TheoryAxiom(mainFormulas)
 
 /**
  * companion object of EqTransitive
@@ -100,7 +88,7 @@ object EqTransitive {
  * axiom of the form ( a = b, f(a) = c |- f(b) = c )
  */
 
-class EqCongruent(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
+class EqCongruent(mainFormulas: Sequent) extends TheoryAxiom(mainFormulas)
 
 /**
  * companion object of EqTransitive
@@ -158,7 +146,7 @@ object EqCongruent {
   }
 }
 
-class EqSymmetry(override val mainFormulas: Sequent) extends EqAxiom(mainFormulas)
+class EqSymmetry(mainFormulas: Sequent) extends TheoryAxiom(mainFormulas)
 
 object EqSymmetry {
   def apply(eq: EqW) = {
