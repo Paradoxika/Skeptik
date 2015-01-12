@@ -6,7 +6,7 @@ import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
-import at.logic.skeptik.proof.sequent.lk.{TheoryR, EqCongruent,EqTransitive,EqReflexive,EqSymmetry}
+import at.logic.skeptik.proof.sequent.lk.{TheoryR, EqCongruent,EqTransitive,EqReflexive,EqSymmetric}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
