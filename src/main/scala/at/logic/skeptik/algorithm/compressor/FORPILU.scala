@@ -96,6 +96,8 @@ abstract class FOAbstractRPILUAlgorithm
 
     var resMap = new MMap[SequentProofNode, MSet[Substitution]]()
     //    println("auxMap: " + auxMap)
+    
+//    println("checking p: " + p)
     p match {
       case Axiom(conclusion) => p
 
@@ -115,33 +117,36 @@ abstract class FOAbstractRPILUAlgorithm
 
       // Delete nodes and edges
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
-        //        println("using fixedRight - " + fixedRight)
-        val sub = p.asInstanceOf[UnifyingResolution].mgu
-        val al = p.asInstanceOf[UnifyingResolution].auxL
-        val ar = p.asInstanceOf[UnifyingResolution].auxR
-        println("al: " + al)
-        println("ar: " + ar)
+//                println("using fixedRight - " + fixedRight)
+//        val sub = p.asInstanceOf[UnifyingResolution].mgu
+//        val al = p.asInstanceOf[UnifyingResolution].auxL
+//        val ar = p.asInstanceOf[UnifyingResolution].auxR
+//        println("al: " + al)
+//        println("ar: " + ar)
         //        println(" which would have been used after this sub: " + sub)
         //        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)
         //        println("to be this: " + newNode)
-        val set = resMap.get(p)
-        if (set.isEmpty) {
-          val newSet = MSet[Substitution](sub)
-          resMap.put(p, newSet)
-        } else {
-          set.get.add(sub)
-        }
+//        val set = resMap.get(p)
+//        if (set.isEmpty) {
+//          val newSet = MSet[Substitution](sub)
+//          resMap.put(p, newSet)
+//        } else {
+//          set.get.add(sub)
+//        }
 
         fixedRight
         //newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
-        println("using fixedLeft - " + fixedLeft)
+//        println("using fixedLeft - " + fixedLeft)
         fixedLeft
       }
 
       // If premises haven't been changed, we keep the proof as is (memory optimization)
-      case UnifyingResolution(left, right, _, _) if (left eq fixedLeft) && (right eq fixedRight) => p
+      case UnifyingResolution(left, right, _, _) if (left eq fixedLeft) && (right eq fixedRight) => {
+//        println("keeping p...")
+        p
+      }
 
       case UnifyingResolution(left, right, pivot, _) if (desiredFound(fixedLeft.conclusion, p.conclusion)(unifiableVariables)) => {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
@@ -159,8 +164,8 @@ abstract class FOAbstractRPILUAlgorithm
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, auxL, auxR) => {
 //        println("Error found")
-        println("auxL: " + auxL)
-        println("auxR: " + auxR)
+        println("RPI: auxL: " + auxL)
+        println("RPI: auxR: " + auxR)
         println("l: " + left)
         println("r: " + right)
         println("fl: " + fixedLeft)
@@ -232,7 +237,7 @@ abstract class FOAbstractRPILUAlgorithm
 
       // When the inference is not UR, nothing is done 
       case _ => {
-        println("ignoring: " + p) //TODO: remove
+        println("ignoring: " + p) //TODO: remove print statement
         p
       }
     }
@@ -240,7 +245,9 @@ abstract class FOAbstractRPILUAlgorithm
 
   def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
     val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
-
+    println("new mgu: " + newMGU)
+    println("old mgu: " + oldMGU)
+    
     val leftEq = !fLeft.equals(left)
     val rightEq = !fRight.equals(right)
 
@@ -250,7 +257,7 @@ abstract class FOAbstractRPILUAlgorithm
       fLeft.conclusion
     }
     val leftRemainder = findRemainder(fLeftClean, auxL, oldMGU, leftEq)
-    println("leftRemainder: " + leftRemainder)
+//    println("leftRemainder: " + leftRemainder)
 
     val fRightClean = if (!fRight.equals(right)) {
       new FOSubstitution(fRight, oldMGU).conclusion
@@ -265,10 +272,15 @@ abstract class FOAbstractRPILUAlgorithm
     println("rightRemainder: " + rightRemainder)
     println("rrwithnewmgu :  " + rightRemainderWithNewMGU)
 
+    
     val tempLeft = Axiom(leftRemainder)
     val tempRight = Axiom(rightRemainderWithNewMGU)
     val cleanLeftRemainder = fixSharedNoFilter(tempLeft, tempRight, 0, unifiableVariables).conclusion
 
+    println("lr: " + leftRemainder)
+    println("clr: " + cleanLeftRemainder)
+    println("test? " + (new FOSubstitution(Axiom(cleanLeftRemainder), newMGU)))
+    
     val newTarget = rightRemainderWithNewMGU.union(cleanLeftRemainder)
     println("newTarget: " + newTarget)
 
@@ -291,7 +303,7 @@ abstract class FOAbstractRPILUAlgorithm
         UnifyingResolution(finalRight, finalLeft, newTarget)
       }
     }
-    println("okay... " + out)
+//    println("okay... " + out)
 
     out
   }
@@ -300,20 +312,33 @@ abstract class FOAbstractRPILUAlgorithm
     //TODO: what if the target is in both ant and suc?? Should only be removed once. 
     //Need to track where it is, and only remove it from that.
     val out = addAntecedents(checkHalf(seq.ant, target, mgu, applySub).toList) union addSuccedents(checkHalf(seq.suc, target, mgu, applySub).toList)
-    //    (new FOSubstitution(Axiom(out), mgu)).conclusion
     out
   }
 
+  def areAlphaEq(a: E, b: E)(implicit unifiableVariables: MSet[Var]): Boolean = {
+    checkHelperAlphaManual(Seq[E](a), Seq[E](b))
+  }
+  
   def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): Seq[E] = {
-    if (half.size == 0) {
-      Seq[E]()
+//    if (half.size == 0) {
+//      Seq[E]()
+//    } else {
+//      
+//      val found = if (applySub) { areAlphaEq(sub(half.head), target) } else { areAlphaEq(half.head, target) }
+//      if (found) {
+//        half.tail
+//      } else {
+//        Seq[E](half.head) ++ checkHalf(half.tail, target, sub, applySub)
+//      }
+//    }
+    def filterHelper(e: E): Boolean = {
+      areAlphaEq(sub(e), target)
+    }
+    
+    if(applySub) {
+    	half.filter(!filterHelper(_))
     } else {
-      val found = if (applySub) { sub(half.head) =+= target } else { half.head =+= target }
-      if (found) {
-        half.tail
-      } else {
-        Seq[E](half.head) ++ checkHalf(half.tail, target, sub, applySub)
-      }
+      half.filter(!areAlphaEq(_, target))
     }
   }
 
@@ -371,21 +396,21 @@ trait FOCollectEdgesUsingSafeLiterals
     var mguMap = new MMap[SequentProofNode, Substitution]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-      println("SAFE LITERALS for " + p + " => " + safeLiterals)
+//      println("SAFE LITERALS for " + p + " => " + safeLiterals)
       p match {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
           //          println("p: " + p + " and right: " + right + " edge marked")
           //          println("other edge: " +  left + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
-          println("p, auxL: " + p + "   " + auxL)
+//          println("p, auxL: " + p + "   " + auxL)
           auxMap.put(p, auxL)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markRightEdge(p)
 
         }
         case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
-          println("p: " + p + " and right: " + left + " edge marked")
-          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
-          println("p, auxR: " + p + "   " + auxR)
+//          println("p: " + p + " and right: " + left + " edge marked")
+//          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
+//          println("p, auxR: " + p + "   " + auxR)
 
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)

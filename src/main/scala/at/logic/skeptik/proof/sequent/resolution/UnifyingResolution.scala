@@ -611,9 +611,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
-      println("must be here?")
-      println("left: " + leftPremise)
-      println("right: " + rightPremise)      
+//      println("must be here?")
+//      println("left: " + leftPremise)
+//      println("right: " + rightPremise)      
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
 
@@ -648,12 +648,12 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       val computedSequent = computedResolution.conclusion.toSeqSequent
 
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
-
+//
       println("computed: " + computedSequentClean) 
       println("desired: " + desired)
-      if(computedResolution.isInstanceOf[UnifyingResolution]) {
-        println("mgu: " + computedResolution.asInstanceOf[UnifyingResolution].mgu)
-      }
+//      if(computedResolution.isInstanceOf[UnifyingResolution]) {
+//        println("mgu: " + computedResolution.asInstanceOf[UnifyingResolution].mgu)
+//      }
       
       if (desiredFound(desired, computedSequentClean)) {
         computedResolution
@@ -684,8 +684,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
           //          println("rightPremise: " + rightPremise)
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, relaxation)
           //          println("ax: " + ax)
-          //          println("auxL: " + auxL)
-          //          println("auxR: " + auxR)
+//                    println("auxL: " + auxL)
+//                    println("auxR: " + auxR)
           //          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
