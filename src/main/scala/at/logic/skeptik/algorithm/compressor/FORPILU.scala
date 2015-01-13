@@ -44,15 +44,32 @@ abstract class FOAbstractRPILUAlgorithm
      *  the right premise, so we never see the variable Y, even though it can be unified.
      */
 
-    for (safeLit <- safeLiteralsHalf) {
-      unify((aux, safeLit) :: Nil)(getSetOfVars(aux)) match {
-        case Some(_) => {
-          return true
-        }
-        case None => {
-          //Do nothing
-        }
+    def getMSet(a: scala.collection.mutable.Set[Var]): MSet[Var] = {
+      val out = MSet[Var]()
+      for (e <- a) {
+        out.add(e)
       }
+      out
+    }
+
+    for (safeLit <- safeLiteralsHalf) {
+      val uvars = (getSetOfVars(aux) union getSetOfVars(safeLit))
+      val uvarsB = getMSet(uvars)
+      val isMore = isMoreGeneral(Sequent(aux)(), Sequent(safeLit)())(uvarsB)
+      //      if(areAlphaEq(safeLit, aux)(uvarsB) || isMore || safeLit.equals(aux)){
+//      if (areAlphaEq(safeLit, aux)(uvarsB)) {
+//
+//        return true
+//      }
+            unify((aux, safeLit) :: Nil)(getSetOfVars(aux)) match {
+              case Some(_) => {
+                println("matched!!! " + aux + " AND " + safeLit)
+                return true
+              }
+              case None => {
+                //Do nothing
+              }
+            }
     }
     false
   }
@@ -164,12 +181,12 @@ abstract class FOAbstractRPILUAlgorithm
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, auxL, auxR) => {
         //        println("Error found")
-//        println("RPI: auxL: " + auxL)
-//        println("RPI: auxR: " + auxR)
-//        println("l: " + left)
-//        println("r: " + right)
-//        println("fl: " + fixedLeft)
-//        println("fr: " + fixedRight)
+        //        println("RPI: auxL: " + auxL)
+        //        println("RPI: auxR: " + auxR)
+        //        println("l: " + left)
+        //        println("r: " + right)
+        //        println("fl: " + fixedLeft)
+        //        println("fr: " + fixedRight)
         //TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
         //   --- necessary now? 
 
@@ -245,8 +262,8 @@ abstract class FOAbstractRPILUAlgorithm
 
   def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
     val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
-//    println("new mgu: " + newMGU)
-//    println("old mgu: " + oldMGU)
+    //    println("new mgu: " + newMGU)
+    //    println("old mgu: " + oldMGU)
 
     val leftEq = !fLeft.equals(left)
     val rightEq = !fRight.equals(right)
@@ -269,23 +286,22 @@ abstract class FOAbstractRPILUAlgorithm
     //TODO: this for the left? 
     //TODO: do this conditionally only?
     val rightRemainderWithNewMGU = (new FOSubstitution(Axiom(rightRemainder), newMGU)).conclusion
-//    println("rightRemainder: " + rightRemainder)
-//    println("rrwithnewmgu :  " + rightRemainderWithNewMGU)
+    //    println("rightRemainder: " + rightRemainder)
+    //    println("rrwithnewmgu :  " + rightRemainderWithNewMGU)
 
     val tempLeft = new FOSubstitution(new FOSubstitution(Axiom(leftRemainder), leftSub), newMGU)
-//    println("tl: " + tempLeft)
+    //    println("tl: " + tempLeft)
     val tempRight = Axiom(rightRemainderWithNewMGU)
     val cleanLeftRemainder = fixSharedNoFilter(tempLeft, tempRight, 0, unifiableVariables).conclusion
 
-//    println("lr: " + leftRemainder)
-//    println("clr: " + cleanLeftRemainder)
-//    println("test? " + (new FOSubstitution(Axiom(cleanLeftRemainder), newMGU)))
+    //    println("lr: " + leftRemainder)
+    //    println("clr: " + cleanLeftRemainder)
+    //    println("test? " + (new FOSubstitution(Axiom(cleanLeftRemainder), newMGU)))
 
-//        val newTarget = rightRemainderWithNewMGU.union(cleanLeftRemainder)
+    //        val newTarget = rightRemainderWithNewMGU.union(cleanLeftRemainder)
 
-    
     val newTarget = rightRemainderWithNewMGU.union(tempLeft.conclusion)
-//    println("newTarget: " + newTarget)
+    //    println("newTarget: " + newTarget)
 
     val finalLeft = if (leftEq) {
       new FOSubstitution(fLeft, oldMGU)
@@ -318,9 +334,9 @@ abstract class FOAbstractRPILUAlgorithm
     val (newAnt, antSub) = checkHalf(seq.ant, target, mgu, applySub)
     val (newSuc, sucSub) = checkHalf(seq.suc, target, mgu, applySub)
 
-    val subOut = if(antSub != null) { antSub } else { sucSub } //at least one of these must be non-empty
+    val subOut = if (antSub != null) { antSub } else { sucSub } //at least one of these must be non-empty
     //both should never be empty
-    
+
     val out = addAntecedents(newAnt) union addSuccedents(newSuc)
     (out, subOut)
   }
@@ -352,14 +368,14 @@ abstract class FOAbstractRPILUAlgorithm
     }
 
     val diffs = half.diff(newSeq)
-//    println("targ: " + target)
+    //    println("targ: " + target)
     //    println("diffs: " + diffs)
 
     val subOut = if (diffs.size > 0) {
       val formula = diffs.head //should only be one //TODO: ensure this!
-//      println("form: " + formula)
+      //      println("form: " + formula)
       val renameSub = unify((formula, target) :: Nil)
-//      println(renameSub)
+      //      println(renameSub)
       renameSub.get //should never be empty
     } else {
       null
@@ -374,16 +390,33 @@ abstract class FOAbstractRPIAlgorithm
   extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
   protected def safeLiteralsFromChild(childWithSafeLiterals: (SequentProofNode, IClause),
-    parent: SequentProofNode, edgesToDelete: FOEdgesToDelete) =
+    parent: SequentProofNode, edgesToDelete: FOEdgesToDelete) = {
+
     childWithSafeLiterals match {
       case (child @ UnifyingResolution(left, right, _, auxR), safeLiterals) if left == parent =>
-        if (edgesToDelete.isMarked(child, right)) safeLiterals else addLiteralSmart(safeLiterals, auxR, false, left, right)
-      case (child @ UnifyingResolution(left, right, auxL, _), safeLiterals) if right == parent =>
-        if (edgesToDelete.isMarked(child, left)) safeLiterals else addLiteralSmart(safeLiterals, auxL, true, left, right)
+        if (edgesToDelete.isMarked(child, right)) {
+          println("using safe literals")
+          safeLiterals
+        } else {
+          addLiteralSmart(safeLiterals, auxR, false, left, right)
+        }
 
-      case (_, safeLiterals) => safeLiterals
+      case (child @ UnifyingResolution(left, right, auxL, _), safeLiterals) if right == parent =>
+        if (edgesToDelete.isMarked(child, left)) {
+          println("using safe B " + child)
+          println(safeLiterals)
+          safeLiterals
+        } else {
+          addLiteralSmart(safeLiterals, auxL, true, left, right)
+        }
+
+      case (_, safeLiterals) => {
+        println("child with safe literals: " + childWithSafeLiterals)
+        safeLiterals
+      }
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
     }
+  }
 
   protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
     //Restrict MartelliMontanari to tell whether "aux" is more general (and not just unifiable) 
@@ -394,10 +427,14 @@ abstract class FOAbstractRPIAlgorithm
     } else {
       seq.suc
     }
+    //TODO: change this to reflect changes above regarding what is considered safe?
     for (lit <- seqHalf) {
       unify((lit, aux) :: Nil)(uVars) match {
         case None => {}
-        case Some(_) => { return seq }
+        case Some(_) => {
+          println("lit: " + lit + " and " + aux)
+          return seq
+        }
       }
     }
     if (addToAntecedent) {
@@ -422,7 +459,7 @@ trait FOCollectEdgesUsingSafeLiterals
     var mguMap = new MMap[SequentProofNode, Substitution]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-            println("SAFE LITERALS for " + p + " => " + safeLiterals)
+      println("SAFE LITERALS for " + p + " => " + safeLiterals)
       p match {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
           //          println("p: " + p + " and right: " + right + " edge marked")
@@ -438,7 +475,7 @@ trait FOCollectEdgesUsingSafeLiterals
           //          println("p: " + p + " and right: " + left + " edge marked")
           //          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
           //          println("p, auxR: " + p + "   " + auxR)
-println("marked a] " + p + " AND  " + left)
+          println("marked a] " + p + " AND  " + left)
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markLeftEdge(p)

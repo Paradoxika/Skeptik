@@ -45,10 +45,12 @@ trait FOconclusionSequent
   protected def computeSafeLiterals(node: SequentProofNode,
     childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
     edgesToDelete: FOEdgesToDelete): SetSequent =
-    if (childrensSafeLiterals.length == 1)
+    if (childrensSafeLiterals.length == 1) {
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
-    else
+    } else {
+      println("node: " + node + " gets " + node.conclusion) //never hit in CADE prep.
       node.conclusion.toSetSequent
+    }
 
 }
 

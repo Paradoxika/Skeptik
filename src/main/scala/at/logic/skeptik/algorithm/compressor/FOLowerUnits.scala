@@ -3,6 +3,7 @@ package at.logic.skeptik.algorithm.compressor
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.proof.sequent.lk.Axiom
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
+import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
@@ -270,8 +271,9 @@ object FOLowerUnits
 
                   val newFixedRight = fixedRight match {
                     case Axiom(c) if olderA != null => {
-                      Axiom(
-                        addAntecedents(c.ant.map(e => olderA(e)).toList) union addSuccedents(c.suc.map(e => olderA(e)).toList))
+//                      Axiom(
+//                        addAntecedents(c.ant.map(e => olderA(e)).toList) union addSuccedents(c.suc.map(e => olderA(e)).toList))
+                      new FOSubstitution(fixedRight, olderA)(vars)
                     }
                     case _ => {
                       fixedRight
@@ -280,8 +282,9 @@ object FOLowerUnits
                   
                   val newFixedLeft = fixedLeft match {
                     case Axiom(c) if olderB != null => {
-                      Axiom(
-                        addAntecedents(c.ant.map(e => olderB(e)).toList) union addSuccedents(c.suc.map(e => olderB(e)).toList))
+                      //Axiom(
+                        //addAntecedents(c.ant.map(e => olderB(e)).toList) union addSuccedents(c.suc.map(e => olderB(e)).toList))
+                      new FOSubstitution(fixedLeft, olderB)(vars)
                     }
                     case _ => {
                       fixedLeft
