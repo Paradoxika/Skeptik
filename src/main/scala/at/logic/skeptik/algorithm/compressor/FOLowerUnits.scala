@@ -258,21 +258,21 @@ object FOLowerUnits
                     case Axiom(c) if olderA != null => {
                       new FOSubstitution(fixedRight, olderA)(vars)
                     }
-                    case _ if olderA != null =>  {
-//                      fixedRight
+                    case _ if olderA != null => {
+                      //                      fixedRight
                       new FOSubstitution(fixedRight, olderA)(vars)
                     }
                     case _ => {
                       fixedRight
-                    }                    
+                    }
                   }
 
                   val newFixedLeft = fixedLeft match {
                     case Axiom(c) if olderB != null => {
                       new FOSubstitution(fixedLeft, olderB)(vars)
                     }
-                    case _ if olderB != null =>  {
-//                      fixedLeft
+                    case _ if olderB != null => {
+                      //                      fixedLeft
                       new FOSubstitution(fixedLeft, olderB)(vars)
                     }
                     case _ => {
@@ -295,11 +295,11 @@ object FOLowerUnits
                   val out = try {
                     UnifyingResolutionMRR(newFixedLeft, newFixedRight, newGoalD)(vars)
                   } catch {
-                    case e: Exception => { 
+                    case e: Exception => {
                       println("desperate... " + e.getMessage())
-                      UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars) 
-//                      UnifyingResolutionMRR(newFixedRight, newFixedLeft, newGoalD)(vars)
-                      }
+                      UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars)
+                      //                      UnifyingResolutionMRR(newFixedRight, newFixedLeft, newGoalD)(vars)
+                    }
                   }
 
                   //                    println("made it..")
@@ -312,7 +312,7 @@ object FOLowerUnits
                   println("merged: " + unionSequents(stuff._3, stuff._4)) //adding a wrong carry
 
                   carryMap.update(out, unionSequents(stuff._3, stuff._4))
-//                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
+                  //                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
                   println("BUT SAID: " + stuff._2)
                   mguMap.update(out, stuff._2)
                   out
@@ -552,20 +552,34 @@ object FOLowerUnits
     //    println("new goal SHOULD HAVE " + temp.mgu(older(carry)))
 
     val outSeq = if (carryB != null && carry != null) {
-      addAntecedents(
+//      addAntecedents(
+//        (temp.conclusion.ant.toList
+//          ++ carry.ant.map(e => tempMGU((e)))
+//          ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(
+//          (temp.conclusion.suc.toList
+//            ++ carry.suc.map(e => tempMGU((e)))
+//            ++ carryB.suc.map(e => tempMGU((e)))))
+      println("A")
+         addAntecedents(
         (temp.conclusion.ant.toList
-          ++ carry.ant.map(e => tempMGU((e)))
-          ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(
+          ++ carry.ant
+          ++ carryB.ant)) union addSuccedents(
           (temp.conclusion.suc.toList
-            ++ carry.suc.map(e => tempMGU((e)))
-            ++ carryB.suc.map(e => tempMGU((e)))))
+            ++ carry.suc
+            ++ carryB.suc))
     } else if (carry == null && carryB != null) {
-                  println("here?")
+      println("B")
 
-    //TODO: investigate this. we get MUCH farther with the current (no tempMGU) setup
+      //TODO: investigate this. we get MUCH farther with the current (no tempMGU) setup
+      //probably just need this conditionally or in other cases. on current test:
+      /*
+computed: (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) NEW1), (p2 U                 (f3 (f4 c11) c12)) ? (p2 NEW1 (f5 c14 c10))
+desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c12) (f3 (f4 c11) c12)) ? (p2 W    (f5 c14 c10))
+                   */
+
       addAntecedents((temp.conclusion.ant.toList
-//        ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
-                  ++ carryB.ant)) union addSuccedents(temp.conclusion.suc.toList)
+        //        ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+        ++ carryB.ant)) union addSuccedents(temp.conclusion.suc.toList)
 
     } else if (carry != null && carryB == null) {
       addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
