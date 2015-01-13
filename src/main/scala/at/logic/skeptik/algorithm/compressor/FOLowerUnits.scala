@@ -190,40 +190,25 @@ object FOLowerUnits
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
           //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-//          println("using " + fixedRight + " for " + node.conclusion)
-//          println(fixedRight + " --r> " + node.asInstanceOf[UnifyingResolution].auxR)
+          //          println("using " + fixedRight + " for " + node.conclusion)
+          //          println(fixedRight + " --r> " + node.asInstanceOf[UnifyingResolution].auxR)
           carryMap.update(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
-          //          replaceMap.update(fixedRight, node)
           mguMap.update(fixedRight, node.asInstanceOf[UnifyingResolution].mgu)
-          //          val olderA = node.asInstanceOf[UnifyingResolution].mgu
-          //          val newFixedRight = fixedRight match {
-          //            case Axiom(c) => {
-          //              Axiom(
-          //                addAntecedents(c.ant.map(e => olderA(e)).toList) union addSuccedents(c.suc.map(e => olderA(e)).toList))
-          //
-          //            }
-          //            case _ => {
-          //              fixedRight
-          //            }
-          //          }
-          //          newFixedRight
           fixedRight
         }
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => {
           //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-//          println("using " + fixedLeft + " for " + node.conclusion)
-//          println(fixedLeft + " --l> " + node.asInstanceOf[UnifyingResolution].auxL)
-
+          //          println("using " + fixedLeft + " for " + node.conclusion)
+          //          println(fixedLeft + " --l> " + node.asInstanceOf[UnifyingResolution].auxL)
           carryMap.update(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
-          //          replaceMap.update(fixedLeft, node)
           mguMap.update(fixedLeft, node.asInstanceOf[UnifyingResolution].mgu)
 
           fixedLeft
         }
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
         case UnifyingResolution(left, right, _, _) => {
-//          println("attempting to resolve the following:")
-//          println(node.conclusion)
+          //          println("attempting to resolve the following:")
+          //          println(node.conclusion)
 
           try {
             UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
@@ -235,17 +220,17 @@ object FOLowerUnits
                   println("caught for " + node)
                   println("fixed left: " + fixedLeft)
                   println("fixed right: " + fixedRight)
-//                  println(" (l: " + left + ")")
-//                  println(" (r: " + right + ")")
-//
-//                  println("nc: " + node.conclusion)
+                  //                  println(" (l: " + left + ")")
+                  //                  println(" (r: " + right + ")")
+                  //
+                  //                  println("nc: " + node.conclusion)
 
                   val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
                   val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
-//                  println("auxL: " + oAuxL)
-//                  println("auxR: " + oAuxR)
+                  //                                    println("auxL: " + oAuxL)
+                  //                                    println("auxR: " + oAuxR)
                   val oMGU = node.asInstanceOf[UnifyingResolution].mgu
-//                  println("omgu: " + oMGU)
+                  //                  println("omgu: " + oMGU)
 
                   val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
                     carryMap.get(fixedRight).get
@@ -255,8 +240,8 @@ object FOLowerUnits
                     carryMap.get(fixedLeft).get
                   } else { null }
 
-//                  println("carry (right): " + carryA)
-//                  println("carry (left ): " + carryB)
+                  //                  println("carry (right): " + carryA)
+                  //                  println("carry (left ): " + carryB)
 
                   val olderA = if (!mguMap.get(fixedRight).isEmpty) {
                     mguMap.get(fixedRight).get
@@ -266,70 +251,90 @@ object FOLowerUnits
                     mguMap.get(fixedLeft).get
                   } else { null }
 
-//                  println("mguOld (right): " + olderA)
-//                  println("mguOld (left ): " + olderB)
+                  //                                    println("mguOld (right): " + olderA)
+                  //                                    println("mguOld (left ): " + olderB)
 
                   val newFixedRight = fixedRight match {
                     case Axiom(c) if olderA != null => {
-//                      Axiom(
-//                        addAntecedents(c.ant.map(e => olderA(e)).toList) union addSuccedents(c.suc.map(e => olderA(e)).toList))
+                      new FOSubstitution(fixedRight, olderA)(vars)
+                    }
+                    case _ if olderA != null =>  {
+//                      fixedRight
                       new FOSubstitution(fixedRight, olderA)(vars)
                     }
                     case _ => {
                       fixedRight
-                    }
+                    }                    
                   }
-                  
+
                   val newFixedLeft = fixedLeft match {
                     case Axiom(c) if olderB != null => {
-                      //Axiom(
-                        //addAntecedents(c.ant.map(e => olderB(e)).toList) union addSuccedents(c.suc.map(e => olderB(e)).toList))
+                      new FOSubstitution(fixedLeft, olderB)(vars)
+                    }
+                    case _ if olderB != null =>  {
+//                      fixedLeft
                       new FOSubstitution(fixedLeft, olderB)(vars)
                     }
                     case _ => {
                       fixedLeft
                     }
-                  }                  
-
-//                  println("newFR: " + newFixedRight)
-
-                  try {
-                    val stuff = test3(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
-
-                    val newGoalD = stuff._1
-                    println("FINAL newGoalD: " + newGoalD)
-
-                    val out = UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD, oMGU)(vars)
-                    println("FINAL COMPUTED: " + out.conclusion)
-                    //                  println("final carry: " + (List[E](stuff._3) ++ List[E](stuff._4)))
-                    //                  carryMap.update(out, List[E](stuff._3) ++ List[E](stuff._4))
-//                    println("final carry: " + stuff._3 + " and " + stuff._4)
-//                    println("merged: " + unionSequents(stuff._3, stuff._4))
-
-                    carryMap.update(out, unionSequents(stuff._3, stuff._4))
-                    mguMap.update(out, stuff._2)
-                    out
-                  } catch {
-                    case e: Exception => {
-                      val stuff = test3(fixedLeft, newFixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
-                      val ad = test(fixedLeft, fixedRight, olderB, olderA, oAuxL, oAuxR, oMGU)
-//                      println("ACTUAL DESIRED: " + ad)
-                      val newGoalD = stuff._1
-//                      println("FINAL newGoalD: " + newGoalD)
-                      val out = UnifyingResolutionMRR(newFixedLeft, newFixedRight, ad, stuff._2)(vars)
-                      println("FINAL COMPUTED: " + out.conclusion)
-                      //                  println("final carry: " + (List[E](stuff._3) ++ List[E](stuff._4)))
-                      //                  carryMap.update(out, List[E](stuff._3) ++ List[E](stuff._4))
-//                      println("final carry: " + stuff._3 + " and " + stuff._4)
-//                      println("merged: " + unionSequents(stuff._3, stuff._4))
-
-                      carryMap.update(out, unionSequents(stuff._3, stuff._4))
-                      mguMap.update(out, stuff._2)
-                      out
-                    }
                   }
 
+                  //                  println("newFR: " + newFixedRight)
+
+                  //                  try {
+                  //                    val stuff = test3(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
+                  val stuff = test4(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
+
+                  val newGoalD = stuff._1
+                  println("FINAL newGoalD: " + newGoalD)
+
+                  println("newFixedRight: " + newFixedRight)
+                  println("newFixedLeft: " + newFixedLeft)
+
+                  val out = try {
+                    UnifyingResolutionMRR(newFixedLeft, newFixedRight, newGoalD)(vars)
+                  } catch {
+                    case e: Exception => { 
+                      println("desperate... " + e.getMessage())
+                      UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars) 
+//                      UnifyingResolutionMRR(newFixedRight, newFixedLeft, newGoalD)(vars)
+                      }
+                  }
+
+                  //                    println("made it..")
+
+                  //                    val out = UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars)
+                  println("FINAL COMPUTED: " + out.conclusion)
+
+                  println("3:" + stuff._3)
+                  println("4:" + stuff._4)
+                  println("merged: " + unionSequents(stuff._3, stuff._4)) //adding a wrong carry
+
+                  carryMap.update(out, unionSequents(stuff._3, stuff._4))
+//                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
+                  println("BUT SAID: " + stuff._2)
+                  mguMap.update(out, stuff._2)
+                  out
+                  //                  } catch {
+                  //                    case e: Exception => {
+                  //                      val stuff = test3(fixedLeft, newFixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
+                  //                      val ad = test(fixedLeft, fixedRight, olderB, olderA, oAuxL, oAuxR, oMGU)
+                  //                      //                      println("ACTUAL DESIRED: " + ad)
+                  //                      val newGoalD = stuff._1
+                  //                      //                      println("FINAL newGoalD: " + newGoalD)
+                  //                      val out = UnifyingResolutionMRR(newFixedLeft, newFixedRight, ad, stuff._2)(vars)
+                  //                      println("FINAL COMPUTED: " + out.conclusion)
+                  //                      //                      println("merged: " + unionSequents(stuff._3, stuff._4))
+                  //
+                  //                      carryMap.update(out, unionSequents(stuff._3, stuff._4))
+                  //                      mguMap.update(out, stuff._2)
+                  //                      out
+                  //                    }
+                  //                  }
+
                 } else {
+                  println(e.getMessage())
                   throw new Exception("Compression failed! A")
                 }
               } else {
@@ -391,7 +396,102 @@ object FOLowerUnits
     }
   }
 
-  def test3(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
+  //  def test3(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
+  //    olderB: Substitution, oldGoal: Sequent, nodeMGU: Substitution, n: SequentProofNode)(implicit uVars: MSet[Var]): (Sequent, Substitution, Sequent, Sequent) = {
+  //
+  //    def removeOnce(s: Seq[E], e: E): Seq[E] = {
+  //      if (s.size == 0) {
+  //        return List[E]()
+  //      }
+  //      val h = s.head
+  //      if (h.equals(e)) {
+  //        s.tail
+  //      } else {
+  //        removeOnce(s.tail, e) ++ List[E](h)
+  //      }
+  //    }
+  //
+  //    def removeHalf(original: Seq[E], toRemove: Seq[E]): Seq[E] = {
+  //      if (toRemove == null) {
+  //        original
+  //      }
+  //      if (toRemove.size > 0) {
+  //        removeHalf(removeOnce(original, toRemove.head), toRemove.tail)
+  //      } else {
+  //        original
+  //      }
+  //    }
+  //
+  //    var newNodeA = null.asInstanceOf[SequentProofNode]
+  //    if (carry != null) {
+  //      val newAnt = removeHalf(fr.conclusion.ant.map(e => older(e)), carry.ant.map(e => older(e)))
+  //      val newSuc = removeHalf(fr.conclusion.suc.map(e => older(e)), carry.suc.map(e => older(e)))
+  //      val newSeq = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+  //      val newNode = Axiom(newSeq)
+  //      newNodeA = newNode
+  //    } else {
+  //      newNodeA = fr
+  //    }
+  //    var newNodeB = null.asInstanceOf[SequentProofNode]
+  //    if (carryB != null) {
+  //      val newAntB = removeHalf(fl.conclusion.ant.map(e => olderB(e)), carryB.ant.map(e => olderB(e)))
+  //      val newSucB = removeHalf(fl.conclusion.suc.map(e => olderB(e)), carryB.suc.map(e => olderB(e)))
+  //      val newSeqB = addAntecedents(newAntB.toList) union addSuccedents(newSucB.toList)
+  //      newNodeB = Axiom(newSeqB)
+  //    } else {
+  //      newNodeB = fl
+  //    }
+  //
+  //    //    println("t3: resolution:")
+  //    //    println("   " + newNodeB)
+  //    //    println("   " + newNodeA)
+  //
+  //    val temp = n // UnifyingResolution(newNodeB, newNodeA, oldGoal)
+  //
+  //    val tempMGU = nodeMGU // temp.mgu
+  //
+  //    //    println("TEMP: " + temp)
+  //    //    println("TEMP MGU: " + temp.mgu )
+  //    //    println("new goal SHOULD HAVE " + temp.mgu(older(carry)))
+  //
+  //    val outSeq = if (carryB != null && carry != null) {
+  //      addAntecedents(
+  //        (temp.conclusion.ant.toList
+  //          ++ carry.ant.map(e => tempMGU((e)))
+  //          ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(
+  //          (temp.conclusion.suc.toList
+  //            ++ carry.suc.map(e => tempMGU((e)))
+  //            ++ carryB.suc.map(e => tempMGU((e)))))
+  //    } else if (carry == null && carryB != null) {
+  //      addAntecedents((temp.conclusion.ant.toList
+  //        ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+  //    } else if (carry != null && carryB == null) {
+  //      addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+  //    } else {
+  //      addAntecedents(temp.conclusion.ant.toList) union addSuccedents(temp.conclusion.suc.toList)
+  //    }
+  //
+  //    //    println("final? : " +  outSeq)
+  //
+  //    var outB = null.asInstanceOf[Sequent]
+  //    if (carryB != null) {
+  //      val newAnt = carryB.ant.map(e => olderB(e)).map(e => tempMGU(e))
+  //      val newSuc = carryB.suc.map(e => olderB(e)).map(e => tempMGU(e))
+  //      outB = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+  //    }
+  //
+  //    var outA = null.asInstanceOf[Sequent]
+  //    if (carry != null) {
+  //      val newAnt = carry.ant.map(e => older(e)).map(e => tempMGU(e))
+  //      val newSuc = carry.suc.map(e => older(e)).map(e => tempMGU(e))
+  //      outA = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+  //    }
+  //
+  //    //    println("t3: mgu: " + tempMGU)
+  //    (outSeq, tempMGU, outA, outB)
+  //  }
+
+  def test4(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
     olderB: Substitution, oldGoal: Sequent, nodeMGU: Substitution, n: SequentProofNode)(implicit uVars: MSet[Var]): (Sequent, Substitution, Sequent, Sequent) = {
 
     def removeOnce(s: Seq[E], e: E): Seq[E] = {
@@ -445,7 +545,9 @@ object FOLowerUnits
 
     val tempMGU = nodeMGU // temp.mgu
 
-    //    println("TEMP: " + temp)
+    println("TEMP: " + temp)
+    println("carry: " + carry)
+    println("carrB: " + carryB)
     //    println("TEMP MGU: " + temp.mgu )
     //    println("new goal SHOULD HAVE " + temp.mgu(older(carry)))
 
@@ -458,8 +560,13 @@ object FOLowerUnits
             ++ carry.suc.map(e => tempMGU((e)))
             ++ carryB.suc.map(e => tempMGU((e)))))
     } else if (carry == null && carryB != null) {
+                  println("here?")
+
+    //TODO: investigate this. we get MUCH farther with the current (no tempMGU) setup
       addAntecedents((temp.conclusion.ant.toList
-        ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+//        ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+                  ++ carryB.ant)) union addSuccedents(temp.conclusion.suc.toList)
+
     } else if (carry != null && carryB == null) {
       addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
     } else {
@@ -470,19 +577,27 @@ object FOLowerUnits
 
     var outB = null.asInstanceOf[Sequent]
     if (carryB != null) {
-      val newAnt = carryB.ant.map(e => olderB(e)).map(e => tempMGU(e))
-      val newSuc = carryB.suc.map(e => olderB(e)).map(e => tempMGU(e))
+      //      val newAnt = carryB.ant.map(e => olderB(e)).map(e => tempMGU(e))
+      //      val newSuc = carryB.suc.map(e => olderB(e)).map(e => tempMGU(e))
+      val newAnt = carryB.ant.map(e => tempMGU(e))
+      val newSuc = carryB.suc.map(e => tempMGU(e))
       outB = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
     }
 
+    println("older: " + older)
+    println("oldeB: " + olderB)
+    println("tmp: " + tempMGU)
+
     var outA = null.asInstanceOf[Sequent]
     if (carry != null) {
-      val newAnt = carry.ant.map(e => older(e)).map(e => tempMGU(e))
-      val newSuc = carry.suc.map(e => older(e)).map(e => tempMGU(e))
+      //      val newAnt = carry.ant.map(e => older(e)).map(e => tempMGU(e))
+      //      val newSuc = carry.suc.map(e => older(e)).map(e => tempMGU(e))
+      val newAnt = carry.ant.map(e => tempMGU(e))
+      val newSuc = carry.suc.map(e => tempMGU(e))
       outA = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
     }
 
-//    println("t3: mgu: " + tempMGU)
+    //    println("t3: mgu: " + tempMGU)
     (outSeq, tempMGU, outA, outB)
   }
 
@@ -533,29 +648,29 @@ object FOLowerUnits
     }
   }
 
-  def test(fixedLeft: SequentProofNode, fixedRight: SequentProofNode, oldLeft: Substitution, oldRight: Substitution, auxL: E, auxR: E, oMGU: Substitution): Sequent = {
-    if (oldLeft != null && oldRight != null) {
-      val Ant = (fixedLeft.conclusion.ant.map(e => oldLeft(e)) ++ fixedRight.conclusion.ant.map(e => oldRight(e)).filter(_ != auxR)).map(e => oMGU(e))
-      val Suc = (fixedLeft.conclusion.suc.map(e => oldLeft(e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => oldRight(e))).map(e => oMGU(e))
-
-      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
-    } else if (oldLeft != null && oldRight == null) {
-      val Ant = (fixedLeft.conclusion.ant.map(e => oldLeft(e)) ++ fixedRight.conclusion.ant.map(e => (e)).filter(_ != auxR)).map(e => oMGU(e))
-      val Suc = (fixedLeft.conclusion.suc.map(e => oldLeft(e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => (e))).map(e => oMGU(e))
-
-      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
-    } else if (oldLeft == null && oldRight != null) {
-      val Ant = (fixedLeft.conclusion.ant.map(e => (e)) ++ fixedRight.conclusion.ant.map(e => oldRight(e)).filter(_ != auxR)).map(e => oMGU(e))
-      val Suc = (fixedLeft.conclusion.suc.map(e => (e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => oldRight(e))).map(e => oMGU(e))
-
-      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
-    } else {
-      val Ant = (fixedLeft.conclusion.ant.map(e => (e)) ++ fixedRight.conclusion.ant.map(e => (e)).filter(_ != auxR)).map(e => oMGU(e))
-      val Suc = (fixedLeft.conclusion.suc.map(e => (e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => (e))).map(e => oMGU(e))
-
-      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
-    }
-  }
+  //  def test(fixedLeft: SequentProofNode, fixedRight: SequentProofNode, oldLeft: Substitution, oldRight: Substitution, auxL: E, auxR: E, oMGU: Substitution): Sequent = {
+  //    if (oldLeft != null && oldRight != null) {
+  //      val Ant = (fixedLeft.conclusion.ant.map(e => oldLeft(e)) ++ fixedRight.conclusion.ant.map(e => oldRight(e)).filter(_ != auxR)).map(e => oMGU(e))
+  //      val Suc = (fixedLeft.conclusion.suc.map(e => oldLeft(e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => oldRight(e))).map(e => oMGU(e))
+  //
+  //      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
+  //    } else if (oldLeft != null && oldRight == null) {
+  //      val Ant = (fixedLeft.conclusion.ant.map(e => oldLeft(e)) ++ fixedRight.conclusion.ant.map(e => (e)).filter(_ != auxR)).map(e => oMGU(e))
+  //      val Suc = (fixedLeft.conclusion.suc.map(e => oldLeft(e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => (e))).map(e => oMGU(e))
+  //
+  //      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
+  //    } else if (oldLeft == null && oldRight != null) {
+  //      val Ant = (fixedLeft.conclusion.ant.map(e => (e)) ++ fixedRight.conclusion.ant.map(e => oldRight(e)).filter(_ != auxR)).map(e => oMGU(e))
+  //      val Suc = (fixedLeft.conclusion.suc.map(e => (e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => oldRight(e))).map(e => oMGU(e))
+  //
+  //      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
+  //    } else {
+  //      val Ant = (fixedLeft.conclusion.ant.map(e => (e)) ++ fixedRight.conclusion.ant.map(e => (e)).filter(_ != auxR)).map(e => oMGU(e))
+  //      val Suc = (fixedLeft.conclusion.suc.map(e => (e)).filter(_ != auxL) ++ fixedRight.conclusion.suc.map(e => (e))).map(e => oMGU(e))
+  //
+  //      addAntecedents(Ant.toList) union addSuccedents(Suc.toList)
+  //    }
+  //  }
 
   def finishResolution(left: SequentProofNode, right: SequentProofNode, leftIsUnit: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
     try {
@@ -648,8 +763,8 @@ object FOLowerUnits
     val fixMap = fixProofNodes(units.toSet, proof, vars)
 
     def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
-//      println("left: " + left)
-//      println("right: " + right)
+      //      println("left: " + left)
+      //      println("right: " + right)
       try {
         contractAndUnify(left, right, vars)
       } catch {
@@ -661,10 +776,10 @@ object FOLowerUnits
       }
     }
 
-//    println("fixMap built")
-//        for (k <- fixMap.keySet) {
-//          println(k + " -----> " + fixMap.get(k))
-//        }
+    //    println("fixMap built")
+    //        for (k <- fixMap.keySet) {
+    //          println(k + " -----> " + fixMap.get(k))
+    //        }
 
     val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
