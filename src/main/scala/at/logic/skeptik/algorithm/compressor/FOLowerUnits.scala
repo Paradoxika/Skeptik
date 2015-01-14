@@ -579,11 +579,17 @@ desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c
 
       addAntecedents((temp.conclusion.ant.toList
         //        ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
-        ++ carryB.ant)) union addSuccedents(temp.conclusion.suc.toList)
+        ++ carryB.ant)) union addSuccedents(temp.conclusion.suc.toList ++ carryB.suc)
 
     } else if (carry != null && carryB == null) {
-      addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+      println("C")
+//      addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+//            addAntecedents((temp.conclusion.ant.toList ++ carry.ant)) union addSuccedents(temp.conclusion.suc.toList)
+            addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList ++ carry.suc.map(e => tempMGU((e))))
+
+
     } else {
+      println("D")
       addAntecedents(temp.conclusion.ant.toList) union addSuccedents(temp.conclusion.suc.toList)
     }
 
