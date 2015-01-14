@@ -151,7 +151,7 @@ trait CanRenameVariables extends FindsVars {
   def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
     case None => false
     case Some(u) => {
-      //      println(u)
+//            println(u)
       //      true
       occurCheck(p, u)
 

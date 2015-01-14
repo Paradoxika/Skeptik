@@ -220,8 +220,8 @@ object FOLowerUnits
                   println("caught for " + node)
                   println("fixed left: " + fixedLeft)
                   println("fixed right: " + fixedRight)
-                  //                  println(" (l: " + left + ")")
-                  //                  println(" (r: " + right + ")")
+                                    println(" (l: " + left + ")")
+                                    println(" (r: " + right + ")")
                   //
                   //                  println("nc: " + node.conclusion)
 
@@ -255,11 +255,10 @@ object FOLowerUnits
                   //                                    println("mguOld (left ): " + olderB)
 
                   val newFixedRight = fixedRight match {
-                    case Axiom(c) if olderA != null => {
+                    case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
                       new FOSubstitution(fixedRight, olderA)(vars)
                     }
-                    case _ if olderA != null => {
-                      //                      fixedRight
+                    case _ if (olderA != null && !fixedRight.equals(right)) => {
                       new FOSubstitution(fixedRight, olderA)(vars)
                     }
                     case _ => {
@@ -268,11 +267,10 @@ object FOLowerUnits
                   }
 
                   val newFixedLeft = fixedLeft match {
-                    case Axiom(c) if olderB != null => {
+                    case Axiom(c) if (olderB != null && !fixedLeft.equals(left))  => {
                       new FOSubstitution(fixedLeft, olderB)(vars)
                     }
-                    case _ if olderB != null => {
-                      //                      fixedLeft
+                    case _ if  (olderB != null && !fixedLeft.equals(left)) => {
                       new FOSubstitution(fixedLeft, olderB)(vars)
                     }
                     case _ => {
@@ -280,11 +278,14 @@ object FOLowerUnits
                     }
                   }
 
+                  val (leftMGU, rightMGU) = splitMGU(node, left, right)
+                  
                   //                  println("newFR: " + newFixedRight)
 
                   //                  try {
                   //                    val stuff = test3(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
-                  val stuff = test4(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
+//                  val stuff = test4(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
+                  val stuff = test5(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
 
                   val newGoalD = stuff._1
                   println("FINAL newGoalD: " + newGoalD)
@@ -298,7 +299,7 @@ object FOLowerUnits
                     case e: Exception => {
                       println("desperate... " + e.getMessage())
                       UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars)
-                      //                      UnifyingResolutionMRR(newFixedRight, newFixedLeft, newGoalD)(vars)
+//                      UnifyingResolutionMRR(newFixedRight, newFixedLeft, newGoalD)(vars)
                     }
                   }
 
@@ -309,7 +310,7 @@ object FOLowerUnits
 
                   println("3:" + stuff._3)
                   println("4:" + stuff._4)
-                  println("merged: " + unionSequents(stuff._3, stuff._4)) //adding a wrong carry
+                  println("merged: " + unionSequents(stuff._3, stuff._4)) 
 
                   carryMap.update(out, unionSequents(stuff._3, stuff._4))
                   //                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
@@ -396,6 +397,30 @@ object FOLowerUnits
     }
   }
 
+  def splitMGU(p: SequentProofNode, l: SequentProofNode, r: SequentProofNode): (Substitution, Substitution) = {
+    val ur = p.asInstanceOf[UnifyingResolution]
+    val lCleanVars = getSetOfVars(ur.leftClean)
+    val rVars = getSetOfVars(r)
+    
+    val oldMGU = ur.mgu
+    
+    val leftSubOutPairs = MSet[(Var, E)]()
+    val rightSubOutPairs = MSet[(Var, E)]()
+    
+    for(s <- oldMGU){
+      if (rVars.contains(s._1)){
+        rightSubOutPairs.add(s)
+      } else {
+        leftSubOutPairs.add(s)
+      }
+    }
+    
+    val lSubOut = Substitution(leftSubOutPairs.toList: _*)
+    val rSubOut = Substitution(rightSubOutPairs.toList: _*)
+    
+    (lSubOut, rSubOut)
+  }
+  
   //  def test3(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
   //    olderB: Substitution, oldGoal: Sequent, nodeMGU: Substitution, n: SequentProofNode)(implicit uVars: MSet[Var]): (Sequent, Substitution, Sequent, Sequent) = {
   //
@@ -491,55 +516,142 @@ object FOLowerUnits
   //    (outSeq, tempMGU, outA, outB)
   //  }
 
-  def test4(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
-    olderB: Substitution, oldGoal: Sequent, nodeMGU: Substitution, n: SequentProofNode)(implicit uVars: MSet[Var]): (Sequent, Substitution, Sequent, Sequent) = {
+//  def test4(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
+//    olderB: Substitution, oldGoal: Sequent, nodeMGU: Substitution, n: SequentProofNode)(implicit uVars: MSet[Var]): (Sequent, Substitution, Sequent, Sequent) = {
+//
+//    def removeOnce(s: Seq[E], e: E): Seq[E] = {
+//      if (s.size == 0) {
+//        return List[E]()
+//      }
+//      val h = s.head
+//      if (h.equals(e)) {
+//        s.tail
+//      } else {
+//        removeOnce(s.tail, e) ++ List[E](h)
+//      }
+//    }
+//
+//    def removeHalf(original: Seq[E], toRemove: Seq[E]): Seq[E] = {
+//      if (toRemove == null) {
+//        original
+//      }
+//      if (toRemove.size > 0) {
+//        removeHalf(removeOnce(original, toRemove.head), toRemove.tail)
+//      } else {
+//        original
+//      }
+//    }
+//
+//    var newNodeA = null.asInstanceOf[SequentProofNode]
+//    if (carry != null) {
+//      val newAnt = removeHalf(fr.conclusion.ant.map(e => older(e)), carry.ant.map(e => older(e)))
+//      val newSuc = removeHalf(fr.conclusion.suc.map(e => older(e)), carry.suc.map(e => older(e)))
+//      val newSeq = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+//      val newNode = Axiom(newSeq)
+//      newNodeA = newNode
+//    } else {
+//      newNodeA = fr
+//    }
+//    var newNodeB = null.asInstanceOf[SequentProofNode]
+//    if (carryB != null) {
+//      val newAntB = removeHalf(fl.conclusion.ant.map(e => olderB(e)), carryB.ant.map(e => olderB(e)))
+//      val newSucB = removeHalf(fl.conclusion.suc.map(e => olderB(e)), carryB.suc.map(e => olderB(e)))
+//      val newSeqB = addAntecedents(newAntB.toList) union addSuccedents(newSucB.toList)
+//      newNodeB = Axiom(newSeqB)
+//    } else {
+//      newNodeB = fl
+//    }
+//
+//    //    println("t3: resolution:")
+//    //    println("   " + newNodeB)
+//    //    println("   " + newNodeA)
+//
+//    val temp = n // UnifyingResolution(newNodeB, newNodeA, oldGoal)
+//
+//    val tempMGU = nodeMGU // temp.mgu
+//
+//    println("TEMP: " + temp)
+//    println("carry: " + carry)
+//    println("carrB: " + carryB)
+//    //    println("TEMP MGU: " + temp.mgu )
+//    //    println("new goal SHOULD HAVE " + temp.mgu(older(carry)))
+//
+//    val outSeq = if (carryB != null && carry != null) {
+//            addAntecedents(
+//              (temp.conclusion.ant.toList
+//                ++ carry.ant.map(e => tempMGU((e)))
+//                ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(
+//                (temp.conclusion.suc.toList
+//                  ++ carry.suc.map(e => tempMGU((e)))
+//                  ++ carryB.suc.map(e => tempMGU((e)))))
+////      println("A")
+////      addAntecedents(
+////        (temp.conclusion.ant.toList
+////          ++ carry.ant
+////          ++ carryB.ant)) union addSuccedents(
+////          (temp.conclusion.suc.toList
+////            ++ carry.suc
+////            ++ carryB.suc))
+//    } else if (carry == null && carryB != null) {
+//      println("B")
+//
+//      //TODO: investigate this. we get MUCH farther with the current (no tempMGU) setup
+//      //probably just need this conditionally or in other cases. on current test:
+//      /*
+//computed: (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) NEW1), (p2 U                 (f3 (f4 c11) c12)) ? (p2 NEW1 (f5 c14 c10))
+//desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c12) (f3 (f4 c11) c12)) ? (p2 W    (f5 c14 c10))
+//                   */
+//
+//      addAntecedents((temp.conclusion.ant.toList
+//                ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList ++ carryB.suc.map(e => tempMGU(e)))
+////        ++ carryB.ant)) union addSuccedents(temp.conclusion.suc.toList ++ carryB.suc)
+//
+//    } else if (carry != null && carryB == null) {
+//      println("C")
+//      //      addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
+//      //            addAntecedents((temp.conclusion.ant.toList ++ carry.ant)) union addSuccedents(temp.conclusion.suc.toList)
+//                  addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList ++ carry.suc.map(e => tempMGU((e))))
+////      addAntecedents(temp.conclusion.ant.toList ++ carry.ant) union addSuccedents(temp.conclusion.suc.toList ++ carry.suc)
+//      
+////       addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => older(e)).map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList ++ carry.suc.map(e => older(e)).map(e => tempMGU((e))))
+//
+//    } else {
+//      println("D")
+//      addAntecedents(temp.conclusion.ant.toList) union addSuccedents(temp.conclusion.suc.toList)
+//    }
+//
+//    //    println("final? : " +  outSeq)
+//
+//    var outB = null.asInstanceOf[Sequent]
+//    if (carryB != null) {
+////            val newAnt = carryB.ant.map(e => olderB(e)).map(e => tempMGU(e))
+////            val newSuc = carryB.suc.map(e => olderB(e)).map(e => tempMGU(e))
+//      
+//      val newAnt = carryB.ant.map(e => tempMGU(e))
+//      val newSuc = carryB.suc.map(e => tempMGU(e))
+//      outB = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+//    }
+//
+//    println("older: " + older)
+//    println("oldeB: " + olderB)
+//    println("tmp: " + tempMGU)
+//
+//    var outA = null.asInstanceOf[Sequent]
+//    if (carry != null) {
+////            val newAnt = carry.ant.map(e => older(e)).map(e => tempMGU(e))
+////            val newSuc = carry.suc.map(e => older(e)).map(e => tempMGU(e))
+//      
+//      val newAnt = carry.ant.map(e => tempMGU(e))
+//      val newSuc = carry.suc.map(e => tempMGU(e))
+//      outA = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+//    }
+//
+//    //    println("t3: mgu: " + tempMGU)
+//    (outSeq, tempMGU, outA, outB)
+//  }
 
-    def removeOnce(s: Seq[E], e: E): Seq[E] = {
-      if (s.size == 0) {
-        return List[E]()
-      }
-      val h = s.head
-      if (h.equals(e)) {
-        s.tail
-      } else {
-        removeOnce(s.tail, e) ++ List[E](h)
-      }
-    }
-
-    def removeHalf(original: Seq[E], toRemove: Seq[E]): Seq[E] = {
-      if (toRemove == null) {
-        original
-      }
-      if (toRemove.size > 0) {
-        removeHalf(removeOnce(original, toRemove.head), toRemove.tail)
-      } else {
-        original
-      }
-    }
-
-    var newNodeA = null.asInstanceOf[SequentProofNode]
-    if (carry != null) {
-      val newAnt = removeHalf(fr.conclusion.ant.map(e => older(e)), carry.ant.map(e => older(e)))
-      val newSuc = removeHalf(fr.conclusion.suc.map(e => older(e)), carry.suc.map(e => older(e)))
-      val newSeq = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-      val newNode = Axiom(newSeq)
-      newNodeA = newNode
-    } else {
-      newNodeA = fr
-    }
-    var newNodeB = null.asInstanceOf[SequentProofNode]
-    if (carryB != null) {
-      val newAntB = removeHalf(fl.conclusion.ant.map(e => olderB(e)), carryB.ant.map(e => olderB(e)))
-      val newSucB = removeHalf(fl.conclusion.suc.map(e => olderB(e)), carryB.suc.map(e => olderB(e)))
-      val newSeqB = addAntecedents(newAntB.toList) union addSuccedents(newSucB.toList)
-      newNodeB = Axiom(newSeqB)
-    } else {
-      newNodeB = fl
-    }
-
-    //    println("t3: resolution:")
-    //    println("   " + newNodeB)
-    //    println("   " + newNodeA)
+def test5(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
+    olderB: Substitution, oldGoal: Sequent, nodeMGU: Substitution, n: SequentProofNode, lMGU: Substitution, rMGU: Substitution)(implicit uVars: MSet[Var]): (Sequent, Substitution, Sequent, Sequent) = {
 
     val temp = n // UnifyingResolution(newNodeB, newNodeA, oldGoal)
 
@@ -552,42 +664,24 @@ object FOLowerUnits
     //    println("new goal SHOULD HAVE " + temp.mgu(older(carry)))
 
     val outSeq = if (carryB != null && carry != null) {
-//      addAntecedents(
-//        (temp.conclusion.ant.toList
-//          ++ carry.ant.map(e => tempMGU((e)))
-//          ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(
-//          (temp.conclusion.suc.toList
-//            ++ carry.suc.map(e => tempMGU((e)))
-//            ++ carryB.suc.map(e => tempMGU((e)))))
-      println("A")
-         addAntecedents(
-        (temp.conclusion.ant.toList
-          ++ carry.ant
-          ++ carryB.ant)) union addSuccedents(
-          (temp.conclusion.suc.toList
-            ++ carry.suc
-            ++ carryB.suc))
+            addAntecedents(
+              (temp.conclusion.ant.toList
+                ++ carry.ant.map(e => tempMGU((e)))
+                ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(
+                (temp.conclusion.suc.toList
+                  ++ carry.suc.map(e => tempMGU((e)))
+                  ++ carryB.suc.map(e => tempMGU((e)))))
+
     } else if (carry == null && carryB != null) {
       println("B")
 
-      //TODO: investigate this. we get MUCH farther with the current (no tempMGU) setup
-      //probably just need this conditionally or in other cases. on current test:
-      /*
-computed: (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) NEW1), (p2 U                 (f3 (f4 c11) c12)) ? (p2 NEW1 (f5 c14 c10))
-desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c12) (f3 (f4 c11) c12)) ? (p2 W    (f5 c14 c10))
-                   */
-
       addAntecedents((temp.conclusion.ant.toList
-        //        ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
-        ++ carryB.ant)) union addSuccedents(temp.conclusion.suc.toList ++ carryB.suc)
+                ++ carryB.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList ++ carryB.suc.map(e => tempMGU(e)))
 
     } else if (carry != null && carryB == null) {
       println("C")
-//      addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList)
-//            addAntecedents((temp.conclusion.ant.toList ++ carry.ant)) union addSuccedents(temp.conclusion.suc.toList)
-            addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList ++ carry.suc.map(e => tempMGU((e))))
-
-
+                  addAntecedents((temp.conclusion.ant.toList ++ carry.ant.map(e => tempMGU((e))))) union addSuccedents(temp.conclusion.suc.toList ++ carry.suc.map(e => tempMGU((e))))
+      
     } else {
       println("D")
       addAntecedents(temp.conclusion.ant.toList) union addSuccedents(temp.conclusion.suc.toList)
@@ -597,8 +691,9 @@ desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c
 
     var outB = null.asInstanceOf[Sequent]
     if (carryB != null) {
-      //      val newAnt = carryB.ant.map(e => olderB(e)).map(e => tempMGU(e))
-      //      val newSuc = carryB.suc.map(e => olderB(e)).map(e => tempMGU(e))
+//            val newAnt = carryB.ant.map(e => olderB(e)).map(e => tempMGU(e))
+//            val newSuc = carryB.suc.map(e => olderB(e)).map(e => tempMGU(e))
+      
       val newAnt = carryB.ant.map(e => tempMGU(e))
       val newSuc = carryB.suc.map(e => tempMGU(e))
       outB = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
@@ -610,8 +705,9 @@ desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c
 
     var outA = null.asInstanceOf[Sequent]
     if (carry != null) {
-      //      val newAnt = carry.ant.map(e => older(e)).map(e => tempMGU(e))
-      //      val newSuc = carry.suc.map(e => older(e)).map(e => tempMGU(e))
+//            val newAnt = carry.ant.map(e => older(e)).map(e => tempMGU(e))
+//            val newSuc = carry.suc.map(e => older(e)).map(e => tempMGU(e))
+      
       val newAnt = carry.ant.map(e => tempMGU(e))
       val newSuc = carry.suc.map(e => tempMGU(e))
       outA = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
@@ -619,16 +715,21 @@ desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c
 
     //    println("t3: mgu: " + tempMGU)
     (outSeq, tempMGU, outA, outB)
-  }
-
+  }  
+  
   //
   def findUnifiableFormula(f: E, seqHalf: Seq[E])(implicit uVars: MSet[Var]): MSet[E] = {
     val out = MSet[E]()
+    println("vars : " + uVars)
     for (sf <- seqHalf) {
+      println("f: " + f)
+      println("sf: " + sf)
       if (isUnifiable((f, sf))) {
+        //        println("X")
         out.add(sf)
       }
       if (isUnifiable((sf, f))) {
+        //        println("Y")
         out.add(sf)
       }
     }
@@ -752,6 +853,9 @@ desired:  (p2 c15 (f5 c14 c10)), (p2 (f3 (f4 c11) c12) W   ), (p2 (f3 (f4 c11) c
         }
       } else if (right.conclusion.ant.size > 0) {
         val rightUnit = right.conclusion.ant.head
+        //        println("ru: " + rightUnit)
+        //        println("lcs: " + left.conclusion.suc)
+        //        println("aaa: " + findUnifiableFormula(rightUnit, left.conclusion.suc))
         val toRemove = findUnifiableFormula(rightUnit, left.conclusion.suc).head
         val newAnt = left.conclusion.ant
         val newSuc = left.conclusion.suc.filter(_ != toRemove)
