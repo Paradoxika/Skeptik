@@ -606,6 +606,48 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       false
     }
   }
+  
+  
+    def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
+    assert(desiredFound(computed, desired))
+    if (computed == desired) {
+      return Substitution()
+    } else {
+      if (computed.logicalSize == desired.logicalSize) {
+        if (getSetOfVars(Axiom(computed)).size != getSetOfVars(Axiom(desired)).size) {
+          return null
+        }
+
+        val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
+
+        val antMap = generateSubstitutionOptions(computed.ant, desired.ant)
+        val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
+        val intersectedMap = intersectMaps(antMap, sucMap)
+
+        if (!validMap(intersectedMap, commonVars)) {
+          return null
+        }
+        if (checkHalf(computed.ant.distinct, desired.ant.distinct)) {
+          if (checkHalf(computed.suc.distinct, desired.suc.distinct)) {
+            println("inteMap: " + intersectedMap)
+            
+            val iMapKeys = intersectedMap.keySet
+            val subSet = MSet[(Var, E)]()
+            
+            for(k <- iMapKeys){
+              //TODO: what if there's more than one?
+              val p = (k, intersectedMap.get(k).get.toList.head)
+              subSet.add(p)
+            }
+            return Substitution(subSet.toList: _*)
+          }
+        }
+      }
+      null
+    }
+  }
+  
+  
 
   def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
