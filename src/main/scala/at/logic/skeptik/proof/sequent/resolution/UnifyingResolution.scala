@@ -152,7 +152,7 @@ trait CanRenameVariables extends FindsVars {
     case None => false
     case Some(u) => {
 //            println(u)
-      //      true
+//            true
       occurCheck(p, u)
 
     }
@@ -661,9 +661,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
 
       val (auxL, auxR) = pairs(0)
 
-//      println("trying ")
-//      println(auxL)
-//      println(auxR)
+      println("trying ")
+      println(auxL)
+      println(auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
