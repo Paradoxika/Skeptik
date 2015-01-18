@@ -73,7 +73,13 @@ object FOLowerUnits
         }
 
         if (checkListUnif(listOfUnits, vars)) {
-          node :: acc
+          if(checkContraction(listOfUnits, vars, node)){
+//            println("node ::: " + node)
+            node :: acc
+          } else {
+//          node :: acc
+            acc
+          }
         } else {
           acc
         }
@@ -89,6 +95,29 @@ object FOLowerUnits
     (unitsList, vars)
   }
 
+  def checkContraction(listOfUnits: List[E], vars: MSet[Var], node: SequentProofNode): Boolean = {
+    val newSeq = addAntecedents(listOfUnits)
+    val con = Contraction(Axiom(newSeq))(vars)
+    println("newSeq? " + newSeq)
+    println("con? " + con)
+    
+    val unitFormula = if(node.conclusion.ant.size > 0) {
+      node.conclusion.ant.head
+    } else {
+      node.conclusion.suc.head
+    }
+    
+    for(conForm <- con.conclusion.ant) {
+      println("conform: " + conForm)
+      println("unitform: " + unitFormula)
+      if(!isUnifiable((conForm, unitFormula))(vars)){
+        return false
+      }
+    }
+    
+    true
+  }
+  
   def getUnitLiteral(seq: Sequent, unit: Sequent, vars: MSet[Var]) = {
     //    println("checking for " + unit + " in " + seq)
     if (unit.ant.length > 0) {
