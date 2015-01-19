@@ -38,10 +38,28 @@ object FOLowerUnits
   def getUnitLiteralUsingAux(p: SequentProofNode, u: SequentProofNode, node: SequentProofNode, vars: MSet[Var]) = {
     //TODO: support nodes with 3+ premises? Or just more than UR in general?
     
-    val premise = node.premises.filter(_ != u).head 
+//    val premise = node.premises.filter(_ != u).head 
+    
+    println(" u " + u)
+    println(" p? " + p)
+    println(" node? " + node.asInstanceOf[UnifyingResolution])
+    
+    val cleanMGU = if(!node.asInstanceOf[UnifyingResolution].leftPremise.equals(u)){
+      val newVars = vars union getSetOfVars(node.asInstanceOf[UnifyingResolution].leftClean)
+      println(newVars + " nv ")
+//      findRenaming(node.asInstanceOf[UnifyingResolution].leftPremise.conclusion, 
+//          node.asInstanceOf[UnifyingResolution].leftClean.conclusion)(newVars)
+            findRenaming(node.asInstanceOf[UnifyingResolution].leftClean.conclusion,
+                node.asInstanceOf[UnifyingResolution].leftPremise.conclusion)(newVars)
+
+    } else {
+      Substitution()
+    }
+    
+    println("CLEAN MGU? " + cleanMGU + " vars " + vars)
     
     if(u.conclusion.ant.size > 0){
-      node.asInstanceOf[UnifyingResolution].auxL
+      cleanMGU(node.asInstanceOf[UnifyingResolution].auxL)
     } else {
       node.asInstanceOf[UnifyingResolution].auxR
     }
@@ -109,12 +127,12 @@ object FOLowerUnits
 
         println("vars?" + vars)
         if (checkListUnif(listOfUnits, vars)) {
-//          if(checkContraction(listOfUnits, vars, node)){
-//            node :: acc
-//          } else {
-//            acc
-//          }
-          node :: acc
+          if(checkContraction(listOfUnits, vars, node)){
+            node :: acc
+          } else {
+            acc
+          }
+//          node :: acc
         } else {
           acc
         }

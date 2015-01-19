@@ -30,12 +30,11 @@ object MartelliMontanari {
         case (v1: Var, v2: Var) if (v1 == v2) => eqs = eqs.tail
         case (v: Var, e: E) if variables contains v => {
           // without occur-check
-
           val sub = Substitution(v -> e)
           for (p <- mgu) {
             mgu.update(p._1, sub(p._2))
           }
-          mgu += (v -> e)
+	      mgu += (v -> e)
           eqs = for (eq <- eqs.tail) yield {
             (sub(eq._1), sub(eq._2))
           }
