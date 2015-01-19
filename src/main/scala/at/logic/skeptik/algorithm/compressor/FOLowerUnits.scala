@@ -40,13 +40,13 @@ object FOLowerUnits
     
 //    val premise = node.premises.filter(_ != u).head 
     
-    println(" u " + u)
-    println(" p? " + p)
-    println(" node? " + node.asInstanceOf[UnifyingResolution])
+//    println(" u " + u)
+//    println(" p? " + p)
+//    println(" node? " + node.asInstanceOf[UnifyingResolution])
     
     val cleanMGU = if(!node.asInstanceOf[UnifyingResolution].leftPremise.equals(u)){
       val newVars = vars union getSetOfVars(node.asInstanceOf[UnifyingResolution].leftClean)
-      println(newVars + " nv ")
+//      println(newVars + " nv ")
 //      findRenaming(node.asInstanceOf[UnifyingResolution].leftPremise.conclusion, 
 //          node.asInstanceOf[UnifyingResolution].leftClean.conclusion)(newVars)
             findRenaming(node.asInstanceOf[UnifyingResolution].leftClean.conclusion,
@@ -56,7 +56,7 @@ object FOLowerUnits
       Substitution()
     }
     
-    println("CLEAN MGU? " + cleanMGU + " vars " + vars)
+//    println("CLEAN MGU? " + cleanMGU + " vars " + vars)
     
     if(u.conclusion.ant.size > 0){
       cleanMGU(node.asInstanceOf[UnifyingResolution].auxL)
@@ -86,16 +86,16 @@ object FOLowerUnits
         //This gets the child of the unit, but really we want the other parent of the child of the unit.
         //so we do the following:
         val childrensParentsConclusionsSeqSeq = for (c <- children) yield {
-          println("C ?? " + c)
+//          println("C ?? " + c)
           val parentsConclusions = for (p <- c.premises) yield {
             //Picks out (all) u_k in c_k
-            println("all premises yo? " + p)
+//            println("all premises yo? " + p)
             
             val oo = getUnitLiteralUsingAux(p, node, c, vars)
             
             val o = getUnitLiteral(p.conclusion, node.conclusion, vars) //TODO: change this? use aux formula?
-            println("ulbetter? " + oo)
-                        println("ul: " + o)
+//            println("ulbetter? " + oo)
+//                        println("ul: " + o)
             
             Seq[E](oo)
 //            o
@@ -125,7 +125,7 @@ object FOLowerUnits
           vars += v
         }
 
-        println("vars?" + vars)
+//        println("vars?" + vars)
         if (checkListUnif(listOfUnits, vars)) {
           if(checkContraction(listOfUnits, vars, node)){
             node :: acc
@@ -152,7 +152,18 @@ object FOLowerUnits
   def checkContraction(listOfUnits: List[E], vars: MSet[Var], node: SequentProofNode): Boolean = {
     println("units? ? " + listOfUnits)
     val newSeq = addAntecedents(listOfUnits)
-    val con = Contraction(Axiom(newSeq))(vars)
+    
+//    val con = Contraction(Axiom(newSeq))(vars)
+    val con = try {
+      Contraction(Axiom(newSeq))(vars) 
+    } catch {
+      case e: Exception => { null }
+    }
+    
+    if (con == null) {
+      return false
+    }
+    
     println("newSeq? " + newSeq)
     println("con? " + con)
     
@@ -711,7 +722,10 @@ object FOLowerUnits
         }
       } else {
         //both are non-units
-        UnifyingResolution(left, right)(vars)
+        val contractedL = Contraction(left)(vars)
+        val contractedR = Contraction(right)(vars)
+        
+        UnifyingResolution(contractedL, contractedR)(vars)
       }
     }
   }

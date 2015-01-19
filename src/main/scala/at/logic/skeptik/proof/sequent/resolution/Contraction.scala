@@ -141,6 +141,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     println("con called??!")
     
     def occurCheck(p: (E, E), u: Substitution): Boolean = {
+//      println ("in oc?")
       val first = p._1
       val second = p._2
 
@@ -172,15 +173,20 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       }
     }
     def isUnifiableWrapper(p: (E, E)) = {
-      isUnifiable(p)(unifiableVariables) && !(p._1.equals(p._2))
+//      println("aa " + p)
+      val outa = isUnifiable(p)(unifiableVariables)// && 
+//      println("bb")
+      val outb = !(p._1.equals(p._2))
+//      println("cc")
+      outa && outb
     }
 
-    println("aasa")
-    //TODO: somewhere in the next too lines. Presumable a unify is looping forever. 
+//    println("aasa")
+    //TODO: somewhere in the next too lines. Presumably a unify is looping forever. 
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
-    println(".,..")
+//    println(".,..")
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
 
@@ -196,15 +202,13 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
         }
       }
 
-      println("0 " + sub)
       val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
       val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
-println("1")
+
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)
       val seqOut = sS union sA
 
-      println("before recursive call " + seqOut)
       contract(seqOut)
     } else {
       (seq.ant.distinct, seq.suc.distinct)
