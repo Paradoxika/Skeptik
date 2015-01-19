@@ -32,10 +32,32 @@ object FOLowerUnits
         out = out ++ inner
       }
     }
-
     out.distinct
   }
 
+  def getUnitLiteralUsingAux(p: SequentProofNode, u: SequentProofNode, node: SequentProofNode, vars: MSet[Var]) = {
+    //TODO: support nodes with 3+ premises? Or just more than UR in general?
+    
+    val premise = node.premises.filter(_ != u).head 
+    
+    if(u.conclusion.ant.size > 0){
+      node.asInstanceOf[UnifyingResolution].auxL
+    } else {
+      node.asInstanceOf[UnifyingResolution].auxR
+    }
+  }
+  
+  def getAuxVars(listOfUnits: List[E]) = {
+    val out = MSet[Var]()
+    for(e <- listOfUnits) {
+      val eVars = getSetOfVars(e)
+      for(v <- eVars){
+        out.add(v)
+      }
+    }
+    out
+  }
+  
   def collectUnits(proof: Proof[SequentProofNode]) = {
     val vars = MSet[Var]()
     val unitsList = (proof :\ (Nil: List[SequentProofNode])) { (node, acc) =>
@@ -46,11 +68,19 @@ object FOLowerUnits
         //This gets the child of the unit, but really we want the other parent of the child of the unit.
         //so we do the following:
         val childrensParentsConclusionsSeqSeq = for (c <- children) yield {
+          println("C ?? " + c)
           val parentsConclusions = for (p <- c.premises) yield {
             //Picks out (all) u_k in c_k
-            val o = getUnitLiteral(p.conclusion, node.conclusion, vars) //
-            //            println("ul: " + o)
-            o
+            println("all premises yo? " + p)
+            
+            val oo = getUnitLiteralUsingAux(p, node, c, vars)
+            
+            val o = getUnitLiteral(p.conclusion, node.conclusion, vars) //TODO: change this? use aux formula?
+            println("ulbetter? " + oo)
+                        println("ul: " + o)
+            
+            Seq[E](oo)
+//            o
 
           }
           val varsC = getSetOfVars(c)
@@ -66,20 +96,25 @@ object FOLowerUnits
 
         val listOfUnits = cleanUpLists(childrensParentsConclusionsSeqSeq)
 
-        //        println("L of U: " + listOfUnits)
+                println("L of U: " + listOfUnits) //TODO: list of units is incorrect. see above
         val varsN = getSetOfVars(node)
         for (v <- varsN) {
           vars += v
         }
+        
+        val auxVars = getAuxVars(listOfUnits)
+        for(v <- auxVars) {
+          vars += v
+        }
 
+        println("vars?" + vars)
         if (checkListUnif(listOfUnits, vars)) {
-          if(checkContraction(listOfUnits, vars, node)){
-//            println("node ::: " + node)
-            node :: acc
-          } else {
-//          node :: acc
-            acc
-          }
+//          if(checkContraction(listOfUnits, vars, node)){
+//            node :: acc
+//          } else {
+//            acc
+//          }
+          node :: acc
         } else {
           acc
         }
@@ -95,7 +130,9 @@ object FOLowerUnits
     (unitsList, vars)
   }
 
+  //TODO: causing loops. bad. fix.
   def checkContraction(listOfUnits: List[E], vars: MSet[Var], node: SequentProofNode): Boolean = {
+    println("units? ? " + listOfUnits)
     val newSeq = addAntecedents(listOfUnits)
     val con = Contraction(Axiom(newSeq))(vars)
     println("newSeq? " + newSeq)

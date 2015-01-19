@@ -17,12 +17,12 @@ object MartelliMontanari {
 
       //      println("mgu: " + mgu)
 
-      counter = counter + 1
-      //      if (counter > 100) { //10 is too small.
-      //        println("counter maxed out")
-      //        return None
-      //        println("mgu: " + mgu)
-      //      }
+//      counter = counter + 1
+//            if (counter > 100) { //10 is too small.
+//              println("counter maxed out")
+//              return None
+//              println("mgu: " + mgu)
+//            }
 
       eqs.head match {
         case (App(f1, a1), App(f2, a2)) => eqs = Seq((f1, f2), (a1, a2)) ++ eqs.tail

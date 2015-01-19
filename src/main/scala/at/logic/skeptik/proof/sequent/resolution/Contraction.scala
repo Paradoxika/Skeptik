@@ -37,6 +37,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     if (desired.logicalSize == 0) {
       contract(premise)
     } else {
+      println("what")
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
       if (!desiredFound(premiseDistinct, desiredDistinct)) {
@@ -137,6 +138,8 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
   def contract(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
 
+    println("con called??!")
+    
     def occurCheck(p: (E, E), u: Substitution): Boolean = {
       val first = p._1
       val second = p._2
@@ -172,27 +175,36 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       isUnifiable(p)(unifiableVariables) && !(p._1.equals(p._2))
     }
 
+    println("aasa")
+    //TODO: somewhere in the next too lines. Presumable a unify is looping forever. 
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
-//    println(finalUnifiablePairsList)
+    println(".,..")
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
 
       val sub = unify(p :: Nil)(unifiableVariables) match {
         case None => throw new Exception("Contraction failed.")
         case Some(u) => {
+//          if(occurCheck(p, u)){
+//            u 
+//          } else {
+//            Substitution()
+//          }
           u
         }
       }
 
+      println("0 " + sub)
       val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
       val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
-
+println("1")
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)
       val seqOut = sS union sA
 
+      println("before recursive call " + seqOut)
       contract(seqOut)
     } else {
       (seq.ant.distinct, seq.suc.distinct)
