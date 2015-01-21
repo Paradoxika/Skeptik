@@ -609,6 +609,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
   
   
     def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
+    println("C: " + computed)
+    println("D: " + desired)
     assert(desiredFound(computed, desired))
     if (computed == desired) {
       return Substitution()

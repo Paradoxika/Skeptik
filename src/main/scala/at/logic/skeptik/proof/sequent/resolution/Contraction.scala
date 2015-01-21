@@ -37,7 +37,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     if (desired.logicalSize == 0) {
       contract(premise)
     } else {
-      println("what")
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
       if (!desiredFound(premiseDistinct, desiredDistinct)) {
