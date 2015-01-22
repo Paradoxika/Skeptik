@@ -313,14 +313,15 @@ object FOLowerUnits
       val fixedP = node match {
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
-          //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-          //          println("using " + fixedRight + " for " + node.conclusion)
+//                    println("unitset must have cotained one of " + left + " or " + right + " for " + node)
+                    println("using " + fixedRight + " for " + node.conclusion)
           //          println(fixedRight + " --r> " + node.asInstanceOf[UnifyingResolution].auxR)
           println("XX")
           carryMap.update(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
           //          addToMap(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
           addCarryToMapList(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
           mguMap.update(fixedRight, node.asInstanceOf[UnifyingResolution].mgu)
+          println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedRight)
           fixedRight
         }
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => {
@@ -332,7 +333,7 @@ object FOLowerUnits
           //          addToMap(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           addCarryToMapList(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           mguMap.update(fixedLeft, node.asInstanceOf[UnifyingResolution].mgu)
-
+println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedLeft)
           fixedLeft
         }
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
@@ -340,25 +341,42 @@ object FOLowerUnits
           //          println("attempting to resolve the following:")
           //          println(node.conclusion)
 
+                  println("caught for " + node)
+                  println("fixed left: " + fixedLeft)
+                  println("fixed right: " + fixedRight)
+                  println(" (l: " + left + ")")
+                  println(" (r: " + right + ")")   
+                  println(" (lc: " + node.asInstanceOf[UnifyingResolution].leftClean)
+//                  println("mgu: " + node.asInstanceOf[UnifyingResolution].mgu)
+//          fixedLeft.e
           try {
-            UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
+            //TODO: in this case, we're not updating carries or mgus. I think this is the problem
+            println("IT IS HERE?" + vars)
+            val outMRR = if(fixedLeft.equals(left) && fixedRight.equals(right)){
+              println("case a")
+              val outMRRa = UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
+              println(findRenaming(outMRRa.conclusion, node.conclusion)(vars))
+              outMRRa
+              } else {
+                println("case b")
+                val urMRRout = UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
+                urMRRout
+              }
+            outMRR
+//            UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
           } catch {
             case e: Exception => {
               if (e.getMessage != null) {
                 if (e.getMessage.equals("Resolution (MRR): the resolvent is ambiguous.")) {
 
-                  println("caught for " + node)
-                  println("fixed left: " + fixedLeft)
-                  println("fixed right: " + fixedRight)
-                  println(" (l: " + left + ")")
-                  println(" (r: " + right + ")")
+
                   //
                   //                  println("nc: " + node.conclusion)
 
-                  val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
-                  val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
-                  println("auxL: " + oAuxL)
-                  println("auxR: " + oAuxR)
+//                  val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
+//                  val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
+//                  println("auxL: " + oAuxL)
+//                  println("auxR: " + oAuxR)
                   val oMGU = node.asInstanceOf[UnifyingResolution].mgu
                   //                  println("omgu: " + oMGU)
 
@@ -579,8 +597,8 @@ object FOLowerUnits
         try {
           println("checking the following left carry: " + leftCarry)
           println("checking the following right carry: " + rightCarry)
-          val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
-          val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
+//          val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
+//          val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
           //                  println("auxL: " + oAuxL)
           //                  println("auxR: " + oAuxR)
           val oMGU = node.asInstanceOf[UnifyingResolution].mgu
@@ -1018,7 +1036,7 @@ object FOLowerUnits
     val collected = collectUnits(proof)
 
     val units = collected._1
-    val vars = collected._2
+    val varsC = collected._2
 
     println("lowerable units are: " + units)
 
@@ -1026,18 +1044,18 @@ object FOLowerUnits
       return proof
     }
 
-    val fixMap = fixProofNodes(units.toSet, proof, vars)
+    val fixMap = fixProofNodes(units.toSet, proof, varsC)
 
-    def placeLoweredResolution(left: SequentProofNode, right: SequentProofNode) = {
+    def placeLoweredResolution(leftN: SequentProofNode, rightN: SequentProofNode) = {
       //      println("left: " + left)
       //      println("right: " + right)
       try {
-        contractAndUnify(left, right, vars)
+        contractAndUnify(leftN, rightN, varsC)
       } catch {
         case e: Exception => {
           e.printStackTrace()
 
-          contractAndUnify(right, left, vars)
+          contractAndUnify(rightN, leftN, varsC)
         }
       }
     }

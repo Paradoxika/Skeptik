@@ -31,9 +31,12 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
+    println("wat? " + premise)
+    println("desired? " + desired)
     if (premise.logicalSize > 0) {
       require(premise.logicalSize > desired.logicalSize)
     }
+    
     if (desired.logicalSize == 0) {
       contract(premise)
     } else {
@@ -42,6 +45,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       if (!desiredFound(premiseDistinct, desiredDistinct)) {
         desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
       }
+      println("..")
       (desired.ant, desired.suc)
     }
   }
@@ -135,10 +139,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     tempMap
   }
 
-  def contract(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
-
-    println("con called??!")
-    
+  def contract(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {    
     def occurCheck(p: (E, E), u: Substitution): Boolean = {
 //      println ("in oc?")
       val first = p._1
