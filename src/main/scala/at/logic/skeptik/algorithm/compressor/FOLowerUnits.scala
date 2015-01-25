@@ -313,8 +313,8 @@ object FOLowerUnits
       val fixedP = node match {
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
-//                    println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-                    println("using " + fixedRight + " for " + node.conclusion)
+          //                    println("unitset must have cotained one of " + left + " or " + right + " for " + node)
+          println("using " + fixedRight + " for " + node.conclusion)
           //          println(fixedRight + " --r> " + node.asInstanceOf[UnifyingResolution].auxR)
           println("XX")
           carryMap.update(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
@@ -333,7 +333,7 @@ object FOLowerUnits
           //          addToMap(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           addCarryToMapList(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           mguMap.update(fixedLeft, node.asInstanceOf[UnifyingResolution].mgu)
-println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedLeft)
+          println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedLeft)
           fixedLeft
         }
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
@@ -341,42 +341,53 @@ println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " fo
           //          println("attempting to resolve the following:")
           //          println(node.conclusion)
 
-                  println("caught for " + node)
-                  println("fixed left: " + fixedLeft)
-                  println("fixed right: " + fixedRight)
-                  println(" (l: " + left + ")")
-                  println(" (r: " + right + ")")   
-                  println(" (lc: " + node.asInstanceOf[UnifyingResolution].leftClean)
-//                  println("mgu: " + node.asInstanceOf[UnifyingResolution].mgu)
-//          fixedLeft.e
+          println("caught for " + node)
+          println("fixed left: " + fixedLeft)
+          println("fixed right: " + fixedRight)
+          println(" (l: " + left + ")")
+          println(" (r: " + right + ")")
+          println(" (lc: " + node.asInstanceOf[UnifyingResolution].leftClean)
+          //                  println("mgu: " + node.asInstanceOf[UnifyingResolution].mgu)
+          //          fixedLeft.e
           try {
             //TODO: in this case, we're not updating carries or mgus. I think this is the problem
             println("IT IS HERE?" + vars)
-            val outMRR = if(fixedLeft.equals(left) && fixedRight.equals(right)){
+            val outMRR = if (fixedLeft.equals(left) && fixedRight.equals(right)) {
               println("case a")
               val outMRRa = UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
               println(findRenaming(outMRRa.conclusion, node.conclusion)(vars))
+              mguMap.update(outMRRa, node.asInstanceOf[UnifyingResolution].mgu)
               outMRRa
-              } else {
-                println("case b")
-                val urMRRout = UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
-                urMRRout
+            } else {
+              println("case b")
+              val urMRRout = UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
+              var temp = urMRRout
+              while (temp.isInstanceOf[Contraction]) {
+                temp = temp.asInstanceOf[Contraction].premise
               }
+              mguMap.update(urMRRout, temp.asInstanceOf[UnifyingResolution].mgu)
+              urMRRout
+            }
             outMRR
-//            UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
+            //            UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
           } catch {
             case e: Exception => {
               if (e.getMessage != null) {
                 if (e.getMessage.equals("Resolution (MRR): the resolvent is ambiguous.")) {
 
+                  if (desiredFound(fixedLeft.conclusion, left.conclusion)(vars) &&
+                    desiredFound(fixedRight.conclusion, right.conclusion)(vars)) {
+                    //TODO: update maps in this case?
+                    return UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
+                  }
 
                   //
                   //                  println("nc: " + node.conclusion)
 
-//                  val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
-//                  val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
-//                  println("auxL: " + oAuxL)
-//                  println("auxR: " + oAuxR)
+                  //                  val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
+                  //                  val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
+                  //                  println("auxL: " + oAuxL)
+                  //                  println("auxR: " + oAuxR)
                   val oMGU = node.asInstanceOf[UnifyingResolution].mgu
                   //                  println("omgu: " + oMGU)
 
@@ -385,7 +396,7 @@ println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " fo
                   //                  println("oldLeftClean.conclusion " + oldLeftClean.conclusion)
                   //                  println("left.conclusion " + left.conclusion)
                   //                  println("cleanMGU?? " + cleanMGU)
-                  println("cma[p: " + carryMap)
+                  println(" caught -- cmap: " + carryMap)
                   val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
                     carryMap.get(fixedRight).get
                   } else { null }
@@ -469,6 +480,37 @@ println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " fo
 
                   //                    val out = UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars)
 
+                  var outAfterContraction = out
+                  val outContracted = Contraction(out)(vars)
+                  val newSize = (outContracted.conclusion.ant.size + outContracted.conclusion.suc.size)
+                  val oldSize = (out.conclusion.ant.size + out.conclusion.suc.size)
+                  var contracted = false
+                  if (newSize < oldSize) {
+                    outAfterContraction = outContracted
+                    contracted = true
+                  }
+                  
+                  println("out: " + out.conclusion)
+                  println("ouc: " + outAfterContraction.conclusion)
+                  println("newgoal: " + newGoalD)
+                  
+                  val contractedGoal = if(!contracted) {
+                    if(newGoalIfDesperate == null){
+                      newGoalD
+                    } else {
+                      newGoalIfDesperate
+                    }
+                  } else {
+                    if(newGoalIfDesperate == null){
+                      println("-")
+                      Contraction(Axiom(out.conclusion ))(vars).conclusion 
+                    } else {
+                      println("+")
+                      Contraction(Axiom(newGoalIfDesperate))(vars).conclusion
+                    }                    
+                  }
+                  println(" --- " + contractedGoal)
+
                   println("FINAL COMPUTED: " + out.conclusion)
 
                   println("3:" + stuff._3)
@@ -483,10 +525,15 @@ println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " fo
 
                   //TODO: if using all carries method, check that the maps are not trashed. 
                   //Or the merged carries for this new node. Etc.
+
                   val cleanMGU = if (newGoalIfDesperate == null) {
-                    findRenaming(newGoalD, out.conclusion)(vars)
+//                    findRenaming(newGoalD, out.conclusion)(vars)
+                    findRenaming(contractedGoal, outAfterContraction.conclusion)(vars)
+
                   } else {
-                    findRenaming(newGoalIfDesperate, out.conclusion)(vars)
+//                    findRenaming(newGoalIfDesperate, out.conclusion)(vars)
+                    findRenaming(contractedGoal, outAfterContraction.conclusion)(vars)
+                    
                   }
 
                   println("newGoalD " + newGoalD)
@@ -513,15 +560,21 @@ println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " fo
 
                   println("putting " + testCarry + " on the map for " + out)
                   println("CM: before: " + carryMap)
-                  carryMap.update(out, testCarry)
-                  addCarryToMapList(out, testCarry)
+                  //                  carryMap.update(out, testCarry)
+                  //                  addCarryToMapList(out, testCarry)
+
+                  carryMap.update(outAfterContraction, testCarry)
+                  addCarryToMapList(outAfterContraction, testCarry)
                   println("CM: after: " + carryMap)
                   //                  carryMap.update(out, mergedCarry)
 
                   //                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
                   println("BUT SAID: " + stuff._2)
-                  mguMap.update(out, stuff._2)
-                  out
+                  mguMap.update(outAfterContraction, stuff._2)
+
+                  //                  mguMap.update(out, stuff._2)
+                  //                  out
+                  outAfterContraction
 
                 } else {
                   println("compression failed - A - " + e.getMessage())
@@ -583,11 +636,21 @@ println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " fo
     //                  println("nc: " + node.conclusion)
 
     println("Trying all.")
-    println("this list: " + (carryMap.get(fixedLeft) ++ List[E](null.asInstanceOf[E])))
-    println("this list: " + carryMap.get(fixedRight))
 
-    val finalLeftCarries = (carryMap.get(fixedLeft).get ++ List[Sequent](null.asInstanceOf[Sequent]))
-    val finalRightCarries = (carryMap.get(fixedRight).get ++ List[Sequent](null.asInstanceOf[Sequent]))
+    val leftCarryList = if (!carryMap.get(fixedLeft).isEmpty) {
+      carryMap.get(fixedLeft).get
+    } else {
+      List[Sequent]()
+    }
+
+    val rightCarryList = if (!carryMap.get(fixedRight).isEmpty) {
+      carryMap.get(fixedRight).get
+    } else {
+      List[Sequent]()
+    }
+
+    val finalLeftCarries = (leftCarryList ++ List[Sequent](null.asInstanceOf[Sequent]))
+    val finalRightCarries = (rightCarryList ++ List[Sequent](null.asInstanceOf[Sequent]))
 
     var finalOut = null.asInstanceOf[SequentProofNode]
     var finalGoal = null.asInstanceOf[Sequent]
@@ -597,8 +660,8 @@ println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " fo
         try {
           println("checking the following left carry: " + leftCarry)
           println("checking the following right carry: " + rightCarry)
-//          val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
-//          val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
+          //          val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
+          //          val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
           //                  println("auxL: " + oAuxL)
           //                  println("auxR: " + oAuxR)
           val oMGU = node.asInstanceOf[UnifyingResolution].mgu

@@ -689,7 +689,6 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
           new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
         }
       }
-      println("ok?")
       val computedSequent = computedResolution.conclusion.toSeqSequent
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
 //
