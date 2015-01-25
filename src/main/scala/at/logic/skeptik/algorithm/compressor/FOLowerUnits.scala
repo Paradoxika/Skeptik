@@ -471,8 +471,17 @@ object FOLowerUnits
                       //                                            UnifyingResolutionMRR(newFixedRight, newFixedLeft, newGoalD)(vars)
 
                       val triedAll = tryToResolveUsingAllCarrys(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars)
-                      newGoalIfDesperate = triedAll._2
-                      triedAll._1
+                                            val carriesOut = if (triedAll._1 == null) {
+                                              val triedCon = tryToResolveUsingAllCarrysAndContraction(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars)
+                                              newGoalIfDesperate = triedCon._2
+                                              triedCon._1
+                                            } else {
+                                              newGoalIfDesperate = triedAll._2
+                                              triedAll._1
+                                            }
+                                            carriesOut
+//                      newGoalIfDesperate = triedAll._2
+//                      triedAll._1
                     }
                   }
 
@@ -489,25 +498,25 @@ object FOLowerUnits
                     outAfterContraction = outContracted
                     contracted = true
                   }
-                  
+
                   println("out: " + out.conclusion)
                   println("ouc: " + outAfterContraction.conclusion)
                   println("newgoal: " + newGoalD)
-                  
-                  val contractedGoal = if(!contracted) {
-                    if(newGoalIfDesperate == null){
+
+                  val contractedGoal = if (!contracted) {
+                    if (newGoalIfDesperate == null) {
                       newGoalD
                     } else {
                       newGoalIfDesperate
                     }
                   } else {
-                    if(newGoalIfDesperate == null){
+                    if (newGoalIfDesperate == null) {
                       println("-")
-                      Contraction(Axiom(out.conclusion ))(vars).conclusion 
+                      Contraction(Axiom(out.conclusion))(vars).conclusion
                     } else {
                       println("+")
                       Contraction(Axiom(newGoalIfDesperate))(vars).conclusion
-                    }                    
+                    }
                   }
                   println(" --- " + contractedGoal)
 
@@ -527,13 +536,13 @@ object FOLowerUnits
                   //Or the merged carries for this new node. Etc.
 
                   val cleanMGU = if (newGoalIfDesperate == null) {
-//                    findRenaming(newGoalD, out.conclusion)(vars)
-                    findRenaming(contractedGoal, outAfterContraction.conclusion)(vars)
+                    findRenaming(newGoalD, out.conclusion)(vars)
+                    //                    findRenaming(contractedGoal, outAfterContraction.conclusion)(vars)
 
                   } else {
-//                    findRenaming(newGoalIfDesperate, out.conclusion)(vars)
-                    findRenaming(contractedGoal, outAfterContraction.conclusion)(vars)
-                    
+                    findRenaming(newGoalIfDesperate, out.conclusion)(vars)
+                    //                    findRenaming(contractedGoal, outAfterContraction.conclusion)(vars)
+
                   }
 
                   println("newGoalD " + newGoalD)
@@ -560,21 +569,21 @@ object FOLowerUnits
 
                   println("putting " + testCarry + " on the map for " + out)
                   println("CM: before: " + carryMap)
-                  //                  carryMap.update(out, testCarry)
-                  //                  addCarryToMapList(out, testCarry)
+                  carryMap.update(out, testCarry)
+                  addCarryToMapList(out, testCarry)
 
-                  carryMap.update(outAfterContraction, testCarry)
-                  addCarryToMapList(outAfterContraction, testCarry)
+                  //                  carryMap.update(outAfterContraction, testCarry)
+                  //                  addCarryToMapList(outAfterContraction, testCarry)
                   println("CM: after: " + carryMap)
                   //                  carryMap.update(out, mergedCarry)
 
                   //                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
                   println("BUT SAID: " + stuff._2)
-                  mguMap.update(outAfterContraction, stuff._2)
+                  //                  mguMap.update(outAfterContraction, stuff._2)
+                  mguMap.update(out, stuff._2)
 
-                  //                  mguMap.update(out, stuff._2)
-                  //                  out
-                  outAfterContraction
+                  out
+                  //                  outAfterContraction
 
                 } else {
                   println("compression failed - A - " + e.getMessage())
@@ -783,6 +792,124 @@ object FOLowerUnits
 
           //                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
           //                  println("BUT SAID: " + stuff._2)
+          mguMap.update(out, stuff._2)
+          println("LOOP ITERATION SUCCESFUL")
+
+          if (finalOut == null) {
+            finalOut = out
+            finalGoal = newGoalD
+          }
+
+        } catch {
+          case e: Exception => {
+            println("Desperate attempt failed. Moving on...")
+          }
+        }
+      }
+    }
+    (finalOut, finalGoal)
+  }
+
+  def tryToResolveUsingAllCarrysAndContraction(node: SequentProofNode, left: SequentProofNode, right: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode, carryMap: MMap[SequentProofNode, List[Sequent]], mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var]): (SequentProofNode, Sequent) = {
+
+    println("Trying all.")
+
+    val leftCarryList = if (!carryMap.get(fixedLeft).isEmpty) {
+      carryMap.get(fixedLeft).get
+    } else {
+      List[Sequent]()
+    }
+
+    val rightCarryList = if (!carryMap.get(fixedRight).isEmpty) {
+      carryMap.get(fixedRight).get
+    } else {
+      List[Sequent]()
+    }
+
+    val finalLeftCarries = (leftCarryList ++ List[Sequent](null.asInstanceOf[Sequent]))
+    val finalRightCarries = (rightCarryList ++ List[Sequent](null.asInstanceOf[Sequent]))
+
+    var finalOut = null.asInstanceOf[SequentProofNode]
+    var finalGoal = null.asInstanceOf[Sequent]
+
+    for (leftCarry <- finalLeftCarries) {
+      for (rightCarry <- finalRightCarries) {
+        try {
+          println("checking the following left carry: " + leftCarry)
+          println("checking the following right carry: " + rightCarry)
+          val oMGU = node.asInstanceOf[UnifyingResolution].mgu
+
+          val carryA = if (!fixedRight.equals(right)) {
+            rightCarry
+          } else { null }
+
+          val carryB = if (!fixedLeft.equals(left)) {
+            leftCarry
+          } else { null }
+
+          val olderA = if (!mguMap.get(fixedRight).isEmpty) {
+            mguMap.get(fixedRight).get
+          } else { null }
+
+          val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
+            mguMap.get(fixedLeft).get
+          } else { null }
+
+          val newFixedRight = fixedRight match {
+            case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
+              new FOSubstitution(fixedRight, olderA)(vars)
+            }
+            case _ if (olderA != null && !fixedRight.equals(right)) => {
+              new FOSubstitution(fixedRight, olderA)(vars)
+            }
+            case _ => {
+              fixedRight
+            }
+          }
+
+          val newFixedLeft = fixedLeft match {
+            case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
+              new FOSubstitution(fixedLeft, olderB)(vars)
+            }
+            case _ if (olderB != null && !fixedLeft.equals(left)) => {
+              new FOSubstitution(fixedLeft, olderB)(vars)
+            }
+            case _ => {
+              fixedLeft
+            }
+          }
+
+          val (leftMGU, rightMGU) = splitMGU(node, left, right)
+
+          val stuff = test5(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
+
+          val newGoalD = stuff._1
+
+          val contractedNewLeft = Contraction(fixedLeft)(vars)
+          val contractedNewRight = Contraction(fixedRight)(vars)
+
+          val out = UnifyingResolutionMRR(contractedNewLeft, contractedNewRight, newGoalD)(vars)
+
+          val mergedCarry = unionSequents(stuff._3, stuff._4)
+
+          val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
+
+          val testCarry = if (mergedCarry != null) {
+            val testAnt = if (mergedCarry.ant != null) {
+              mergedCarry.ant.map(e => cleanMGU(e))
+            } else {
+              Seq[E]()
+            }
+            val testSuc = if (mergedCarry.suc != null) {
+              mergedCarry.suc.map(e => cleanMGU(e))
+            } else {
+              Seq[E]()
+            }
+            addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
+          } else {
+            null
+          }
+
           mguMap.update(out, stuff._2)
           println("LOOP ITERATION SUCCESFUL")
 
