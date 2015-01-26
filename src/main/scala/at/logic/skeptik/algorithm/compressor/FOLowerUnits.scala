@@ -271,6 +271,17 @@ object FOLowerUnits
     }
   }
 
+  def tryReversingArguments(l: SequentProofNode, r: SequentProofNode, goal: Sequent, vars: MSet[Var]) = {
+    try {
+      UnifyingResolutionMRR(r, l, goal)(vars)
+      println("pass????")
+    } catch {
+      case e: Exception => {
+        println(e)
+      }
+    }
+  }
+
   def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
     val fixMap = MMap[SequentProofNode, SequentProofNode]()
 
@@ -365,7 +376,45 @@ object FOLowerUnits
               while (temp.isInstanceOf[Contraction]) {
                 temp = temp.asInstanceOf[Contraction].premise
               }
+
+              val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
+                println("case b - carry found! " + carryMap.get(fixedRight).get)
+                carryMap.get(fixedRight).get
+
+              } else { null }
+
+              val carryB = if (!carryMap.get(fixedLeft).isEmpty && !fixedLeft.equals(left)) {
+                println("case b - carry found! " + carryMap.get(fixedLeft).get)
+                carryMap.get(fixedLeft).get
+              } else { null }
+
+              println("case b - before contraction: " + temp.asInstanceOf[UnifyingResolution].conclusion)
               mguMap.update(urMRRout, temp.asInstanceOf[UnifyingResolution].mgu)
+
+              val mergedCarry = unionSequents(carryB, carryA)
+
+              //TODO: clean this up?
+              val testCarry = if (mergedCarry != null) {
+                val testAnt = if (mergedCarry.ant != null) {
+                  mergedCarry.ant
+                } else {
+                  Seq[E]()
+                }
+                val testSuc = if (mergedCarry.suc != null) {
+                  mergedCarry.suc
+                } else {
+                  Seq[E]()
+                }
+                addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
+              } else {
+                null
+              }
+
+              //TODO: update both maps
+              if (testCarry != null) {
+                carryMap.update(urMRRout, testCarry)
+              }
+
               urMRRout
             }
             outMRR
@@ -471,17 +520,20 @@ object FOLowerUnits
                       //                                            UnifyingResolutionMRR(newFixedRight, newFixedLeft, newGoalD)(vars)
 
                       val triedAll = tryToResolveUsingAllCarrys(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars)
-                                            val carriesOut = if (triedAll._1 == null) {
-                                              val triedCon = tryToResolveUsingAllCarrysAndContraction(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars)
-                                              newGoalIfDesperate = triedCon._2
-                                              triedCon._1
-                                            } else {
-                                              newGoalIfDesperate = triedAll._2
-                                              triedAll._1
-                                            }
-                                            carriesOut
-//                      newGoalIfDesperate = triedAll._2
-//                      triedAll._1
+                      val carriesOut = if (triedAll._1 == null) {
+                        val triedCon = tryToResolveUsingAllCarrysAndContraction(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars)
+                        newGoalIfDesperate = triedCon._2
+                        triedCon._1
+                      } else {
+                        newGoalIfDesperate = triedAll._2
+                        triedAll._1
+                      }
+                      println("reversing?")
+                      tryReversingArguments(newFixedLeft, newFixedRight, newGoalD, vars)
+
+                      carriesOut
+                      //                      newGoalIfDesperate = triedAll._2
+                      //                      triedAll._1
                     }
                   }
 
