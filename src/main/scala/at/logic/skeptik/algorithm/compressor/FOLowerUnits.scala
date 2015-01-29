@@ -293,6 +293,8 @@ object FOLowerUnits
     //    val replaceMap = MMap[SequentProofNode, SequentProofNode]()
     val mguMap = MMap[SequentProofNode, Substitution]()
 
+    val smartCarryMap = MMap[SequentProofNode, List[(SequentProofNode, Sequent)]]()
+
     def addToMap(k: SequentProofNode, carry: Sequent) = {
       if (carryMap.get(k).isEmpty) {
         carryMap.put(k, carry)
@@ -300,6 +302,19 @@ object FOLowerUnits
         val existingCarry = carryMap.get(k).get
         val bothCarries = existingCarry union carry
         carryMap.update(k, bothCarries)
+      }
+    }
+
+    def addToSmartMap(k: SequentProofNode, node: SequentProofNode, carry: Sequent) = {
+      val newPair = (node, carry)
+      val tempList = List[(SequentProofNode, Sequent)](newPair)
+      if (smartCarryMap.get(k).isEmpty) {
+        smartCarryMap.put(k, tempList)
+      } else {
+        //TODO: what if we need to update a value in an existing pair?
+        val existingCarry = smartCarryMap.get(k).get
+        val bothCarries = existingCarry ++ tempList
+        smartCarryMap.update(k, bothCarries)
       }
     }
 
@@ -319,19 +334,23 @@ object FOLowerUnits
       lazy val fixedLeft = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
 
-      println("visiting. MAP: " + carryMap)
+      println("\n\nvisiting. MAP: " + carryMap)
 
       val fixedP = node match {
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
           //                    println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-          println("using " + fixedRight + " for " + node.conclusion)
+          println("XX using " + fixedRight + " for " + node.conclusion)
           //          println(fixedRight + " --r> " + node.asInstanceOf[UnifyingResolution].auxR)
           println("XX")
           carryMap.update(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+          addToSmartMap(fixedRight, node, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
           //          addToMap(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+          println("XX - adding carry: " + node.asInstanceOf[UnifyingResolution].auxR)
           addCarryToMapList(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
-          mguMap.update(fixedRight, node.asInstanceOf[UnifyingResolution].mgu)
+          val nodeMGU = node.asInstanceOf[UnifyingResolution].mgu
+          println("XX - mgu: " + nodeMGU)
+          mguMap.update(fixedRight, nodeMGU)
           println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedRight)
           fixedRight
         }
@@ -343,6 +362,7 @@ object FOLowerUnits
           carryMap.update(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           //          addToMap(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           addCarryToMapList(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
+          addToSmartMap(fixedLeft, node, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           mguMap.update(fixedLeft, node.asInstanceOf[UnifyingResolution].mgu)
           println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedLeft)
           fixedLeft
@@ -404,12 +424,15 @@ object FOLowerUnits
                 }
               }
 
+              //TODO clear this when repairs are done
               //NOTE on this commit (or whichever is the first in which new fixed right/left are first introduced
               //the number of errors goes from 18 to 21
               //but I think the 'new fixed' gives more flexibility for repairs
-              
-              
-              val urMRRout = UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
+
+              println("case b - newfixedleft: " + newFixedLeft)
+              println("case b - newfixedRight: " + newFixedRight)
+
+              var urMRRout = UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
 
               //              val urMRRout = UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
               var temp = urMRRout
@@ -417,18 +440,22 @@ object FOLowerUnits
                 temp = temp.asInstanceOf[Contraction].premise
               }
 
+              urMRRout = temp //TODO: this line introduces 2 errors. which is better?
+
               val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
-                println("case b - carry found! " + carryMap.get(fixedRight).get)
+                println("case b - carry found! (right)" + carryMap.get(fixedRight).get)
                 carryMap.get(fixedRight).get
 
               } else { null }
 
               val carryB = if (!carryMap.get(fixedLeft).isEmpty && !fixedLeft.equals(left)) {
-                println("case b - carry found! " + carryMap.get(fixedLeft).get)
+                println("case b - carry found! (left)" + carryMap.get(fixedLeft).get)
                 carryMap.get(fixedLeft).get
               } else { null }
 
               println("case b - before contraction: " + temp.asInstanceOf[UnifyingResolution].conclusion)
+              println("case b - final out " + urMRRout)
+              println("case b - sub added: " + temp.asInstanceOf[UnifyingResolution].mgu)
               mguMap.update(urMRRout, temp.asInstanceOf[UnifyingResolution].mgu)
 
               val mergedCarry = unionSequents(carryB, carryA)
@@ -452,7 +479,9 @@ object FOLowerUnits
 
               //TODO: update both maps
               if (testCarry != null) {
+                println("case b - updating carry: " + testCarry)
                 carryMap.update(urMRRout, testCarry)
+                addToSmartMap(urMRRout, node, testCarry)
               }
 
               urMRRout
@@ -662,6 +691,7 @@ object FOLowerUnits
                   println("putting " + testCarry + " on the map for " + out)
                   println("CM: before: " + carryMap)
                   carryMap.update(out, testCarry)
+                  addToSmartMap(out, node, testCarry)
                   addCarryToMapList(out, testCarry)
 
                   //                  carryMap.update(outAfterContraction, testCarry)
