@@ -31,8 +31,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
-    println("wat? " + premise)
-    println("desired? " + desired)
     if (premise.logicalSize > 0) {
       require(premise.logicalSize > desired.logicalSize)
     }

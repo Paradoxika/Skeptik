@@ -371,7 +371,47 @@ object FOLowerUnits
               outMRRa
             } else {
               println("case b")
-              val urMRRout = UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
+
+              val olderA = if (!mguMap.get(fixedRight).isEmpty) {
+                mguMap.get(fixedRight).get
+              } else { null }
+
+              val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
+                mguMap.get(fixedLeft).get
+              } else { null }
+
+              val newFixedRight = fixedRight match {
+                case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
+                  new FOSubstitution(fixedRight, olderA)(vars)
+                }
+                case _ if (olderA != null && !fixedRight.equals(right)) => {
+                  new FOSubstitution(fixedRight, olderA)(vars)
+                }
+                case _ => {
+                  fixedRight
+                }
+              }
+
+              val newFixedLeft = fixedLeft match {
+                case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
+                  new FOSubstitution(fixedLeft, olderB)(vars)
+                }
+                case _ if (olderB != null && !fixedLeft.equals(left)) => {
+                  new FOSubstitution(fixedLeft, olderB)(vars)
+                }
+                case _ => {
+                  fixedLeft
+                }
+              }
+
+              //NOTE on this commit (or whichever is the first in which new fixed right/left are first introduced
+              //the number of errors goes from 18 to 21
+              //but I think the 'new fixed' gives more flexibility for repairs
+              
+              
+              val urMRRout = UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
+
+              //              val urMRRout = UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
               var temp = urMRRout
               while (temp.isInstanceOf[Contraction]) {
                 temp = temp.asInstanceOf[Contraction].premise
@@ -688,13 +728,6 @@ object FOLowerUnits
 
   //
   def tryToResolveUsingAllCarrys(node: SequentProofNode, left: SequentProofNode, right: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode, carryMap: MMap[SequentProofNode, List[Sequent]], mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var]): (SequentProofNode, Sequent) = {
-    // println("caught for " + node)
-    //                  println("fixed left: " + fixedLeft)
-    //                  println("fixed right: " + fixedRight)
-    //                  println(" (l: " + left + ")")
-    //                  println(" (r: " + right + ")")
-    //
-    //                  println("nc: " + node.conclusion)
 
     println("Trying all.")
 
@@ -718,143 +751,146 @@ object FOLowerUnits
 
     for (leftCarry <- finalLeftCarries) {
       for (rightCarry <- finalRightCarries) {
-        try {
-          println("checking the following left carry: " + leftCarry)
-          println("checking the following right carry: " + rightCarry)
-          //          val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
-          //          val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
-          //                  println("auxL: " + oAuxL)
-          //                  println("auxR: " + oAuxR)
-          val oMGU = node.asInstanceOf[UnifyingResolution].mgu
-          //                  println("omgu: " + oMGU)
+        if (finalOut == null) {
+          try {
 
-          //                  val oldLeftClean = node.asInstanceOf[UnifyingResolution].leftClean
-          //                  val cleanMGU = findRenaming(left.conclusion, oldLeftClean.conclusion)(vars)
-          //                  println("oldLeftClean.conclusion " + oldLeftClean.conclusion)
-          //                  println("left.conclusion " + left.conclusion)
-          //                  println("cleanMGU?? " + cleanMGU)
-          //                  println("cma[p: " + carryMap)
+            println("checking the following left carry: " + leftCarry)
+            println("checking the following right carry: " + rightCarry)
+            //          val oAuxL = node.asInstanceOf[UnifyingResolution].auxL
+            //          val oAuxR = node.asInstanceOf[UnifyingResolution].auxR
+            //                  println("auxL: " + oAuxL)
+            //                  println("auxR: " + oAuxR)
+            val oMGU = node.asInstanceOf[UnifyingResolution].mgu
+            //                  println("omgu: " + oMGU)
 
-          //TODO: update these, and cycle through the carries
-          val carryA = if (!fixedRight.equals(right)) {
-            rightCarry
-          } else { null }
+            //                  val oldLeftClean = node.asInstanceOf[UnifyingResolution].leftClean
+            //                  val cleanMGU = findRenaming(left.conclusion, oldLeftClean.conclusion)(vars)
+            //                  println("oldLeftClean.conclusion " + oldLeftClean.conclusion)
+            //                  println("left.conclusion " + left.conclusion)
+            //                  println("cleanMGU?? " + cleanMGU)
+            //                  println("cma[p: " + carryMap)
 
-          val carryB = if (!fixedLeft.equals(left)) {
-            leftCarry
-          } else { null }
+            //TODO: update these, and cycle through the carries
+            val carryA = if (!fixedRight.equals(right)) {
+              rightCarry
+            } else { null }
 
-          //                  println("carry (right): " + carryA)
-          //                  println("carry (left ): " + carryB)
+            val carryB = if (!fixedLeft.equals(left)) {
+              leftCarry
+            } else { null }
 
-          val olderA = if (!mguMap.get(fixedRight).isEmpty) {
-            mguMap.get(fixedRight).get
-          } else { null }
+            //                  println("carry (right): " + carryA)
+            //                  println("carry (left ): " + carryB)
 
-          val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
-            mguMap.get(fixedLeft).get
-          } else { null }
+            val olderA = if (!mguMap.get(fixedRight).isEmpty) {
+              mguMap.get(fixedRight).get
+            } else { null }
 
-          //                                    println("mguOld (right): " + olderA)
-          //                                    println("mguOld (left ): " + olderB)
+            val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
+              mguMap.get(fixedLeft).get
+            } else { null }
 
-          val newFixedRight = fixedRight match {
-            case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
-              new FOSubstitution(fixedRight, olderA)(vars)
+            //                                    println("mguOld (right): " + olderA)
+            //                                    println("mguOld (left ): " + olderB)
+
+            val newFixedRight = fixedRight match {
+              case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
+                new FOSubstitution(fixedRight, olderA)(vars)
+              }
+              case _ if (olderA != null && !fixedRight.equals(right)) => {
+                new FOSubstitution(fixedRight, olderA)(vars)
+              }
+              case _ => {
+                fixedRight
+              }
             }
-            case _ if (olderA != null && !fixedRight.equals(right)) => {
-              new FOSubstitution(fixedRight, olderA)(vars)
+
+            val newFixedLeft = fixedLeft match {
+              case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
+                new FOSubstitution(fixedLeft, olderB)(vars)
+              }
+              case _ if (olderB != null && !fixedLeft.equals(left)) => {
+                new FOSubstitution(fixedLeft, olderB)(vars)
+              }
+              case _ => {
+                fixedLeft
+              }
             }
-            case _ => {
-              fixedRight
-            }
-          }
 
-          val newFixedLeft = fixedLeft match {
-            case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
-              new FOSubstitution(fixedLeft, olderB)(vars)
-            }
-            case _ if (olderB != null && !fixedLeft.equals(left)) => {
-              new FOSubstitution(fixedLeft, olderB)(vars)
-            }
-            case _ => {
-              fixedLeft
-            }
-          }
+            val (leftMGU, rightMGU) = splitMGU(node, left, right)
 
-          val (leftMGU, rightMGU) = splitMGU(node, left, right)
+            //                  println("newFR: " + newFixedRight)
 
-          //                  println("newFR: " + newFixedRight)
+            //                  try {
+            //                    val stuff = test3(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
+            //                  val stuff = test4(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
+            val stuff = test5(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
 
-          //                  try {
-          //                    val stuff = test3(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
-          //                  val stuff = test4(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node)(vars)
-          val stuff = test5(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
+            val newGoalD = stuff._1
+            //                  println("FINAL newGoalD: " + newGoalD)
 
-          val newGoalD = stuff._1
-          //                  println("FINAL newGoalD: " + newGoalD)
+            //                  println("newFixedRight: " + newFixedRight)
+            //                  println("newFixedLeft: " + newFixedLeft)
 
-          //                  println("newFixedRight: " + newFixedRight)
-          //                  println("newFixedLeft: " + newFixedLeft)
+            val out = UnifyingResolutionMRR(newFixedLeft, newFixedRight, newGoalD)(vars)
 
-          val out = UnifyingResolutionMRR(newFixedLeft, newFixedRight, newGoalD)(vars)
+            //                    println("made it..")
 
-          //                    println("made it..")
+            //                    val out = UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars)
+            //                  println("FINAL COMPUTED: " + out.conclusion)
 
-          //                    val out = UnifyingResolutionMRR(fixedLeft, fixedRight, newGoalD)(vars)
-          //                  println("FINAL COMPUTED: " + out.conclusion)
+            //                  println("3:" + stuff._3)
+            //                  println("4:" + stuff._4)
 
-          //                  println("3:" + stuff._3)
-          //                  println("4:" + stuff._4)
+            val mergedCarry = unionSequents(stuff._3, stuff._4)
 
-          val mergedCarry = unionSequents(stuff._3, stuff._4)
+            //                  val oldLeftClean = node.asInstanceOf[UnifyingResolution].leftClean
+            val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
+            //                  println("newGoalD " + newGoalD)
+            //                  println("out.conclusion " + out.conclusion)
+            //                  println("cleanMGU?? " + cleanMGU)
 
-          //                  val oldLeftClean = node.asInstanceOf[UnifyingResolution].leftClean
-          val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
-          //                  println("newGoalD " + newGoalD)
-          //                  println("out.conclusion " + out.conclusion)
-          //                  println("cleanMGU?? " + cleanMGU)
-
-          val testCarry = if (mergedCarry != null) {
-            val testAnt = if (mergedCarry.ant != null) {
-              mergedCarry.ant.map(e => cleanMGU(e))
+            val testCarry = if (mergedCarry != null) {
+              val testAnt = if (mergedCarry.ant != null) {
+                mergedCarry.ant.map(e => cleanMGU(e))
+              } else {
+                Seq[E]()
+              }
+              val testSuc = if (mergedCarry.suc != null) {
+                mergedCarry.suc.map(e => cleanMGU(e))
+              } else {
+                Seq[E]()
+              }
+              addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
             } else {
-              Seq[E]()
+              null
             }
-            val testSuc = if (mergedCarry.suc != null) {
-              mergedCarry.suc.map(e => cleanMGU(e))
-            } else {
-              Seq[E]()
+            //                  println("merged: " + mergedCarry)
+            //                  println("test: " + testCarry)
+
+            //                  println("putting " + testCarry + " on the map for " + out)
+            //                  println("CM: before: " + carryMap)
+
+            //TODO: add this!
+            //                  addCarryToMapList(out, testCarry)
+
+            //                  println("CM: after: " + carryMap)
+            //                  carryMap.update(out, mergedCarry)
+
+            //                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
+            //                  println("BUT SAID: " + stuff._2)
+            mguMap.update(out, stuff._2)
+            println("LOOP ITERATION SUCCESFUL")
+
+            if (finalOut == null) {
+              finalOut = out
+              finalGoal = newGoalD
             }
-            addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
-          } else {
-            null
-          }
-          //                  println("merged: " + mergedCarry)
-          //                  println("test: " + testCarry)
 
-          //                  println("putting " + testCarry + " on the map for " + out)
-          //                  println("CM: before: " + carryMap)
-
-          //TODO: add this!
-          //                  addCarryToMapList(out, testCarry)
-
-          //                  println("CM: after: " + carryMap)
-          //                  carryMap.update(out, mergedCarry)
-
-          //                  println("OUTMGU: " + out.asInstanceOf[UnifyingResolutionMRR].mgu)
-          //                  println("BUT SAID: " + stuff._2)
-          mguMap.update(out, stuff._2)
-          println("LOOP ITERATION SUCCESFUL")
-
-          if (finalOut == null) {
-            finalOut = out
-            finalGoal = newGoalD
-          }
-
-        } catch {
-          case e: Exception => {
-            println("Desperate attempt failed. Moving on...")
+          } catch {
+            case e: Exception => {
+              println("Desperate attempt failed. Moving on...")
+            }
           }
         }
       }
