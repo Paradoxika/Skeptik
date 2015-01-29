@@ -318,6 +318,27 @@ object FOLowerUnits
       }
     }
 
+    def getFromSmartMap(k: SequentProofNode, node: SequentProofNode): Sequent = {
+      val pairsOption = smartCarryMap.get(k)
+      if (pairsOption.isEmpty) {
+        return null
+      }
+      val pairs = pairsOption.get
+
+      def findMatch(l: List[(SequentProofNode, Sequent)]): Sequent = {
+        for (p <- l) {
+        	val n = p._1
+        	if(n.equals(node)){
+        	  return p._2
+        	}
+        }
+        null
+      }
+      
+      findMatch(pairs)
+
+    }
+
     def addCarryToMapList(k: SequentProofNode, carry: Sequent) = {
       if (carryMapList.get(k).isEmpty) {
         carryMapList.put(k, List[Sequent](carry))
