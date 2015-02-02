@@ -511,23 +511,11 @@ object FOLowerUnits
               val updatedCarryA = updateCarry(carryA, olderA)
               val updatedCarryB = updateCarry(carryB, olderB)
 
-//              val finalUpdatedCarryA = if (carryA != null) {
-//                val finalUpdatedAntA = updatedCarryA.ant.map(e => rightMGU(e))
-//                val finalUpdatedSucA = updatedCarryA.suc.map(e => rightMGU(e))
-//                addAntecedents(finalUpdatedAntA.toList) union addSuccedents(finalUpdatedSucA.toList)
-//              } else {
-//                Sequent()()
-//              }
-//
-//              val finalUpdatedCarryB = if (carryB != null) {
-//                val finalUpdatedAntB = updatedCarryB.ant.map(e => leftMGU(e))
-//                val finalUpdatedSucB = updatedCarryB.suc.map(e => leftMGU(e))
-//                addAntecedents(finalUpdatedAntB.toList) union addSuccedents(finalUpdatedSucB.toList)
-//              } else {
-//                Sequent()()
-//              }
+              val finalUpdatedCarryA = updateCarry(updatedCarryA, rightMGU)
+              val finalUpdatedCarryB = updateCarry(updatedCarryB, leftMGU)
+              
 
-              val mergedCarry = unionSequents(carryB, carryA) //21k errors
+              val mergedCarry = unionSequents(carryB, carryA) //21 errors
               //              val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA) //56 errors
 
               //TODO: clean this up?
