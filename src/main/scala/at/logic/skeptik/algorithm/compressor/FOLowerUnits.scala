@@ -304,6 +304,32 @@ object FOLowerUnits
     updatedCarry
   }
 
+  def getRenamedMGU(original: Sequent, clean: Sequent, sub: Substitution, vars: MSet[Var]): Substitution = {
+    val renamingForward = findRenaming(original, clean)(vars)
+    if(renamingForward.size == 0){
+      return sub
+    }
+    
+    val renamingBackward = findRenaming(clean, original)(vars)
+
+    println("GRM: forward: " + renamingForward)
+    println("GRM: backward: " + renamingBackward)
+
+    def appSub(pair: (Var, E)): (Var, E) = {
+      //      (renaming(pair._1).asInstanceOf[Var], sub(pair._2))
+      if (!renamingForward.get(pair._1).isEmpty) {
+        (renamingForward(pair._1).asInstanceOf[Var], pair._2)
+      } else {
+        (renamingBackward(pair._1).asInstanceOf[Var], pair._2)
+      }
+
+    }
+
+    val outPairs = sub.toList.map(p => appSub(p))
+
+    Substitution(outPairs: _*)
+  }
+
   def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
     val fixMap = MMap[SequentProofNode, SequentProofNode]()
 
@@ -315,7 +341,7 @@ object FOLowerUnits
     //    val replaceMap = MMap[SequentProofNode, SequentProofNode]()
     val mguMap = MMap[SequentProofNode, Substitution]()
 
-    val smartCarryMap = MMap[SequentProofNode, List[(SequentProofNode, Sequent)]]()
+    //    val smartCarryMap = MMap[SequentProofNode, List[(SequentProofNode, Sequent)]]()
 
     def addToMap(k: SequentProofNode, carry: Sequent) = {
       if (carryMap.get(k).isEmpty) {
@@ -403,15 +429,32 @@ object FOLowerUnits
         }
         case UnifyingResolution(left, right, _, _) if unitsSet contains right => {
           //          println("unitset must have cotained one of " + left + " or " + right + " for " + node)
-          //          println("using " + fixedLeft + " for " + node.conclusion)
+          println("YY using " + fixedLeft + " for " + node.conclusion)
+          println("YY left " + left)
+          val nodeLeftClean = node.asInstanceOf[UnifyingResolution].leftClean
+
+          println("YY left clean " + nodeLeftClean)
           //          println(fixedLeft + " --l> " + node.asInstanceOf[UnifyingResolution].auxL)
-          println("YY")
-          carryMap.update(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
-          //          addToMap(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
-          addCarryToMapList(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
+          //          println("YY")
+          //          carryMap.update(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
+
+          val renamingBackward = findRenaming(nodeLeftClean.conclusion, left.conclusion)(vars)
+          
+          val auxLCarry = makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL)
+
+          val fixedCarry = updateCarry(auxLCarry, renamingBackward)
+          
+          addToMap(fixedLeft, fixedCarry)
+          addCarryToMapList(fixedLeft, fixedCarry)
           //          addToSmartMap(fixedLeft, node, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
-          mguMap.update(fixedLeft, node.asInstanceOf[UnifyingResolution].mgu)
-          println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedLeft)
+          val nodeMGU = node.asInstanceOf[UnifyingResolution].mgu
+
+          val fixedMGU = getRenamedMGU(left.conclusion, nodeLeftClean.conclusion, nodeMGU, vars)
+          println("YY: testmgu: " + fixedMGU)
+
+          mguMap.update(fixedLeft, fixedMGU)
+
+          println("adding mgu to map: " + fixedMGU + " for " + fixedLeft)
           fixedLeft
         }
         //Need MRR since we might have to contract, in order to avoid ambiguous resolution
@@ -541,7 +584,8 @@ object FOLowerUnits
               //TODO: update both maps
               if (testCarry != null) {
                 println("case b - updating carry: " + testCarry)
-                carryMap.update(urMRRout, testCarry)
+                //                carryMap.update(urMRRout, testCarry)
+                addToMap(urMRRout, testCarry)
                 //                addToSmartMap(urMRRout, node, testCarry)
               }
 
@@ -751,9 +795,12 @@ object FOLowerUnits
 
                   println("putting " + testCarry + " on the map for " + out)
                   println("CM: before: " + carryMap)
-                  carryMap.update(out, testCarry)
+
                   //                  addToSmartMap(out, node, testCarry)
                   addCarryToMapList(out, testCarry)
+
+                  //                  carryMap.update(out, testCarry)
+                  addToMap(out, testCarry)
 
                   //                  carryMap.update(outAfterContraction, testCarry)
                   //                  addCarryToMapList(outAfterContraction, testCarry)
