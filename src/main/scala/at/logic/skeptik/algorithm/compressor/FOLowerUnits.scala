@@ -283,16 +283,16 @@ object FOLowerUnits
   }
 
   def updateCarry(oldCarry: Sequent, sub: Substitution): Sequent = {
-    if(oldCarry == null) {
+    if (oldCarry == null) {
       return null.asInstanceOf[Sequent]
     }
     val updatedCarry = if (sub != null) {
-      val updatedAnt = if(oldCarry.ant != null) {
+      val updatedAnt = if (oldCarry.ant != null) {
         oldCarry.ant.map(e => sub(e)).toList
       } else {
         List[E]()
       }
-      val updatedSuc = if(oldCarry.suc != null) {
+      val updatedSuc = if (oldCarry.suc != null) {
         oldCarry.suc.map(e => sub(e)).toList
       } else {
         List[E]()
@@ -327,40 +327,40 @@ object FOLowerUnits
       }
     }
 
-    def addToSmartMap(k: SequentProofNode, node: SequentProofNode, carry: Sequent) = {
-      val newPair = (node, carry)
-      println("adding to smart map: " + newPair)
-      val tempList = List[(SequentProofNode, Sequent)](newPair)
-      if (smartCarryMap.get(k).isEmpty) {
-        smartCarryMap.put(k, tempList)
-      } else {
-        //TODO: what if we need to update a value in an existing pair?
-        val existingCarry = smartCarryMap.get(k).get
-        val bothCarries = existingCarry ++ tempList
-        smartCarryMap.update(k, bothCarries)
-      }
-    }
+    //    def addToSmartMap(k: SequentProofNode, node: SequentProofNode, carry: Sequent) = {
+    //      val newPair = (node, carry)
+    //      println("adding to smart map: " + newPair)
+    //      val tempList = List[(SequentProofNode, Sequent)](newPair)
+    //      if (smartCarryMap.get(k).isEmpty) {
+    //        smartCarryMap.put(k, tempList)
+    //      } else {
+    //        //TODO: what if we need to update a value in an existing pair?
+    //        val existingCarry = smartCarryMap.get(k).get
+    //        val bothCarries = existingCarry ++ tempList
+    //        smartCarryMap.update(k, bothCarries)
+    //      }
+    //    }
 
-    def getFromSmartMap(k: SequentProofNode, node: SequentProofNode): Sequent = {
-      val pairsOption = smartCarryMap.get(k)
-      if (pairsOption.isEmpty) {
-        return null
-      }
-      val pairs = pairsOption.get
-
-      def findMatch(l: List[(SequentProofNode, Sequent)]): Sequent = {
-        for (p <- l) {
-          val n = p._1
-          if (n.equals(node)) {
-            return p._2
-          }
-        }
-        null
-      }
-
-      findMatch(pairs)
-
-    }
+    //    def getFromSmartMap(k: SequentProofNode, node: SequentProofNode): Sequent = {
+    //      val pairsOption = smartCarryMap.get(k)
+    //      if (pairsOption.isEmpty) {
+    //        return null
+    //      }
+    //      val pairs = pairsOption.get
+    //
+    //      def findMatch(l: List[(SequentProofNode, Sequent)]): Sequent = {
+    //        for (p <- l) {
+    //          val n = p._1
+    //          if (n.equals(node)) {
+    //            return p._2
+    //          }
+    //        }
+    //        null
+    //      }
+    //
+    //      findMatch(pairs)
+    //
+    //    }
 
     def addCarryToMapList(k: SequentProofNode, carry: Sequent) = {
       if (carryMapList.get(k).isEmpty) {
@@ -388,9 +388,11 @@ object FOLowerUnits
           println("XX using " + fixedRight + " for " + node.conclusion)
           //          println(fixedRight + " --r> " + node.asInstanceOf[UnifyingResolution].auxR)
           println("XX")
-          carryMap.update(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
-          addToSmartMap(fixedRight, node, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
-          //          addToMap(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+          //          carryMap.update(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+          //          addToSmartMap(fixedRight, node, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+
+          addToMap(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+
           println("XX - adding carry: " + node.asInstanceOf[UnifyingResolution].auxR)
           addCarryToMapList(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
           val nodeMGU = node.asInstanceOf[UnifyingResolution].mgu
@@ -407,7 +409,7 @@ object FOLowerUnits
           carryMap.update(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           //          addToMap(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           addCarryToMapList(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
-          addToSmartMap(fixedLeft, node, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
+          //          addToSmartMap(fixedLeft, node, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
           mguMap.update(fixedLeft, node.asInstanceOf[UnifyingResolution].mgu)
           println("adding mgu to map: " + node.asInstanceOf[UnifyingResolution].mgu + " for " + fixedLeft)
           fixedLeft
@@ -438,10 +440,12 @@ object FOLowerUnits
               println("case b")
 
               val olderA = if (!mguMap.get(fixedRight).isEmpty) {
+                println("case b - olderA: " + mguMap.get(fixedRight).get)
                 mguMap.get(fixedRight).get
               } else { null }
 
               val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
+                println("case b - olderB: " + mguMap.get(fixedLeft).get)
                 mguMap.get(fixedLeft).get
               } else { null }
 
@@ -493,8 +497,8 @@ object FOLowerUnits
 
               } else { null }
 
-              println("case b - other carry right " + getFromSmartMap(fixedRight, right))
-              println("case b - other carry left " + getFromSmartMap(fixedLeft, left))
+              //              println("case b - other carry right " + getFromSmartMap(fixedRight, right))
+              //              println("case b - other carry left " + getFromSmartMap(fixedLeft, left))
 
               val carryB = if (!carryMap.get(fixedLeft).isEmpty && !fixedLeft.equals(left)) {
                 println("case b - carry found! (left)" + carryMap.get(fixedLeft).get)
@@ -507,16 +511,15 @@ object FOLowerUnits
               mguMap.update(urMRRout, temp.asInstanceOf[UnifyingResolution].mgu)
 
               val (leftMGU, rightMGU) = splitMGU(temp, newFixedLeft, newFixedRight)
-              
+
               val updatedCarryA = updateCarry(carryA, olderA)
               val updatedCarryB = updateCarry(carryB, olderB)
 
               val finalUpdatedCarryA = updateCarry(updatedCarryA, rightMGU)
               val finalUpdatedCarryB = updateCarry(updatedCarryB, leftMGU)
-              
 
-              val mergedCarry = unionSequents(carryB, carryA) //21 errors
-              //              val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA) //56 errors
+              //              val mergedCarry = unionSequents(carryB, carryA) //21 errors
+              val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA) //17 errors!
 
               //TODO: clean this up?
               val testCarry = if (mergedCarry != null) {
@@ -539,7 +542,7 @@ object FOLowerUnits
               if (testCarry != null) {
                 println("case b - updating carry: " + testCarry)
                 carryMap.update(urMRRout, testCarry)
-                addToSmartMap(urMRRout, node, testCarry)
+                //                addToSmartMap(urMRRout, node, testCarry)
               }
 
               urMRRout
@@ -749,7 +752,7 @@ object FOLowerUnits
                   println("putting " + testCarry + " on the map for " + out)
                   println("CM: before: " + carryMap)
                   carryMap.update(out, testCarry)
-                  addToSmartMap(out, node, testCarry)
+                  //                  addToSmartMap(out, node, testCarry)
                   addCarryToMapList(out, testCarry)
 
                   //                  carryMap.update(outAfterContraction, testCarry)
