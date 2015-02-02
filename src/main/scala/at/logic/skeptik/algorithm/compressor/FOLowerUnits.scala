@@ -306,10 +306,10 @@ object FOLowerUnits
 
   def getRenamedMGU(original: Sequent, clean: Sequent, sub: Substitution, vars: MSet[Var]): Substitution = {
     val renamingForward = findRenaming(original, clean)(vars)
-    if(renamingForward.size == 0){
+    if (renamingForward.size == 0) {
       return sub
     }
-    
+
     val renamingBackward = findRenaming(clean, original)(vars)
 
     println("GRM: forward: " + renamingForward)
@@ -439,11 +439,11 @@ object FOLowerUnits
           //          carryMap.update(fixedLeft, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
 
           val renamingBackward = findRenaming(nodeLeftClean.conclusion, left.conclusion)(vars)
-          
+
           val auxLCarry = makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL)
 
           val fixedCarry = updateCarry(auxLCarry, renamingBackward)
-          
+
           addToMap(fixedLeft, fixedCarry)
           addCarryToMapList(fixedLeft, fixedCarry)
           //          addToSmartMap(fixedLeft, node, makeUnitSequent(right, node.asInstanceOf[UnifyingResolution].auxL))
@@ -1392,15 +1392,13 @@ object FOLowerUnits
       //left is unit
       if (left.conclusion.suc.size > 0) {
         val leftUnit = left.conclusion.suc.head
-        
-        //TODO: propagate this small (but necessary!) change to the other branches of this method
+
         val listOfThingsToRemove = findUnifiableFormula(leftUnit, right.conclusion.ant)
-        if(listOfThingsToRemove.size < 1){
+        if (listOfThingsToRemove.size < 1) {
           return right
         }
-        //---
-        
         val toRemove = listOfThingsToRemove.head
+
         val newAnt = right.conclusion.ant.filter(_ != toRemove)
         val newSuc = right.conclusion.suc
         val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
@@ -1412,7 +1410,13 @@ object FOLowerUnits
         }
       } else if (left.conclusion.ant.size > 0) {
         val leftUnit = left.conclusion.ant.head
-        val toRemove = findUnifiableFormula(leftUnit, right.conclusion.suc).head
+
+        val listOfThingsToRemove = findUnifiableFormula(leftUnit, right.conclusion.suc)
+        if (listOfThingsToRemove.size < 1) {
+          return right
+        }
+        val toRemove = listOfThingsToRemove.head
+
         val newAnt = right.conclusion.ant
         val newSuc = right.conclusion.suc.filter(_ != toRemove)
         val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
@@ -1428,7 +1432,13 @@ object FOLowerUnits
     } else {
       if (right.conclusion.suc.size > 0) {
         val rightUnit = right.conclusion.suc.head
-        val toRemove = findUnifiableFormula(rightUnit, left.conclusion.ant).head
+
+        val listOfThingsToRemove = findUnifiableFormula(rightUnit, left.conclusion.ant)
+        if (listOfThingsToRemove.size < 1) {
+          return left
+        }
+        val toRemove = listOfThingsToRemove.head
+
         val newAnt = left.conclusion.ant.filter(_ != toRemove)
         val newSuc = left.conclusion.suc
         val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
@@ -1443,7 +1453,13 @@ object FOLowerUnits
         //        println("ru: " + rightUnit)
         //        println("lcs: " + left.conclusion.suc)
         //        println("aaa: " + findUnifiableFormula(rightUnit, left.conclusion.suc))
-        val toRemove = findUnifiableFormula(rightUnit, left.conclusion.suc).head
+
+        val listOfThingsToRemove = findUnifiableFormula(rightUnit, left.conclusion.suc)
+        if (listOfThingsToRemove.size < 1) {
+          return left
+        }
+        val toRemove = listOfThingsToRemove.head
+
         val newAnt = left.conclusion.ant
         val newSuc = left.conclusion.suc.filter(_ != toRemove)
         val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
