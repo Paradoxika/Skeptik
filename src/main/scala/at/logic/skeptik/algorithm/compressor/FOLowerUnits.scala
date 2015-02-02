@@ -282,7 +282,10 @@ object FOLowerUnits
     }
   }
 
-  def updateCarry(oldCarry: Sequent, sub: Substitution) = {
+  def updateCarry(oldCarry: Sequent, sub: Substitution): Sequent = {
+    if(oldCarry == null) {
+      return null.asInstanceOf[Sequent]
+    }
     val updatedCarry = if (sub != null) {
       val updatedAnt = if(oldCarry.ant != null) {
         oldCarry.ant.map(e => sub(e)).toList
@@ -504,38 +507,25 @@ object FOLowerUnits
               mguMap.update(urMRRout, temp.asInstanceOf[UnifyingResolution].mgu)
 
               val (leftMGU, rightMGU) = splitMGU(temp, newFixedLeft, newFixedRight)
-              //
-              val updatedCarryA = if (olderA != null) {
-                val updatedAntA = carryA.ant.map(e => olderA(e))
-                val updatedSucA = carryA.suc.map(e => olderA(e))
-                addAntecedents(updatedAntA.toList) union addSuccedents(updatedSucA.toList)
-              } else {
-                carryA
-              }
+              
+              val updatedCarryA = updateCarry(carryA, olderA)
+              val updatedCarryB = updateCarry(carryB, olderB)
 
-              val updatedCarryB = if (olderB != null) {
-                val updatedAntB = carryB.ant.map(e => olderB(e))
-                val updatedSucB = carryB.suc.map(e => olderB(e))
-                addAntecedents(updatedAntB.toList) union addSuccedents(updatedSucB.toList)
-              } else {
-                carryB
-              }
-
-              val finalUpdatedCarryA = if (carryA != null) {
-                val finalUpdatedAntA = updatedCarryA.ant.map(e => rightMGU(e))
-                val finalUpdatedSucA = updatedCarryA.suc.map(e => rightMGU(e))
-                addAntecedents(finalUpdatedAntA.toList) union addSuccedents(finalUpdatedSucA.toList)
-              } else {
-                Sequent()()
-              }
-
-              val finalUpdatedCarryB = if (carryB != null) {
-                val finalUpdatedAntB = updatedCarryB.ant.map(e => leftMGU(e))
-                val finalUpdatedSucB = updatedCarryB.suc.map(e => leftMGU(e))
-                addAntecedents(finalUpdatedAntB.toList) union addSuccedents(finalUpdatedSucB.toList)
-              } else {
-                Sequent()()
-              }
+//              val finalUpdatedCarryA = if (carryA != null) {
+//                val finalUpdatedAntA = updatedCarryA.ant.map(e => rightMGU(e))
+//                val finalUpdatedSucA = updatedCarryA.suc.map(e => rightMGU(e))
+//                addAntecedents(finalUpdatedAntA.toList) union addSuccedents(finalUpdatedSucA.toList)
+//              } else {
+//                Sequent()()
+//              }
+//
+//              val finalUpdatedCarryB = if (carryB != null) {
+//                val finalUpdatedAntB = updatedCarryB.ant.map(e => leftMGU(e))
+//                val finalUpdatedSucB = updatedCarryB.suc.map(e => leftMGU(e))
+//                addAntecedents(finalUpdatedAntB.toList) union addSuccedents(finalUpdatedSucB.toList)
+//              } else {
+//                Sequent()()
+//              }
 
               val mergedCarry = unionSequents(carryB, carryA) //21k errors
               //              val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA) //56 errors
