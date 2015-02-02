@@ -1392,7 +1392,15 @@ object FOLowerUnits
       //left is unit
       if (left.conclusion.suc.size > 0) {
         val leftUnit = left.conclusion.suc.head
-        val toRemove = findUnifiableFormula(leftUnit, right.conclusion.ant).head
+        
+        //TODO: propagate this small (but necessary!) change to the other branches of this method
+        val listOfThingsToRemove = findUnifiableFormula(leftUnit, right.conclusion.ant)
+        if(listOfThingsToRemove.size < 1){
+          return right
+        }
+        //---
+        
+        val toRemove = listOfThingsToRemove.head
         val newAnt = right.conclusion.ant.filter(_ != toRemove)
         val newSuc = right.conclusion.suc
         val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
