@@ -5,6 +5,7 @@ import at.logic.skeptik.proof.sequent.lk.Axiom
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
+import at.logic.skeptik.proof.sequent.resolution.MRRException
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
@@ -482,6 +483,10 @@ object FOLowerUnits
             } else {
               println("case b")
 
+              println("case b - left: " + node.asInstanceOf[UnifyingResolution].leftPremise)
+              println("case b - right: " + node.asInstanceOf[UnifyingResolution].rightPremise)
+              println("case b - leftClean: " + node.asInstanceOf[UnifyingResolution].leftClean)
+
               val olderA = if (!mguMap.get(fixedRight).isEmpty) {
                 println("case b - olderA: " + mguMap.get(fixedRight).get)
                 mguMap.get(fixedRight).get
@@ -524,7 +529,15 @@ object FOLowerUnits
               println("case b - newfixedleft: " + newFixedLeft)
               println("case b - newfixedRight: " + newFixedRight)
 
-              var urMRRout = UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
+              //              var urMRRout = UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
+              //this doesn't seem to help anything
+              var urMRRout = try {
+                UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
+              } catch {
+                case e: MRRException if (e.getMessage != null && e.getMessage.equals("Resolution (MRR): the conclusions of the given premises are not resolvable.")) => {
+                  UnifyingResolutionMRR(newFixedRight, newFixedLeft)(vars)
+                }
+              }
 
               //              val urMRRout = UnifyingResolutionMRR(fixedLeft, fixedRight)(vars)
               var temp = urMRRout
@@ -549,6 +562,8 @@ object FOLowerUnits
               } else { null }
 
               println("case b - before contraction: " + temp.asInstanceOf[UnifyingResolution].conclusion)
+              println("case b - left clean after res: " + temp.asInstanceOf[UnifyingResolution].leftClean)
+
               println("case b - final out " + urMRRout)
               println("case b - sub added: " + temp.asInstanceOf[UnifyingResolution].mgu)
               mguMap.update(urMRRout, temp.asInstanceOf[UnifyingResolution].mgu)
@@ -1333,17 +1348,68 @@ object FOLowerUnits
     out
   }
 
-  def contractAndUnify(left: SequentProofNode, right: SequentProofNode, vars: MSet[Var]) = {
+  def findUnitInSeq(node: SequentProofNode, units: List[SequentProofNode], vars: MSet[Var]): SequentProofNode = {
+    if (units.size < 1) {
+      return null
+    } else {
+      val unitToTest = units.head
+      if (unitToTest.conclusion.suc.size > 0) {
+        val unitFormulas = findUnifiableFormula(unitToTest.conclusion.suc.head, node.conclusion.suc)(vars)
+        if (unitFormulas.size > 0) {
+          unitToTest
+        } else {
+          findUnitInSeq(node, units.tail, vars)
+        }
+      } else {
+        val unitFormulas = findUnifiableFormula(unitToTest.conclusion.suc.head, node.conclusion.suc)(vars)
+        if (unitFormulas.size > 0) {
+          unitToTest
+        } else {
+          findUnitInSeq(node, units.tail, vars)
+        }
+      }
+    }
+  }
+
+  def smartContraction(left: SequentProofNode, right: SequentProofNode, units: List[SequentProofNode], vars: MSet[Var]) = {
+    val newRight = Contraction(right)(vars)
+
+    val rightsUnit = findUnitInSeq(newRight, units, vars)
+    
+    val rightUnitIsAnt = if (rightsUnit.conclusion.suc.size > 0) {
+      false
+    } else {
+      true
+    }
+    
+    val newLeftFormulas = if(!rightUnitIsAnt) {
+      findUnifiableFormula(rightsUnit.conclusion.suc.head, left.conclusion.ant)(vars)
+    } else {
+      findUnifiableFormula(rightsUnit.conclusion.ant.head, left.conclusion.suc)(vars)
+    }
+
+    val newLeftSequent = if(rightUnitIsAnt) {
+      addSuccedents(newLeftFormulas.toList)
+    } else {
+      addAntecedents(newLeftFormulas.toList)
+    }
+    
+    println("NLS: " + newLeftSequent)
+    
+  }
+
+  def contractAndUnify(left: SequentProofNode, right: SequentProofNode, vars: MSet[Var], units: List[SequentProofNode]) = {
     println("c and u")
     println("l: " + left)
     println("r: " + right)
     if (isUnitClause(left.conclusion)) {
       if (isUnitClause(right.conclusion)) {
-        //        println("A")
+        println("A")
         //Both units; no need to contract either
         UnifyingResolution(left, right)(vars)
 
       } else {
+        println("B")
         //only right is non-unit
         val contracted = Contraction(right)(vars)
         if (contracted.conclusion.logicalSize < right.conclusion.logicalSize) {
@@ -1354,6 +1420,8 @@ object FOLowerUnits
       }
     } else {
       if (isUnitClause(right.conclusion)) {
+        println("C")
+
         //only left is non-unit
         val contracted = Contraction(left)(vars)
         if (contracted.conclusion.logicalSize < left.conclusion.logicalSize) {
@@ -1364,9 +1432,13 @@ object FOLowerUnits
         }
       } else {
         //both are non-units
+        println("D")
+
         val contractedL = Contraction(left)(vars)
         val contractedR = Contraction(right)(vars)
-
+        println("CL: " + contractedL)
+        println("CR: " + contractedR)
+smartContraction(left, right, units, vars)
         UnifyingResolution(contractedL, contractedR)(vars)
       }
     }
@@ -1493,12 +1565,12 @@ object FOLowerUnits
       //      println("left: " + left)
       //      println("right: " + right)
       try {
-        contractAndUnify(leftN, rightN, varsC)
+        contractAndUnify(leftN, rightN, varsC, units)
       } catch {
         case e: Exception => {
           e.printStackTrace()
 
-          contractAndUnify(rightN, leftN, varsC)
+          contractAndUnify(rightN, leftN, varsC, units)
         }
       }
     }

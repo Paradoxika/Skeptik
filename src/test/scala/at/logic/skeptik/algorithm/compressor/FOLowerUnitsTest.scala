@@ -94,21 +94,21 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   //left is unit, right not
   val unitTest = Axiom(App(Var("q", i -> i), x) +: Sequent(App(Var("q", i -> i), a))())
   val unitTestB = Axiom(Sequent()(App(Var("q", i -> i), a)))
-  val conUnif1result = FOLowerUnits.contractAndUnify(unitTestB, unitTest, usedVars)
+  val conUnif1result = FOLowerUnits.contractAndUnify(unitTestB, unitTest, usedVars, List[SequentProofNode]()) //TODO replace list with actual list of units
   
   //left is unit, right unit
   val unitTestC = Axiom(Sequent(App(Var("q", i -> i), a))())
-  val conUnif2result = FOLowerUnits.contractAndUnify(unitTestB, unitTestC, usedVars)
+  val conUnif2result = FOLowerUnits.contractAndUnify(unitTestB, unitTestC, usedVars, List[SequentProofNode]())//TODO replace list with actual list of units
   
   //left is not unit, right unit
   val nonUnitTest = Axiom(Sequent()(App(Var("p", i -> i), x)) + App(Var("p", i -> i), y))
   val unitTestD = Axiom(Sequent(App(Var("p", i -> i), a))())
-  val conUnif3result = FOLowerUnits.contractAndUnify(nonUnitTest, unitTestD, usedVars)
+  val conUnif3result = FOLowerUnits.contractAndUnify(nonUnitTest, unitTestD, usedVars,  List[SequentProofNode]())//TODO replace list with actual list of units
     
   //left is not unit, right is not unit 
   val nonUnitTestB = Axiom(Sequent()(App(Var("p", i -> i), x)) + App(Var("q", i -> i), y))  
   val unitTestE = Axiom(App(Var("p", i -> i), u) +: Sequent(App(Var("r", i -> i), v))())
-  val conUnif4result = FOLowerUnits.contractAndUnify(nonUnitTestB, unitTestE, usedVars)  
+  val conUnif4result = FOLowerUnits.contractAndUnify(nonUnitTestB, unitTestE, usedVars,  List[SequentProofNode]())//TODO replace list with actual list of units  
     
   
   //checkListUnif
