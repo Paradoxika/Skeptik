@@ -24,19 +24,21 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   def newAnt = contraction._1
   def newSuc = contraction._2
 
+  def subs = contraction._3
+
   override lazy val conclusion = {
     val antecedent = newAnt
     val succedent = newSuc
     new Sequent(antecedent, succedent)
   }
 
-  def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {
+  def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
     if (premise.logicalSize > 0) {
       require(premise.logicalSize > desired.logicalSize)
     }
-    
+
     if (desired.logicalSize == 0) {
-      contract(premise)
+      contract(premise, null)
     } else {
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
@@ -44,7 +46,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
         desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
       }
       println("..")
-      (desired.ant, desired.suc)
+      (desired.ant, desired.suc, null) //TODO: fix the null
     }
   }
 
@@ -137,9 +139,9 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     tempMap
   }
 
-  def contract(seq: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E]) = {    
+  def contract(seq: Sequent, subs: List[Substitution])(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
     def occurCheck(p: (E, E), u: Substitution): Boolean = {
-//      println ("in oc?")
+      //      println ("in oc?")
       val first = p._1
       val second = p._2
 
@@ -153,49 +155,49 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
               return false
             }
           } else if (getSetOfVars(second) contains v) {
-            if (e.occursIn(first)  && (getSetOfVars(e) contains v)) {
+            if (e.occursIn(first) && (getSetOfVars(e) contains v)) {
               return false
             }
           }
         }
       }
-      
+
       true
     }
 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
-//        true
+        //        true
         occurCheck(p, u)
       }
     }
     def isUnifiableWrapper(p: (E, E)) = {
-//      println("aa " + p)
-      val outa = isUnifiable(p)(unifiableVariables)// && 
-//      println("bb")
+      //      println("aa " + p)
+      val outa = isUnifiable(p)(unifiableVariables) // && 
+      //      println("bb")
       val outb = !(p._1.equals(p._2))
-//      println("cc")
+      //      println("cc")
       outa && outb
     }
 
-//    println("aasa")
+    //    println("aasa")
     //TODO: somewhere in the next too lines. Presumably a unify is looping forever. 
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
-//    println(".,..")
+    //    println(".,..")
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
 
       val sub = unify(p :: Nil)(unifiableVariables) match {
         case None => throw new Exception("Contraction failed.")
         case Some(u) => {
-//          if(occurCheck(p, u)){
-//            u 
-//          } else {
-//            Substitution()
-//          }
+          //          if(occurCheck(p, u)){
+          //            u 
+          //          } else {
+          //            Substitution()
+          //          }
           u
         }
       }
@@ -207,9 +209,14 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       val sS = addSuccedents(cleanSuc.distinct.toList)
       val seqOut = sS union sA
 
-      contract(seqOut)
+      if (subs == null) {
+        contract(seqOut, List[Substitution](sub))
+      } else {
+        contract(seqOut, subs ++ List[Substitution](sub))
+      }
+      //      contract(seqOut)
     } else {
-      (seq.ant.distinct, seq.suc.distinct)
+      (seq.ant.distinct, seq.suc.distinct, subs)
     }
   }
 

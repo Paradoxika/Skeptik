@@ -158,7 +158,9 @@ object FOLowerUnits
     val con = try {
       Contraction(Axiom(newSeq))(vars)
     } catch {
-      case e: Exception => { null }
+      case e: Exception => {
+        null
+      }
     }
 
     if (con == null) {
@@ -1375,27 +1377,34 @@ object FOLowerUnits
     val newRight = Contraction(right)(vars)
 
     val rightsUnit = findUnitInSeq(newRight, units, vars)
-    
+
     val rightUnitIsAnt = if (rightsUnit.conclusion.suc.size > 0) {
       false
     } else {
       true
     }
-    
-    val newLeftFormulas = if(!rightUnitIsAnt) {
+
+    val newLeftFormulas = if (!rightUnitIsAnt) {
       findUnifiableFormula(rightsUnit.conclusion.suc.head, left.conclusion.ant)(vars)
     } else {
       findUnifiableFormula(rightsUnit.conclusion.ant.head, left.conclusion.suc)(vars)
     }
 
-    val newLeftSequent = if(rightUnitIsAnt) {
+    val newLeftSequent = if (rightUnitIsAnt) {
       addSuccedents(newLeftFormulas.toList)
     } else {
       addAntecedents(newLeftFormulas.toList)
     }
-    
+
     println("NLS: " + newLeftSequent)
-    
+
+    val newLeftAx = Axiom(newLeftSequent)
+    val newLeftCon = Contraction(newLeftAx)(vars)
+
+    println("NLC:" + newLeftCon)
+
+    val conSubs = newLeftCon.subs
+    println("NLCsubs: " + conSubs)
   }
 
   def contractAndUnify(left: SequentProofNode, right: SequentProofNode, vars: MSet[Var], units: List[SequentProofNode]) = {
@@ -1438,7 +1447,7 @@ object FOLowerUnits
         val contractedR = Contraction(right)(vars)
         println("CL: " + contractedL)
         println("CR: " + contractedR)
-smartContraction(left, right, units, vars)
+        smartContraction(left, right, units, vars)//TODO: call this smarter
         UnifyingResolution(contractedL, contractedR)(vars)
       }
     }
