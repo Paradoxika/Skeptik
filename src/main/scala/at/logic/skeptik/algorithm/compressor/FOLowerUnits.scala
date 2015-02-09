@@ -1373,8 +1373,8 @@ object FOLowerUnits
     }
   }
 
-  def smartContraction(left: SequentProofNode, right: SequentProofNode, units: List[SequentProofNode], vars: MSet[Var]) = {
-    val newRight = Contraction(right)(vars)
+  def smartContraction(left: SequentProofNode, right: SequentProofNode, units: List[SequentProofNode], vars: MSet[Var]): SequentProofNode = {
+    val newRight = Contraction(right)(vars) //TODO: do this smart too?
 
     val rightsUnit = findUnitInSeq(newRight, units, vars)
 
@@ -1405,6 +1405,27 @@ object FOLowerUnits
 
     val conSubs = newLeftCon.subs
     println("NLCsubs: " + conSubs)
+
+    val leftSubstituted = applySubs(left, conSubs, vars)
+    println("left subbed: " + leftSubstituted)
+
+    val leftContractedSmart = Contraction(leftSubstituted)(vars)
+    println("smart left: " + leftContractedSmart)
+
+    println("newRight: " + newRight)
+    //TODO: try both ways
+    val smarterContractionResolution = UnifyingResolution(newRight, leftContractedSmart)(vars)
+    println("sCR: " + smarterContractionResolution)
+    smarterContractionResolution
+  }
+
+  def applySubs(node: SequentProofNode, subs: List[Substitution], vars: MSet[Var]): SequentProofNode = {
+    if (subs.size < 1) {
+      node
+    } else {
+      val newNode = new FOSubstitution(node, subs.head)(vars)
+      applySubs(newNode, subs.tail, vars)
+    }
   }
 
   def contractAndUnify(left: SequentProofNode, right: SequentProofNode, vars: MSet[Var], units: List[SequentProofNode]) = {
@@ -1447,8 +1468,14 @@ object FOLowerUnits
         val contractedR = Contraction(right)(vars)
         println("CL: " + contractedL)
         println("CR: " + contractedR)
-        smartContraction(left, right, units, vars)//TODO: call this smarter
-        UnifyingResolution(contractedL, contractedR)(vars)
+        //        smartContraction(left, right, units, vars)//TODO: call this smarter
+        try {
+          UnifyingResolution(contractedL, contractedR)(vars)
+        } catch {
+          case e: Exception => {
+            smartContraction(left, right, units, vars)
+          }
+        }
       }
     }
   }
