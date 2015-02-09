@@ -320,14 +320,20 @@ object FOLowerUnits
 
     def appSub(pair: (Var, E)): (Var, E) = {
       //      (renaming(pair._1).asInstanceOf[Var], sub(pair._2))
+//      println("GRM: p1: " + pair._1)
+//      println("GRM: p2: " + pair._2)
+//      println("GRM: check: " + renamingForward.get(pair._1).isEmpty)
       if (!renamingForward.get(pair._1).isEmpty) {
         (renamingForward(pair._1).asInstanceOf[Var], pair._2)
-      } else {
+      } else if (!renamingBackward.get(pair._1).isEmpty) {
         (renamingBackward(pair._1).asInstanceOf[Var], pair._2)
+      } else {
+        pair
       }
 
     }
 
+    //    println("GRM: checkpoint")
     val outPairs = sub.toList.map(p => appSub(p))
 
     Substitution(outPairs: _*)
@@ -571,8 +577,9 @@ object FOLowerUnits
               println("case b - left clean after res: " + temp.asInstanceOf[UnifyingResolution].leftClean)
 
               println("case b - final out " + urMRRout)
-              println("case b - sub added: " + temp.asInstanceOf[UnifyingResolution].mgu)
-              mguMap.update(urMRRout, temp.asInstanceOf[UnifyingResolution].mgu)
+              val resMGU = temp.asInstanceOf[UnifyingResolution].mgu
+              println("case b - sub added: " + resMGU)
+              mguMap.update(urMRRout, resMGU)
 
               val (leftMGU, rightMGU) = splitMGU(temp, newFixedLeft, newFixedRight)
 
@@ -601,6 +608,18 @@ object FOLowerUnits
               } else {
                 null
               }
+
+              //THIS!!!!!
+              val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
+              val fixedCarry = updateCarry(testCarry, renamingBackward)
+              println("case b - backwards naming: " + renamingBackward)
+              println("case b - fixedCarry: " + fixedCarry)
+
+              val nodeMGU = resMGU
+              val newLeftClean = urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion
+              val fixedMGU = getRenamedMGU(newFixedLeft.conclusion, newLeftClean, nodeMGU, vars)
+              println("case b: testmgu: " + fixedMGU)
+              ///________________
 
               //TODO: update both maps
               if (testCarry != null) {
