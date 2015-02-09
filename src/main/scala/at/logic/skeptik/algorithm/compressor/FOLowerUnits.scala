@@ -351,8 +351,12 @@ object FOLowerUnits
         carryMap.put(k, carry)
       } else {
         val existingCarry = carryMap.get(k).get
-        val bothCarries = existingCarry union carry
-        carryMap.update(k, bothCarries)
+        if (existingCarry != null) {
+          val bothCarries = existingCarry union carry
+          carryMap.update(k, bothCarries)
+        } else {
+          carryMap.put(k, carry)
+        }
       }
     }
 
