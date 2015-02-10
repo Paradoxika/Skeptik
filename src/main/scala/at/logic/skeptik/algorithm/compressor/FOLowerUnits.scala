@@ -19,6 +19,45 @@ import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
+
+/*
+ * TODO: fix for tracking issue, e.g. SET824-2.spass
+ * 
+ * Implement this fix from Bruno on the Google-Dev Group for Skeptik
+ * 
+ * I see. In principle, the ideal solution for all problems related to not knowing what to contract is to keep track of the descendants of formulas that were originally resolved away by the unit.  For example:
+
+Let's say we had
+
+C1 =  "F1, F2 |-"
+C2 =  "G1, G2 |-"
+U   =  " |- H"
+
+with the unit U being resolved with C1 (on formula F1) and C2 (on formula G1).
+
+And now suppose we would like to lower U.
+
+When reintroducing U in the bottom of the proof, we will have to resolve it with a root clause R of the form:
+
+" Gamma, F1', G1' |- Delta"    (where Gamma and Delta are lists of formulas and F1' and G1' are descendants of, respectively, F1 and G1).
+
+Now, instead of searching for a good contraction that would merge some (or most) formulas in "Gamma, F1', G1' ", we should know that we have to contract exactly F1' with G1'.
+
+Of course, this is not easy to implement, because the descendants change due to unifications.
+
+One possible way to implement this is to have a hashmap M, mapping every unit that has been lowered to a list of (descendants of) auxiliary formulas of the clauses that were originally resolved against the unit. The difficulty is that M would have to be updated. For example, originally M would be mapping U to {F1, G1}; but as we go down in the proof, M would have to be progressively updated so that U is mapped to {F1', G1'}.  If implemented in a naive way, this update would be costly, because, for every resolution step, we would have to traverse M, in order to find which key-value pairs need to be updated. To avoid this cost, an inverse HashMap N (now from formulas to units) could be created. Then, for example, when processing a resolution step that changes the formula F1 to F1', we could query N, which would tell us that F1 is mapped to U. Now we know that the pair (U, F1) in M has to be updated to (U, F1'). Likewise, (F1, U) in N has to be updated to (F1', U).
+
+
+
+I'm afraid that, unless we do this careful tracking of descendants in order to contract correctly, there will always be cases on which the algorithm will fail.
+
+Nevertheless, if our current method of doing contractions (i.e. trying to find the right contraction somehow) works for the majority of cases, we can still use it as a good and "cheaper" approximation. And on the cases on which it fails, we simply return the original uncompressed proof. Not all algorithms need to accept all inputs.
+
+ * 
+ * 
+ */
+
+
 object FOLowerUnits
   extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVariables with FindDesiredSequent {
 
@@ -320,9 +359,9 @@ object FOLowerUnits
 
     def appSub(pair: (Var, E)): (Var, E) = {
       //      (renaming(pair._1).asInstanceOf[Var], sub(pair._2))
-//      println("GRM: p1: " + pair._1)
-//      println("GRM: p2: " + pair._2)
-//      println("GRM: check: " + renamingForward.get(pair._1).isEmpty)
+      //      println("GRM: p1: " + pair._1)
+      //      println("GRM: p2: " + pair._2)
+      //      println("GRM: check: " + renamingForward.get(pair._1).isEmpty)
       if (!renamingForward.get(pair._1).isEmpty) {
         (renamingForward(pair._1).asInstanceOf[Var], pair._2)
       } else if (!renamingBackward.get(pair._1).isEmpty) {
@@ -578,13 +617,25 @@ object FOLowerUnits
 
               println("case b - final out " + urMRRout)
               val resMGU = temp.asInstanceOf[UnifyingResolution].mgu
+
+              val nodeMGU = resMGU
+              val newLeftClean = urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion
+              //              val fixedMGU = getRenamedMGU(newFixedLeft.conclusion, newLeftClean, nodeMGU, vars)
+              //              println("case b: testmgu: " + fixedMGU)
               println("case b - sub added: " + resMGU)
+              //                            mguMap.update(urMRRout, fixedMGU)
               mguMap.update(urMRRout, resMGU)
 
               val (leftMGU, rightMGU) = splitMGU(temp, newFixedLeft, newFixedRight)
 
+              
               val updatedCarryA = updateCarry(carryA, olderA)
               val updatedCarryB = updateCarry(carryB, olderB)
+              
+              println("case b - sub size =" + resMGU.size)
+              
+//              val updatedCarryA =  if(resMGU.size > 0) { updateCarry(carryA, olderA) } else { carryA }
+//              val updatedCarryB =  if(resMGU.size > 0) { updateCarry(carryB, olderB) } else { carryB }
 
               val finalUpdatedCarryA = updateCarry(updatedCarryA, rightMGU)
               val finalUpdatedCarryB = updateCarry(updatedCarryB, leftMGU)
@@ -609,16 +660,13 @@ object FOLowerUnits
                 null
               }
 
-              //THIS!!!!!
+              //Maybe this is worth looking into, but maybe not.
+              //Split mgu already accounts for the appropriate left clean variables?
               val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
               val fixedCarry = updateCarry(testCarry, renamingBackward)
               println("case b - backwards naming: " + renamingBackward)
               println("case b - fixedCarry: " + fixedCarry)
 
-              val nodeMGU = resMGU
-              val newLeftClean = urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion
-              val fixedMGU = getRenamedMGU(newFixedLeft.conclusion, newLeftClean, nodeMGU, vars)
-              println("case b: testmgu: " + fixedMGU)
               ///________________
 
               //TODO: update both maps
