@@ -19,7 +19,6 @@ import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
-
 /*
  * TODO: fix for tracking issue, e.g. SET824-2.spass
  * 
@@ -56,7 +55,6 @@ Nevertheless, if our current method of doing contractions (i.e. trying to find t
  * 
  * 
  */
-
 
 object FOLowerUnits
   extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVariables with FindDesiredSequent {
@@ -628,14 +626,13 @@ object FOLowerUnits
 
               val (leftMGU, rightMGU) = splitMGU(temp, newFixedLeft, newFixedRight)
 
-              
               val updatedCarryA = updateCarry(carryA, olderA)
               val updatedCarryB = updateCarry(carryB, olderB)
-              
+
               println("case b - sub size =" + resMGU.size)
-              
-//              val updatedCarryA =  if(resMGU.size > 0) { updateCarry(carryA, olderA) } else { carryA }
-//              val updatedCarryB =  if(resMGU.size > 0) { updateCarry(carryB, olderB) } else { carryB }
+
+              //              val updatedCarryA =  if(resMGU.size > 0) { updateCarry(carryA, olderA) } else { carryA }
+              //              val updatedCarryB =  if(resMGU.size > 0) { updateCarry(carryB, olderB) } else { carryB }
 
               val finalUpdatedCarryA = updateCarry(updatedCarryA, rightMGU)
               val finalUpdatedCarryB = updateCarry(updatedCarryB, leftMGU)
@@ -1666,31 +1663,37 @@ object FOLowerUnits
       return proof
     }
 
-    val fixMap = fixProofNodes(units.toSet, proof, varsC)
+    try {
+      val fixMap = fixProofNodes(units.toSet, proof, varsC)
 
-    def placeLoweredResolution(leftN: SequentProofNode, rightN: SequentProofNode) = {
-      //      println("left: " + left)
-      //      println("right: " + right)
-      try {
-        contractAndUnify(leftN, rightN, varsC, units)
-      } catch {
-        case e: Exception => {
-          e.printStackTrace()
+      def placeLoweredResolution(leftN: SequentProofNode, rightN: SequentProofNode) = {
+        //      println("left: " + left)
+        //      println("right: " + right)
+        try {
+          contractAndUnify(leftN, rightN, varsC, units)
+        } catch {
+          case e: Exception => {
+            e.printStackTrace()
 
-          contractAndUnify(rightN, leftN, varsC, units)
+            contractAndUnify(rightN, leftN, varsC, units)
+          }
         }
       }
+
+      //    println("fixMap built")
+      //        for (k <- fixMap.keySet) {
+      //          println(k + " -----> " + fixMap.get(k))
+      //        }
+
+      val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
+
+      val p = Proof(root)
+      p
+    } catch {
+      case e: Exception => {
+        proof
+      }
     }
-
-    //    println("fixMap built")
-    //        for (k <- fixMap.keySet) {
-    //          println(k + " -----> " + fixMap.get(k))
-    //        }
-
-    val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
-
-    val p = Proof(root)
-    p
   }
 
 }
