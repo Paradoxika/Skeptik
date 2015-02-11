@@ -1691,9 +1691,16 @@ object FOLowerUnits
       p
     } catch {
       case e: Exception => {
-        proof
+        //proof
+        throw new CompressionException("FOLowerUnits failed")
       }
     }
   }
 
+}
+
+case class CompressionException(error: String) extends Exception {
+  override def getMessage: String = {
+    error
+  }
 }
