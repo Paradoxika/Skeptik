@@ -64,6 +64,8 @@ object CADEExperimentDriver extends checkProofEquality {
     val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes"
     etempT.println(header)
     etempT.flush
+    val noDataString = ",-1,-1,-1,-1,-1,-1,-1"
+
     for (probY <- problemSetS) {
       totalCountT = totalCountT + 1
       try {
@@ -74,21 +76,27 @@ object CADEExperimentDriver extends checkProofEquality {
         val numRes = countResolutionNodes(proofToTest)
         val startTime = System.nanoTime
         val compressedProof = FOLowerUnits(proofToTest)
-        val endTime = System.nanoTime
-        val runTime = endTime - startTime
-        val compressedLengthAll = compressedProof.size
-        val compressedLengthResOnly = countResolutionNodes(compressedProof)
-        
-        val compressionRatio = (proofLength - compressedLengthAll)/proofLength.toDouble
-        val compressionSpeed = (proofLength - compressedLengthAll)/runTime.toDouble
-        
-        val compressionRatioRes = (numRes - compressedLengthResOnly)/proofLength.toDouble
-        val compressionSpeedRes = (numRes - compressedLengthResOnly)/runTime.toDouble
-        
-        
-        etempT.println(probY.substring(79) + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
-            + compressedLengthResOnly + "," + runTime +"," + compressionRatio +"," + compressionSpeed +"," + compressionRatioRes +","+compressionSpeedRes)
-        etempT.flush
+
+        if (compressedProof.root.conclusion.ant.size != 0 && compressedProof.root.conclusion.suc.size != 0) {
+          etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")
+          etempT.flush
+        } else {
+
+          val endTime = System.nanoTime
+          val runTime = endTime - startTime
+          val compressedLengthAll = compressedProof.size
+          val compressedLengthResOnly = countResolutionNodes(compressedProof)
+
+          val compressionRatio = (proofLength - compressedLengthAll) / proofLength.toDouble
+          val compressionSpeed = (proofLength - compressedLengthAll) / runTime.toDouble
+
+          val compressionRatioRes = (numRes - compressedLengthResOnly) / proofLength.toDouble
+          val compressionSpeedRes = (numRes - compressedLengthResOnly) / runTime.toDouble
+
+          etempT.println(probY.substring(79) + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
+            + compressedLengthResOnly + "," + runTime + "," + compressionRatio + "," + compressionSpeed + "," + compressionRatioRes + "," + compressionSpeedRes)
+          etempT.flush
+        }
       } catch {
         case e: CompressionException => {
           val proofToTest = ProofParserSPASS.read(probY)
@@ -96,7 +104,7 @@ object CADEExperimentDriver extends checkProofEquality {
           val proofLength = proofToTest.size
           val numRes = countResolutionNodes(proofToTest)
 
-          etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + ",-1,-1,-1,-1,-1,-1,-1")
+          etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + noDataString)
           etempT.flush
         }
       }
