@@ -15,31 +15,28 @@ import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import java.io.PrintWriter
 
-
 object CADEExperimentDriver extends checkProofEquality {
 
-  
   def countNonResolutionNodes(p: Proof[SequentProofNode]): Int = {
     var count = 0
-    for(n <- p.nodes){
-    	if(!n.isInstanceOf[UnifyingResolution]){
-    	  count = count + 1
-    	}
+    for (n <- p.nodes) {
+      if (!n.isInstanceOf[UnifyingResolution]) {
+        count = count + 1
+      }
     }
     count
   }
 
-    def countResolutionNodes(p: Proof[SequentProofNode]): Int = {
+  def countResolutionNodes(p: Proof[SequentProofNode]): Int = {
     var count = 0
-    for(n <- p.nodes){
-    	if(n.isInstanceOf[UnifyingResolution]){
-    	  count = count + 1
-    	}
+    for (n <- p.nodes) {
+      if (n.isInstanceOf[UnifyingResolution]) {
+        count = count + 1
+      }
     }
     count
   }
-  
-  
+
   def getProblems(file: String, path: String): MSet[String] = {
     val outTj = MSet[String]()
 
@@ -57,14 +54,16 @@ object CADEExperimentDriver extends checkProofEquality {
     val proofList = "C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt"
 
     val problemSetS = getProblems(proofList, path)
-//    var errorCountT = 0
+    //    var errorCountT = 0
     var totalCountT = 0
 
     //    val elogger = new PrintWriter("errors.elog")
     //    val eTypeLogger = new PrintWriter("errorTypes.elog")
     //    val eProblemsLogger = new PrintWriter("errorProblems.elog")
     val etempT = new PrintWriter("results.log")
-
+    val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes"
+    etempT.println(header)
+    etempT.flush
     for (probY <- problemSetS) {
       totalCountT = totalCountT + 1
       try {
@@ -72,21 +71,32 @@ object CADEExperimentDriver extends checkProofEquality {
         val proofToTest = ProofParserSPASS.read(probY)
 
         val proofLength = proofToTest.size
+        val numRes = countResolutionNodes(proofToTest)
         val startTime = System.nanoTime
         val compressedProof = FOLowerUnits(proofToTest)
         val endTime = System.nanoTime
-        val runTime = endTime-startTime
+        val runTime = endTime - startTime
         val compressedLengthAll = compressedProof.size
         val compressedLengthResOnly = countResolutionNodes(compressedProof)
-          etempT.println(probY + ",1," + proofLength + ","+compressedLengthAll+","+compressedLengthResOnly+","+runTime)
-          etempT.flush        
+        
+        val compressionRatio = (proofLength - compressedLengthAll)/proofLength.toDouble
+        val compressionSpeed = (proofLength - compressedLengthAll)/runTime.toDouble
+        
+        val compressionRatioRes = (numRes - compressedLengthResOnly)/proofLength.toDouble
+        val compressionSpeedRes = (numRes - compressedLengthResOnly)/runTime.toDouble
+        
+        
+        etempT.println(probY.substring(79) + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
+            + compressedLengthResOnly + "," + runTime +"," + compressionRatio +"," + compressionSpeed +"," + compressionRatioRes +","+compressionSpeedRes)
+        etempT.flush
       } catch {
         case e: CompressionException => {
           val proofToTest = ProofParserSPASS.read(probY)
 
           val proofLength = proofToTest.size
+          val numRes = countResolutionNodes(proofToTest)
 
-          etempT.println(probY + ",0," + proofLength + ",-1,-1,-1")
+          etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + ",-1,-1,-1,-1,-1,-1,-1")
           etempT.flush
         }
       }
@@ -94,7 +104,6 @@ object CADEExperimentDriver extends checkProofEquality {
     }
 
     println("total: " + totalCountT)
-
 
     //    elogger.flush
     //    eTypeLogger.flush
