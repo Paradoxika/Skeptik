@@ -93,9 +93,15 @@ object CADEExperimentDriver extends checkProofEquality {
           val compressionRatioRes = (numRes - compressedLengthResOnly) / proofLength.toDouble
           val compressionSpeedRes = (numRes - compressedLengthResOnly) / runTime.toDouble
 
-          etempT.println(probY.substring(79) + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
-            + compressedLengthResOnly + "," + runTime + "," + compressionRatio + "," + compressionSpeed + "," + compressionRatioRes + "," + compressionSpeedRes)
-          etempT.flush
+          if (compressionRatioRes < 0) {
+            etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + noDataString)
+            etempT.flush
+          } else {
+
+            etempT.println(probY.substring(79) + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
+              + compressedLengthResOnly + "," + runTime + "," + compressionRatio + "," + compressionSpeed + "," + compressionRatioRes + "," + compressionSpeedRes)
+            etempT.flush
+          }
         }
       } catch {
         case e: CompressionException => {
