@@ -14,9 +14,10 @@ import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import java.io.PrintWriter
+import java.io.File
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
 
-object CADEExperimentDriver extends checkProofEquality {
+object CADEExperimentDriverB extends checkProofEquality {
 
   def countNonResolutionNodes(p: Proof[SequentProofNode]): Int = {
     var count = 0
@@ -27,8 +28,8 @@ object CADEExperimentDriver extends checkProofEquality {
     }
     count
   }
-  
-  def countFOSub(p: Proof[SequentProofNode]): Int = {
+
+    def countFOSub(p: Proof[SequentProofNode]): Int = {
     var count = 0
     for (n <- p.nodes) {
       if (n.isInstanceOf[FOSubstitution]) {
@@ -37,7 +38,6 @@ object CADEExperimentDriver extends checkProofEquality {
     }
     count
   }
-
   def countResolutionNodes(p: Proof[SequentProofNode]): Int = {
     var count = 0
     for (n <- p.nodes) {
@@ -50,29 +50,52 @@ object CADEExperimentDriver extends checkProofEquality {
 
   def getProblems(file: String, path: String): MSet[String] = {
     val outTj = MSet[String]()
+    val etempT = new PrintWriter("NFOErrorResults.log")
 
     for (line <- Source.fromFile(file).getLines()) {
-      val newProblemN = path + "GoodProofs\\" + line.substring(0, 3) + "\\" + line + ".spass"
-      println(newProblemN)
-      outTj.add(newProblemN)
+      //      val newProblemN = path + "GoodProofs\\" + line.substring(0, 3) + "\\" + line + ".spass"
+      //      println(newProblemN)
+      val someFile = new File(line)
+      val fileSize = someFile.length
+      if (fileSize > 0) {
+        try {
+          ProofParserSPASS.read(line)
+          outTj.add(line)
+        } catch {
+          case e: Exception => {
+            //do nothing 
+            if (e.getMessage != null) {
+              etempT.println(e.getMessage)
+              etempT.flush
+            }
+          }
+        }
+
+      }
     }
     outTj
   }
 
   def main(args: Array[String]): Unit = {
 
-    val path = "C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
-    val proofList = "C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt"
+    val path = "" //"C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
+    val proofList = "C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\non-first-order-proofs-clean.txt"
 
     val problemSetS = getProblems(proofList, path)
+
+    //    ProofParserSPASS.read("C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\FiniteHU\\TPTP-v6.1.0\\Problems\\ARI\\ARI241=1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\PUZ\\PUZ031+3.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\SYN\\SYN387+1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\SYN\\SYN359+1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\GRA\\GRA072^1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\FiniteHU\\TPTP-v6.1.0\\Problems\\GRA\\GRA050^1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\SYN\\SYN384+1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\ARI\\ARI049=1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\SYN\\SYN188-1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\PropositionalQuotes\\TPTP-v6.1.0\\Problems\\SYN\\SYN356+1.spass, C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Non-first-order Files\\FiniteHU\\TPTP-v6.1.0\\Problems\\ARI\\ARI224=1.spass")
+
+    println(problemSetS)
+    println(problemSetS.size)
+
     //    var errorCountT = 0
     var totalCountT = 0
 
     //    val elogger = new PrintWriter("errors.elog")
     //    val eTypeLogger = new PrintWriter("errorTypes.elog")
     //    val eProblemsLogger = new PrintWriter("errorProblems.elog")
-    val etempT = new PrintWriter("results-nov18.log")
-    val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub"
+    val etempT = new PrintWriter("NFOresults-nov18.log")
+    val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes"
     etempT.println(header)
     etempT.flush
     val noDataString = ",-1,-1,-1,-1,-1,-1,-1,-1"
@@ -89,7 +112,7 @@ object CADEExperimentDriver extends checkProofEquality {
         val compressedProof = FOLowerUnits(proofToTest)
 
         if (compressedProof.root.conclusion.ant.size != 0 && compressedProof.root.conclusion.suc.size != 0) {
-          etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")
+          etempT.println(probY + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")
           etempT.flush
         } else {
 
@@ -103,16 +126,15 @@ object CADEExperimentDriver extends checkProofEquality {
 
           val compressionRatioRes = (numRes - compressedLengthResOnly) / proofLength.toDouble
           val compressionSpeedRes = (numRes - compressedLengthResOnly) / runTime.toDouble
-
           val numSub = countFOSub(compressedProof)
-          
+
           if (compressionRatioRes < 0) {
-            etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + noDataString)
+            etempT.println(probY + ",0," + proofLength + "," + numRes + noDataString)
             etempT.flush
           } else {
 
-            etempT.println(probY.substring(79) + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
-              + compressedLengthResOnly + "," + runTime + "," + compressionRatio + "," + compressionSpeed + "," + compressionRatioRes + "," + compressionSpeedRes+","+numSub)
+            etempT.println(probY + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
+              + compressedLengthResOnly + "," + runTime + "," + compressionRatio + "," + compressionSpeed + "," + compressionRatioRes + "," + compressionSpeedRes +","+numSub)
             etempT.flush
           }
         }
