@@ -88,7 +88,7 @@ object CADEExperimentDriver extends checkProofEquality {
         val startTime = System.nanoTime
         val compressedProof = FOLowerUnits(proofToTest)
 
-        if (compressedProof.root.conclusion.ant.size != 0 && compressedProof.root.conclusion.suc.size != 0) {
+        if (compressedProof.root.conclusion.ant.size != 0 || compressedProof.root.conclusion.suc.size != 0) {
           etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")
           etempT.flush
         } else {
