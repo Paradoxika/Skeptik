@@ -71,21 +71,28 @@ object CADEExperimentDriver extends checkProofEquality {
     //    val elogger = new PrintWriter("errors.elog")
     //    val eTypeLogger = new PrintWriter("errorTypes.elog")
     //    val eProblemsLogger = new PrintWriter("errorProblems.elog")
-    val etempT = new PrintWriter("results-nov18.log")
-    val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub"
+    val etempT = new PrintWriter("results-feb23.log")
+    val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
     etempT.println(header)
     etempT.flush
-    val noDataString = ",-1,-1,-1,-1,-1,-1,-1,-1"
+    val noDataString = ",-1,-1,-1,-1,-1,-1,-1,-1,-1"
 
     for (probY <- problemSetS) {
       totalCountT = totalCountT + 1
       try {
 
+        val preParseTime = System.nanoTime
+        
         val proofToTest = ProofParserSPASS.read(probY)
 
+        val postParseTime = System.nanoTime
+        
         val proofLength = proofToTest.size
         val numRes = countResolutionNodes(proofToTest)
+        val parseTime = postParseTime-preParseTime
+        
         val startTime = System.nanoTime
+        
         val compressedProof = FOLowerUnits(proofToTest)
 
         if (compressedProof.root.conclusion.ant.size != 0 || compressedProof.root.conclusion.suc.size != 0) {
@@ -112,7 +119,7 @@ object CADEExperimentDriver extends checkProofEquality {
           } else {
 
             etempT.println(probY.substring(79) + ",1," + proofLength + "," + numRes + "," + compressedLengthAll + ","
-              + compressedLengthResOnly + "," + runTime + "," + compressionRatio + "," + compressionSpeed + "," + compressionRatioRes + "," + compressionSpeedRes+","+numSub)
+              + compressedLengthResOnly + "," + runTime + "," + compressionRatio + "," + compressionSpeed + "," + compressionRatioRes + "," + compressionSpeedRes+","+numSub+","+parseTime)
             etempT.flush
           }
         }
