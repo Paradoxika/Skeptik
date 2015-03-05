@@ -17,8 +17,10 @@ class NaturalSequent(val context: Set[NamedE], val e:E) extends Judgment {
   }		
   def canEqual(other: Any) = other.isInstanceOf[NaturalSequent]
   
-  //def logicalSize = (context.map(_.size) :\ 0)(_ + _ + 1) + e.size
+
   def logicalSize = e.logicalSize
+  def msize = 10 * context.size + e.logicalSize
+  //def msize = (context.map(_.expression.logicalSize) :\ 0)(_ + _ + 1) + e.logicalSize
   
   override def hashCode = 42*context.hashCode + e.hashCode
   override def toString = context.mkString(", ") + unicodeOrElse(" \u22A2 "," :- ") + e

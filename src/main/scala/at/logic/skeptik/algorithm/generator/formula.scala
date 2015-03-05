@@ -2,6 +2,7 @@ package at.logic.skeptik.algorithm.generator
 
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula.{Imp, enrichFormula}
+import collection.mutable.{HashSet => MSet}
 import util.Random
 
 object FormulaGenerator {
@@ -78,7 +79,7 @@ object FormulaGenerator {
       rec(length)
     }
     
-    def generateFormulas(l:List[E]):List[E] = {
+    def generateFormulas(l:List[E]): Seq[E] = {
       var formulas = List[E]()
       if (l.length == 1) formulas = l
       else for (i <- 1 to l.length - 1) {
@@ -96,4 +97,19 @@ object FormulaGenerator {
     
     formulas
   }
+  
+  
+  def generateAllRelaxed(length: Int, nSymbols: Int): Set[E] = {
+    if (length == 1) atoms.take(nSymbols).toSet
+    else {
+      var formulas = new MSet[E]()
+      for (i <- 1 to length-1) {
+        val leftFormulas = generateAllRelaxed(i, nSymbols)
+        val rightFormulas = generateAllRelaxed(length - i, nSymbols)
+        for (lf <- leftFormulas; rf <- rightFormulas) formulas += Imp(lf,rf)
+      }  
+      formulas.toSet
+    }
+  }
+  
 }

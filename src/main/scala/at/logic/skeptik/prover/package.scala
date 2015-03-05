@@ -5,4 +5,6 @@ import at.logic.skeptik.judgment.Judgment
 
 package object prover {
   type Calculus[J <: Judgment, P <: ProofNode[J,P]] = Seq[InferenceRule[J, P]]
+  
+  type SaturationCalculus[J <: Judgment, P <: ProofNode[J,P]] = Seq[SaturationInferenceRule[J,P]]
 }

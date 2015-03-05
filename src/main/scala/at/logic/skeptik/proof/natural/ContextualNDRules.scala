@@ -23,9 +23,9 @@ extends NaturalDeductionProofNode with Unary {
 
 class ImpIntroC(premise: NaturalDeductionProofNode, assumption: NamedE, position: Position)
 extends ImpIntroCK(premise, assumption, position)
-with IntuitionisticSoundnessCondition
+with SoundnessCondition
 
-trait IntuitionisticSoundnessCondition extends ImpIntroCK { 
+trait SoundnessCondition extends ImpIntroCK { 
   def positionIsStronglyPositive: Boolean = {
     val deepMain = (conclusion.e !: position).get
     def rec(f: E): Boolean = if (deepMain eq f) true else f match {

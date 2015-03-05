@@ -2,7 +2,7 @@ package at.logic.skeptik.proof
 package natural
 
 import at.logic.skeptik.expression.formula.{Imp}
-import at.logic.skeptik.prover.InferenceRule
+import at.logic.skeptik.prover.{InferenceRule, SaturationInferenceRule}
 import at.logic.skeptik.judgment.{NaturalSequent,NamedE}
 
 object nameFactory {
@@ -58,11 +58,18 @@ object Assumption extends InferenceRule[NaturalSequent, NaturalDeductionProofNod
 }
 
 
-object ImpIntro extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] {
+object ImpIntro 
+extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] 
+with SaturationInferenceRule[NaturalSequent, NaturalDeductionProofNode] {
   def apply(premise: NaturalDeductionProofNode, assumption: NamedE) = new ImpIntro(premise, assumption)
   def unapply(p: NaturalDeductionProofNode) = p match {
     case p: ImpIntro => Some((p.premise, p.assumption))
     case _ => None
+  }
+  
+  // applies the rule top-down exhaustively
+  def apply(premise: Seq[NaturalDeductionProofNode]) : Seq[NaturalDeductionProofNode] = {
+    (for (a <- premise.head.conclusion.context) yield { new ImpIntro(premise.head, a) }).toSeq
   }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
@@ -71,7 +78,8 @@ object ImpIntro extends InferenceRule[NaturalSequent, NaturalDeductionProofNode]
     case _ => Seq()
   } 
   
-  def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+  // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+  def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = { 
     if (premises.length == 1) conclusion.e match {
       case Imp(a,b) => {
         if (b == premises(0).conclusion.e) premises(0).conclusion.context.find(_.expression == a) match {
@@ -87,11 +95,24 @@ object ImpIntro extends InferenceRule[NaturalSequent, NaturalDeductionProofNode]
 }
 
 
-object ImpElim extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] {
+object ImpElim 
+extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] 
+with SaturationInferenceRule[NaturalSequent, NaturalDeductionProofNode] {
   def apply(leftPremise: NaturalDeductionProofNode, rightPremise: NaturalDeductionProofNode) = new ImpElim(leftPremise, rightPremise)
   def unapply(p: NaturalDeductionProofNode) = p match {
     case p: ImpElim => Some((p.leftPremise, p.rightPremise))
     case _ => None
+  }
+ 
+  
+  // applies the rule top-down exhaustively
+  def apply(premises: Seq[NaturalDeductionProofNode]) : Seq[NaturalDeductionProofNode] = {
+    val leftPremise = premises.head
+    val rightPremise = premises.last
+    (leftPremise.conclusion.e,rightPremise.conclusion.e) match {
+      case (a,Imp(b,c)) if a == b => Seq( new ImpElim(leftPremise, rightPremise) )
+      case _ => Seq()
+    }
   }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
@@ -102,7 +123,8 @@ object ImpElim extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] 
     case _ => None
   }).filter(_ != None).map(_.get).toSeq 
  
-  def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+  // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
+  def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = {
     if (premises.length == 2) {
       try {
         val proof = ImpElim(premises(0), premises(1))
