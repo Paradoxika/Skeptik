@@ -1,6 +1,6 @@
 /************************************************************************************[drat-trim.c]
-Copyright (c) 2014, Marijn Heule and Nathan Wetzler
-Last edit, May 8, 2014
+Copyright (c) 2014-2015, Marijn Heule and Nathan Wetzler
+Last edit, March 4, 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -50,7 +50,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 struct solver { FILE *inputFile, *proofFile, *coreFile, *lemmaFile, *traceFile;
     int *DB, nVars, timeout, mask, delete, *falseStack, *false, *forced,
-      *processed, *assigned, count, *used, *max, *delinfo, RATmode, RATcount, REDcount,
+      *processed, *assigned, count, *used, *max, *delinfo, COREcount, RATmode, RATcount, MARKcount,
       Lcount, maxCandidates, *resolutionCandidates, maxDependencies, nDependencies,
       *dependencies, maxVar, mode, verb, unitSize, prep, *current, delLit; // depth, maxdepth;
     struct timeval start_time;
@@ -116,6 +116,7 @@ static inline void markClause (struct solver* S, int* clause, int index) {
     S->dependencies[S->nDependencies++] = clause[index - 1] >> 1; }
 
   if ((clause[index - 1] & ACTIVE) == 0) {
+    S->MARKcount++;
     clause[index - 1] |= ACTIVE;
     if (S->lemmaFile && clause[1])
       *(S->delinfo++) = (((int) (clause - S->DB) + index) << 1) + 1;
@@ -209,14 +210,14 @@ int sortSize (struct solver *S, int *lemma, int diff) {
 
 // print the core clauses to coreFile in DIMACS format
 void printCore (struct solver *S) {
-  int i, j, count = 0;
+  int i, j;
   for (i = 0; i < S->nClauses; i++) {
     int *lemmas = S->DB + (S->adlist[i] >> INFOBITS);
-    if (lemmas[ID] & ACTIVE) count++; }
-  printf("c %i of %li clauses in core\n", count, S->nClauses);
+    if (lemmas[ID] & ACTIVE) S->COREcount++; }
+  printf("c %i of %li clauses in core\n", S->COREcount, S->nClauses);
 
   if (S->coreFile) {
-    fprintf(S->coreFile, "p cnf %i %i\n", S->nVars, count);
+    fprintf(S->coreFile, "p cnf %i %i\n", S->nVars, S->COREcount);
     for (i = 0; i < S->nClauses; i++) {
       int *lemmas = S->DB + (S->adlist[i] >> INFOBITS);
       if (lemmas[ID] & ACTIVE) {
@@ -226,7 +227,7 @@ void printCore (struct solver *S) {
 
 // print the core lemmas to lemmaFile in DRAT format
 void printProof (struct solver *S) {
-  printf("c %i of %i lemmas in core using %lu resolution steps\n", S->REDcount + 1, S->Lcount, S->arcs);
+  printf("c %i of %i lemmas in core using %lu resolution steps\n", S->MARKcount - S->COREcount + 1, S->Lcount, S->arcs);
   printf("c %d RAT lemmas in core; %i redundant literals in core lemmas\n", S->RATcount, S->delLit);
 //  printf("c %d RAT lemmas in core; depth of proof is %d\n", S->RATcount, S->maxdepth);
 /*
@@ -241,15 +242,19 @@ void printProof (struct solver *S) {
     sizes[lemmas[DEPTH]]++; }
   for (i = 1; i <= S->maxdepth; i++) printf("%i (%i)\n", sizes[i], i);
 */
+
+// NB: not yet working with forward checking
   if (S->lemmaFile) {
     S->delinfo--;
     while (*S->delinfo) {
       int offset = *S->delinfo--;
       if (offset & 1) fprintf (S->lemmaFile, "d ");
       int *lemmas = S->DB + (offset >> 1);
-      // add something for universals
       int reslit = lemmas[PIVOT];
-      fprintf (S->lemmaFile, "%i ", reslit);
+      while (*lemmas) {
+        int lit = *lemmas++;
+        if (lit == reslit) fprintf (S->lemmaFile, "%i ", lit); }
+      lemmas = S->DB + (offset >> 1);
       while (*lemmas) {
         int lit = *lemmas++;
         if (lit != reslit) fprintf (S->lemmaFile, "%i ", lit); }
@@ -294,9 +299,9 @@ void printDependencies (struct solver *S, int* clause) {
 
 int redundancyCheck (struct solver *S, int *clause, int size, int uni) {
   int i, indegree;
-  S->REDcount++;
   if (S->verb) { printf("c checking lemma (%i, %i) ", size, clause[PIVOT]); printClause (clause); }
-  if ((clause[ID] & ACTIVE) == 0) return SUCCEED;  // redundant?
+  if (S->mode != FORWARD_UNSAT)
+    if ((clause[ID] & ACTIVE) == 0) return SUCCEED;  // redundant?
   if (size < 0) {
     S->DB[ S->reason[abs(*clause)] - 2] |= 1;
     return SUCCEED; }
@@ -397,7 +402,6 @@ int verify (struct solver *S) {
       printDependencies (S, NULL);
       postprocess (S); return UNSAT; }
 
-
   if (S->mode == FORWARD_UNSAT) printf("c start forward verification\n");
   int checked;
   int active = S->nClauses;
@@ -442,7 +446,6 @@ int verify (struct solver *S) {
       continue; }
 
     if (d == 0 && S->mode == FORWARD_UNSAT) {
-      lemmas[ID] |= ACTIVE;
       if (redundancyCheck (S, lemmas, size, 0) == FAILED) return SAT;
       size = sortSize (S, lemmas, -2 * d + 1);
       S->nDependencies = 0; }
@@ -462,6 +465,11 @@ int verify (struct solver *S) {
 
   if (S->mode == BACKWARD_UNSAT) {
     printf("c ERROR: no conflict\n");
+    return SAT; }
+
+
+  if (S->mode == FORWARD_UNSAT) {
+    printf("c ERROR: all lemmas verified, but no conflict\n");
     return SAT; }
 
   start_verification:;
@@ -699,10 +707,11 @@ int parse (struct solver* S) {
   S->max        = (int *) malloc((2 * n + 1) * sizeof(int )); S->max   += n; // Labels for variables, non-zero means false
   S->false      = (int *) malloc((2 * n + 1) * sizeof(int )); S->false += n; // Labels for variables, non-zero means false
 
-  S->arcs     = 0;
-  S->RATmode  = 0;
-  S->RATcount = 0;
-  S->REDcount = 0;
+  S->arcs      = 0;
+  S->RATmode   = 0;
+  S->RATcount  = 0;
+  S->MARKcount = 0;
+  S->COREcount = 0;
 
   S->maxCandidates = CANDIDATE_INIT_SIZE;
   S->resolutionCandidates = (int*) malloc(sizeof(int) * S->maxCandidates);
