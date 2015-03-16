@@ -4,7 +4,7 @@ organization := "at.logic"
 
 version := "1.1"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.6"
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-optimize")
 
@@ -20,10 +20,9 @@ libraryDependencies ++= Seq(
   "org.scalaz" %% "scalaz-core" % "7.1.0",
   "org.specs2" %% "specs2" % "2.4.15" % "test",
   "com.github.scopt" %% "scopt" % "3.3.0",
-  "org.scala-lang" % "scala-library" % "2.11.4",
-  "org.scala-lang" % "scala-xml" % "2.11.0-M4",
+  "org.scala-lang" % "scala-library" % "2.11.6", // apparently needed because of timeout and deprecated actors library
+  //"org.scala-lang" % "scala-xml" % "2.11.4",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",
-  "org.scala-lang" % "scala-library" % "2.11.4", // apparently needed because of timeout and deprecated actors library
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1" // seems inactive
   )
 
