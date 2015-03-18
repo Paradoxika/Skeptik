@@ -31,15 +31,6 @@ object NDcExperiment {
     val ndProver = new SimpleProver(Seq(Assumption,ImpIntro,ImpElim))
     val ndcProver = new SimpleProver(Seq(Assumption,ImpIntroC,ImpElimC))
 
-    val provers = Seq(("ND", ndProver), ("NDc", ndcProver))
-
-    println()
-
-    
-    val now = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Calendar.getInstance().getTime())
-    val file = new File("experiments/NDc/report-" + now + ".txt" )
-    val fp = new PrintWriter(file)
-
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
 
     val maxtime = 30000 //milliseconds
@@ -54,38 +45,22 @@ object NDcExperiment {
     def factorial(n:Long) = ((1 to n.toInt) :\ 1) ( _ * _ )
     def catalan(n:Long) = ((((n+1).toInt to (2*n).toInt) :\ 1) ( _ * _ )) / factorial(n+1)
     
-    
     def maxGoals(l: Int) = {
-      if (l > 10) 10000
+      if (l > 10) 1000
       else if (l == 10) 1000
       else if (l > 2) catalan(l-1)/2
       else 0
     }
     
-    val a = "A"^o
-    val b = "B"^o
+    val l = args(0).toInt // formula length
+    val s = args(1).toInt // number of distinct symbols
     
-    //val f = ((a → a) → a) → a
+    val now = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Calendar.getInstance().getTime())
+    val file = new File("experiments/NDc/report-" + l + "-" + s + "-" + now + ".txt" )
+    val fp = new PrintWriter(file)
     
-    //val f = (((a → b) → a) → (b → a))
-    
-//    val ndP = ndProver.prove(f, maxtime, 4)
-//    ndP match { 
-//      case Some(ndProof) => {
-//        println(ndProof)
-//        println(measure(ndProof)); 
-//      } 
-//      case None => println("None") 
-//    }
-//    println()
-    
-//    val ndcP = ndcProver.prove(f, maxtime, 4)
-//    ndcP match { 
-//      case Some(ndcProof) => println(measure(ndcProof)); 
-//      case None => println("None") 
-//    }
-    
-    for (length <- 3 to 20; numSymbols <- 1 to (length-1)) {
+    for (length <- l to l; numSymbols <- s to s) {
+    //for (length <- 3 to 20; numSymbols <- 1 to (length-1)) {
       alreadyGenerated.dropWhile { x => true } // freeing memory
       
       for (i <- 1 to maxGoals(length)) {
@@ -97,9 +72,7 @@ object NDcExperiment {
         alreadyGenerated += g
         
         goals += 1
-        
-        //val g = FormulaGenerator.generateExample(i + 1)
-  
+       
         print(g + " : ")
         
         val Timed(ndP,ndT) = timed { ndProver.prove(g, timeout = maxtime, maxheight = 20) }
@@ -141,33 +114,7 @@ object NDcExperiment {
       }
 
     }
-
-    println()
-    println(goals + " " + proved + " " + compressed)
     
-//    val results = MMap[(E, String),Timed[Option[ProofNode[_,_]]]]()
-//    for (g <- goals) {
-//      println("Goal: " + g)
-//      fp.print(g)
-//      for (p <- provers) {
-//        val repetitions = 1
-//
-//        val result = timed(repetitions) { p._2.prove(g, timeout = maxtime) }
-//
-//        val resultTimeMS = (result.time * 1000).toInt // microseconds
-//        println("Prover " + p._1 + ": " +
-//                (if (result.result != None) "proved in " + resultTimeMS + " microseconds"
-//                 else "found no proof in " + resultTimeMS + " microseconds" ))
-//        fp.print(", " + resultTimeMS)
-//        fp.print(", " + (result.result match {
-//          case None => -1
-//          case Some(p) => Proof(p).size
-//        }))
-//        results((g, p._1)) = result
-//      }
-//      fp.println
-//    }
-
     fp.close()
   }
 }
