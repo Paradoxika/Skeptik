@@ -6,7 +6,7 @@ MS = $(expr $L - 1)
 #$ -V                  # imports all environment variables
 #$ -m beas             # notifies of job's beginning, end, abortion and rescheduling
 #$ -l h_rt=71:59:59    # runs job for a maximum time of hh:mm:ss
-#$ -t 4-$MS            # specifies range of values for SGE_TASK_ID
+#$ -t 4-$(expr $MS)    # specifies range of values for SGE_TASK_ID
 
 S=$SGE_TASK_ID
 
