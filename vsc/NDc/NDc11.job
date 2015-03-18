@@ -1,7 +1,7 @@
 #$ -N NDc11            # declares job name                
 #$ -pe mpich1 1        # requests 1 core with 32 GB
 #$ -V                  # imports all environment variables
-#$ -M skeptik-dev@googlegroups.com
+#$ -M bruno@logic.at
 #$ -m beas             # notifies of job's beginning, end, abortion and rescheduling
 #$ -l h_rt=71:59:59    # runs job for a maximum time of hh:mm:ss
 #$ -t 4-10             # specifies range of values for SGE_TASK_ID

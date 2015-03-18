@@ -97,17 +97,17 @@ object NDcExperiment {
                 }
                 print(" ; totals: " + goals + " " + proved + " " + failed + " " + compressed)
                 print(" \n")
-                fp.println(List(g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,ndcM("length"),ndcM("height"),ndcM("coreSize")).mkString(","))
+                fp.println(List(length,numSymbols,g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,ndcM("length"),ndcM("height"),ndcM("coreSize")).mkString(","))
               }
               case None => {
-                fp.println(List(g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,-1,-1,-1).mkString(","))
+                fp.println(List(length,numSymbols,g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,-1,-1,-1).mkString(","))
                 failed += 1
                 print("None \n") 
               }
             }
           }
           case None => {
-            fp.println(List(g,ndT,-1,-1,-1,-1,-1,-1,-1).mkString(","))
+            fp.println(List(length,numSymbols,g,ndT,-1,-1,-1,-1,-1,-1,-1).mkString(","))
             print("None \n") 
           }
         }
