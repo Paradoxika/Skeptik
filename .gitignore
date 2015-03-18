@@ -1,7 +1,6 @@
 .DS_Store
 target/
 project/target/
-skeptik.jar
 .classpath
 .project
 .cache
