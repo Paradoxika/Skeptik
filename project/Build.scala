@@ -33,12 +33,19 @@ object SkeptikBuild extends Build {
                              trapExit in skeptik := true ,
                              fork in skeptik := false,
                              traceLevel in skeptik := 0)
+                             
+  val ndc = InputKey[Unit]("ndc", "bla")
+  val ndcSettings = Seq(fullRunInputTask(ndc,Runtime,"at.logic.skeptik.experiment.NDcExperiment"),
+                             trapExit in ndc := true ,
+                             fork in ndc := false,
+                             traceLevel in ndc := 0)
   
   
   val allSettings = Defaults.defaultSettings ++ 
                     jarSettings ++
                     pomSettings ++
-                    skeptikSettings
+                    skeptikSettings ++
+                    ndcSettings
                         
 
   lazy val project = Project("project", file("."), settings = allSettings)
