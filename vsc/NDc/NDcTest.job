@@ -1,0 +1,12 @@
+#$ -N NDcTest          # declares job name                
+#$ -pe mpich1 1        # requests 1 core with 32 GB
+#$ -V                  # imports all environment variables
+#$ -M skeptik-dev@googlegroups.com
+#$ -m beas             # notifies of job's beginning, end, abortion and rescheduling
+#$ -l h_rt=00:02:59     # runs job for a maximum time of hh:mm:ss
+#$ -t 3-4              # specifies range of values for SGE_TASK_ID
+
+L=5
+S=$SGE_TASK_ID
+
+java -d64 -Xmx26624M -Xss1024M -jar ../../skeptik.jar $L $S
