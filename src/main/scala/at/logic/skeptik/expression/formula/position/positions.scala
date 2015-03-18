@@ -16,6 +16,8 @@ class IntListPosition(list: List[Int]) extends Position {
     }
   }  
   
+  override def toString = list.toString
+  
   override def getSubpositions(formula: E) : Seq[IntListPosition] = {  
     def rec(e: E):Seq[List[Int]] = e match {
       case v @ Var(name,t) => Seq(Nil)
@@ -42,4 +44,14 @@ class IntListPosition(list: List[Int]) extends Position {
       case _ => throw new InexistentPositionException(formula,this)
     }
   }
+  
+  def isStronglyPositiveIn(formula: E): Boolean = {
+    (list, formula) match {
+      case (0::t,Imp(a,b)) => new IntListPosition(t) isStronglyPositiveIn b
+      case (1::t,Imp(a,b)) => false
+      case (Nil,f) => true
+      case _ => throw new InexistentPositionException(formula,this)
+    }
+  }
+  
 }
