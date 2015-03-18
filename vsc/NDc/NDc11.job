@@ -10,4 +10,4 @@ MS = $(expr $L - 1)
 
 S=$SGE_TASK_ID
 
-java -d64 -Xmx26624M -Xss1024M -jar skeptik.jar 11 $S
+java -d64 -Xmx26624M -Xss1024M -jar ../../skeptik.jar $L $S
