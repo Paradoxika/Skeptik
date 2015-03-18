@@ -6,7 +6,9 @@ import collection.mutable.{HashSet => MSet}
 import util.Random
 
 object FormulaGenerator {
-  private val atoms = Seq("A","B","C","D","E","F","G","H","I","J","K").map(_.^(o))
+  private val atoms = Seq("A","B","C","D","E","F","G","H","I","J",
+                          "K","L","M","N","O","P","Q","R","S","T",
+                          "U","V","X","Y","W","Z").map(_.^(o))
  
   
   def generateExample(n: Int): E = {
@@ -23,7 +25,7 @@ object FormulaGenerator {
   def generateOne(length: Int, numOfSymbols: Int):E = {
     val r = new Random()
     
-    def growRandomList(list: List[E]): List[E] = {
+    def growRandomList(list: List[E]): List[E] = {   
       val numOfSymbolsInList = list.distinct.length
       val index = if (numOfSymbolsInList == numOfSymbols) r.nextInt(numOfSymbols)
                   else if (numOfSymbols - numOfSymbolsInList == length - list.length) numOfSymbolsInList
