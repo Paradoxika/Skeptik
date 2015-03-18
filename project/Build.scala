@@ -15,7 +15,8 @@ object SkeptikBuild extends Build {
   }
   val jarSettings = oneJarSettings ++ 
                     Seq(jarS,
-                        mainClass in oneJar := Some("at.logic.skeptik.ProofCompressionCLI"))
+                        //mainClass in oneJar := Some("at.logic.skeptik.ProofCompressionCLI"))
+                        mainClass in oneJar := Some("at.logic.skeptik.experiment.NDcExperiment"))
   
                         
   // Extension of "make-pom" to copy pom file to the root folder
