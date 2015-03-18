@@ -15,7 +15,9 @@ trait Unary extends NaturalDeductionProofNode with GenUnary[NaturalSequent, Natu
 trait Binary extends NaturalDeductionProofNode with GenBinary[NaturalSequent, NaturalDeductionProofNode]
 
 abstract class NaturalDeductionProofNode
-extends ProofNode[NaturalSequent, NaturalDeductionProofNode]
+extends ProofNode[NaturalSequent, NaturalDeductionProofNode] {
+  override def toString = name + "(" + conclusion + "," + premises.mkString(",") + ")" 
+}
 
 
 class Assumption(val context: Set[NamedE], val a: NamedE) 
@@ -46,7 +48,8 @@ object Assumption extends InferenceRule[NaturalSequent, NaturalDeductionProofNod
   }
   
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-  def apply(j: NaturalSequent) = Seq(Seq())
+  def apply(j: NaturalSequent) = if (j.context.exists(_.expression == j.e)) Seq(Seq())
+                                 else Seq()
   
   def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 0) conclusion.context.find(_.expression == conclusion.e) match {
