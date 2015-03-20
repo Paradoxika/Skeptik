@@ -40,14 +40,17 @@ class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calcu
         var bestProof: Option[P] = None
         
         //debug("calculus: " + calculus)
-        val bestProofs = for (rule <- calculus) yield {
+        // ToDo: parallelize this
+        val bestProofs = for (rule <- calculus.par) yield {
           //debug("trying rule: " + rule)
           
           val subGoalsSeq = rule(j)
           //debug("generated alternative subgoals: ")
           //subGoalsSeq map {debug _}
           //debug("")
-          val premisesSeq = for (subGoals <- subGoalsSeq) yield {
+          
+          
+          val premisesSeq = for (subGoals <- subGoalsSeq.par) yield {
             subGoals map {subGoal => proveRec(subGoal, seen + j)(d+1)}
           }
           //debug("premisesSeq: " + premisesSeq)
@@ -61,7 +64,7 @@ class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calcu
           //debug("")
           var bestProofForRule: Option[P] = None
           var bestProofForRuleSize = Int.MaxValue
-          for (pOption <- proofSeq) {
+          for (pOption <- proofSeq.seq) {
             //debug(pOption)
             
             pOption match { 
@@ -82,7 +85,7 @@ class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calcu
         }
  
         var bestProofSize = Int.MaxValue
-        for (pOption <- bestProofs) {
+        for (pOption <- bestProofs.seq) {
           pOption match {
               case Some(p) => {
                 val pSize = Proof(p).size
