@@ -147,7 +147,7 @@ with DeepMatch {
     
     deepMatch(h.expression, j.e) match {
       case Some(c @ Imp(a,b)) => {
-        Some(Seq(new NaturalSequent(j.context,a), new NaturalSequent(Set(h),c)))
+        Some(Seq(new NaturalSequent(j.context,a), new NaturalSequent(j.context,c)))
       }
       case _ => None
     }

@@ -192,34 +192,18 @@ with DeepMatch {
                 //println("      !!! auxRBase: " + auxRBase)
                 val auxL = (((_:E) => a) @: leftP)(auxLBase)
                 val auxR = (((_:E) => deepAuxR) @: rightP)(auxRBase)
-                result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
+                
+                result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(j.context,auxR))
               }
               case _ => 
             }
             
-            
-//            deepAuxR match {
-//              // ToDo: This is incomplete. A deep match must be done. 
-//              case Imp(a,b) if b == deepMain => {
-//                //println("      !!! match!"  )
-//                //val bOccursPositivelyInA = EmptyP.getSubpositions(a).filter(p => p.isPositiveIn(a) && (a !: p).get == b).length > 0
-//                
-//                //println("      !!! bOccursPositivelyInA : " + bOccursPositivelyInA)
-//                //if (bOccursPositivelyInA) {
-//                  val auxL = (((_:E) => a) @: leftP)(auxLBase)
-//                  //println("      !!! auxL: " + auxL )
-//                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
-//                //}
-//              }
-//              case _ => 
-//            }
           }
           //println(" =====  inP existsIn AuxR ====== ")  
           if (inP existsIn futureAuxR) computeSubGoals(outP, inP, j.e, semiDeepMain)
 
           //println(" =====  outP existsIn AuxR ====== ")
           if (outP existsIn futureAuxR) computeSubGoals(inP, outP, semiDeepMain, j.e)
-
         }
       }
     }
