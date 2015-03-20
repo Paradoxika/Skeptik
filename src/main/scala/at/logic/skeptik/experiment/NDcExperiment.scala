@@ -33,9 +33,9 @@ object NDcExperiment {
 
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
 
-    val b = "B"^o
-    val c = "C"^o
-    val f = (((c → c) → ((c → c) → b)) → b)
+    //val b = "B"^o
+    //val c = "C"^o
+    //val f = (((c → c) → ((c → c) → b)) → b)
     //println(f)
     //val p = ndProver.prove(f,maxheight=9)
     //val p2 = ndcProver.prove(f,maxheight=5)
