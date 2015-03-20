@@ -42,6 +42,10 @@ package object formula {
     case _ => false
   }
   
+  def depth(f:E): Int = f match {
+    case v: Var => 1
+    case Imp(a,b) => { val da = depth(a); val db = depth(b); if (da > db) da + 1 else db + 1 }
+  } 
   
   implicit def enrichFormula(e: E) = new RichFormula(e)
 

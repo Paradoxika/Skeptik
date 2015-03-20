@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 
 import at.logic.skeptik.algorithm.generator.FormulaGenerator
 import at.logic.skeptik.expression._
-import at.logic.skeptik.expression.formula.{Imp, enrichFormula}
+import at.logic.skeptik.expression.formula.{Imp, enrichFormula, depth}
 import at.logic.skeptik.proof.ProofNode
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.measure
@@ -27,12 +27,22 @@ import scala.collection.mutable.{Map => MMap, HashSet => MSet}
 object NDcExperiment {
 
   def main(args: Array[String]): Unit = {
-
+    
     val ndProver = new SimpleProver(Seq(Assumption,ImpIntro,ImpElim))
     val ndcProver = new SimpleProver(Seq(Assumption,ImpIntroC,ImpElimC))
 
     implicit def formulaToNaturalSequent(f: E) = new NaturalSequent(Set(), f)
 
+    val b = "B"^o
+    val c = "C"^o
+    val f = (((c → c) → ((c → c) → b)) → b)
+    //println(f)
+    //val p = ndProver.prove(f,maxheight=9)
+    //val p2 = ndcProver.prove(f,maxheight=5)
+    //println(p)
+    //println(p2)
+    //return
+    
     val maxtime = 30000 //milliseconds
 
     val alreadyGenerated = new MSet[E]
@@ -73,7 +83,9 @@ object NDcExperiment {
         
         goals += 1
        
-        print(g + " : ")
+        val d = depth(g)
+        print(d + " " + g + " : ")
+        
         
         val Timed(ndP,ndT) = timed { ndProver.prove(g, timeout = maxtime, maxheight = 20) }
         
@@ -97,17 +109,17 @@ object NDcExperiment {
                 }
                 print(" ; totals: " + goals + " " + proved + " " + failed + " " + compressed)
                 print(" \n")
-                fp.println(List(length,numSymbols,g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,ndcM("length"),ndcM("height"),ndcM("coreSize")).mkString(","))
+                fp.println(List(length,numSymbols,d,g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,ndcM("length"),ndcM("height"),ndcM("coreSize")).mkString(","))
               }
               case None => {
-                fp.println(List(length,numSymbols,g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,-1,-1,-1).mkString(","))
+                fp.println(List(length,numSymbols,d,g,ndT,ndM("length"),ndM("height"),ndM("coreSize"),ndcT,-1,-1,-1).mkString(","))
                 failed += 1
                 print("None \n") 
               }
             }
           }
           case None => {
-            fp.println(List(length,numSymbols,g,ndT,-1,-1,-1,-1,-1,-1,-1).mkString(","))
+            fp.println(List(length,numSymbols,d,g,ndT,-1,-1,-1,-1,-1,-1,-1).mkString(","))
             print("None \n") 
           }
         }
