@@ -1,0 +1,12 @@
+#$ -N NDc16            # declares job name                
+#$ -pe mpich1 1        # requests 1 core with 32 GB
+#$ -V                  # imports all environment variables
+#$ -M bruno@logic.at
+#$ -m beas             # notifies of job's beginning, end, abortion and rescheduling
+#$ -l h_rt=71:59:59    # runs job for a maximum time of hh:mm:ss
+#$ -t 1-15             # specifies range of values for SGE_TASK_ID
+
+L=16
+S=$SGE_TASK_ID
+
+java -d64 -Xmx16384M -Xss1024M -jar ../../skeptik.jar $L $S
