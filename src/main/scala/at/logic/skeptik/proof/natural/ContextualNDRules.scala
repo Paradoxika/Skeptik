@@ -26,14 +26,6 @@ extends ImpIntroCK(premise, assumption, position)
 with SoundnessCondition
 
 trait SoundnessCondition extends ImpIntroCK { 
-  def positionIsStronglyPositive: Boolean = {
-    val deepMain = (conclusion.e !: position).get
-    def rec(f: E): Boolean = if (deepMain eq f) true else f match {
-      case Imp(a,b) => rec(b)
-      case _ => false
-    } 
-    rec(conclusion.e)
-  }
   def assumptionIsUsed: Boolean = {
     def rec(p: NaturalDeductionProofNode): Boolean = p match {
       case Assumption(context, a) => if (a == assumption) true else false
@@ -41,7 +33,7 @@ trait SoundnessCondition extends ImpIntroCK {
     }
     rec(this)
   }
-  require(positionIsStronglyPositive || !assumptionIsUsed)
+  require( (position isStronglyPositiveIn conclusion.e) || !assumptionIsUsed)
 }
 
 class ImpElimC(val leftPremise: NaturalDeductionProofNode, val rightPremise: NaturalDeductionProofNode, 
