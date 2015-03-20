@@ -154,7 +154,8 @@ object ImpIntroCK extends ImpIntroCRule {
 }
 
 
-object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] {
+object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] 
+with DeepMatch {
   def apply(leftPremise: NaturalDeductionProofNode, rightPremise: NaturalDeductionProofNode, leftPosition: Position, rightPosition: Position, arrow: ImpElimCArrow) = 
     new ImpElimC(leftPremise, rightPremise, leftPosition, rightPosition, arrow)
   
@@ -166,6 +167,8 @@ object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProofNode]
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
   def apply(j: NaturalSequent): Seq[Seq[NaturalSequent]] = {
     var result: Seq[Seq[NaturalSequent]] = Seq()
+    //println("j: " + j)
+    
     
     val outerPositions = EmptyP.getSubpositions(j.e).filter(_.isPositiveIn(j.e))
     //println("!!! outerPositions: " + outerPositions )
@@ -185,37 +188,108 @@ object ImpElimC extends InferenceRule[NaturalSequent, NaturalDeductionProofNode]
         //println("    !!! deepMain: " + deepMain )
         
         for (n <- j.context) {
-          val auxR = n.expression
-          //println("      !!! auxR: " + auxR )
-          def computeSubGoals(leftP: Position, rightP: Position, auxLBase: E) = {
-            val deepAuxR = (auxR !: rightP).get 
-            //println("      !!! deepAuxR: " + deepAuxR )
-            deepAuxR match {
-              case Imp(a,b) if b == deepMain => {
-                //println("      !!! match!"  )
-                //val bOccursPositivelyInA = EmptyP.getSubpositions(a).filter(p => p.isPositiveIn(a) && (a !: p).get == b).length > 0
-                
-                //println("      !!! bOccursPositivelyInA : " + bOccursPositivelyInA)
-                //if (bOccursPositivelyInA) {
-                  val auxL = (((_:E) => a) @: leftP)(auxLBase)
-                  //println("      !!! auxL: " + auxL )
-                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
-                //}
+          val futureAuxR = n.expression
+          //println("      !!! futureAuxR: " + futureAuxR )
+          def computeSubGoals(leftP: Position, rightP: Position, auxLBase: E, auxRBase: E) = {
+            val futureDeepAuxR = (futureAuxR !: rightP).get 
+            //println("      !!! futureDeepAuxR: " + futureDeepAuxR )
+            
+            deepMatch(futureDeepAuxR,deepMain) match {
+              case Some(deepAuxR @ Imp(a,b)) => {
+                //println("      !!! auxLBase: " + auxLBase)
+                //println("      !!! auxRBase: " + auxRBase)
+                val auxL = (((_:E) => a) @: leftP)(auxLBase)
+                val auxR = (((_:E) => deepAuxR) @: rightP)(auxRBase)
+                result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
               }
               case _ => 
             }
+            
+            
+//            deepAuxR match {
+//              // ToDo: This is incomplete. A deep match must be done. 
+//              case Imp(a,b) if b == deepMain => {
+//                //println("      !!! match!"  )
+//                //val bOccursPositivelyInA = EmptyP.getSubpositions(a).filter(p => p.isPositiveIn(a) && (a !: p).get == b).length > 0
+//                
+//                //println("      !!! bOccursPositivelyInA : " + bOccursPositivelyInA)
+//                //if (bOccursPositivelyInA) {
+//                  val auxL = (((_:E) => a) @: leftP)(auxLBase)
+//                  //println("      !!! auxL: " + auxL )
+//                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
+//                //}
+//              }
+//              case _ => 
+//            }
           }
           //println(" =====  inP existsIn AuxR ====== ")  
-          if (inP existsIn auxR) computeSubGoals(outP, inP, j.e)
+          if (inP existsIn futureAuxR) computeSubGoals(outP, inP, j.e, semiDeepMain)
 
           //println(" =====  outP existsIn AuxR ====== ")
-          if (outP existsIn auxR) computeSubGoals(inP, outP, semiDeepMain)
+          if (outP existsIn futureAuxR) computeSubGoals(inP, outP, semiDeepMain, j.e)
 
         }
       }
     }
     result
   }
+  
+//  def apply(j: NaturalSequent): Seq[Seq[NaturalSequent]] = {
+//    var result: Seq[Seq[NaturalSequent]] = Seq()
+//    
+//    val outerPositions = EmptyP.getSubpositions(j.e).filter(_.isPositiveIn(j.e))
+//    //println("!!! outerPositions: " + outerPositions )
+//    
+//    for (outP <- outerPositions) {
+//      val semiDeepMain = (j.e !: outP).get
+//      //println("  !!! outP: " + outP )
+//      //println("  !!! semiDeepMain: " + semiDeepMain )
+//      
+//      val innerPositions = EmptyP.getSubpositions(semiDeepMain).filter(_.isPositiveIn(semiDeepMain))
+//      //println("  !!! innerPositions: " + innerPositions )
+//      
+//      for (inP <- innerPositions) {
+//        val deepMain = (semiDeepMain !: inP).get
+//        
+//        //println("    !!! inP: " + inP )
+//        //println("    !!! deepMain: " + deepMain )
+//        
+//        for (n <- j.context) {
+//          val auxR = n.expression
+//          //println("      !!! auxR: " + auxR )
+//          def computeSubGoals(leftP: Position, rightP: Position, auxLBase: E) = {
+//            val deepAuxR = (auxR !: rightP).get 
+//            //println("      !!! deepAuxR: " + deepAuxR )
+//           
+//            
+//            
+//            deepAuxR match {
+//              // ToDo: This is incomplete. A deep match must be done. 
+//              case Imp(a,b) if b == deepMain => {
+//                //println("      !!! match!"  )
+//                //val bOccursPositivelyInA = EmptyP.getSubpositions(a).filter(p => p.isPositiveIn(a) && (a !: p).get == b).length > 0
+//                
+//                //println("      !!! bOccursPositivelyInA : " + bOccursPositivelyInA)
+//                //if (bOccursPositivelyInA) {
+//                  val auxL = (((_:E) => a) @: leftP)(auxLBase)
+//                  //println("      !!! auxL: " + auxL )
+//                  result = result :+ Seq(new NaturalSequent(j.context,auxL), new NaturalSequent(Set(n),auxR))
+//                //}
+//              }
+//              case _ => 
+//            }
+//          }
+//          //println(" =====  inP existsIn AuxR ====== ")  
+//          if (inP existsIn auxR) computeSubGoals(outP, inP, j.e)
+//
+//          //println(" =====  outP existsIn AuxR ====== ")
+//          if (outP existsIn auxR) computeSubGoals(inP, outP, semiDeepMain)
+//
+//        }
+//      }
+//    }
+//    result
+//  }
   
   def apply(premises: Seq[NaturalDeductionProofNode], conclusion: NaturalSequent): Option[NaturalDeductionProofNode] = { // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.
     if (premises.length == 2) {

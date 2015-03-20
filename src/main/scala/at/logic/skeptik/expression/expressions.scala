@@ -10,6 +10,8 @@ sealed abstract class E extends Judgment {
     
   def logicalSize: Int
   
+  def subsumes(that: Judgment) = (this == that)
+  
   //alphaEquals
   def =+=(that:E) = {
     def rec(e1:E,e2:E,map:Map[Var,Var]): Boolean = (e1,e2) match {

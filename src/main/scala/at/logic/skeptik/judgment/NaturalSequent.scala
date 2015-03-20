@@ -17,6 +17,9 @@ class NaturalSequent(val context: Set[NamedE], val e:E) extends Judgment {
   }		
   def canEqual(other: Any) = other.isInstanceOf[NaturalSequent]
   
+  def subsumes(j: Judgment) = j.isInstanceOf[NaturalSequent] && 
+                              j.asInstanceOf[NaturalSequent].e == e && 
+                              (context subsetOf j.asInstanceOf[NaturalSequent].context)
 
   def logicalSize = e.logicalSize
   def msize = 10 * context.size + e.logicalSize

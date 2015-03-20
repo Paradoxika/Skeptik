@@ -1,6 +1,7 @@
 package at.logic.skeptik.proof
 package natural
 
+import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula.{Imp}
 import at.logic.skeptik.prover.{InferenceRule, SaturationInferenceRule}
 import at.logic.skeptik.judgment.{NaturalSequent,NamedE}
@@ -98,9 +99,28 @@ with SaturationInferenceRule[NaturalSequent, NaturalDeductionProofNode] {
 }
 
 
+trait DeepMatch {
+  def deepMatch(f:E, g:E): Option[E] = f match {
+    case Imp(a, b) if b == g => {
+     //println("c: " + c)
+     Some(f) 
+    }
+    case Imp(a, b @ Imp(_,_)) => {
+      //println("going deeper")
+      deepMatch(b, g) 
+    }
+    case z => {
+      //println{"nothing left"}
+      //println(z)
+      None 
+    }
+  }
+}
+
 object ImpElim 
 extends InferenceRule[NaturalSequent, NaturalDeductionProofNode] 
-with SaturationInferenceRule[NaturalSequent, NaturalDeductionProofNode] {
+with SaturationInferenceRule[NaturalSequent, NaturalDeductionProofNode]
+with DeepMatch {
   def apply(leftPremise: NaturalDeductionProofNode, rightPremise: NaturalDeductionProofNode) = new ImpElim(leftPremise, rightPremise)
   def unapply(p: NaturalDeductionProofNode) = p match {
     case p: ImpElim => Some((p.leftPremise, p.rightPremise))
@@ -118,12 +138,19 @@ with SaturationInferenceRule[NaturalSequent, NaturalDeductionProofNode] {
     }
   }
   
+  
   // applies the rule bottom-up: given a conclusion judgment, returns a sequence of possible premise judgments.
-  def apply(j: NaturalSequent) = (for (h <- j.context) yield h match {
-    case NamedE(n,Imp(a,b)) if b == j.e => {
-      Some(Seq(new NaturalSequent(j.context,a), new NaturalSequent(Set(h),Imp(a,b))))
+  def apply(j: NaturalSequent) = (for (h <- j.context) yield {
+    //println("h: " + h)
+    //println("j.e: " + j.e)
+
+    
+    deepMatch(h.expression, j.e) match {
+      case Some(c @ Imp(a,b)) => {
+        Some(Seq(new NaturalSequent(j.context,a), new NaturalSequent(Set(h),c)))
+      }
+      case _ => None
     }
-    case _ => None
   }).filter(_ != None).map(_.get).toSeq 
  
   // applies the rule top-down: given premise proofs, tries to create a proof of the given conclusion.

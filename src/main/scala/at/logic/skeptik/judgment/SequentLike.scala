@@ -28,6 +28,8 @@ trait SequentLike[+Repr <: SequentLike[Repr]] {
   
   def subsequentOf(that: Sequent) = ant.forall(f => that.ant contains f) && suc.forall(f => that.suc contains f)
   
+  def subsumes(that: Judgment) = that.isInstanceOf[Sequent] && subsequentOf(that.asInstanceOf[Sequent])
+  
   def isTautological = ant.exists(f => suc contains f)
   
   def +(f:E): Repr

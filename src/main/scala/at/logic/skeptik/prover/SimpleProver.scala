@@ -9,17 +9,18 @@ import reflect.ClassTag
 
 // ToDo: (B) Use futures and Map from (goal, inference) to future to create DAG-proof!
 class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calculus[J,P]) {
-  def prove(goal:J, timeout: Long = Long.MaxValue, maxheight: Int = Int.MaxValue) : Option[P] = {
+  def prove(goal:J, timeout: Long = 30000, maxheight: Int = Int.MaxValue) : Option[P] = {
     val deadline = System.nanoTime + timeout * 1000000
 
     def proveRec(j: J, seen: Set[J])(implicit d:Int): Option[P] = {
-      //debug(j)
+      //debug("j: " + j)
+      //debug("d: " + d)
       
       if (System.nanoTime > deadline) {
         //debug("timeout")
         return None
       } 
-      else if (seen contains j) {
+      else if (seen exists { i => i subsumes j }) {
         //debug("cycle")
         return None
       } 
@@ -27,7 +28,7 @@ class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calcu
         //debug("goal size excess")
         return None
       } 
-      else if (d > maxheight) { // avoids cycles and limits height
+      else if (d > maxheight) {
         //debug("max height"); 
         return None
       }
@@ -38,6 +39,7 @@ class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calcu
         
         var bestProof: Option[P] = None
         
+        //debug("calculus: " + calculus)
         val bestProofs = for (rule <- calculus) yield {
           //debug("trying rule: " + rule)
           
@@ -97,29 +99,6 @@ class SimpleProver[J <: Judgment, P <: ProofNode[J,P]: ClassTag](calculus: Calcu
         
         bestProof
       }
-//      else {
-//        val proofs = for (rule <- calculus; subGoals <- rule(j)) yield {
-//          debug(j); 
-//          debug("subgoals below"); seen.toList.reverse.map(debug _); 
-//          debug(rule); subGoals.map(debug _); 
-//          debug("")
-//          val premises = subGoals map {subGoal => proveRec(subGoal, seen + j)(d+1)} 
-//          debug("")
-//          if (!premises.contains(None)) {
-//            val proof = rule(premises.map(_.get).seq, j)
-//            debug(proof); 
-//            debug("")
-//            proof
-//          }
-//          else None
-//        }
-//
-//        debug(j)
-//        debug(proofs)
-//        
-//        argMin(proofs.filter(_ != None).map(_.asInstanceOf[Some[P]].get).toList,
-//               (p: P) => Proof(p).size)
-//      }
     }
     proveRec(goal, Set())(0)
   }
