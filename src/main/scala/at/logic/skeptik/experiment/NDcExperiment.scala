@@ -66,7 +66,7 @@ object NDcExperiment {
     val s = args(1).toInt // number of distinct symbols
     
     val now = new SimpleDateFormat("yyyyMMdd-HHmmss").format(Calendar.getInstance().getTime())
-    val file = new File("experiments/NDc/report-" + l + "-" + s + "-" + now + ".txt" )
+    val file = new File("report-" + l + "-" + s + "-" + now + ".txt" )
     val fp = new PrintWriter(file)
     
     for (length <- l to l; numSymbols <- s to s) {
