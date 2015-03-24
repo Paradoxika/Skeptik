@@ -9,4 +9,4 @@
 L=5
 S=$SGE_TASK_ID
 
-java -d64 -Xmx16384M -Xss1024M -jar ../../skeptik.jar $L $S
+/usr/lib/jvm/java-1.8.0/bin/java -d64 -Xmx16384M -Xss1024M -jar ../../skeptik.jar $L $S
