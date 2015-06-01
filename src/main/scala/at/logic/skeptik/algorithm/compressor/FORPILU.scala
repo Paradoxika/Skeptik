@@ -218,7 +218,6 @@ abstract class FOAbstractRPILUAlgorithm
 
         //TODO: clean this up?
         try {
-          //          println("error - first")
           UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
         } catch {
           case e: Exception => {
@@ -254,7 +253,6 @@ abstract class FOAbstractRPILUAlgorithm
 
       // When the inference is not UR, nothing is done 
       case _ => {
-        println("ignoring: " + p) //TODO: remove print statement
         p
       }
     }
@@ -262,8 +260,6 @@ abstract class FOAbstractRPILUAlgorithm
 
   def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
     val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
-    //    println("new mgu: " + newMGU)
-    //    println("old mgu: " + oldMGU)
 
     val leftEq = !fLeft.equals(left)
     val rightEq = !fRight.equals(right)
