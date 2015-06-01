@@ -155,13 +155,11 @@ abstract class FOAbstractRPILUAlgorithm
         //newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
-        //        println("using fixedLeft - " + fixedLeft)
         fixedLeft
       }
 
       // If premises haven't been changed, we keep the proof as is (memory optimization)
       case UnifyingResolution(left, right, _, _) if (left eq fixedLeft) && (right eq fixedRight) => {
-        //        println("keeping p...")
         p
       }
 
@@ -197,22 +195,6 @@ abstract class FOAbstractRPILUAlgorithm
           println("right is non empty!") //TODO: at some point, I'll need to finish this case.
         }
 
-        //        if (nonEmptyLeftMap) {
-        //          //TODO: what if there are multiple 'oldMGU's? e.g. from left and right
-        //          val oldMGU = mguMap.get(left).get
-        //          println("old mgu      : " + oldMGU)
-        //          println("new mgu      : " + p.asInstanceOf[UnifyingResolution].mgu)
-        //          println("ncL          : " + auxMap.get(left).get)
-        //          println("ncL (applied): " + mguMap.get(left).get(auxMap.get(left).get))
-        //
-        //          //TODO: generalize this call/move it
-        //          fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-        //
-        //        }
-        //
-        //        if (nonEmptyRightMap) {
-        //          println("ncR: " + mguMap.get(right).get(auxMap.get(right).get))
-        //        }
 
         val ambiguousErrorString = "Resolution (MRR): the resolvent is ambiguous."
 
