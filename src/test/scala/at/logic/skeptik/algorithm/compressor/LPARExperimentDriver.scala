@@ -91,7 +91,7 @@ object LPARExperimentDriver extends checkProofEquality {
     println(problemSetS)
     println(problemSetS.size)
 
-    //    var errorCountT = 0
+    var errorCount = 0
     var totalCountT = 0
 
     //    val elogger = new PrintWriter("errors.elog")
@@ -153,11 +153,13 @@ object LPARExperimentDriver extends checkProofEquality {
           
         }
         case _: Throwable => {
-          
+          errorCount = errorCount + 1
         }
       }
 
     }
+
+        println("errors: " + errorCount)
 
     println("total: " + totalCountT)
 

@@ -57,19 +57,76 @@ abstract class FOAbstractRPILUAlgorithm
       val uvarsB = getMSet(uvars)
       val isMore = isMoreGeneral(Sequent(aux)(), Sequent(safeLit)())(uvarsB)
       //      if(areAlphaEq(safeLit, aux)(uvarsB) || isMore || safeLit.equals(aux)){
-//      if (areAlphaEq(safeLit, aux)(uvarsB)) {
-//
-//        return true
-//      }
-            unify((aux, safeLit) :: Nil)(getSetOfVars(aux)) match {
-              case Some(_) => {
-                println("matched!!! " + aux + " AND " + safeLit)
-                return true
-              }
-              case None => {
-                //Do nothing
-              }
-            }
+      //      if (areAlphaEq(safeLit, aux)(uvarsB)) {
+      //
+      //        return true
+      //      }
+      unify((aux, safeLit) :: Nil)(getSetOfVars(aux)) match {
+        case Some(_) => {
+          println("matched!!! " + aux + " AND " + safeLit)
+          return true
+        }
+        case None => {
+          //Do nothing
+        }
+      }
+    }
+    false
+  }
+  
+  //june 2 mod
+  //this checks the aux after the original mgu was applied
+  //prevents some terrible attempts to lower
+  //NOTE: p MUST be a unifying resolution node
+  //TODO: build 'left' case (may change how mgu is internally handled given renamed left nodes)
+    protected def checkForResSmartRight(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
+
+    if (safeLiteralsHalf.size < 1) {
+      return false
+    }
+
+    /* 
+     * unifiableVars might not contain the variables in the aux formulae. When UR(MRR) generates the auxL/auxR formulae,
+     * it may rename the variables in one premise to a new premise that we just haven't seen yet (and which is resolved out
+     * in that resolution and thus never really visible in the proof, so we need to check for new variables and
+     * add them to our list of unifiable variables or the unification might fail.
+     */
+
+    /*  For example,
+     * 
+     *  p(X) |- q(a)     with    q(X) |- 
+     * 
+     *  UR might rename the right X as Y, then resolve out to get P(X) |-
+     *  And while UR used q(Y) |- and recorded the aux formula as such, it didn't rename
+     *  the right premise, so we never see the variable Y, even though it can be unified.
+     */
+
+    def getMSet(a: scala.collection.mutable.Set[Var]): MSet[Var] = {
+      val out = MSet[Var]()
+      for (e <- a) {
+        out.add(e)
+      }
+      out
+    }
+
+    def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
+    def newAux = oldMGU(aux)
+    println("oldMGU: " + oldMGU)
+    println("newAUX: " + newAux)
+    
+    for (safeLit <- safeLiteralsHalf) {
+      val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
+      val uvarsB = getMSet(uvars)
+      val isMore = isMoreGeneral(Sequent(newAux)(), Sequent(safeLit)())(uvarsB)
+      unify((newAux, safeLit) :: Nil)(getSetOfVars(newAux)) match {
+        case Some(_) => {
+          println("matched!!! " + newAux + " AND " + safeLit)
+          return true
+        }
+        case None => {
+          //Do nothing
+        }
+      }
     }
     false
   }
@@ -112,9 +169,6 @@ abstract class FOAbstractRPILUAlgorithm
     lazy val fixedRight = fixedPremises.last;
 
     var resMap = new MMap[SequentProofNode, MSet[Substitution]]()
-    //    println("auxMap: " + auxMap)
-
-    //    println("checking p: " + p)
     p match {
       case Axiom(conclusion) => p
 
@@ -125,10 +179,12 @@ abstract class FOAbstractRPILUAlgorithm
 
       // If we've got a proof of false, we propagate it down the proof
       case UnifyingResolution(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) => {
+        println("using fixedleft without updating mgu map " + fixedLeft)
         fixedLeft
       }
 
       case UnifyingResolution(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) => {
+        println("using fixedRight without updating mgu map " + fixedRight)
         fixedRight
       }
 
@@ -150,11 +206,14 @@ abstract class FOAbstractRPILUAlgorithm
         //        } else {
         //          set.get.add(sub)
         //        }
+        println("using fixedRight without updating mgu map B " + fixedRight)
 
         fixedRight
         //newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
+        println("using fixedLeft without updating mgu map B " + fixedLeft)
+
         fixedLeft
       }
 
@@ -167,12 +226,16 @@ abstract class FOAbstractRPILUAlgorithm
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.suc, pivot))
+        println("using fixedLeft without updating mgu map C " + fixedLeft)
+
         fixedLeft
       }
       case UnifyingResolution(left, right, _, pivot) if (desiredFound(fixedRight.conclusion, p.conclusion)(unifiableVariables)) => {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))
+        println("using fixedRight without updating mgu map  C " + fixedRight)
+
         fixedRight
       }
 
@@ -195,7 +258,6 @@ abstract class FOAbstractRPILUAlgorithm
           println("right is non empty!") //TODO: at some point, I'll need to finish this case.
         }
 
-
         val ambiguousErrorString = "Resolution (MRR): the resolvent is ambiguous."
 
         //TODO: clean this up?
@@ -216,9 +278,12 @@ abstract class FOAbstractRPILUAlgorithm
             } else {
 
               try {
+                println("trying: " + fixedLeft + " and " + fixedRight)
                 UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
               } catch {
                 case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
+                  println("oldmgu map: " + mguMap)
+                  println("left? " + left)
                   val oldMGU = mguMap.get(left).get
                   fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
                 }
@@ -448,12 +513,15 @@ trait FOCollectEdgesUsingSafeLiterals
           println("marked")
           edgesToDelete.markRightEdge(p)
 
-        }
-        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
+        }       
+//        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.ant, auxR) && checkForResSmartRight(safeLiterals.ant, auxR, p)) => {
           //          println("p: " + p + " and right: " + left + " edge marked")
-          //          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
-          //          println("p, auxR: " + p + "   " + auxR)
+          //          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)                    
           println("marked a] " + p + " AND  " + left)
+          println("auxR: "+ auxR)
+          println(" and mgu " + p.asInstanceOf[UnifyingResolution].mgu)                    
+
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markLeftEdge(p)
