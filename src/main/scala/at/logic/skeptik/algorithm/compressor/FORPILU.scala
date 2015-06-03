@@ -379,10 +379,19 @@ abstract class FOAbstractRPILUAlgorithm
                 UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
               } catch {
                 case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
-                  println("oldmgu map: " + mguMap)
-                  println("left? " + left)
-                  val oldMGU = mguMap.get(left).get
-                  fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+
+                  try {
+                    println("fixedRight: " + fixedRight)
+                    println("fixedLeft:  " + fixedLeft)
+                    UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
+                  } catch {
+                    case f: Exception => {
+                      println("oldmgu map: " + mguMap)
+                      println("left? " + left)
+                      val oldMGU = mguMap.get(left).get
+                      fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+                    }
+                  }
                 }
                 case e: Exception => {
                   println("ERROR")
