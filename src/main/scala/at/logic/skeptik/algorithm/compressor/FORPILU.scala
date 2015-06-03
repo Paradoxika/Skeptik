@@ -73,13 +73,12 @@ abstract class FOAbstractRPILUAlgorithm
     }
     false
   }
-  
+
   //june 2 mod
   //this checks the aux after the original mgu was applied
   //prevents some terrible attempts to lower
   //NOTE: p MUST be a unifying resolution node
-  //TODO: build 'left' case (may change how mgu is internally handled given renamed left nodes)
-    protected def checkForResSmartRight(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
+  protected def checkForResSmartRight(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
 
     if (safeLiteralsHalf.size < 1) {
       return false
@@ -113,7 +112,102 @@ abstract class FOAbstractRPILUAlgorithm
     def newAux = oldMGU(aux)
     println("oldMGU: " + oldMGU)
     println("newAUX: " + newAux)
-    
+
+    for (safeLit <- safeLiteralsHalf) {
+      val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
+      val uvarsB = getMSet(uvars)
+      val isMore = isMoreGeneral(Sequent(newAux)(), Sequent(safeLit)())(uvarsB)
+      unify((newAux, safeLit) :: Nil)(getSetOfVars(newAux)) match {
+        case Some(_) => {
+          println("matched!!! " + newAux + " AND " + safeLit)
+          return true
+        }
+        case None => {
+          //Do nothing
+        }
+      }
+    }
+    false
+  }
+
+  //june 2 mod
+  //this checks the aux after the original mgu was applied
+  //prevents some terrible attempts to lower
+  //NOTE: p MUST be a unifying resolution node
+  //TODO: merge with right case
+  //TODO: test
+  protected def checkForResSmartLeft(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
+
+    if (safeLiteralsHalf.size < 1) {
+      return false
+    }
+
+    /* 
+     * unifiableVars might not contain the variables in the aux formulae. When UR(MRR) generates the auxL/auxR formulae,
+     * it may rename the variables in one premise to a new premise that we just haven't seen yet (and which is resolved out
+     * in that resolution and thus never really visible in the proof, so we need to check for new variables and
+     * add them to our list of unifiable variables or the unification might fail.
+     */
+
+    /*  For example,
+     * 
+     *  p(X) |- q(a)     with    q(X) |- 
+     * 
+     *  UR might rename the right X as Y, then resolve out to get P(X) |-
+     *  And while UR used q(Y) |- and recorded the aux formula as such, it didn't rename
+     *  the right premise, so we never see the variable Y, even though it can be unified.
+     */
+
+    def getMSet(a: scala.collection.mutable.Set[Var]): MSet[Var] = {
+      val out = MSet[Var]()
+      for (e <- a) {
+        out.add(e)
+      }
+      out
+    }
+
+    //TODO: this is taken DIRECTLY from FOLU. refactor it to somewhere nice
+    def getRenamedMGU(original: Sequent, clean: Sequent, sub: Substitution, vars: MSet[Var]): Substitution = {
+      val renamingForward = findRenaming(original, clean)(vars)
+      if (renamingForward.size == 0) {
+        return sub
+      }
+
+      val renamingBackward = findRenaming(clean, original)(vars)
+
+      println("GRM: forward: " + renamingForward)
+      println("GRM: backward: " + renamingBackward)
+
+      def appSub(pair: (Var, E)): (Var, E) = {
+        if (!renamingForward.get(pair._1).isEmpty) {
+          (renamingForward(pair._1).asInstanceOf[Var], pair._2)
+        } else if (!renamingBackward.get(pair._1).isEmpty) {
+          (renamingBackward(pair._1).asInstanceOf[Var], pair._2)
+        } else {
+          pair
+        }
+
+      }
+
+      val outPairs = sub.toList.map(p => appSub(p))
+
+      Substitution(outPairs: _*)
+    }
+
+    def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
+    def left = p.asInstanceOf[UnifyingResolution].leftPremise
+    def nodeLeftClean = p.asInstanceOf[UnifyingResolution].leftClean
+    println("oldMGU: " + oldMGU)
+
+    println("left: " + left)
+    println("cleanleft: " + nodeLeftClean)
+    def vars = MSet[Var]() ++ getSetOfVars(left) ++ getSetOfVars(nodeLeftClean)
+
+    val fixedMGU = getRenamedMGU(left.conclusion, nodeLeftClean.conclusion, oldMGU, vars)
+    println("fixedMGU: " + fixedMGU)
+    def newAux = fixedMGU(aux)
+    println("newAUX: " + newAux)
+
     for (safeLit <- safeLiteralsHalf) {
       val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
       val uvarsB = getMSet(uvars)
@@ -504,7 +598,9 @@ trait FOCollectEdgesUsingSafeLiterals
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       println("SAFE LITERALS for " + p + " => " + safeLiterals)
       p match {
-        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
+        //        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL) && checkForResSmartLeft(safeLiterals.suc, auxL, p)) => {
+
           //          println("p: " + p + " and right: " + right + " edge marked")
           //          println("other edge: " +  left + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
           //          println("p, auxL: " + p + "   " + auxL)
@@ -513,14 +609,15 @@ trait FOCollectEdgesUsingSafeLiterals
           println("marked")
           edgesToDelete.markRightEdge(p)
 
-        }       
-//        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
+        }
+        //        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
+        //TODO: use only the latter function
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.ant, auxR) && checkForResSmartRight(safeLiterals.ant, auxR, p)) => {
           //          println("p: " + p + " and right: " + left + " edge marked")
           //          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)                    
           println("marked a] " + p + " AND  " + left)
-          println("auxR: "+ auxR)
-          println(" and mgu " + p.asInstanceOf[UnifyingResolution].mgu)                    
+          println("auxR: " + auxR)
+          println(" and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
 
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
