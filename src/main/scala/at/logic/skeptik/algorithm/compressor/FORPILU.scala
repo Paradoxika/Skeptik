@@ -135,7 +135,7 @@ abstract class FOAbstractRPILUAlgorithm
   //prevents some terrible attempts to lower
   //NOTE: p MUST be a unifying resolution node
   //TODO: merge with right case
-  //TODO: test
+  //TODO: test further
   protected def checkForResSmartLeft(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
 
     if (safeLiteralsHalf.size < 1) {
@@ -199,13 +199,16 @@ abstract class FOAbstractRPILUAlgorithm
     def nodeLeftClean = p.asInstanceOf[UnifyingResolution].leftClean
     println("oldMGU: " + oldMGU)
 
-    println("left: " + left)
-    println("cleanleft: " + nodeLeftClean)
-    def vars = MSet[Var]() ++ getSetOfVars(left) ++ getSetOfVars(nodeLeftClean)
+    //maybe this stuff  isn't necessary--------
+    //    println("left: " + left)
+    //    println("cleanleft: " + nodeLeftClean)
+    //    def vars = MSet[Var]() ++ getSetOfVars(left) ++ getSetOfVars(nodeLeftClean)
+    //
+    //    val fixedMGU = getRenamedMGU(left.conclusion, nodeLeftClean.conclusion, oldMGU, vars)
+    //    println("fixedMGU: " + fixedMGU)
+    //-------------------
 
-    val fixedMGU = getRenamedMGU(left.conclusion, nodeLeftClean.conclusion, oldMGU, vars)
-    println("fixedMGU: " + fixedMGU)
-    def newAux = fixedMGU(aux)
+    def newAux = oldMGU(aux) // fixedMGU(aux)
     println("newAUX: " + newAux)
 
     for (safeLit <- safeLiteralsHalf) {
