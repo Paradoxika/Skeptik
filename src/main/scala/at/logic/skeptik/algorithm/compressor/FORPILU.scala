@@ -288,13 +288,11 @@ abstract class FOAbstractRPILUAlgorithm
       // Delete nodes and edges
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
         //                println("using fixedRight - " + fixedRight)
-        //        val sub = p.asInstanceOf[UnifyingResolution].mgu
         //        val al = p.asInstanceOf[UnifyingResolution].auxL
         //        val ar = p.asInstanceOf[UnifyingResolution].auxR
         //        println("al: " + al)
         //        println("ar: " + ar)
         //        println(" which would have been used after this sub: " + sub)
-        //        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)
         //        println("to be this: " + newNode)
         //        val set = resMap.get(p)
         //        if (set.isEmpty) {
@@ -304,12 +302,20 @@ abstract class FOAbstractRPILUAlgorithm
         //          set.get.add(sub)
         //        }
         println("using fixedRight without updating mgu map B " + fixedRight)
+        //        mguMap.put(fixedRight, p.asInstanceOf[UnifyingResolution].mgu)
 
         fixedRight
-        //newNode
+
+        //        val sub = p.asInstanceOf[UnifyingResolution].mgu        
+        //        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)        
+        //        newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
         println("using fixedLeft without updating mgu map B " + fixedLeft)
+
+        //        val sub = p.asInstanceOf[UnifyingResolution].mgu
+        //        val newNode = new FOSubstitution(fixedLeft, sub)(unifiableVariables)
+        //        newNode
 
         fixedLeft
       }
@@ -332,7 +338,7 @@ abstract class FOAbstractRPILUAlgorithm
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))
         println("using fixedRight without updating mgu map  C " + fixedRight)
-
+        //        mguMap.put(fixedRight, p.asInstanceOf[UnifyingResolution].mgu)
         fixedRight
       }
 
@@ -359,14 +365,18 @@ abstract class FOAbstractRPILUAlgorithm
 
         //TODO: clean this up?
         try {
-          UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
+          def attemptD = UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
+          println(attemptD)
+          attemptD
         } catch {
           case e: Exception => {
             println("error - second " + e.getMessage())
             if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
               if (nonEmptyLeftMap && !nonEmptyRightMap) {
                 val oldMGU = mguMap.get(left).get
-                fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+                def attemptC = fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+                println(attemptC)
+                attemptC
               } else {
                 //TODO: change this branch
                 println("STUB HIT -- probably not correct!")
@@ -376,25 +386,44 @@ abstract class FOAbstractRPILUAlgorithm
 
               try {
                 println("trying: " + fixedLeft + " and " + fixedRight)
-                UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+                def attemptB = UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+                println("B: " + attemptB)
+                attemptB
               } catch {
                 case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
 
                   try {
                     println("fixedRight: " + fixedRight)
                     println("fixedLeft:  " + fixedLeft)
-                    UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
+                    def attempt = UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
+                    println(attempt)
+                    attempt
                   } catch {
                     case f: Exception => {
                       println("oldmgu map: " + mguMap)
                       println("left? " + left)
                       val oldMGU = mguMap.get(left).get
-                      fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+                      def nonAmbig = fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+                      println("nonambig: " + nonAmbig)
+                      nonAmbig
                     }
                   }
                 }
                 case e: Exception => {
-                  println("ERROR")
+                  println("fixed things: " + fixedLeft + " and " + fixedRight)
+
+                  println("ERROR " + e.getMessage())
+                  println("saving mgu? " + mguMap.get(right))
+                  println("saving mgu? fixed  " + mguMap.get(fixedRight))
+
+                  //                  def subbedRight =  new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
+                  //                  def testingOut = UnifyingResolution(subbedRight, fixedLeft)(unifiableVariables)
+                  //                  println(testingOut)
+                  println("auxMap.get(right) " + auxMap.get(right))
+                  println("mguMap.get(left).isEmpty " + mguMap.get(left))
+                  println("auxMap.get(left) " + auxMap.get(left))
+                  println("mgumap: " + mguMap)
+
                   throw new Exception("BAD!")
                 }
               }
