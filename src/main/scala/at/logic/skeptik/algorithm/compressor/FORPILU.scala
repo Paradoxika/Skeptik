@@ -301,21 +301,21 @@ abstract class FOAbstractRPILUAlgorithm
         //        } else {
         //          set.get.add(sub)
         //        }
-        println("using fixedRight without updating mgu map B " + fixedRight)
-        //        mguMap.put(fixedRight, p.asInstanceOf[UnifyingResolution].mgu)
-
+        println("using fixedRight updating mgu map B " + fixedRight)
+        val sub = p.asInstanceOf[UnifyingResolution].mgu
+        mguMap.put(fixedRight, sub)
         fixedRight
 
-        //        val sub = p.asInstanceOf[UnifyingResolution].mgu        
         //        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)        
         //        newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
         println("using fixedLeft without updating mgu map B " + fixedLeft)
-
-        //        val sub = p.asInstanceOf[UnifyingResolution].mgu
+        val sub = p.asInstanceOf[UnifyingResolution].mgu
         //        val newNode = new FOSubstitution(fixedLeft, sub)(unifiableVariables)
         //        newNode
+
+        mguMap.put(fixedLeft, sub)
 
         fixedLeft
       }
@@ -338,7 +338,7 @@ abstract class FOAbstractRPILUAlgorithm
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))
         println("using fixedRight without updating mgu map  C " + fixedRight)
-        //        mguMap.put(fixedRight, p.asInstanceOf[UnifyingResolution].mgu)
+        //                mguMap.put(fixedRight, p.asInstanceOf[UnifyingResolution].mgu)
         fixedRight
       }
 
@@ -365,7 +365,12 @@ abstract class FOAbstractRPILUAlgorithm
 
         //TODO: clean this up?
         try {
-          def attemptD = UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
+          def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
+            new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
+          } else {
+            fixedRight
+          }
+          def attemptD = UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
           println(attemptD)
           attemptD
         } catch {
@@ -374,19 +379,34 @@ abstract class FOAbstractRPILUAlgorithm
             if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
               if (nonEmptyLeftMap && !nonEmptyRightMap) {
                 val oldMGU = mguMap.get(left).get
-                def attemptC = fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+          def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
+            new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
+          } else {
+            fixedRight
+          }                
+                def attemptC = fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
                 println(attemptC)
                 attemptC
               } else {
                 //TODO: change this branch
                 println("STUB HIT -- probably not correct!")
-                UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables) //stub
+          def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
+            new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
+          } else {
+            fixedRight
+          }                
+                UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables) //stub
               }
             } else {
 
               try {
+          def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
+            new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
+          } else {
+            fixedRight
+          }                
                 println("trying: " + fixedLeft + " and " + fixedRight)
-                def attemptB = UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+                def attemptB = UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
                 println("B: " + attemptB)
                 attemptB
               } catch {
