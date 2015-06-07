@@ -589,8 +589,8 @@ abstract class FOAbstractRPIAlgorithm
 
   def findActualAux(seqHalf: Seq[E], aux: E, mgu: Substitution): E = {
     //TODO: this
-    for(s<-seqHalf){
-      if(mgu(s).equals(aux)){
+    for (s <- seqHalf) {
+      if (mgu(s).equals(aux)) {
         println("found? " + s)
         return s
       }
@@ -603,7 +603,7 @@ abstract class FOAbstractRPIAlgorithm
 
     println("computing safe literals for " + childWithSafeLiterals._1)
     println(" which has parent " + parent)
-    
+
     childWithSafeLiterals match {
       //in these cases, 'child' is the unifying resolution
       case (child @ UnifyingResolution(left, right, _, auxR), safeLiterals) if left == parent =>
@@ -673,10 +673,10 @@ abstract class FOAbstractRPIAlgorithm
           //          def newAuxL = mgu(auxL)
           //          addLiteralSmart(safeLiterals, newAuxL, true, left, right)
           println("auxl: " + auxL)
-          
+
           def auxLb = findActualAux(right.conclusion.ant, auxL, child.asInstanceOf[UnifyingResolution].mgu)
-          println("aurL: " + auxLb)          
-          
+          println("aurL: " + auxLb)
+
           addLiteralSmart(safeLiterals, auxL, true, left, right)
 
         }
@@ -770,7 +770,7 @@ trait FOCollectEdgesUsingSafeLiterals
 
         println("CVS: " + commonVars)
 
-        def generateSubstitutionOptionsX(computed: Seq[E], desired: Seq[E]) = {
+        def generateSubstitutionOptionsX(computed: Seq[E], desired: Seq[E], vs: MSet[Var]) = {
           val map = new MMap[Var, Set[E]]()
           for (c <- computed) {
             //            println("checking c: " + c)
@@ -790,7 +790,8 @@ trait FOCollectEdgesUsingSafeLiterals
               val inverseSubsCasted = convertTypes(inverseSubs.toList)
               val inverseSub = Substitution(inverseSubsCasted: _*)
 
-              val u = unify((c, dClean) :: Nil)(cVars union dVars)
+//              val u = unify((c, dClean) :: Nil)(cVars union dVars)
+              val u = unify((dClean,c) :: Nil)(vs)
 
               u match {
                 case Some(s) => {
@@ -810,14 +811,21 @@ trait FOCollectEdgesUsingSafeLiterals
                       //update that set
                       def sub = u.get
                       def entry = sub.get(cv)
+                                          println("ENTRY:  " + entry)
+                      if(!entry.isEmpty) {
+
                       map.put(cv, map.get(cv).get ++ entry)
+                      }
                     } else {
                       //                      println("C")
                       //add a new set
                       //note the conversion is safe since checkSubstitutions already confirms it's a var
                       def sub = u.get
                       def entry = sub.get(cv)
+                      println("ENTRY:  " + entry)
+                      if(!entry.isEmpty) {
                       map.put(cv, Set[Var]() ++ entry)
+                      }
                     }
 
                   }
@@ -864,11 +872,11 @@ trait FOCollectEdgesUsingSafeLiterals
           }
           true
         }
-        val antMap = generateSubstitutionOptionsX(computed.ant, desired.ant)
+        val antMap = generateSubstitutionOptionsX(computed.ant, desired.ant, unifiableVariables)
         if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
           return false
         }
-        val sucMap = generateSubstitutionOptionsX(computed.suc, desired.suc)
+        val sucMap = generateSubstitutionOptionsX(computed.suc, desired.suc, unifiableVariables)
         if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
           return false
         }
@@ -880,6 +888,47 @@ trait FOCollectEdgesUsingSafeLiterals
         println("INTERSECTION MAP: " + intersectedMap.size)
 
         if (!validMapX(intersectedMap, vars)) {
+          return false
+        }
+
+        def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
+          val subList = MSet[(Var, E)]()
+
+          for (k <- m.keySet) {
+            if (m.get(k).get.size > 0) {
+              println("adding " + k + " and " + m.get(k).get.head)
+              subList.add((k, m.get(k).get.head))
+            }
+          }
+
+          val sub = Substitution(subList.toSeq: _*)
+          println("sub : " + sub)
+          def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
+            if (target.size == 0) {
+              return true
+            }
+            target match {
+              case h :: t => {
+                for (s <- source) {
+                  if (h.equals(s)) {
+                    return foundExactly(t, source)
+                  }
+                }
+              }
+            }
+
+            false
+          }
+
+          val newDesiredAnt = (desired.ant).map( e => sub(e))
+          
+          
+          val newDesiredSuc = (desired.suc).map( e => sub(e))
+//          println("computed ant: " + desired.suc + " and " + newDesiredSuc)
+          foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
+        }
+        
+        if (!findFromMap(intersectedMap, vars)) {
           return false
         }
 
@@ -903,12 +952,38 @@ trait FOCollectEdgesUsingSafeLiterals
     def antVarsB = getSetOfVars(safeLit.ant: _*)
     def sucVarsB = getSetOfVars(safeLit.suc: _*)
     def vars = MSet[Var]() ++ antVars ++ sucVars //++ antVarsB ++ sucVarsB
+    def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
     println("IN FINAL (safe): " + safeLit)
     println("     AND ( del): " + seqToDelete)
     def safeLitB = Sequent(safeLit.suc: _*)(safeLit.ant: _*)
     println("IN FINAB: " + safeLitB)
     println("VARS: " + vars)
-    desiredFoundX(safeLit, seqToDelete)(vars)
+
+    //    def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
+    //      if(target.size == 0){
+    //        return true
+    //      }
+    //      target match {
+    //        case h::t => {
+    //          for(s<-source){
+    //          if(h.equals(s)){
+    //            return foundExactly(t, source)
+    //          }
+    //        }
+    //      }
+    //      }
+    //    
+    //      false
+    //    }
+    //    
+    //    if (foundExactly(seqToDelete.ant, safeLit.ant) && foundExactly(seqToDelete.suc, safeLit.suc)) {
+    //       true
+    //    } else {
+    def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
+    println("SAFE CLEAN: " + safeClean)
+    
+    desiredFoundX(safeClean.conclusion, seqToDelete)(vars)
+    //    }
     //    true
   }
 
@@ -986,7 +1061,7 @@ trait FOIntersection
       case h :: t =>
         t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
           {
-            println("intersecting... for " + h  + " and " + v)
+            println("intersecting... for " + h + " and " + v)
             println("A: " + acc)
             println("B: " + safeLiteralsFromChild(v, proof, edgesToDelete))
             acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)
