@@ -587,9 +587,23 @@ abstract class FOAbstractRPILUAlgorithm
 abstract class FOAbstractRPIAlgorithm
   extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
+  def findActualAux(seqHalf: Seq[E], aux: E, mgu: Substitution): E = {
+    //TODO: this
+    for(s<-seqHalf){
+      if(mgu(s).equals(aux)){
+        println("found? " + s)
+        return s
+      }
+    }
+    aux
+  }
+
   protected def safeLiteralsFromChild(childWithSafeLiterals: (SequentProofNode, IClause),
     parent: SequentProofNode, edgesToDelete: FOEdgesToDelete) = {
 
+    println("computing safe literals for " + childWithSafeLiterals._1)
+    println(" which has parent " + parent)
+    
     childWithSafeLiterals match {
       //in these cases, 'child' is the unifying resolution
       case (child @ UnifyingResolution(left, right, _, auxR), safeLiterals) if left == parent =>
@@ -600,7 +614,14 @@ abstract class FOAbstractRPIAlgorithm
           //          def mgu = child.asInstanceOf[UnifyingResolution].mgu
           //          def newAuxR = mgu(auxR)
           //          addLiteralSmart(safeLiterals, newAuxR, false, left, right)
-          addLiteralSmart(safeLiterals, auxR, false, left, right)
+          println("auxr: " + auxR)
+
+          println("right : " + right)
+          println("left: " + left)
+          def auxRb = findActualAux(left.conclusion.suc, auxR, child.asInstanceOf[UnifyingResolution].mgu)
+          println("aurB: " + auxRb)
+
+          addLiteralSmart(safeLiterals, auxRb, false, left, right)
         }
 
       case (child @ UnifyingResolution(left, right, auxL, _), safeLiterals) if right == parent =>
@@ -651,12 +672,21 @@ abstract class FOAbstractRPIAlgorithm
           //
           //          def newAuxL = mgu(auxL)
           //          addLiteralSmart(safeLiterals, newAuxL, true, left, right)
+          println("auxl: " + auxL)
+          
+          def auxLb = findActualAux(right.conclusion.ant, auxL, child.asInstanceOf[UnifyingResolution].mgu)
+          println("aurL: " + auxLb)          
+          
           addLiteralSmart(safeLiterals, auxL, true, left, right)
 
         }
 
-      case (_, safeLiterals) => {
+      case (p, safeLiterals) => {
+        print(p + " is the child for .. ")
         println("child with safe literals: " + childWithSafeLiterals)
+        println("what? " + childWithSafeLiterals._1)
+        println("what? " + childWithSafeLiterals._2)
+
         safeLiterals
       }
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
@@ -666,6 +696,8 @@ abstract class FOAbstractRPIAlgorithm
   protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
     //Restrict MartelliMontanari to tell whether "aux" is more general (and not just unifiable) 
     // by passing only the variables of "aux" as unifiable variables.
+    println("should be adding " + aux)
+    println(" to " + seq)
     val uVars = new MSet[Var]() union getSetOfVars(aux)
     val seqHalf = if (addToAntecedent) {
       seq.ant
@@ -682,11 +714,13 @@ abstract class FOAbstractRPIAlgorithm
         }
       }
     }
-    if (addToAntecedent) {
-      aux +: seq
+    def out = if (addToAntecedent) {
+      (aux +: seq)
     } else {
-      seq + aux
+      (seq + aux)
     }
+    println(out)
+    out
   }
 
   protected def computeSafeLiterals(proof: SequentProofNode,
@@ -831,13 +865,13 @@ trait FOCollectEdgesUsingSafeLiterals
           true
         }
         val antMap = generateSubstitutionOptionsX(computed.ant, desired.ant)
-        if(getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0){
+        if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
           return false
         }
         val sucMap = generateSubstitutionOptionsX(computed.suc, desired.suc)
-        if(getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0){
+        if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
           return false
-        }        
+        }
         println("ANT MAP: " + antMap)
         println("SUC MAP: " + sucMap)
         val intersectedMap = intersectMapsX(antMap, sucMap)
@@ -869,12 +903,13 @@ trait FOCollectEdgesUsingSafeLiterals
     def antVarsB = getSetOfVars(safeLit.ant: _*)
     def sucVarsB = getSetOfVars(safeLit.suc: _*)
     def vars = MSet[Var]() ++ antVars ++ sucVars //++ antVarsB ++ sucVarsB
-    println("IN FINAL: " + safeLit)
-    println("     AND: " + seqToDelete)
+    println("IN FINAL (safe): " + safeLit)
+    println("     AND ( del): " + seqToDelete)
     def safeLitB = Sequent(safeLit.suc: _*)(safeLit.ant: _*)
     println("IN FINAB: " + safeLitB)
     println("VARS: " + vars)
     desiredFoundX(safeLit, seqToDelete)(vars)
+    //    true
   }
 
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
@@ -949,7 +984,14 @@ trait FOIntersection
         if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
         proof.conclusion.toSetSequent
       case h :: t =>
-        t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) => acc intersect safeLiteralsFromChild(v, proof, edgesToDelete) }
+        t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
+          {
+            println("intersecting... for " + h  + " and " + v)
+            println("A: " + acc)
+            println("B: " + safeLiteralsFromChild(v, proof, edgesToDelete))
+            acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)
+          }
+        }
     }
   }
 }
