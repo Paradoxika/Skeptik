@@ -56,14 +56,8 @@ abstract class FOAbstractRPILUAlgorithm
       val uvars = (getSetOfVars(aux) union getSetOfVars(safeLit))
       val uvarsB = getMSet(uvars)
       val isMore = isMoreGeneral(Sequent(aux)(), Sequent(safeLit)())(uvarsB)
-      //      if(areAlphaEq(safeLit, aux)(uvarsB) || isMore || safeLit.equals(aux)){
-      //      if (areAlphaEq(safeLit, aux)(uvarsB)) {
-      //
-      //        return true
-      //      }
       unify((aux, safeLit) :: Nil)(getSetOfVars(aux)) match {
         case Some(_) => {
-          println("matched!!! " + aux + " AND " + safeLit)
           return true
         }
         case None => {
@@ -110,8 +104,6 @@ abstract class FOAbstractRPILUAlgorithm
 
     def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
     def newAux = oldMGU(aux)
-    println("oldMGU: " + oldMGU)
-    println("newAUX: " + newAux)
 
     for (safeLit <- safeLiteralsHalf) {
       val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
@@ -119,7 +111,6 @@ abstract class FOAbstractRPILUAlgorithm
       val isMore = isMoreGeneral(Sequent(newAux)(), Sequent(safeLit)())(uvarsB)
       unify((newAux, safeLit) :: Nil)(getSetOfVars(newAux)) match {
         case Some(_) => {
-          println("matched!!! " + newAux + " AND " + safeLit)
           return true
         }
         case None => {
@@ -175,9 +166,6 @@ abstract class FOAbstractRPILUAlgorithm
 
       val renamingBackward = findRenaming(clean, original)(vars)
 
-      println("GRM: forward: " + renamingForward)
-      println("GRM: backward: " + renamingBackward)
-
       def appSub(pair: (Var, E)): (Var, E) = {
         if (!renamingForward.get(pair._1).isEmpty) {
           (renamingForward(pair._1).asInstanceOf[Var], pair._2)
@@ -195,21 +183,8 @@ abstract class FOAbstractRPILUAlgorithm
     }
 
     def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
-    def left = p.asInstanceOf[UnifyingResolution].leftPremise
-    def nodeLeftClean = p.asInstanceOf[UnifyingResolution].leftClean
-    println("oldMGU: " + oldMGU)
 
-    //maybe this stuff  isn't necessary--------
-    //        println("left: " + left)
-    //        println("cleanleft: " + nodeLeftClean)
-    //        def vars = MSet[Var]() ++ getSetOfVars(left) ++ getSetOfVars(nodeLeftClean)
-    //    
-    //        val fixedMGU = getRenamedMGU(left.conclusion, nodeLeftClean.conclusion, oldMGU, vars)
-    //        println("fixedMGU: " + fixedMGU)
-    //-------------------
-
-    def newAux = oldMGU(aux) // fixedMGU(aux)
-    println("newAUX: " + newAux)
+    def newAux = oldMGU(aux) 
 
     for (safeLit <- safeLiteralsHalf) {
       val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
@@ -217,7 +192,6 @@ abstract class FOAbstractRPILUAlgorithm
       val isMore = isMoreGeneral(Sequent(newAux)(), Sequent(safeLit)())(uvarsB)
       unify((newAux, safeLit) :: Nil)(getSetOfVars(newAux)) match {
         case Some(_) => {
-          println("matched!!! " + newAux + " AND " + safeLit)
           return true
         }
         case None => {
@@ -276,47 +250,22 @@ abstract class FOAbstractRPILUAlgorithm
 
       // If we've got a proof of false, we propagate it down the proof
       case UnifyingResolution(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) => {
-        println("using fixedleft without updating mgu map " + fixedLeft)
         fixedLeft
       }
 
       case UnifyingResolution(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) => {
-        println("using fixedRight without updating mgu map " + fixedRight)
         fixedRight
       }
 
       // Delete nodes and edges
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
-        //                println("using fixedRight - " + fixedRight)
-        //        val al = p.asInstanceOf[UnifyingResolution].auxL
-        //        val ar = p.asInstanceOf[UnifyingResolution].auxR
-        //        println("al: " + al)
-        //        println("ar: " + ar)
-        //        println(" which would have been used after this sub: " + sub)
-        //        println("to be this: " + newNode)
-        //        val set = resMap.get(p)
-        //        if (set.isEmpty) {
-        //          val newSet = MSet[Substitution](sub)
-        //          resMap.put(p, newSet)
-        //        } else {
-        //          set.get.add(sub)
-        //        }
-        println("using fixedRight updating mgu map B " + fixedRight)
         val sub = p.asInstanceOf[UnifyingResolution].mgu
         mguMap.put(fixedRight, sub)
         fixedRight
-
-        //        val newNode = new FOSubstitution(fixedRight, sub)(unifiableVariables)        
-        //        newNode
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
-        println("using fixedLeft without updating mgu map B " + fixedLeft)
         val sub = p.asInstanceOf[UnifyingResolution].mgu
-        //        val newNode = new FOSubstitution(fixedLeft, sub)(unifiableVariables)
-        //        newNode
-
         mguMap.put(fixedLeft, sub)
-
         fixedLeft
       }
 
@@ -329,37 +278,22 @@ abstract class FOAbstractRPILUAlgorithm
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.suc, pivot))
-        println("using fixedLeft without updating mgu map C " + fixedLeft)
-
         fixedLeft
       }
       case UnifyingResolution(left, right, _, pivot) if (desiredFound(fixedRight.conclusion, p.conclusion)(unifiableVariables)) => {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))
-        println("using fixedRight without updating mgu map  C " + fixedRight)
-        //                mguMap.put(fixedRight, p.asInstanceOf[UnifyingResolution].mgu)
         fixedRight
       }
 
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, auxL, auxR) => {
-        //        println("Error found")
-        //        println("RPI: auxL: " + auxL)
-        //        println("RPI: auxR: " + auxR)
-        //        println("l: " + left)
-        //        println("r: " + right)
-        //        println("fl: " + fixedLeft)
-        //        println("fr: " + fixedRight)
         //TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
         //   --- necessary now? 
 
         val nonEmptyLeftMap = !auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty
         val nonEmptyRightMap = !auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty
-
-        if (nonEmptyRightMap) {
-          println("right is non empty!") //TODO: at some point, I'll need to finish this case.
-        }
 
         val ambiguousErrorString = "Resolution (MRR): the resolvent is ambiguous."
 
@@ -371,11 +305,9 @@ abstract class FOAbstractRPILUAlgorithm
             fixedRight
           }
           def attemptD = UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
-          println(attemptD)
           attemptD
         } catch {
           case e: Exception => {
-            println("error - second " + e.getMessage())
             if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
               if (nonEmptyLeftMap && !nonEmptyRightMap) {
                 val oldMGU = mguMap.get(left).get
@@ -385,11 +317,8 @@ abstract class FOAbstractRPILUAlgorithm
                   fixedRight
                 }
                 def attemptC = fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-                println(attemptC)
                 attemptC
               } else {
-                //TODO: change this branch
-                println("STUB HIT -- probably not correct!")
                 def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
                   new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
                 } else {
@@ -405,46 +334,24 @@ abstract class FOAbstractRPILUAlgorithm
                 } else {
                   fixedRight
                 }
-                println("trying: " + fixedLeft + " and " + fixedRight)
                 def attemptB = UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
-                println("B: " + attemptB)
                 attemptB
               } catch {
                 case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
 
                   try {
-                    println("fixedRight: " + fixedRight)
-                    println("fixedLeft:  " + fixedLeft)
                     def attempt = UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
-                    println(attempt)
                     attempt
                   } catch {
                     case f: Exception => {
-                      println("oldmgu map: " + mguMap)
-                      println("left? " + left)
                       val oldMGU = mguMap.get(left).get
                       def nonAmbig = fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-                      println("nonambig: " + nonAmbig)
                       nonAmbig
                     }
                   }
                 }
                 case e: Exception => {
-                  println("fixed things: " + fixedLeft + " and " + fixedRight)
-
-                  println("ERROR " + e.getMessage())
-                  println("saving mgu? " + mguMap.get(right))
-                  println("saving mgu? fixed  " + mguMap.get(fixedRight))
-
-                  //                  def subbedRight =  new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
-                  //                  def testingOut = UnifyingResolution(subbedRight, fixedLeft)(unifiableVariables)
-                  //                  println(testingOut)
-                  println("auxMap.get(right) " + auxMap.get(right))
-                  println("mguMap.get(left).isEmpty " + mguMap.get(left))
-                  println("auxMap.get(left) " + auxMap.get(left))
-                  println("mgumap: " + mguMap)
-
-                  throw new Exception("BAD!")
+                  throw new Exception("FORPI Failed!")
                 }
               }
             }
@@ -472,8 +379,6 @@ abstract class FOAbstractRPILUAlgorithm
       fLeft.conclusion
     }
     val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, oldMGU, leftEq)
-    //    println("leftRemainder: " + leftRemainder)
-
     val fRightClean = if (!fRight.equals(right)) {
       new FOSubstitution(fRight, oldMGU).conclusion
     } else {
@@ -484,22 +389,12 @@ abstract class FOAbstractRPILUAlgorithm
     //TODO: this for the left? 
     //TODO: do this conditionally only?
     val rightRemainderWithNewMGU = (new FOSubstitution(Axiom(rightRemainder), newMGU)).conclusion
-    //    println("rightRemainder: " + rightRemainder)
-    //    println("rrwithnewmgu :  " + rightRemainderWithNewMGU)
 
     val tempLeft = new FOSubstitution(new FOSubstitution(Axiom(leftRemainder), leftSub), newMGU)
-    //    println("tl: " + tempLeft)
     val tempRight = Axiom(rightRemainderWithNewMGU)
     val cleanLeftRemainder = fixSharedNoFilter(tempLeft, tempRight, 0, unifiableVariables).conclusion
 
-    //    println("lr: " + leftRemainder)
-    //    println("clr: " + cleanLeftRemainder)
-    //    println("test? " + (new FOSubstitution(Axiom(cleanLeftRemainder), newMGU)))
-
-    //        val newTarget = rightRemainderWithNewMGU.union(cleanLeftRemainder)
-
     val newTarget = rightRemainderWithNewMGU.union(tempLeft.conclusion)
-    //    println("newTarget: " + newTarget)
 
     val finalLeft = if (leftEq) {
       new FOSubstitution(fLeft, oldMGU)
@@ -520,8 +415,6 @@ abstract class FOAbstractRPILUAlgorithm
         UnifyingResolution(finalRight, finalLeft, newTarget)
       }
     }
-    //    println("okay... " + out)
-
     out
   }
 
@@ -544,17 +437,6 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): (List[E], Substitution) = {
-    //    if (half.size == 0) {
-    //      Seq[E]()
-    //    } else {
-    //      
-    //      val found = if (applySub) { areAlphaEq(sub(half.head), target) } else { areAlphaEq(half.head, target) }
-    //      if (found) {
-    //        half.tail
-    //      } else {
-    //        Seq[E](half.head) ++ checkHalf(half.tail, target, sub, applySub)
-    //      }
-    //    }
     def filterHelper(e: E): Boolean = {
       areAlphaEq(sub(e), target)
     }
@@ -566,14 +448,10 @@ abstract class FOAbstractRPILUAlgorithm
     }
 
     val diffs = half.diff(newSeq)
-    //    println("targ: " + target)
-    //    println("diffs: " + diffs)
 
     val subOut = if (diffs.size > 0) {
       val formula = diffs.head //should only be one //TODO: ensure this!
-      //      println("form: " + formula)
       val renameSub = unify((formula, target) :: Nil)
-      //      println(renameSub)
       renameSub.get //should never be empty
     } else {
       null
@@ -588,10 +466,8 @@ abstract class FOAbstractRPIAlgorithm
   extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
   def findActualAux(seqHalf: Seq[E], aux: E, mgu: Substitution): E = {
-    //TODO: this
     for (s <- seqHalf) {
       if (mgu(s).equals(aux)) {
-        println("found? " + s)
         return s
       }
     }
@@ -601,92 +477,25 @@ abstract class FOAbstractRPIAlgorithm
   protected def safeLiteralsFromChild(childWithSafeLiterals: (SequentProofNode, IClause),
     parent: SequentProofNode, edgesToDelete: FOEdgesToDelete) = {
 
-    println("computing safe literals for " + childWithSafeLiterals._1)
-    println(" which has parent " + parent)
-
     childWithSafeLiterals match {
       //in these cases, 'child' is the unifying resolution
       case (child @ UnifyingResolution(left, right, _, auxR), safeLiterals) if left == parent =>
         if (edgesToDelete.isMarked(child, right)) {
-          println("using safe literals")
           safeLiterals
         } else {
-          //          def mgu = child.asInstanceOf[UnifyingResolution].mgu
-          //          def newAuxR = mgu(auxR)
-          //          addLiteralSmart(safeLiterals, newAuxR, false, left, right)
-          println("auxr: " + auxR)
-
-          println("right : " + right)
-          println("left: " + left)
           def auxRb = findActualAux(left.conclusion.suc, auxR, child.asInstanceOf[UnifyingResolution].mgu)
-          println("aurB: " + auxRb)
-
           addLiteralSmart(safeLiterals, auxRb, false, left, right)
         }
 
       case (child @ UnifyingResolution(left, right, auxL, _), safeLiterals) if right == parent =>
         if (edgesToDelete.isMarked(child, left)) {
-          println("using safe B " + child)
-          println(safeLiterals)
           safeLiterals
         } else {
-          //          def mgu = child.asInstanceOf[UnifyingResolution].mgu
-          //
-          //          def nodeLeftClean = child.asInstanceOf[UnifyingResolution].leftClean
-          //
-          //          //maybe this stuff  isn't necessary--------
-          //          //    println("left: " + left)
-          //          //    println("cleanleft: " + nodeLeftClean)
-          //          def getRenamedMGU(original: Sequent, clean: Sequent, sub: Substitution, vars: MSet[Var]): Substitution = {
-          //            val renamingForward = findRenaming(original, clean)(vars)
-          //            if (renamingForward.size == 0) {
-          //              return sub
-          //            }
-          //
-          //            val renamingBackward = findRenaming(clean, original)(vars)
-          //
-          //            println("GRM: forward: " + renamingForward)
-          //            println("GRM: backward: " + renamingBackward)
-          //
-          //            def appSub(pair: (Var, E)): (Var, E) = {
-          //              if (!renamingForward.get(pair._1).isEmpty) {
-          //                (renamingForward(pair._1).asInstanceOf[Var], pair._2)
-          //              } else if (!renamingBackward.get(pair._1).isEmpty) {
-          //                (renamingBackward(pair._1).asInstanceOf[Var], pair._2)
-          //              } else {
-          //                pair
-          //              }
-          //
-          //            }
-          //
-          //            val outPairs = sub.toList.map(p => appSub(p))
-          //
-          //            Substitution(outPairs: _*)
-          //          }
-          //          def vars = MSet[Var]() ++ getSetOfVars(left) ++ getSetOfVars(nodeLeftClean)
-          //          val fixedMGU = getRenamedMGU(left.conclusion, nodeLeftClean.conclusion, mgu, vars)
-          //          println("XXX mgu: " + mgu)
-          //          println("XXX fixedMGU: " + fixedMGU)
-          //          println("XXX auxL : " + auxL)
-          //          //-------------------     
-          //
-          //          def newAuxL = mgu(auxL)
-          //          addLiteralSmart(safeLiterals, newAuxL, true, left, right)
-          println("auxl: " + auxL)
-
           def auxLb = findActualAux(right.conclusion.ant, auxL, child.asInstanceOf[UnifyingResolution].mgu)
-          println("aurL: " + auxLb)
-
           addLiteralSmart(safeLiterals, auxL, true, left, right)
-
         }
 
       case (p, safeLiterals) => {
-        print(p + " is the child for .. ")
-        println("child with safe literals: " + childWithSafeLiterals)
-        println("what? " + childWithSafeLiterals._1)
-        println("what? " + childWithSafeLiterals._2)
-
         safeLiterals
       }
       // Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
@@ -696,8 +505,6 @@ abstract class FOAbstractRPIAlgorithm
   protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
     //Restrict MartelliMontanari to tell whether "aux" is more general (and not just unifiable) 
     // by passing only the variables of "aux" as unifiable variables.
-    println("should be adding " + aux)
-    println(" to " + seq)
     val uVars = new MSet[Var]() union getSetOfVars(aux)
     val seqHalf = if (addToAntecedent) {
       seq.ant
@@ -709,7 +516,6 @@ abstract class FOAbstractRPIAlgorithm
       unify((lit, aux) :: Nil)(uVars) match {
         case None => {}
         case Some(_) => {
-          println("lit: " + lit + " and " + aux)
           return seq
         }
       }
@@ -719,7 +525,6 @@ abstract class FOAbstractRPIAlgorithm
     } else {
       (seq + aux)
     }
-    println(out)
     out
   }
 
@@ -732,12 +537,10 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
   extends FOAbstractRPIAlgorithm {
 
+  //ensure that the node that will be replacing the unifying resolution is entirely safe
   protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
 
     def checkHelperAlphaManualX(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
-      println("X check: " + computed)
-      println("X check: " + desired)
-      //      if (computed.size == 0 && desired.size == 0) {
       if (desired.size == 0) {
         return true
       }
@@ -767,16 +570,12 @@ trait FOCollectEdgesUsingSafeLiterals
         return true
       } else {
         val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
-
-        println("CVS: " + commonVars)
-
+        
         def generateSubstitutionOptionsX(computed: Seq[E], desired: Seq[E], vs: MSet[Var]) = {
           val map = new MMap[Var, Set[E]]()
           for (c <- computed) {
-            //            println("checking c: " + c)
             val cVars = getSetOfVars(c)
             for (d <- desired) {
-              println("checking d: " + d)
               val dVars = getSetOfVars(d)
 
               val cAxiom = new Axiom(Sequent(c)())
@@ -790,47 +589,34 @@ trait FOCollectEdgesUsingSafeLiterals
               val inverseSubsCasted = convertTypes(inverseSubs.toList)
               val inverseSub = Substitution(inverseSubsCasted: _*)
 
-//              val u = unify((c, dClean) :: Nil)(cVars union dVars)
-              val u = unify((dClean,c) :: Nil)(vs)
+              val u = unify((dClean, c) :: Nil)(vs)
 
               u match {
                 case Some(s) => {
-                  println("matched with c: " + c)
-                  //                  if (checkSubstitutions(s)) {
-                  //make sure it's just a renaming
-
                   //so that var could have gone to any of the variables in d; add them all
                   //NO -- it can only go to what the sub said it could!
-                  //                  println("A")
                   for (cv <- unifiableVariables) {
 
                     val sub = inverseSub(getValidSubstitution(s, cv))
                     val realVars = getSetOfVars(sub)
                     if (map.keySet.contains(cv)) {
-                      //                      println("B")
                       //update that set
                       def sub = u.get
                       def entry = sub.get(cv)
-                                          println("ENTRY:  " + entry)
-                      if(!entry.isEmpty) {
-
-                      map.put(cv, map.get(cv).get ++ entry)
+                      if (!entry.isEmpty) {
+                        map.put(cv, map.get(cv).get ++ entry)
                       }
                     } else {
-                      //                      println("C")
                       //add a new set
                       //note the conversion is safe since checkSubstitutions already confirms it's a var
                       def sub = u.get
                       def entry = sub.get(cv)
-                      println("ENTRY:  " + entry)
-                      if(!entry.isEmpty) {
-                      map.put(cv, Set[Var]() ++ entry)
+                      if (!entry.isEmpty) {
+                        map.put(cv, Set[Var]() ++ entry)
                       }
                     }
 
                   }
-
-                  //                  }
 
                 }
                 case None => {
@@ -880,12 +666,7 @@ trait FOCollectEdgesUsingSafeLiterals
         if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
           return false
         }
-        println("ANT MAP: " + antMap)
-        println("SUC MAP: " + sucMap)
         val intersectedMap = intersectMapsX(antMap, sucMap)
-
-        println("INTERSECTION MAP: " + intersectedMap)
-        println("INTERSECTION MAP: " + intersectedMap.size)
 
         if (!validMapX(intersectedMap, vars)) {
           return false
@@ -896,13 +677,11 @@ trait FOCollectEdgesUsingSafeLiterals
 
           for (k <- m.keySet) {
             if (m.get(k).get.size > 0) {
-              println("adding " + k + " and " + m.get(k).get.head)
               subList.add((k, m.get(k).get.head))
             }
           }
 
           val sub = Substitution(subList.toSeq: _*)
-          println("sub : " + sub)
           def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
             if (target.size == 0) {
               return true
@@ -920,29 +699,16 @@ trait FOCollectEdgesUsingSafeLiterals
             false
           }
 
-          val newDesiredAnt = (desired.ant).map( e => sub(e))
-          
-          
-          val newDesiredSuc = (desired.suc).map( e => sub(e))
-//          println("computed ant: " + desired.suc + " and " + newDesiredSuc)
+          val newDesiredAnt = (desired.ant).map(e => sub(e))
+
+          val newDesiredSuc = (desired.suc).map(e => sub(e))
           foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
         }
-        
+
         if (!findFromMap(intersectedMap, vars)) {
           return false
         }
 
-        //        if (intersectedMap.size == 0 && unifiableVariables.size > 0) {
-        //          return false
-        //        }
-
-        //        println("getting to alpha checks")
-        //        if (checkHelperAlphaManualX(computed.ant.distinct, desired.ant.distinct)) {
-        //          if (checkHelperAlphaManualX(computed.suc.distinct, desired.suc.distinct)) {
-        //            return true
-        //          }
-        //        }
-        //        false
         true
       }
     }
@@ -951,40 +717,13 @@ trait FOCollectEdgesUsingSafeLiterals
     def sucVars = getSetOfVars(seqToDelete.suc: _*)
     def antVarsB = getSetOfVars(safeLit.ant: _*)
     def sucVarsB = getSetOfVars(safeLit.suc: _*)
-    def vars = MSet[Var]() ++ antVars ++ sucVars //++ antVarsB ++ sucVarsB
+    def vars = MSet[Var]() ++ antVars ++ sucVars 
     def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
-    println("IN FINAL (safe): " + safeLit)
-    println("     AND ( del): " + seqToDelete)
-    def safeLitB = Sequent(safeLit.suc: _*)(safeLit.ant: _*)
-    println("IN FINAB: " + safeLitB)
-    println("VARS: " + vars)
 
-    //    def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
-    //      if(target.size == 0){
-    //        return true
-    //      }
-    //      target match {
-    //        case h::t => {
-    //          for(s<-source){
-    //          if(h.equals(s)){
-    //            return foundExactly(t, source)
-    //          }
-    //        }
-    //      }
-    //      }
-    //    
-    //      false
-    //    }
-    //    
-    //    if (foundExactly(seqToDelete.ant, safeLit.ant) && foundExactly(seqToDelete.suc, safeLit.suc)) {
-    //       true
-    //    } else {
     def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
-    println("SAFE CLEAN: " + safeClean)
-    
+
     desiredFoundX(safeClean.conclusion, seqToDelete)(vars)
-    //    }
-    //    true
+
   }
 
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
@@ -993,34 +732,15 @@ trait FOCollectEdgesUsingSafeLiterals
     var mguMap = new MMap[SequentProofNode, Substitution]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-      println("SAFE LITERALS for " + p + " => " + safeLiterals)
       p match {
-        //        case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)) => {
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)
           && checkForResSmartLeft(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion)) => {
-          //&&  finalCheck(p.conclusion, right.conclusion)
-          //          println("p: " + p + " and right: " + right + " edge marked")
-          //          println("other edge: " +  left + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
-          //          println("p, auxL: " + p + "   " + auxL)
           auxMap.put(p, auxL)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
-          println("marked b] " + p + " AND " + right)
-          println("auxL: " + auxL)
-          println("mgu (p): " + p.asInstanceOf[UnifyingResolution].mgu)
-          //          println("omg?????: " + finalCheck(p.conclusion, right.conclusion))
           edgesToDelete.markRightEdge(p)
         }
-        //        case UnifyingResolution(left, right, auxL, auxR) if checkForRes(safeLiterals.ant, auxR) => {
-        //TODO: use only the latter function
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.ant, auxR) &&
           checkForResSmartRight(safeLiterals.ant, auxR, p) && finalCheck(safeLiterals.toSeqSequent, right.conclusion)) => {
-          // && finalCheck(p.conclusion, left.conclusion)               
-          //          println("p: " + p + " and right: " + left + " edge marked")
-          //          println("other edge: " + right + " and mgu " + p.asInstanceOf[UnifyingResolution].mgu)                    
-          println("marked a] " + p + " AND  " + left)
-          println("auxR: " + auxR)
-          println(" and mgu " + p.asInstanceOf[UnifyingResolution].mgu)
-
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markLeftEdge(p)
@@ -1061,9 +781,6 @@ trait FOIntersection
       case h :: t =>
         t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
           {
-            println("intersecting... for " + h + " and " + v)
-            println("A: " + acc)
-            println("B: " + safeLiteralsFromChild(v, proof, edgesToDelete))
             acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)
           }
         }

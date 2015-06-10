@@ -39,9 +39,9 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
     val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
       rightPremise.conclusion.suc.map(e => mgu(e))
     if (overRide == null) {
-    	new Sequent(antecedent, succedent) 
+      new Sequent(antecedent, succedent)
     } else {
-      new Sequent(antecedent.map(e => overRide(e)), succedent.map(e => overRide(e))) 
+      new Sequent(antecedent.map(e => overRide(e)), succedent.map(e => overRide(e)))
     }
   }
 
@@ -71,10 +71,10 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
     } else if (unifiablePairs.length == 0) {
-//      println("going to throw an error...")
-//      println(leftPremise)
-//      println(leftPremiseClean)
-//      println(rightPremise)
+      //      println("going to throw an error...")
+      //      println(leftPremise)
+      //      println(leftPremiseClean)
+      //      println(rightPremise)
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B")
     } else {
       throw new Exception("Resolution: the resolvent is ambiguous.")
@@ -151,18 +151,13 @@ trait CanRenameVariables extends FindsVars {
   def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
     case None => false
     case Some(u) => {
-//            println(u)
-//            true
       occurCheck(p, u)
-
     }
   }
 
   def getUnifier(p: (E, E))(implicit unifiableVariables: MSet[Var]): Substitution = unify(p :: Nil)(unifiableVariables) match {
     case None => null
     case Some(u) => {
-      //      println(u)
-      //      true
       if (occurCheck(p, u)) {
         u
       } else {
@@ -291,8 +286,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
     out
   }
-  
-    def intersectMapsB(a: MMap[Var, Set[E]], b: MMap[Var, Set[E]]): MMap[Var, Set[E]] = {
+
+  def intersectMapsB(a: MMap[Var, Set[E]], b: MMap[Var, Set[E]]): MMap[Var, Set[E]] = {
     val out = MMap[Var, Set[E]]()
 
     val sharedKeys = (a.keySet).intersect(b.keySet)
@@ -331,8 +326,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
     true
   }
-  
-    def validMapB(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
+
+  def validMapB(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
     for (k <- m.keySet) {
       if (vars.contains(k) && m.get(k).get.size != 1) {
         return false
@@ -409,8 +404,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     map
   }
 
-//
-    def generateSubstitutionOptionsB(computed: Seq[E], desired: Seq[E]) = {
+  //
+  def generateSubstitutionOptionsB(computed: Seq[E], desired: Seq[E]) = {
     val map = new MMap[Var, Set[E]]()
     for (c <- computed) {
       val cVars = getSetOfVars(c)
@@ -433,21 +428,19 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         u match {
           case Some(s) => {
 
-              for (cv <- cVars) {
+            for (cv <- cVars) {
 
-                val sub = inverseSub(getValidSubstitutionB(s, cv))
-                if (map.keySet.contains(cv)) {
-                  //update that set
-                  map.put(cv, map.get(cv).get ++ Set[E](sub))
-                } else {
-                  //add a new set
-                  //note the conversion is safe since checkSubstitutions already confirms it's a var
-                  map.put(cv, Set[E](sub))
-                }
-
+              val sub = inverseSub(getValidSubstitutionB(s, cv))
+              if (map.keySet.contains(cv)) {
+                //update that set
+                map.put(cv, map.get(cv).get ++ Set[E](sub))
+              } else {
+                //add a new set
+                //note the conversion is safe since checkSubstitutions already confirms it's a var
+                map.put(cv, Set[E](sub))
               }
 
-            
+            }
 
           }
           case None => {
@@ -458,8 +451,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
     map
   }
-  
-  
+
   def checkSubstitutions(s: Substitution): Boolean = {
     for (e <- s.values) {
       e match {
@@ -492,7 +484,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
     v
   }
-  
+
   def getValidSubstitutionB(s: Substitution, v: Var): E = {
     for (k <- s.keys) {
       if (k.equals(v)) {
@@ -505,7 +497,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       }
     }
     v
-  }  
+  }
 
   def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size != desired.size) {
@@ -535,7 +527,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   //
-def checkHelperAlphaManualB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
+  def checkHelperAlphaManualB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size != desired.size) {
       return false
     } else if (computed.size == 0 && desired.size == 0) {
@@ -548,9 +540,9 @@ def checkHelperAlphaManualB(computed: Seq[E], desired: Seq[E])(implicit unifiabl
         val u = unify((f, g) :: Nil)
         u match {
           case Some(s) => {
-              //add current subs to this (not checkSubs is used above! modify with care)
-              return checkHelperAlphaManualB(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
-            
+            //add current subs to this (not checkSubs is used above! modify with care)
+            return checkHelperAlphaManualB(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
+
           }
           case None => {
           }
@@ -560,17 +552,16 @@ def checkHelperAlphaManualB(computed: Seq[E], desired: Seq[E])(implicit unifiabl
     }
     false
   }
-  
-  
-//
-def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
+
+  //
+  def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size == desired.size) {
       checkHelperAlphaManualB(computed, desired)
     } else {
       false
     }
   }
-  
+
   def checkHalf(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size == desired.size) {
       checkHelperAlphaManual(computed, desired)
@@ -606,11 +597,9 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       false
     }
   }
-  
-  
-    def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
-    println("C: " + computed)
-    println("D: " + desired)
+
+  def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
+
     assert(desiredFound(computed, desired))
     if (computed == desired) {
       return Substitution()
@@ -631,12 +620,11 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
         }
         if (checkHalf(computed.ant.distinct, desired.ant.distinct)) {
           if (checkHalf(computed.suc.distinct, desired.suc.distinct)) {
-            println("inteMap: " + intersectedMap)
-            
+
             val iMapKeys = intersectedMap.keySet
             val subSet = MSet[(Var, E)]()
-            
-            for(k <- iMapKeys){
+
+            for (k <- iMapKeys) {
               //TODO: what if there's more than one?
               val p = (k, intersectedMap.get(k).get.toList.head)
               subSet.add(p)
@@ -648,24 +636,19 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       null
     }
   }
-  
-  
 
   def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
-//      println("must be here?")
-//      println("left: " + leftPremise)
-//      println("right: " + rightPremise)      
+      //      println("must be here?")
+      //      println("left: " + leftPremise)
+      //      println("right: " + rightPremise)      
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
 
       val (auxL, auxR) = pairs(0)
 
-      println("trying ")
-      println(auxL)
-      println(auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
@@ -691,13 +674,7 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       }
       val computedSequent = computedResolution.conclusion.toSeqSequent
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
-//
-      println("computed: " + computedSequentClean) 
-      println("desired: " + desired)
-//      if(computedResolution.isInstanceOf[UnifyingResolution]) {
-//        println("mgu: " + computedResolution.asInstanceOf[UnifyingResolution].mgu)
-//      }
-      
+
       if (desiredFound(desired, computedSequentClean)) {
         computedResolution
       } else {
@@ -710,15 +687,15 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
-//      println("must be here?")
-//      println("left: " + leftPremise)
-//      println("right: " + rightPremise)
+      //      println("must be here?")
+      //      println("left: " + leftPremise)
+      //      println("right: " + rightPremise)
       throw new Exception("Resolution: Cannot find desired resolvent (B)")
     } else {
 
       val (auxL, auxR) = pairs(0)
-//println("MRR auxl: " + auxL)
-//println("MRR auxR: " + auxR)
+      //println("MRR auxl: " + auxL)
+      //println("MRR auxR: " + auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
@@ -727,8 +704,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
           //          println("rightPremise: " + rightPremise)
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, relaxation)
           //          println("ax: " + ax)
-//                    println("auxL: " + auxL)
-//                    println("auxR: " + auxR)
+          //                    println("auxL: " + auxL)
+          //                    println("auxR: " + auxR)
           //          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
@@ -760,11 +737,7 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       }
 
       val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
-      println("computed: " + computedSequentClean)      
-//      println("computed relaxed: " + computedSequentRelaxed)
-      println("desired: " + desired)
-//      println("moreGeneral? " + isMoreGeneral(desired, computedSequentRelaxed))
-//      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(desired, computedSequentRelaxed)) {
+
       if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(computedSequentClean, desired)) {
         computedResolution
       } else {
@@ -772,35 +745,26 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       }
     }
   }
-  
+
   //
   def isMoreGeneral(a: Sequent, b: Sequent)(implicit unifiableVars: MSet[Var]): Boolean = {
     if (desiredFound(a, b)) {
       return true
     }
-//    println("a: " + a)
-//    println("b: " + b)
-  
+
     def moreGeneralFound(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
       if (computed == desired) {
         return true
       } else {
         if ((computed.ant.size + computed.suc.size) == (desired.ant.size + desired.suc.size)) {
-//println("A")
-          val commonVars = (getSetOfVars(Axiom(desired.ant))intersect getSetOfVars(Axiom(desired.suc)))
-//println("B " + commonVars)
+          val commonVars = (getSetOfVars(Axiom(desired.ant)) intersect getSetOfVars(Axiom(desired.suc)))
           val antMap = generateSubstitutionOptionsB(computed.ant, desired.ant)
-//println("amap: " + antMap)
           val sucMap = generateSubstitutionOptionsB(computed.suc, desired.suc)
-//println("smap: " + sucMap)          
           val intersectedMap = intersectMapsB(antMap, sucMap)
-//println("imap: " + intersectedMap)
           if (!validMapB(intersectedMap, commonVars)) {
             return false
           }
-//println("checking halves..")
           if (checkHalfB(computed.ant.distinct, desired.ant.distinct)(unifiableVars)) {
-//            println("ant good..")
             if (checkHalfB(computed.suc.distinct, desired.suc.distinct)(unifiableVars)) {
               return true
             }
@@ -810,9 +774,8 @@ def checkHalfB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: M
       }
     }
 
-    moreGeneralFound(a,b)
+    moreGeneralFound(a, b)
   }
-
 
 }
 
