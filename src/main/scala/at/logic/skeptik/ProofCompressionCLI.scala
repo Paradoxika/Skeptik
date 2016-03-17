@@ -44,7 +44,7 @@ object ProofCompressionCLI {
   
   private def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
 
-  val parser = new scopt.OptionParser[Config]("compress"){
+  val parser = new scopt.OptionParser[Config]("skeptik"){
     
     head("\nSkeptik's Command Line Interface for Proof Compression\n\n") 
 
@@ -107,7 +107,7 @@ object ProofCompressionCLI {
       algorithms 'RP' and the sequential composition of 'DAGify', 'RPI' and 'LU'.
       The compressed proofs are written using 'smt2' proof format.
 
-      compress -a RP -a (DAGify*RPI*LU) -f smt2 examples/proofs/VeriT/eq_diamond9.smt2
+      skeptik -a RP -a (DAGify*RPI*LU) -f smt2 examples/proofs/VeriT/eq_diamond9.smt2
       """)
   }
   
