@@ -25,6 +25,7 @@ package object compressor {
     "D" -> DAGify,
     "ET" -> EliminateTautologies,
     "RU" -> RecycleUnits,
+    "TDRU" -> TopDownRecycleUnits,
     "RP" -> RecyclePivots,
     "RPI" -> RecyclePivotsWithIntersection,
     "RPC" -> RecyclePivotsWithConclusionSequent,
