@@ -4,6 +4,7 @@ project/target/
 .classpath
 .project
 .cache
+.idea
 .settings
 .history
 *~
