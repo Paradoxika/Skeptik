@@ -4,6 +4,8 @@ project/target/
 .classpath
 .project
 .cache
+.idea
+*.iml
 .settings
 .history
 *~
