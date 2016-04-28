@@ -240,14 +240,14 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   //buildMap
   //empty outer list
-//  val bm1 = Seq[Seq[Substitution]]()
-//  val bm1out = conJ.buildMap(bm1)
-//  val bm1exp = MMap[Var, Set[E]]()
+  val bm1 = Seq[Seq[Substitution]]()
+  val bm1out = conJ.buildMap(bm1, Sequent()())
+  val bm1exp = MMap[Var, Set[E]]()
 
   //empty inner list
-//  val bm2 = Seq[Seq[Substitution]](Seq[Substitution]())
-//  val bm2out = conJ.buildMap(bm2)
-//  val bm2exp = MMap[Var, Set[E]]()
+  val bm2 = Seq[Seq[Substitution]](Seq[Substitution]())
+  val bm2out = conJ.buildMap(bm2, Sequent()())
+  val bm2exp = MMap[Var, Set[E]]()
 
   //makeSubMap
   //no subs
@@ -272,31 +272,31 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   //mergeMaps
   //one empty, one full
-//  val emptyMap = MMap[Var, Set[E]]()
-//  val nonemptyMap = MMap[Var, Set[E]]((x, Set[E](App(A, x))))
-//  val mixedInput = Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
-//  val mixedExpected = nonemptyMap
-//  val mixedInputOut = conJ.mergeMaps(mixedInput)
+  val emptyMap = MMap[Var, Set[E]]()
+  val nonemptyMap = MMap[Var, Set[E]]((x, Set[E](App(A, x))))
+  val mixedInput = Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
+  val mixedExpected = nonemptyMap
+  val mixedInputOut = conJ.mergeMaps(mixedInput,Sequent()())
 
   //three maps (all the same)
-//  val mixedInput3 = Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
-//  val mixed3Expected = nonemptyMap
-//  val mixedInput3Out = conJ.mergeMaps(mixedInput3)
+  val mixedInput3 = Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
+  val mixed3Expected = nonemptyMap
+  val mixedInput3Out = conJ.mergeMaps(mixedInput3,Sequent()())
 
   //three maps (one different)
-//  val nonemptyMapB = MMap[Var, Set[E]]((y, Set[E](App(B, y))))
-//  val mixedInput3D = Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMapB) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
-//  val mixed3DExpected = MMap[Var, Set[E]]((x, Set[E](App(A, x)))) ++ MMap[Var, Set[E]]((y, Set[E](App(B, y))))
-//  val mixed3DExpectedOut = conJ.mergeMaps(mixedInput3D)
+  val nonemptyMapB = MMap[Var, Set[E]]((y, Set[E](App(B, y))))
+  val mixedInput3D = Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMapB) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
+  val mixed3DExpected = MMap[Var, Set[E]]((x, Set[E](App(A, x)))) ++ MMap[Var, Set[E]]((y, Set[E](App(B, y))))
+  val mixed3DExpectedOut = conJ.mergeMaps(mixedInput3D,Sequent()())
 
   //three maps (one invalid)
-//  val nonemptyMapC = MMap[Var, Set[E]]((x, Set[E](App(B, y)))) //invalid
-//  val mixedInput3E = Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMapC) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
+  val nonemptyMapC = MMap[Var, Set[E]]((x, Set[E](App(B, y)))) //invalid
+  val mixedInput3E = Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMapC) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
 
   //both empty
-//  val manyEmpty = Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](emptyMap)
-//  val manyEmptyExpected = emptyMap
-//  val manyEmptyOut = conJ.mergeMaps(manyEmpty)
+  val manyEmpty = Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](emptyMap)
+  val manyEmptyExpected = emptyMap
+  val manyEmptyOut = conJ.mergeMaps(manyEmpty, Sequent()())
 
   //object (apply) tests------
 
@@ -384,21 +384,23 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "should return the contraction attribute correctly" in {
       conConJ must beEqualTo(expectedCon)
     }
-//    "should merge empty maps correctly" in {
-//      manyEmptyOut must beEqualTo(manyEmptyExpected)
-//    }
-//    "should merge empty maps correctly" in {
-//      mixedExpected must beEqualTo(mixedInputOut)
-//    }
-//    "should merge 3 of the same maps correctly" in {
-//      mixedInput3Out must beEqualTo(mixed3Expected)
-//    }
-//    "should merge 3 different maps correctly" in {
-//      mixed3DExpectedOut must beEqualTo(mixed3DExpected)
-//    }
-//    "should throw an exception for an invalid map" in {
-//      conJ.mergeMaps(mixedInput3E) should throwA[Exception]
-//    }
+    
+    "should merge empty maps correctly" in {
+      manyEmptyOut must beEqualTo(manyEmptyExpected)
+    }
+    "should merge empty maps correctly" in {
+      mixedExpected must beEqualTo(mixedInputOut)
+    }
+    "should merge 3 of the same maps correctly" in {
+      mixedInput3Out must beEqualTo(mixed3Expected)
+    }
+    "should merge 3 different maps correctly" in {
+      mixed3DExpectedOut must beEqualTo(mixed3DExpected)
+    }
+    "should throw an exception for an invalid map" in {
+      conJ.mergeMaps(mixedInput3E, Sequent()()) should throwA[Exception]
+    }
+    
     "should make subsitution maps correctly (one var replaced with possibly two)" in {
       s3Expected should beEqualTo(s3out)
     }
@@ -411,12 +413,14 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "should make subsitution maps correctly (two vars replaced with two vars; one sub)" in {
       s4Expected should beEqualTo(s4out)
     }
-//    "should build maps given sequences of sequences of substitutions correctly (outer empty)" in {
-//      bm1exp must beEqualTo(bm1out)
-//    }
-//    "should build maps given sequences of sequences of substitutions correctly (inner empty)" in {
-//      bm2exp must beEqualTo(bm2out)
-//    }
+    
+    "should build maps given sequences of sequences of substitutions correctly (outer empty)" in {
+      bm1exp must beEqualTo(bm1out)
+    }
+    "should build maps given sequences of sequences of substitutions correctly (inner empty)" in {
+      bm2exp must beEqualTo(bm2out)
+    }
+    
     "check empty - length 0, pass" in {
       conJ.checkEmpty(ce1ins, ce1E, ce1des) must beEqualTo(true)
     }
@@ -453,13 +457,12 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "return the correct conclusion context" in {
       (Contraction(Axiom(cc1seqA))(usedVars)).conclusionContext must beEqualTo(Sequent(App(A, x))())
     }
-    //TODO: fix these test cases
-//    "recursively contract correctly - base; nothing to contract" in {
-//      conJ.contract(con1seqA)(usedVars) must beEqualTo((con1seqA.ant, con1seqA.suc))
-//    }
-//    "recursively contract correctly - things to contract" in {
-//      conJ.contract(con2seqA)(usedVars) must beEqualTo((List(App(A, y), App(B, y)), List()))
-//    }
+    "recursively contract correctly - base; nothing to contract" in {
+      conJ.contract(con1seqA,null)(usedVars) must beEqualTo((con1seqA.ant, con1seqA.suc, null))
+    }
+    "recursively contract correctly - things to contract" in {
+      conJ.contract(con2seqA, null)(usedVars) must beEqualTo((List(App(A, y), App(B, y)), List(), List(Substitution((x,y)))))
+    }
     "get the right substitution maps for a sequent half -- both empty" in {
       conJ.getMaps(gm1seqA, gm1seqB) must beEqualTo(Seq[Seq[Substitution]]())
     }
