@@ -15,7 +15,6 @@ import at.logic.skeptik.parser.ProofParserSPASS
 class FOSubstitution(val premise: SequentProofNode, val sub: Substitution)(implicit unifiableVariables: MSet[Var])
   extends SequentProofNode with Unary with CanRenameVariables with FindsVars with FindDesiredSequent {
 
-  //TODO: test these
   def conclusionContext = conclusion
   def auxFormulas = premise.mainFormulas diff conclusion
   def mainFormulas = conclusion intersect premise.mainFormulas
