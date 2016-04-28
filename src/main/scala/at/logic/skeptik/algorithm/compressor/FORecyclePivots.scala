@@ -14,6 +14,7 @@ abstract class FORecyclePivots
     val edgesToDelete = firstPassResults._1
     val auxMap = firstPassResults._2
     val mguMap = firstPassResults._3
+
     if (edgesToDelete.isEmpty) {
       proof
     } else {
