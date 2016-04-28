@@ -19,6 +19,10 @@ extends JavaTokenParsers with RegexParsers {
   private var exprMap = new MMap[String,E]
   private var varMap = new MMap[String,E]
   
+  //Note (jgorzny; 27 Apr 2016):
+  //I don't think this parser was ever completed or used (in whatever state it exists in)
+  //Use *only* after testing; the TODOs below suggest some work needs to be done.
+  
   //TODO: remove debugging lines
   //TODO: actually store the information; right now it parses the stuff and throws it away
   
