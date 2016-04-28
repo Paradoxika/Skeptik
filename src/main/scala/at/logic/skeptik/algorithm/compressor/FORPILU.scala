@@ -68,8 +68,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 			false
 	}
 
-	//june 2 mod
-	//this checks the aux after the original mgu was applied
+	//(jgorzny) 2 June 2015:
+	//This checks the aux after the original mgu was applied
 	//prevents some terrible attempts to lower
 	//NOTE: p MUST be a unifying resolution node
 	protected def checkForResSmartRight(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
@@ -121,8 +121,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 			false
 	}
 
-	//june 2 mod
-	//this checks the aux after the original mgu was applied
+	//(jgorzny) 2 June 2015 
+	//This checks the aux after the original mgu was applied
 	//prevents some terrible attempts to lower
 	//NOTE: p MUST be a unifying resolution node
 	//TODO: merge with right case
@@ -498,7 +498,6 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 		case (p, safeLiterals) => {
 			safeLiterals
 		}
-		// Unchecked Inf case _ => throw new Exception("Unknown or impossible inference rule")
 		}
 	}
 
@@ -593,8 +592,8 @@ extends FOAbstractRPIAlgorithm {
 
 												u match {
 												case Some(s) => {
-													//so that var could have gone to any of the variables in d; add them all
-													//NO -- it can only go to what the sub said it could!
+													//so that var could have gone to any of the variables in d; add appropriate ones
+													//it can only go to what the sub said it could!
 													for (cv <- unifiableVariables) {
 
 														val sub = inverseSub(getValidSubstitution(s, cv))

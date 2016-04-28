@@ -71,10 +71,6 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
       val (auxL, auxR) = unifiablePairs(0)
       new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
     } else if (unifiablePairs.length == 0) {
-      //      println("going to throw an error...")
-      //      println(leftPremise)
-      //      println(leftPremiseClean)
-      //      println(rightPremise)
       throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B")
     } else {
       throw new Exception("Resolution: the resolvent is ambiguous.")
@@ -206,8 +202,6 @@ trait CanRenameVariables extends FindsVars {
     // at.logic.skeptik.expression.substitution.{mutable,immutable} packages. 
     // You can learn how to use substitutions by looking at the MartelliMontanari.
 
-    // By the way, the substitution code is a good example of how you can traverse a formula using Scala's pattern matching.
-
     if (sharedVars.size > 0) {
       //Find, and assign a new name
       //first diff is so that we don't use a variable that is shared
@@ -259,11 +253,6 @@ trait checkUnifiableVariableName {
     notAnInt && !hasLowerCaseFirst
   }
 
-  //  def isValidNameB(v: Var): Boolean = {
-  //    val hasLowerCaseFirst = v.name.charAt(0).isLower
-  //    val notAnInt = v.name.charAt(0).isLetter
-  //    notAnInt //&& !hasLowerCaseFirst
-  //  }
 }
 
 trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {
@@ -305,15 +294,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
     out
   }
-
-  //  def validMap(m: MMap[Var, Set[Var]]): Boolean = {
-  //    for (k <- m.keySet) {
-  //      if (m.get(k).get.size != 1) {
-  //        return false
-  //      }
-  //    }
-  //    true
-  //  }
 
   def validMap(m: MMap[Var, Set[Var]], vars: MSet[Var]): Boolean = {
     for (k <- m.keySet) {
@@ -374,8 +354,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
             if (checkSubstitutions(s)) {
               //make sure it's just a renaming
 
-              //so that var could have gone to any of the variables in d; add them all
-              //NO -- it can only go to what the sub said it could!
+              //so that var could have gone to any of the variables in d; add them as appropriate
+              //it can only go to what the sub said it could!
 
               for (cv <- cVars) {
 
@@ -526,7 +506,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     false
   }
 
-  //
+ 
   def checkHelperAlphaManualB(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
     if (computed.size != desired.size) {
       return false
@@ -640,10 +620,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
-    if (pairs.length == 0) {
-      //      println("must be here?")
-      //      println("left: " + leftPremise)
-      //      println("right: " + rightPremise)      
+    if (pairs.length == 0) {      
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
 
@@ -687,26 +664,15 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     if (pairs.length == 0) {
-      //      println("must be here?")
-      //      println("left: " + leftPremise)
-      //      println("right: " + rightPremise)
       throw new Exception("Resolution: Cannot find desired resolvent (B)")
     } else {
 
       val (auxL, auxR) = pairs(0)
-      //println("MRR auxl: " + auxL)
-      //println("MRR auxR: " + auxR)
       val computedResolution = {
         if (isMRR) {
           var ax = null.asInstanceOf[SequentProofNode]
-          //          println("leftPremise: " + leftPremise)
-          //          println("leftPremiseC: " + leftPremiseClean)
-          //          println("rightPremise: " + rightPremise)
           ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, relaxation)
-          //          println("ax: " + ax)
-          //                    println("auxL: " + auxL)
-          //                    println("auxR: " + auxR)
-          //          println("mgu: " + ax.asInstanceOf[UnifyingResolutionMRR].mgu)
+
           if (desired.logicalSize < ax.conclusion.logicalSize) {
             try {
 
@@ -746,7 +712,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
   }
 
-  //
+  
   def isMoreGeneral(a: Sequent, b: Sequent)(implicit unifiableVars: MSet[Var]): Boolean = {
     if (desiredFound(a, b)) {
       return true

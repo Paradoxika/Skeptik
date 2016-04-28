@@ -53,7 +53,6 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 
     val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
     val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-//    println("up: " + unifiablePairs)
     if (unifiablePairs.length > 0) {
       findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, true, relaxation)
     } else if (unifiablePairs.length == 0) {
@@ -151,13 +150,11 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     if (lSize > 1) {
       //l is the special node
       if (l.conclusion.ant.size > 0) {
-        //        assert(r.conclusion.suc.size == 1)
 
         val newDesired = addAntecedents(l.conclusion.ant.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)
         fixAmbiguity(newRes, r)
       } else {
-        //        assert(r.conclusion.ant.size == 1)
 
         val newDesired = addAntecedents(l.conclusion.suc.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)
@@ -167,13 +164,11 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
     } else if (rSize > 1) {
       //r is the special node
       if (r.conclusion.ant.size > 0) {
-        //        assert(l.conclusion.suc.size == 1)
 
         val newDesired = addAntecedents(r.conclusion.ant.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)
         fixAmbiguity(l, newRes)
       } else {
-        //        assert(l.conclusion.ant.size == 1)
 
         val newDesired = addAntecedents(r.conclusion.suc.tail.toList)
         val newRes = UnifyingResolutionMRR(l, r, newDesired)

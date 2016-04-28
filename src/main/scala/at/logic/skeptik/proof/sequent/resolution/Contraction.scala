@@ -45,8 +45,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       if (!desiredFound(premiseDistinct, desiredDistinct)) {
         desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
       }
-      println("..")
-      (desired.ant, desired.suc, null) //TODO: fix the null
+      (desired.ant, desired.suc, null)
     }
   }
 
@@ -141,7 +140,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
   def contract(seq: Sequent, subs: List[Substitution])(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
     def occurCheck(p: (E, E), u: Substitution): Boolean = {
-      //      println ("in oc?")
       val first = p._1
       val second = p._2
 
@@ -168,36 +166,24 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
-        //        true
-        occurCheck(p, u)
+        occurCheck(p, u) //originally returned 'true'
       }
     }
     def isUnifiableWrapper(p: (E, E)) = {
-      //      println("aa " + p)
       val outa = isUnifiable(p)(unifiableVariables) // && 
-      //      println("bb")
       val outb = !(p._1.equals(p._2))
-      //      println("cc")
       outa && outb
     }
 
-    //    println("aasa")
-    //TODO: somewhere in the next too lines. Presumably a unify is looping forever. 
     val unifiablePairsC = (for (auxL <- seq.suc; auxR <- seq.suc) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val unifiablePairsD = (for (auxL <- seq.ant; auxR <- seq.ant) yield (auxL, auxR)).filter(isUnifiableWrapper)
     val finalUnifiablePairsList = unifiablePairsC ++ unifiablePairsD
-    //    println(".,..")
     if (finalUnifiablePairsList.length > 0) {
       val p = finalUnifiablePairsList.head
 
       val sub = unify(p :: Nil)(unifiableVariables) match {
         case None => throw new Exception("Contraction failed.")
         case Some(u) => {
-          //          if(occurCheck(p, u)){
-          //            u 
-          //          } else {
-          //            Substitution()
-          //          }
           u
         }
       }
@@ -214,7 +200,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       } else {
         contract(seqOut, subs ++ List[Substitution](sub))
       }
-      //      contract(seqOut)
     } else {
       (seq.ant.distinct, seq.suc.distinct, subs)
     }
