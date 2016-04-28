@@ -605,9 +605,12 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
             val subSet = MSet[(Var, E)]()
 
             for (k <- iMapKeys) {
-              //TODO: what if there's more than one?
-              val p = (k, intersectedMap.get(k).get.toList.head)
-              subSet.add(p)
+              val intersectedList = intersectedMap.get(k).get.toList
+              for(listItem <- intersectedList){
+                val p = (k, listItem)
+                subSet.add(p)
+              }
+              
             }
             return Substitution(subSet.toList: _*)
           }
