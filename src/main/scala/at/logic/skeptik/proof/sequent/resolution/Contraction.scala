@@ -42,7 +42,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     } else {
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
-      if (!desiredFound(premiseDistinct, desiredDistinct)) {
+      if (findRenaming(premiseDistinct, desiredDistinct) == null) {
         desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
       }
       (desired.ant, desired.suc, null)

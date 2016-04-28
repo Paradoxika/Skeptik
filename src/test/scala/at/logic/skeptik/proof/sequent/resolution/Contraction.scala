@@ -159,7 +159,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val conConJ = conJ.contraction
   val expectedNewAnt = Seq[E]()
   val expectedNewSuc = Seq[E](App(A, x)) ++ Seq[E](App(B, c))
-  val expectedCon = (expectedNewAnt, expectedNewSuc)
+  val expectedCon = (expectedNewAnt, expectedNewSuc, null)
 
   //checkEmpty
   //instances length == 0; require passes
@@ -436,16 +436,16 @@ class ContractionSpecification extends SpecificationWithJUnit {
       conJ.desiredIsSafe(ds3seqA, ds3seqB)(usedVars) must beEqualTo((): Unit) //don't care what it returns (in fact, it's not specified)
     }
     "check if a desired sequent was supplied -- both empty" in {
-      conJ.checkOrContract(coc1seqA, coc1seqB)(usedVars) must beEqualTo((List(), List()))
+      conJ.checkOrContract(coc1seqA, coc1seqB)(usedVars) must beEqualTo((List(), List(), null ))
     }
     "check if a desired sequent was supplied -- second empty (no desired given)" in {
-      conJ.checkOrContract(coc2seqA, coc2seqB)(usedVars) must beEqualTo((List(App(A, y)), List()))
+      conJ.checkOrContract(coc2seqA, coc2seqB)(usedVars) must beEqualTo((List(App(A, y)), List(), List(Substitution((x,y)))))
     }
     "check if a desired sequent was supplied -- both non-empty" in {
-      conJ.checkOrContract(coc3seqA, coc3seqB)(usedVars) must beEqualTo((List(App(A, x)), List()))
+      conJ.checkOrContract(coc3seqA, coc3seqB)(usedVars) must beEqualTo((List(App(A, x)), List(), null))
     }
     "check if a desired sequent was supplied --premise size > 0; pass req" in {
-      conJ.checkOrContract(coc4seqA, coc4seqB)(usedVars) must beEqualTo((List(App(A, x)), List()))
+      conJ.checkOrContract(coc4seqA, coc4seqB)(usedVars) must beEqualTo((List(App(A, x)), List(), null))
     }
     "check if a desired sequent was supplied -- premise size > 0; fail req" in {
       conJ.checkOrContract(coc5seqA, coc5seqB)(usedVars) must throwA[Exception]

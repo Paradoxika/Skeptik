@@ -274,13 +274,13 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 					p
 				}
 
-				case UnifyingResolution(left, right, pivot, _) if (desiredFound(fixedLeft.conclusion, p.conclusion)(unifiableVariables)) => {
+				case UnifyingResolution(left, right, pivot, _) if (findRenaming(fixedLeft.conclusion, p.conclusion)(unifiableVariables) != null) => {
 					//If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
 					//the fixed parent; so the pivot better be missing.
 					assert(!checkForRes(fixedLeft.conclusion.toSetSequent.suc, pivot))
 					fixedLeft
 				}
-				case UnifyingResolution(left, right, _, pivot) if (desiredFound(fixedRight.conclusion, p.conclusion)(unifiableVariables)) => {
+				case UnifyingResolution(left, right, _, pivot) if (findRenaming(fixedRight.conclusion, p.conclusion)(unifiableVariables) != null) => {
 					//If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
 					//the fixed parent; so the pivot better be missing.
 					assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))

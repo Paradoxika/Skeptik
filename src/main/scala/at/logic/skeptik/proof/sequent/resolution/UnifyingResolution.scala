@@ -384,7 +384,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     map
   }
 
-  //
+  
   def generateSubstitutionOptionsB(computed: Seq[E], desired: Seq[E]) = {
     val map = new MMap[Var, Set[E]]()
     for (c <- computed) {
@@ -550,37 +550,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
   }
 
-  def desiredFound(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
-    if (computed == desired) {
-      return true
-    } else {
-      if (computed.logicalSize == desired.logicalSize) {
-        if (getSetOfVars(Axiom(computed)).size != getSetOfVars(Axiom(desired)).size) {
-          return false
-        }
-
-        val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
-
-        val antMap = generateSubstitutionOptions(computed.ant, desired.ant)
-        val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
-        val intersectedMap = intersectMaps(antMap, sucMap)
-
-        if (!validMap(intersectedMap, commonVars)) {
-          return false
-        }
-        if (checkHalf(computed.ant.distinct, desired.ant.distinct)) {
-          if (checkHalf(computed.suc.distinct, desired.suc.distinct)) {
-            return true
-          }
-        }
-      }
-      false
-    }
-  }
-
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
 
-    assert(desiredFound(computed, desired))
     if (computed == desired) {
       return Substitution()
     } else {
@@ -655,7 +626,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       val computedSequent = computedResolution.conclusion.toSeqSequent
       val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
 
-      if (desiredFound(desired, computedSequentClean)) {
+      if (findRenaming(desired, computedSequentClean) != null) {
         computedResolution
       } else {
         findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR)
@@ -707,7 +678,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
       val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
 
-      if (desiredFound(desired, computedSequentClean) || desiredFound(desired, computedSequentRelaxed) || isMoreGeneral(computedSequentClean, desired)) {
+      if ( (findRenaming(desired, computedSequentClean) != null) || (findRenaming(desired, computedSequentRelaxed)!= null) || isMoreGeneral(computedSequentClean, desired)) {
         computedResolution
       } else {
         findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR, relaxation)
@@ -717,7 +688,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
   
   def isMoreGeneral(a: Sequent, b: Sequent)(implicit unifiableVars: MSet[Var]): Boolean = {
-    if (desiredFound(a, b)) {
+    if (findRenaming(a, b) != null) {
       return true
     }
 

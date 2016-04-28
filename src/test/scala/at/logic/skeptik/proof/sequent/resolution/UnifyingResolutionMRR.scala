@@ -110,7 +110,7 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
   val desiredJ = Sequent(App(Var("p", i -> i), x))()
   val urJ = UnifyingResolutionMRR(rightNodeF, leftNodeF, desiredJ)(usedVars)
   val expectedJ = desiredJ
-  val resultJ = desiredFound(desiredJ, urJ.conclusion)(usedVars)
+  val resultJ = findRenaming(desiredJ, urJ.conclusion)(usedVars) != null
 
   //2+bad desired
   val desiredK = Sequent(App(Var("p", i -> i), a))()
@@ -158,10 +158,10 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
       App(Var("p", i -> i), a) +: Sequent(App(Var("p", i -> i), b))() must beEqualTo(urB.conclusion)
     }
     "return the correct resolvent when necessary to make a substitution and a contraction, but not all contractions" in {
-       desiredFound(desiredC, urC.conclusion)(usedVars) must beEqualTo(true)
+       findRenaming(desiredC, urC.conclusion)(usedVars) != null must beEqualTo(true)
     }
     "return the correct resolvent when necessary to make a substitution and multiple contractions" in {
-      desiredFound(desiredD,urD.conclusion)(usedVars)  must beEqualTo(true)
+      findRenaming(desiredD,urD.conclusion)(usedVars)!= null  must beEqualTo(true)
     }
 //    "return the correct resolvent in 3-way MRR" in {
 //      desiredE must beEqualTo(urE.conclusion)

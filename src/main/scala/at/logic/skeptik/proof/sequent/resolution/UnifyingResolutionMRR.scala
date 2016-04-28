@@ -63,12 +63,12 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 				}
 	}
 
-	def applyRename(p: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-		val newAnt = p.conclusion.ant.map(e => sub(e))
-				val newSuc = p.conclusion.suc.map(e => sub(e))
-				val newSeq = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-				Axiom(newSeq)
-	}
+//	def applyRename(p: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+//		val newAnt = p.conclusion.ant.map(e => sub(e))
+//				val newSuc = p.conclusion.suc.map(e => sub(e))
+//				val newSeq = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+//				Axiom(newSeq)
+//	}
 
 	def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 

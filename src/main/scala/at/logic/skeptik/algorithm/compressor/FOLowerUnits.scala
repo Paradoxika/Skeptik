@@ -266,7 +266,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 			proof.childrenOf.get(node).get
 		} else {
 			for (n <- proof) {
-				if (desiredFound(n.conclusion, node.conclusion)(vars)) {
+				if (findRenaming(n.conclusion, node.conclusion)(vars) != null) {
 					return proof.childrenOf.get(n).get
 				}
 			}
@@ -529,8 +529,8 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 					if (e.getMessage != null) {
 						if (e.getMessage.equals("Resolution (MRR): the resolvent is ambiguous.")) {
 
-							if (desiredFound(fixedLeft.conclusion, left.conclusion)(vars) &&
-									desiredFound(fixedRight.conclusion, right.conclusion)(vars)) {
+							if (findRenaming(fixedLeft.conclusion, left.conclusion)(vars) != null &&
+									findRenaming(fixedRight.conclusion, right.conclusion)(vars) != null) {
 								//TODO: update maps in this case?
 								return UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
 							}

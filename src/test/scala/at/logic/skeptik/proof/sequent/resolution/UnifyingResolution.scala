@@ -281,14 +281,14 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val rename1rightb = Axiom(Sequent()(App(Var("p", i -> i), z)))
   val rename1expectedb = Axiom(Sequent()(App(Var("q", i -> i), Var("NEW0", i)))).conclusion
   val rename1outb = renameTester.fixSharedNoFilter(rename1leftb, rename1rightb, 0, usedVars).conclusion
-  val rename1bFinal = desiredFound(rename1expectedb, rename1outb)(usedVars)
+  val rename1bFinal = findRenaming(rename1expectedb, rename1outb)(usedVars) != null
 
   //2 shared variables
   val rename1leftc = Axiom(Sequent(App(Var("q", i -> i), y))(App(Var("q", i -> i), z)))
   val rename1rightc = Axiom(Sequent(App(Var("q", i -> i), y))(App(Var("p", i -> i), z)))
   val rename1expectedc = Axiom(Sequent(App(Var("q", i -> i), x))(App(Var("q", i -> i), Var("NEW0", i)))).conclusion
   val rename1outc = renameTester.fixSharedNoFilter(rename1leftc, rename1rightc, 0, usedVars).conclusion
-  val rename1cFinal = desiredFound(rename1expectedc, rename1outc)(usedVars)
+  val rename1cFinal = findRenaming(rename1expectedc, rename1outc)(usedVars) != null
 
   //no shared variables
   val rename1leftd = Axiom(Sequent()(App(Var("p", i -> i), x)))
@@ -330,7 +330,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   }
   "UnifyingResolution" should {
     "return the correct resolvent when necessary to make a substitution" in {
-      desiredFound(Sequent(App(Var("p", i -> i), Var("NEW0", i)))(), ur.conclusion)(usedVars) must beEqualTo(true)
+      findRenaming(Sequent(App(Var("p", i -> i), Var("NEW0", i)))(), ur.conclusion)(usedVars) != null must beEqualTo(true)
     }
     "return the correct resolvent when no substituion necessary" in {
       Sequent(App(Var("p", i -> i), x))() must beEqualTo(urB.conclusion)
@@ -357,25 +357,25 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
       URurB.leftClean must beEqualTo(URleftNodeB)
     }
     "return the correct clean left (shared)" in {
-      desiredFound(URurC.leftClean.conclusion, URleftNodeC.conclusion)(usedVars) must beEqualTo(true)
+      findRenaming(URurC.leftClean.conclusion, URleftNodeC.conclusion)(usedVars) != null must beEqualTo(true)
     }
     "return the correct auxL" in {
-      desiredFound(Sequent()(URur.auxL), Sequent()(App(Var("q", i -> i), a)))(usedVars) must beEqualTo(true)
+      findRenaming(Sequent()(URur.auxL), Sequent()(App(Var("q", i -> i), a)))(usedVars) != null must beEqualTo(true)
     }
     "return the correct auxR" in {
-      desiredFound(Sequent()(URur.auxR), Sequent()(App(Var("q", i -> i), y)))(usedVars) must beEqualTo(true)
+      findRenaming(Sequent()(URur.auxR), Sequent()(App(Var("q", i -> i), y)))(usedVars) != null must beEqualTo(true)
     }
     "return the correct leftAuxFormulas" in {
-      desiredFound(URur.leftAuxFormulas, Sequent()(App(Var("q", i -> i), a)))(usedVars) must beEqualTo(true)
+      findRenaming(URur.leftAuxFormulas, Sequent()(App(Var("q", i -> i), a)))(usedVars) != null must beEqualTo(true)
     }
     "return the correct rightAuxFormulas" in {
-      desiredFound(URur.rightAuxFormulas, Sequent(App(Var("q", i -> i), y))())(usedVars) must beEqualTo(true)
+      findRenaming(URur.rightAuxFormulas, Sequent(App(Var("q", i -> i), y))())(usedVars) != null must beEqualTo(true)
     }
     "return the correct mgu" in {
       URur.mgu must beEqualTo(Substitution((x, a)))
     }
     "return the correct conclusion context" in {
-      desiredFound(URur.conclusionContext, Sequent(App(Var("p", i -> i), y))())(usedVars) must beEqualTo(true)
+      findRenaming(URur.conclusionContext, Sequent(App(Var("p", i -> i), y))())(usedVars) != null must beEqualTo(true)
     }
   }
   "FindDesiredSequent" should {
@@ -407,7 +407,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
       tester.checkHalf(findSeqTest6A.ant, findSeqTest6B.ant)(usedVars) must beEqualTo(false)
     }
     "check that they're equal mod renaming for an entire sequent (different distribution of formulas)" in {
-      tester.desiredFound(findSeqTest7A, findSeqTest7B)(usedVars) must beEqualTo(false)
+      tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars) != null must beEqualTo(false)
     }
     "intersect maps correctly (2 empty maps)" in {
       tester.intersectMaps(emptyMap, emptyMap) must beEqualTo(emptyMap)

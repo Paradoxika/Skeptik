@@ -292,7 +292,7 @@ trait checkProofEquality extends FindDesiredSequent {
     val vars =
       getSetOfVars(nodes.head) union getSetOfVars(seqs.head.ant: _*) union getSetOfVars(seqs.head.suc: _*)
 
-    if (desiredFound(nodes.head.conclusion, seqs.head)(vars)) {
+    if (findRenaming(nodes.head.conclusion, seqs.head)(vars) != null) {
       return checkSequents(nodes.tail, seqs.tail)
     } else {
       println("desired not found " + nodes.head.conclusion + " AND " + seqs.head)
