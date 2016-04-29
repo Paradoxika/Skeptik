@@ -73,7 +73,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 	//This checks the aux after the original mgu was applied
 	//prevents some terrible attempts to lower
 	//NOTE: p MUST be a unifying resolution node
-	protected def checkForResSmartRight(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
+	protected def checkForResSmart(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
 
 			if (safeLiteralsHalf.size < 1) {
 				return false
@@ -105,63 +105,6 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 
 			def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
 					def newAux = oldMGU(aux)
-
-					for (safeLit <- safeLiteralsHalf) {
-						val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
-								val uvarsB = getMSet(uvars)
-								val isMore = isMoreGeneral(Sequent(newAux)(), Sequent(safeLit)())(uvarsB)
-								unify((newAux, safeLit) :: Nil)(getSetOfVars(newAux)) match {
-								case Some(_) => {
-									return true
-								}
-								case None => {
-									//Do nothing
-								}
-						}
-					}
-			false
-	}
-
-	//(jgorzny) 2 June 2015 
-	//This checks the aux after the original mgu was applied
-	//prevents some terrible attempts to lower
-	//NOTE: p MUST be a unifying resolution node
-	//TODO: merge with right case
-	//TODO: test further
-	protected def checkForResSmartLeft(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
-
-			if (safeLiteralsHalf.size < 1) {
-				return false
-			}
-
-			/* 
-			 * unifiableVars might not contain the variables in the aux formulae. When UR(MRR) generates the auxL/auxR formulae,
-			 * it may rename the variables in one premise to a new premise that we just haven't seen yet (and which is resolved out
-			 * in that resolution and thus never really visible in the proof, so we need to check for new variables and
-			 * add them to our list of unifiable variables or the unification might fail.
-			 */
-
-			/*  For example,
-			 * 
-			 *  p(X) |- q(a)     with    q(X) |- 
-			 * 
-			 *  UR might rename the right X as Y, then resolve out to get P(X) |-
-			 *  And while UR used q(Y) |- and recorded the aux formula as such, it didn't rename
-			 *  the right premise, so we never see the variable Y, even though it can be unified.
-			 */
-
-			def getMSet(a: scala.collection.mutable.Set[Var]): MSet[Var] = {
-					val out = MSet[Var]()
-							for (e <- a) {
-								out.add(e)
-							}
-					out
-			}
-
-
-			def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
-
-					def newAux = oldMGU(aux) 
 
 					for (safeLit <- safeLiteralsHalf) {
 						val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
@@ -707,13 +650,13 @@ extends FOAbstractRPIAlgorithm {
 			val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
 					p match {
 					case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)
-							&& checkForResSmartLeft(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion)) => {
+							&& checkForResSmart(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion)) => {
 								auxMap.put(p, auxL)
 								mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
 								edgesToDelete.markRightEdge(p)
 							}
 					case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.ant, auxR) &&
-							checkForResSmartRight(safeLiterals.ant, auxR, p) && finalCheck(safeLiterals.toSeqSequent, right.conclusion)) => {
+							checkForResSmart(safeLiterals.ant, auxR, p) && finalCheck(safeLiterals.toSeqSequent, right.conclusion)) => {
 								auxMap.put(p, auxR)
 								mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
 								edgesToDelete.markLeftEdge(p)
