@@ -74,8 +74,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 	}
 
 	def getUnitLiteralUsingAux(p: SequentProofNode, u: SequentProofNode, node: SequentProofNode, vars: MSet[Var]) = {
-		//TODO: support nodes with 3+ premises? Or just more than UR in general?
-
 
 		val cleanMGU = if (!node.asInstanceOf[UnifyingResolution].leftPremise.equals(u)) {
 			val newVars = vars union getSetOfVars(node.asInstanceOf[UnifyingResolution].leftClean)
@@ -118,9 +116,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 									//Picks out (all) u_k in c_k
 
 									val oo = getUnitLiteralUsingAux(p, node, c, vars)
-
 											Seq[E](oo)
-
 								}
 								val varsC = getSetOfVars(c)
 										for (v <- varsC) {
@@ -163,7 +159,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 		(unitsList, vars)
 	}
 
-	//TODO: check this.
 	def checkContraction(listOfUnits: List[E], vars: MSet[Var], node: SequentProofNode): Boolean = {
 		val newSeq = addAntecedents(listOfUnits)
 
@@ -195,47 +190,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 		true
 	}
 
-	def getUnitLiteral(seq: Sequent, unit: Sequent, vars: MSet[Var]) = {
-		if (unit.ant.length > 0) {
-			//positive polarity, only need to check negative polarity of seq
-
-			val varsN = getSetOfVars(seq.suc: _*)
-					for (v <- varsN) {
-						vars += v
-					}
-
-			val out = for (l <- seq.suc) yield {
-				if (isUnifiable((l, unit.ant.head))(vars)) {
-					l
-				} else if (isUnifiable((unit.ant.head, l))(vars)) {
-					l
-				} else {
-					null.asInstanceOf[E]
-				}
-			}
-			out.filter(_ != null)
-		} else if (unit.suc.length > 0) {
-			//negative polarity, only need to check positive polarity of seq
-
-			val varsN = getSetOfVars(seq.ant: _*)
-					for (v <- varsN) {
-						vars += v
-					}
-
-			val out = for (l <- seq.ant) yield {
-				if (isUnifiable((l, unit.suc.head))(vars)) {
-					l
-				} else if (isUnifiable((unit.suc.head, l))(vars)) {
-					l
-				} else {
-					null.asInstanceOf[E]
-				}
-			}
-			out.filter(_ != null)
-		} else {
-			Seq[E]()
-		}
-	}
 
 	def checkListUnif(l: List[E], vars: MSet[Var]): Boolean = {
 		if (l.length > 1) {
@@ -447,11 +401,11 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 						//TODO clear this when repairs are done
 						//NOTE on this commit (or whichever is the first in which new fixed right/left are first introduced
-								//the number of errors goes from 18 to 21
-								//but I think the 'new fixed' gives more flexibility for repairs
+						//the number of errors goes from 18 to 21
+						//but I think the 'new fixed' gives more flexibility for repairs
 
 
-								//this doesn't seem to help anything
+						//this doesn't seem to help anything
 						var urMRRout = try {
 							UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
 						} catch {
@@ -495,21 +449,21 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 								val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA)
 
 								//TODO: clean this up?
-										val testCarry = if (mergedCarry != null) {
-											val testAnt = if (mergedCarry.ant != null) {
-												mergedCarry.ant
-											} else {
-												Seq[E]()
-											}
-											val testSuc = if (mergedCarry.suc != null) {
-												mergedCarry.suc
-											} else {
-												Seq[E]()
-											}
-											addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
-										} else {
-											null
-										}
+								val testCarry = if (mergedCarry != null) {
+									val testAnt = if (mergedCarry.ant != null) {
+										mergedCarry.ant
+									} else {
+										Seq[E]()
+									}
+									val testSuc = if (mergedCarry.suc != null) {
+										mergedCarry.suc
+									} else {
+										Seq[E]()
+									}
+									addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
+								} else {
+									null
+								}
 
 						val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
 								val fixedCarry = updateCarry(testCarry, renamingBackward)

@@ -143,24 +143,6 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   val checkListUnif4result = FOLowerUnits.checkListUnif(checkListUnif4a, usedVars)
   val checkListUnif4expected = true
 
-  //getUnitLiteral
-  //unit in ant
-  val getUnit1a = Sequent(App(Var("q", i -> i), x))()
-  val getUnit1b = Sequent()(App(Var("q", i -> i), y)) + App(Var("p", i -> i), x)
-  val getUnit1result = FOLowerUnits.getUnitLiteral(getUnit1b, getUnit1a, usedVars)
-  val getUnit1expected = Seq[E](App(Var("q", i -> i), y))
-
-  //unit is suc
-  val getUnit2a = Sequent()(App(Var("q", i -> i), x))
-  val getUnit2b = App(Var("p", i -> i), x) +: Sequent(App(Var("q", i -> i), x))()
-  val getUnit2result = FOLowerUnits.getUnitLiteral(getUnit2b, getUnit2a, usedVars)
-  val getUnit2expected = Seq[E](App(Var("q", i -> i), x))
-
-  //unit in ant; given sequent doesn't have the unit
-  val getUnit3a = Sequent(App(Var("q", i -> i), x))()
-  val getUnit3b = Sequent()(App(Var("r", i -> i), y)) + App(Var("p", i -> i), x)
-  val getUnit3result = FOLowerUnits.getUnitLiteral(getUnit3b, getUnit3a, usedVars)
-  val getUnit3expected = Seq[E]()
 
   //isUnitClause
   //empty
@@ -217,15 +199,7 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
     "determine if a clause is unit (non-unit)" in {
       FOLowerUnits.isUnitClause(isUnit3) must beEqualTo(false)
     }
-    "get the formula corresponding to the pivot unit correctly (ant)" in {
-      getUnit1result must beEqualTo(getUnit1expected)
-    }
-    "get the formula corresponding to the pivot unit correctly (suc)" in {
-      getUnit2result must beEqualTo(getUnit2expected)
-    }
-    "get the formula corresponding to the pivot unit correctly (not present)" in {
-      getUnit3result must beEqualTo(getUnit3expected)
-    }
+
     "check that list of formulas are unifiable (empty)" in {
       checkListUnif1result must beEqualTo(checkListUnif1expected)
     }
