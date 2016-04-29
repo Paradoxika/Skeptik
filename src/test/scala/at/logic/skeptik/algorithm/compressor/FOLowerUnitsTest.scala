@@ -153,7 +153,7 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
 
   //non-unit
   val isUnit3 = Sequent(App(Var("q", i -> i), x))(App(Var("r", i -> i), y))
-    
+
   "FOLowerUnits" should {
     
     "Compress the first proof correctly (example proof; no MRR required)" in {

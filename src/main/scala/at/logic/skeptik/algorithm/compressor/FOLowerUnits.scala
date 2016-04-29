@@ -20,7 +20,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
 /*
- * TODO: fix for tracking issue, e.g. SET824-2.spass
+ * Description of fix for tracking issue, e.g. SET824-2.spass
  * 
  * Implement this fix from Bruno on the Google-Dev Group for Skeptik
  * 
@@ -525,7 +525,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 							val (leftMGU, rightMGU) = splitMGU(node, left, right)
 
-									val stuff = test5(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
+									val stuff = generateGoal(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
 
 									val newGoalD = stuff._1
 
@@ -536,9 +536,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 											} catch {
 											case e: Exception => {
 
-												val triedAll = tryToResolveUsingAllCarrys(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars)
+												val triedAll = tryToResolveUsingAllCarrys(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars, false)
 														val carriesOut = if (triedAll._1 == null) {
-															val triedCon = tryToResolveUsingAllCarrysAndContraction(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars)
+															val triedCon = tryToResolveUsingAllCarrys(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars, true)
 																	newGoalIfDesperate = triedCon._2
 																	triedCon._1
 														} else {
@@ -659,9 +659,8 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 	}
 
 
-	def tryToResolveUsingAllCarrys(node: SequentProofNode, left: SequentProofNode, right: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode, carryMap: MMap[SequentProofNode, List[Sequent]], mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var]): (SequentProofNode, Sequent) = {
-
-
+	
+	def tryToResolveUsingAllCarrys(node: SequentProofNode, left: SequentProofNode, right: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode, carryMap: MMap[SequentProofNode, List[Sequent]], mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var], attemptContraction: Boolean): (SequentProofNode, Sequent) = {
 		val leftCarryList = if (!carryMap.get(fixedLeft).isEmpty) {
 			carryMap.get(fixedLeft).get
 		} else {
@@ -682,12 +681,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 								for (leftCarry <- finalLeftCarries) {
 									for (rightCarry <- finalRightCarries) {
-										if (finalOut == null) {
 											try {
 												val oMGU = node.asInstanceOf[UnifyingResolution].mgu
 
-
-														//TODO: update these, and cycle through the carries
 														val carryA = if (!fixedRight.equals(right)) {
 															rightCarry
 														} else { null }
@@ -696,7 +692,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 													leftCarry
 												} else { null }
 
-
 												val olderA = if (!mguMap.get(fixedRight).isEmpty) {
 													mguMap.get(fixedRight).get
 												} else { null }
@@ -704,7 +699,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 												val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
 													mguMap.get(fixedLeft).get
 												} else { null }
-
 
 												val newFixedRight = fixedRight match {
 												case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
@@ -732,11 +726,32 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 												val (leftMGU, rightMGU) = splitMGU(node, left, right)
 
-														val stuff = test5(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
+														val stuff = generateGoal(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
 
 														val newGoalD = stuff._1
 
-														val out = UnifyingResolutionMRR(newFixedLeft, newFixedRight, newGoalD)(vars)
+														val contractedNewLeft = if (attemptContraction) {
+																val tempConL = Contraction(fixedLeft)(vars)
+																if(tempConL.conclusion.logicalSize < fixedLeft.conclusion.logicalSize){
+																	tempConL
+																} else {
+																fixedLeft
+																}
+															} else {
+															fixedLeft 
+															}
+														val contractedNewRight =  if (attemptContraction) {
+																val tempConR = Contraction(fixedRight)(vars)
+																if(tempConR.conclusion.logicalSize < fixedRight.conclusion.logicalSize){
+																	tempConR
+																} else {
+																fixedRight
+																}
+															} else {
+															fixedRight 
+															}
+
+														val out = UnifyingResolutionMRR(contractedNewLeft, contractedNewRight, newGoalD)(vars)
 
 														val mergedCarry = unionSequents(stuff._3, stuff._4)
 
@@ -758,11 +773,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 															null
 														}
 
-
-												//TODO: add this!
-												//                  addCarryToMapList(out, testCarry)
-												//                  carryMap.update(out, mergedCarry)
-
 												mguMap.update(out, stuff._2)
 
 												if (finalOut == null) {
@@ -777,121 +787,10 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 											}
 										}
 									}
-								}
 		(finalOut, finalGoal)
-	}
+	}	
+	
 
-	def tryToResolveUsingAllCarrysAndContraction(node: SequentProofNode, left: SequentProofNode, right: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode, carryMap: MMap[SequentProofNode, List[Sequent]], mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var]): (SequentProofNode, Sequent) = {
-		val leftCarryList = if (!carryMap.get(fixedLeft).isEmpty) {
-			carryMap.get(fixedLeft).get
-		} else {
-			List[Sequent]()
-		}
-
-		val rightCarryList = if (!carryMap.get(fixedRight).isEmpty) {
-			carryMap.get(fixedRight).get
-		} else {
-			List[Sequent]()
-		}
-
-		val finalLeftCarries = (leftCarryList ++ List[Sequent](null.asInstanceOf[Sequent]))
-				val finalRightCarries = (rightCarryList ++ List[Sequent](null.asInstanceOf[Sequent]))
-
-				var finalOut = null.asInstanceOf[SequentProofNode]
-						var finalGoal = null.asInstanceOf[Sequent]
-
-								for (leftCarry <- finalLeftCarries) {
-									for (rightCarry <- finalRightCarries) {
-										try {
-											val oMGU = node.asInstanceOf[UnifyingResolution].mgu
-
-													val carryA = if (!fixedRight.equals(right)) {
-														rightCarry
-													} else { null }
-
-											val carryB = if (!fixedLeft.equals(left)) {
-												leftCarry
-											} else { null }
-
-											val olderA = if (!mguMap.get(fixedRight).isEmpty) {
-												mguMap.get(fixedRight).get
-											} else { null }
-
-											val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
-												mguMap.get(fixedLeft).get
-											} else { null }
-
-											val newFixedRight = fixedRight match {
-											case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
-												new FOSubstitution(fixedRight, olderA)(vars)
-											}
-											case _ if (olderA != null && !fixedRight.equals(right)) => {
-												new FOSubstitution(fixedRight, olderA)(vars)
-											}
-											case _ => {
-												fixedRight
-											}
-											}
-
-											val newFixedLeft = fixedLeft match {
-											case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
-												new FOSubstitution(fixedLeft, olderB)(vars)
-											}
-											case _ if (olderB != null && !fixedLeft.equals(left)) => {
-												new FOSubstitution(fixedLeft, olderB)(vars)
-											}
-											case _ => {
-												fixedLeft
-											}
-											}
-
-											val (leftMGU, rightMGU) = splitMGU(node, left, right)
-
-													val stuff = test5(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
-
-													val newGoalD = stuff._1
-
-													val contractedNewLeft = Contraction(fixedLeft)(vars)
-													val contractedNewRight = Contraction(fixedRight)(vars)
-
-													val out = UnifyingResolutionMRR(contractedNewLeft, contractedNewRight, newGoalD)(vars)
-
-													val mergedCarry = unionSequents(stuff._3, stuff._4)
-
-													val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
-
-													val testCarry = if (mergedCarry != null) {
-														val testAnt = if (mergedCarry.ant != null) {
-															mergedCarry.ant.map(e => cleanMGU(e))
-														} else {
-															Seq[E]()
-														}
-														val testSuc = if (mergedCarry.suc != null) {
-															mergedCarry.suc.map(e => cleanMGU(e))
-														} else {
-															Seq[E]()
-														}
-														addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
-													} else {
-														null
-													}
-
-											mguMap.update(out, stuff._2)
-
-											if (finalOut == null) {
-												finalOut = out
-														finalGoal = newGoalD
-											}
-
-										} catch {
-										case e: Exception => {
-											println("Attempt failed. Moving on...")
-										}
-										}
-									}
-								}
-		(finalOut, finalGoal)
-	}
 
 	def makeUnitSequent(u: SequentProofNode, c: E): Sequent = {
 		if (isUnitAnt(u)) {
@@ -935,7 +834,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 				(lSubOut, rSubOut)
 	}
 
-	def test5(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
+	def generateGoal(fl: SequentProofNode, fr: SequentProofNode, carry: Sequent, carryB: Sequent, older: Substitution,
 			olderB: Substitution, oldGoal: Sequent, nodeMGU: Substitution, n: SequentProofNode, lMGU: Substitution, rMGU: Substitution)(implicit uVars: MSet[Var]): (Sequent, Substitution, Sequent, Sequent) = {
 
 
