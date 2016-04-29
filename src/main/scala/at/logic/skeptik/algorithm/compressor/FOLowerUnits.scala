@@ -227,13 +227,14 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 			IndexedSeq[SequentProofNode]()
 		}
 	}
-
+	
 	def tryReversingArguments(l: SequentProofNode, r: SequentProofNode, goal: Sequent, vars: MSet[Var]) = {
 		try {
 			UnifyingResolutionMRR(r, l, goal)(vars)
 		} catch {
 		case e: Exception => {
-			println(e)
+		  //Do nothing
+		  null
 		}
 		}
 	}
@@ -287,8 +288,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 	def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
 		val fixMap = MMap[SequentProofNode, SequentProofNode]()
 
-				//TODO: needs to change to e.g., [Node, Sequent]
-				//so that multiple carries make sense.
 				val carryMap = MMap[SequentProofNode, Sequent]()
 
 				val carryMapList = MMap[SequentProofNode, List[Sequent]]()
@@ -419,11 +418,10 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 									temp = temp.asInstanceOf[Contraction].premise
 								}
 
-						urMRRout = temp //TODO: this line introduces 2 errors. which is better?
+						urMRRout = temp
 
 								val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
 									carryMap.get(fixedRight).get
-
 								} else { null }
 
 
@@ -448,7 +446,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 								val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA)
 
-								//TODO: clean this up?
 								val testCarry = if (mergedCarry != null) {
 									val testAnt = if (mergedCarry.ant != null) {
 										mergedCarry.ant
@@ -1069,8 +1066,17 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 				val leftContractedSmart = Contraction(leftSubstituted)(vars)
 
-				//TODO: try both ways
-				val smarterContractionResolution = UnifyingResolution(newRight, leftContractedSmart)(vars)
+				val smarterContractionResolution = try {
+				  UnifyingResolution(newRight, leftContractedSmart)(vars)
+				} catch {
+				case e: Exception => {
+				  if(e.getMessage.equals("Resolution: the resolvent is ambiguous.")){
+				    UnifyingResolution(leftContractedSmart,newRight)(vars)
+				  } else {
+				    throw e 
+				  }
+				}
+				}
 				smarterContractionResolution
 	}
 
@@ -1142,8 +1148,11 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 			UnifyingResolution(left, right)(unifiableVariables)
 		} catch {
 		case e: Exception => {
-			//TODO: make sure it's the exception we want (ambiguous resolution)
-			multipleResolution(left, right, leftIsUnit)(unifiableVariables)
+		  if(e.getMessage.equals("Resolution: the resolvent is ambiguous.")){
+ 			  multipleResolution(left, right, leftIsUnit)(unifiableVariables)
+		  } else {
+		    throw new Exception("Could not invoke multiple resolution")
+		  }
 		}
 		}
 	}
