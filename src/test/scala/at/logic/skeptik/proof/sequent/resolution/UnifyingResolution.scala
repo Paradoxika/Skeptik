@@ -118,7 +118,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val FDSrightB = Axiom(Sequent(App(Var("p", i -> i), y))())
   val FDSleftCleanB = FDSleftB
 
-  val FDSresultB = tester.findDesiredSequentX(FDSpairsB, FDSdesiredB, FDSleftB, FDSrightB, FDSleftCleanB, false)(usedVars)
+  val FDSresultB = tester.findDesiredSequent(FDSpairsB, FDSdesiredB, FDSleftB, FDSrightB, FDSleftCleanB, false)(usedVars)
   val FDSexpectedB = UnifyingResolution(FDSleftB, FDSrightB)(usedVars)
 
   //requires recursive call
@@ -127,7 +127,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val FDSleftC = Axiom(Sequent()(App(Var("p", i -> i), x)) + App(Var("q", i -> i), a))
   val FDSrightC = Axiom(App(Var("q", i -> i), y) +: Sequent(App(Var("p", i -> i), z))())
   val FDSleftCleanC = FDSleftC
-  val FDSresultC = tester.findDesiredSequentX(FDSpairsC, FDSdesiredC, FDSleftC, FDSrightC, FDSleftCleanC, false)(usedVars)
+  val FDSresultC = tester.findDesiredSequent(FDSpairsC, FDSdesiredC, FDSleftC, FDSrightC, FDSleftCleanC, false)(usedVars)
   val FDSexpectedC = Sequent(App(Var("p", i -> i), z))(App(Var("p", i -> i), x))
 
   //tester.checkHalf(computed, desired)
@@ -381,7 +381,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   }
   "FindDesiredSequent" should {
     "Throw an exception as the recursive base case" in {
-      tester.findDesiredSequentX(FDSpairsA, FDSdesiredA, FDSleftA, FDSrightA, FDSleftCleanA, false)(usedVars) must throwA[Exception]
+      tester.findDesiredSequent(FDSpairsA, FDSdesiredA, FDSleftA, FDSrightA, FDSleftCleanA, false)(usedVars) must throwA[Exception]
     }
     "Handle an easy case (no recursion) in finding the desired sequent" in {
       FDSexpectedB.asInstanceOf[UnifyingResolution].conclusion.equals(FDSresultB.conclusion) must beEqualTo(true)

@@ -53,7 +53,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 
 				val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 				if (unifiablePairs.length > 0) {
-					findDesiredSequentX(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
+					findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
 				} else if (unifiablePairs.length == 0) {
 					throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A")
 				} else {
@@ -494,7 +494,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
 
 
-def findDesiredSequentX(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
+def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
 			rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution = null)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
 		if (pairs.length == 0) {
@@ -554,7 +554,7 @@ def findDesiredSequentX(pairs: Seq[(E, E)], desired: Sequent, leftPremise: Seque
 					if (condition) {
 						computedResolution
 					} else {
-						findDesiredSequentX(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR, relaxation)
+						findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR, relaxation)
 					}
 		}
 	}	
