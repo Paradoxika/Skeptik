@@ -337,8 +337,13 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 			case UnifyingResolution(left, right, _, _) => {
 
 				try {
-					//TODO: in this case, we're not updating carries or mgus. This likely needs correction
-					val outMRR = if (fixedLeft.equals(left) && fixedRight.equals(right)) {
+				  /*
+				   * No need to update carry maps in this case as we're re-creating a resolution that exists (exactly)
+				   * in the original proof. So nothing should be carried forward (as carried literals only exist during
+				   * proof compression)
+				   * 
+				   */
+				  val outMRR = if (fixedLeft.equals(left) && fixedRight.equals(right)) {
 						val outMRRa = UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
 								mguMap.update(outMRRa, node.asInstanceOf[UnifyingResolution].mgu)
 								outMRRa
