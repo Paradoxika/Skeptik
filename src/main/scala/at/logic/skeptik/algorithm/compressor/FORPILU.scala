@@ -343,7 +343,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 	}
 
 	def areAlphaEq(a: E, b: E)(implicit unifiableVariables: MSet[Var]): Boolean = {
-		checkHelperAlphaManualB(Seq[E](a), Seq[E](b))
+		checkHelperAlphaManual(Seq[E](a), Seq[E](b))
 	}
 
 	def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): (List[E], Substitution) = {
@@ -458,17 +458,17 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 				} else {
 					val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
 
-					val antMap = generateSubstitutionOptionsB(computed.ant, desired.ant, unifiableVariables)
+					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
 							if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
 								return false
 							}
-					val sucMap = generateSubstitutionOptionsB(computed.suc, desired.suc, unifiableVariables)
+					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
 							if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
 								return false
 							}
-					val intersectedMap = intersectMapsB(antMap, sucMap)
+					val intersectedMap = intersectMaps(antMap, sucMap)
 
-							if (!validMapB(intersectedMap, vars)) {
+							if (!validMap(intersectedMap, vars)) {
 								return false
 							}
 
