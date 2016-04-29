@@ -215,62 +215,39 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 
 							val ambiguousErrorString = "Resolution (MRR): the resolvent is ambiguous."
 
-							try {
-								def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
-									new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
-								} else {
-									fixedRight
-								}
-								UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
-										
-							} catch {
-							case e: Exception => {
-								if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
-									if (nonEmptyLeftMap && !nonEmptyRightMap) {
-										val oldMGU = mguMap.get(left).get
-												def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
-													new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
-												} else {
-													fixedRight
-												}
+							//We may have to apply a FO sub
+							def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
+								new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
+							} else {
+								fixedRight
+							}
+
+					def newFixedLeft = if (!mguMap.get(fixedLeft).isEmpty) {
+						new FOSubstitution(fixedLeft, mguMap.get(fixedLeft).get)(unifiableVariables)
+					} else {
+						fixedLeft
+					}					
+
+					try {
+
+						UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
+
+					} catch {
+					case e: Exception => {
+						if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
+							if (nonEmptyLeftMap && !nonEmptyRightMap) {
+								val oldMGU = mguMap.get(left).get
 										fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-									} else {
-										def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
-											new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
-										} else {
-											fixedRight
-										}
-										UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables) //stub
-									}
-								} else {
-
-									try {
-										def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
-											new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
-										} else {
-											fixedRight
-										}
-										 UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
-									} catch {
-									case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
-
-										try {
-											UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
-										} catch {
-										case f: Exception => {
-											val oldMGU = mguMap.get(left).get
-													def nonAmbig = fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-													nonAmbig
-										}
-										}
-									}
-									case e: Exception => {
-										throw new Exception("FORPI Failed!")
-									}
-									}
-								}
+							} else {
+								val oldMGU = mguMap.get(right).get
+										fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 							}
-							}
+						} else {
+
+							attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString, left, right, auxL, auxR, mguMap)(unifiableVariables)
+						}
+					}
+					}
 
 				}
 
@@ -278,6 +255,31 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				case _ => {
 					p
 				}
+		}
+	}
+
+	def attemptGreedyContraction(fixedLeft: SequentProofNode, fixedRight: SequentProofNode, newFixedRight: SequentProofNode, 
+			ambiguousErrorString: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E, 
+			mguMap: MMap[SequentProofNode, Substitution])(implicit unifiableVariables: MSet[Var]) = {
+
+		try {
+
+			UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
+		} catch {
+		case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
+
+			try {
+				UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
+			} catch {
+			case f: Exception => {
+				val oldMGU = mguMap.get(left).get
+						fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+			}
+			}
+		}
+		case e: Exception => {
+			throw new Exception("FORPI Failed!")
+		}
 		}
 	}
 
@@ -299,9 +301,6 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 					fRight.conclusion
 				}
 		val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, oldMGU, rightEq, false)
-
-				//TODO: this for the left? 
-				//TODO: do this conditionally only?
 				val rightRemainderWithNewMGU = (new FOSubstitution(Axiom(rightRemainder), newMGU)).conclusion
 
 				val tempLeft = new FOSubstitution(new FOSubstitution(Axiom(leftRemainder), leftSub), newMGU)
@@ -334,9 +333,9 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 
 	def findRemainder(seq: Sequent, target: E, mgu: Substitution, applySub: Boolean, removeFromAnt: Boolean)(implicit unifiableVariables: MSet[Var]): (Sequent, Substitution) = {	  
 		val (newAnt, antSub) = if (removeFromAnt) { checkHalf(seq.ant, target, mgu, applySub) } else { (seq.ant.toList, null) }
-	  val (newSuc, sucSub) = if (!removeFromAnt) { checkHalf(seq.suc, target, mgu, applySub) } else { (seq.suc.toList, null) }
+		val (newSuc, sucSub) = if (!removeFromAnt) { checkHalf(seq.suc, target, mgu, applySub) } else { (seq.suc.toList, null) }
 
-				val subOut = if (antSub != null) { antSub } else { sucSub } //at least one of these must be non-empty
+		val subOut = if (antSub != null) { antSub } else { sucSub } //at least one of these must be non-empty
 		//both should never be empty
 
 		val out = addAntecedents(newAnt) union addSuccedents(newSuc)
@@ -362,7 +361,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 
 				val subOut = if (diffs.size > 0) {
 					val formula = diffs.head //should only be one
-					
+
 							val renameSub = unify((formula, target) :: Nil)
 							renameSub.get //should never be empty
 				} else {
@@ -422,7 +421,7 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 				} else {
 					seq.suc
 				}
-		
+
 		for (lit <- seqHalf) {
 			unify((lit, aux) :: Nil)(uVars) match {
 			case None => {}
