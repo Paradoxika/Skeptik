@@ -263,6 +263,29 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 	}
 
 
+	def addToMap(k: SequentProofNode, carry: Sequent, carryMap: MMap[SequentProofNode, Sequent]) = {
+		if (carryMap.get(k).isEmpty) {
+			carryMap.put(k, carry)
+		} else {
+			val existingCarry = carryMap.get(k).get
+					if (existingCarry != null) {
+						val bothCarries = existingCarry union carry
+								carryMap.update(k, bothCarries)
+					} else {
+						carryMap.put(k, carry)
+					}
+		}
+	}
+
+	def addCarryToMapList(k: SequentProofNode, carry: Sequent, carryMapList: MMap[SequentProofNode, List[Sequent]]) = {
+		if (carryMapList.get(k).isEmpty) {
+			carryMapList.put(k, List[Sequent](carry))
+		} else {
+			val existingCarry = carryMapList.get(k).get
+					val bothCarries = existingCarry ++ List[Sequent](carry)
+					carryMapList.update(k, bothCarries)
+		}
+	}
 	def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
 
 		val fixMap = MMap[SequentProofNode, SequentProofNode]()
@@ -273,33 +296,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 				val mguMap = MMap[SequentProofNode, Substitution]()
 
 
-				def addToMap(k: SequentProofNode, carry: Sequent) = {
-			if (carryMap.get(k).isEmpty) {
-				carryMap.put(k, carry)
-			} else {
-				val existingCarry = carryMap.get(k).get
-						if (existingCarry != null) {
-							val bothCarries = existingCarry union carry
-									carryMap.update(k, bothCarries)
-						} else {
-							carryMap.put(k, carry)
-						}
-			}
-		}
 
 
-
-		def addCarryToMapList(k: SequentProofNode, carry: Sequent) = {
-			if (carryMapList.get(k).isEmpty) {
-				carryMapList.put(k, List[Sequent](carry))
-			} else {
-				val existingCarry = carryMapList.get(k).get
-						val bothCarries = existingCarry ++ List[Sequent](carry)
-						carryMapList.update(k, bothCarries)
-			}
-		}
-
-		def visit(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
+				def visit(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
 			lazy val fixedLeft = fixedPremises.head;
 			lazy val fixedRight = fixedPremises.last;
 
@@ -308,9 +307,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 			case Axiom(conclusion) => node
 			case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
 
-				addToMap(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+				addToMap(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR), carryMap)
 
-				addCarryToMapList(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR))
+				addCarryToMapList(fixedRight, makeUnitSequent(left, node.asInstanceOf[UnifyingResolution].auxR), carryMapList)
 				val nodeMGU = node.asInstanceOf[UnifyingResolution].mgu
 				mguMap.update(fixedRight, nodeMGU)
 				fixedRight
@@ -324,8 +323,8 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 						val fixedCarry = updateCarry(auxLCarry, renamingBackward)
 
-						addToMap(fixedLeft, fixedCarry)
-						addCarryToMapList(fixedLeft, fixedCarry)
+						addToMap(fixedLeft, fixedCarry, carryMap)
+						addCarryToMapList(fixedLeft, fixedCarry, carryMapList)
 						val nodeMGU = node.asInstanceOf[UnifyingResolution].mgu
 
 						val fixedMGU = getRenamedMGU(left.conclusion, nodeLeftClean.conclusion, nodeMGU, vars)
@@ -345,105 +344,11 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 								outMRRa
 					} else {
 
-						val olderA = if (!mguMap.get(fixedRight).isEmpty) {
-							mguMap.get(fixedRight).get
-						} else { null }
 
-						val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
-							mguMap.get(fixedLeft).get
-						} else { null }
-
-						val newFixedRight = fixedRight match {
-						case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
-							new FOSubstitution(fixedRight, olderA)(vars)
-						}
-						case _ if (olderA != null && !fixedRight.equals(right)) => {
-							new FOSubstitution(fixedRight, olderA)(vars)
-						}
-						case _ => {
-							fixedRight
-						}
-						}
-
-						val newFixedLeft = fixedLeft match {
-						case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
-							new FOSubstitution(fixedLeft, olderB)(vars)
-						}
-						case _ if (olderB != null && !fixedLeft.equals(left)) => {
-							new FOSubstitution(fixedLeft, olderB)(vars)
-						}
-						case _ => {
-							fixedLeft
-						}
-						}
-
-						var urMRRout = try {
-							UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
-						} catch {
-						case e: MRRException if (e.getMessage != null && e.getMessage.equals("Resolution (MRR): the conclusions of the given premises are not resolvable.")) => {
-							UnifyingResolutionMRR(newFixedRight, newFixedLeft)(vars)
-						}
-						}
-
-						var temp = urMRRout
-								while (temp.isInstanceOf[Contraction]) {
-									temp = temp.asInstanceOf[Contraction].premise
-								}
-
-						urMRRout = temp
-
-								val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
-									carryMap.get(fixedRight).get
-								} else { null }
-
-
-						val carryB = if (!carryMap.get(fixedLeft).isEmpty && !fixedLeft.equals(left)) {
-							carryMap.get(fixedLeft).get
-						} else { null }
-
-						val resMGU = temp.asInstanceOf[UnifyingResolution].mgu
-
-								val nodeMGU = resMGU
-								val newLeftClean = urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion
-								mguMap.update(urMRRout, resMGU)
-
-								val (leftMGU, rightMGU) = splitMGU(temp, newFixedLeft, newFixedRight)
-
-								val updatedCarryA = updateCarry(carryA, olderA)
-								val updatedCarryB = updateCarry(carryB, olderB)
-
-
-								val finalUpdatedCarryA = updateCarry(updatedCarryA, rightMGU)
-								val finalUpdatedCarryB = updateCarry(updatedCarryB, leftMGU)
-
-								val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA)
-
-								val testCarry = if (mergedCarry != null) {
-									val testAnt = if (mergedCarry.ant != null) {
-										mergedCarry.ant
-									} else {
-										Seq[E]()
-									}
-									val testSuc = if (mergedCarry.suc != null) {
-										mergedCarry.suc
-									} else {
-										Seq[E]()
-									}
-									addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
-								} else {
-									null
-								}
-
-						val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
-								val fixedCarry = updateCarry(testCarry, renamingBackward)
-
-								//TODO: update both maps
-								if (testCarry != null) {
-									addToMap(urMRRout, testCarry)
-								}
-
-						urMRRout
+						findOriginalResolventAndUpdateMaps(fixedRight, fixedLeft, right, left, mguMap, vars, carryMap)
 					}
+
+
 					outMRR
 				} catch {
 				case e: Exception => {
@@ -457,49 +362,13 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 							val oMGU = node.asInstanceOf[UnifyingResolution].mgu
 
-									val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
-										carryMap.get(fixedRight).get
-									} else { null }
+									val (carryA, carryB) = getCarries(fixedRight, fixedLeft, right, left, carryMap)
 
-							val carryB = if (!carryMap.get(fixedLeft).isEmpty && !fixedLeft.equals(left)) {
-								carryMap.get(fixedLeft).get
-							} else { null }
+									val (olderA, olderB) = getOldSubs(fixedRight, fixedLeft, mguMap)
 
+									val (newFixedRight, newFixedLeft) = getNewFixedNodes(fixedRight, fixedLeft, right, left, olderA, olderB, vars)
 
-							val olderA = if (!mguMap.get(fixedRight).isEmpty) {
-								mguMap.get(fixedRight).get
-							} else { null }
-
-							val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
-								mguMap.get(fixedLeft).get
-							} else { null }
-
-
-							val newFixedRight = fixedRight match {
-							case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
-								new FOSubstitution(fixedRight, olderA)(vars)
-							}
-							case _ if (olderA != null && !fixedRight.equals(right)) => {
-								new FOSubstitution(fixedRight, olderA)(vars)
-							}
-							case _ => {
-								fixedRight
-							}
-							}
-
-							val newFixedLeft = fixedLeft match {
-							case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
-								new FOSubstitution(fixedLeft, olderB)(vars)
-							}
-							case _ if (olderB != null && !fixedLeft.equals(left)) => {
-								new FOSubstitution(fixedLeft, olderB)(vars)
-							}
-							case _ => {
-								fixedLeft
-							}
-							}
-
-							val (leftMGU, rightMGU) = splitMGU(node, left, right)
+									val (leftMGU, rightMGU) = splitMGU(node, left, right)
 
 									val stuff = generateGoal(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
 
@@ -566,32 +435,15 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 									}
 
+							val testCarry = getCarry(mergedCarry)
 
-							val testCarry = if (mergedCarry != null) {
-								val testAnt = if (mergedCarry.ant != null) {
-									mergedCarry.ant.map(e => cleanMGU(e))
-								} else {
-									Seq[E]()
-								}
-								val testSuc = if (mergedCarry.suc != null) {
-									mergedCarry.suc.map(e => cleanMGU(e))
-								} else {
-									Seq[E]()
-								}
-								addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
-							} else {
-								null
-							}
+									addCarryToMapList(out, testCarry, carryMapList)
+
+									addToMap(out, testCarry, carryMap)
 
 
-							addCarryToMapList(out, testCarry)
-
-							addToMap(out, testCarry)
-
-
-							mguMap.update(out, stuff._2)
-
-							out
+									mguMap.update(out, stuff._2)
+									out
 
 						} else {
 							UnifyingResolutionMRR(fixedRight, fixedLeft)(vars)
@@ -634,6 +486,127 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 		}
 	}
 
+	def getCarries(fixedRight: SequentProofNode, fixedLeft: SequentProofNode, right: SequentProofNode, left: SequentProofNode, carryMap: MMap[SequentProofNode, Sequent]) = {
+		val carryA = if (!carryMap.get(fixedRight).isEmpty && !fixedRight.equals(right)) {
+			carryMap.get(fixedRight).get
+		} else { null }
+
+
+		val carryB = if (!carryMap.get(fixedLeft).isEmpty && !fixedLeft.equals(left)) {
+			carryMap.get(fixedLeft).get
+		} else { null }   
+
+		(carryA, carryB)
+	}
+
+	def getOldSubs(fixedRight: SequentProofNode, fixedLeft: SequentProofNode, mguMap: MMap[SequentProofNode, Substitution]) = {
+		val olderA = if (!mguMap.get(fixedRight).isEmpty) {
+			mguMap.get(fixedRight).get
+		} else { null }
+
+		val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
+			mguMap.get(fixedLeft).get
+		} else { null }
+
+		(olderA, olderB)
+	}
+
+	def getNewFixedNode(fixedNode: SequentProofNode, oldNode: SequentProofNode, oldSub: Substitution, vars: MSet[Var]): SequentProofNode = {
+		val out = fixedNode match {
+		case Axiom(c) if (oldNode != null && !fixedNode.equals(oldNode)) => {
+			new FOSubstitution(fixedNode, oldSub)(vars)
+		}
+		case _ if (oldNode != null && !fixedNode.equals(oldNode)) => {
+			new FOSubstitution(fixedNode, oldSub)(vars)
+		}
+		case _ => {
+			fixedNode
+		}
+		}
+		out
+	}
+
+	def getNewFixedNodes(fixedRight: SequentProofNode, fixedLeft: SequentProofNode, right: SequentProofNode, left: SequentProofNode,
+			rSub: Substitution, lSub: Substitution, vars: MSet[Var]): (SequentProofNode, SequentProofNode) = {
+		val newFixedRight = getNewFixedNode(fixedRight, right, rSub, vars)
+				val newFixedLeft = getNewFixedNode(fixedLeft, left, lSub, vars)
+				(newFixedRight, newFixedLeft)
+	}
+
+
+	def getCarry(mergedCarry: Sequent) = {
+		val testCarry = if (mergedCarry != null) {
+			val testAnt = if (mergedCarry.ant != null) {
+				mergedCarry.ant
+			} else {
+				Seq[E]()
+			}
+			val testSuc = if (mergedCarry.suc != null) {
+				mergedCarry.suc
+			} else {
+				Seq[E]()
+			}
+			addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
+		} else {
+			null
+		}
+		testCarry
+	}
+
+	def findOriginalResolventAndUpdateMaps(fixedRight: SequentProofNode, fixedLeft: SequentProofNode, right: SequentProofNode, left: SequentProofNode, 
+			mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var], carryMap: MMap[SequentProofNode, Sequent]) = {
+
+		val (olderA, olderB) = getOldSubs(fixedRight, fixedLeft, mguMap)
+
+				val (newFixedRight, newFixedLeft) = getNewFixedNodes(fixedRight, fixedLeft, right, left, olderA, olderB, vars)
+
+				var urMRRout = try {
+					UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
+				} catch {
+				case e: MRRException if (e.getMessage != null && e.getMessage.equals("Resolution (MRR): the conclusions of the given premises are not resolvable.")) => {
+					UnifyingResolutionMRR(newFixedRight, newFixedLeft)(vars)
+				}
+				}
+
+		var temp = urMRRout
+				while (temp.isInstanceOf[Contraction]) {
+					temp = temp.asInstanceOf[Contraction].premise
+				}
+
+		urMRRout = temp
+
+
+
+				val (carryA, carryB) = getCarries(fixedRight, fixedLeft, right, left, carryMap)
+
+				val resMGU = temp.asInstanceOf[UnifyingResolution].mgu
+
+				val nodeMGU = resMGU
+				val newLeftClean = urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion
+				mguMap.update(urMRRout, resMGU)
+
+				val (leftMGU, rightMGU) = splitMGU(temp, newFixedLeft, newFixedRight)
+
+				val updatedCarryA = updateCarry(carryA, olderA)
+				val updatedCarryB = updateCarry(carryB, olderB)
+
+
+				val finalUpdatedCarryA = updateCarry(updatedCarryA, rightMGU)
+				val finalUpdatedCarryB = updateCarry(updatedCarryB, leftMGU)
+
+				val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA)
+
+				val testCarry = getCarry(mergedCarry)
+
+				val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
+				val fixedCarry = updateCarry(testCarry, renamingBackward)
+
+				//TODO: update both maps
+				if (testCarry != null) {
+					addToMap(urMRRout, testCarry, carryMap)
+				}
+		urMRRout
+	}
 
 
 	def tryToResolveUsingAllCarrys(node: SequentProofNode, left: SequentProofNode, right: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode, carryMap: MMap[SequentProofNode, List[Sequent]], mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var], attemptContraction: Boolean): (SequentProofNode, Sequent) = {
@@ -668,39 +641,12 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 												leftCarry
 											} else { null }
 
-											val olderA = if (!mguMap.get(fixedRight).isEmpty) {
-												mguMap.get(fixedRight).get
-											} else { null }
+											val (olderA, olderB) = getOldSubs(fixedRight, fixedLeft, mguMap)
 
-											val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
-												mguMap.get(fixedLeft).get
-											} else { null }
+													val (newFixedRight, newFixedLeft) = getNewFixedNodes(fixedRight, fixedLeft, right, left, olderA, olderB, vars)
 
-											val newFixedRight = fixedRight match {
-											case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
-												new FOSubstitution(fixedRight, olderA)(vars)
-											}
-											case _ if (olderA != null && !fixedRight.equals(right)) => {
-												new FOSubstitution(fixedRight, olderA)(vars)
-											}
-											case _ => {
-												fixedRight
-											}
-											}
 
-											val newFixedLeft = fixedLeft match {
-											case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
-												new FOSubstitution(fixedLeft, olderB)(vars)
-											}
-											case _ if (olderB != null && !fixedLeft.equals(left)) => {
-												new FOSubstitution(fixedLeft, olderB)(vars)
-											}
-											case _ => {
-												fixedLeft
-											}
-											}
-
-											val (leftMGU, rightMGU) = splitMGU(node, left, right)
+													val (leftMGU, rightMGU) = splitMGU(node, left, right)
 
 													val stuff = generateGoal(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
 
@@ -732,29 +678,15 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 													val mergedCarry = unionSequents(stuff._3, stuff._4)
 
 													val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
+													val testCarry = getCarry(mergedCarry)
 
-													val testCarry = if (mergedCarry != null) {
-														val testAnt = if (mergedCarry.ant != null) {
-															mergedCarry.ant.map(e => cleanMGU(e))
-														} else {
-															Seq[E]()
-														}
-														val testSuc = if (mergedCarry.suc != null) {
-															mergedCarry.suc.map(e => cleanMGU(e))
-														} else {
-															Seq[E]()
-														}
-														addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
-													} else {
-														null
+
+													mguMap.update(out, stuff._2)
+
+													if (finalOut == null) {
+														finalOut = out
+																finalGoal = newGoalD
 													}
-
-											mguMap.update(out, stuff._2)
-
-											if (finalOut == null) {
-												finalOut = out
-														finalGoal = newGoalD
-											}
 
 										} catch {
 										case e: Exception => {
