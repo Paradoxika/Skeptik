@@ -445,140 +445,30 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 }
 
 trait FOCollectEdgesUsingSafeLiterals
-extends FOAbstractRPIAlgorithm {
+extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 
 	//ensure that the node that will be replacing the unifying resolution is entirely safe
 	protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
 
-			def checkHelperAlphaManualX(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
-				if (desired.size == 0) {
-					return true
-				}
 
-				for (f <- computed) {
 
-					for (g <- desired) {
-						val u = unify((f, g) :: Nil)
-								u match {
-								case Some(s) => {
-									if (checkSubstitutions(s)) {
-										//add current subs to this (not checkSubs is used above! modify with care)
-										return checkHelperAlphaManualX(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
-									}
-								}
-								case None => {
-								}
-						}
-					}
-
-				}
-				false
-			}
-
-			def desiredFoundX(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
+			def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
 				if (computed == desired) {
 					return true
 				} else {
 					val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
 
-							def generateSubstitutionOptionsX(computed: Seq[E], desired: Seq[E], vs: MSet[Var]) = {
-						val map = new MMap[Var, Set[E]]()
-								for (c <- computed) {
-									val cVars = getSetOfVars(c)
-											for (d <- desired) {
-												val dVars = getSetOfVars(d)
-
-														val cAxiom = new Axiom(Sequent(c)())
-												val dAxiom = new Axiom(Sequent(d)())
-												val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, cVars union dVars)
-												val dClean = dAxiomClean.conclusion.ant.head
-
-												//should never not be able to unify -- one is the other, but with new variable names
-												val dToCleanSub = (unify((d, dClean) :: Nil)(cVars union dVars)).get
-												val inverseSubs = dToCleanSub.toMap[Var, E].map(_.swap)
-												val inverseSubsCasted = convertTypes(inverseSubs.toList)
-												val inverseSub = Substitution(inverseSubsCasted: _*)
-
-												val u = unify((dClean, c) :: Nil)(vs)
-
-												u match {
-												case Some(s) => {
-													//so that var could have gone to any of the variables in d; add appropriate ones
-													//it can only go to what the sub said it could!
-													for (cv <- unifiableVariables) {
-
-														val sub = inverseSub(getValidSubstitution(s, cv))
-																val realVars = getSetOfVars(sub)
-																if (map.keySet.contains(cv)) {
-																	//update that set
-																	def sub = u.get
-																			def entry = sub.get(cv)
-																			if (!entry.isEmpty) {
-																				map.put(cv, map.get(cv).get ++ entry)
-																			}
-																} else {
-																	//add a new set
-																	//note the conversion is safe since checkSubstitutions already confirms it's a var
-																	def sub = u.get
-																			def entry = sub.get(cv)
-																			if (!entry.isEmpty) {
-																				map.put(cv, Set[Var]() ++ entry)
-																			}
-																}
-
-													}
-
-												}
-												case None => {
-												}
-												}
-
-											}
-								}
-						map
-					}
-
-					def intersectMapsX(a: MMap[Var, Set[E]], b: MMap[Var, Set[E]]): MMap[Var, Set[E]] = {
-						val out = MMap[Var, Set[E]]()
-
-								val sharedKeys = (a.keySet).intersect(b.keySet)
-								for (sKey <- sharedKeys) {
-									out.put(sKey, a.get(sKey).get intersect b.get(sKey).get)
-								}
-						val aOnlyKeys = (a.keySet) -- sharedKeys
-								for (aKey <- aOnlyKeys) {
-									out.put(aKey, a.get(aKey).get)
-								}
-						val bOnlyKeys = (b.keySet) -- sharedKeys
-								for (bKey <- bOnlyKeys) {
-									out.put(bKey, b.get(bKey).get)
-								}
-
-						out
-					}
-
-					def validMapX(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-						for (k <- m.keySet) {
-							if (vars.contains(k) && m.get(k).get.size > 1) {
-								return false
-							}
-							if (!vars.contains(k) && m.get(k).get.size == 0) {
-								return false
-							}
-						}
-						true
-					}
-					val antMap = generateSubstitutionOptionsX(computed.ant, desired.ant, unifiableVariables)
+					val antMap = generateSubstitutionOptionsB(computed.ant, desired.ant, unifiableVariables)
 							if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
 								return false
 							}
-					val sucMap = generateSubstitutionOptionsX(computed.suc, desired.suc, unifiableVariables)
+					val sucMap = generateSubstitutionOptionsB(computed.suc, desired.suc, unifiableVariables)
 							if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
 								return false
 							}
-					val intersectedMap = intersectMapsX(antMap, sucMap)
+					val intersectedMap = intersectMapsB(antMap, sucMap)
 
-							if (!validMapX(intersectedMap, vars)) {
+							if (!validMapB(intersectedMap, vars)) {
 								return false
 							}
 
@@ -632,7 +522,7 @@ extends FOAbstractRPIAlgorithm {
 
 					def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
 
-					desiredFoundX(safeClean.conclusion, seqToDelete)(vars)
+					desiredIsContained(safeClean.conclusion, seqToDelete)(vars)
 
 	}
 
@@ -645,6 +535,8 @@ extends FOAbstractRPIAlgorithm {
 					p match {
 					case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)
 							&& checkForResSmart(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion)) => {
+//					    							&& checkForResSmart(safeLiterals.suc, auxL, p) && findRenaming(safeLiterals.toSeqSequent, left.conclusion) != null) => {
+
 								auxMap.put(p, auxL)
 								mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
 								edgesToDelete.markRightEdge(p)

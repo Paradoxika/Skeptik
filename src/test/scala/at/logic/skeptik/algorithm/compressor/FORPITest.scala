@@ -59,6 +59,8 @@ class FORPILUSpecification extends SpecificationWithJUnit with checkProofEqualit
   val proof2d = ProofParserSPASS.read("examples/proofs/SPASS/FORPIexample2d.spass")
   val result2d = checkProofs(FORecyclePivotsWithIntersection(proof2d), "examples/proofs/SPASS/testresults/FORPILU/FORPIexample2d.result")
 
+  println("-----")
+  println("Testing proof: \n" + FORecyclePivots(proofb))
   "FORPILU" should {
     "Compress the proof correctly (small compression)" in {
       resulta must beEqualTo(true)
