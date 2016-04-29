@@ -398,13 +398,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 						}
 						}
 
-						//TODO clear this when repairs are done
-						//NOTE on this commit (or whichever is the first in which new fixed right/left are first introduced
-						//the number of errors goes from 18 to 21
-						//but I think the 'new fixed' gives more flexibility for repairs
-
-
-						//this doesn't seem to help anything
 						var urMRRout = try {
 							UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
 						} catch {
@@ -1035,7 +1028,14 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 	}
 
 	def smartContraction(left: SequentProofNode, right: SequentProofNode, units: List[SequentProofNode], vars: MSet[Var]): SequentProofNode = {
-		val newRight = Contraction(right)(vars) //TODO: do this smart too?
+		val newRight = {
+		  val tempCon = Contraction(right)(vars)
+		  if (tempCon.conclusion.logicalSize < right.conclusion.logicalSize){
+		    tempCon
+		  } else {
+		    right
+		  }
+		}
 
 				val rightsUnit = findUnitInSeq(newRight, units, vars)
 
@@ -1207,7 +1207,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 							multipleResolution(unitNodeGiven, temp, flag)
 						}
 			} else {
-				null //stub; error //TODO: this
+				throw new Exception("Multiple resolution failed.")
 			}
 	}
 	
