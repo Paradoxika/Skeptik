@@ -1157,92 +1157,60 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 		}
 	}
 
-	//TODO: can probably avoid code reuse by introducing helper functions
 	def multipleResolution(left: SequentProofNode, right: SequentProofNode, leftIsUnit: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-		if (leftIsUnit) {
-			//left is unit
-			if (left.conclusion.suc.size > 0) {
-				val leftUnit = left.conclusion.suc.head
-
-						val listOfThingsToRemove = findUnifiableFormula(leftUnit, right.conclusion.ant)
-						if (listOfThingsToRemove.size < 1) {
-							return right
-						}
-				val toRemove = listOfThingsToRemove.head
-
-						val newAnt = right.conclusion.ant.filter(_ != toRemove)
-						val newSuc = right.conclusion.suc
-						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-						val temp = UnifyingResolution(left, right, goal)
-						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
-							temp
-						} else {
-							multipleResolution(left, temp, leftIsUnit)
-						}
-			} else if (left.conclusion.ant.size > 0) {
-				val leftUnit = left.conclusion.ant.head
-
-						val listOfThingsToRemove = findUnifiableFormula(leftUnit, right.conclusion.suc)
-						if (listOfThingsToRemove.size < 1) {
-							return right
-						}
-				val toRemove = listOfThingsToRemove.head
-
-						val newAnt = right.conclusion.ant
-						val newSuc = right.conclusion.suc.filter(_ != toRemove)
-						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-						val temp = UnifyingResolution(left, right, goal)
-						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
-							temp
-						} else {
-							multipleResolution(left, temp, leftIsUnit)
-						}
-			} else {
-				null //stub; error //TODO: this
-			}
-		} else {
-			if (right.conclusion.suc.size > 0) {
-				val rightUnit = right.conclusion.suc.head
-
-						val listOfThingsToRemove = findUnifiableFormula(rightUnit, left.conclusion.ant)
-						if (listOfThingsToRemove.size < 1) {
-							return left
-						}
-				val toRemove = listOfThingsToRemove.head
-
-						val newAnt = left.conclusion.ant.filter(_ != toRemove)
-						val newSuc = left.conclusion.suc
-						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-						val temp = UnifyingResolution(left, right, goal)
-						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
-							temp
-						} else {
-							multipleResolution(left, temp, leftIsUnit)
-						}
-			} else if (right.conclusion.ant.size > 0) {
-				val rightUnit = right.conclusion.ant.head
-
-						val listOfThingsToRemove = findUnifiableFormula(rightUnit, left.conclusion.suc)
-						if (listOfThingsToRemove.size < 1) {
-							return left
-						}
-				val toRemove = listOfThingsToRemove.head
-
-						val newAnt = left.conclusion.ant
-						val newSuc = left.conclusion.suc.filter(_ != toRemove)
-						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-						val temp = UnifyingResolution(left, right, goal)
-						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
-							temp
-						} else {
-							multipleResolution(left, temp, leftIsUnit)
-						}
-			} else {
-				null //stub; error //TODO: this
-			}
-		}
+	  		if (leftIsUnit) {
+			    //left is unit
+	  		  multipleResolutionHelper(left, right, leftIsUnit)
+	  		} else {
+	  		  //right is unit
+	  		  multipleResolutionHelper(right, left, leftIsUnit)
+	  		}
 	}
 
+	
+	def multipleResolutionHelper(unitNodeGiven: SequentProofNode, otherNodeGiven: SequentProofNode, flag: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+	  	//unitNodeGiven is unit
+			if (unitNodeGiven.conclusion.suc.size > 0) {
+				val unitNodeGivenUnit = unitNodeGiven.conclusion.suc.head
+
+						val listOfThingsToRemove = findUnifiableFormula(unitNodeGivenUnit, otherNodeGiven.conclusion.ant)
+						if (listOfThingsToRemove.size < 1) {
+							return otherNodeGiven
+						}
+				val toRemove = listOfThingsToRemove.head
+
+						val newAnt = otherNodeGiven.conclusion.ant.filter(_ != toRemove)
+						val newSuc = otherNodeGiven.conclusion.suc
+						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+						val temp = UnifyingResolution(unitNodeGiven, otherNodeGiven, goal)
+						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
+							temp
+						} else {
+							multipleResolution(unitNodeGiven, temp, flag)
+						}
+			} else if (unitNodeGiven.conclusion.ant.size > 0) {
+				val unitNodeGivenUnit = unitNodeGiven.conclusion.ant.head
+
+						val listOfThingsToRemove = findUnifiableFormula(unitNodeGivenUnit, otherNodeGiven.conclusion.suc)
+						if (listOfThingsToRemove.size < 1) {
+							return otherNodeGiven
+						}
+				val toRemove = listOfThingsToRemove.head
+
+						val newAnt = otherNodeGiven.conclusion.ant
+						val newSuc = otherNodeGiven.conclusion.suc.filter(_ != toRemove)
+						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+						val temp = UnifyingResolution(unitNodeGiven, otherNodeGiven, goal)
+						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
+							temp
+						} else {
+							multipleResolution(unitNodeGiven, temp, flag)
+						}
+			} else {
+				null //stub; error //TODO: this
+			}
+	}
+	
 	def apply(proof: Proof[SequentProofNode]): Proof[SequentProofNode] = {
 		val collected = collectUnits(proof)
 
