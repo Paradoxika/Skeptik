@@ -158,23 +158,23 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val findSeqTest7B = App(Var("p", i -> i), u) +: App(Var("q", i -> i), v) +: (Sequent()(App(Var("r", i -> i), u)) + App(Var("s", i -> i), v))
 
   //intersectionMap
-  val emptyMap = MMap[Var, Set[Var]]()
+  val emptyMap = MMap[Var, Set[E]]()
 
-  val aMap = MMap[Var, Set[Var]]()
-  aMap.put(x, Set[Var](y))
+  val aMap = MMap[Var, Set[E]]()
+  aMap.put(x, Set[E](y))
 
-  val bMap = MMap[Var, Set[Var]]()
-  bMap.put(y, Set[Var](x))
+  val bMap = MMap[Var, Set[E]]()
+  bMap.put(y, Set[E](x))
 
-  val cMap = MMap[Var, Set[Var]]()
-  cMap.put(x, Set[Var](y))
-  cMap.put(y, Set[Var](x))
+  val cMap = MMap[Var, Set[E]]()
+  cMap.put(x, Set[E](y))
+  cMap.put(y, Set[E](x))
 
-  val dMap = MMap[Var, Set[Var]]()
-  dMap.put(x, Set[Var]())
+  val dMap = MMap[Var, Set[E]]()
+  dMap.put(x, Set[E]())
 
-  val eMap = MMap[Var, Set[Var]]()
-  eMap.put(x, Set[Var](x) + y)
+  val eMap = MMap[Var, Set[E]]()
+  eMap.put(x, Set[E](x) + y)
 
   //checkHelperAlphaManual
   //true
@@ -212,7 +212,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
 
   //generateSubstitutionOptions
   //empty map
-  val gsSeq1A = Seq[E](App(Var("q", i -> i), x))
+  val gsSeq1A = Seq[E](App(Var("q", i -> i), d))
   val gsSeq1B = Seq[E](App(Var("q", i -> i), c))
 
   //empty map
@@ -237,6 +237,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
 
   val gsMap6 = MMap[Var, Set[Var]]()
   gsMap6.put(x, Set[Var](y))
+  gsMap6.put(u, Set[Var]( Var("1", i) ))
   val gsSeq6A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u))
   val gsSeq6B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), Var("1", i)))
 
@@ -389,54 +390,53 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
       FDSresultC.conclusion must beEqualTo(FDSexpectedC)
     }
     "check that a unification is not applied for a sequent half (2 specific vars)" in {
-      tester.checkHalf(findSeqTest1A.suc, findSeqTest1B.suc)(usedVars) must beEqualTo(false)
+      tester.checkHalfB(findSeqTest1A.suc, findSeqTest1B.suc)(usedVars) must beEqualTo(false)
     }
     "check that a unification is not applied for a sequent half (1 specific var)" in {
-      tester.checkHalf(findSeqTest2A.suc, findSeqTest2B.suc)(usedVars) must beEqualTo(false)
+      tester.checkHalfB(findSeqTest2A.suc, findSeqTest2B.suc)(usedVars) must beEqualTo(false)
     }
     "check that they're equal mod renaming for a sequent half(1 specific var)" in {
-      tester.checkHalf(findSeqTest3A.suc, findSeqTest3B.suc)(usedVars) must beEqualTo(true)
+      tester.checkHalfB(findSeqTest3A.suc, findSeqTest3B.suc)(usedVars) must beEqualTo(true)
     }
     "check that they're equal mod renaming for a sequent half (2 universal vars)" in {
-      tester.checkHalf(findSeqTest4A.suc, findSeqTest4B.suc)(usedVars) must beEqualTo(true)
+      tester.checkHalfB(findSeqTest4A.suc, findSeqTest4B.suc)(usedVars) must beEqualTo(true)
     }
     "check that they're equal mod renaming for a sequent half (different length)" in {
-      tester.checkHalf(findSeqTest5A.ant, findSeqTest5B.ant)(usedVars) must beEqualTo(false)
+      tester.checkHalfB(findSeqTest5A.ant, findSeqTest5B.ant)(usedVars) must beEqualTo(false)
     }
     "check that they're equal mod renaming for a sequent half (different distribution of formulas)" in {
-      tester.checkHalf(findSeqTest6A.ant, findSeqTest6B.ant)(usedVars) must beEqualTo(false)
+      tester.checkHalfB(findSeqTest6A.ant, findSeqTest6B.ant)(usedVars) must beEqualTo(false)
     }
     "check that they're equal mod renaming for an entire sequent (different distribution of formulas)" in {
       tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars) != null must beEqualTo(false)
     }
     "intersect maps correctly (2 empty maps)" in {
-      tester.intersectMaps(emptyMap, emptyMap) must beEqualTo(emptyMap)
+      tester.intersectMapsB(emptyMap, emptyMap) must beEqualTo(emptyMap)
     }
     "intersect maps correctly (1 empty map)" in {
-      tester.intersectMaps(aMap, emptyMap) must beEqualTo(aMap)
+      tester.intersectMapsB(aMap, emptyMap) must beEqualTo(aMap)
     }
     "intersect maps correctly (0 empty maps; disjoint)" in {
-      tester.intersectMaps(aMap, bMap) must beEqualTo(cMap)
+      tester.intersectMapsB(aMap, bMap) must beEqualTo(cMap)
     }
     "intersect maps correctly (0 empty maps; the same)" in {
-      tester.intersectMaps(aMap, aMap) must beEqualTo(aMap)
+      tester.intersectMapsB(aMap, aMap) must beEqualTo(aMap)
     }
     "intersect maps correctly (0 empty maps; 1 var's set is empty)" in {
-      tester.intersectMaps(aMap, dMap) must beEqualTo(dMap)
+      tester.intersectMapsB(aMap, dMap) must beEqualTo(dMap)
     }
     "intersect maps correctly (0 empty maps; no var's set is empty)" in {
-      tester.intersectMaps(aMap, eMap) must beEqualTo(aMap)
+      tester.intersectMapsB(aMap, eMap) must beEqualTo(aMap)
     }
-    //TODO: update these
-//    "valid map correctly checks empty map" in {
-//      tester.validMap(emptyMap) must beEqualTo(true)
-//    }
-//    "valid map correctly checks empty var set" in {
-//      tester.validMap(dMap) must beEqualTo(false)
-//    }
-//    "valid map correctly checks nonempty var set" in {
-//      tester.validMap(aMap) must beEqualTo(true)
-//    }
+    "valid map correctly checks empty map" in {
+      tester.validMapB(emptyMap, usedVars) must beEqualTo(true)
+    }
+    "valid map correctly checks empty var set" in {
+      tester.validMapB(dMap, usedVars) must beEqualTo(false)
+    }
+    "valid map correctly checks nonempty var set" in {
+      tester.validMapB(aMap, usedVars) must beEqualTo(true)
+    }
     "check substitution correctly checks righthand side is var (false)" in {
       tester.checkSubstitutions(varToAbsSub) must beEqualTo(false)
     }
@@ -459,40 +459,40 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
       tester.checkSubstitutions(varToVars) must beEqualTo(true)
     }
     "generateSubstitutionOptions should return the empty map" in {
-      tester.generateSubstitutionOptions(gsSeq1A, gsSeq1B) must beEqualTo(emptyMap)
+      tester.generateSubstitutionOptionsB(gsSeq1A, gsSeq1B) must beEqualTo(emptyMap)
     }
     "generateSubstitutionOptions should return the empty map" in {
-      tester.generateSubstitutionOptions(gsSeq2A, gsSeq2B) must beEqualTo(emptyMap)
+      tester.generateSubstitutionOptionsB(gsSeq2A, gsSeq2B) must beEqualTo(emptyMap)
     }
     "generateSubstitutionOptions should return the correct map" in {
-      tester.generateSubstitutionOptions(gsSeq3A, gsSeq3B) must beEqualTo(gsMap3)
+      tester.generateSubstitutionOptionsB(gsSeq3A, gsSeq3B) must beEqualTo(gsMap3)
     }
     "generateSubstitutionOptions should return the correct map" in {
-      tester.generateSubstitutionOptions(gsSeq4A, gsSeq4B) must beEqualTo(gsMap4)
+      tester.generateSubstitutionOptionsB(gsSeq4A, gsSeq4B) must beEqualTo(gsMap4)
     }
     "generateSubstitutionOptions should return the correct map" in {
-      tester.generateSubstitutionOptions(gsSeq5A, gsSeq5B) must beEqualTo(gsMap5)
+      tester.generateSubstitutionOptionsB(gsSeq5A, gsSeq5B) must beEqualTo(gsMap5)
     }
     "generateSubstitutionOptions should return the correct map" in {
-      tester.generateSubstitutionOptions(gsSeq6A, gsSeq6B) must beEqualTo(gsMap6)
+      tester.generateSubstitutionOptionsB(gsSeq6A, gsSeq6B) must beEqualTo(gsMap6)
     }
     "checkHelperAlphaManual should return the correct result (x->y; true)" in {
-      tester.checkHelperAlphaManual(chSeq1A, chSeq1B)(usedVars) must beEqualTo(true)
+      tester.checkHelperAlphaManualB(chSeq1A, chSeq1B)(usedVars) must beEqualTo(true)
     }
     "checkHelperAlphaManual should return the correct result (x->c; false)" in {
-      tester.checkHelperAlphaManual(chSeq2A, chSeq2B)(usedVars) must beEqualTo(false)
+      tester.checkHelperAlphaManualB(chSeq2A, chSeq2B)(usedVars) must beEqualTo(false)
     }
     "checkHelperAlphaManual should return the correct result (even distribution)" in {
-      tester.checkHelperAlphaManual(chSeq4A, chSeq4B)(usedVars) must beEqualTo(true)
+      tester.checkHelperAlphaManualB(chSeq4A, chSeq4B)(usedVars) must beEqualTo(true)
     }
     "checkHelperAlphaManual should return the correct result (longer desired)" in {
-      tester.checkHelperAlphaManual(chSeq5A, chSeq5B)(usedVars) must beEqualTo(false)
+      tester.checkHelperAlphaManualB(chSeq5A, chSeq5B)(usedVars) must beEqualTo(false)
     }
     "checkHelperAlphaManual should return the correct result (longer computed)" in {
-      tester.checkHelperAlphaManual(chSeq6A, chSeq6B)(usedVars) must beEqualTo(false)
+      tester.checkHelperAlphaManualB(chSeq6A, chSeq6B)(usedVars) must beEqualTo(false)
     }
     "checkHelperAlphaManual should return the correct result (number in desired; longer)" in {
-      tester.checkHelperAlphaManual(chSeq7A, chSeq7B)(usedVars) must beEqualTo(false)
+      tester.checkHelperAlphaManualB(chSeq7A, chSeq7B)(usedVars) must beEqualTo(false)
     }
   }
   "checkUnifiableVariableName" should {

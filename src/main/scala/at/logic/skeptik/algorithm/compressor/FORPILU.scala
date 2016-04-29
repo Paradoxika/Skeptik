@@ -343,7 +343,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 	}
 
 	def areAlphaEq(a: E, b: E)(implicit unifiableVariables: MSet[Var]): Boolean = {
-		checkHelperAlphaManual(Seq[E](a), Seq[E](b))
+		checkHelperAlphaManualB(Seq[E](a), Seq[E](b))
 	}
 
 	def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): (List[E], Substitution) = {
@@ -535,8 +535,6 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 					p match {
 					case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)
 							&& checkForResSmart(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion)) => {
-//					    							&& checkForResSmart(safeLiterals.suc, auxL, p) && findRenaming(safeLiterals.toSeqSequent, left.conclusion) != null) => {
-
 								auxMap.put(p, auxL)
 								mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
 								edgesToDelete.markRightEdge(p)
