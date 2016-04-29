@@ -13,6 +13,7 @@ import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
+import at.logic.skeptik.proof.sequent.resolution.FindMGU
 import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
 import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 import at.logic.skeptik.expression.substitution.immutable.Substitution
@@ -20,7 +21,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 
 abstract class FOAbstractRPILUAlgorithm
-extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
+extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables with FindMGU {
 
 	protected def checkForRes(safeLiteralsHalf: Set[E], aux: E): Boolean = {
 
@@ -157,30 +158,6 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 					out
 			}
 
-			//TODO: this is taken DIRECTLY from FOLU. refactor it to somewhere nice
-			def getRenamedMGU(original: Sequent, clean: Sequent, sub: Substitution, vars: MSet[Var]): Substitution = {
-					val renamingForward = findRenaming(original, clean)(vars)
-							if (renamingForward.size == 0) {
-								return sub
-							}
-
-					val renamingBackward = findRenaming(clean, original)(vars)
-
-							def appSub(pair: (Var, E)): (Var, E) = {
-						if (!renamingForward.get(pair._1).isEmpty) {
-							(renamingForward(pair._1).asInstanceOf[Var], pair._2)
-						} else if (!renamingBackward.get(pair._1).isEmpty) {
-							(renamingBackward(pair._1).asInstanceOf[Var], pair._2)
-						} else {
-							pair
-						}
-
-					}
-
-					val outPairs = sub.toList.map(p => appSub(p))
-
-							Substitution(outPairs: _*)
-			}
 
 			def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
 
@@ -297,15 +274,14 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 
 							val ambiguousErrorString = "Resolution (MRR): the resolvent is ambiguous."
 
-							//TODO: clean this up?
 							try {
 								def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
 									new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
 								} else {
 									fixedRight
 								}
-								def attemptD = UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
-										attemptD
+								UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
+										
 							} catch {
 							case e: Exception => {
 								if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
@@ -316,8 +292,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 												} else {
 													fixedRight
 												}
-										def attemptC = fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-												attemptC
+										fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 									} else {
 										def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
 											new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
@@ -334,14 +309,12 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 										} else {
 											fixedRight
 										}
-										def attemptB = UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
-												attemptB
+										 UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
 									} catch {
 									case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
 
 										try {
-											def attempt = UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
-													attempt
+											UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
 										} catch {
 										case f: Exception => {
 											val oldMGU = mguMap.get(left).get
@@ -450,7 +423,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables {
 		val diffs = half.diff(newSeq)
 
 				val subOut = if (diffs.size > 0) {
-					val formula = diffs.head //should only be one //TODO: ensure this!
+					val formula = diffs.head //should only be one
+					
 							val renameSub = unify((formula, target) :: Nil)
 							renameSub.get //should never be empty
 				} else {

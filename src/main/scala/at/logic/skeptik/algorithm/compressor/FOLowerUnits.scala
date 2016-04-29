@@ -9,6 +9,8 @@ import at.logic.skeptik.proof.sequent.resolution.MRRException
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
 import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
+import at.logic.skeptik.proof.sequent.resolution.FindMGU
+
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import collection.mutable.{ Queue, HashMap => MMap }
 import at.logic.skeptik.proof.Proof
@@ -57,7 +59,7 @@ Nevertheless, if our current method of doing contractions (i.e. trying to find t
  */
 
 object FOLowerUnits
-extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVariables with FindDesiredSequent {
+extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVariables with FindDesiredSequent with FindMGU {
 
 	def isUnitClause(s: Sequent) = s.ant.length + s.suc.length == 1
 
@@ -114,7 +116,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 							val childrensParentsConclusionsSeqSeq = for (c <- children) yield {
 								val parentsConclusions = for (p <- c.premises) yield {
 									//Picks out (all) u_k in c_k
-
 									val oo = getUnitLiteralUsingAux(p, node, c, vars)
 											Seq[E](oo)
 								}
@@ -227,14 +228,14 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 			IndexedSeq[SequentProofNode]()
 		}
 	}
-	
+
 	def tryReversingArguments(l: SequentProofNode, r: SequentProofNode, goal: Sequent, vars: MSet[Var]) = {
 		try {
 			UnifyingResolutionMRR(r, l, goal)(vars)
 		} catch {
 		case e: Exception => {
-		  //Do nothing
-		  null
+			//Do nothing
+			null
 		}
 		}
 	}
@@ -261,31 +262,9 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 		updatedCarry
 	}
 
-	def getRenamedMGU(original: Sequent, clean: Sequent, sub: Substitution, vars: MSet[Var]): Substitution = {
-		val renamingForward = findRenaming(original, clean)(vars)
-				if (renamingForward.size == 0) {
-					return sub
-				}
-
-		val renamingBackward = findRenaming(clean, original)(vars)
-
-
-				def appSub(pair: (Var, E)): (Var, E) = {
-			if (!renamingForward.get(pair._1).isEmpty) {
-				(renamingForward(pair._1).asInstanceOf[Var], pair._2)
-			} else if (!renamingBackward.get(pair._1).isEmpty) {
-				(renamingBackward(pair._1).asInstanceOf[Var], pair._2)
-			} else {
-				pair
-			}
-
-		}
-		val outPairs = sub.toList.map(p => appSub(p))
-
-				Substitution(outPairs: _*)
-	}
 
 	def fixProofNodes(unitsSet: Set[SequentProofNode], proof: Proof[SequentProofNode], vars: MSet[Var]) = {
+
 		val fixMap = MMap[SequentProofNode, SequentProofNode]()
 
 				val carryMap = MMap[SequentProofNode, Sequent]()
@@ -458,8 +437,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 						val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
 								val fixedCarry = updateCarry(testCarry, renamingBackward)
 
-								///________________
-
 								//TODO: update both maps
 								if (testCarry != null) {
 									addToMap(urMRRout, testCarry)
@@ -475,7 +452,6 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 							if (findRenaming(fixedLeft.conclusion, left.conclusion)(vars) != null &&
 									findRenaming(fixedRight.conclusion, right.conclusion)(vars) != null) {
-								//TODO: update maps in this case?
 								return UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
 							}
 
@@ -659,7 +635,7 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 	}
 
 
-	
+
 	def tryToResolveUsingAllCarrys(node: SequentProofNode, left: SequentProofNode, right: SequentProofNode, fixedLeft: SequentProofNode, fixedRight: SequentProofNode, carryMap: MMap[SequentProofNode, List[Sequent]], mguMap: MMap[SequentProofNode, Substitution], vars: MSet[Var], attemptContraction: Boolean): (SequentProofNode, Sequent) = {
 		val leftCarryList = if (!carryMap.get(fixedLeft).isEmpty) {
 			carryMap.get(fixedLeft).get
@@ -681,115 +657,115 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 								for (leftCarry <- finalLeftCarries) {
 									for (rightCarry <- finalRightCarries) {
-											try {
-												val oMGU = node.asInstanceOf[UnifyingResolution].mgu
+										try {
+											val oMGU = node.asInstanceOf[UnifyingResolution].mgu
 
-														val carryA = if (!fixedRight.equals(right)) {
-															rightCarry
-														} else { null }
+													val carryA = if (!fixedRight.equals(right)) {
+														rightCarry
+													} else { null }
 
-												val carryB = if (!fixedLeft.equals(left)) {
-													leftCarry
-												} else { null }
+											val carryB = if (!fixedLeft.equals(left)) {
+												leftCarry
+											} else { null }
 
-												val olderA = if (!mguMap.get(fixedRight).isEmpty) {
-													mguMap.get(fixedRight).get
-												} else { null }
+											val olderA = if (!mguMap.get(fixedRight).isEmpty) {
+												mguMap.get(fixedRight).get
+											} else { null }
 
-												val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
-													mguMap.get(fixedLeft).get
-												} else { null }
+											val olderB = if (!mguMap.get(fixedLeft).isEmpty) {
+												mguMap.get(fixedLeft).get
+											} else { null }
 
-												val newFixedRight = fixedRight match {
-												case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
-													new FOSubstitution(fixedRight, olderA)(vars)
-												}
-												case _ if (olderA != null && !fixedRight.equals(right)) => {
-													new FOSubstitution(fixedRight, olderA)(vars)
-												}
-												case _ => {
-													fixedRight
-												}
-												}
+											val newFixedRight = fixedRight match {
+											case Axiom(c) if (olderA != null && !fixedRight.equals(right)) => {
+												new FOSubstitution(fixedRight, olderA)(vars)
+											}
+											case _ if (olderA != null && !fixedRight.equals(right)) => {
+												new FOSubstitution(fixedRight, olderA)(vars)
+											}
+											case _ => {
+												fixedRight
+											}
+											}
 
-												val newFixedLeft = fixedLeft match {
-												case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
-													new FOSubstitution(fixedLeft, olderB)(vars)
-												}
-												case _ if (olderB != null && !fixedLeft.equals(left)) => {
-													new FOSubstitution(fixedLeft, olderB)(vars)
-												}
-												case _ => {
-													fixedLeft
-												}
-												}
+											val newFixedLeft = fixedLeft match {
+											case Axiom(c) if (olderB != null && !fixedLeft.equals(left)) => {
+												new FOSubstitution(fixedLeft, olderB)(vars)
+											}
+											case _ if (olderB != null && !fixedLeft.equals(left)) => {
+												new FOSubstitution(fixedLeft, olderB)(vars)
+											}
+											case _ => {
+												fixedLeft
+											}
+											}
 
-												val (leftMGU, rightMGU) = splitMGU(node, left, right)
+											val (leftMGU, rightMGU) = splitMGU(node, left, right)
 
-														val stuff = generateGoal(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
+													val stuff = generateGoal(fixedLeft, fixedRight, carryA, carryB, olderA, olderB, node.conclusion, oMGU, node, leftMGU, rightMGU)(vars)
 
-														val newGoalD = stuff._1
+													val newGoalD = stuff._1
 
-														val contractedNewLeft = if (attemptContraction) {
-																val tempConL = Contraction(fixedLeft)(vars)
+													val contractedNewLeft = if (attemptContraction) {
+														val tempConL = Contraction(fixedLeft)(vars)
 																if(tempConL.conclusion.logicalSize < fixedLeft.conclusion.logicalSize){
 																	tempConL
 																} else {
-																fixedLeft
+																	fixedLeft
 																}
-															} else {
-															fixedLeft 
-															}
-														val contractedNewRight =  if (attemptContraction) {
-																val tempConR = Contraction(fixedRight)(vars)
-																if(tempConR.conclusion.logicalSize < fixedRight.conclusion.logicalSize){
-																	tempConR
-																} else {
-																fixedRight
-																}
-															} else {
-															fixedRight 
-															}
-
-														val out = UnifyingResolutionMRR(contractedNewLeft, contractedNewRight, newGoalD)(vars)
-
-														val mergedCarry = unionSequents(stuff._3, stuff._4)
-
-														val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
-
-														val testCarry = if (mergedCarry != null) {
-															val testAnt = if (mergedCarry.ant != null) {
-																mergedCarry.ant.map(e => cleanMGU(e))
-															} else {
-																Seq[E]()
-															}
-															val testSuc = if (mergedCarry.suc != null) {
-																mergedCarry.suc.map(e => cleanMGU(e))
-															} else {
-																Seq[E]()
-															}
-															addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
+													} else {
+														fixedLeft 
+													}
+											val contractedNewRight =  if (attemptContraction) {
+												val tempConR = Contraction(fixedRight)(vars)
+														if(tempConR.conclusion.logicalSize < fixedRight.conclusion.logicalSize){
+															tempConR
 														} else {
-															null
+															fixedRight
 														}
-
-												mguMap.update(out, stuff._2)
-
-												if (finalOut == null) {
-													finalOut = out
-															finalGoal = newGoalD
-												}
-
-											} catch {
-											case e: Exception => {
-												println("Attempt failed. Moving on...")
+											} else {
+												fixedRight 
 											}
+
+											val out = UnifyingResolutionMRR(contractedNewLeft, contractedNewRight, newGoalD)(vars)
+
+													val mergedCarry = unionSequents(stuff._3, stuff._4)
+
+													val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
+
+													val testCarry = if (mergedCarry != null) {
+														val testAnt = if (mergedCarry.ant != null) {
+															mergedCarry.ant.map(e => cleanMGU(e))
+														} else {
+															Seq[E]()
+														}
+														val testSuc = if (mergedCarry.suc != null) {
+															mergedCarry.suc.map(e => cleanMGU(e))
+														} else {
+															Seq[E]()
+														}
+														addAntecedents(testAnt.toList) union addSuccedents(testSuc.toList)
+													} else {
+														null
+													}
+
+											mguMap.update(out, stuff._2)
+
+											if (finalOut == null) {
+												finalOut = out
+														finalGoal = newGoalD
 											}
+
+										} catch {
+										case e: Exception => {
+											println("Attempt failed. Moving on...")
+										}
 										}
 									}
+								}
 		(finalOut, finalGoal)
 	}	
-	
+
 
 
 	def makeUnitSequent(u: SequentProofNode, c: E): Sequent = {
@@ -928,15 +904,15 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 
 	def smartContraction(left: SequentProofNode, right: SequentProofNode, units: List[SequentProofNode], vars: MSet[Var]): SequentProofNode = {
 		val newRight = {
-		  val tempCon = Contraction(right)(vars)
-		  if (tempCon.conclusion.logicalSize < right.conclusion.logicalSize){
-		    tempCon
-		  } else {
-		    right
-		  }
+				val tempCon = Contraction(right)(vars)
+						if (tempCon.conclusion.logicalSize < right.conclusion.logicalSize){
+							tempCon
+						} else {
+							right
+						}
 		}
 
-				val rightsUnit = findUnitInSeq(newRight, units, vars)
+		val rightsUnit = findUnitInSeq(newRight, units, vars)
 
 				val rightUnitIsAnt = if (rightsUnit.conclusion.suc.size > 0) {
 					false
@@ -966,17 +942,17 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 				val leftContractedSmart = Contraction(leftSubstituted)(vars)
 
 				val smarterContractionResolution = try {
-				  UnifyingResolution(newRight, leftContractedSmart)(vars)
+					UnifyingResolution(newRight, leftContractedSmart)(vars)
 				} catch {
 				case e: Exception => {
-				  if(e.getMessage.equals("Resolution: the resolvent is ambiguous.")){
-				    UnifyingResolution(leftContractedSmart,newRight)(vars)
-				  } else {
-				    throw e 
-				  }
+					if(e.getMessage.equals("Resolution: the resolvent is ambiguous.")){
+						UnifyingResolution(leftContractedSmart,newRight)(vars)
+					} else {
+						throw e 
+					}
 				}
 				}
-				smarterContractionResolution
+		smarterContractionResolution
 	}
 
 	def applySubs(node: SequentProofNode, subs: List[Substitution], vars: MSet[Var]): SequentProofNode = {
@@ -1047,69 +1023,69 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 			UnifyingResolution(left, right)(unifiableVariables)
 		} catch {
 		case e: Exception => {
-		  if(e.getMessage.equals("Resolution: the resolvent is ambiguous.")){
- 			  multipleResolution(left, right, leftIsUnit)(unifiableVariables)
-		  } else {
-		    throw new Exception("Could not invoke multiple resolution")
-		  }
+			if(e.getMessage.equals("Resolution: the resolvent is ambiguous.")){
+				multipleResolution(left, right, leftIsUnit)(unifiableVariables)
+			} else {
+				throw new Exception("Could not invoke multiple resolution")
+			}
 		}
 		}
 	}
 
 	def multipleResolution(left: SequentProofNode, right: SequentProofNode, leftIsUnit: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-	  		if (leftIsUnit) {
-			    //left is unit
-	  		  multipleResolutionHelper(left, right, leftIsUnit)
-	  		} else {
-	  		  //right is unit
-	  		  multipleResolutionHelper(right, left, leftIsUnit)
-	  		}
+		if (leftIsUnit) {
+			//left is unit
+			multipleResolutionHelper(left, right, leftIsUnit)
+		} else {
+			//right is unit
+			multipleResolutionHelper(right, left, leftIsUnit)
+		}
 	}
 
-	
+
 	def multipleResolutionHelper(unitNodeGiven: SequentProofNode, otherNodeGiven: SequentProofNode, flag: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-	  	//unitNodeGiven is unit
-			if (unitNodeGiven.conclusion.suc.size > 0) {
-				val unitNodeGivenUnit = unitNodeGiven.conclusion.suc.head
+		//unitNodeGiven is unit
+		if (unitNodeGiven.conclusion.suc.size > 0) {
+			val unitNodeGivenUnit = unitNodeGiven.conclusion.suc.head
 
-						val listOfThingsToRemove = findUnifiableFormula(unitNodeGivenUnit, otherNodeGiven.conclusion.ant)
-						if (listOfThingsToRemove.size < 1) {
-							return otherNodeGiven
-						}
-				val toRemove = listOfThingsToRemove.head
+					val listOfThingsToRemove = findUnifiableFormula(unitNodeGivenUnit, otherNodeGiven.conclusion.ant)
+					if (listOfThingsToRemove.size < 1) {
+						return otherNodeGiven
+					}
+			val toRemove = listOfThingsToRemove.head
 
-						val newAnt = otherNodeGiven.conclusion.ant.filter(_ != toRemove)
-						val newSuc = otherNodeGiven.conclusion.suc
-						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-						val temp = UnifyingResolution(unitNodeGiven, otherNodeGiven, goal)
-						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
-							temp
-						} else {
-							multipleResolution(unitNodeGiven, temp, flag)
-						}
-			} else if (unitNodeGiven.conclusion.ant.size > 0) {
-				val unitNodeGivenUnit = unitNodeGiven.conclusion.ant.head
+					val newAnt = otherNodeGiven.conclusion.ant.filter(_ != toRemove)
+					val newSuc = otherNodeGiven.conclusion.suc
+					val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+					val temp = UnifyingResolution(unitNodeGiven, otherNodeGiven, goal)
+					if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
+						temp
+					} else {
+						multipleResolution(unitNodeGiven, temp, flag)
+					}
+		} else if (unitNodeGiven.conclusion.ant.size > 0) {
+			val unitNodeGivenUnit = unitNodeGiven.conclusion.ant.head
 
-						val listOfThingsToRemove = findUnifiableFormula(unitNodeGivenUnit, otherNodeGiven.conclusion.suc)
-						if (listOfThingsToRemove.size < 1) {
-							return otherNodeGiven
-						}
-				val toRemove = listOfThingsToRemove.head
+					val listOfThingsToRemove = findUnifiableFormula(unitNodeGivenUnit, otherNodeGiven.conclusion.suc)
+					if (listOfThingsToRemove.size < 1) {
+						return otherNodeGiven
+					}
+			val toRemove = listOfThingsToRemove.head
 
-						val newAnt = otherNodeGiven.conclusion.ant
-						val newSuc = otherNodeGiven.conclusion.suc.filter(_ != toRemove)
-						val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
-						val temp = UnifyingResolution(unitNodeGiven, otherNodeGiven, goal)
-						if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
-							temp
-						} else {
-							multipleResolution(unitNodeGiven, temp, flag)
-						}
-			} else {
-				throw new Exception("Multiple resolution failed.")
-			}
+					val newAnt = otherNodeGiven.conclusion.ant
+					val newSuc = otherNodeGiven.conclusion.suc.filter(_ != toRemove)
+					val goal = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
+					val temp = UnifyingResolution(unitNodeGiven, otherNodeGiven, goal)
+					if (temp.conclusion.ant.size == 0 && temp.conclusion.suc.size == 0) {
+						temp
+					} else {
+						multipleResolution(unitNodeGiven, temp, flag)
+					}
+		} else {
+			throw new Exception("Multiple resolution failed.")
+		}
 	}
-	
+
 	def apply(proof: Proof[SequentProofNode]): Proof[SequentProofNode] = {
 		val collected = collectUnits(proof)
 

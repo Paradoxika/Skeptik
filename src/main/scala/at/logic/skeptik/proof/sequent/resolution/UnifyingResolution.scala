@@ -83,6 +83,33 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 
 }
 
+
+trait FindMGU extends FindDesiredSequent {
+  	def getRenamedMGU(original: Sequent, clean: Sequent, sub: Substitution, vars: MSet[Var]): Substitution = {
+		val renamingForward = findRenaming(original, clean)(vars)
+				if (renamingForward.size == 0) {
+					return sub
+				}
+
+		val renamingBackward = findRenaming(clean, original)(vars)
+
+
+				def appSub(pair: (Var, E)): (Var, E) = {
+			if (!renamingForward.get(pair._1).isEmpty) {
+				(renamingForward(pair._1).asInstanceOf[Var], pair._2)
+			} else if (!renamingBackward.get(pair._1).isEmpty) {
+				(renamingBackward(pair._1).asInstanceOf[Var], pair._2)
+			} else {
+				pair
+			}
+
+		}
+		val outPairs = sub.toList.map(p => appSub(p))
+
+				Substitution(outPairs: _*)
+	}
+}
+
 trait FindsVars extends checkUnifiableVariableName {
   def getSetOfVars(e: E*): MSet[Var] =
     if (e.length == 1) {
