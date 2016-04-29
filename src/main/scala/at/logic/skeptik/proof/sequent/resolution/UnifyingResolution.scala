@@ -53,7 +53,7 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 
 				val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 				if (unifiablePairs.length > 0) {
-					findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
+					findDesiredSequentX(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
 				} else if (unifiablePairs.length == 0) {
 					throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A")
 				} else {
@@ -491,54 +491,14 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 		}
 	}
 
-	def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
-			rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
-		if (pairs.length == 0) {      
-			throw new Exception("Resolution: Cannot find desired resolvent")
-		} else {
 
-			val (auxL, auxR) = pairs(0)
 
-					val computedResolution = {
-				if (isMRR) {
-					var ax = null.asInstanceOf[SequentProofNode]
-							ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
-					if (desired.logicalSize < ax.conclusion.logicalSize) {
-						try {
-
-							val desiredSequentClean = fixSharedNoFilter(Axiom(desired), ax, 0, unifiableVariables).conclusion
-
-									Contraction(ax, desiredSequentClean)(unifiableVariables)
-						} catch {
-						case e: Exception => {
-							ax //do nothing with this; we can't contract it anyways
-						}
-						}
-					} else {
-						ax
-					}
-
-				} else {
-					new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
-				}
-			}
-			val computedSequent = computedResolution.conclusion.toSeqSequent
-					val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
-
-					if (findRenaming(desired, computedSequentClean) != null) {
-						computedResolution
-					} else {
-						findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR)
-					}
-		}
-	}
-
-	def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
-			rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+def findDesiredSequentX(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
+			rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution = null)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
 		if (pairs.length == 0) {
-			throw new Exception("Resolution: Cannot find desired resolvent (B)")
+			throw new Exception("Resolution: Cannot find desired resolvent")
 		} else {
 
 			val (auxL, auxR) = pairs(0)
@@ -569,24 +529,37 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 			val computedSequent = computedResolution.conclusion.toSeqSequent
 
 					val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
+					
+					var desiredEquivToComputedRelaxed = false
+					var computedCleanIsMoreGeneral = false 
+			if(relaxation != null){
+					
 					def applyRelaxation(seq: Sequent, relax: Substitution): Sequent = {
 				val newAnt = seq.ant.map(e => relax(e)).distinct
 						val newSuc = seq.suc.map(e => relax(e)).distinct
 						val out = addAntecedents(newAnt.toList) union addSuccedents(newSuc.toList)
 						out
 			}
+					
+					val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
+					
+					desiredEquivToComputedRelaxed = findRenaming(desired, computedSequentRelaxed)!= null
+					computedCleanIsMoreGeneral = isMoreGeneral(computedSequentClean, desired)
+			}
 
-			val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
+			
 
-					if ( (findRenaming(desired, computedSequentClean) != null) || (findRenaming(desired, computedSequentRelaxed)!= null) || isMoreGeneral(computedSequentClean, desired)) {
+			val condition = (findRenaming(desired, computedSequentClean) != null) || desiredEquivToComputedRelaxed || computedCleanIsMoreGeneral
+			
+					if (condition) {
 						computedResolution
 					} else {
-						findDesiredSequent(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR, relaxation)
+						findDesiredSequentX(pairs.tail, desired, leftPremise, rightPremise, leftPremiseClean, isMRR, relaxation)
 					}
 		}
-	}
-
-
+	}	
+	
+	
 	def isMoreGeneral(a: Sequent, b: Sequent)(implicit unifiableVars: MSet[Var]): Boolean = {
 		if (findRenaming(a, b) != null) {
 			return true
