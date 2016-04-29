@@ -208,9 +208,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				}
 
 				// Main case (rebuild a resolution)
-				case UnifyingResolution(left, right, auxL, auxR) => {
-					//TODO: use map for lookup, find carry, and build new expected result, use that to fix ambiguity
-					//   --- necessary now? 
+				case UnifyingResolution(left, right, auxL, auxR) => { 
 
 					val nonEmptyLeftMap = !auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty
 							val nonEmptyRightMap = !auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty
@@ -294,13 +292,13 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				} else {
 					fLeft.conclusion
 				}
-		val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, oldMGU, leftEq)
+		val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, oldMGU, leftEq, true)
 				val fRightClean = if (!fRight.equals(right)) {
 					new FOSubstitution(fRight, oldMGU).conclusion
 				} else {
 					fRight.conclusion
 				}
-		val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, oldMGU, rightEq)
+		val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, oldMGU, rightEq, false)
 
 				//TODO: this for the left? 
 				//TODO: do this conditionally only?
@@ -334,12 +332,9 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 		out
 	}
 
-	def findRemainder(seq: Sequent, target: E, mgu: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): (Sequent, Substitution) = {
-		//TODO: what if the target is in both ant and suc?? Should only be removed once. 
-		//Need to track where it is, and only remove it from that.
-
-		val (newAnt, antSub) = checkHalf(seq.ant, target, mgu, applySub)
-				val (newSuc, sucSub) = checkHalf(seq.suc, target, mgu, applySub)
+	def findRemainder(seq: Sequent, target: E, mgu: Substitution, applySub: Boolean, removeFromAnt: Boolean)(implicit unifiableVariables: MSet[Var]): (Sequent, Substitution) = {	  
+		val (newAnt, antSub) = if (removeFromAnt) { checkHalf(seq.ant, target, mgu, applySub) } else { (seq.ant.toList, null) }
+	  val (newSuc, sucSub) = if (!removeFromAnt) { checkHalf(seq.suc, target, mgu, applySub) } else { (seq.suc.toList, null) }
 
 				val subOut = if (antSub != null) { antSub } else { sucSub } //at least one of these must be non-empty
 		//both should never be empty
@@ -427,7 +422,7 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 				} else {
 					seq.suc
 				}
-		//TODO: change this to reflect changes above regarding what is considered safe?
+		
 		for (lit <- seqHalf) {
 			unify((lit, aux) :: Nil)(uVars) match {
 			case None => {}
