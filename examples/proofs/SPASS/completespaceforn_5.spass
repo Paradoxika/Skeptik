@@ -1,0 +1,148 @@
+1[0:Inp] ||  -> eq(f(U),4) eq(f(U),3) eq(f(U),2) eq(f(U),1) eq(f(U),0)*.
+2[0:Inp] ||  -> le(U,U)*.
+3[0:Inp] || le(max(U,V),W)* -> le(U,W).
+4[0:Inp] || le(max(U,V),W)* -> le(V,W).
+5[0:Inp] || le(s(U),V)*+ eq(f(U),0)* eq(f(V),0)* -> .
+6[0:Inp] || le(s(U),V)*+ eq(f(U),1)* eq(f(V),1)* -> .
+7[0:Inp] || le(s(U),V)*+ eq(f(U),2)* eq(f(V),2)* -> .
+8[0:Inp] || le(s(U),V)*+ eq(f(U),3)* eq(f(V),3)* -> .
+9[0:Inp] || le(s(U),V)*+ eq(f(U),4)* eq(f(V),4)* -> .
+10[0:Res:2.0,4.0] ||  -> le(U,max(V,U))*.
+11[0:Res:10.0,4.0] ||  -> le(U,max(V,max(W,U)))*.
+12[0:Res:11.0,4.0] ||  -> le(U,max(V,max(W,max(X,U))))*.
+13[0:Res:2.0,3.0] ||  -> le(U,max(U,V))*.
+14[0:Res:10.0,3.0] ||  -> le(U,max(V,max(U,W)))*.
+15[0:Res:11.0,3.0] ||  -> le(U,max(V,max(W,max(U,X))))*.
+16[0:Res:13.0,3.0] ||  -> le(U,max(max(U,V),W))*.
+17[0:Res:13.0,4.0] ||  -> le(U,max(max(V,U),W))*.
+18[0:Res:14.0,3.0] ||  -> le(U,max(V,max(max(U,W),X)))*.
+19[0:Res:14.0,4.0] ||  -> le(U,max(V,max(max(W,U),X)))*.
+20[0:Res:16.0,3.0] ||  -> le(U,max(max(max(U,V),W),X))*.
+21[0:Res:16.0,4.0] ||  -> le(U,max(max(max(V,U),W),X))*.
+24[0:Res:2.0,9.0] || eq(f(U),4) eq(f(s(U)),4)* -> .
+26[0:Res:11.0,9.0] || eq(f(U),4) eq(f(max(V,max(W,s(U)))),4)* -> .
+28[0:Res:13.0,9.0] || eq(f(U),4) eq(f(max(s(U),V)),4)* -> .
+29[0:Res:16.0,9.0] || eq(f(U),4) eq(f(max(max(s(U),V),W)),4)* -> .
+31[0:Res:12.0,3.0] ||  -> le(U,max(V,max(W,max(X,max(U,Y)))))*.
+38[0:Res:18.0,4.0] ||  -> le(U,max(V,max(max(max(W,U),X),Y)))*.
+43[0:Res:2.0,8.0] || eq(f(U),3) eq(f(s(U)),3)* -> .
+44[0:Res:10.0,8.0] || eq(f(U),3) eq(f(max(V,s(U))),3)* -> .
+45[0:Res:11.0,8.0] || eq(f(U),3) eq(f(max(V,max(W,s(U)))),3)* -> .
+47[0:Res:15.0,8.0] || eq(f(U),3) eq(f(max(V,max(W,max(s(U),X)))),3)* -> .
+49[0:Res:18.0,8.0] || eq(f(U),3) eq(f(max(V,max(max(s(U),W),X))),3)* -> .
+51[0:Res:13.0,8.0] || eq(f(U),3) eq(f(max(s(U),V)),3)* -> .
+53[0:Res:17.0,8.0] || eq(f(U),3) eq(f(max(max(V,s(U)),W)),3)* -> .
+54[0:Res:20.0,3.0] ||  -> le(U,max(max(max(max(U,V),W),X),Y))*.
+55[0:Res:20.0,4.0] ||  -> le(U,max(max(max(max(V,U),W),X),Y))*.
+60[0:Res:21.0,8.0] || eq(f(U),3) eq(f(max(max(max(V,s(U)),W),X)),3)* -> .
+70[0:Res:2.0,7.0] || eq(f(U),2) eq(f(s(U)),2)* -> .
+71[0:Res:10.0,7.0] || eq(f(U),2) eq(f(max(V,s(U))),2)* -> .
+75[0:Res:14.0,7.0] || eq(f(U),2) eq(f(max(V,max(s(U),W))),2)* -> .
+77[0:Res:19.0,7.0] || eq(f(U),2) eq(f(max(V,max(max(W,s(U)),X))),2)* -> .
+80[0:Res:17.0,7.0] || eq(f(U),2) eq(f(max(max(V,s(U)),W)),2)* -> .
+82[0:Res:21.0,7.0] || eq(f(U),2) eq(f(max(max(max(V,s(U)),W),X)),2)* -> .
+86[0:Res:31.0,4.0] ||  -> le(U,max(V,max(W,max(X,max(max(Y,U),Z)))))*.
+90[0:Res:2.0,6.0] || eq(f(U),1) eq(f(s(U)),1)* -> .
+91[0:Res:10.0,6.0] || eq(f(U),1) eq(f(max(V,s(U))),1)* -> .
+92[0:Res:11.0,6.0] || eq(f(U),1) eq(f(max(V,max(W,s(U)))),1)* -> .
+96[0:Res:14.0,6.0] || eq(f(U),1) eq(f(max(V,max(s(U),W))),1)* -> .
+99[0:Res:13.0,6.0] || eq(f(U),1) eq(f(max(s(U),V)),1)* -> .
+101[0:Res:17.0,6.0] || eq(f(U),1) eq(f(max(max(V,s(U)),W)),1)* -> .
+124[0:Res:2.0,5.0] || eq(f(U),0) eq(f(s(U)),0)* -> .
+125[0:Res:10.0,5.0] || eq(f(U),0) eq(f(max(V,s(U))),0)* -> .
+136[0:Res:13.0,5.0] || eq(f(U),0) eq(f(max(s(U),V)),0)* -> .
+151[0:Res:38.0,4.0] ||  -> le(U,max(V,max(max(max(W,max(X,U)),Y),Z)))*.
+164[0:Res:1.4,124.1] || eq(f(U),0) -> eq(f(s(U)),4) eq(f(s(U)),3) eq(f(s(U)),2) eq(f(s(U)),1)*.
+173[0:Res:54.0,4.0] ||  -> le(U,max(max(max(max(max(V,U),W),X),Y),Z))*.
+180[0:Res:55.0,4.0] ||  -> le(U,max(max(max(max(V,max(W,U)),X),Y),Z))*.
+184[0:Res:55.0,8.0] || eq(f(U),3) eq(f(max(max(max(max(V,s(U)),W),X),Y)),3)* -> .
+228[0:Res:1.4,125.1] || eq(f(U),0) -> eq(f(max(V,s(U))),4) eq(f(max(V,s(U))),3) eq(f(max(V,s(U))),2) eq(f(max(V,s(U))),1)*.
+229[0:Res:1.4,136.1] || eq(f(U),0) -> eq(f(max(s(U),V)),4) eq(f(max(s(U),V)),3) eq(f(max(s(U),V)),2) eq(f(max(s(U),V)),1)*.
+239[0:Res:86.0,4.0] ||  -> le(U,max(V,max(W,max(X,max(max(Y,max(Z,U)),X1)))))*.
+244[0:Res:86.0,9.0] || eq(f(U),4) eq(f(max(V,max(W,max(X,max(max(Y,s(U)),Z))))),4)* -> .
+314[0:Res:151.0,9.0] || eq(f(U),4) eq(f(max(V,max(max(max(W,max(X,s(U))),Y),Z))),4)* -> .
+356[0:Res:173.0,9.0] || eq(f(U),4) eq(f(max(max(max(max(max(V,s(U)),W),X),Y),Z)),4)* -> .
+370[0:Res:180.0,9.0] || eq(f(U),4) eq(f(max(max(max(max(V,max(W,s(U))),X),Y),Z)),4)* -> .
+487[0:Res:239.0,9.0] || eq(f(U),4) eq(f(max(V,max(W,max(X,max(max(Y,max(Z,s(U))),X1))))),4)* -> .
+505[0:Res:228.4,101.1] || eq(f(U),0) eq(f(V),1) -> eq(f(max(max(W,s(V)),s(U))),4) eq(f(max(max(W,s(V)),s(U))),3) eq(f(max(max(W,s(V)),s(U))),2)*.
+535[0:Res:229.4,92.1] || eq(f(U),0) eq(f(V),1) -> eq(f(max(s(U),max(W,s(V)))),4) eq(f(max(s(U),max(W,s(V)))),3) eq(f(max(s(U),max(W,s(V)))),2)*.
+536[0:Res:229.4,96.1] || eq(f(U),0) eq(f(V),1) -> eq(f(max(s(U),max(s(V),W))),4) eq(f(max(s(U),max(s(V),W))),3) eq(f(max(s(U),max(s(V),W))),2)*.
+1097[0:Res:505.4,82.1] || eq(f(U),0) eq(f(V),1) eq(f(W),2) -> eq(f(max(max(max(X,s(W)),s(V)),s(U))),4) eq(f(max(max(max(X,s(W)),s(V)),s(U))),3)*.
+1195[0:Res:535.4,77.1] || eq(f(U),0) eq(f(V),1) eq(f(W),2) -> eq(f(max(s(U),max(max(X,s(W)),s(V)))),4) eq(f(max(s(U),max(max(X,s(W)),s(V)))),3)*.
+3775[0:Res:1097.4,184.1] || eq(f(U),0) eq(f(V),1) eq(f(W),2) eq(f(X),3) -> eq(f(max(max(max(max(Y,s(X)),s(W)),s(V)),s(U))),4)*.
+3975[0:Res:1195.4,49.1] || eq(f(U),0) eq(f(V),1) eq(f(W),2) eq(f(X),3) -> eq(f(max(s(U),max(max(s(X),s(W)),s(V)))),4)*.
+10778[0:Res:3775.4,356.1] || eq(f(U),0)* eq(f(V),1)* eq(f(W),2)* eq(f(X),3)* eq(f(Y),4)* -> .
+10779[0:MRR:3975.4,10778.4] || eq(f(U),0)*+ eq(f(V),1)* eq(f(W),2)* eq(f(X),3)* -> .
+10835[0:MRR:1195.4,10779.3] || eq(f(U),0) eq(f(V),1) eq(f(W),2) -> eq(f(max(s(U),max(max(X,s(W)),s(V)))),4)*.
+12527[0:Res:10835.3,314.1] || eq(f(U),0)* eq(f(V),1)* eq(f(W),2)* eq(f(X),4)* -> .
+12529[0:MRR:10835.3,12527.3] || eq(f(U),0)*+ eq(f(V),1)* eq(f(W),2)* -> .
+14085[0:MRR:536.4,12529.2] || eq(f(U),0) eq(f(V),1) -> eq(f(max(s(U),max(s(V),W))),4) eq(f(max(s(U),max(s(V),W))),3)*.
+14845[0:Res:14085.3,47.1] || eq(f(U),0) eq(f(V),1) eq(f(W),3) -> eq(f(max(s(U),max(s(V),max(s(W),X)))),4)*.
+15315[0:Res:14845.3,244.1] || eq(f(U),0)* eq(f(V),1)* eq(f(W),3)* eq(f(X),4)* -> .
+15319[0:MRR:14845.3,15315.3] || eq(f(U),0)*+ eq(f(V),1)* eq(f(W),3)* -> .
+15379[0:MRR:14085.3,15319.2] || eq(f(U),0) eq(f(V),1) -> eq(f(max(s(U),max(s(V),W))),4)*.
+16056[0:Res:15379.2,26.1] || eq(f(U),0)* eq(f(V),1)* eq(f(W),4)* -> .
+16073[0:MRR:15379.2,16056.2] || eq(f(U),0)*+ eq(f(V),1)* -> .
+16743[0:MRR:164.4,16073.1] || eq(f(U),0) -> eq(f(s(U)),4) eq(f(s(U)),3) eq(f(s(U)),2)*.
+16744[0:MRR:228.4,16073.1] || eq(f(U),0) -> eq(f(max(V,s(U))),4) eq(f(max(V,s(U))),3) eq(f(max(V,s(U))),2)*.
+16751[0:MRR:229.4,16073.1] || eq(f(U),0) -> eq(f(max(s(U),V)),4) eq(f(max(s(U),V)),3) eq(f(max(s(U),V)),2)*.
+16812[0:Res:16744.3,80.1] || eq(f(U),0) eq(f(V),2) -> eq(f(max(max(W,s(V)),s(U))),4) eq(f(max(max(W,s(V)),s(U))),3)*.
+16866[0:Res:16751.3,75.1] || eq(f(U),0) eq(f(V),2) -> eq(f(max(s(U),max(s(V),W))),4) eq(f(max(s(U),max(s(V),W))),3)*.
+17094[0:Res:16812.3,60.1] || eq(f(U),0) eq(f(V),2) eq(f(W),3) -> eq(f(max(max(max(X,s(W)),s(V)),s(U))),4)*.
+17180[0:Res:16866.3,45.1] || eq(f(U),0) eq(f(V),2) eq(f(W),3) -> eq(f(max(s(U),max(s(V),s(W)))),4)*.
+18133[0:Res:17094.3,370.1] || eq(f(U),0)* eq(f(V),2)* eq(f(W),3)* eq(f(X),4)* -> .
+18134[0:MRR:17180.3,18133.3] || eq(f(U),0)*+ eq(f(V),2)* eq(f(W),3)* -> .
+18194[0:MRR:16866.3,18134.2] || eq(f(U),0) eq(f(V),2) -> eq(f(max(s(U),max(s(V),W))),4)*.
+18447[0:Res:18194.2,26.1] || eq(f(U),0)* eq(f(V),2)* eq(f(W),4)* -> .
+18464[0:MRR:18194.2,18447.2] || eq(f(U),0)*+ eq(f(V),2)* -> .
+18710[0:MRR:16743.3,18464.1] || eq(f(U),0) -> eq(f(s(U)),4) eq(f(s(U)),3)*.
+18711[0:MRR:16744.3,18464.1] || eq(f(U),0) -> eq(f(max(V,s(U))),4) eq(f(max(V,s(U))),3)*.
+18777[0:Res:18711.2,51.1] || eq(f(U),0) eq(f(V),3) -> eq(f(max(s(V),s(U))),4)*.
+18779[0:Res:18711.2,53.1] || eq(f(U),0) eq(f(V),3) -> eq(f(max(max(W,s(V)),s(U))),4)*.
+18883[0:Res:18779.2,29.1] || eq(f(U),0)* eq(f(V),3)* eq(f(W),4)* -> .
+18899[0:MRR:18777.2,18883.2] || eq(f(U),0)*+ eq(f(V),3)* -> .
+18961[0:MRR:18710.2,18899.1] || eq(f(U),0) -> eq(f(s(U)),4)*.
+18962[0:MRR:18711.2,18899.1] || eq(f(U),0) -> eq(f(max(V,s(U))),4)*.
+19028[0:Res:18962.1,28.1] || eq(f(U),0)* eq(f(V),4)* -> .
+19059[0:MRR:18961.1,19028.1] || eq(f(U),0)* -> .
+19122[0:MRR:1.4,19059.0] ||  -> eq(f(U),4) eq(f(U),3) eq(f(U),2) eq(f(U),1)*.
+19123[0:Res:19122.3,90.1] || eq(f(U),1) -> eq(f(s(U)),4) eq(f(s(U)),3) eq(f(s(U)),2)*.
+19124[0:Res:19122.3,91.1] || eq(f(U),1) -> eq(f(max(V,s(U))),4) eq(f(max(V,s(U))),3) eq(f(max(V,s(U))),2)*.
+19155[0:Res:19122.3,99.1] || eq(f(U),1) -> eq(f(max(s(U),V)),4) eq(f(max(s(U),V)),3) eq(f(max(s(U),V)),2)*.
+19190[0:Res:19155.3,71.1] || eq(f(U),1) eq(f(V),2) -> eq(f(max(s(U),s(V))),4) eq(f(max(s(U),s(V))),3)*.
+19206[0:Res:19155.3,75.1] || eq(f(U),1) eq(f(V),2) -> eq(f(max(s(U),max(s(V),W))),4) eq(f(max(s(U),max(s(V),W))),3)*.
+19474[0:Res:19206.3,47.1] || eq(f(U),1) eq(f(V),2) eq(f(W),3) -> eq(f(max(s(U),max(s(V),max(s(W),X)))),4)*.
+20242[0:Res:19474.3,487.1] || eq(f(U),1)* eq(f(V),2)* eq(f(W),3)* eq(f(X),4)* -> .
+20246[0:MRR:19474.3,20242.3] || eq(f(U),1)*+ eq(f(V),2)* eq(f(W),3)* -> .
+20312[0:MRR:19190.3,20246.2] || eq(f(U),1) eq(f(V),2) -> eq(f(max(s(U),s(V))),4)*.
+20313[0:MRR:19206.3,20246.2] || eq(f(U),1) eq(f(V),2) -> eq(f(max(s(U),max(s(V),W))),4)*.
+20589[0:Res:20313.2,26.1] || eq(f(U),1)* eq(f(V),2)* eq(f(W),4)* -> .
+20613[0:MRR:20312.2,20589.2] || eq(f(U),1)*+ eq(f(V),2)* -> .
+20883[0:MRR:19123.3,20613.1] || eq(f(U),1) -> eq(f(s(U)),4) eq(f(s(U)),3)*.
+20884[0:MRR:19124.3,20613.1] || eq(f(U),1) -> eq(f(max(V,s(U))),4) eq(f(max(V,s(U))),3)*.
+20956[0:Res:20884.2,51.1] || eq(f(U),1) eq(f(V),3) -> eq(f(max(s(V),s(U))),4)*.
+20958[0:Res:20884.2,53.1] || eq(f(U),1) eq(f(V),3) -> eq(f(max(max(W,s(V)),s(U))),4)*.
+21068[0:Res:20958.2,29.1] || eq(f(U),1)* eq(f(V),3)* eq(f(W),4)* -> .
+21084[0:MRR:20956.2,21068.2] || eq(f(U),1)*+ eq(f(V),3)* -> .
+21152[0:MRR:20883.2,21084.1] || eq(f(U),1) -> eq(f(s(U)),4)*.
+21153[0:MRR:20884.2,21084.1] || eq(f(U),1) -> eq(f(max(V,s(U))),4)*.
+21225[0:Res:21153.1,28.1] || eq(f(U),1)* eq(f(V),4)* -> .
+21256[0:MRR:21152.1,21225.1] || eq(f(U),1)* -> .
+21325[0:MRR:19122.3,21256.0] ||  -> eq(f(U),4) eq(f(U),3) eq(f(U),2)*.
+21326[0:Res:21325.2,70.1] || eq(f(U),2) -> eq(f(s(U)),4) eq(f(s(U)),3)*.
+21327[0:Res:21325.2,71.1] || eq(f(U),2) -> eq(f(max(V,s(U))),4) eq(f(max(V,s(U))),3)*.
+21399[0:Res:21327.2,51.1] || eq(f(U),2) eq(f(V),3) -> eq(f(max(s(V),s(U))),4)*.
+21401[0:Res:21327.2,53.1] || eq(f(U),2) eq(f(V),3) -> eq(f(max(max(W,s(V)),s(U))),4)*.
+21513[0:Res:21401.2,29.1] || eq(f(U),2)* eq(f(V),3)* eq(f(W),4)* -> .
+21529[0:MRR:21399.2,21513.2] || eq(f(U),2)*+ eq(f(V),3)* -> .
+21597[0:MRR:21326.2,21529.1] || eq(f(U),2) -> eq(f(s(U)),4)*.
+21598[0:MRR:21327.2,21529.1] || eq(f(U),2) -> eq(f(max(V,s(U))),4)*.
+21670[0:Res:21598.1,28.1] || eq(f(U),2)* eq(f(V),4)* -> .
+21701[0:MRR:21597.1,21670.1] || eq(f(U),2)* -> .
+21770[0:MRR:21325.2,21701.0] ||  -> eq(f(U),4) eq(f(U),3)*.
+21771[0:Res:21770.1,43.1] || eq(f(U),3) -> eq(f(s(U)),4)*.
+21772[0:Res:21770.1,44.1] || eq(f(U),3) -> eq(f(max(V,s(U))),4)*.
+21843[0:Res:21772.1,28.1] || eq(f(U),3)* eq(f(V),4)* -> .
+21874[0:MRR:21771.1,21843.1] || eq(f(U),3)* -> .
+21943[0:MRR:21770.1,21874.0] ||  -> eq(f(U),4)*.
+21945[0:MRR:24.1,24.0,21943.0] ||  -> .

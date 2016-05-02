@@ -1,0 +1,6 @@
+1: { ⊢ (p U V), (q A)} 	: Axiom()[]
+2: {(q A) ⊢ (p Y X)} 	: Axiom()[]
+3: { ⊢ (p U V), (p Y X)} 	: UnifyingResolutionMRR(1, 2)[]
+4: { ⊢ (p Y X)} 	: Contraction(3)[]
+5: {(p W X) ⊢ } 	: Axiom()[]
+6: { ⊢ } 	: UnifyingResolutionMRR(4, 5)[]

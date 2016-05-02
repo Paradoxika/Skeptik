@@ -1,0 +1,418 @@
+\documentclass[12pt]{article}
+\usepackage{bussproofs}
+\usepackage{amsmath}
+\usepackage{ amssymb }
+\usepackage{amsthm}
+\usepackage{latexsym}
+\usepackage{geometry}
+\usepackage{color}
+
+
+\marginparwidth=0pt
+\hoffset=-1cm
+%\voffset=-1cm
+
+\newtheorem{thm}{Theorem}[section]
+
+% most others are numbered together with theorems
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{exmp}[thm]{Example}
+%%
+% just an example of what will happen if you skip the [thm]
+% part -- conjectures will be numbered consecutively
+\newtheorem{conj}{Conjecture}
+\newtheorem{prob}{Problem}
+\newtheorem{claim}{Claim}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+\newtheorem{property}{Property}[section]
+\theoremstyle{remark}
+\newtheorem{rem}{Remark}[section]
+\newtheorem{notation}{Notation}
+
+
+\newcommand{\clause}[1]{ \lfloor{#1} \rfloor}
+\newcommand{\safeliterals}[1]{ \Sigma({#1}) }
+\begin{document}
+\section{Local Redundancy}
+We first consider an example first posed by Postan:
+\begin{prooftree}
+\AxiomC{$L_2$: $P(A)$}
+\AxiomC{$\eta_2$: $\neg P(x)$, $\neg Q(x, B)$}
+\BinaryInfC{$\neg Q(x,  B)$}
+\AxiomC{$\eta_1$: $\neg P(z)$, $Q(z,y)$}
+\BinaryInfC{$\neg P(z)$}
+\AxiomC{$L_1$: $P(x)$}
+\BinaryInfC{$\bot$}
+\end{prooftree}
+Which is locally redundant; see the compressed version in his document.
+
+\section{``Example 2''}
+We consider example 2, from the LU/RPI paper, modified for first order predicates in a trivial way:
+\begin{prooftree}
+\def\fCenter{\mbox{\ $\vdash$\ }}
+
+\AxiomC{\scriptsize $\eta_1$: $\neg P(A)$}
+\AxiomC{\scriptsize $\eta_3$: $P(A),Q(B)$}
+\BinaryInfC{\scriptsize $\eta_4$: $Q(B)$}
+\AxiomC{\scriptsize $\eta_2$: $P(A), R(C), \neg Q(B)$}
+\BinaryInfC{\scriptsize $\eta_5$: $P(A), R(C)$}
+\AxiomC{\scriptsize$\eta_1$: $\neg P(A)$}
+\BinaryInfC{\scriptsize $\eta_6$: $R(C)$}
+
+\AxiomC{\scriptsize$\eta_4$: $Q(B)$}
+\AxiomC{ \scriptsize$\eta_7$: $P(A), \neg Q(B), \neg R(C)$}
+\BinaryInfC{\scriptsize$\eta_8$: $P(A), \neg R(C)$}
+\AxiomC{\scriptsize$\eta_1$: $\neg P(A)$}
+\BinaryInfC{\scriptsize$\eta_9$: $\neg R(C)$}
+
+\BinaryInfC{\scriptsize$\bot$}
+\end{prooftree}
+
+\subsection{Lower Units}
+Proceeds exactly the same as in the paper.\\
+{\bf TODO:} show exact steps? \\
+
+\subsection{RecyclePivots}
+Again, proceeds like in the paper. 
+
+\section{Lower Units}
+\subsection{Research Notes}
+First, I consider the proofs 1-5 that were provided by Bruno on the Skeptik dev mailing list. In order to be explicit, I outline the case of compression from proof 1 to proof 2:
+\begin{itemize}
+\item Lower $P(X)$ so that the terms using it were resolved against each other instead of with $P(X)$
+\item Contract (trivially?); the unifier resulted in the duplicated terms
+\item Resolve the contracted formula against the lowered unit, $P(X)$
+\end{itemize}
+
+The result is a trade of a resolution for a contraction, which is more compact (when we consider compactness as a count of the number of resolution rules).
+
+In order to generalize, I think the best place to start was see under what conditions we can in fact make this contraction. It should not be required that contraction results in duplicated formulas; indeed, as long as a contraction is possible this seems to work. So in particular, I conjecture that we should lower a unit formula if and only if for all formulas which would be resolved against the unit clause of interest are pair-wise unifiable (disregarding the remainder of their premises), and unifiable with the unit. Further, the unit must be the most general form of the formula, as the following shows:
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\scriptsize \e$P(y,x)$}
+\AxiomC{\scriptsize$P(A,x)$ \e $Q(A),R(B)$}
+\BinaryInfC{\scriptsize\e $Q(y), R(B)$}
+\AxiomC{\scriptsize$Q(y)$ \e $Q(x)$}
+\BinaryInfC{\scriptsize\e $R(B), Q(x)$}
+
+\AxiomC{\scriptsize$Q(A), P(y,A)$\e}
+\AxiomC{\scriptsize\e$P(y,x)$}
+\BinaryInfC{\scriptsize$Q(x)$\e}
+
+\BinaryInfC{\scriptsize\e$R(B)$}
+\AxiomC{\scriptsize$R(B)$\e}
+
+\BinaryInfC{\scriptsize$\bot$}
+\end{prooftree}
+
+but if we delay the resolution with $P(y,x)$ we get
+
+\begin{prooftree}
+\def\e{\scriptsize\mbox{\ $\vdash$\ }}
+\AxiomC{\scriptsize$P(A,x)$\e $Q(A),R(B)$}
+\AxiomC{\scriptsize$Q(y)$ \e$Q(x)$}
+\BinaryInfC{\scriptsize$P(y,x)$\e$Q(x),R(B)$}
+
+\AxiomC{\scriptsize$Q(A), P(y,A)$\e}
+\BinaryInfC{\scriptsize$P(y,x), P(x,y)$\e $R(B)$}
+\AxiomC{\scriptsize$R(B)$\e}
+\BinaryInfC{\scriptsize$P(y,x),P(y,A)$\e}
+\AxiomC{\scriptsize\e $P(y,x)$}
+\BinaryInfC{\scriptsize$P(y,x)$}
+\AxiomC{\scriptsize\e $P(y,x)$}
+\BinaryInfC{\scriptsize$\bot$}
+\end{prooftree}
+
+and now we actually the same number of resolution rules. No, we can still use a contraction, and reduce the proof.
+
+The requirement for being pairwise unifiable is also seen in proof 1 and 2, but further, this is lacking the case of proof 3: $P(a)$ and $P(b)$ is not unifiable, and thus proof 5 is not actually compressed. But if $P(b)$ had been $P(B)$, then we would have been fine. It also fails in the following example:
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\e $P(X)$}
+\AxiomC{$P(a)$\e$Q(Y),R(Z)$}
+\BinaryInfC{\e$Q(Y),R(Z)$}
+\AxiomC{$R(X),P(b)$\e $S(Y)$}
+\BinaryInfC{$P(b)$\e $S(Y),Q(Y)$}
+\AxiomC{$S(Y), Q(Y)$\e}
+\BinaryInfC{$P(b)$\e}
+\AxiomC{\e $P(X)$}
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+which is the 'potentially' globally reduction example from the original lower units paper.\\
+
+
+\newpage
+\subsection{Results}
+Let $\clause{x}$ denote a clause consisting of the formula $x$.
+
+\begin{thm}
+Let $S$ be the set of premises being resolved against a unit clause $u$. For every distinct $\eta_1,\eta_2 \in S$, let $\clause{\overline{u}_1'}$ and $\clause{\overline{u}_2'}$ be the pivot literal with opposite polarity of $\clause{u}$ in $\eta_1$ and $\eta_2$, respectively. Then $u$ can be lowered if every pair $\clause{\overline{u}_1'}$ and $\clause{\overline{u}_2'}$ are unifiable.
+\end{thm}
+
+\begin{proof}
+We proceed by induction. Base case: $|S|=1$. In this case, the unit $\clause{u}$ is only involved in exactly one resolution; let $\clause{\eta}$ be the premise resolved against $\clause{u}$ so that we have $P=\phi[\phi_1[\eta \odot_{\sigma} u]]$. Note that $\clause{\eta}$ contains $\clause{\overline{u}'}$, a negated version of $\clause{u}$, which would be resolved out in the conclusion of $\phi$, and note $\sigma_u$ is a unifier of $\clause{\overline{u}'}$ and $\clause{u}$. Consider instead $P'=\phi[\phi_1[\eta]]$, the proof obtained by replacing $\phi_1[\eta \odot_{\sigma} u]$ with just $\phi_1[\eta]$. Note that all nodes of $P'$ contain $\clause{\overline{u}'}$. In particular, the final node in the proof $P'$ is $\clause{\overline{u}'}$ instead of $\clause{\bot}$. But then we can resolve against $u$ using $\sigma$ to complete the proof.
+%here the sigma is the same one
+
+Assume the result holds for all $|S|\le n$, and consider $|S|=n+1$. Assume that $S$ is defined as above, and is pairwise unifiable. Order the elements from the top of the proof to the bottom (and break ties left-right), so that $\clause{\eta_1}$ is the top-left-most premise resolved against $\clause{u}$. In particular, $\clause{\eta_1}$ contains $\clause{\overline{u}_1'}$, and we have that $P=\phi[\phi_1[\eta_1 \odot_{\sigma_1} u]]$. Consider instead $P'=\phi[\phi_{1}[\eta_1]]$, the proof obtained by replacing $\phi_1[\eta_1 \odot_{\sigma_1} u]$ with just $\phi_{1}[\eta_1]$. Note that all nodes of $P'$ contain $\clause{\overline{u}_1'}$ still. In particular, the final node in the proof is $\clause{\overline{u}_1'}$ instead of $\clause{\bot}$.  
+
+Consider $S'=S\setminus\clause{\eta_1}$: since $|S|=n+1>1$, $|S'| = |S|-1 = n$. Apply the induction hypothesis to the premises in $S'$ to get a  resolution $\phi_2[\eta_2 \odot_{\sigma_2} u]$ in $P'$ (where $\clause{\eta_2}$ contains $\clause{\overline{u}_2'}$);  we can construct $\phi_{2}[\eta_2]$. Consider instead  $\phi[\phi_{2}[\eta_2]]$: the  node of which contains $\clause{\overline{u}_2'}$. As a result, the final proof node of $P'$ final proof node has $\clause{\overline{u}_1'} \cup \clause{\overline{u}_2'}$ instead of $\clause{\overline{u}_1'}$ (which is present because of the lowering of $\eta_1$). By assumption, $\clause{\overline{u}_1'}$ and $\clause{\overline{u}_2'}$ are pair-wise unifiable by some unifier $\sigma_{1,2}$. We can therefore contract $\sigma_{1,2}(\clause{\overline{u}_1'} \cup \clause{\overline{u}_2'})$ and call the result $\clause{\eta_{1,2}}$. Now $\clause{\eta_{1,2}}$ and $\clause{u}$ must be unifiable by assumption with some unifier $\sigma_u$, so we can replace the last node in the proof with $\eta_{1,2}\odot_{\sigma_u} u$ to complete the proof.
+%here, I think the last sigma is really the union of $\sigma_1$ (restricted to $u$) and $\sigma_2$ (restricted to $u$).
+\end{proof}
+
+\newpage
+\section{Recycle Pivots}
+\subsection{Research Notes}
+
+Example from the video, trivially made first-order (note that in some proofs there should be a contraction at the ``c: "; I will assume terms are always contracted after a resolution, if possible):
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\scriptsize\e $A(X)C(Y)D(Z)$}
+\AxiomC{\scriptsize$D(Z)$ \e $A(X)C(Y)$}
+\BinaryInfC{\scriptsize\e $A(X)C(Y)$}
+\AxiomC{\scriptsize$A(X)$ \e $C(Y)$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$}
+
+\AxiomC{\scriptsize$C(Y)$\e}
+\AxiomC{\scriptsize$D(Z)$ \e $C(Y)$}
+\BinaryInfC{\scriptsize$D(Z)$\e}
+\AxiomC{\scriptsize$A(X) C(Y)$ \e $D(Z)$}
+\BinaryInfC{\scriptsize$A(X)C(Y)$\e}
+
+\BinaryInfC{\scriptsize$A(X)$\e}
+
+\AxiomC{\scriptsize\e $A(X)$}
+
+\BinaryInfC{\scriptsize$\bot$}
+
+\end{prooftree}
+
+Which is, after the first (bottom-up) traversal:
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\scriptsize {\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{\scriptsize {\color{red}\e $A(X)C(Y)$}}
+\AxiomC{\scriptsize$A(X)$ \e $C(Y)$}
+\RightLabel{\scriptsize $A(X)$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{\scriptsize $C(Y)$\e}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $C(Y)$ }}
+\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{\scriptsize $D(Z)$\e $\{A(X)C(Y)D(Z)\e \}$}
+\AxiomC{\scriptsize$A(X) C(Y)$ \e $D(Z)$}
+\RightLabel{\scriptsize $D(Z)$}
+\BinaryInfC{\scriptsize $A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{\scriptsize $A(X)$\e $\{A(X)\e\}$}
+
+\AxiomC{\scriptsize \e $A(X)$}
+\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{\scriptsize$\bot$ $\{ \}$} 
+
+\end{prooftree}
+
+\def\e{\mbox{\ $\vdash$\ }}
+
+Now we start the second (top-down) traversal. We replace $D(Z)$ with $C(Y) \e$ since $ C(Y) \e$ is in $D(Z)$'s safe formulas, and we replace with the left parent of $D(Z)$ since that is the one that contains the safe formula $C(Y) \e$.
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\scriptsize {\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{\scriptsize {\color{red}\e $A(X)C(Y)$}}
+\AxiomC{\scriptsize$A(X)$ \e $C(Y)$}
+%\RightLabel{\scriptsize $A(X)$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{\scriptsize $C(Y)$\e}
+\AxiomC{\scriptsize $A(X) C(Y)$ \e $D(Z)$}
+%\RightLabel{\scriptsize $D(Z)$}
+\BinaryInfC{\scriptsize $A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+%\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{\scriptsize $A(X)$\e $\{A(X)\e\}$}
+
+\AxiomC{\scriptsize \e $A(X)$}
+%\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{\scriptsize $\bot$ $\{ \}$} 
+
+\end{prooftree}
+
+Now we lower $C(Y) \e$ again, because it is also in $A(X)C(Y)\e$'s safe formulas, and we pick the left because the right parent might have unsafe formulas (e.g. $\e D(Z)$), but the left has only safe formulas.
+
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+\AxiomC{\scriptsize {\color{red} \e $A(X)C(Y)D(Z)$ }}
+\AxiomC{\scriptsize {\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+\BinaryInfC{\scriptsize {\color{red}\e $A(X)C(Y)$}}
+\AxiomC{\scriptsize $A(X)$ \e $C(Y)$}
+%\RightLabel{\scriptsize $A(X)$}
+\BinaryInfC{\scriptsize c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{\scriptsize $C(Y)$\e}
+%\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+%\RightLabel{\scriptsize $D(Z)$}
+%\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+%\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{\scriptsize $A(X)$\e $\{A(X)\e\}$}
+
+\AxiomC{\scriptsize \e $A(X)$}
+%\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{\scriptsize $\bot$ $\{ \}$} 
+
+\end{prooftree}
+
+Now we need to deal with the last remaining broken proof section (what is left in red). Since $A(X) \e C(Y)$ is safe with respect to the line under it, we lower it:
+
+
+\begin{prooftree}
+\def\e{\mbox{\ $\vdash$\ }}
+%\AxiomC{{\color{red} \e $A(X)C(Y)D(Z)$ }}
+%\AxiomC{{\color{red}$D(Z)$ \e $A(X)C(Y)$}}
+%\BinaryInfC{{\color{red}\e $A(X)C(Y)$}}
+\AxiomC{$A(X)$ \e $C(Y)$}
+%\RightLabel{\scriptsize $A(X)$}
+%\BinaryInfC{c:  \e $C(Y)$ $\{A(X)\e C(Y) \}$}
+
+\AxiomC{$C(Y)$\e}
+%\AxiomC{$A(X) C(Y)$ \e $D(Z)$}
+%\RightLabel{\scriptsize $D(Z)$}
+%\BinaryInfC{$A(X)C(Y)$\e $\{A(X)C(Y)\e \}$}
+
+%\RightLabel{\scriptsize $C(Y)$}
+\BinaryInfC{$A(X)$\e }
+
+\AxiomC{\e $A(X)$}
+%\LeftLabel{\scriptsize $A(X)$}
+\BinaryInfC{$\bot$ } 
+
+\end{prooftree}
+
+And we have the desired shorter proof.
+
+ 
+\subsection{Examples from Bruno's post}
+
+Safe literals for $\eta$: $\{\e P(a,X),C\}$. Pivot for $\eta \rightarrow \eta^*$: \e $Z$. \\
+When $Z=P(a,X)$:
+
+\begin{prooftree}
+\AxiomC{$\eta$: \e $P(a,X)$}
+\AxiomC{$P(a,X)$ \e $C$}
+\BinaryInfC{$\eta^*$: \e $C$}
+\AxiomC{$C$ \e $P(a,X)$}
+\BinaryInfC{\e $P(a,X)$}
+\AxiomC{$P(Y,b)$ \e }
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+Regularizable: we can can take the right parent of the resolution that would produce $\eta^*$. The right parent contains exactly the safe literals.
+
+When $Z=P(a,c)$:
+
+\begin{prooftree}
+\AxiomC{$\eta$: \e $P(a,c)$}
+\AxiomC{$P(a,c)$ \e $C$}
+\BinaryInfC{$\eta^*$: \e $C$}
+\AxiomC{$C$ \e $P(a,X)$}
+\BinaryInfC{\e $P(a,X)$}
+\AxiomC{$P(Y,b)$ \e }
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+Not regularizable: we can can take the either parent of the resolution that would produce $\eta^*$, but then the next resolvent is $\e P(a,c)$, which we can't resolve with $P(a,b)$. Neither parent contains the safe literal $P(a,X)$
+
+
+When $Z=P(W,X)$:
+
+\begin{prooftree}
+\AxiomC{$\eta$: \e $P(W,X)$}
+\AxiomC{$P(W,X)$ \e $C$}
+\BinaryInfC{$\eta^*$: \e $C$}
+\AxiomC{$C$ \e $P(a,X)$}
+\BinaryInfC{\e $P(a,X)$}
+\AxiomC{$P(Y,b)$ \e }
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+Again, regularizable: we can can take the right parent of the resolution that would produce $\eta^*$. The right parent contains a more general form of the safe literal $P(a,X)$? (Will study this further)
+
+\subsection{Ideas}
+
+After studying the last case in greater detail, I provide the following two conjectures; the first is the 
+weaker version, while the second appears to capture more cases, so is likely better. The first is included only for completeness, or in case I discover a counter-example to the second one. Both are based off of the observation that regularization can proceed if a safe literal is found above some $\eta^*$ which is somehow more general. The two conjectures differ in what is allowed as 'somehow more generall.
+
+\begin{conj}[Weak Recycle Condition]\label{recycle-cond-weak}
+If there is a parent in $\eta$ (the resolution resulting in $\eta^*$) contains an exact copy of a safe literal of $\eta^*$, or a parent containing the most general form of a safe literal of $\eta^*$, then regularization is possible.
+\end{conj}
+
+I define a most general form of a literal as that literal but containing only universally quantified variables.
+
+This certainly captures what happens with the last of Bruno's examples, but misses some cases, e.g. when $Z=P(W,b)$:
+
+\begin{prooftree}
+\AxiomC{$\eta$: \e $P(W,b)$}
+\AxiomC{$P(W,b)$ \e $C$}
+\BinaryInfC{$\eta^*$: \e $C$}
+\AxiomC{$C$ \e $P(a,X)$}
+\BinaryInfC{\e $P(a,X)$}
+\AxiomC{$P(Y,b)$ \e }
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+In this case, regularization should be possible, and the final resolution in the proof would be
+
+\begin{prooftree}
+\AxiomC{\e $P(a,b)$}
+\AxiomC{$P(Y,b)$ \e }
+\BinaryInfC{$\bot$}
+\end{prooftree}
+
+which is fine. So I thought of the following conjecture:
+\begin{conj}[Strong Recycle Condition]\label{recycle-cond-strong}
+If there is a parent in $\eta$ (the resolution resulting in $\eta^*$) contains an exact copy of a safe literal of $\eta^*$, or a parent containing the most general form of a safe literal of $\eta^*$, or a consistent but still more general form of the safe literal, then regularization is possible.
+\end{conj}
+
+A consistent but still more general form of the safe literal is a bit harder to define. We will say that a literal $X$ is a consistent but more still general form (``CMGF'') of the safe literal $Y$ if for every resolution where $Y$ is the pivot, $X$ can be used in place of $Y$, and $X$ contains more universally quantified variables than $Y$. An example of a literal that is \emph{not} a consistent but still more general form of the safe literal $P(a,b)$ is $Z=P(X,c)$; the resolution would not be possible with $Z$ in place of the safe literal.
+
+Since a literal is considered safe for nodes above the resolution that uses it as a pivot, I also think that checking if a literal is a CMGF of the safe literal should be fairly straightforward. When the bottom-up traversal happens, we can also identify with each safe literal the substitutions made in the unification during the resolution. In fact, I think we would only need the substitutions that take a universally quantified variable to a specific variable (lower case letter). Then, when checking if regularization is possible, we apply that unifier to the safe literal, and then attempt to unify the result with the suspected CMGF; if the second unification is possible, the literal is in fact a CMGF; otherwise it is not. 
+
+To illustrate, I describe this on the last example. During the bottom up traversal, when $C$ would get the safe literal $P(a,X)$, it instead gets the pair $(P(a,X),\{X \rightarrow b\})$. Now when checking if we can regularize $C$, we look at $P(W,b)$ and $P(a,b)$ (which is $P(a,X)$ with $X \rightarrow b$ applied to it), and see if they can be unified; they can, so we can regularize $C$. Similarly, $Z=P(W,c)$ would fail: it's not unifiable with $P(a,b)$.
+
+
+
+%\begin{proof}[Proof of \ref{recycle-cond-strong}]
+%If a new node $\eta$ replaces $\eta^*$, we must have that it contains the exact literals or a CMGF. In the former, we can definitely perform the resolution. In the second case, we can unify the CMGF to the required literal, and therefore we can still perform the resolution.
+%\end{proof}
+
+\begin{proof}[Proof of \ref{recycle-cond-strong}]
+Consider $P=\phi[\eta^*]$ where $\eta^* = l \odot_\sigma r$ with pivot $p$. Without loss of generality, say that $l$ is the parent of $\eta^*$ that has the safe literals $s_1,\ldots,s_n$ of $\eta^*$; let $l = \eta$. According to the hypothesis, $\eta$ contains either the exact safe literals of $\eta^*$, the most general form of the safe literal $s_i$, or a CMGF form of $s_i$. In the first case, we can definitely perform the resolution where the safe literal $s_i$ was added to the list because the exact version is maintained. In the last two cases, we can unify the most general form or CMGF of $s_i$ (whichever we have) to the required literal, and therefore we can still perform the resolution where $s_i$ is the pivot.
+\end{proof}
+
+Do I need to show anything else? when the regularization removes more than one level, I would think (the line $\eta^* = l \odot r$ is too restricted.
+\newpage
+\subsection{Results}
+Let $\safeliterals{\eta}$ be the set of safe literals for a proof node $\eta$ and let $\eta \rightarrow^{p} \eta^*$ denote that $\eta$ is a parent of node $\eta^*$ where $\eta^*$ was obtained by some resolution using pivot $p$ and $\eta$ ($p \in \eta$).
+
+\begin{thm}[First Order Recycle Condition]\label{recycle-cond}
+If $\eta \rightarrow^{p} \eta^*$ and there is a literal $p^* \in \safeliterals{\eta^*}$ such that $p \sigma = p^*$ for some substitution $\sigma$, then $\eta^*$ can be replaced by $\eta$.
+\end{thm}
+
+\begin{proof}[Proof]
+Consider $P=\phi[\eta^*]$ where $\eta^* = \eta \odot_\sigma \eta'$ with pivot $p$. Without loss of generality, say that $\eta$ is the parent of $\eta^*$ that has the safe literal $p^* \in \safeliterals{\eta^*}$. According to the hypothesis, $\eta$, there exists a substitution $\sigma$ such that $p\sigma=p^*$. Note that all formulas in $\eta \setminus p$ are contained in $\eta^*$ (since resolution only removes the pivot formula); thus we can replace $\eta^*$ by $\eta$, and the only difference will be the presence of $p$. But recall that $p^*$ was a safe literal, and that it is eventually resolved out later in the proof using some unifier $\sigma'$. Since $p\sigma = p^*$, when this resolution occurs, we can apply $\sigma$ to the term first (so that $p$ has the required form of $p^*$), contract these two terms (which will in fact be syntactically equal), and then apply the resolution (using $\sigma'$) as before.
+\end{proof}
+
+\end{document}

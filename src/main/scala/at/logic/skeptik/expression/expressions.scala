@@ -49,7 +49,7 @@ case class App(val function: E, val argument: E) extends E {
   override def toString = this match {
     case App(App(s:Var with Infix, a), b) => "(" + a + " " + s + " " + b +  ")"
     case AppRec(f, args) => "(" + f + " " + args.mkString(" ") + ")"
-  }
+  } 
 }
 
 object AppRec {
@@ -67,5 +67,7 @@ object AppRec {
     case _ => return (e.function, e.argument::Nil) 
   } 
 }
+
+
 
 trait Infix extends Var
