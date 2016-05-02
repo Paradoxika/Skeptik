@@ -1,0 +1,1 @@
+($ x0 (holds (clc (neg v1) (clc (pos v2) cln)))($ x1 (holds (clc (neg v2) (clc (pos v3) cln)))($ x2 (holds (clc (neg v3) (clc (neg v2) cln)))($ x3 (holds (clc (pos v1) (clc (pos v2) cln)))(R _ _ _ (R _ _ _ x3 x0 v1) (R _ _ _ x1 x2 v3) v2)))))))

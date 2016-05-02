@@ -1,0 +1,15 @@
+cnf(sos,axiom, (~ eq(f(X0X0),0)) | (~ eq(f(max(s(X0X0),s(X0X1),s(X0X2))),0)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),0)) ).
+cnf(sos,axiom, (~ eq(f(X1X0),0)) | (~ eq(f(max(s(X1X0),s(X1X1),s(X1X2))),0)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),0)) ).
+cnf(sos,axiom, (~ eq(f(X2X0),0)) | (~ eq(f(max(s(X2X0),s(X2X1),s(X2X2))),0)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),0)) ).
+
+cnf(sos,axiom, (~ eq(f(X0X1),1)) | (~ eq(f(max(s(X0X0),s(X0X1),s(X0X2))),1)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),1)) ).
+cnf(sos,axiom, (~ eq(f(X1X1),1)) | (~ eq(f(max(s(X1X0),s(X1X1),s(X1X2))),1)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),1)) ).
+cnf(sos,axiom, (~ eq(f(X2X1),1)) | (~ eq(f(max(s(X2X0),s(X2X1),s(X2X2))),1)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),1)) ).
+
+
+cnf(sos,axiom, (~ eq(f(X0X2),2)) | (~ eq(f(max(s(X0X0),s(X0X1),s(X0X2))),2)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),2)) ).
+cnf(sos,axiom, (~ eq(f(X1X2),2)) | (~ eq(f(max(s(X1X0),s(X1X1),s(X1X2))),2)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),2)) ).
+cnf(sos,axiom, (~ eq(f(X2X2),2)) | (~ eq(f(max(s(X2X0),s(X2X1),s(X2X2))),2)) |  (~ eq(f(max(s(max(s(X0X0),s(X0X1),s(X0X2))),s(max(s(X1X0),s(X1X1),s(X1X2))),s(max(s(X2X0),s(X2X1),s(X2X2))))),2)) ).
+
+
+cnf(sos,axiom,eq(f(A),0) | eq(f(A),1) | eq(f(A),2)   ).
