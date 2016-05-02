@@ -1,5 +1,6 @@
 package at.logic.skeptik.algorithm
 
+import at.logic.skeptik.algorithm.compressor.congruence._
 import at.logic.skeptik.algorithm.compressor.split._
 import at.logic.skeptik.algorithm.compressor.subsumption._
 import at.logic.skeptik.algorithm.compressor.reduceAndReconstruct._
@@ -24,6 +25,7 @@ package object compressor {
     "D" -> DAGify,
     "ET" -> EliminateTautologies,
     "RU" -> RecycleUnits,
+    "TDRU" -> TopDownRecycleUnits,
     "RP" -> RecyclePivots,
     "RPI" -> RecyclePivotsWithIntersection,
     "RPC" -> RecyclePivotsWithConclusionSequent,
@@ -32,10 +34,6 @@ package object compressor {
     "RPI3LU" -> IdempotentThreePassLowerUnits,
     "LUVRPI" -> IdempotentLowerUnivalentsAfterRecyclePivots,
     "RPI3LUV" -> LowerUnivalentsBeforeRecyclePivots,
-
-    "FOLU" -> FOLowerUnits,
-    "FORP" -> FORecyclePivots,
-    "FORPI" -> FORecyclePivotsWithIntersection,
     
     "RR" -> new ReduceAndReconstructS1P(5000),
     "RRM" -> new ReduceAndReconstructMin(5000),
@@ -60,53 +58,60 @@ package object compressor {
     "RecS3" -> new DepthRecSplit(3,5000),
     "RecS5" -> new DepthRecSplit(5,5000),
 
+    "PT" -> PruneTheory,
+    
+    //Congruence Algorithms
+    "ArrayC" -> ArrayCongruence,
+    "FibC" -> FibonacciCongruence,
+    "PtC" -> ProofTreeCongruence,
+    
+    //Subsumptin Algorithms
     "TDS" -> TopDownSubsumption,
-    "GP" -> RemoveMostPebbles,
-    "BUP" -> LastChildOfBUPebbler,
-    "RemovesPebbles" -> LeastWaitingForPebbler,
-    "LastChild" -> new GenericBUPebbler(List("LastChild","InSub")),
-    "Children" -> new GenericBUPebbler(List("Children","InSub")),
-    "LastChildTD" -> new GenericTDPebbler(List("LastChild","InSub")),
-    "ChildrenTD" -> new GenericTDPebbler(List("Children","InSub")),
-    "Distance1" -> new GenericTDPebbler(List("Distance1","InSub")),
-    "Distance3" -> new GenericTDPebbler(List("Distance3","InSub")),
-    "Distance5" -> new GenericTDPebbler(List("Distance5","InSub")),
-    "Distance1BU" -> new GenericBUPebbler(List("Distance1","InSub")),
-    "Distance3BU" -> new GenericBUPebbler(List("Distance3","InSub")),
-    "Distance5BU" -> new GenericBUPebbler(List("Distance5","InSub")),    
-    "CDllmax" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.max),
-    "CDllavg" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
-    "CDlhmax" -> new ChildrenDecayPebbler(0.5, 7, (A: Seq[Double]) => A.max),
-    "CDlhavg" -> new ChildrenDecayPebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
-    "CDhlmax" -> new ChildrenDecayPebbler(3, 1, (A: Seq[Double]) => A.max),
-    "CDhlavg" -> new ChildrenDecayPebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
-    "CDhhmax" -> new ChildrenDecayPebbler(3, 7, (A: Seq[Double]) => A.max),
-    "CDhhavg" -> new ChildrenDecayPebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
-    "LCllmax" -> new LastChildOfDecayPebbler(0.5, 1, (A: Seq[Double]) => A.max),
-    "LCllavg" -> new LastChildOfDecayPebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
-    "LClhmax" -> new LastChildOfDecayPebbler(0.5, 7, (A: Seq[Double]) => A.max),
-    "LClhavg" -> new LastChildOfDecayPebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
-    "LChlmax" -> new LastChildOfDecayPebbler(3, 1, (A: Seq[Double]) => A.max),
-    "LChlavg" -> new LastChildOfDecayPebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
-    "LChhmax" -> new LastChildOfDecayPebbler(3, 7, (A: Seq[Double]) => A.max),
-    "LChhavg" -> new LastChildOfDecayPebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
-    "Dllmax" -> new LcoDCthenDistancePebbler(0.5, 1, (A: Seq[Double]) => A.max),
-    "Dllavg" -> new LcoDCthenDistancePebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
-    "Dlhmax" -> new LcoDCthenDistancePebbler(0.5, 7, (A: Seq[Double]) => A.max),
-    "Dlhavg" -> new LcoDCthenDistancePebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
-    "Dhlmax" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.max),
-    "Dhlavg" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
-    "Dhhmax" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.max),
-    "Dhhavg" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
-    "LC2llmax" -> new LastChildOfDecayPebblerNew(0.5, 1, (A: Seq[Double]) => A.max),
-    "LC2llavg" -> new LastChildOfDecayPebblerNew(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
-    "LC2lhmax" -> new LastChildOfDecayPebblerNew(0.5, 7, (A: Seq[Double]) => A.max),
-    "LC2lhavg" -> new LastChildOfDecayPebblerNew(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
-    "LC2hlmax" -> new LastChildOfDecayPebblerNew(3, 1, (A: Seq[Double]) => A.max),
-    "LC2hlavg" -> new LastChildOfDecayPebblerNew(3, 1, (A: Seq[Double]) => A.sum / A.size),
-    "LC2hhmax" -> new LastChildOfDecayPebblerNew(3, 7, (A: Seq[Double]) => A.max),
-    "LC2hhavg" -> new LastChildOfDecayPebblerNew(3, 7, (A: Seq[Double]) => A.sum / A.size),
-    "TestP" -> new InSubThenUsesPebblesPebbler(3, 7, (A: Seq[Double]) => A.max)
+    "BUS" -> BottomUpSubsumptionTime,
+    
+    //Pebbling Algorithms
+    "LCPebbler" -> new GenericBUPebbler(List("LastChild","InSub")),
+    "ChildPebbler" -> new GenericBUPebbler(List("Children","InSub")),
+    "LCPebblerTD" -> new GenericTDPebbler(List("LastChild","InSub")),
+    "ChildrenPebblerTD" -> new GenericTDPebbler(List("Children","InSub")),
+    "D1PebblerTD" -> new GenericTDPebbler(List("Distance1","InSub")),
+    "D3PebblerTD" -> new GenericTDPebbler(List("Distance3","InSub")),
+    "D1Pebbler" -> new GenericBUPebbler(List("Distance1","InSub")),
+    "D3Pebbler" -> new GenericBUPebbler(List("Distance3","InSub")),
+    "Distance5BU" -> new GenericBUPebbler(List("Distance5","InSub"))
+    //All sort of decay pebblers, it would be nice to be able to use console input for parameters
+//    "CDllmax" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.max),
+//    "CDllavg" -> new ChildrenDecayPebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "CDlhmax" -> new ChildrenDecayPebbler(0.5, 7, (A: Seq[Double]) => A.max),
+//    "CDlhavg" -> new ChildrenDecayPebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
+//    "CDhlmax" -> new ChildrenDecayPebbler(3, 1, (A: Seq[Double]) => A.max),
+//    "CDhlavg" -> new ChildrenDecayPebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "CDhhmax" -> new ChildrenDecayPebbler(3, 7, (A: Seq[Double]) => A.max),
+//    "CDhhavg" -> new ChildrenDecayPebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
+//    "LCllmax" -> new LastChildOfDecayPebbler(0.5, 1, (A: Seq[Double]) => A.max),
+//    "LCllavg" -> new LastChildOfDecayPebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "LClhmax" -> new LastChildOfDecayPebbler(0.5, 7, (A: Seq[Double]) => A.max),
+//    "LClhavg" -> new LastChildOfDecayPebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
+//    "LChlmax" -> new LastChildOfDecayPebbler(3, 1, (A: Seq[Double]) => A.max),
+//    "LChlavg" -> new LastChildOfDecayPebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "LChhmax" -> new LastChildOfDecayPebbler(3, 7, (A: Seq[Double]) => A.max),
+//    "LChhavg" -> new LastChildOfDecayPebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
+//    "Dllmax" -> new LcoDCthenDistancePebbler(0.5, 1, (A: Seq[Double]) => A.max),
+//    "Dllavg" -> new LcoDCthenDistancePebbler(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "Dlhmax" -> new LcoDCthenDistancePebbler(0.5, 7, (A: Seq[Double]) => A.max),
+//    "Dlhavg" -> new LcoDCthenDistancePebbler(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
+//    "Dhlmax" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.max),
+//    "Dhlavg" -> new LcoDCthenDistancePebbler(3, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "Dhhmax" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.max),
+//    "Dhhavg" -> new LcoDCthenDistancePebbler(3, 7, (A: Seq[Double]) => A.sum / A.size),
+//    "LC2llmax" -> new LastChildOfDecayPebblerNew(0.5, 1, (A: Seq[Double]) => A.max),
+//    "LC2llavg" -> new LastChildOfDecayPebblerNew(0.5, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "LC2lhmax" -> new LastChildOfDecayPebblerNew(0.5, 7, (A: Seq[Double]) => A.max),
+//    "LC2lhavg" -> new LastChildOfDecayPebblerNew(0.5, 7, (A: Seq[Double]) => A.sum / A.size),
+//    "LC2hlmax" -> new LastChildOfDecayPebblerNew(3, 1, (A: Seq[Double]) => A.max),
+//    "LC2hlavg" -> new LastChildOfDecayPebblerNew(3, 1, (A: Seq[Double]) => A.sum / A.size),
+//    "LC2hhmax" -> new LastChildOfDecayPebblerNew(3, 7, (A: Seq[Double]) => A.max),
+//    "LC2hhavg" -> new LastChildOfDecayPebblerNew(3, 7, (A: Seq[Double]) => A.sum / A.size)
   )
   
   trait fixNodes {

@@ -14,10 +14,10 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 import at.logic.skeptik.expression.Var
 
-//@RunWith(classOf[JUnitRunner])
-//class ForwardSubsumptionSpecification extends SpecificationWithJUnit {
-object ForwardSubsumptionSpecification {
-  def main(args: Array[String]):Unit = {
+@RunWith(classOf[JUnitRunner])
+class ForwardSubsumptionSpecification extends SpecificationWithJUnit {
+//object ForwardSubsumptionSpecification {
+//  def main(args: Array[String]):Unit = {
 	  val a = new Var("a",i)
     val b = new Var("b",i)
     val c = new Var("c",i)
@@ -64,23 +64,15 @@ object ForwardSubsumptionSpecification {
     
     
     val proof = Proof(concseq:SequentProofNode)
-//    val proof = ProofParserVeriT.read("F:/Proofs/small-size/iso_icl381.smt2")
-    println(proof)
-    val cproof = TopDownSubsumption(proof)
-    println(cproof)
-    println(cproof.root)
-    println(measure(NaiveTopDownSubsumption(proof)))
-    println(measure(DAGify(proof)))
-//    proof bottomUp({ ((node: SequentProofNode, children: Seq[SequentProofNode]) => { print(node.conclusion + " XX " ) ; children.foreach(f => print(f.conclusion)) ; print("\n") ; node } ) } )
-	
-//    "Forward Subsumption" should {
-//      "compress the proof" in {
-//        val compproof = TopDownLeftRightSubsumption.apply(r6)
-//        proof.size must beGreaterThan(compproof.size)
-//      }
-//      "conclude the empty clause" in {
-//        val compproof = TopDownLeftRightSubsumption.apply(r6)
-//        compproof.root.conclusion.isEmpty must beTrue
-//      }
-	}
+    "Forward Subsumption" should {
+      "compress the proof" in {
+        val compproof = TopDownSubsumption(concseq)
+        proof.size must beGreaterThan(compproof.size)
+      }
+      "conclude the empty clause" in {
+        val compproof = TopDownSubsumption(concseq)
+        compproof.root.conclusion.isEmpty must beTrue
+      }
+    }
+//  }
 }

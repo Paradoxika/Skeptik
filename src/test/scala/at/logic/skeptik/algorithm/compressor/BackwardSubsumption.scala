@@ -120,17 +120,7 @@ class BackwardSubsumptionSpecification extends SpecificationWithJUnit {
     concseq = R.apply(r2,r5)
 	}
   val proof = Proof(concseq:SequentProofNode)
-    
-//    def visit(node: SequentProofNode, results: Seq[Unit]):Unit = {
-//      println(node.conclusion)
-//    }
-//    
-//    proof foldDown(visit)
-//    
-//    proof bottomUp(visit)
-//  println(proof)
-   val compproof = BottomUpSubsumptionMemory(concseq)
-// println(compproof)
+  val compproof = BottomUpSubsumptionMemory(concseq)
   
   "Backward Subsumption" should {
     "compress the proof" in {

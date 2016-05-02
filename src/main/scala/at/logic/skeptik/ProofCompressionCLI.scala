@@ -1,8 +1,6 @@
 package at.logic.skeptik
 
-
-import at.logic.skeptik.parser.AlgorithmParser
-import at.logic.skeptik.parser.{ProofParser,ProofParserVeriT,ProofParserSkeptik,ProofParserTraceCheck, ProofParserSPASS}
+import at.logic.skeptik.parser._
 import at.logic.skeptik.exporter.Exporter
 import at.logic.skeptik.exporter.skeptik.{FileExporter => SkeptikFileExporter}
 import at.logic.skeptik.exporter.smt.{FileExporter => SMTFileExporter}
@@ -26,14 +24,27 @@ object ProofCompressionCLI {
                     mout: Output = NoOutput, // machine-readable output
                     moutHeader: Boolean = true)                
 
-  
-  private def unknownFormat(filename: String) = "Unknown proof format for " + filename + ". Supported formats are '.smt2', '.s', '.sd' and '.tc'"                 
+  val proofParsers = Map(
+    ".smt2"  -> ProofParserVeriT,
+    ".smtb"  -> ProofParserVeriT,
+    ".smtbc"  -> ProofParserVeriT,
+    ".skeptik"  -> ProofParserSkeptik,
+    ".s" -> ProofParserSkeptik,
+    ".tc" -> ProofParserTraceCheck,
+    ".tco" -> ProofParserTraceCheckOrdered,
+    ".tct" -> ProofParserTraceCheckTrim,
+    ".drup" -> ProofParserDRUP
+  ) 
+                    
+  private def unknownFormat(filename: String) = 
+    "Unknown proof format for " + filename + 
+    ". Supported input formats are: " + proofParsers.keys.mkString(", ")                 
   
   private def completedIn(t: Double) = " (completed in " + Math.round(t) + "ms)"       
   
   private def unknownAlgorithm(a: String) = "Algorithm " + a + " is unknown."
 
-  val parser = new scopt.OptionParser[Config]("compress"){
+  val parser = new scopt.OptionParser[Config]("skeptik"){
     
     head("\nSkeptik's Command Line Interface for Proof Compression\n\n") 
 
@@ -62,9 +73,9 @@ object ProofCompressionCLI {
     opt[String]('f', "format") action { (v, c) => 
       c.copy(format = v) 
     } validate { v =>
-      if (Seq("smt2", "smtbc", "smtb", "tc", "s", "sd") contains v) success 
+      if (Seq("smt2", "smtbc", "smtb", "tc", "tco", "s", "sd", "drup") contains v) success 
       else failure("unknown proof format: " + v)
-    } text("use <format> (either 'smt2', 'smtbc' 's' or 'sd') to output compressed proofs\n") valueName("<format>")
+    } text("use <format> (either 'smt2', 'smtbc', 'tc', 'tco', 'drup', 's' or 'sd') to output compressed proofs\n") valueName("<format>")
  
 
     opt[String]('m', "mout") action { (v, c) =>
@@ -96,7 +107,7 @@ object ProofCompressionCLI {
       algorithms 'RP' and the sequential composition of 'DAGify', 'RPI' and 'LU'.
       The compressed proofs are written using 'smt2' proof format.
 
-      compress -a RP -a (DAGify*RPI*LU) -f smt2 examples/proofs/VeriT/eq_diamond9.smt2
+      skeptik -a RP -a (DAGify*RPI*LU) -f smt2 examples/proofs/VeriT/eq_diamond9.smt2
       """)
   }
   
@@ -106,7 +117,7 @@ object ProofCompressionCLI {
 
     // parser.parse returns Option[C]
     parser.parse(args, Config()) map { c =>
-
+    //,"transLength") transLength could be interesting for congruence algorithms
       val measures = Seq("length","coreSize","height","space","time")
       
       val prettyTable = new HumanReadableTable(measures)
@@ -119,14 +130,7 @@ object ProofCompressionCLI {
         
         val proofFormat = ("""\.[^\.]+$""".r findFirstIn filename) getOrElse { throw new Exception(unknownFormat(filename)) }
         val proofName = filename.split(proofFormat)(0) // filename without extension
-        val proofParser = proofFormat match {
-          case ".smt2"  => ProofParserVeriT
-          case ".skeptik"  => ProofParserSkeptik
-          case ".s" => ProofParserSkeptik
-          case ".tc" => ProofParserTraceCheck
-          case ".spass" => ProofParserSPASS
-          case _ => throw new Exception(unknownFormat(filename))
-        }
+        val proofParser = proofParsers.getOrElse(proofFormat, {throw new Exception(unknownFormat(filename))})
         
         // Reading the proof
         c.hout.write("Reading and checking proof '"+ filename +"' ...")
@@ -144,9 +148,6 @@ object ProofCompressionCLI {
         prettyTable.processInput(proofName, measurements)
         csv.processInput(proofName, measurements)
   
-
-
-        
         
         // Compressing the proof
         for (a <- c.algorithms) {
@@ -254,12 +255,18 @@ object ProofCompressionCLI {
   }
   
   class CSV(measures: Seq[String], algorithms: Seq[String], header: Boolean, out: Output) extends DataAggregator {
+    
+    def makeHeader(algorithm: String) = {
+      val prependedMeasures = measures.map(algorithm + "." + _)
+      prependedMeasures.mkString("",",",",")
+    }
+    
     // writing header if file is empty 
     if (header && (!out.isInstanceOf[FileOutput] || (out.isInstanceOf[FileOutput] && out.asInstanceOf[FileOutput].isEmpty))) out.write {
       val emptyColumns = ("" /: measures){(acc,m) => acc + ","} // n commas for n measures
       val measureHeaders = measures.mkString("",",",",")
-      "Proof,Uncompressed" + emptyColumns + (""/:(for (a <- algorithms) yield a + emptyColumns )){_ + _} + "\n" +
-      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _} + "\n"
+      "Proof," + makeHeader("Uncompressed") + (""/:(for (a <- algorithms) yield makeHeader(a) )){_ + _} + "\n"// +
+//      ","  + measureHeaders               + (""/:(for (a <- algorithms) yield measureHeaders)){_ + _} + "\n"
     }
     
     def closeLine = {

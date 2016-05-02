@@ -51,8 +51,6 @@ object All extends QuantifierFormula(allC)
 
 object Ex extends QuantifierFormula(exC)
 
-
-
 object Atom extends Formula {
   def apply(p: E, args: List[E]) = {
     val atom = AppRec(p,args)

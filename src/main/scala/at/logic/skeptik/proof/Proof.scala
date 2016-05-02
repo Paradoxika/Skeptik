@@ -96,6 +96,19 @@ extends Iterable[P]
     iterate(0)
   }
 
+  def topDown[X](f: (P, Seq[X]) => X): Unit = {
+    val resultsFromChildren = MMap[P, Seq[X]]()
+    @tailrec def iterate(pos: Int): Unit = {
+      if (pos < 0) return
+      val node = nodes(pos)
+      val result = f(node, resultsFromChildren.getOrElse(node, Nil))
+      resultsFromChildren -= node
+      node.premises.foreach(premise => resultsFromChildren(premise) = (result +: resultsFromChildren.getOrElse(premise, Seq())))
+      iterate(pos - 1)
+    }
+    iterate(nodes.length - 1)
+  }
+
   override def toString = {
     var counter = 0; var result = "";
     foldDown { (n:P, r:Seq[Int]) =>

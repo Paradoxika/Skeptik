@@ -1,13 +1,8 @@
 package at.logic.skeptik.util
 
-import scala.actors.Futures.{awaitAll, future}
-
 object time {
-  // ToDo: The future is not killed after timeout 
-  def timeout[R](time: Long)(f: => R): Option[R] = awaitAll(time, future { f }).head.asInstanceOf[Option[R]]
+  // ToDo: Use Duration for time
 
-  def timeout[R](time: Long, default: R)(f: => R): R = timeout(time)(f).getOrElse(default)
-  
   case class Timed[+R](result:R, time: Double)
   def timed[R](f: => R): Timed[R] = {
     System.gc()
