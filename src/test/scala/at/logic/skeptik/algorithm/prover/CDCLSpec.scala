@@ -1,7 +1,6 @@
 package at.logic.skeptik.algorithm.prover
 
 import at.logic.skeptik.expression.{Var, i}
-import at.logic.skeptik.algorithm.prover.structure.mutable.Cnf
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner

@@ -2,7 +2,6 @@ package at.logic.skeptik.algorithm.prover
 
 import at.logic.skeptik.algorithm.prover.choosing.{LiteralChooser, SimpleLiteralChooser}
 import at.logic.skeptik.algorithm.prover.conflict.{ConflictAnalyser, SimpleConflictAnalyser}
-import at.logic.skeptik.algorithm.prover.structure.mutable.Cnf
 import at.logic.skeptik.algorithm.prover.util.DecisionLevel
 
 import scala.collection.mutable
@@ -12,9 +11,10 @@ import scala.collection.mutable.ArrayBuffer
   * @author Daniyar Itegulov
   */
 object CDCL {
-  def isSatisfiable(cnf: Cnf,
+  def isSatisfiable(immutableCnf: Cnf,
                     literalChooser: LiteralChooser = SimpleLiteralChooser,
                     conflictAnalyser: ConflictAnalyser = SimpleConflictAnalyser): Boolean = {
+    val cnf = immutableCnf.toMutableCnf
     val levels = ArrayBuffer[DecisionLevel]() // Stack of decision levels
     val unitPropagationQueue = mutable.Queue.empty[Literal] // Queue of literals that should be propagated
 

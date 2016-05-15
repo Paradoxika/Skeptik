@@ -11,6 +11,7 @@ import scala.language.implicitConversions
 package object prover {
   type Clause = VarSeqSequent
   type Literal = UnitSequent
+  type Cnf = structure.immutable.Cnf
 
   object Clause {
     def apply(a: Var*)(b: Var*) = VarSeqSequent(a:_*)(b:_*)
