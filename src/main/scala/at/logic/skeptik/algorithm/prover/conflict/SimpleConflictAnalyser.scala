@@ -10,5 +10,5 @@ import at.logic.skeptik.algorithm.prover.util.DecisionLevel
   */
 object SimpleConflictAnalyser extends ConflictAnalyser{
   override def learnConflictClause(levels: Seq[DecisionLevel]): Clause =
-    (Clause.empty /: levels.tail.map(!_.literal)) (_ union _)
+    (Clause.empty /: levels.map(!_.literal)) (_ union _)
 }

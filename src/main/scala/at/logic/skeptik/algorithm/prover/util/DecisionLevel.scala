@@ -11,6 +11,4 @@ import scala.collection.mutable
   * @author Daniyar Itegulov
   */
 class DecisionLevel(val literal: UnitSequent,
-                    val varAssessment: mutable.Set[UnitSequent] = mutable.Set.empty,
-                    val flipped: Boolean = false) // flipped == true means this literal was processed
-                                                  // two times with different decisions.
+                    val varAssessment: mutable.Set[UnitSequent] = mutable.Set.empty)

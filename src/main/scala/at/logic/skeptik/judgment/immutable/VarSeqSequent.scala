@@ -18,6 +18,8 @@ class VarSeqSequent(val ant: Seq[Var], val suc: Seq[Var]) extends Sequent with S
 
   def last: UnitSequent = apply(literals.length - 1)
 
+  def isUnit: Boolean = width == 1
+
   def +(f: E) = f match {
     case v: Var => new VarSeqSequent(ant, suc :+ v)
     case _ => throw new UnsupportedOperationException
