@@ -4,7 +4,6 @@ import at.logic.skeptik.algorithm.prover._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.util.control.Breaks
 
 /**
   * Represents propositional CNF.
@@ -69,26 +68,19 @@ class Cnf(val clauses: ArrayBuffer[Clause]) {
     * @return sequence of literals that also should be true
     */
   def assignLiteral(literal: Literal): Seq[Literal] = {
-    // FIXME: it works, but implementation is REALLY ugly
     assessment += literal
     val result = ArrayBuffer.empty[Literal]
     for (clause <- sentinels(!literal)) if (!clauseIsSatisfied(clause)) {
-      var otherSentinel: Option[Literal] = None
-      Breaks.breakable {
-        for (otherLit <- clause.literals) if (otherLit != !literal) {
-          if (sentinels(otherLit) contains clause) {
-            otherSentinel = Some(otherLit)
-          } else {
-            sentinels(!literal) -= clause
-            sentinels(otherLit) += clause
-            otherSentinel = None
-            Breaks.break
+      val otherLiterals = clause.literals.filter(_ != !literal)
+      otherLiterals.find(!sentinels(_).contains(clause)) match {
+        case Some(nonSentinelLiteral) =>
+          sentinels(!literal) -= clause
+          sentinels(nonSentinelLiteral) += clause
+        case None =>
+          otherLiterals.find(sentinels(_) contains clause) match {
+            case Some(sentinel) => result += sentinel
+            case None =>
           }
-        }
-      }
-      otherSentinel match {
-        case Some(sentinel) => result += sentinel
-        case _ =>
       }
     }
     result
