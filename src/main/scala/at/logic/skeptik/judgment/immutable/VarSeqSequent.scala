@@ -9,6 +9,15 @@ import at.logic.skeptik.judgment.{Sequent, SequentLike}
   * @author Daniyar Itegulov
   */
 class VarSeqSequent(val ant: Seq[Var], val suc: Seq[Var]) extends Sequent with SequentLike[VarSeqSequent] {
+  lazy val literals: Seq[UnitSequent] =
+    ant.map(UnitSequent(_, negated = true)) ++ suc.map(UnitSequent(_, negated = false))
+
+  def apply(pos: Int): UnitSequent = literals(pos)
+
+  def first: UnitSequent = apply(0)
+
+  def last: UnitSequent = apply(literals.length - 1)
+
   def +(f: E) = f match {
     case v: Var => new VarSeqSequent(ant, suc :+ v)
     case _ => throw new UnsupportedOperationException
