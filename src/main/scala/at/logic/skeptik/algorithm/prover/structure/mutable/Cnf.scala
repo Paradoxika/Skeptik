@@ -7,13 +7,26 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.control.Breaks
 
 /**
+  * Represents propositional CNF.
+  *
   * @author Daniyar Itegulov
   */
 class Cnf(val clauses: ArrayBuffer[Clause]) {
+  /**
+    * Shows which literals are set to be true.
+    */
   val assessment = mutable.Set.empty[Literal]
 
+  /**
+    * Just all variables, contained in CNF.
+    */
   val variables = clauses.flatMap(_.literals.map(_.unit))
 
+  /**
+    * Represents two-watched literal scheme:
+    * for each literal we know what clauses have watchers set
+    * to this literal.
+    */
   val sentinels: Map[Literal, mutable.Set[Clause]] = {
     val sentinels = variables.flatMap(variable =>
       Seq(
@@ -49,9 +62,11 @@ class Cnf(val clauses: ArrayBuffer[Clause]) {
   private def clauseIsSatisfied(clause: Clause): Boolean = clause.literals.exists(assessment.contains)
 
   /**
+    * Ensures that provided literal is true and returns sequence
+    * of literals that should also be true.
     *
-    * @param literal
-    * @return
+    * @param literal which should be true
+    * @return sequence of literals that also should be true
     */
   def assignLiteral(literal: Literal): Seq[Literal] = {
     // FIXME: it works, but implementation is REALLY ugly
