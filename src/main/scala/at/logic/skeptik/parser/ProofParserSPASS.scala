@@ -30,6 +30,14 @@ trait SPASSParsers
 
   private val varMap = new MMap[String, E] //will map variable names to an expression object for that variable
 
+  def read(filename: String) : Proof[Node] = {
+    parse(proof, new FileReader(filename)) match {
+      case Success(p,_) => p // returns proof whose root is in the last line of the proof file
+      case Failure(message,_) => throw new Exception("Failure: " + message)
+      case Error(message,_) => throw new Exception("Error: " + message)
+    }
+  }
+
   //returns the actual proof
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
     case list => {

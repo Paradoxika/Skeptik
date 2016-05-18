@@ -25,7 +25,15 @@ extends JavaTokenParsers with RegexParsers {
   
   //TODO: remove debugging lines
   //TODO: actually store the information; right now it parses the stuff and throws it away
-  
+
+  def read(filename: String) : Proof[Node] = {
+    parse(proof, new FileReader(filename)) match {
+      case Success(p,_) => p // returns proof whose root is in the last line of the proof file
+      case Failure(message,_) => throw new Exception("Failure: " + message)
+      case Error(message,_) => throw new Exception("Error: " + message)
+    }
+  }
+
   //returns the actual proof
  def proof: Parser[Proof[Node]] = rep(cnf) ^^ {   
  	case list =>{ 
