@@ -10,7 +10,8 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
-object ParserTPTP extends ProofParser[Node] with ParserTPTP
+object ParserTPTP extends ProofCombinatorParser[Node] with ParserTPTP
+
 
 trait ParserTPTP
 extends JavaTokenParsers with RegexParsers {
@@ -18,7 +19,9 @@ extends JavaTokenParsers with RegexParsers {
   private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[String,E]
   private var varMap = new MMap[String,E]
-  
+
+  def reset(): Unit = ()
+
   //Note (jgorzny; 27 Apr 2016):
   //I don't think this parser was ever completed or used (in whatever state it exists in)
   //Use *only* after testing; the TODOs below suggest some work needs to be done.

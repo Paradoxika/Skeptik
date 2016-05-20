@@ -25,3 +25,8 @@ experiments/compressor/slice*
 *.synctex.gz
 /.scala_dependencies
 examples/proofs/VeriT/bad
+
+# Common files generated during first building
+examples/proofs/VeriT/eq_diamond9-(D-RPI-LU).smt2
+examples/proofs/VeriT/eq_diamond9-RP.smt2
+skeptik.jar
