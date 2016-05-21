@@ -186,7 +186,7 @@ case class EquationPath(val v: E, val pred: Option[EqTreeEdge]) {
       
       exSym match {
         case Some(node) => {
-          val s = EqSymmetry(EqW(node.conclusion.suc.last))
+          val s = EqSymmetric(EqW(node.conclusion.suc.last))
           val r = R(s,node)
           (A._1 + r,A._2 :+ r.conclusion.suc.last)
         }

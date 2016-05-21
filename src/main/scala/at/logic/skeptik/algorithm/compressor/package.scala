@@ -25,6 +25,7 @@ package object compressor {
     "D" -> DAGify,
     "ET" -> EliminateTautologies,
     "RU" -> RecycleUnits,
+    "TDRU" -> TopDownRecycleUnits,
     "RP" -> RecyclePivots,
     "RPI" -> RecyclePivotsWithIntersection,
     "RPC" -> RecyclePivotsWithConclusionSequent,
@@ -57,6 +58,8 @@ package object compressor {
     "RecS3" -> new DepthRecSplit(3,5000),
     "RecS5" -> new DepthRecSplit(5,5000),
 
+    "PT" -> PruneTheory,
+    
     //Congruence Algorithms
     "ArrayC" -> ArrayCongruence,
     "FibC" -> FibonacciCongruence,

@@ -3,16 +3,16 @@ package at.logic.skeptik.parser
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import scala.util.parsing.combinator._
 import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import collection.immutable.{HashMap => Map, HashSet => Set}
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula._
-//import scala.collection.mutable.ArrayBuffer
 
 /**
- * The syntax of a trace is as follows:
+ * The grammar for traces is:
  *    
  * <trace>       = { <clause> }
  * <clause>      = <pos> <literals> <antecedents>
@@ -22,18 +22,30 @@ import at.logic.skeptik.expression.formula._
  * <pos>         =  "1" |  "2" | .... | <max-idx>
  * <neg>         = "-"<pos>
  * 
+ * 
  */
 
-object ProofParserTraceCheck extends ProofParser[Node] with TraceCheckParsers
+object ProofParserTraceCheck extends ProofCombinatorParser[Node] with TraceCheckParsers
 
 trait TraceCheckParsers
-extends JavaTokenParsers with RegexParsers {
+extends BasicTraceCheckParsers {
   
   private var proofMap = new MMap[Int,Node]
-  private var varMap = new MMap[Int,E]
-  private val clauseNumbers = new MMap[Int,(List[E],List[Int])]
+  private var clauseNumbers = new MMap[Int,(List[E],List[Int])]
+  var nodeMap = MMap[Sequent,Node]()
+  var processedMap = MMap[List[Int],Node]();
   var maxClause = 0
 
+  def reset() = {
+    proofMap = new MMap[Int,Node]
+    varMap = new MMap[Int,E]
+    clauseNumbers = new MMap[Int,(List[E],List[Int])]
+    nodeMap = MMap[Sequent,Node]()
+    processedMap = MMap[List[Int],Node]();
+    maxClause = 0
+  }
+  
+  
   def proof: Parser[Proof[Node]] = rep(clause) ^^ { list => 
     Proof(getNode(list.last))
   }
@@ -77,14 +89,13 @@ extends JavaTokenParsers with RegexParsers {
         else negOc += (v -> MSet[Node](clause))
       })
     })
-//    println(clauseNumbers)
-//    println(posOc,negOc)
     //start recursion
     res(posOc,negOc)
   }
   
   /**
-   * Recursively resolves clauses, given two maps for positive/negative occurances of variables
+   * Recursively resolves clauses, given two maps for 
+   * positive/negative occurrences of variables
    * 
    * For TraceCheck chains, the following invariant holds:
    * At every point either 
@@ -92,7 +103,7 @@ extends JavaTokenParsers with RegexParsers {
    * or there is only one clause remaining
    * 
    * In the first case, this literal is used for resolving the respective clauses and updating the
-   * occurange maps
+   * occurrence maps
    * In the other case, the one clause is returned 
    * (either when no pivot is found or when the resolved clause is empty)
    */
@@ -103,14 +114,15 @@ extends JavaTokenParsers with RegexParsers {
     }).map(a => a._1)
 //    println(nextPivot)
     nextPivot match {
-      //no more pivot means posOc and/or negOc can only contain 1 clause in the sets of occurances
+      //no more pivot means posOc and/or negOc can only contain 1 clause in the sets of occurrences
       case None => 
         if (posOc.size > 0) posOc.last._2.last 
         else negOc.last._2.last
       case Some(p) => {
         val posClause = posOc(p).last
         val negClause = negOc(p).last
-        val newClause = R(posClause,negClause,p,false)
+        val resolvent = R(posClause,negClause,p,false)
+        val newClause = nodeMap.getOrElseUpdate(resolvent.conclusion, resolvent)
         newClause.conclusion.suc.foreach(v => {
           posOc(v) -= posClause
           posOc(v) -= negClause
@@ -128,18 +140,24 @@ extends JavaTokenParsers with RegexParsers {
       }
     }
   }
-  
-//  def getNode(index: Int) = proofMap.getOrElse(index, throw new Exception("Clause not defined yet"))
-  
+    
   def getNode(index: Int): Node = {
     val tuple = clauseNumbers(index)
     if (tuple._2.isEmpty) {
-      new Axiom(tuple._1)
+      val ax = new Axiom(tuple._1)
+      val con = ax.conclusion
+      nodeMap.getOrElseUpdate(con, ax)
     }
     else {
-      resolveClauses(tuple._2)
+      processedMap.getOrElseUpdate(tuple._2,resolveClauses(tuple._2))
     }
   }
+}
+  
+trait BasicTraceCheckParsers
+extends JavaTokenParsers with RegexParsers {
+ 
+  var varMap = new MMap[Int,E]
   
   def pos: Parser[Int] = """[1-9][0-9]*""".r ^^ { _.toInt }
   

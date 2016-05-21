@@ -5,13 +5,14 @@ import collection.mutable.{HashMap => MMap, HashSet => MSet}
 import java.io.FileReader
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference,EqCongruent,EqTransitive,EqReflexive,EqSymmetry}
+import at.logic.skeptik.proof.sequent.lk.{R, Axiom, UncheckedInference}
+import at.logic.skeptik.proof.sequent.lk.{TheoryR, TheoryLemma, EqCongruent,EqTransitive,EqReflexive,EqSymmetric}
 import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import scala.collection.mutable.ArrayBuffer
 
-object ProofParserVeriT extends ProofParser[Node] with VeriTParsers
+object ProofParserVeriT extends ProofCombinatorParser[Node] with VeriTParsers
 
 trait VeriTParsers
 extends JavaTokenParsers with RegexParsers {
@@ -20,14 +21,18 @@ extends JavaTokenParsers with RegexParsers {
   private val proofArray = new ArrayBuffer[Node]()
   private var exprMap = new MMap[Int,E]
   private var bindMap = new MMap[String,E]
-
-  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
-    val p = Proof(list.last)
-//    proofMap = new MMap[Int,Node]
+  
+  def reset() = {
     proofArray.clear
     exprMap = new MMap[Int,E]
-    p
+    bindMap = new MMap[String,E]
   }
+  
+
+  def proof: Parser[Proof[Node]] = rep(line) ^^ { list => 
+    Proof(list.last)
+  }
+  
   def line: Parser[Node] = "(set"  ~> proofName ~ "(" ~ inference <~ "))" ^^ {
     case ~(~(n, _), p) => {
 //      proofMap += (n -> p); p
@@ -37,10 +42,29 @@ extends JavaTokenParsers with RegexParsers {
     case wl => throw new Exception("Wrong line " + wl)
   }
   
-  def equality: Parser[Node] = (eq_congruent | eq_reflexive | eq_transitive)
+  // A convenient method for creating left associative chains of inferences
+  def createChain(premises: List[Node])( infer: (Node, Node) => Node ) = {
+    (premises.head /: premises.tail) { (left, right) => 
+      try { infer(left, right) }
+      catch {case e: Exception => throw(e) }
+    }
+  }
+  
+  def inference: Parser[Node] = (resolution | axiom | theory | unchecked)
+  
+  def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ 
+    (createChain(_)((l, r) => R(l, r)))
+  
+  def theory: Parser[Node] = (eq_axiom | th_lemma | th_resolution)
+  
+  def eq_axiom: Parser[Node] = (eq_congruent | eq_reflexive | eq_transitive )
   
   def eq_congruent: Parser[Node] = "eq_congruent" ~> conclusion ^^ {
     list => EqCongruent(list)
+  }
+ 
+  def eq_symmetric: Parser[Node] = "eq_symmetric" ~> conclusion ^^ {
+    list => EqSymmetric(list)
   }
   
   def eq_reflexive: Parser[Node] = "eq_reflexive" ~> conclusion ^^ {
@@ -51,109 +75,12 @@ extends JavaTokenParsers with RegexParsers {
     list => EqTransitive(list)
   }
   
-  def inference: Parser[Node] = (resolution | axiom | equality |unchecked)
-  def resolution: Parser[Node] = "resolution" ~> premises <~ conclusion ^^ {
-//    list => resolveClauses(list)
-    list => {
-      (list.head /: list.tail) { (left, right) => 
-        try { 
-          R(left, right)
-        }
-        catch {
-        	case e: Exception => {
-        	  
-        	  throw(e)
-        	}
-        }
-      }
-    }
+  def th_lemma: Parser[Node] = "th_lemma" ~> conclusion ^^ {
+    list => TheoryLemma(list)
   }
   
-    /**
-   * Resolves the clauses represented by a list of indices in the correct order.
-   * 
-   * It does this by keeping track of in which clauses variables occur positively/negatively.
-   * This method only initializes these maps and calls the recursive method res with them.
-   */
-  def resolveClauses(clauses: List[Node]): Node = {
-    //map denoting that variable v occurs in {clause_1,...,clause_n} as a positive literl
-    val posOc = MMap[E,MSet[Node]]()
-    //respective negative version
-    val negOc = MMap[E,MSet[Node]]()
-    //initialize the maps
-    clauses.foreach(clause => {
-      clause.conclusion.suc.foreach(v => {
-//        println(v + " occurs positively in " + clause)
-        if (posOc.isDefinedAt(v)) posOc(v) += clause
-        else posOc += (v -> MSet[Node](clause))
-      })
-      clause.conclusion.ant.foreach(v => {
-        if (negOc.isDefinedAt(v)) negOc(v) += clause
-        else negOc += (v -> MSet[Node](clause))
-      })
-    })
-    //start recursion
-    res(posOc,negOc)
-  }
-  
-  /**
-   * Recursively resolves clauses, given two maps for positive/negative occurances of variables
-   * 
-   * For TraceCheck chains, the following invariant holds:
-   * At every point either 
-   * there exists a literal which occurs exactly once positively and once negatively
-   * or there is only one clause remaining
-   * 
-   * In the first case, this literal is used for resolving the respective clauses and updating the
-   * occurange maps
-   * In the other case, the one clause is returned 
-   * (either when no pivot is found or when the resolved clause is empty)
-   */
-  def res(posOc: MMap[E,MSet[Node]], negOc: MMap[E,MSet[Node]]):Node = {
-    val nextPivot = posOc.find(e => {
-      e._2.size == 1 &&
-      negOc.getOrElse(e._1, MSet[Node]()).size == 1
-    }).map(a => a._1)
-    nextPivot match {
-      //no more pivot means posOc and/or negOc can only contain 1 clause in the sets of occurances
-      case None => 
-        if (posOc.size > 0) posOc.last._2.last 
-        else negOc.last._2.last
-      case Some(p) => {
-        val posClause = posOc(p).last
-        val negClause = negOc(p).last
-        val newClause = R(posClause,negClause,p,false)
-        newClause.conclusion.suc.foreach(v => {
-          posOc.get(v) match {
-            case None => posOc += (v -> MSet[Node](newClause))
-            case Some(set) => {
-              set -= posClause
-              set -= negClause
-              set += newClause
-            }
-          }
-        })
-        newClause.conclusion.ant.foreach(v => {
-          negOc.get(v) match {
-            case None => negOc += (v -> MSet[Node](newClause))
-            case Some(set) => {
-              set -= posClause
-              set -= negClause
-              set += newClause
-            }
-          }
-        })
-        if (posOc.contains(p) || negOc.contains(p)) {
-          val newPOc = posOc - p
-          val newNegOc = negOc - p
-          if (newPOc.isEmpty && newNegOc.isEmpty) newClause
-          else res(newPOc,newNegOc)
-        }
-        else newClause
-      }
-    }
-  }
-
+  def th_resolution: Parser[Node] = "th_resolution" ~> premises <~ conclusion ^^ 
+    (createChain(_)((l, r) => TheoryR(l, r)))
   
   def axiom: Parser[Node] = "input" ~> conclusion ^^ {
     list => new Axiom(list)
@@ -236,4 +163,5 @@ extends JavaTokenParsers with RegexParsers {
   } 
   
   def name: Parser[String] = """[^ ():]+""".r
+  
 }
