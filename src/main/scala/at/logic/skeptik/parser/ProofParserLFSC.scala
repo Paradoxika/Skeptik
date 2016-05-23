@@ -10,7 +10,8 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
-object ProofParserLFSC extends ProofParser[Node] with LFSCParsers
+object ProofParserLFSC extends ProofCombinatorParser[Node] with LFSCParsers
+
 
 trait LFSCParsers
 extends JavaTokenParsers with RegexParsers {
@@ -18,15 +19,9 @@ extends JavaTokenParsers with RegexParsers {
   private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[String,E]
   private var varMap = new MMap[String,E]
-  
-  def read(filename: String) : Proof[Node] = {
-    parse(proof, new FileReader(filename)) match {
-      case Success(p,_) => p // returns proof whose root is in the last line of the proof file
-      case Failure(message,_) => throw new Exception("Failure: " + message)
-      case Error(message,_) => throw new Exception("Error: " + message)
-    }
-  }    
-  
+
+  def reset(): Unit = ()
+
   //returns the actual proof
  def proof: Parser[Proof[Node]] = "(check " ~ rep(varDecl) ~ ")" ^^ {   
  	case ~(~(_,list),_)=>{ //ignore everything but the clauses (which will include the resolutions)
