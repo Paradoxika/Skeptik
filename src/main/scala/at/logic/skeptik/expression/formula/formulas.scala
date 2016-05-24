@@ -57,9 +57,27 @@ object Atom extends Formula {
     require(atom.t == o)
     atom
   }
+  def apply(name: String, args: List[E]) = {
+    def createType(arity : Int) : T = {
+      if (arity == 0) o
+      else i -> createType(arity -1)
+    }
+    val p    = Var(name,createType(args.length))
+    val atom = AppRec(p,args)
+    require(atom.t == o)
+    atom
+  }
   def unapply(e:E) = e match {
     case AppRec(f,args) if (e.t == o && !isLogicalConnective(f)) => Some((f,args))
     case _ => None
   }
 }
 
+object ConditionalFormula extends Formula{
+  require(conditionalConectiveS == "conditionalFormula") // This is done to check consistency in the unapply method
+  def apply(cond : E, f1 : E, f2 : E) : E = AppRec(conditionalConectiveC,List(cond,f1,f2))
+  override def unapply(f: E): Option[_] = f match {
+    case AppRec(Var("conditionalFormula",_),List(cond,f1,f2)) => Some((cond,f1,f2))
+    case _                                                    => None
+  }
+}

@@ -34,8 +34,11 @@ package object formula {
   val negC = Var(negS, o -> o)
   
   val eqS = "="
-  def eqC(t:T) = new Var(eqS, (t -> (t -> o))) with Infix 
-  
+  def eqC(t:T) = new Var(eqS, (t -> (t -> o))) with Infix
+
+  val conditionalConectiveS = "conditionalFormula"
+  val conditionalConectiveC = new Var(conditionalConectiveS,o->(o->(o->o)))
+
   def isLogicalConnective(c:E) = c match {
     case Var(n,_) if (n == andS || n == orS || n == impS || 
                       n == allS || n == exS || n == negS) => true
