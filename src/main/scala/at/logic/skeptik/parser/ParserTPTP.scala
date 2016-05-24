@@ -6,7 +6,9 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{Axiom, R, UncheckedInference}
 import at.logic.skeptik.expression._
+import at.logic.skeptik.expression.term._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
+import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.TPTPParsers.{TPTPLexical, TPTPTokens}
 
 import scala.util.parsing.combinator.syntactical.TokenParsers
@@ -23,6 +25,8 @@ import scala.util.parsing.input.Reader
   *
   * @author Ezequiel Postan
   * @since 23.05.2016
+  * @version 1.0
+  * @note This version does not support let expressions
   */
 
 class UnexpectedEmptyTPTPFileException extends Exception("Unexpected Empty File")
@@ -33,8 +37,10 @@ object ProofParserTPTP   extends ProofParser[Node] with ProofParserTPTP
 object ProblemParserTPTP extends ProblemParserTPTP
 
 /**
-  * The BaseParserTPTP implements the common parsers shared both
-  * by problems and proof objects described by the TPTP syntax
+  * The BaseParserTPTP trait implements the common parsers shared
+  * both by problems and proof objects described by the TPTP syntax.
+  * They return an AST representation of the syntax, logic formulas
+  * are translated to their Skeptik internal representation.
   */
 trait BaseParserTPTP
 extends TokenParsers with PackratParsers {
@@ -74,16 +80,24 @@ extends TokenParsers with PackratParsers {
     }
   )
 
-  def annotatedPattern(languageToken : Token, expectedFormula : Parser[_]) =
-    (elem(languageToken) ~ elem(LeftParenthesis)) ~> name ~ (elem(Comma) ~> formula_role <~ elem(Comma)) ~ expectedFormula ~ annotations <~ elem(RightParenthesis) ~ elem(Dot) ^^ {
-      case name ~ role ~ formula ~ annotations => (name,role,formula,annotations)
-    }
+  def annotatedPattern(languageToken : Token, expectedFormula : Parser[RepresentedFormula]) =
+    (elem(languageToken) ~ elem(LeftParenthesis)) ~> name ~ (elem(Comma) ~> formula_role <~ elem(Comma)) ~ expectedFormula ~ annotations <~ elem(RightParenthesis) ~ elem(Dot)
 
-  def fof_annotated = annotatedPattern(FOF,fof_formula)
-  def cnf_annotated = annotatedPattern(CNF,cnf_formula)
-  def tff_annotated = annotatedPattern(TFF,tff_formula)
-  def thf_annotated = annotatedPattern(THF,thf_formula)
-  def tpi_annotated = annotatedPattern(TPI,tpi_formula)
+  private def toAnnotatedFormula(language: Language, name: Name,
+                                 role: FormulaRole, formula: RepresentedFormula,
+                                 annotations: Annotations) : AnnotatedFormula =
+    new AnnotatedFormula(language,name,role,formula,annotations)
+
+  def fof_annotated : Parser[AnnotatedFormula] = annotatedPattern(FOF,fof_formula) ^^
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("fof",name,role,formula,annotations) }
+  def cnf_annotated : Parser[AnnotatedFormula] = annotatedPattern(CNF,cnf_formula) ^^
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("cnf",name,role,formula,annotations) }
+  def tff_annotated : Parser[AnnotatedFormula] = annotatedPattern(TFF,tff_formula) ^^
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("tff",name,role,formula,annotations) }
+  def thf_annotated : Parser[AnnotatedFormula] = annotatedPattern(THF,thf_formula) ^^
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("thf",name,role,formula,annotations) }
+  def tpi_annotated : Parser[AnnotatedFormula] = annotatedPattern(TPI,tpi_formula) ^^
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("tpi",name,role,formula,annotations) }
 
 
   def name : Parser[String] = (
@@ -108,85 +122,133 @@ extends TokenParsers with PackratParsers {
     elem(expectedWord, isRecognizedAsFormulaRole) ^^ {_.chars}
   }
 
-  def annotations = failure("Annotation Paeser not defined")
-
-  /*
-  type Source       = String
-  type OptionalInfo = List[UsefulInfo]
-  type UsefulInfo   = (String,String)
-
-  def annotations : Parser[Option[(Source,OptionalInfo)]] =
+  def annotations : Parser[Annotations] =
     opt(elem(Comma) ~> source ~ optional_info) ^^ {
       case None => None
       case Some(src ~ info) => Some((src,info))
     }
 
   def source : PackratParser[Source] = general_term
-  def optional_info : Parser[OptionalInfo] =  opt(elem(Comma) ~> useful_info) ^^ {
+  def optional_info : Parser[List[GeneralTerm]] =  opt(elem(Comma) ~> useful_info) ^^ {
     case None => List.empty
     case Some(x) => x
   }
 
-  def useful_info: Parser[List[UsefulInfo]] = general_list
+  def useful_info: Parser[List[GeneralTerm]] = general_list
 
   // Non-logical data (GeneralTerm, General data)
-  def general_term: Parser[] = (
-          general_list                              ^^ {x => Commons.GeneralTerm(List(Right(x)))}
-      ||| general_data                              ^^ {x => Commons.GeneralTerm(List(Left(x)))}
-      ||| general_data ~ elem(Colon) ~ general_term ^^ {case data ~ _ ~ gterm => Commons.GeneralTerm(Left(data) :: gterm.term)}
+  def general_term: Parser[GeneralTerm] = (
+          general_list                              ^^ {x => GeneralTerm(List(Right(x)))}
+      ||| general_data                              ^^ {x => GeneralTerm(List(Left(x)))}
+      ||| general_data ~ elem(Colon) ~ general_term ^^ {case data ~ _ ~ gterm => GeneralTerm(Left(data) :: gterm.term)}
     )
 
-  def general_list: Parser[List[Commons.GeneralTerm]] =
+  def general_list: Parser[List[GeneralTerm]] =
     elem(LeftBracket) ~> opt(general_terms) <~ elem(RightBracket) ^^ {
       case Some(gt)   => gt
       case _       => List.empty
     }
-  def general_terms: Parser[List[Commons.GeneralTerm]] = rep1sep(general_term, elem(Comma))
+  def general_terms: Parser[List[GeneralTerm]] = rep1sep(general_term, elem(Comma))
 
-  def general_data: Parser[Commons.GeneralData] = (
-          atomic_word                                             ^^ {Commons.GWord(_)}
+  def general_data: Parser[GeneralData] = (
+          atomic_word                                             ^^ {GWord(_)}
       ||| general_function
-      ||| variable                                                ^^ {Commons.GVar(_)}
-      ||| number                                                  ^^ {Commons.GNumber(_)}
-      ||| elem("Distinct object", _.isInstanceOf[DistinctObject]) ^^ {x => Commons.GDistinct(x.chars)}
-      ||| formula_data                                             ^^ {Commons.GFormulaData(_)}
+      ||| variable                                                ^^ {GVar(_)}
+      ||| number                                                  ^^ {GNumber(_)}
+      ||| elem("Distinct object", _.isInstanceOf[DistinctObject]) ^^ {x => GDistinct(x.chars)}
+      ||| formula_data                                            ^^ {GFormulaData(_)}
     )
 
-  def variable: Parser[Commons.Variable] = elem("Upper word", _.isInstanceOf[UpperWord]) ^^ {_.chars}
-  def number: Parser[Commons.Number] = (
-        elem("Integer" , _.isInstanceOf[Integer] ) ^^ {case i => Commons.IntegerNumber(i.asInstanceOf[Integer].value)}
-      | elem("Real"    , _.isInstanceOf[Real]    ) ^^ {x => Commons.DoubleNumber((x.asInstanceOf[Real].coeff.toString + "E" + x.asInstanceOf[Real].exp.toString).toDouble)}
-      | elem("Rational", _.isInstanceOf[Rational]) ^^ {case r => Commons.RationalNumber(r.asInstanceOf[Rational].p,r.asInstanceOf[Rational].q)}
+  def variable: Parser[String] = elem("Upper word", _.isInstanceOf[UpperWord]) ^^ {_.chars}
+
+  def number: Parser[String] = (
+        elem("Integer" , _.isInstanceOf[Integer] ) ^^ {_.chars}
+      | elem("Real"    , _.isInstanceOf[Real]    ) ^^ {_.chars}
+      | elem("Rational", _.isInstanceOf[Rational]) ^^ {_.chars}
     )
 
-  def general_function: Parser[Commons.GFunc] =
+  def general_function: Parser[GFunc] =
     atomic_word ~ elem(LeftParenthesis) ~ general_terms ~ elem(RightParenthesis) ^^ {
-      case name ~ _ ~ args ~ _  => Commons.GFunc(name,args)
+      case name ~ _ ~ args ~ _  => GFunc(name,args)
     }
 
-  def formula_data: Parser[Commons.FormulaData] = (
+  def formula_data : Parser[FormulaData] = (
     (acceptIf(x => x.isInstanceOf[DollarWord] && x.chars.equals("$thf"))(_ => "Parse error in formulaData") ~ elem(LeftParenthesis)) ~>
-      thf_formula <~ elem(RightParenthesis) ^^ {Commons.THFData(_)}
+      thf_formula <~ elem(RightParenthesis) ^^ {GFormulaDataFormula("$thf",_)}
       | (acceptIf(x => x.isInstanceOf[DollarWord] && x.chars.equals("$tff"))(_ => "Parse error in formulaData") ~ elem(LeftParenthesis)) ~>
-      tff_formula <~ elem(RightParenthesis) ^^ {Commons.TFFData(_)}
+      tff_formula <~ elem(RightParenthesis) ^^ {GFormulaDataFormula("$tff",_)}
       | (acceptIf(x => x.isInstanceOf[DollarWord] && x.chars.equals("$fof"))(_ => "Parse error in formulaData") ~ elem(LeftParenthesis)) ~>
-      fof_formula <~ elem(RightParenthesis) ^^ {Commons.FOFData(_)}
+      fof_formula <~ elem(RightParenthesis) ^^ {GFormulaDataFormula("$fof",_)}
       | (acceptIf(x => x.isInstanceOf[DollarWord] && x.chars.equals("$cnf"))(_ => "Parse error in formulaData") ~ elem(LeftParenthesis)) ~>
-      cnf_formula <~ elem(RightParenthesis) ^^ {Commons.CNFData(_)}
+      cnf_formula <~ elem(RightParenthesis) ^^ {GFormulaDataFormula("$cnf",_)}
       | (acceptIf(x => x.isInstanceOf[DollarWord] && x.chars.equals("$fot"))(_ => "Parse error in formulaData") ~ elem(LeftParenthesis)) ~>
-      term <~ elem(RightParenthesis) ^^ {Commons.FOTData(_)}
+      term <~ elem(RightParenthesis) ^^ {GFormulaDataTerm("$fot",_)}
     )
-*/
+
+  def term: Parser[E] = function_term |||
+    variable ^^ {Variable(_)} |||
+    conditional_term |||
+    let_term
+
+  def function_term: Parser[E] =
+      plain_term                |
+      defined_plain_term        |
+      system_term               |
+      number ^^ {NumberTerm(_)} |
+      elem("Distinct object", _.isInstanceOf[DistinctObject]) ^^ {x => DistinctObjectTerm(x.chars)} // TODO: How to encode this...
+
+
+  def plain_term: Parser[E] =
+    constant ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
+      case c ~ Some(x) => FunctionTerm(c,x)
+      case c ~ _       => Constant(c)
+    }
+
+  def constant: Parser[String] = atomic_word
+
+  def defined_plain_term: Parser[E] =
+    atomic_defined_word ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
+      case c ~ Some(x) => FunctionTerm(c,x)
+      case c ~ _       => Constant(c)
+    }
+
+  def system_term: Parser[E] =
+    atomic_system_word ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
+      case c ~ Some(x) => FunctionTerm(c,x)
+      case c ~ _       => Constant(c)
+    }
+
+  def arguments: Parser[List[E]] = rep1sep(term, elem(Comma))
+
+  def conditional_term: Parser[E] =
+    (acceptIf(x => x.isInstanceOf[DollarWord] && x.chars.equals("$ite_t"))(_ => "Error in Conditional Term") ~ elem(LeftParenthesis)) ~>
+      tff_logic_formula ~ elem(Comma) ~ term ~ elem(Comma) ~ term <~ elem(RightParenthesis) ^^ {
+      case formula ~ _ ~ thn ~ _ ~ els => ConditionalTerm(formula,thn,els)
+    }
+
+  // TODO: Check this
+  def let_term : Parser[E] = failure("Let expressions are not supported")
+
+
+  def atomic_defined_word: Parser[String] = elem("Dollar word", _.isInstanceOf[DollarWord]) ^^ {_.chars}
+  def atomic_system_word: Parser[String] = elem("Dollar Dollar word", _.isInstanceOf[DollarDollarWord]) ^^ {_.chars}
+
+  def file_name: Parser[String] = elem("single quoted", _.isInstanceOf[SingleQuoted]) ^^ {_.chars}
 
 
 
 
   // We finally have the different  formula parsers
-  def tpi_formula = fof_formula
-  def fof_formula = failure("fof_formula parser not implemented")
-  def cnf_formula = failure("cnf_formula parser not implemented")
-  def tff_formula = failure("tff_formula parser not implemented")
-  def thf_formula = failure("thf_formula parser not implemented")
+  def tpi_formula : Parser[RepresentedFormula] = fof_formula
+  def fof_formula : Parser[RepresentedFormula] = failure("fof_formula parser not implemented")
+  def cnf_formula : Parser[RepresentedFormula] = failure("cnf_formula parser not implemented")
+  def tff_formula : Parser[RepresentedFormula] = failure("tff_formula parser not implemented")
+  def thf_formula : Parser[RepresentedFormula] = failure("thf_formula parser not implemented")
+
+  def fof_logic_formula : Parser[E] = failure("fof_logic_formula parser not implemented")
+  def cnf_logic_formula : Parser[E] = failure("cnf_logic_formula parser not implemented")
+  def tff_logic_formula : Parser[E] = failure("tff_logic_formula parser not implemented")
+  def thf_logic_formula : Parser[E] = failure("thf_logic_formula parser not implemented")
 
 
 }
@@ -226,9 +288,6 @@ extends BaseParserTPTP {
 
   def TPTP_file  : Parser[List[Proof[Node]]] = ???
   def TPTP_input : Parser[Proof[Node]] = ???
-
-
-  def annotated_formula : Parser[Proof[Node]] = ???
 
 }
 
