@@ -6,6 +6,7 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import at.logic.skeptik.proof.sequent.lk.{Axiom, R, UncheckedInference}
 import at.logic.skeptik.expression._
+import at.logic.skeptik.expression.formula.{All, And, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
 import at.logic.skeptik.expression.term._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
@@ -226,7 +227,7 @@ extends TokenParsers with PackratParsers {
       case formula ~ _ ~ thn ~ _ ~ els => ConditionalTerm(formula,thn,els)
     }
 
-  // TODO: Check this
+  // TODO: let terms currently do not accept sequents in the expanssion of formulas.
   def let_term : Parser[E] = failure("Let expressions are not supported")
 
 
@@ -237,15 +238,127 @@ extends TokenParsers with PackratParsers {
 
 
 
+  // First-order atoms
+  def atomic_formula: Parser[E] =
+    plain_atomic_formula ||| defined_plain_formula ||| defined_infix_formula ||| system_atomic_formula
+
+  def plain_atomic_formula: Parser[E] = plain_term
+  def defined_plain_formula: Parser[E] = defined_plain_term
+  def defined_infix_formula: Parser[E] =
+    term ~ elem(Equals) ~ term ^^ {
+      case t1 ~ _ ~ t2 => FormulaEquality(t1,t2)
+    }
+  def system_atomic_formula: Parser[E] = system_term
+
+
 
   // We finally have the different  formula parsers
+  ////////////////////////////////////////////////////
+  // TPI Formulas
+  ////////////////////////////////////////////////////
   def tpi_formula : Parser[RepresentedFormula] = fof_formula
-  def fof_formula : Parser[RepresentedFormula] = failure("fof_formula parser not implemented")
+
+  ////////////////////////////////////////////////////
+  // FOF Formulas
+  ////////////////////////////////////////////////////
+  def fof_formula : Parser[RepresentedFormula] = (
+        fof_logic_formula ^^ {SimpleFormula(_)}
+      | fof_sequent
+    )
+
+  def fof_logic_formula : Parser[E] = fof_binary_formula ||| fof_unitary_formula
+
+  def fof_binary_formula: Parser[E] = fof_binary_non_assoc ||| fof_binary_assoc
+  def fof_binary_non_assoc: Parser[E] = fof_unitary_formula ~ binary_connective ~ fof_unitary_formula ^^ {
+    case left ~ Leftrightarrow      ~ right => Equivalence(left,right)
+    case left ~ Rightarrow          ~ right => Imp(left,right)
+    case left ~ Leftarrow           ~ right => Imp(right,left) // NOTE THE REVERSED PARAMETERS
+    case left ~ Leftrighttildearrow ~ right => Neg(Equivalence(left,right))
+    case left ~ TildePipe           ~ right => Neg(Or(left,right))
+    case left ~ TildeAmpersand      ~ right => Neg(And(left,right))
+  }
+
+  def fof_binary_assoc: Parser[E] = fof_or_formula | fof_and_formula
+
+  lazy val fof_or_formula: PackratParser[E] = (
+          fof_unitary_formula ~ elem(VLine) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => Or(left,right)}
+      ||| fof_or_formula      ~ elem(VLine) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => Or(left,right)}
+    )
+
+  lazy val fof_and_formula: PackratParser[E] = (
+    fof_unitary_formula ~ elem(Ampersand) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => And(left,right)}
+      ||| fof_and_formula     ~ elem(Ampersand) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => And(left,right)}
+    )
+
+  def fof_unitary_formula: Parser[E] = (
+    elem(LeftParenthesis) ~> fof_logic_formula <~ elem(RightParenthesis)
+      | fof_quantified_formula
+      | fof_unary_formula
+      | atomic_formula
+    )
+
+  def fof_quantified_formula: Parser[E] =
+    fol_quantifier ~ elem(LeftBracket) ~ rep1sep(variable^^{Variable(_).asInstanceOf[Var]},elem(Comma)) ~ elem(RightBracket) ~ elem(Colon) ~ fof_unitary_formula ^^ {
+      case Exclamationmark ~ _ ~ vars ~ _ ~ _ ~ matrix => All(vars,matrix)
+      case Questionmark    ~ _ ~ vars ~ _ ~ _ ~ matrix => Ex(vars,matrix)
+    }
+
+  def fol_quantifier: Parser[Token] = elem(Exclamationmark) | elem(Questionmark)
+  def binary_connective: Parser[Token] = (
+    elem(Leftrightarrow)
+      | elem(Rightarrow)
+      | elem(Leftarrow)
+      | elem(Leftrighttildearrow)
+      | elem(TildePipe)
+      | elem(TildeAmpersand)
+    )
+
+  def fof_unary_formula: Parser[E] = (
+        unary_connective ~ fof_unitary_formula ^^ {case Tilde ~ formula => Neg(formula)}
+      | fol_infix_unary                        ^^ {case left  ~ right   => Neg(FormulaEquality(left,right))}
+    )
+
+  def unary_connective: Parser[Token] = elem(Tilde)
+
+
+  def fol_infix_unary: Parser[E ~ E] =
+    term ~ elem(NotEquals) ~ term ^^ {
+      case l ~ _ ~ r => this.~(l,r)
+    }
+
+  def thfUnaryConnective: Parser[Any] = (
+        unary_connective
+      | elem(Exclamationmark) ~ elem(Exclamationmark)
+      | elem(Questionmark) ~ elem(Questionmark)
+    )
+
+  def fof_sequent: Parser[RepresentedFormula] = (
+    fof_tuple ~ gentzen_arrow ~ fof_tuple ^^ {case t1 ~ _ ~ t2 => SimpleSequent(t1,t2)}
+      ||| elem(LeftParenthesis) ~> fof_sequent <~ elem(RightParenthesis)
+    )
+
+  def gentzen_arrow: Parser[String] = elem(Minus) ~ elem(Minus) ~ elem(Rightarrow) ^^ {_ => ""}
+
+
+  def fof_tuple: Parser[List[E]] =
+    elem(LeftBracket) ~> repsep(fof_logic_formula, elem(Comma)) <~ elem(RightBracket)
+
+
+  ////////////////////////////////////////////////////
+  // CNF Formulas
+  ////////////////////////////////////////////////////
   def cnf_formula : Parser[RepresentedFormula] = failure("cnf_formula parser not implemented")
+
+  ////////////////////////////////////////////////////
+  // TFF Formulas
+  ////////////////////////////////////////////////////
   def tff_formula : Parser[RepresentedFormula] = failure("tff_formula parser not implemented")
+
+  ////////////////////////////////////////////////////
+  // THF Formulas
+  ////////////////////////////////////////////////////
   def thf_formula : Parser[RepresentedFormula] = failure("thf_formula parser not implemented")
 
-  def fof_logic_formula : Parser[E] = failure("fof_logic_formula parser not implemented")
   def cnf_logic_formula : Parser[E] = failure("cnf_logic_formula parser not implemented")
   def tff_logic_formula : Parser[E] = failure("tff_logic_formula parser not implemented")
   def thf_logic_formula : Parser[E] = failure("thf_logic_formula parser not implemented")
