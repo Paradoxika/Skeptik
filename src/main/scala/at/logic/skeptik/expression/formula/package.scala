@@ -36,6 +36,9 @@ package object formula {
   val eqS = "="
   def eqC(t:T) = new Var(eqS, (t -> (t -> o))) with Infix
 
+  val equivS = "<=>"
+  def equivC = new Var(equivS, (o -> (o -> o))) with Infix
+
   val conditionalConectiveS = "conditionalFormula"
   val conditionalConectiveC = new Var(conditionalConectiveS,o->(o->(o->o)))
 

@@ -30,8 +30,15 @@ abstract class QuantifierFormula(quantifierC:T=>E) extends Formula {
     val h = (( (_:E) => v.copy) @: p)(f)
     App(quantifierC(v.t), Abs(v,h))
   }
-  def apply(f:E, v:Var, t:E): E = apply(f, v, new PredicatePosition(_ == t)) 
-    
+  def apply(f:E, v:Var, t:E): E = apply(f, v, new PredicatePosition(_ == t))
+
+  def apply(vars : List[Var], f : E) : E = {
+    require(vars.nonEmpty)
+    val (head,tail) = (vars.head, vars.tail)
+    if (vars.length == 1) apply(head,f)
+    else apply(head,apply(tail,f))
+  }
+
   def unapply(e:E) = e match {
     case App(q, Abs(v,f)) if q == quantifierC(v.t) => Some((v,f))
     case _ => None
@@ -81,3 +88,9 @@ object ConditionalFormula extends Formula{
     case _                                                    => None
   }
 }
+
+object FormulaEquality extends BinaryFormula(eqC(o))
+
+
+object Equivalence extends BinaryFormula(equivC)
+
