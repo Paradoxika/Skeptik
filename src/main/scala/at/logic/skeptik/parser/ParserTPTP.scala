@@ -1,17 +1,13 @@
 package at.logic.skeptik.parser
 
 
-import collection.mutable.{HashMap => MMap}
-import at.logic.skeptik.proof.Proof
-import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.lk.{Axiom, R, UncheckedInference}
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula.{All, And, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
 import at.logic.skeptik.expression.term._
-import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.TPTPParsers.{TPTPLexical, TPTPTokens}
 
+import scala.collection.immutable.Nil
 import scala.util.parsing.combinator.syntactical.TokenParsers
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.Reader
@@ -24,18 +20,14 @@ import scala.util.parsing.input.Reader
   * The non terminals don't follow camelcase convention to
   * reflect the grammar in a more natural way.
   *
-  * @author Ezequiel Postan
-  * @since 23.05.2016
+  * @author  Ezequiel Postan
+  * @since   23.05.2016
   * @version 1.0
-  * @note This version does not support let expressions
+  * @note    This version does not support let expressions
   */
 
 class UnexpectedEmptyTPTPFileException extends Exception("Unexpected Empty File")
 class TPTPExtractException extends Exception("Unexpected Extract Exception")
-
-
-object ProofParserTPTP   extends ProofParser[Node] with ProofParserTPTP
-object ProblemParserTPTP extends ProblemParserTPTP
 
 /**
   * The BaseParserTPTP trait implements the common parsers shared
@@ -68,16 +60,53 @@ extends TokenParsers with PackratParsers {
     new lexical.Scanner(input)
   }
 
+  def extract[Target](fileName : String, parser : Parser[Target]) : Target  =
+    parse(fileName,parser) match {
+      case Success(p2,_)      => p2
+      case Error(message,_)   => throw new Exception("Error: " + message)
+      case Failure(message,_) => throw new Exception("Failure: " + message)
+    }
+
+  /**
+    * A simple implementation for the expansion of include directives
+    *
+    * TODO: Detect include loops
+    * TODO: Analyze whether to track only the selected formulas
+    *       or all the file (as done know). This is not trivial because
+    *       thf and tff define types annotated formulas with the same
+    *       name of the annotated formula.
+    *
+    * @param directives A list of TPTP directives (includes and/or annotated formulas)
+    * @return           The expansion of all the includes (recursivelly) to the files
+    */
+  def expandIncludes(directives : List[TPTPDirective], parser: Parser[List[TPTPDirective]]) : List[TPTPDirective] = directives match {
+    case List()                             => List.empty
+    case IncludeDirective(fileName,_) :: ds => expandIncludes(extract(fileName,parser),parser) ++ ds
+    case d                            :: ds => d :: expandIncludes(ds,parser)
+  }
 
   // Actual Parsers
   import lexical._
 
-  def include: Parser[(String,List[String])] = (
+  def TPTP_file: Parser[List[TPTPDirective]] = rep(TPTP_input)
+
+  def TPTP_input: Parser[TPTPDirective] = annotated_formula | include
+
+  def annotated_formula: Parser[AnnotatedFormula] = (
+    tpi_annotated
+      | thf_annotated
+      | tff_annotated
+      | fof_annotated
+      | cnf_annotated
+    )
+
+
+  def include: Parser[IncludeDirective] = (
     (elem(Include) ~ elem(LeftParenthesis)) ~> elem("Single quoted", _.isInstanceOf[SingleQuoted])
       ~ opt((elem(Comma) ~ elem(LeftBracket)) ~> repsep(name,elem(Comma)) <~ elem(RightBracket))
       <~ (elem(RightParenthesis) ~ elem(Dot)) ^^ {
-      case SingleQuoted(data) ~ Some(names) => (data, names)
-      case SingleQuoted(data) ~     _       => (data, List.empty)
+      case SingleQuoted(fileName) ~ Some(formulas) => IncludeDirective(fileName, formulas)
+      case SingleQuoted(fileName) ~       _        => IncludeDirective(fileName, List.empty)
     }
   )
 
@@ -90,15 +119,15 @@ extends TokenParsers with PackratParsers {
     new AnnotatedFormula(language,name,role,formula,annotations)
 
   def fof_annotated : Parser[AnnotatedFormula] = annotatedPattern(FOF,fof_formula) ^^
-    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("fof",name,role,formula,annotations) }
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula(FOF.chars,name,role,formula,annotations) }
   def cnf_annotated : Parser[AnnotatedFormula] = annotatedPattern(CNF,cnf_formula) ^^
-    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("cnf",name,role,formula,annotations) }
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula(CNF.chars,name,role,formula,annotations) }
   def tff_annotated : Parser[AnnotatedFormula] = annotatedPattern(TFF,tff_formula) ^^
-    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("tff",name,role,formula,annotations) }
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula(TFF.chars,name,role,formula,annotations) }
   def thf_annotated : Parser[AnnotatedFormula] = annotatedPattern(THF,thf_formula) ^^
-    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("thf",name,role,formula,annotations) }
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula(THF.chars,name,role,formula,annotations) }
   def tpi_annotated : Parser[AnnotatedFormula] = annotatedPattern(TPI,tpi_formula) ^^
-    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula("tpi",name,role,formula,annotations) }
+    { case name ~ role ~ formula ~ annotations => toAnnotatedFormula(TPI.chars,name,role,formula,annotations) }
 
 
   def name : Parser[String] = (
@@ -110,7 +139,7 @@ extends TokenParsers with PackratParsers {
       | elem("single quoted", _.isInstanceOf[SingleQuoted]) ^^ {_.chars}
     )
 
-  def formula_role : PackratParser[String] = {
+  def formula_role : Parser[String] = {
     def isRecognizedAsFormulaRole(token : Token): Boolean = {
       val acceptedRoles = List("axiom" , "hypothesis" , "definition" , "assumption" ,
                                "lemma" , "theorem" , "corollary" , "conjecture",
@@ -129,7 +158,7 @@ extends TokenParsers with PackratParsers {
       case Some(src ~ info) => Some((src,info))
     }
 
-  def source : PackratParser[Source] = general_term
+  def source : Parser[Source] = general_term
   def optional_info : Parser[List[GeneralTerm]] =  opt(elem(Comma) ~> useful_info) ^^ {
     case None => List.empty
     case Some(x) => x
@@ -284,11 +313,13 @@ extends TokenParsers with PackratParsers {
 
   def fof_binary_assoc: Parser[E] = fof_or_formula | fof_and_formula
 
+  // Note that the type is PackratParser here and not Parser to handle left recursion
   lazy val fof_or_formula: PackratParser[E] = (
     fof_unitary_formula ~ elem(VLine) ~ fof_unitary_formula  ^^ {case left ~ _ ~ right => Or(left,right)}
       ||| fof_or_formula ~ elem(VLine) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => Or(left,right)}
     )
 
+  // Note that the type is PackratParser here and not Parser to handle left recursion
   lazy val fof_and_formula: PackratParser[E] = (
     fof_unitary_formula ~ elem(Ampersand) ~ fof_unitary_formula   ^^ {case left ~ _ ~ right => And(left,right)}
       ||| fof_and_formula ~ elem(Ampersand) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => And(left,right)}
@@ -330,11 +361,6 @@ extends TokenParsers with PackratParsers {
       case l ~ _ ~ r => this.~(l,r)
     }
 
-  def thfUnaryConnective: Parser[Any] = (
-    unary_connective
-      | elem(Exclamationmark) ~ elem(Exclamationmark)
-      | elem(Questionmark) ~ elem(Questionmark)
-    )
 
   def fof_sequent: Parser[RepresentedFormula] = (
     fof_tuple ~ gentzen_arrow ~ fof_tuple ^^ {case t1 ~ _ ~ t2 => SimpleSequent(t1,t2)}
@@ -354,15 +380,17 @@ extends TokenParsers with PackratParsers {
       ||| disjunction
     ) ^^ {case (ant,suc) => SimpleSequent(ant,suc)}
 
-
+  // Note that the type is PackratParser here and not Parser to handle left recursion
   lazy val disjunction: PackratParser[(List[E],List[E])] = (
-    literal                                   ^^ { case Left(l)  => (List(l) , List())
-                                                   case Right(l) => (List() , List(l))
-                                                 }
-      ||| disjunction ~ elem(VLine) ~ literal ^^ { case (ant, suc) ~ _ ~ Left(l)  => (ant ++ List(l) , suc)
-                                                   case (ant, suc) ~ _ ~ Right(l) => (ant , suc ++ List(l))
-                                                 }
+    literal                                   ^^ {appendToListPair(_,(Nil,Nil))}
+      ||| disjunction ~ elem(VLine) ~ literal ^^ {case dis ~ _ ~ l => appendToListPair(l,dis)}
     )
+
+  private def appendToListPair[A,B](literal : Either[A,B], acumulators : (List[A],List[B])) : (List[A],List[B]) = literal match {
+    case Left(l)  => (acumulators._1 ++ List(l) , acumulators._2)
+    case Right(l) => (acumulators._1 , acumulators._2 ++ List(l))
+  }
+
 
   def literal: Parser[Either[E,E]] = (
     atomic_formula                      ^^ {Right(_)}
@@ -376,6 +404,8 @@ extends TokenParsers with PackratParsers {
   def tff_formula : Parser[RepresentedFormula] = failure("tff_formula parser not implemented")
 
   def tff_logic_formula : Parser[E] = failure("tff_logic_formula parser not implemented")
+
+
   ////////////////////////////////////////////////////
   // THF Formulas
   ////////////////////////////////////////////////////
@@ -384,42 +414,14 @@ extends TokenParsers with PackratParsers {
   def thf_logic_formula : Parser[E] = failure("thf_logic_formula parser not implemented")
 }
 
-trait ProblemParserTPTP
-extends BaseParserTPTP {
-}
-
-trait ProofParserTPTP
-extends BaseParserTPTP {
-
-  private var varMap   = new MMap[String,E]
-  private var exprMap  = new MMap[String,E]
-  private var proofMap = new MMap[String,Node]
-
-  def reset() : Unit = {
-    varMap.clear()
-    exprMap.clear()
-    proofMap.clear()
-  }
-
-  //returns the actual proof
-  def proof: Parser[Proof[Node]] = TPTP_file ^^ { p => if (p.nonEmpty) p.last
-                                                       else throw new UnexpectedEmptyTPTPFileException                                       }
-
-  def read(filename: String) : Proof[Node] = {
-    val p : Proof[Node] = parse(filename,proof) match {
-      case Success(p2,_)      => p2
-      case Error(message,_)   => throw new Exception("Error: " + message)
-      case Failure(message,_) => throw new Exception("Failure: " + message)
-    }
-    reset()
-    p
-  }
 
 
 
-  def TPTP_file  : Parser[List[Proof[Node]]] = ???
-  def TPTP_input : Parser[Proof[Node]] = ???
 
-}
+
+
+
+
+
 
 

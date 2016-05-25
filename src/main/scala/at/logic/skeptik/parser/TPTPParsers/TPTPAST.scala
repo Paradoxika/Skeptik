@@ -22,15 +22,14 @@ object TPTPAST {
   type FormulaRole = String
   type Annotations = Option[(Source, List[GeneralTerm])]
 
-
-  case class AnnotatedFormula(language: Language, name: Name, role: FormulaRole, formula: RepresentedFormula , annotations: Annotations)
+  abstract class TPTPDirective
+  case class IncludeDirective(fileName : String, selectedFormulas : List[Name])       extends TPTPDirective
+  case class AnnotatedFormula(language: Language, name: Name, role: FormulaRole,
+                              formula: RepresentedFormula , annotations: Annotations) extends TPTPDirective
 
 
   // General purpose things
   type Source = GeneralTerm
-
-  // Include directives
-  type Include = (String, List[Name])
 
   // Non-logical data (GeneralTerm, General data)
   sealed case class GeneralTerm(term: List[Either[GeneralData, List[GeneralTerm]]])
