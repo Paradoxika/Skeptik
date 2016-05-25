@@ -103,12 +103,12 @@ extends TokenParsers with PackratParsers {
 
   def name : Parser[String] = (
     atomic_word
-    | elem("integer", _.isInstanceOf[Integer]) ^^ {_.chars}
-  )
+      | elem("integer", _.isInstanceOf[Integer]) ^^ {_.chars}
+    )
   def atomic_word: Parser[String] = (
-    elem("lower word", _.isInstanceOf[LowerWord]) ^^ {_.chars}
-    | elem("single quoted", _.isInstanceOf[SingleQuoted]) ^^ {_.chars}
-  )
+    elem("lower word", _.isInstanceOf[LowerWord])           ^^ {_.chars}
+      | elem("single quoted", _.isInstanceOf[SingleQuoted]) ^^ {_.chars}
+    )
 
   def formula_role : PackratParser[String] = {
     def isRecognizedAsFormulaRole(token : Token): Boolean = {
@@ -139,7 +139,7 @@ extends TokenParsers with PackratParsers {
 
   // Non-logical data (GeneralTerm, General data)
   def general_term: Parser[GeneralTerm] = (
-          general_list                              ^^ {x => GeneralTerm(List(Right(x)))}
+    general_list                              ^^ {x => GeneralTerm(List(Right(x)))}
       ||| general_data                              ^^ {x => GeneralTerm(List(Left(x)))}
       ||| general_data ~ elem(Colon) ~ general_term ^^ {case data ~ _ ~ gterm => GeneralTerm(Left(data) :: gterm.term)}
     )
@@ -152,7 +152,7 @@ extends TokenParsers with PackratParsers {
   def general_terms: Parser[List[GeneralTerm]] = rep1sep(general_term, elem(Comma))
 
   def general_data: Parser[GeneralData] = (
-          atomic_word                                             ^^ {GWord(_)}
+    atomic_word                                             ^^ {GWord(_)}
       ||| general_function
       ||| variable                                                ^^ {GVar(_)}
       ||| number                                                  ^^ {GNumber(_)}
@@ -186,17 +186,21 @@ extends TokenParsers with PackratParsers {
       term <~ elem(RightParenthesis) ^^ {GFormulaDataTerm("$fot",_)}
     )
 
-  def term: Parser[E] = function_term |||
-    variable ^^ {Variable(_)} |||
-    conditional_term |||
-    let_term
+  def term: Parser[E] = (
+    function_term
+      ||| variable         ^^ {Variable(_)}
+      ||| conditional_term
+      ||| let_term
+    )
 
-  def function_term: Parser[E] =
-      plain_term                |
-      defined_plain_term        |
-      system_term               |
-      number ^^ {NumberTerm(_)} |
-      elem("Distinct object", _.isInstanceOf[DistinctObject]) ^^ {x => DistinctObjectTerm(x.chars)} // TODO: How to encode this...
+  def function_term: Parser[E] = (
+    plain_term
+      | defined_plain_term
+      | system_term
+      | number                                                  ^^ {NumberTerm(_)}
+      | elem("Distinct object", _.isInstanceOf[DistinctObject]) ^^ {x => DistinctObjectTerm(x.chars)} // TODO: How to encode this...
+    )
+
 
 
   def plain_term: Parser[E] =
@@ -262,7 +266,7 @@ extends TokenParsers with PackratParsers {
   // FOF Formulas
   ////////////////////////////////////////////////////
   def fof_formula : Parser[RepresentedFormula] = (
-        fof_logic_formula ^^ {SimpleFormula(_)}
+    fof_logic_formula ^^ {SimpleFormula(_)}
       | fof_sequent
     )
 
@@ -281,13 +285,13 @@ extends TokenParsers with PackratParsers {
   def fof_binary_assoc: Parser[E] = fof_or_formula | fof_and_formula
 
   lazy val fof_or_formula: PackratParser[E] = (
-          fof_unitary_formula ~ elem(VLine) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => Or(left,right)}
-      ||| fof_or_formula      ~ elem(VLine) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => Or(left,right)}
+    fof_unitary_formula ~ elem(VLine) ~ fof_unitary_formula  ^^ {case left ~ _ ~ right => Or(left,right)}
+      ||| fof_or_formula ~ elem(VLine) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => Or(left,right)}
     )
 
   lazy val fof_and_formula: PackratParser[E] = (
-    fof_unitary_formula ~ elem(Ampersand) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => And(left,right)}
-      ||| fof_and_formula     ~ elem(Ampersand) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => And(left,right)}
+    fof_unitary_formula ~ elem(Ampersand) ~ fof_unitary_formula   ^^ {case left ~ _ ~ right => And(left,right)}
+      ||| fof_and_formula ~ elem(Ampersand) ~ fof_unitary_formula ^^ {case left ~ _ ~ right => And(left,right)}
     )
 
   def fof_unitary_formula: Parser[E] = (
@@ -314,7 +318,7 @@ extends TokenParsers with PackratParsers {
     )
 
   def fof_unary_formula: Parser[E] = (
-        unary_connective ~ fof_unitary_formula ^^ {case Tilde ~ formula => Neg(formula)}
+    unary_connective ~ fof_unitary_formula ^^ {case Tilde ~ formula => Neg(formula)}
       | fol_infix_unary                        ^^ {case left  ~ right   => Neg(FormulaEquality(left,right))}
     )
 
@@ -327,7 +331,7 @@ extends TokenParsers with PackratParsers {
     }
 
   def thfUnaryConnective: Parser[Any] = (
-        unary_connective
+    unary_connective
       | elem(Exclamationmark) ~ elem(Exclamationmark)
       | elem(Questionmark) ~ elem(Questionmark)
     )
@@ -339,31 +343,45 @@ extends TokenParsers with PackratParsers {
 
   def gentzen_arrow: Parser[String] = elem(Minus) ~ elem(Minus) ~ elem(Rightarrow) ^^ {_ => ""}
 
-
   def fof_tuple: Parser[List[E]] =
     elem(LeftBracket) ~> repsep(fof_logic_formula, elem(Comma)) <~ elem(RightBracket)
-
 
   ////////////////////////////////////////////////////
   // CNF Formulas
   ////////////////////////////////////////////////////
-  def cnf_formula : Parser[RepresentedFormula] = failure("cnf_formula parser not implemented")
+  def cnf_formula : Parser[RepresentedFormula] = (
+    elem(LeftParenthesis) ~> disjunction <~ elem(RightParenthesis)
+      ||| disjunction
+    ) ^^ {case (ant,suc) => SimpleSequent(ant,suc)}
+
+
+  lazy val disjunction: PackratParser[(List[E],List[E])] = (
+    literal                                   ^^ { case Left(l)  => (List(l) , List())
+                                                   case Right(l) => (List() , List(l))
+                                                 }
+      ||| disjunction ~ elem(VLine) ~ literal ^^ { case (ant, suc) ~ _ ~ Left(l)  => (ant ++ List(l) , suc)
+                                                   case (ant, suc) ~ _ ~ Right(l) => (ant , suc ++ List(l))
+                                                 }
+    )
+
+  def literal: Parser[Either[E,E]] = (
+    atomic_formula                      ^^ {Right(_)}
+      ||| elem(Tilde) ~> atomic_formula ^^ {Left(_)}
+      ||| fol_infix_unary               ^^ {case left ~ right => Left(FormulaEquality(left,right))}
+    )
 
   ////////////////////////////////////////////////////
   // TFF Formulas
   ////////////////////////////////////////////////////
   def tff_formula : Parser[RepresentedFormula] = failure("tff_formula parser not implemented")
 
+  def tff_logic_formula : Parser[E] = failure("tff_logic_formula parser not implemented")
   ////////////////////////////////////////////////////
   // THF Formulas
   ////////////////////////////////////////////////////
   def thf_formula : Parser[RepresentedFormula] = failure("thf_formula parser not implemented")
 
-  def cnf_logic_formula : Parser[E] = failure("cnf_logic_formula parser not implemented")
-  def tff_logic_formula : Parser[E] = failure("tff_logic_formula parser not implemented")
   def thf_logic_formula : Parser[E] = failure("thf_logic_formula parser not implemented")
-
-
 }
 
 trait ProblemParserTPTP
