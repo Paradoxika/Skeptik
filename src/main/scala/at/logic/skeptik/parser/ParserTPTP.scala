@@ -302,6 +302,10 @@ extends TokenParsers with PackratParsers {
   def fof_logic_formula : Parser[E] = fof_binary_formula ||| fof_unitary_formula
 
   def fof_binary_formula: Parser[E] = fof_binary_non_assoc ||| fof_binary_assoc
+
+  // TODO: Check if this interpretation of the meaning of the symbols is right
+  // p <~> q          is ¬ (p <=> q) where <=> is the equivalence
+  // p ~|q and p ~& q are ¬ (p \/ q) and ¬ (p /\ q) respectively
   def fof_binary_non_assoc: Parser[E] = fof_unitary_formula ~ binary_connective ~ fof_unitary_formula ^^ {
     case left ~ Leftrightarrow      ~ right => Equivalence(left,right)
     case left ~ Rightarrow          ~ right => Imp(left,right)

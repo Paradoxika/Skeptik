@@ -81,10 +81,9 @@ object Atom extends Formula {
 }
 
 object ConditionalFormula extends Formula{
-  require(conditionalConectiveS == "conditionalFormula") // This is done to check consistency in the unapply method
-  def apply(cond : E, f1 : E, f2 : E) : E = AppRec(conditionalConectiveC,List(cond,f1,f2))
+  def apply(cond : E, f1 : E, f2 : E) : E = AppRec(conditionalConnectiveC,List(cond,f1,f2))
   override def unapply(f: E): Option[_] = f match {
-    case AppRec(Var("conditionalFormula",_),List(cond,f1,f2)) => Some((cond,f1,f2))
+    case AppRec(Var(n,_),List(cond,f1,f2)) if n == conditionalConnectiveS => Some((cond,f1,f2))
     case _                                                    => None
   }
 }

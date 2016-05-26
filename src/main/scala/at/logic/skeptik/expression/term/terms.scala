@@ -40,7 +40,7 @@ object FunctionTerm extends Term {
   }
 }
 
-object TypepNumberTerm extends Term {
+object TypedNumberTerm extends Term {
   def apply(number : String, numberType : String) : E = newTerm(number,new AtomicType(numberType))
 }
 

@@ -48,8 +48,8 @@ extends BaseParserTPTP {
     val annotatedFormula : AnnotatedFormula = directive.asInstanceOf[AnnotatedFormula]
     require(annotatedFormula.language == lexical.CNF.chars)
     annotatedFormula.annotations match {
-      case None    => annotatedFormulaToAxiom(annotatedFormula)
-      case Some(x) => annotatedFormulaToInference(annotatedFormula)
+      case None             => annotatedFormulaToAxiom(annotatedFormula)
+      case Some((source,_)) => annotatedFormulaToNode(annotatedFormula,source)
     }
   }
 
@@ -62,7 +62,21 @@ extends BaseParserTPTP {
     case SimpleFormula(formula) => throw new Exception("Not sequent formula detected: " + annotatedFormula.name)
   }
 
-  private def annotatedFormulaToInference(annotatedFormula : AnnotatedFormula) : Node = ???
+  private def annotatedFormulaToNode(annotatedFormula : AnnotatedFormula, source: Source) : Node = {
+    def getData(term : Either[GeneralData,List[GeneralTerm]]) : Option[List[GeneralTerm]] = term match {
+      case Left(GFunc("inference",list)) => Some(list)
+      case _                             => None
+    }
+    def isAnAxion(records : List[Either[GeneralData,List[GeneralTerm]]]) : Boolean = records.isEmpty
+    val sourceInfo      = source.term
+    val inferenceRecord = sourceInfo.filter(getData(_).nonEmpty)
+    if(isAnAxion(inferenceRecord)) annotatedFormulaToAxiom(annotatedFormula)
+    else {
+      require(inferenceRecord.length == 1)
+      val List(name,_,parents) = getData(inferenceRecord.head).get
+      ???
+    }
+  }
 
   def read(filename: String) : Proof[Node] = {
     val p : Proof[Node] = parse(filename,proof) match {

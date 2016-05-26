@@ -39,12 +39,13 @@ package object formula {
   val equivS = "<=>"
   def equivC = new Var(equivS, (o -> (o -> o))) with Infix
 
-  val conditionalConectiveS = "conditionalFormula"
-  val conditionalConectiveC = new Var(conditionalConectiveS,o->(o->(o->o)))
+  val conditionalConnectiveS = "conditionalFormula"
+  val conditionalConnectiveC = new Var(conditionalConnectiveS,o->(o->(o->o)))
 
   def isLogicalConnective(c:E) = c match {
-    case Var(n,_) if (n == andS || n == orS || n == impS || 
-                      n == allS || n == exS || n == negS) => true
+    case Var(n,_) =>  n == andS || n == orS || n == impS ||
+                      n == allS || n == exS || n == negS ||
+                      n == conditionalConnectiveS
     case _ => false
   }
   
