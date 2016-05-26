@@ -146,18 +146,6 @@ extends TokenParsers with PackratParsers {
     )
 
   def formula_role : Parser[String] = elem("Lower word", _.isInstanceOf[LowerWord]) ^^ {_.chars}
-  /*{
-    def isRecognizedAsFormulaRole(token : Token): Boolean = {
-      val acceptedRoles = List("axiom" , "hypothesis" , "definition" , "assumption" ,
-                               "lemma" , "theorem" , "corollary" , "conjecture",
-                               "negated_conjecture" , "plain" , "type" , "fi_domain" ,
-                               "fi_functors" , "fi_predicates" , "unknown")
-      token.isInstanceOf[LowerWord] &&  acceptedRoles.contains(token.chars)
-    }
-    val expectedWord = "axiom, hypothesis, definition, assumption, lemma, theorem, corollary, conjecture, " +
-                       "negated_conjecture, plain, type, fi_domain, fi_functors, fi_predicates or unknown"
-    elem(expectedWord, isRecognizedAsFormulaRole) ^^ {_.chars}
-  }*/
 
   def annotations : Parser[Annotations] =
     opt(elem(Comma) ~> source ~ optional_info) ^^ {
@@ -361,7 +349,7 @@ extends TokenParsers with PackratParsers {
 
   def fof_unary_formula: Parser[E] = (
     unary_connective ~ fof_unitary_formula ^^ {case Tilde ~ formula => Neg(formula)}
-      | fol_infix_unary                        ^^ {case left  ~ right   => Neg(FormulaEquality(left,right))}
+      | fol_infix_unary                    ^^ {case left  ~ right   => Neg(FormulaEquality(i)(left,right))}
     )
 
   def unary_connective: Parser[Token] = elem(Tilde)
@@ -406,7 +394,7 @@ extends TokenParsers with PackratParsers {
   def literal: Parser[Either[E,E]] = (
     atomic_formula                      ^^ {Right(_)}
       ||| elem(Tilde) ~> atomic_formula ^^ {Left(_)}
-      ||| fol_infix_unary               ^^ {case left ~ right => Left(FormulaEquality(left,right))}
+      ||| fol_infix_unary               ^^ {case left ~ right => Left(FormulaEquality(i)(left,right))}
     )
 
   ////////////////////////////////////////////////////

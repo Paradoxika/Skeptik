@@ -88,7 +88,9 @@ object ConditionalFormula extends Formula{
   }
 }
 
-object FormulaEquality extends BinaryFormula(eqC(i))
+object FormulaEquality extends BinaryFormula(eqC(i)){
+  def apply(t:T)(left : E, right : E) = App(App(new Var(eqS, t -> (t -> o)) with Infix,left),right)
+}
 
 
 object Equivalence extends BinaryFormula(equivC)
