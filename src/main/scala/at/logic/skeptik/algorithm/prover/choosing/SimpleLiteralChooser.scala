@@ -11,6 +11,6 @@ import at.logic.skeptik.algorithm.prover.structure.mutable.CNF
 object SimpleLiteralChooser extends LiteralChooser {
   override def chooseLiteral(cnf: CNF): Option[Literal] =
     cnf.variables.find(variable =>
-      !cnf.assignment.contains(variable) && !cnf.assignment.contains(!variable)
+      !cnf.assignment.contains(variable) && !cnf.assignment.contains(!varToLit(variable))
     ).map(varToLit(_))
 }

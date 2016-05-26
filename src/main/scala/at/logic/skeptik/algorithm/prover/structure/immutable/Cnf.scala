@@ -1,5 +1,6 @@
 package at.logic.skeptik.algorithm.prover.structure.immutable
 
+import at.logic.skeptik.algorithm.prover._
 import at.logic.skeptik.algorithm.prover.Clause
 import at.logic.skeptik.algorithm.prover.structure.mutable
 

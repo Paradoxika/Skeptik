@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.prover.util
 
-import at.logic.skeptik.judgment.immutable.UnitSequent
+import at.logic.skeptik.algorithm.prover.Literal
 
 import scala.collection.mutable
 
@@ -10,5 +10,5 @@ import scala.collection.mutable
   *
   * @author Daniyar Itegulov
   */
-class DecisionLevel(val literal: UnitSequent,
-                    val varAssessment: mutable.Set[UnitSequent] = mutable.Set.empty)
+class DecisionLevel(val literal: Literal,
+                    val varAssessment: mutable.Set[Literal] = mutable.Set.empty)

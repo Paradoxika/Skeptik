@@ -10,11 +10,11 @@ import scala.collection.mutable.ArrayBuffer
   *
   * @author Daniyar Itegulov
   */
-class Cnf(val clauses: ArrayBuffer[Clause]) {
+class CNF(val clauses: ArrayBuffer[Clause]) {
   /**
     * Shows which literals are set to be true.
     */
-  val assessment = mutable.Set.empty[Literal]
+  val assignment = mutable.Set.empty[Literal]
 
   /**
     * Just all variables, contained in CNF.
@@ -30,7 +30,7 @@ class Cnf(val clauses: ArrayBuffer[Clause]) {
     val sentinels = variables.flatMap(variable =>
       Seq(
         varToLit(variable) -> mutable.Set.empty[Clause],
-        !variable -> mutable.Set.empty[Clause]
+        !varToLit(variable) -> mutable.Set.empty[Clause]
       )
     ).toMap
     for (clause <- clauses) if (clause.width >= 2) {
@@ -40,7 +40,7 @@ class Cnf(val clauses: ArrayBuffer[Clause]) {
     sentinels
   }
 
-  def +=(that: Clause): Cnf = {
+  def +=(that: Clause): CNF = {
     if (that.width >= 1) {
       sentinels(that.first) += that
       sentinels(that.last) += that
@@ -49,7 +49,7 @@ class Cnf(val clauses: ArrayBuffer[Clause]) {
     this
   }
 
-  def -=(that: Clause): Cnf = {
+  def -=(that: Clause): CNF = {
     if (clauses.contains(that) && that.width >= 1) {
       sentinels(that.first) -= that
       sentinels(that.last) -= that
@@ -58,7 +58,7 @@ class Cnf(val clauses: ArrayBuffer[Clause]) {
     this
   }
 
-  private def clauseIsSatisfied(clause: Clause): Boolean = clause.literals.exists(assessment.contains)
+  private def clauseIsSatisfied(clause: Clause): Boolean = clause.literals.exists(assignment.contains)
 
   /**
     * Ensures that provided literal is true and returns sequence
@@ -68,7 +68,7 @@ class Cnf(val clauses: ArrayBuffer[Clause]) {
     * @return sequence of literals that also should be true
     */
   def assignLiteral(literal: Literal): Seq[Literal] = {
-    assessment += literal
+    assignment += literal
     val result = ArrayBuffer.empty[Literal]
     for (clause <- sentinels(!literal)) if (!clauseIsSatisfied(clause)) {
       val otherLiterals = clause.literals.filter(_ != !literal)
