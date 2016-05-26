@@ -22,7 +22,7 @@ class CDCLSpec extends SpecificationWithJUnit {
   private val y = new Var("Y", i)
   private val z = new Var("Z", i)
 
-  private def test(clauses: Clause*) = CDCL.isSatisfiable(new Cnf(ArrayBuffer(clauses:_*)))
+  private def test(clauses: Clause*) = CDCL.isSatisfiable(new CNF(ArrayBuffer(clauses:_*)))
 
   "CDCL" should {
     "find satisfiable" in {

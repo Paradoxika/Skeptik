@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
   * @author Daniyar Itegulov
   */
 object CDCL {
-  def isSatisfiable(immutableCnf: Cnf,
+  def isSatisfiable(immutableCnf: CNF,
                     literalChooser: LiteralChooser = SimpleLiteralChooser,
                     conflictAnalyser: ConflictAnalyser = SimpleConflictAnalyser): Boolean = {
     val cnf = immutableCnf.toMutableCnf
@@ -27,7 +27,7 @@ object CDCL {
       */
     def undo(): Unit = {
       for (literal <- levels.last.varAssessment) {
-        cnf.assessment -= literal
+        cnf.assignment -= literal
       }
       levels.remove(levels.size - 1)
     }
@@ -51,7 +51,7 @@ object CDCL {
     def propagate(): Boolean = {
       while (unitPropagationQueue.nonEmpty) {
         val propagationLiteral = unitPropagationQueue.dequeue()
-        if (cnf.assessment contains !propagationLiteral) {
+        if (cnf.assignment contains !propagationLiteral) {
           // Found a conflict
           unitPropagationQueue.clear()
           return false

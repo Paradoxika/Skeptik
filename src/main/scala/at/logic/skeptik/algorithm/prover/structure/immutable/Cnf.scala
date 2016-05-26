@@ -8,12 +8,12 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * @author Daniyar Itegulov
   */
-case class Cnf(clauses: Seq[Clause]) {
+case class CNF(clauses: Seq[Clause]) {
   lazy val variables = clauses.flatMap(_.literals.map(_.unit))
 
-  def +(that: Cnf): Cnf = new Cnf(clauses ++ that.clauses)
+  def +(that: CNF): CNF = new CNF(clauses ++ that.clauses)
 
-  def -(that: Cnf): Cnf = new Cnf(clauses.filterNot(that.clauses.toSet))
+  def -(that: CNF): CNF = new CNF(clauses.filterNot(that.clauses.toSet))
 
-  def toMutableCnf: mutable.Cnf = new mutable.Cnf(clauses.to[ArrayBuffer])
+  def toMutableCnf: mutable.CNF = new mutable.CNF(clauses.to[ArrayBuffer])
 }

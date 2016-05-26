@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm.prover.choosing
 
 import at.logic.skeptik.algorithm.prover._
-import at.logic.skeptik.algorithm.prover.structure.mutable.Cnf
+import at.logic.skeptik.algorithm.prover.structure.mutable.CNF
 
 /**
   * Very dumb algorithm, which just pick some random undecided variable.
@@ -9,8 +9,8 @@ import at.logic.skeptik.algorithm.prover.structure.mutable.Cnf
   * @author Daniyar Itegulov
   */
 object SimpleLiteralChooser extends LiteralChooser {
-  override def chooseLiteral(cnf: Cnf): Option[Literal] =
+  override def chooseLiteral(cnf: CNF): Option[Literal] =
     cnf.variables.find(variable =>
-      !cnf.assessment.contains(variable) && !cnf.assessment.contains(!variable)
+      !cnf.assignment.contains(variable) && !cnf.assignment.contains(!variable)
     ).map(varToLit(_))
 }
