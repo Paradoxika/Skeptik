@@ -65,11 +65,11 @@ object Atom extends Formula {
     atom
   }
   def apply(name: String, args: List[E]) = {
-    def createType(arity : Int) : T = {
-      if (arity == 0) o
-      else i -> createType(arity -1)
+    def createType(list : List[E]) : T = list match {
+      case Nil   => o
+      case e::es => e.t -> createType(es)
     }
-    val p    = Var(name,createType(args.length))
+    val p    = Var(name,createType(args))
     val atom = AppRec(p,args)
     require(atom.t == o)
     atom
@@ -88,8 +88,15 @@ object ConditionalFormula extends Formula{
   }
 }
 
-object FormulaEquality extends BinaryFormula(eqC(o))
+object FormulaEquality extends BinaryFormula(eqC(i))
 
 
 object Equivalence extends BinaryFormula(equivC)
 
+object True {
+  def apply : E = new Var("True",o)
+}
+
+object False {
+  def apply : E = new Var("False",o)
+}

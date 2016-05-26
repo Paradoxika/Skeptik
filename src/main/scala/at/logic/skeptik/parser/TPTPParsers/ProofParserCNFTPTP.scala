@@ -30,7 +30,7 @@ extends BaseParserTPTP {
 
   private var nodeMap = new MMap[String,Node]
 
-  def reset() : Unit = {nodeMap.clear()}
+  def reset() { nodeMap.clear() }
 
   //Obtain the actual proof
   def proof: Parser[Proof[Node]] = TPTP_file ^^ generateProof
@@ -63,23 +63,48 @@ extends BaseParserTPTP {
   }
 
   private def annotatedFormulaToNode(annotatedFormula : AnnotatedFormula, source: Source) : Node = {
-    def getData(term : Either[GeneralData,List[GeneralTerm]]) : Option[List[GeneralTerm]] = term match {
-      case Left(GFunc("inference",list)) => Some(list)
-      case _                             => None
-    }
-    def isAnAxion(records : List[Either[GeneralData,List[GeneralTerm]]]) : Boolean = records.isEmpty
     val sourceInfo      = source.term
     val inferenceRecord = sourceInfo.filter(getData(_).nonEmpty)
     if(isAnAxion(inferenceRecord)) annotatedFormulaToAxiom(annotatedFormula)
     else {
       require(inferenceRecord.length == 1)
-      val List(name,_,parents) = getData(inferenceRecord.head).get
-      ???
+      val List(rule,_,parentList) = getData(inferenceRecord.head).get
+      val inferenceRule = extractRuleName(rule)
+      val parents       = extractParents(parentList)
+      ??? // TODO: Complete this. The only thing to do is to compare the inferenceRule with the accepted ones
+          //       and call a corresponding ProofNode constructor
     }
   }
 
-  def read(filename: String) : Proof[Node] = {
-    val p : Proof[Node] = parse(filename,proof) match {
+  // annotatedFormulaToNode auxiliary functions
+  private def getData(term : Either[GeneralData,List[GeneralTerm]]) : Option[List[GeneralTerm]] = term match {
+    case Left(GFunc("inference",list)) => Some(list)
+    case _                             => None
+  }
+  private def isAnAxion(records : List[Either[GeneralData,List[GeneralTerm]]]) : Boolean = records.isEmpty
+  private def extractRuleName(term : GeneralTerm) : String = term match {
+    case GeneralTerm(List(Left(GWord(name)))) => name
+    case _                                    => throw new Exception("Unexpercted format for inference rule.\n Found: "+ term.toString)
+  }
+  private def extractParents(term : GeneralTerm) : List[String] = {
+    def formarParent(parent : Either[GeneralData,List[GeneralTerm]]) : String = parent match {
+      case Left(GWord(p1)) => p1
+      case _              => throw new Exception("Unexpected parent format!\nOnly names are allowd.\nFound: "+ parent.toString)
+    }
+    term match {
+      case GeneralTerm(List(Right(List(GeneralTerm(parentList))))) => parentList map formarParent
+      case _                                        => throw new Exception("Unexpercted format for parents. Only parents name are accepted\n Found: "+ term.toString)
+    }
+  }
+
+
+
+
+
+
+
+  def read(fileName: String) : Proof[Node] = {
+    val p : Proof[Node] = parse(fileName,proof) match {
       case Success(p2,_)      => p2
       case Error(message,_)   => throw new Exception("Error: " + message)
       case Failure(message,_) => throw new Exception("Failure: " + message)

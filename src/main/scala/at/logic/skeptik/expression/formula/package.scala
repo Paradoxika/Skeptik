@@ -45,7 +45,7 @@ package object formula {
   def isLogicalConnective(c:E) = c match {
     case Var(n,_) =>  n == andS || n == orS || n == impS ||
                       n == allS || n == exS || n == negS ||
-                      n == conditionalConnectiveS
+                      n == equivS || n == conditionalConnectiveS
     case _ => false
   }
   

@@ -2,7 +2,7 @@ package at.logic.skeptik.parser
 
 
 import at.logic.skeptik.expression._
-import at.logic.skeptik.expression.formula.{All, And, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
+import at.logic.skeptik.expression.formula.{All, And, Atom, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
 import at.logic.skeptik.expression.term._
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.TPTPParsers.{TPTPLexical, TPTPTokens}
@@ -29,12 +29,15 @@ import scala.util.parsing.input.Reader
 class UnexpectedEmptyTPTPFileException extends Exception("Unexpected Empty File")
 class TPTPExtractException extends Exception("Unexpected Extract Exception")
 
+
 /**
   * The BaseParserTPTP trait implements the common parsers shared
   * both by problems and proof objects described by the TPTP syntax.
   * They return an AST representation of the syntax, logic formulas
   * are translated to their Skeptik internal representation.
   */
+
+// TODO: CHECK EQUALITY TYPE
 trait BaseParserTPTP
 extends TokenParsers with PackratParsers {
 
@@ -43,11 +46,13 @@ extends TokenParsers with PackratParsers {
 
   // Parsing methods
   def parse[Target](input: String, parser: Parser[Target]) = {
-    val tokens = new lexical.Scanner(input)
+    val fileContent = scala.io.Source.fromFile(input).mkString
+    val tokens = new lexical.Scanner(fileContent)
+    var t = new lexical.Scanner(fileContent)
     phrase(parser)(tokens)
   }
 
-  def parse[Target](input: Reader[Char], parser: Parser[Target]) = {
+  def parseString[Target](input: Reader[Char], parser: Parser[Target]) = {
     val tokens = new lexical.Scanner(input)
     phrase(parser)(tokens)
   }
@@ -61,11 +66,12 @@ extends TokenParsers with PackratParsers {
   }
 
   def extract[Target](fileName : String, parser : Parser[Target]) : Target  =
-    parse(fileName,parser) match {
-      case Success(p2,_)      => p2
-      case Error(message,_)   => throw new Exception("Error: " + message)
-      case Failure(message,_) => throw new Exception("Failure: " + message)
+    parse(fileName, parser) match {
+      case Success(p2, _) => p2
+      case Error(message, _) => throw new Exception("Error: " + message)
+      case Failure(message, _) => throw new Exception("Failure: " + message)
     }
+
 
   /**
     * A simple implementation for the expansion of include directives
@@ -139,7 +145,8 @@ extends TokenParsers with PackratParsers {
       | elem("single quoted", _.isInstanceOf[SingleQuoted]) ^^ {_.chars}
     )
 
-  def formula_role : Parser[String] = {
+  def formula_role : Parser[String] = elem("Lower word", _.isInstanceOf[LowerWord]) ^^ {_.chars}
+  /*{
     def isRecognizedAsFormulaRole(token : Token): Boolean = {
       val acceptedRoles = List("axiom" , "hypothesis" , "definition" , "assumption" ,
                                "lemma" , "theorem" , "corollary" , "conjecture",
@@ -150,7 +157,7 @@ extends TokenParsers with PackratParsers {
     val expectedWord = "axiom, hypothesis, definition, assumption, lemma, theorem, corollary, conjecture, " +
                        "negated_conjecture, plain, type, fi_domain, fi_functors, fi_predicates or unknown"
     elem(expectedWord, isRecognizedAsFormulaRole) ^^ {_.chars}
-  }
+  }*/
 
   def annotations : Parser[Annotations] =
     opt(elem(Comma) ~> source ~ optional_info) ^^ {
@@ -181,7 +188,7 @@ extends TokenParsers with PackratParsers {
   def general_terms: Parser[List[GeneralTerm]] = rep1sep(general_term, elem(Comma))
 
   def general_data: Parser[GeneralData] = (
-    atomic_word                                             ^^ {GWord(_)}
+    atomic_word                                                   ^^ {GWord(_)}
       ||| general_function
       ||| variable                                                ^^ {GVar(_)}
       ||| number                                                  ^^ {GNumber(_)}
@@ -223,33 +230,33 @@ extends TokenParsers with PackratParsers {
     )
 
   def function_term: Parser[E] = (
-    plain_term
-      | defined_plain_term
-      | system_term
+    plain_term                                                  ^^ {case (name,args) => FunctionTerm(name,args)}
+      | defined_plain_term                                      ^^ {case (name,args) => FunctionTerm(name,args)}
+      | system_term                                             ^^ {case (name,args) => FunctionTerm(name,args)}
       | number                                                  ^^ {NumberTerm(_)}
       | elem("Distinct object", _.isInstanceOf[DistinctObject]) ^^ {x => DistinctObjectTerm(x.chars)} // TODO: How to encode this...
     )
 
 
 
-  def plain_term: Parser[E] =
+  def plain_term: Parser[(String,List[E])] =
     constant ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
-      case c ~ Some(x) => FunctionTerm(c,x)
-      case c ~ _       => Constant(c)
+      case c ~ Some(x) => (c, x )//FunctionTerm(c,x)
+      case c ~ _       => (c,Nil)//Constant(c)
     }
 
   def constant: Parser[String] = atomic_word
 
-  def defined_plain_term: Parser[E] =
+  def defined_plain_term: Parser[(String,List[E])] =
     atomic_defined_word ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
-      case c ~ Some(x) => FunctionTerm(c,x)
-      case c ~ _       => Constant(c)
+      case c ~ Some(x) => (c, x )//FunctionTerm(c,x)
+      case c ~ _       => (c,Nil)//Constant(c)
     }
 
-  def system_term: Parser[E] =
+  def system_term: Parser[(String,List[E])] =
     atomic_system_word ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
-      case c ~ Some(x) => FunctionTerm(c,x)
-      case c ~ _       => Constant(c)
+      case c ~ Some(x) => (c, x )// FunctionTerm(c,x)
+      case c ~ _       => (c,Nil)// Constant(c)
     }
 
   def arguments: Parser[List[E]] = rep1sep(term, elem(Comma))
@@ -275,13 +282,13 @@ extends TokenParsers with PackratParsers {
   def atomic_formula: Parser[E] =
     plain_atomic_formula ||| defined_plain_formula ||| defined_infix_formula ||| system_atomic_formula
 
-  def plain_atomic_formula: Parser[E] = plain_term
-  def defined_plain_formula: Parser[E] = defined_plain_term
-  def defined_infix_formula: Parser[E] =
+  def plain_atomic_formula :  Parser[E] = plain_term         ^^ {case (name,args) => Atom(name,args)}
+  def defined_plain_formula : Parser[E] = defined_plain_term ^^ {case (name,args) => Atom(name,args)}
+  def defined_infix_formula : Parser[E] =
     term ~ elem(Equals) ~ term ^^ {
       case t1 ~ _ ~ t2 => FormulaEquality(t1,t2)
     }
-  def system_atomic_formula: Parser[E] = system_term
+  def system_atomic_formula: Parser[E] = system_term ^^ {case (name,args) => Atom(name,args)}
 
 
 

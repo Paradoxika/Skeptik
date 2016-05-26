@@ -32,11 +32,11 @@ object Variable extends Term {
 
 object FunctionTerm extends Term {
   def apply(name : String, args : List[E]) : E = {
-    def createType(arity : Int) : T = {
-      if (arity == 0) i
-      else i -> createType(arity -1)
+    def createType(list : List[E]) : T = list match {
+      case Nil   => i
+      case e::es => e.t -> createType(es)
     }
-    newTerm(name,createType(args.length))
+    AppRec(newTerm(name,createType(args)),args)
   }
 }
 
