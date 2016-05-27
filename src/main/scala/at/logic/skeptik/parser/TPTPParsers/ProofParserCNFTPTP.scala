@@ -1,15 +1,17 @@
 package at.logic.skeptik.parser.TPTPParsers
 
+import at.logic.skeptik.expression.Var
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.parser.{BaseParserTPTP, ProofParser}
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.lk.{Axiom, R, UncheckedInference}
 
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.UnexpectedEmptyTPTPFileException
 
-import collection.mutable.{HashMap => MMap}
+import collection.mutable.{HashMap => MMap, HashSet => MSet, Set}
 
 
 /**
@@ -29,6 +31,7 @@ extends BaseParserTPTP {
 
 
   private var nodeMap = new MMap[String,Node]
+
 
   def reset() { nodeMap.clear() }
 
@@ -62,6 +65,26 @@ extends BaseParserTPTP {
     case SimpleFormula(formula) => throw new Exception("Not sequent formula detected: " + annotatedFormula.name)
   }
 
+  def annotatedFormulaToResolution(annotatedFormula : AnnotatedFormula,parents : List[String]) : Node = {
+    def unify(left : Node, right: Node, conclussion : Sequent, vars : Set[Var]) = {
+      try {
+        UnifyingResolution(left,right,conclussion)(vars)
+      } catch {
+        case e: Exception => {
+          UnifyingResolution(right, left, conclussion)(vars)
+        }
+      }
+    }
+    require(parents.length == 2)
+    val sequent    = annotatedFormula.formula match {
+      case SimpleSequent(ant,suc) => Sequent(ant:_*)(suc:_*)
+      case _                      => throw new Exception("Unexpected formula found, a sequent was spected")
+    }
+    val resolution = unify(nodeMap(parents(0)),nodeMap(parents(1)),sequent,getSeenVars)
+    nodeMap += (annotatedFormula.name -> resolution)
+    resolution
+  }
+
   private def annotatedFormulaToNode(annotatedFormula : AnnotatedFormula, source: Source) : Node = {
     val sourceInfo      = source.term
     val inferenceRecord = sourceInfo.filter(getData(_).nonEmpty)
@@ -71,8 +94,12 @@ extends BaseParserTPTP {
       val List(rule,_,parentList) = getData(inferenceRecord.head).get
       val inferenceRule = extractRuleName(rule)
       val parents       = extractParents(parentList)
-      ??? // TODO: Complete this. The only thing to do is to compare the inferenceRule with the accepted ones
-          //       and call a corresponding ProofNode constructor
+      inferenceRule match {
+        case "sr" => annotatedFormulaToResolution(annotatedFormula,parents)
+        case _    => throw new Exception("Inference Rule not supported: "+ inferenceRule)
+      }
+      // TODO: Complete this. The only thing to do is to compare the inferenceRule with the accepted ones
+      //       and call a corresponding ProofNode constructor
     }
   }
 
@@ -98,11 +125,6 @@ extends BaseParserTPTP {
   }
 
 
-
-
-
-
-
   def read(fileName: String) : Proof[Node] = {
     val p : Proof[Node] = parse(fileName,proof) match {
       case Success(p2,_)      => p2
@@ -112,5 +134,5 @@ extends BaseParserTPTP {
     reset()
     p
   }
-}
 
+}

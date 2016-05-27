@@ -8,6 +8,7 @@ import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.TPTPParsers.{TPTPLexical, TPTPTokens}
 
 import scala.collection.immutable.Nil
+import scala.collection.mutable.{Set, HashSet => MSet}
 import scala.util.parsing.combinator.syntactical.TokenParsers
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.Reader
@@ -40,6 +41,15 @@ class TPTPExtractException extends Exception("Unexpected Extract Exception")
 // TODO: CHECK EQUALITY TYPE
 trait BaseParserTPTP
 extends TokenParsers with PackratParsers {
+
+  /*
+   * Unfortunately this varSet is needed for the creation of resolution
+   * nodes in a future stage. This MUST be solved to delete the next three
+   * members.
+   */
+  private var varSet : Set[Var] = new MSet[Var]()
+  private def recordVar(v : String) {varSet += new Var(v,i)}
+  def getSeenVars : Set[Var] = varSet
 
   val  lexical = new TPTPLexical
   type Tokens  = TPTPTokens
@@ -212,7 +222,7 @@ extends TokenParsers with PackratParsers {
 
   def term: Parser[E] = (
     function_term
-      ||| variable         ^^ {Variable(_)}
+      ||| variable         ^^ {recordVar(_);Variable(_)}
       ||| conditional_term
       ||| let_term
     )
@@ -332,7 +342,7 @@ extends TokenParsers with PackratParsers {
     )
 
   def fof_quantified_formula: Parser[E] =
-    fol_quantifier ~ elem(LeftBracket) ~ rep1sep(variable^^{Variable(_).asInstanceOf[Var]},elem(Comma)) ~ elem(RightBracket) ~ elem(Colon) ~ fof_unitary_formula ^^ {
+    fol_quantifier ~ elem(LeftBracket) ~ rep1sep(variable^^{recordVar(_);Variable(_).asInstanceOf[Var]},elem(Comma)) ~ elem(RightBracket) ~ elem(Colon) ~ fof_unitary_formula ^^ {
       case Exclamationmark ~ _ ~ vars ~ _ ~ _ ~ matrix => All(vars,matrix)
       case Questionmark    ~ _ ~ vars ~ _ ~ _ ~ matrix => Ex(vars,matrix)
     }
