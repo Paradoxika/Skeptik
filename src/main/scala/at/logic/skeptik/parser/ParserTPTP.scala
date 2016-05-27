@@ -395,9 +395,11 @@ extends TokenParsers with PackratParsers {
       ||| disjunction ~ elem(VLine) ~ literal ^^ {case dis ~ _ ~ l => appendToListPair(l,dis)}
     )
 
-  private def appendToListPair[A,B](literal : Either[A,B], acumulators : (List[A],List[B])) : (List[A],List[B]) = literal match {
-    case Left(l)  => (acumulators._1 ++ List(l) , acumulators._2)
-    case Right(l) => (acumulators._1 , acumulators._2 ++ List(l))
+  private def appendToListPair(literal : Either[E,E], acumulators : (List[E],List[E])) : (List[E],List[E]) = literal match {
+    case Left(Var("$true",_))   => (acumulators._1 , acumulators._2)
+    case Left(l)                => (acumulators._1 ++ List(l) , acumulators._2)
+    case Right(Var("$false",_)) => (acumulators._1 , acumulators._2)
+    case Right(l)               => (acumulators._1 , acumulators._2 ++ List(l))
   }
 
 

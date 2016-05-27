@@ -114,12 +114,13 @@ extends BaseParserTPTP {
     case _                                    => throw new Exception("Unexpercted format for inference rule.\n Found: "+ term.toString)
   }
   private def extractParents(term : GeneralTerm) : List[String] = {
-    def formarParent(parent : Either[GeneralData,List[GeneralTerm]]) : String = parent match {
-      case Left(GWord(p1)) => p1
+    def formarParent(parent : GeneralTerm) : String = parent match {
+      case GeneralTerm(List(Left(GWord(p1)))) => p1
+      case GeneralTerm(List(Left(GNumber(p1)))) => p1
       case _              => throw new Exception("Unexpected parent format!\nOnly names are allowd.\nFound: "+ parent.toString)
     }
     term match {
-      case GeneralTerm(List(Right(List(GeneralTerm(parentList))))) => parentList map formarParent
+      case GeneralTerm(List(Right(parentList))) => parentList map formarParent
       case _                                        => throw new Exception("Unexpercted format for parents. Only parents name are accepted\n Found: "+ term.toString)
     }
   }
