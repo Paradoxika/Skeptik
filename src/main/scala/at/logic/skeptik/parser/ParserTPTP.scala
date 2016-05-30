@@ -222,7 +222,7 @@ extends TokenParsers with PackratParsers {
 
   def term: Parser[E] = (
     function_term
-      ||| variable         ^^ {recordVar(_);Variable(_)}
+      ||| variable         ^^ {x => {recordVar(x);Variable(x)}}
       ||| conditional_term
       ||| let_term
     )
@@ -342,7 +342,7 @@ extends TokenParsers with PackratParsers {
     )
 
   def fof_quantified_formula: Parser[E] =
-    fol_quantifier ~ elem(LeftBracket) ~ rep1sep(variable^^{recordVar(_);Variable(_).asInstanceOf[Var]},elem(Comma)) ~ elem(RightBracket) ~ elem(Colon) ~ fof_unitary_formula ^^ {
+    fol_quantifier ~ elem(LeftBracket) ~ rep1sep(variable^^{x => {recordVar(x);Variable(x).asInstanceOf[Var]}},elem(Comma)) ~ elem(RightBracket) ~ elem(Colon) ~ fof_unitary_formula ^^ {
       case Exclamationmark ~ _ ~ vars ~ _ ~ _ ~ matrix => All(vars,matrix)
       case Questionmark    ~ _ ~ vars ~ _ ~ _ ~ matrix => Ex(vars,matrix)
     }
