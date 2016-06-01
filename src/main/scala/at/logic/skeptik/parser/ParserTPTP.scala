@@ -50,6 +50,7 @@ extends TokenParsers with PackratParsers {
   private var varSet : Set[Var] = new MSet[Var]()
   private def recordVar(v : String) {varSet += new Var(v,i)}
   def getSeenVars : Set[Var] = varSet
+  def resetVarsSeen() : Unit = { varSet.clear() }
 
   val  lexical = new TPTPLexical
   type Tokens  = TPTPTokens
