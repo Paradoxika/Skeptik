@@ -42,6 +42,12 @@ extends BaseParserTPTP {
   //Obtain the actual proof
   def proof: Parser[Proof[Node]] = TPTP_file ^^ generateProof
 
+  def read(fileName: String) : Proof[Node] = {
+    val p : Proof[Node] = extract(fileName,proof)
+    reset()
+    p
+  }
+
   ////////////////////////////////////////////////////////////////////
   // Proof generation
   ////////////////////////////////////////////////////////////////////
@@ -69,39 +75,6 @@ extends BaseParserTPTP {
     case SimpleFormula(formula) => throw new Exception("Not sequent formula detected: " + annotatedFormula.name)
   }
 
-  def annotatedFormulaToResolution(nodeName : String, formula: Option[RepresentedFormula] , parents : List[String]) : Node = {
-    def unify(left : Node, right: Node, conclussion : Option[Sequent], vars : Set[Var]) = {
-      try {
-        if(conclussion.isEmpty)
-          UnifyingResolution(left,right)(vars)
-        else
-          UnifyingResolution(left,right,conclussion.get)(vars)
-      } catch {
-        case e: Exception => {
-          if(conclussion.isEmpty)
-            UnifyingResolution(left,right)(vars)
-          else
-            UnifyingResolution(right, left, conclussion.get)(vars)
-        }
-      }
-    }
-
-    require(parents.length == 2)
-    if(formula.isEmpty) {
-      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), None ,getSeenVars)
-      nodeMap += (nodeName -> resolution)
-      resolution
-    } else {
-      val sequent = formula match {
-        case Some(SimpleSequent(ant, suc)) => Some(Sequent(ant: _*)(suc: _*))
-        case _ => throw new Exception("Unexpected formula found, a sequent was spected")
-      }
-      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), sequent, getSeenVars)
-      nodeMap += (nodeName -> resolution)
-      resolution
-    }
-  }
-
   private def annotatedFormulaToNode(annotatedFormula : AnnotatedFormula, source: Source) : Node = {
     val sourceInfo      = source.term
     val inferenceRecord = sourceInfo.filter(getData(_).nonEmpty)
@@ -112,7 +85,7 @@ extends BaseParserTPTP {
     }
   }
 
-  def createNode(nodeName : String,formula: Option[RepresentedFormula],recordData: List[GeneralTerm]): Node = {
+  private def createNode(nodeName : String,formula: Option[RepresentedFormula],recordData: List[GeneralTerm]): Node = {
     val List(rule,_,parentList) = recordData
     val inferenceRule = extractRuleName(rule)
     val parents       = extractParents(parentList)
@@ -140,8 +113,8 @@ extends BaseParserTPTP {
 
   private def extractParents(term : GeneralTerm) : List[String] = {
     def formarParent(parent : GeneralTerm) : String = parent match {
-      case GeneralTerm(List(Left(GWord(p1)))) => p1
-      case GeneralTerm(List(Left(GNumber(p1)))) => p1
+      case GeneralTerm(List(Left(GWord(p1))))               => p1
+      case GeneralTerm(List(Left(GNumber(p1))))             => p1
       case GeneralTerm(List(Left(GFunc("inference",list)))) => {
         //This is the case where an inference record is nested inside another
         val newName = "NewNode"+ newNameCoubter.toString
@@ -153,19 +126,41 @@ extends BaseParserTPTP {
     }
     term match {
       case GeneralTerm(List(Right(parentList))) => parentList map formarParent
-      case _                                        => throw new Exception("Unexpercted format for parents. Only parents name are accepted\n Found: "+ term.toString)
+      case _                                    => throw new Exception("Unexpercted format for parents. Only parents name are accepted\n Found: "+ term.toString)
     }
   }
 
-
-  def read(fileName: String) : Proof[Node] = {
-    val p : Proof[Node] = parse(fileName,proof) match {
-      case Success(p2,_)      => p2
-      case Error(message,_)   => throw new Exception("Error: " + message)
-      case Failure(message,_) => throw new Exception("Failure: " + message)
+  private def annotatedFormulaToResolution(nodeName : String, formula: Option[RepresentedFormula] , parents : List[String]) : Node = {
+    require(parents.length == 2)
+    if(formula.isEmpty) {
+      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), None ,getSeenVars)
+      nodeMap += (nodeName -> resolution)
+      resolution
+    } else {
+      val sequent = formula match {
+        case Some(SimpleSequent(ant, suc)) => Some(Sequent(ant: _*)(suc: _*))
+        case _                             => throw new Exception("Unexpected formula found, a sequent was spected")
+      }
+      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), sequent, getSeenVars)
+      nodeMap += (nodeName -> resolution)
+      resolution
     }
-    reset()
-    p
+  }
+
+  private def unify(left : Node, right: Node, conclussion : Option[Sequent], vars : Set[Var]) = {
+    try {
+      if(conclussion.isEmpty)
+        UnifyingResolution(left,right)(vars)
+      else
+        UnifyingResolution(left,right,conclussion.get)(vars)
+    } catch {
+      case e: Exception => {
+        if(conclussion.isEmpty)
+          UnifyingResolution(left,right)(vars)
+        else
+          UnifyingResolution(right, left, conclussion.get)(vars)
+      }
+    }
   }
 
 }
