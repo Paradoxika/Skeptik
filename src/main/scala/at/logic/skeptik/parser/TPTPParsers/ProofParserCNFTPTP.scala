@@ -65,7 +65,7 @@ extends BaseParserTPTP {
     case SimpleFormula(formula) => throw new Exception("Not sequent formula detected: " + annotatedFormula.name)
   }
 
-  def annotatedFormulaToResolution(annotatedFormula : AnnotatedFormula,parents : List[String]) : Node = {
+  def annotatedFormulaToResolution(name : String, formula: Option[RepresentedFormula] , parents : List[String]) : Node = {
     def unify(left : Node, right: Node, conclussion : Sequent, vars : Set[Var]) = {
       try {
         UnifyingResolution(left,right,conclussion)(vars)
@@ -75,14 +75,31 @@ extends BaseParserTPTP {
         }
       }
     }
-    require(parents.length == 2)
-    val sequent    = annotatedFormula.formula match {
-      case SimpleSequent(ant,suc) => Sequent(ant:_*)(suc:_*)
-      case _                      => throw new Exception("Unexpected formula found, a sequent was spected")
+
+    def unify2(left : Node, right: Node, vars : Set[Var]) = {
+      try {
+        UnifyingResolution(left,right)(vars)
+      } catch {
+        case e: Exception => {
+          UnifyingResolution(right, left)(vars)
+        }
+      }
     }
-    val resolution = unify(nodeMap(parents(0)),nodeMap(parents(1)),sequent,getSeenVars)
-    nodeMap += (annotatedFormula.name -> resolution)
-    resolution
+
+    require(parents.length == 2)
+    if(formula.isEmpty) {
+      val resolution = unify2(nodeMap(parents(0)), nodeMap(parents(1)), getSeenVars)
+      nodeMap += (name -> resolution)
+      resolution
+    } else {
+      val sequent = formula match {
+        case Some(SimpleSequent(ant, suc)) => Sequent(ant: _*)(suc: _*)
+        case _ => throw new Exception("Unexpected formula found, a sequent was spected")
+      }
+      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), sequent, getSeenVars)
+      nodeMap += (name -> resolution)
+      resolution
+    }
   }
 
   private def annotatedFormulaToNode(annotatedFormula : AnnotatedFormula, source: Source) : Node = {
@@ -91,32 +108,44 @@ extends BaseParserTPTP {
     if(isAnAxion(inferenceRecord)) annotatedFormulaToAxiom(annotatedFormula)
     else {
       require(inferenceRecord.length == 1)
-      val List(rule,_,parentList) = getData(inferenceRecord.head).get
-      val inferenceRule = extractRuleName(rule)
-      val parents       = extractParents(parentList)
-      inferenceRule match {
-        case "sr" => annotatedFormulaToResolution(annotatedFormula,parents)
-        case _    => throw new Exception("Inference Rule not supported: "+ inferenceRule)
-      }
-      // TODO: Complete this. The only thing to do is to compare the inferenceRule with the accepted ones
-      //       and call a corresponding ProofNode constructor
+      createNode(annotatedFormula.name,Some(annotatedFormula.formula),getData(inferenceRecord.head))
     }
   }
 
+  def createNode(name : String,formula: Option[RepresentedFormula],recordData: List[GeneralTerm]): Node = {
+    val List(rule,_,parentList) = recordData
+    val inferenceRule = extractRuleName(rule)
+    val parents       = extractParents(formula,parentList)
+    inferenceRule match {
+      case "sr" => annotatedFormulaToResolution(name,formula,parents)
+      case _    => throw new Exception("Inference Rule not supported: "+ inferenceRule)
+    }
+    // TODO: Complete this. The only thing to do is to compare the inferenceRule with the accepted ones
+    //       and call a corresponding ProofNode constructor
+  }
+
   // annotatedFormulaToNode auxiliary functions
-  private def getData(term : Either[GeneralData,List[GeneralTerm]]) : Option[List[GeneralTerm]] = term match {
-    case Left(GFunc("inference",list)) => Some(list)
-    case _                             => None
+  private def getData(term : Either[GeneralData,List[GeneralTerm]]) : List[GeneralTerm] = term match {
+    case Left(GFunc("inference",list)) => list
+    case _                             => Nil
   }
   private def isAnAxion(records : List[Either[GeneralData,List[GeneralTerm]]]) : Boolean = records.isEmpty
   private def extractRuleName(term : GeneralTerm) : String = term match {
     case GeneralTerm(List(Left(GWord(name)))) => name
     case _                                    => throw new Exception("Unexpercted format for inference rule.\n Found: "+ term.toString)
   }
-  private def extractParents(term : GeneralTerm) : List[String] = {
+  private var newNameCoubter = 0
+  private def extractParents(formula : Option[RepresentedFormula] ,term : GeneralTerm) : List[String] = {
     def formarParent(parent : GeneralTerm) : String = parent match {
       case GeneralTerm(List(Left(GWord(p1)))) => p1
       case GeneralTerm(List(Left(GNumber(p1)))) => p1
+      case GeneralTerm(List(Left(GFunc("inference",list)))) => {
+        //This is the case where an inference record is nested inside another
+        val newName = "NewNode"+ newNameCoubter
+        newNameCoubter += 1
+        createNode(newName.toString,None,list)
+        newName
+      }
       case _              => throw new Exception("Unexpected parent format!\nOnly names are allowd.\nFound: "+ parent.toString)
     }
     term match {
