@@ -48,12 +48,7 @@ extends BaseParserTPTP {
     }
 
 
-  def problem(fileName : String) : CNFProblem =
-    parse(fileName,problemParser) match {
-      case Success(p,_)       => p
-      case Error(message,_)   => throw new Exception("Error: " + message)
-      case Failure(message,_) => throw new Exception("Failure: " + message)
-    }
+  def problem(fileName : String) : CNFProblem = extract(fileName,problemParser)
 
 }
 

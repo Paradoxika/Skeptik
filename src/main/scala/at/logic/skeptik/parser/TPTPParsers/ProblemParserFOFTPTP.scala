@@ -35,18 +35,13 @@ extends BaseParserTPTP {
 
   def formulaToStatement(name : String, role : String, formula : E) : FOFProblemStatement =
     role match {
-      case "conjecture"         => ConjectureStatement(name,formula)
-      case "negated_conjecture" => NegatedConjectureStatement(name,formula)
-      case _                    => AxiomStatement(name,formula)
+      case "conjecture"         => FOFConjectureStatement(name,formula)
+      case "negated_conjecture" => FOFNegatedConjectureStatement(name,formula)
+      case _                    => FOFAxiomStatement(name,formula)
     }
 
 
-  def problem(fileName : String) : FOFProblem =
-    parse(fileName,problemParser) match {
-      case Success(p,_)       => p
-      case Error(message,_)   => throw new Exception("Error: " + message)
-      case Failure(message,_) => throw new Exception("Failure: " + message)
-    }
+  def problem(fileName : String) : FOFProblem = extract(fileName,problemParser)
 
 }
 
@@ -58,12 +53,12 @@ object FOFProblem {
 }
 
 abstract class FOFProblemStatement
-case class AxiomStatement(name : String, formula : E) extends FOFProblemStatement {
+case class FOFAxiomStatement(name : String, formula : E) extends FOFProblemStatement {
   override def toString : String = "fof("+name + ",axiom," + formula.toString + ")"
 }
-case class ConjectureStatement(name : String, formula : E) extends FOFProblemStatement {
+case class FOFConjectureStatement(name : String, formula : E) extends FOFProblemStatement {
   override def toString : String = "fof("+name + ",conjecture," + formula.toString + ")"
 }
-case class NegatedConjectureStatement(name : String, formula : E) extends FOFProblemStatement {
+case class FOFNegatedConjectureStatement(name : String, formula : E) extends FOFProblemStatement {
   override def toString : String = "fof("+name + ",negated_conjecture," + formula.toString + ")"
 }
