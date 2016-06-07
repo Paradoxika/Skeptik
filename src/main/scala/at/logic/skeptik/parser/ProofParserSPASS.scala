@@ -14,7 +14,7 @@ import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
 import at.logic.skeptik.proof.sequent.resolution._
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
-object ProofParserSPASS extends ProofParser[Node] with SPASSParsers
+object ProofParserSPASS extends ProofCombinatorParser[Node] with SPASSParsers
 
 trait SPASSParsers
   extends JavaTokenParsers with RegexParsers with checkUnifiableVariableName {
@@ -29,6 +29,8 @@ trait SPASSParsers
   private val exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
   private val varMap = new MMap[String, E] //will map variable names to an expression object for that variable
+
+  def reset(): Unit = ()
 
   //returns the actual proof
   def proof: Parser[Proof[Node]] = rep(line) ^^ {
