@@ -1,9 +1,10 @@
 package at.logic.skeptik.parser.TPTPParsers
 
-import at.logic.skeptik.expression.E
+import at.logic.skeptik.expression.{E, Var}
 import at.logic.skeptik.parser.BaseParserTPTP
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST.{AnnotatedFormula, SimpleFormula, TPTPDirective}
 
+import collection.mutable.Set
 /**
   * Created by eze on 2016.05.25..
   */
@@ -23,7 +24,7 @@ extends BaseParserTPTP {
     val expandedDirectives : List[TPTPDirective] = expandIncludes(directives,TPTP_file)
     val formulas   : List[(String,String,E)]     = expandedDirectives map extractFormulas
     val statements : List[FOFProblemStatement]   = formulas map ((t : (String,String,E)) => formulaToStatement(t._1,t._2,t._3))
-    FOFProblem(statements)
+    FOFProblem(statements,getSeenVars)
   }
 
 
@@ -45,11 +46,11 @@ extends BaseParserTPTP {
 
 }
 
-class FOFProblem(val statements : List[FOFProblemStatement]) {
-  override def toString : String = statements.mkString("\n")
+class FOFProblem(val statements : List[FOFProblemStatement], val variables : Set[Var]) {
+  override def toString : String = statements.mkString("\n") + "\nVariables: " + variables.mkString(",")
 }
 object FOFProblem {
-  def apply(statements: List[FOFProblemStatement]): FOFProblem = new FOFProblem(statements)
+  def apply(statements: List[FOFProblemStatement],variables : Set[Var]): FOFProblem = new FOFProblem(statements,variables)
 }
 
 abstract class FOFProblemStatement
