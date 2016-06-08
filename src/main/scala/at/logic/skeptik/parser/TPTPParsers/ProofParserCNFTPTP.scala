@@ -29,9 +29,9 @@ object ProofParserCNFTPTP extends ProofParser[Node] with ProofParserCNFTPTP
 trait ProofParserCNFTPTP
 extends BaseParserTPTP {
 
-
-  private var nodeMap = new MMap[String,Node]
-
+  private var nodeMap   = new MMap[String,Node]
+  private var variables = Set[Var]()
+  def getVariables      = variables.clone()
 
   def reset() {
     resetVarsSeen()
@@ -54,7 +54,10 @@ extends BaseParserTPTP {
   private def generateProof(directives : List[TPTPDirective]) : Proof[Node] = {
     val expandedDirectives : List[TPTPDirective] = expandIncludes(directives,TPTP_file)
     if (expandedDirectives.isEmpty) throw new UnexpectedEmptyTPTPFileException
-    else Proof(expandedDirectives.map(prossesDirective).last)
+    else {
+      variables = getSeenVars
+      Proof(expandedDirectives.map(prossesDirective).last)
+    }
   }
 
   private def prossesDirective(directive : TPTPDirective) : Node = {
@@ -133,7 +136,7 @@ extends BaseParserTPTP {
   private def annotatedFormulaToResolution(nodeName : String, formula: Option[RepresentedFormula] , parents : List[String]) : Node = {
     require(parents.length == 2)
     if(formula.isEmpty) {
-      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), None ,getSeenVars)
+      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), None ,variables)
       nodeMap += (nodeName -> resolution)
       resolution
     } else {
@@ -141,7 +144,7 @@ extends BaseParserTPTP {
         case Some(SimpleSequent(ant, suc)) => Some(Sequent(ant: _*)(suc: _*))
         case _                             => throw new Exception("Unexpected formula found, a sequent was spected")
       }
-      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), sequent, getSeenVars)
+      val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), sequent, variables)
       nodeMap += (nodeName -> resolution)
       resolution
     }
