@@ -29,8 +29,9 @@ object FOSplitTest {
     println(split(proof))
   }
 }
+
 /**
-  * The class FOSplit
+  * The class FOSplit is the base of the split procedure in First-Order logic
   */
 abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[Node]) {
 
@@ -47,6 +48,8 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
       def contains(sequent : SeqSequent,literal : E) : Boolean = {
+        // TODO: This will fail with a different implementation of equalLiterals. Replace it by a fixed implementation
+        //       that only compares the names (as the NameEquality trait currently does)
         sequent.ant.filter(equalLiterals(literal,_)).nonEmpty || sequent.suc.filter(equalLiterals(literal,_)).nonEmpty
       }
       require(fixedPremises.length == 2)
