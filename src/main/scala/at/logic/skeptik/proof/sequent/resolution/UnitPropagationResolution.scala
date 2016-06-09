@@ -19,21 +19,6 @@ class UnitPropagationResolution(val clause: SequentProofNode, // right premise
                                 val rightLiterals: Seq[Literal])
                                (implicit unifiableVariables: mutable.Set[Var]) extends SequentProofNode {
 
-  implicit class UnitSequent(sequent: SeqSequent) { // FIXME: move this to some other place
-    def literal: Literal =
-      if (sequent.ant.size == 1 && sequent.suc.isEmpty) (sequent.ant.head, true)
-      else if (sequent.ant.isEmpty && sequent.suc.size == 1) (sequent.suc.head, false)
-      else throw new IllegalStateException("Given SeqSequent is not a unit")
-  }
-
-  implicit class LiteralsAreSequent(literals: Seq[Literal]) { // FIXME: move this to some other place
-    def toSequent: SeqSequent = {
-      val ant = literals.flatMap(l => if (l.negated) Some(l.unit) else None)
-      val suc = literals.flatMap(l => if (l.negated) None else Some(l.unit))
-      SeqSequent(ant: _*)(suc: _*)
-    }
-  }
-
   def unify(equations: Iterable[(E, E)])(implicit variables: mutable.Set[Var]) = MartelliMontanari(equations)
 
   require(unitClauses.forall(_.conclusion.width == 1), "All unitClauses should be unit")

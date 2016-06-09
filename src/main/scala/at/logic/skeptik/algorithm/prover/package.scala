@@ -41,4 +41,19 @@ package object prover {
 
     def toClause: Clause = if (negated) SeqSequent(unit)() else SeqSequent()(unit)
   }
+
+  implicit class UnitSequent(sequent: SeqSequent) {
+    def literal: Literal =
+      if (sequent.ant.size == 1 && sequent.suc.isEmpty) (sequent.ant.head, true)
+      else if (sequent.ant.isEmpty && sequent.suc.size == 1) (sequent.suc.head, false)
+      else throw new IllegalStateException("Given SeqSequent is not a unit")
+  }
+
+  implicit class LiteralsAreSequent(literals: Seq[Literal]) {
+    def toSequent: SeqSequent = {
+      val ant = literals.flatMap(l => if (l.negated) Some(l.unit) else None)
+      val suc = literals.flatMap(l => if (l.negated) None else Some(l.unit))
+      SeqSequent(ant: _*)(suc: _*)
+    }
+  }
 }
