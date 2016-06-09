@@ -14,13 +14,19 @@ import collection.mutable.{Set => MSet}
 
 object FOSplitTest {
   def main(args: Array[String]): Unit = {
-    val proof     = ProofParserCNFTPTP.read("/home/eze/Escritorio/TPTP-Parsers/tests/splitTest.tptp")
-    val variables = ProofParserCNFTPTP.getSeenVars
-    println(variables)
+    val proof     = ProofParserCNFTPTP.read("examples/proofs/TPTP/splitTest.tptp")
+    val variables = ProofParserCNFTPTP.getVariables
+    println("Original Proof:")
+    print("Variables: ")
+    println(variables.mkString(","))
+    println("Proof:")
     println(proof)
-    val split     = new TestSplt(variables,Atom("p",Nil))
-    split(proof)
-    println(proof)
+    val split     = new TestSplt(variables,Atom("q",Nil))
+    println("Proof splited over q")
+    println(split(proof))
+    val split2    = new TestSplt(variables,Atom("p",Nil))
+    println("Proof splited over p")
+    println(split(proof))
   }
 }
 /**
@@ -36,7 +42,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
     def manageContraction(node : Node, fixedPremises : Seq[(Node,Node)]) : (Node , Node) = {
       require(fixedPremises.length == 1)
       val (left,right) = fixedPremises.head
-      (Contraction(left)(variables),Contraction(right)(variables))
+      (Contraction.contractIfPossible(left,variables),Contraction.contractIfPossible(right,variables))
     }
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
@@ -81,11 +87,10 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
   def applyOnce(p: Proof[Node]): Proof[Node] = {
     val selectedLiteral = selectLiteral(p)
     val (left, right)   = split(p, selectedLiteral)
-    val leftContracted  = Contraction(left)(variables)
-    val rightContracted = Contraction(right)(variables)
+    val leftContracted  = Contraction.contractIfPossible(left,variables)
+    val rightContracted = Contraction.contractIfPossible(right,variables)
     val compressedProof : Proof[Node] = UnifyingResolution.resolve(leftContracted,rightContracted,variables)
-    println(compressedProof)
-    compressedProof//if (compressedProof.size < p.size) compressedProof else p
+    if (compressedProof.size <= p.size) compressedProof else p
   }
 }
 

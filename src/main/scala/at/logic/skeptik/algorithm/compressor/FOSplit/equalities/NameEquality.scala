@@ -11,8 +11,8 @@ import at.logic.skeptik.expression.{E, Var}
 trait NameEquality {
   def equalLiterals(selectedLiteral: E, nodeLiteral: E): Boolean =
     (selectedLiteral, nodeLiteral) match {
-      case (Atom(name1, _), Atom(name2, _)) => name1 == name2
-      case (Atom(name1, _),      _       )  => false
-      case _                                => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
+      case (Atom(Var(name1,_), _), Atom(Var(name2,_), _)) => name1 == name2
+      case (Atom(Var(name1,_), _),          _           ) => false
+      case _                                              => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
     }
 }
