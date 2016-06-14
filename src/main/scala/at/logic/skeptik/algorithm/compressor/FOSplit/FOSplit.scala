@@ -1,6 +1,5 @@
 package at.logic.skeptik.algorithm.compressor.FOSplit
 
-import at.logic.skeptik.algorithm.compressor.FOSplit.equalities.NameEquality
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.expression.{E, Var}
 import at.logic.skeptik.judgment.immutable.SeqSequent
@@ -48,9 +47,13 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
       def contains(sequent : SeqSequent,literal : E) : Boolean = {
-        // TODO: This will fail with a different implementation of equalLiterals. Replace it by a fixed implementation
-        //       that only compares the names (as the NameEquality trait currently does)
-        sequent.ant.filter(equalLiterals(literal,_)).nonEmpty || sequent.suc.filter(equalLiterals(literal,_)).nonEmpty
+        def equalNames(selectedLiteral : E , nodeLiteral : E) : Boolean =
+          (selectedLiteral, nodeLiteral) match {
+            case (Atom(Var(name1,_), _), Atom(Var(name2,_), _)) => name1 == name2
+            case (Atom(Var(name1,_), _),          _           ) => false
+            case _                                              => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
+          }
+        sequent.ant.filter(equalNames(literal,_)).nonEmpty || sequent.suc.filter(equalLiterals(literal,_)).nonEmpty
       }
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos, fixedLeftNeg)   = fixedPremises.head
