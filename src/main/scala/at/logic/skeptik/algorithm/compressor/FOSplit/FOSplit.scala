@@ -25,7 +25,7 @@ object FOSplitTest {
     println(split(proof))
     val split2    = new TestSplt(variables,Atom("p",Nil))
     println("Proof splited over p")
-    println(split(proof))
+    println(split2(proof))
   }
 }
 
@@ -46,24 +46,37 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
     }
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
-      def contains(sequent : SeqSequent,literal : E) : Boolean = {
-        def equalNames(selectedLiteral : E , nodeLiteral : E) : Boolean =
+      def contains(sequent: SeqSequent, literal: E): Boolean = {
+        def equalNames(selectedLiteral: E, nodeLiteral: E): Boolean =
           (selectedLiteral, nodeLiteral) match {
-            case (Atom(Var(name1,_), _), Atom(Var(name2,_), _)) => name1 == name2
-            case (Atom(Var(name1,_), _),          _           ) => false
-            case _                                              => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
+            case (Atom(Var(name1, _), _), Atom(Var(name2, _), _)) => name1 == name2
+            case (Atom(Var(name1, _), _), _) => false
+            case _ => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
           }
-        sequent.ant.filter(equalNames(literal,_)).nonEmpty || sequent.suc.filter(equalLiterals(literal,_)).nonEmpty
+        sequent.ant.exists(equalNames(literal, _)) || sequent.suc.exists(equalLiterals(literal, _))
       }
       require(fixedPremises.length == 2)
-      lazy val (fixedLeftPos, fixedLeftNeg)   = fixedPremises.head
+      lazy val (fixedLeftPos, fixedLeftNeg) = fixedPremises.head
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last
-      val (leftPremise,rightPremise,leftResolvedLiteral,rightResolvedLiteral) =
+      val (leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) =
         node match {
           case UnifyingResolution(lp, rp, lrl, rrl) => (lp, rp, lrl, rrl)
         }
-      if(equalLiterals(selectedLiteral,leftResolvedLiteral)) (fixedLeftPos, fixedRightNeg)
-      else {
+      if (equalLiterals(selectedLiteral, leftResolvedLiteral)) {
+        val premiseWithPositiveOcurrence =
+          if(fixedLeftPos.conclusion.suc.exists(equalLiterals(leftResolvedLiteral,_)))
+            fixedRightPos
+          else
+            fixedLeftPos
+        val premiseWithNegativeOcurrence =
+          if(fixedRightNeg.conclusion.ant.exists(equalLiterals(leftResolvedLiteral,_)))
+            fixedLeftNeg
+          else
+            fixedRightNeg
+
+          (premiseWithPositiveOcurrence,premiseWithNegativeOcurrence)
+        //(fixedLeftPos, fixedRightNeg)
+      } else {
         val (leftConclusionPos, leftConclusionNeg) = (fixedLeftPos.conclusion, fixedLeftNeg.conclusion)
         val (rightConclusionPos, rightConclusionNeg) = (fixedRightPos.conclusion, fixedRightNeg.conclusion)
         val finalLeftProof =
@@ -96,7 +109,10 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
     val leftContracted  = Contraction.contractIfPossible(left,variables)
     val rightContracted = Contraction.contractIfPossible(right,variables)
     val compressedProof : Proof[Node] = UnifyingResolution.resolve(leftContracted,rightContracted,variables)
-    if (compressedProof.size <= p.size) compressedProof else p
+    if (compressedProof.size < p.size)
+      compressedProof
+    else
+      p
   }
 }
 

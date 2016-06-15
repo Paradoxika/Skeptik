@@ -71,9 +71,9 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 			val (auxL, auxR) = unifiablePairs(0)
 			new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
 		} else if (unifiablePairs.length == 0) {
-			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B")
+			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString())
 		} else {
-			throw new Exception("Resolution: the resolvent is ambiguous.")
+			throw new Exception("Resolution: the resolvent is ambiguous.\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString())
 		}
 	}
 

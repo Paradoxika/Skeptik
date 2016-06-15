@@ -14,9 +14,9 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
   * Created by eze on 2016.06.13..
   */
 trait AbstractFOSplitHeuristic extends FOSplit {
-  def computeMeasures(proof: Proof[Node]): (MMap[E,Long],Long)
+  def computeMeasures(proof: Proof[Node]): (MMap[String,Long],Long)
 
-  def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long): E
+  def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long): E
 
   def selectLiteral(proof: Proof[Node]) = {
     val (measureMap, measureSum) = computeMeasures(proof)
@@ -24,23 +24,37 @@ trait AbstractFOSplitHeuristic extends FOSplit {
   }
 }
 
+
 trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
-  def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
-    def getLiteralName(literal: E) : String = literal match {
-      case Atom(Var(name,_),_) => name
-      case _                   => throw new Exception("Literal name not found: " + literal.toString)
+
+  private def getLiteralName(literal: E) : String =
+    literal match {
+        case Atom(Var(name,_),_) => name
+        case _                   => throw new Exception("Literal name not found: " + literal.toString)
     }
-    def unifyIfPossible(literal1 : Option[E] , literal2 : Option[E]) : Option[E] = {
-      if(literal1.isEmpty || literal2.isEmpty)
-        None
-      else {
-        val mgu = MartelliMontanari((literal1.get,literal2.get)::Nil)(this.variables)
-        mgu match {
-          case None       => None
-          case Some(subs) => Some(subs(literal1.get))
-        }
+
+  private def unifyIfPossible(literal1 : Option[E] , literal2 : Option[E]) : Option[E] =
+    if(literal1.isEmpty || literal2.isEmpty)
+      None
+    else {
+      val mgu = MartelliMontanari((literal1.get,literal2.get)::Nil)(this.variables)
+      mgu match {
+        case None       => None
+        case Some(subs) => Some(subs(literal1.get))
       }
     }
+
+  /**
+    * The method exploreLiterals, explores the proof to check if all
+    * the uses of a literal as pivot are unifiable along the proof
+    *
+    * @param proof The proof to explore
+    * @return      A map from the literal name to the most restricted
+    *              unification found. None is used if not all uses are
+    *              unifiable. If they are, then the unified literal is
+    *              stored in the map.
+    */
+  def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
     val literals = MMap[String, Option[E]]()
     proof foldDown { (node: Node, _: Seq[Unit]) =>
       node match {
@@ -67,12 +81,43 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
     literals
   }
 
-  def availableLiterals(literals : MMap[String,Option[(E,E)]]) : MSet[String] = {
+  def availableLiterals(literals : MMap[String,Option[E]]) : MSet[String] = {
     val available = literals.filter(_._2.nonEmpty)
     MSet(available.keys.toList: _*)
   }
 
-  def computeMeasures(proof: Proof[Node]): (MMap[E,Long],Long)
+  def computeMeasures(proof: Proof[Node]): (MMap[String,Long],Long)
 
-  def chooseVariable(literalAdditivity: collection.Map[E,Long], totalAdditivity: Long): E
+  def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long): E
+
+  override def selectLiteral(proof: Proof[Node]) = {
+    val (measureMap, measureSum) = computeMeasures(proof)
+    val literals : MSet[String] = availableLiterals(exploreLiterals(proof))
+    val availableLiteralsMap = measureMap.filter(x => literals.contains(x._1))
+    chooseVariable(availableLiteralsMap, measureSum)
+  }
+}
+
+trait FOAdditivityHeuristic extends AbstractFOSplitHeuristic  {
+
+  private def getLiteralName(literal: E) : String =
+    literal match {
+      case Atom(Var(name,_),_) => name
+      case _                   => throw new Exception("Literal name not found: " + literal.toString)
+    }
+
+  def computeMeasures(proof: Proof[Node]) = {
+    var totalAdditivity = 0.toLong
+    val literalAdditivity = MMap[String,Long]()
+    def visit(node: Node) = node match {
+      case UnifyingResolution(_,_,leftResolveLiteral,rightResolveLiteral) =>
+        val nodeAdditivity = ((node.conclusion.size - (node.premises.head.conclusion.size max node.premises(1).conclusion.size)) max 0) + 1
+        totalAdditivity += nodeAdditivity
+        val literalName = getLiteralName(leftResolveLiteral)
+        literalAdditivity.update(literalName,literalAdditivity.getOrElse(literalName,0.toLong) + nodeAdditivity)
+      case _ =>
+    }
+    proof.foreach(visit)
+    (literalAdditivity, totalAdditivity)
+  }
 }
