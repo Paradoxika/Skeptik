@@ -9,14 +9,14 @@ import scala.collection.mutable.{Set => MSet}
 
 object FOCottonSplitTest {
   def main(args: Array[String]): Unit = {
-    val proof = ProofParserCNFTPTP.read("examples/proofs/TPTP/splitTest2.tptp")
+    val proof = ProofParserCNFTPTP.read("examples/proofs/TPTP/FOSplitToCompress.tptp")
     val variables = ProofParserCNFTPTP.getVariables
     println("Original Proof:")
     print("Variables: ")
     println(variables.mkString(","))
     println("Proof:")
     println(proof)
-    val split = new FOCottonSplit(variables, 10000)
+    val split = new FOCottonSplit(variables, 1000)
     println(split(proof))
   }
 }

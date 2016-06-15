@@ -62,18 +62,18 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos, fixedLeftNeg) = fixedPremises.head
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last
-      val (leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) =
+      val (leftResolvedLiteral, rightResolvedLiteral) =
         node match {
-          case UnifyingResolution(lp, rp, lrl, rrl) => (lp, rp, lrl, rrl)
+          case UnifyingResolution(_, _, lrl, rrl) => (lrl, rrl)
         }
       if (equalLiterals(selectedLiteral, leftResolvedLiteral)) {
         val premiseWithPositiveOcurrence =
-          if(fixedLeftPos.conclusion.suc.exists(equalLiterals(leftResolvedLiteral,_)))
+          if(containsPos(fixedLeftPos.conclusion,leftResolvedLiteral))
             fixedLeftPos
           else
             fixedRightPos
         val premiseWithNegativeOcurrence =
-          if(fixedRightNeg.conclusion.ant.exists(equalLiterals(leftResolvedLiteral,_)))
+          if(containsNeg(fixedRightNeg.conclusion,leftResolvedLiteral))
             fixedRightNeg
           else
             fixedLeftNeg
