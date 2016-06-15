@@ -13,7 +13,7 @@ import collection.mutable.{Set => MSet}
 
 object FOSplitTest {
   def main(args: Array[String]): Unit = {
-    val proof     = ProofParserCNFTPTP.read("examples/proofs/TPTP/splitTest.tptp")
+    val proof     = ProofParserCNFTPTP.read("examples/proofs/TPTP/splitTest2.tptp")
     val variables = ProofParserCNFTPTP.getVariables
     println("Original Proof:")
     print("Variables: ")
@@ -46,15 +46,19 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
     }
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
-      def contains(sequent: SeqSequent, literal: E): Boolean = {
+      def seqContains(sequent: Seq[E], literal: E): Boolean = {
         def equalNames(selectedLiteral: E, nodeLiteral: E): Boolean =
           (selectedLiteral, nodeLiteral) match {
             case (Atom(Var(name1, _), _), Atom(Var(name2, _), _)) => name1 == name2
             case (Atom(Var(name1, _), _), _) => false
             case _ => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
           }
-        sequent.ant.exists(equalNames(literal, _)) || sequent.suc.exists(equalLiterals(literal, _))
+        sequent.exists(equalNames(literal, _))
       }
+      def containsPos(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.suc,literal)
+      def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
+      def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
+
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos, fixedLeftNeg) = fixedPremises.head
       lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last
@@ -65,14 +69,14 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       if (equalLiterals(selectedLiteral, leftResolvedLiteral)) {
         val premiseWithPositiveOcurrence =
           if(fixedLeftPos.conclusion.suc.exists(equalLiterals(leftResolvedLiteral,_)))
-            fixedRightPos
-          else
             fixedLeftPos
+          else
+            fixedRightPos
         val premiseWithNegativeOcurrence =
           if(fixedRightNeg.conclusion.ant.exists(equalLiterals(leftResolvedLiteral,_)))
-            fixedLeftNeg
-          else
             fixedRightNeg
+          else
+            fixedLeftNeg
 
           (premiseWithPositiveOcurrence,premiseWithNegativeOcurrence)
         //(fixedLeftPos, fixedRightNeg)
@@ -80,13 +84,17 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
         val (leftConclusionPos, leftConclusionNeg) = (fixedLeftPos.conclusion, fixedLeftNeg.conclusion)
         val (rightConclusionPos, rightConclusionNeg) = (fixedRightPos.conclusion, fixedRightNeg.conclusion)
         val finalLeftProof =
-          if(!contains(leftConclusionPos,leftResolvedLiteral)) fixedRightPos
-          else if(!contains(rightConclusionPos,rightResolvedLiteral)) fixedLeftPos
-          else UnifyingResolution.resolve(fixedLeftPos,fixedRightPos,variables)
+          if(!contains(leftConclusionPos,leftResolvedLiteral)) fixedLeftPos
+          else if(!contains(rightConclusionPos,rightResolvedLiteral)) fixedRightPos
+          else if(containsPos(leftConclusionPos,leftResolvedLiteral) && containsNeg(rightConclusionPos,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftPos,fixedRightPos,variables)
+          else if(containsNeg(leftConclusionPos,leftResolvedLiteral) && containsPos(rightConclusionPos,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftPos,fixedRightPos,variables)
+          else fixedRightPos // This is arbitrary
         val finalRighttProof =
-          if(!contains(leftConclusionNeg,leftResolvedLiteral)) fixedRightNeg
-          else if(!contains(rightConclusionNeg,rightResolvedLiteral)) fixedLeftNeg
-          else UnifyingResolution.resolve(fixedLeftNeg,fixedRightNeg,variables)
+          if(!contains(leftConclusionNeg,leftResolvedLiteral)) fixedLeftNeg
+          else if(!contains(rightConclusionNeg,rightResolvedLiteral)) fixedRightNeg
+          else if(containsPos(leftConclusionNeg,leftResolvedLiteral) && containsNeg(rightConclusionNeg,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftNeg,fixedRightNeg,variables)
+          else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftNeg,fixedRightNeg,variables)
+          else fixedRightNeg // This is arbitrary
         (finalLeftProof,finalRighttProof)
       }
 
@@ -109,10 +117,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
     val leftContracted  = Contraction.contractIfPossible(left,variables)
     val rightContracted = Contraction.contractIfPossible(right,variables)
     val compressedProof : Proof[Node] = UnifyingResolution.resolve(leftContracted,rightContracted,variables)
-    if (compressedProof.size < p.size)
-      compressedProof
-    else
-      p
+    if (compressedProof.size < p.size) compressedProof else p
   }
 }
 
