@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm.compressor.FOSplit
 
 import at.logic.skeptik.expression.formula.Atom
-import at.logic.skeptik.expression.{E, Var}
+import at.logic.skeptik.expression.{App, E, Var}
 import at.logic.skeptik.judgment.immutable.SeqSequent
 import at.logic.skeptik.parser.TPTPParsers.ProofParserCNFTPTP
 import at.logic.skeptik.proof.Proof
@@ -36,7 +36,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
 
   def equalLiterals(selectedLiteral : E , nodeLiteral : E) : Boolean
 
-  def selectLiteral(proof: Proof[Node]): E
+  def selectLiteral(proof: Proof[Node]): Option[E]
 
   def split(proof: Proof[Node], selectedLiteral : E): (Node,Node) = {
     def manageContraction(node : Node, fixedPremises : Seq[(Node,Node)]) : (Node , Node) = {
@@ -50,6 +50,9 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
         def equalNames(selectedLiteral: E, nodeLiteral: E): Boolean =
           (selectedLiteral, nodeLiteral) match {
             case (Atom(Var(name1, _), _), Atom(Var(name2, _), _)) => name1 == name2
+            case (App(function,_), x) => equalNames(function,x)
+            case (x, App(function,_)) => equalNames(x,function)
+            case (Var(name1,_),Var(name2,_)) => name1 == name2
             case (Atom(Var(name1, _), _), _) => false
             case _ => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
           }
@@ -58,6 +61,10 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       def containsPos(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.suc,literal)
       def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
       def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
+      def contractAndUnify(leftNode : Node ,rightNode:Node) =
+        UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),
+                                   Contraction.contractIfPossible(rightNode,variables),
+                                   variables)
 
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos, fixedLeftNeg) = fixedPremises.head
@@ -86,14 +93,14 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
         val finalLeftProof =
           if(!contains(leftConclusionPos,leftResolvedLiteral)) fixedLeftPos
           else if(!contains(rightConclusionPos,rightResolvedLiteral)) fixedRightPos
-          else if(containsPos(leftConclusionPos,leftResolvedLiteral) && containsNeg(rightConclusionPos,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftPos,fixedRightPos,variables)
-          else if(containsNeg(leftConclusionPos,leftResolvedLiteral) && containsPos(rightConclusionPos,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftPos,fixedRightPos,variables)
+          else if(containsPos(leftConclusionPos,leftResolvedLiteral) && containsNeg(rightConclusionPos,rightResolvedLiteral)) contractAndUnify(fixedLeftPos,fixedRightPos)
+          else if(containsNeg(leftConclusionPos,leftResolvedLiteral) && containsPos(rightConclusionPos,rightResolvedLiteral)) contractAndUnify(fixedLeftPos,fixedRightPos)
           else fixedRightPos // This is arbitrary
         val finalRighttProof =
           if(!contains(leftConclusionNeg,leftResolvedLiteral)) fixedLeftNeg
           else if(!contains(rightConclusionNeg,rightResolvedLiteral)) fixedRightNeg
-          else if(containsPos(leftConclusionNeg,leftResolvedLiteral) && containsNeg(rightConclusionNeg,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftNeg,fixedRightNeg,variables)
-          else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral)) UnifyingResolution.resolve(fixedLeftNeg,fixedRightNeg,variables)
+          else if(containsPos(leftConclusionNeg,leftResolvedLiteral) && containsNeg(rightConclusionNeg,rightResolvedLiteral)) contractAndUnify(fixedLeftNeg,fixedRightNeg)
+          else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral)) contractAndUnify(fixedLeftNeg,fixedRightNeg)
           else fixedRightNeg // This is arbitrary
         (finalLeftProof,finalRighttProof)
       }
@@ -112,17 +119,21 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
 
 
   def applyOnce(p: Proof[Node]): Proof[Node] = {
-    val selectedLiteral = selectLiteral(p)
-    val (left, right)   = split(p, selectedLiteral)
-    val leftContracted  = Contraction.contractIfPossible(left,variables)
-    val rightContracted = Contraction.contractIfPossible(right,variables)
-    val compressedProof : Proof[Node] = UnifyingResolution.resolve(leftContracted,rightContracted,variables)
-    if (compressedProof.size < p.size) compressedProof else p
+    if(selectLiteral(p).isEmpty)
+      p
+    else {
+      val selectedLiteral = selectLiteral(p).get
+      val (left, right) = split(p, selectedLiteral)
+      val leftContracted = Contraction.contractIfPossible(left, variables)
+      val rightContracted = Contraction.contractIfPossible(right, variables)
+      val compressedProof: Proof[Node] = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
+      if (compressedProof.size < p.size) compressedProof else p
+    }
   }
 }
 
 abstract class SimpleSplit(override val variables : MSet[Var], val literal : E) extends FOSplit(variables) {
-  def selectLiteral(proof: Proof[Node]) : E = literal
+  def selectLiteral(proof: Proof[Node]) : Option[E] = Some(literal)
   def apply(p: Proof[Node]):Proof[Node] = applyOnce(p)
 }
 

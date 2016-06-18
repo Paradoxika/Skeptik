@@ -2,7 +2,7 @@ package at.logic.skeptik.algorithm.compressor.FOSplit
 
 import at.logic.skeptik.algorithm.unifier.MartelliMontanari
 import at.logic.skeptik.expression.formula.Atom
-import at.logic.skeptik.expression.{E, Var}
+import at.logic.skeptik.expression.{App, E, Var}
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.lk.Axiom
 import at.logic.skeptik.proof.sequent.resolution.{Contraction, UnifyingResolution}
@@ -16,7 +16,7 @@ import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 trait AbstractFOSplitHeuristic extends FOSplit {
   def computeMeasures(proof: Proof[Node]): (MMap[String,Long],Long)
 
-  def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long): E
+  def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long): Option[E]
 
   def selectLiteral(proof: Proof[Node]) = {
     val (measureMap, measureSum) = computeMeasures(proof)
@@ -30,6 +30,8 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
   private def getLiteralName(literal: E) : String =
     literal match {
         case Atom(Var(name,_),_) => name
+        case App(function,arg)   => getLiteralName(function)
+        case Var(name,_)         => name
         case _                   => throw new Exception("Literal name not found: " + literal.toString)
     }
 
@@ -88,7 +90,7 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
 
   def computeMeasures(proof: Proof[Node]): (MMap[String,Long],Long)
 
-  def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long): E
+  def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long): Option[E]
 
   override def selectLiteral(proof: Proof[Node]) = {
     val (measureMap, measureSum) = computeMeasures(proof)
@@ -103,6 +105,8 @@ trait FOAdditivityHeuristic extends AbstractFOSplitHeuristic  {
   private def getLiteralName(literal: E) : String =
     literal match {
       case Atom(Var(name,_),_) => name
+      case App(function,arg)   => getLiteralName(function)
+      case Var(name,_)         => name
       case _                   => throw new Exception("Literal name not found: " + literal.toString)
     }
 

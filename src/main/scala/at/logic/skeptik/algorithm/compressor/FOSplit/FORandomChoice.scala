@@ -21,9 +21,12 @@ trait FORandomChoice extends AbstractFOSplitHeuristic {
 
   def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long) = {
     val iterator = literalAdditivity.toIterator
-    def searchPos(left: Long): E = {
-      val next = iterator.next
-      if (next._2 < left && iterator.hasNext) searchPos(left - next._2) else Atom(next._1,Nil)
+    def searchPos(left: Long): Option[E] = {
+      if(iterator.isEmpty) None
+      else {
+        val next = iterator.next
+        if (next._2 < left && iterator.hasNext) searchPos(left - next._2) else Some(Atom(next._1, Nil))
+      }
     }
     searchPos(randomLong(totalAdditivity) + 1)
   }
