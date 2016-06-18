@@ -61,10 +61,10 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       def containsPos(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.suc,literal)
       def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
       def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
-      def contractAndUnify(leftNode : Node ,rightNode:Node) =
-        UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),
+      def contractAndUnify(leftNode : Node ,rightNode:Node) = UnifyingResolution.resolve(leftNode,rightNode,variables)
+      /*  UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),
                                    Contraction.contractIfPossible(rightNode,variables),
-                                   variables)
+                                   variables)*/
 
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos, fixedLeftNeg) = fixedPremises.head
@@ -119,6 +119,13 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
 
 
   def applyOnce(p: Proof[Node]): Proof[Node] = {
+    def countResolutionNodes(p: Proof[Node]): Int = {
+      var count = 0
+      for (n <- p.nodes)
+        if (n.isInstanceOf[UnifyingResolution])
+          count = count + 1
+      count
+    }
     if(selectLiteral(p).isEmpty)
       p
     else {
@@ -127,7 +134,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       val leftContracted = Contraction.contractIfPossible(left, variables)
       val rightContracted = Contraction.contractIfPossible(right, variables)
       val compressedProof: Proof[Node] = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
-      if (compressedProof.size < p.size) compressedProof else p
+      if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
     }
   }
 }

@@ -95,11 +95,15 @@ object FOSplittingExperiment {
         val timeout = 4000
         val cottonSplit = new FOCottonSplit(variables,timeout)
         val compressedProof = cottonSplit(proofToTest)
-        if(compressedProof.size < proofToTest.size) {
-          println("Proof after split: ")
+        val resNodesAfter = countResolutionNodes(compressedProof)
+        if(resNodesAfter < numRes) {
+          println("Proof after split has "+ (numRes - resNodesAfter) + "less nodes resolution nodes")
           println(compressedProof)
-        } else
-          println("The proof was not compressed\n\n#########################################\n\n")
+        } else {
+          println("The proof was not compressed\n\n")
+          println(compressedProof)
+          println("\n\n#########################################\n\n")
+        }
 
         if (compressedProof.root.conclusion.ant.nonEmpty || compressedProof.root.conclusion.suc.nonEmpty) {
           etempT.println(probY.substring(path.length) + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")
