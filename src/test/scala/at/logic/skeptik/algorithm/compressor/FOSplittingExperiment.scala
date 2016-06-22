@@ -12,7 +12,11 @@ import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
 
 import scala.io.Source
 
+object FOSplittingSetsContentionTests {
+  def main(args : Array[String]): Unit = {
 
+  }
+}
 /**
   * This object is created to
   */
@@ -92,7 +96,7 @@ object FOSplittingExperiment {
 
         val startTime = System.nanoTime
 
-        val timeout = 4000
+        val timeout = 500
         val cottonSplit = new FOCottonSplit(variables,timeout)
         val compressedProof = cottonSplit(proofToTest)
         val resNodesAfter = countResolutionNodes(compressedProof)

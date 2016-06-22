@@ -126,13 +126,14 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
           count = count + 1
       count
     }
-    if(selectLiteral(p).isEmpty)
+    if(selectLiteral(p).isEmpty) {
+      //print("a");
       p
-    else {
+    } else {
       val selectedLiteral = selectLiteral(p).get
       val (left, right) = split(p, selectedLiteral)
-      println(left)
-      println(right)
+      //println(left)
+      //println(right)
       val leftContracted = Contraction.contractIfPossible(left, variables)
       val rightContracted = Contraction.contractIfPossible(right, variables)
       val compressedProof: Proof[Node] = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
