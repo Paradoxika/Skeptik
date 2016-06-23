@@ -1,7 +1,6 @@
 /*
   This case should be compressed by all heuristics
 */
-
 cnf(c_0_0, axiom, ~q(X) ).
 cnf(c_0_1, axiom, q(f(X,b)) | p(X) | r).
 cnf(c_0_2, axiom, q(f(R,Y)) | ~p(X)).

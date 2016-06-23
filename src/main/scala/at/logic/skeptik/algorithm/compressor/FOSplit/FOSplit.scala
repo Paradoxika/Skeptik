@@ -137,6 +137,9 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       val leftContracted = Contraction.contractIfPossible(left, variables)
       val rightContracted = Contraction.contractIfPossible(right, variables)
       val compressedProof: Proof[Node] = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
+      //println("PROOF AFTER SPLIT")
+      //println(compressedProof)
+      //println("SIZE: " + compressedProof.size + "ORIGINAL WAS "+p.size)
       if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
     }
   }

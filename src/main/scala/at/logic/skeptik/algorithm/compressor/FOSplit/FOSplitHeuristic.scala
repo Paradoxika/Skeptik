@@ -129,59 +129,82 @@ trait FOAdditivityHeuristic extends AbstractFOSplitHeuristic  {
   */
 trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 
-  private def isIncludeInSet(sequent: Sequent,literalsSet : MSet[E]): Boolean = {
-    def desiredIsContained(computed: Sequent, desired: Sequent, unifiableVariables: MSet[Var]): Boolean = {
-      def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-        val subList = MSet[(Var, E)]()
+  // TODO: DEBUG THIS
+  protected def isIncludeInSet(sequent: Sequent,literalsSet : MSet[E]): Boolean = {
 
-        for (k <- m.keySet)
-          if (m.get(k).get.nonEmpty)
-            subList.add((k, m.get(k).get.head))
+    import UnifyingResolution._
 
-        val sub = Substitution(subList.toSeq: _*)
-        def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
-          if (target.isEmpty)
-            return true
+    def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
+      if (computed == desired) {
+        true
+      } else {
+        val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
 
-          target match {
-            case h :: t =>
-              for (s <- source)
-                if (h.equals(s))
-                  return foundExactly(t, source)
-          }
-          false
+        val antMap = generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
+        if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
+          return false
+        }
+        val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
+        if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
+          return false
+        }
+        val intersectedMap = intersectMaps(antMap, sucMap)
+
+        if (!validMap(intersectedMap, vars)) {
+          return false
         }
 
-        val newDesiredAnt = desired.ant.map(e => sub(e))
+        def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
+          val subList = MSet[(Var, E)]()
 
-        val newDesiredSuc = desired.suc.map(e => sub(e))
-        foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
+          for (k <- m.keySet) {
+            if (m.get(k).get.size > 0) {
+              subList.add((k, m.get(k).get.head))
+            }
+          }
+
+          val sub = Substitution(subList.toSeq: _*)
+          def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
+            if (target.size == 0) {
+              return true
+            }
+            target match {
+              case h :: t => {
+                for (s <- source) {
+                  if (h.equals(s)) {
+                    return foundExactly(t, source)
+                  }
+                }
+              }
+            }
+
+            false
+          }
+
+          val newDesiredAnt = (desired.ant).map(e => sub(e))
+
+          val newDesiredSuc = (desired.suc).map(e => sub(e))
+          foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
+        }
+
+        if (!findFromMap(intersectedMap, vars)) {
+          return false
+        }
+
+        true
       }
-
-      lazy val commonVars     = UnifyingResolution.getSetOfVars(Axiom(computed.ant)) intersect UnifyingResolution.getSetOfVars(Axiom(computed.suc))
-      lazy val antMap         = UnifyingResolution.generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
-      lazy val sucMap         = UnifyingResolution.generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
-      lazy val intersectedMap = UnifyingResolution.intersectMaps(antMap, sucMap)
-
-
-      (computed == desired) ||
-      (
-           !(UnifyingResolution.getSetOfVars(desired.ant: _*).nonEmpty && antMap.isEmpty)
-        && !(UnifyingResolution.getSetOfVars(desired.suc: _*).nonEmpty && sucMap.isEmpty)
-        && UnifyingResolution.validMap(intersectedMap, vars)
-        && findFromMap(intersectedMap, vars)
-      )
     }
 
-    def sequentAntVars   = UnifyingResolution.getSetOfVars(sequent.ant: _*)
-    def sequentSucVars   = UnifyingResolution.getSetOfVars(sequent.suc: _*)
-    def litteralsSetVars = UnifyingResolution.getSetOfVars(literalsSet.toList : _*)
-    def vars : MSet[Var] = MSet[Var]() ++ sequentAntVars ++ sequentSucVars
-    def allvars          = vars ++ litteralsSetVars
+    def antVars = getSetOfVars(sequent.ant: _*)
+    def sucVars = getSetOfVars(sequent.suc: _*)
+    def antVarsB = getSetOfVars(literalsSet.toList:_*)//safeLit.ant: _*)
+    def sucVarsB = getSetOfVars(literalsSet.toList:_*)//safeLit.suc: _*)
+    def vars = MSet[Var]() ++ antVars ++ sucVars
+    def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
 
-    def safeClean = UnifyingResolution.fixSharedNoFilter(Axiom(litteralsSetVars), Axiom(sequent), 0, allvars)
+    def safeClean = fixSharedNoFilter(Axiom(literalsSet/*safeLit*/), Axiom(sequent), 0, allvars)
 
-    desiredIsContained(safeClean.conclusion, sequent,vars)
+    desiredIsContained(safeClean.conclusion, sequent)(vars)
   }
 
   def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
@@ -193,21 +216,29 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
     proof bottomUp { (node: Node, _ : Seq[Unit]) =>
       node match {
         case Axiom(_) => ()
-        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node); ()
+        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; ()
         case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
-            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+            case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
           literals += literalName -> Some(unifiedLiteral)
-          nodesSets += leftPremise  -> (nodesSets(node) += unifiedLiteral)
+          nodesSets += leftPremise  -> (nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
-          if(!isIncludeInSet(leftPremise.conclusion,nodesSets(leftPremise)))
+          val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
+          if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
             literals += literalName -> None
-          if(!isIncludeInSet(rightPremise.conclusion,nodesSets(rightPremise)))
+            println("Variables: " + variables.mkString(","))
+            println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
+          }
+          val rightSeq = Sequent()(rightPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
+          if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
+            println("Variables: " + variables.mkString(","))
             literals += literalName -> None
+            println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
+          }
           ()
         }
       }
@@ -240,7 +271,7 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 /**
   * EXPERIMENT
   */
-trait SetContentionAndSeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
+trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
 
   private def unifyIfPossible(literal1 : Option[E] , literal2 : Option[E]) : Option[E] =
     if(literal1.isEmpty || literal2.isEmpty)
@@ -254,62 +285,7 @@ trait SetContentionAndSeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
     }
 
 
-  private def isIncludeInSet(sequent: Sequent,literalsSet : MSet[E]): Boolean = {
-    def desiredIsContained(computed: Sequent, desired: Sequent, unifiableVariables: MSet[Var]): Boolean = {
-      def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-        val subList = MSet[(Var, E)]()
-
-        for (k <- m.keySet)
-          if (m.get(k).get.nonEmpty)
-            subList.add((k, m.get(k).get.head))
-
-        val sub = Substitution(subList.toSeq: _*)
-        def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
-          if (target.isEmpty)
-            return true
-
-          target match {
-            case h :: t =>
-              for (s <- source)
-                if (h.equals(s))
-                  return foundExactly(t, source)
-          }
-          false
-        }
-
-        val newDesiredAnt = desired.ant.map(e => sub(e))
-
-        val newDesiredSuc = desired.suc.map(e => sub(e))
-        foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
-      }
-
-      lazy val commonVars     = UnifyingResolution.getSetOfVars(Axiom(computed.ant)) intersect UnifyingResolution.getSetOfVars(Axiom(computed.suc))
-      lazy val antMap         = UnifyingResolution.generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
-      lazy val sucMap         = UnifyingResolution.generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
-      lazy val intersectedMap = UnifyingResolution.intersectMaps(antMap, sucMap)
-
-
-      (computed == desired) ||
-        (
-          !(UnifyingResolution.getSetOfVars(desired.ant: _*).nonEmpty && antMap.isEmpty)
-            && !(UnifyingResolution.getSetOfVars(desired.suc: _*).nonEmpty && sucMap.isEmpty)
-            && UnifyingResolution.validMap(intersectedMap, vars)
-            && findFromMap(intersectedMap, vars)
-          )
-    }
-
-    def sequentAntVars   = variables//UnifyingResolution.getSetOfVars(sequent.ant: _*)
-    def sequentSucVars   = variables//UnifyingResolution.getSetOfVars(sequent.suc: _*)
-    def litteralsSetVars = variables//UnifyingResolution.getSetOfVars(literalsSet.toList : _*)
-    def vars : MSet[Var] = MSet(variables.toList:_*)//MSet[Var]() ++ sequentAntVars ++ sequentSucVars
-    def allvars          = vars ++ litteralsSetVars
-
-    def safeClean = UnifyingResolution.fixSharedNoFilter(Axiom(litteralsSetVars), Axiom(sequent), 0, allvars)
-
-    desiredIsContained(safeClean.conclusion, sequent,vars)
-  }
-
-  def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
+  override def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
     val nodesSets = MMap[Node, MSet[E]]()
     val literals  = MMap[String, Option[E]]()
 
@@ -336,10 +312,16 @@ trait SetContentionAndSeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
 
           nodesSets += leftPremise  -> (nodesSets(node) += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
-          if(!isIncludeInSet(leftPremise.conclusion,nodesSets(leftPremise)))
+          val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
+          if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
             literals += literalName -> None
-          if(!isIncludeInSet(rightPremise.conclusion,nodesSets(rightPremise)))
+            println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
+          }
+          val rightSeq = Sequent()(rightPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
+          if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
             literals += literalName -> None
+            println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
+          }
           ()
         }
       }
@@ -347,7 +329,7 @@ trait SetContentionAndSeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
     literals
   }
 
-  def availableLiterals(literals : MMap[String,Option[E]]) : MSet[String] = {
+  override def availableLiterals(literals : MMap[String,Option[E]]) : MSet[String] = {
     val available = literals.filter(_._2.nonEmpty)
     MSet(available.keys.toList: _*)
   }

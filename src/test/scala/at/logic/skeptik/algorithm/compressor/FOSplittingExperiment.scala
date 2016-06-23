@@ -96,7 +96,7 @@ object FOSplittingExperiment {
 
         val startTime = System.nanoTime
 
-        val timeout = 500
+        val timeout = 100
         val cottonSplit = new FOCottonSplit(variables,timeout)
         val compressedProof = cottonSplit(proofToTest)
         val resNodesAfter = countResolutionNodes(compressedProof)

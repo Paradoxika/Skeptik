@@ -16,7 +16,7 @@ object FOCottonSplitTest {
     println(variables.mkString(","))
     println("Proof:")
     println(proof)
-    val split = new FOCottonSplit(variables, 1000)
+    val split = new FOCottonSplit(variables, 100)
     println(split(proof))
   }
 }
@@ -26,6 +26,6 @@ object FOCottonSplitTest {
   */
 class FOCottonSplit(override val variables : MSet[Var], val timeout: Int)
 extends FOSplit(variables) with FOAdditivityHeuristic with FORandomChoice with Timeout
-  with SetContentionHeuristic with NameEquality
+  //with SetContentionHeuristic with NameEquality
   //with SeenLiteralsHeuristic with NameEquality
-  //with SetContentionAndSeenLiteralsHeuristic with NameEquality
+  with SetContentionAndSeenLiteralsHeuristic with NameEquality
