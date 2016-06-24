@@ -26,7 +26,6 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 	protected def checkForRes(safeLiteralsHalf: Set[E], aux: E): Boolean = {
 
 			if (safeLiteralsHalf.size < 1) {
-println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)			  
 				return false
 			}
 
@@ -67,7 +66,6 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 						}
 				}
 			}
-			println("checkForRes - false " + safeLiteralsHalf + " and " + aux)
 			false
 	}
 
@@ -78,8 +76,6 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 	protected def checkForResSmart(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode): Boolean = {
 
 			if (safeLiteralsHalf.size < 1) {
-			      println("checkForResSmart - false - small " + safeLiteralsHalf + " and " + aux)			
-
 				return false
 			}
 
@@ -123,7 +119,6 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 								}
 						}
 					}
-    println("checkForResSmart - false " + safeLiteralsHalf + " and " + aux)			
 			false
 	}
 
@@ -170,8 +165,8 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 
 				case Contraction(_, _) if isMRRContraction(p.asInstanceOf[Contraction]) => {
 					val mrr = p.premises.head
-//										val sub = mrr.asInstanceOf[UnifyingResolution].mgu
-//							mguMap.put(p, sub)
+							//										val sub = mrr.asInstanceOf[UnifyingResolution].mgu
+							//							mguMap.put(p, sub)
 							fixProofNodes(edgesToDelete, unifiableVariables, auxMap, mguMap)(mrr, fixedPremises)
 				}
 
@@ -236,17 +231,8 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 					}					
 
 					try {
-					  println("L: "+ left)
-					  println("R: " + right)
-        val oldMGU = if (mguMap.get(left).isEmpty) { Substitution() } else { mguMap.get(left).get }
-        println("oldMGU : " + oldMGU)
-//						val t = fixAmbiguousB(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-//						println("t; " + t)
-//						t
-						
-						UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
 
-//						UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
+						UnifyingResolutionMRR(fixedRight, fixedLeft)(unifiableVariables)
 
 					} catch {
 					case e: Exception => {
@@ -259,23 +245,18 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 										fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 							}
 						} else {
-						  println(e.getMessage)
-						  println("FL: " + fixedLeft)
-						  println("FR: " + fixedRight)
-						  println("NFR: " + newFixedRight)
-						  //UnifyingResolutionMRR( Contraction(fixedLeft)(unifiableVariables),newFixedRight)(unifiableVariables)
-						          val oldMGU = if (mguMap.get(left).isEmpty) { Substitution() } else { mguMap.get(left).get }
+
+							val oldMGU = if (mguMap.get(left).isEmpty) { Substitution() } else { mguMap.get(left).get }
 
 
-						try {
-							attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString, left, right, auxL, auxR, mguMap)(unifiableVariables)
-						} catch {
-						  case omg: Exception => {
-						    						  						val t = fixAmbiguousB(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
-						println("t; " + t)
-						t
-						  }
-						}
+							try {
+								attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString, left, right, auxL, auxR, mguMap)(unifiableVariables)
+							} catch {
+							case omg: Exception => {
+								val t = fixAmbiguousB(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+										t
+							}
+							}
 						}
 					}
 					}
@@ -303,13 +284,9 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 				UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
 			} catch {
 			case f: Exception => {
-//		  				UnifyingResolutionMRR(Contraction(fixedLeft)(unifiableVariables), fixedRight)(unifiableVariables)
-        println("left: " + left)
-				//val oldMGU = mguMap.get(left).get
-				
-        val oldMGU = if (mguMap.get(left).isEmpty) { Substitution() } else { mguMap.get(left).get }
-        println("oldMGU : " + oldMGU)
-						fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+
+				val oldMGU = if (mguMap.get(left).isEmpty) { Substitution() } else { mguMap.get(left).get }
+				fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 			}
 			}
 		}
@@ -318,61 +295,55 @@ println("checkForRes - false - small " + safeLiteralsHalf + " and " + aux)
 		}
 		}
 	}
-//24June2016
+	//24June2016
 	def fixAmbiguousB(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
-	  var desired = Sequent()()
-	  	  val fRightC = if(Contraction(fRight)(unifiableVariables).conclusion.size < fRight.conclusion.size) { Contraction(fRight)(unifiableVariables) } else { fRight }
-	  val fLeftCon = if(Contraction(fLeft)(unifiableVariables).conclusion.size < fLeft.conclusion.size) { Contraction(fLeft)(unifiableVariables) } else { fLeft }
-	  val fLeftC = fixSharedNoFilter(fLeftCon,fRightC,0, unifiableVariables)
-	  println("FLC: "+ fLeftC)
-	  println("FRC: "+ fRightC)
-	  
-	  for(ls <- fLeftC.conclusion.suc){
-	    unify((ls, auxL):: Nil)(unifiableVariables) match {
-	      case Some(_) => { //something }
-	        
-	      }
-	      case None =>{
-	        desired = desired + ls
-	      }
-	    }
-	  }
-	  
-	  for(la <- fLeftC.conclusion.ant){
-	    desired = la +: desired
-	  }
-	  
-	  for(ra <- fRightC.conclusion.ant){
-	    unify((ra, auxR):: Nil)(unifiableVariables) match {
-	      case Some(_) => { //something }
-	        
-	      }
-	      case None =>{
-	        desired = ra +: desired 
-	      }
-	    }
-	  }	  
-	  
-for(rs <- fRightC.conclusion.suc){
-	    desired =   desired + rs
-	  }	  
-	  println("THIS: " + desired + "----" + unifiableVariables)
-	  val outval = try{
-	  val out = UnifyingResolution(fLeftC, fRightC, desired)(unifiableVariables)
-	  	  println("out?? " + out)
-	  	  out
-	  } catch {
-	    case _=> {
-	      println("Other way.")
-	      val outB = UnifyingResolution(fRightC, fLeftC, desired)(unifiableVariables)
-	      	  println("outB?? " + outB)
-	      	  outB
-	    }
-	  }
-	  	  val outC = if(Contraction(outval)(unifiableVariables).conclusion.size < outval.conclusion.size) { Contraction(outval)(unifiableVariables) } else { outval }
-	  	  outC
+		var desired = Sequent()()
+				val fRightC = if(Contraction(fRight)(unifiableVariables).conclusion.size < fRight.conclusion.size) { Contraction(fRight)(unifiableVariables) } else { fRight }
+		val fLeftCon = if(Contraction(fLeft)(unifiableVariables).conclusion.size < fLeft.conclusion.size) { Contraction(fLeft)(unifiableVariables) } else { fLeft }
+		val fLeftC = fixSharedNoFilter(fLeftCon,fRightC,0, unifiableVariables)
+
+				for(ls <- fLeftC.conclusion.suc){
+					unify((ls, auxL):: Nil)(unifiableVariables) match {
+					case Some(_) => { //something 
+					  //Don't add to the remainder
+					}
+					case None =>{
+						desired = desired + ls
+					}
+					}
+				}
+
+		for(la <- fLeftC.conclusion.ant){
+			desired = la +: desired
+		}
+
+		for(ra <- fRightC.conclusion.ant){
+			unify((ra, auxR):: Nil)(unifiableVariables) match {
+			case Some(_) => { //something }
+
+			}
+			case None =>{
+				desired = ra +: desired 
+			}
+			}
+		}	  
+
+		for(rs <- fRightC.conclusion.suc){
+			desired =   desired + rs
+		}	  
+		val outval = try{
+			val out = UnifyingResolution(fLeftC, fRightC, desired)(unifiableVariables)
+					out
+		} catch {
+		case _=> {
+			val outB = UnifyingResolution(fRightC, fLeftC, desired)(unifiableVariables)
+			outB
+		}
+		}
+		val outC = if(Contraction(outval)(unifiableVariables).conclusion.size < outval.conclusion.size) { Contraction(outval)(unifiableVariables) } else { outval }
+		outC
 	}
-	
+
 	def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
 		val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
 
@@ -505,13 +476,12 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 	protected def addLiteralSmart(seq: IClause, aux: E, addToAntecedent: Boolean, left: SequentProofNode, right: SequentProofNode): IClause = {
 		//Restrict MartelliMontanari to tell whether "aux" is more general (and not just unifiable) 
 		// by passing only the variables of "aux" as unifiable variables.
-	  println("Adding " + aux + " to SAFE " + seq)
 		val uVars = new MSet[Var]() union getSetOfVars(aux)
-				val seqHalf = if (addToAntecedent) {
-					seq.ant
-				} else {
-					seq.suc
-				}
+		val seqHalf = if (addToAntecedent) {
+			seq.ant
+		} else {
+			seq.suc
+		}
 
 		for (lit <- seqHalf) {
 			unify((lit, aux) :: Nil)(uVars) match {
@@ -521,19 +491,19 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 			}
 			}
 		}
-		
+
 		//24 June 2015
 		//see if aux shares a variable with something in the safe; if so, change it to avoid creating dependencies
 		val newAuxNode = fixSharedNoFilter(Axiom(Sequent(aux)()), Axiom(seq.toSeqSequent), 0, uVars)
-		val newAux = newAuxNode.conclusion.ant.head
-		//val newAux = aux
-		//---
-		
-		def out = if (addToAntecedent) {
-			(newAux +: seq)
-		} else {
-			(seq + newAux)
-		}
+				val newAux = newAuxNode.conclusion.ant.head
+				//val newAux = aux
+				//---
+
+				def out = if (addToAntecedent) {
+					(newAux +: seq)
+				} else {
+					(seq + newAux)
+				}
 		out
 	}
 
@@ -549,77 +519,71 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 	//ensure that the node that will be replacing the unifying resolution is entirely safe
 	protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
 
-	    
+
 			def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
-			  println("computed: " + computed)
-			  println("desired: " + desired)
-			  println("unifiableVars: " + unifiableVariables)
 				if (computed == desired) {
 					return true
 				} else {
 					//val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
 
 					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
-					println("antmap: " + antMap)
 							if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
 								return false
 							}
-					
+
 					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
-					println("sucmap: " + sucMap)
-					if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
+							if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
 								return false
 							}
 					val intersectedMap = intersectMaps(antMap, sucMap)
-					println("made intersection")
-					println(intersectedMap)
 							if (!validMap(intersectedMap, vars)) {
 								return false
 							}
 
-					def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-							val subList = MSet[(Var, E)]()
+					//					def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
+					//							val subList = MSet[(Var, E)]()
+					//
+					//									for (k <- m.keySet) {
+					//										if (m.get(k).get.size > 0) {
+					//											subList.add((k, m.get(k).get.head))
+					//										}
+					//									}
+					//
+					//							val sub = Substitution(subList.toSeq: _*)
+					//									def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
+					//								if (target.size == 0) {
+					//									return true
+					//								}
+					//								target match {
+					//								case h :: t => {
+					//									for (s <- source) {
+					//										if (h.equals(s)) {
+					//											return foundExactly(t, source)
+					//										}
+					//									}
+					//								}
+					//								case t => {
+					//								  for (s <- source) {
+					//										if (t.equals(s)) {
+					//											return true
+					//										}
+					//									}
+					//								}
+					//								}
+					//
+					//								false
+					//							}
+					//
+					//							val newDesiredAnt = (desired.ant).map(e => sub(e))
+					//
+					//									val newDesiredSuc = (desired.suc).map(e => sub(e))
+					//									foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
+					//					}
 
-									for (k <- m.keySet) {
-										if (m.get(k).get.size > 0) {
-											subList.add((k, m.get(k).get.head))
-										}
-									}
 
-							val sub = Substitution(subList.toSeq: _*)
-									def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
-								if (target.size == 0) {
-									return true
-								}
-								target match {
-								case h :: t => {
-									for (s <- source) {
-										if (h.equals(s)) {
-											return foundExactly(t, source)
-										}
-									}
-								}
-								case t => {
-								  for (s <- source) {
-										if (t.equals(s)) {
-											return true
-										}
-									}
-								}
-								}
-
-								false
-							}
-
-							val newDesiredAnt = (desired.ant).map(e => sub(e))
-
-									val newDesiredSuc = (desired.suc).map(e => sub(e))
-									foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
-					}
-					println("made valid intersection")
-//					if (!findFromMap(intersectedMap, vars)) {
-//						return false
-//					}
+					//					if (!findFromMap(intersectedMap, vars)) {
+					//						return false
+					//					}
 
 					true
 				}
@@ -629,17 +593,16 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 					def sucVars = getSetOfVars(seqToDelete.suc: _*)
 					def antVarsB = getSetOfVars(safeLit.ant: _*)
 					def sucVarsB = getSetOfVars(safeLit.suc: _*)
-					def vars = MSet[Var]() ++ antVars ++ sucVars 
-					def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
+
+					def vars = MSet[Var]() ++ antVars ++ sucVars //referenced in the helper function, so it should not be removed
 					
-					println("safelit?" + Axiom(safeLit))
+					def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
 					def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
+
 					def antVarsC = getSetOfVars(safeClean.conclusion.ant: _*)
 					def sucVarsC = getSetOfVars(safeClean.conclusion.suc: _*)
-					println("Safeclean: " + safeClean)
-										def allvarsC = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB ++ antVarsC ++ sucVarsC
+					def allvarsC = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB ++ antVarsC ++ sucVarsC
 
-					println("seqToDelete: " + seqToDelete + " and vars: " + vars + " and allvars: " + allvars + " and allvarsC: "+ allvarsC)
 					desiredIsContained(safeClean.conclusion, seqToDelete)(allvarsC)
 
 	}
@@ -700,44 +663,55 @@ extends FOAbstractRPIAlgorithm {
 			case h :: t =>
 			t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
 			{
-			  println("intersecting literals.." + acc + " and " +  safeLiteralsFromChild(v, proof, edgesToDelete))
-			  println("intersection: " + (acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)))
-			  println("intersection (smart): " + smartIntersect(acc,safeLiteralsFromChild(v, proof, edgesToDelete)))
-			  
-				//acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)
-			  smartIntersect(acc,safeLiteralsFromChild(v, proof, edgesToDelete))
+				smartIntersect(acc,safeLiteralsFromChild(v, proof, edgesToDelete))
 			}
 			}
 			}
 	}
-	
+
 	protected def smartIntersect(l: IClause, r: IClause) = {
-	  var out = Sequent()() 
-	  val uVars = getSetOfVars(Axiom(l.toSeqSequent)) union getSetOfVars(Axiom(r.toSeqSequent))
-	  for(la <- l.ant){
-	     for(ra <- r.ant){
-			unify((la, ra) :: Nil)(uVars) match {
-			case None => {}
-			case Some(_) => {
-				out =  la +: out
+		var out = Sequent()() 
+				val uVars = getSetOfVars(Axiom(l.toSeqSequent)) union getSetOfVars(Axiom(r.toSeqSequent))
+				for(la <- l.ant){
+					for(ra <- r.ant){
+						unify((la, ra) :: Nil)(uVars) match {
+						case None => {}
+						case Some(sub) => {
+						  val newLA = getCleanLiteral(la, sub, out)						  
+							out =  newLA +: out
+						}
+						}
+					}
+				}
+
+		for(ls <- l.suc){
+			for(rs <- r.suc){
+				unify((ls, rs) :: Nil)(uVars) match {
+				case None => {}
+				case Some(sub) => {
+				  val newLS = getCleanLiteral(ls, sub, out)					  
+					out =  out + newLS
+				}
+				}
 			}
-			}
-	     }
 		}
-	  
-	  	  	  for(ls <- l.suc){
-	     for(rs <- r.suc){
-			unify((ls, rs) :: Nil)(uVars) match {
-			case None => {}
-			case Some(_) => {
-				out =  out + ls
-			}
-			}
-	     }
-	  	  	  }
-    
-	   out.toSetSequent
-	   
-  }
+
+		out.toSetSequent
+
+	}
 	
+	def getCleanLiteral(l: E, s:Substitution, rest: Sequent) ={
+	  val restAx = Axiom(rest)
+	  val lsubbed = s(l)
+	  val lsAx = Axiom(Sequent(lsubbed)())
+	  val vars = getSetOfVars(restAx) union getSetOfVars(lsAx)
+
+	  
+	  val lsAxClean = fixSharedNoFilter(lsAx,restAx,0, vars)
+	  
+	  val cleanL = lsAxClean.conclusion.ant.head
+	  
+	  cleanL
+	}
+
 }

@@ -67,7 +67,6 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 		val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 		
 				val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-				println("ups:" + unifiablePairs)
 				
 				if (unifiablePairs.length == 1) {
 					val (auxL, auxR) = unifiablePairs(0)
@@ -532,8 +531,6 @@ def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: Sequen
 				}
 			}
 			val computedSequent = computedResolution.conclusion.toSeqSequent
-			println("Computed: " + computedSequent)
-			println("Desired: " + desired)
 
 					val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
 					
