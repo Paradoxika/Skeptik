@@ -140,6 +140,7 @@ trait FindsVars extends checkUnifiableVariableName {
 			}
 
 	def getSetOfVars(pn: SequentProofNode): MSet[Var] = {
+	  
 			val ante = pn.conclusion.ant
 					val succ = pn.conclusion.suc
 
@@ -531,6 +532,8 @@ def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: Sequen
 				}
 			}
 			val computedSequent = computedResolution.conclusion.toSeqSequent
+			println("Computed: " + computedSequent)
+			println("Desired: " + desired)
 
 					val computedSequentClean = fixSharedNoFilter(Axiom(computedSequent), Axiom(desired), 0, unifiableVariables).conclusion
 					

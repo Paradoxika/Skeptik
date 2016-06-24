@@ -255,6 +255,7 @@ trait checkProofEquality extends FindDesiredSequent {
     val sequents = for (l <- lines) yield SequentParser(l)
     val traversableSequents = sequents.toTraversable
     if (proofNodesReversed.size != traversableSequents.size) {
+      println("Not the same size..")
       return false
     }
 

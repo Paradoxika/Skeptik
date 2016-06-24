@@ -15,6 +15,7 @@ abstract class FORecyclePivots
     val mguMap = firstPassResults._3
 
     if (edgesToDelete.isEmpty) {
+      println("nothing to delete")
       proof
     } else {
       Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, auxMap, mguMap)))
