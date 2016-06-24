@@ -65,8 +65,10 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 	def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
 
 		val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
+		
 				val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-
+				println("ups:" + unifiablePairs)
+				
 				if (unifiablePairs.length == 1) {
 					val (auxL, auxR) = unifiablePairs(0)
 							new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
@@ -186,6 +188,8 @@ trait CanRenameVariables extends FindsVars {
 		} else {
 			null
 		}
+	  
+	  
 	}
 	}
 
@@ -543,11 +547,11 @@ def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: Sequen
 					
 					val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
 					
+					
 					desiredEquivToComputedRelaxed = findRenaming(desired, computedSequentRelaxed)!= null
 					computedCleanIsMoreGeneral = isMoreGeneral(computedSequentClean, desired)
 			}
-
-			
+							
 
 			val condition = (findRenaming(desired, computedSequentClean) != null) || desiredEquivToComputedRelaxed || computedCleanIsMoreGeneral
 			

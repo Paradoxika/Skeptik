@@ -526,6 +526,7 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 
 	}
 
+	//TODO: rename helper function names
 	protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
 		val edgesToDelete = new FOEdgesToDelete()
 		var auxMap = new MMap[SequentProofNode, E]()

@@ -15,15 +15,7 @@ object ParserTPTP extends ProofCombinatorParser[Node] with ParserTPTP
 
 trait ParserTPTP
 extends JavaTokenParsers with RegexParsers {
-  
-  
-  def read(filename: String) : Proof[Node] = {
-    parse(proof, new FileReader(filename)) match {
-      case Success(p,_) => p // returns proof whose root is in the last line of the proof file
-      case Failure(message,_) => throw new Exception("Failure: " + message)
-      case Error(message,_) => throw new Exception("Error: " + message)
-    }
-  }  
+   
   
   private var proofMap = new MMap[String,Node]
   private var exprMap = new MMap[String,E]

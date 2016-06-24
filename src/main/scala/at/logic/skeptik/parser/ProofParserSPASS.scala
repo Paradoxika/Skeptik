@@ -20,13 +20,7 @@ trait SPASSParsers
   extends JavaTokenParsers with RegexParsers with checkUnifiableVariableName {
 
   
-   def read(filename: String) : Proof[Node] = {
-    parse(proof, new FileReader(filename)) match {
-      case Success(p,_) => p // returns proof whose root is in the last line of the proof file
-      case Failure(message,_) => throw new Exception("Failure: " + message)
-      case Error(message,_) => throw new Exception("Error: " + message)
-    }
-  }  
+
   
   private var count = 1 //the count of the line as given by the SPASS proof
   private var lineCounter = 0 //the actual line number, as in the file
@@ -119,6 +113,7 @@ trait SPASSParsers
 
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
+      
       val ax = if (refs.length == 2) {
         try {
           UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
