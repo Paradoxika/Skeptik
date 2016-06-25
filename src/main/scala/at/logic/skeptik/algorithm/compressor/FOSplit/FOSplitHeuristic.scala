@@ -204,7 +204,10 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 
     def safeClean = fixSharedNoFilter(Axiom(literalsSet/*safeLit*/), Axiom(sequent), 0, allvars)
 
-    desiredIsContained(safeClean.conclusion, sequent)(vars)
+    def antVarsC = getSetOfVars(safeClean.conclusion.ant: _*)
+    def sucVarsC = getSetOfVars(safeClean.conclusion.suc: _*)
+    def allvarsNew = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB ++ antVarsC ++ sucVarsC
+    desiredIsContained(safeClean.conclusion, sequent)(allvarsNew)
   }
 
   def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
@@ -316,11 +319,14 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
           if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
             literals += literalName -> None
             println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
+            println("Transformed Sequent: " + leftSeq.toString)
           }
-          val rightSeq = Sequent()(rightPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
+          val rightSeq = Sequent()(rightPremise.conclusion.ant ++ rightPremise.conclusion.suc :_*)
           if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
             literals += literalName -> None
             println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
+            println("Transformed Sequent: " + rightSeq.toString)
+
           }
           ()
         }
