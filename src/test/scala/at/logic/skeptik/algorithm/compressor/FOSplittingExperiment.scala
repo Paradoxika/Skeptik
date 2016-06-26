@@ -12,13 +12,8 @@ import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
 
 import scala.io.Source
 
-object FOSplittingSetsContentionTests {
-  def main(args : Array[String]): Unit = {
-
-  }
-}
 /**
-  * This object is created to
+  * This object is created to run experiments with the FOSpliting Algorithm
   */
 object FOSplittingExperiment {
 
@@ -63,12 +58,8 @@ object FOSplittingExperiment {
     val proofList = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/list.txt"
 
     val problemSetS = getProblems(proofList, path)
-    //    var errorCountT = 0
     var totalCountT = 0
 
-    //    val elogger = new PrintWriter("errors.elog")
-    //    val eTypeLogger = new PrintWriter("errorTypes.elog")
-    //    val eProblemsLogger = new PrintWriter("errorProblems.elog")
     val etempT = new PrintWriter("results-FOSplitting.log")
     val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
     etempT.println(header)
@@ -84,7 +75,7 @@ object FOSplittingExperiment {
         println("Proof: " + probY)
         val proofToTest = ProofParserSPASS.read(probY)
         var variables   = ProofParserSPASS.getVars()
-        //ProofParserSPASS.cleanVars()
+
         println("Variables: " + variables.mkString(","))
         println(proofToTest)
 
@@ -148,14 +139,8 @@ object FOSplittingExperiment {
           etempT.flush()
         }
       }
-
     }
-
     println("total: " + totalCountT)
-
-    //    elogger.flush
-    //    eTypeLogger.flush
-    //    eProblemsLogger.flush
   }
 
 }

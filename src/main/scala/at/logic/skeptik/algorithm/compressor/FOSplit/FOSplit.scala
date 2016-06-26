@@ -31,6 +31,8 @@ object FOSplitTest {
 
 /**
   * The class FOSplit is the base of the split procedure in First-Order logic
+  *
+  * @param variables The set of variables that appear in the proof
   */
 abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[Node]) {
 
@@ -61,14 +63,11 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       def containsPos(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.suc,literal)
       def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
       def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
-      def contractAndUnify(leftNode : Node ,rightNode:Node) = UnifyingResolution.resolve(leftNode,rightNode,variables)
-      /*  UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),
-                                   Contraction.contractIfPossible(rightNode,variables),
-                                   variables)*/
+      def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node) = UnifyingResolution.resolve(leftNode,rightNode,variables)
 
       require(fixedPremises.length == 2)
-      lazy val (fixedLeftPos, fixedLeftNeg) = fixedPremises.head
-      lazy val (fixedRightPos, fixedRightNeg) = fixedPremises.last
+      lazy val (fixedLeftPos  , fixedLeftNeg ) = fixedPremises.head
+      lazy val (fixedRightPos , fixedRightNeg) = fixedPremises.last
       val (leftResolvedLiteral, rightResolvedLiteral) =
         node match {
           case UnifyingResolution(_, _, lrl, rrl) => (lrl, rrl)
@@ -85,26 +84,24 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
           else
             fixedLeftNeg
 
-          (premiseWithPositiveOcurrence,premiseWithNegativeOcurrence)
-        //(fixedLeftPos, fixedRightNeg)
+        (premiseWithPositiveOcurrence,premiseWithNegativeOcurrence)
       } else {
-        val (leftConclusionPos, leftConclusionNeg) = (fixedLeftPos.conclusion, fixedLeftNeg.conclusion)
-        val (rightConclusionPos, rightConclusionNeg) = (fixedRightPos.conclusion, fixedRightNeg.conclusion)
+        val (leftConclusionPos  , leftConclusionNeg ) = (fixedLeftPos.conclusion, fixedLeftNeg.conclusion)
+        val (rightConclusionPos , rightConclusionNeg) = (fixedRightPos.conclusion, fixedRightNeg.conclusion)
         val finalLeftProof =
           if(!contains(leftConclusionPos,leftResolvedLiteral)) fixedLeftPos
           else if(!contains(rightConclusionPos,rightResolvedLiteral)) fixedRightPos
-          else if(containsPos(leftConclusionPos,leftResolvedLiteral) && containsNeg(rightConclusionPos,rightResolvedLiteral)) contractAndUnify(fixedLeftPos,fixedRightPos)
-          else if(containsNeg(leftConclusionPos,leftResolvedLiteral) && containsPos(rightConclusionPos,rightResolvedLiteral)) contractAndUnify(fixedLeftPos,fixedRightPos)
+          else if(containsPos(leftConclusionPos,leftResolvedLiteral) && containsNeg(rightConclusionPos,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftPos,fixedRightPos)
+          else if(containsNeg(leftConclusionPos,leftResolvedLiteral) && containsPos(rightConclusionPos,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftPos,fixedRightPos)
           else fixedRightPos // This is arbitrary
         val finalRighttProof =
           if(!contains(leftConclusionNeg,leftResolvedLiteral)) fixedLeftNeg
           else if(!contains(rightConclusionNeg,rightResolvedLiteral)) fixedRightNeg
-          else if(containsPos(leftConclusionNeg,leftResolvedLiteral) && containsNeg(rightConclusionNeg,rightResolvedLiteral)) contractAndUnify(fixedLeftNeg,fixedRightNeg)
-          else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral)) contractAndUnify(fixedLeftNeg,fixedRightNeg)
+          else if(containsPos(leftConclusionNeg,leftResolvedLiteral) && containsNeg(rightConclusionNeg,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftNeg,fixedRightNeg)
+          else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftNeg,fixedRightNeg)
           else fixedRightNeg // This is arbitrary
         (finalLeftProof,finalRighttProof)
       }
-
     }
 
     proof foldDown { (node: Node, fixedPremises: Seq[(Node, Node)]) =>
@@ -114,7 +111,6 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
         case UnifyingResolution(_,_,_,_) => manageResolution(node, fixedPremises)
       }
     }
-
   }
 
 
@@ -126,20 +122,13 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
           count = count + 1
       count
     }
-    if(selectLiteral(p).isEmpty) {
-      //print("a");
-      p
-    } else {
+    if(selectLiteral(p).isEmpty) p
+    else {
       val selectedLiteral = selectLiteral(p).get
-      val (left, right) = split(p, selectedLiteral)
-      //println(left)
-      //println(right)
-      val leftContracted = Contraction.contractIfPossible(left, variables)
+      val (left, right)   = split(p, selectedLiteral)
+      val leftContracted  = Contraction.contractIfPossible(left, variables)
       val rightContracted = Contraction.contractIfPossible(right, variables)
-      val compressedProof: Proof[Node] = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
-      //println("PROOF AFTER SPLIT")
-      //println(compressedProof)
-      //println("SIZE: " + compressedProof.size + "ORIGINAL WAS "+p.size)
+      val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
       if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
     }
   }

@@ -9,23 +9,25 @@ import scala.collection.mutable.{Set => MSet}
 
 object FOCottonSplitTest {
   def main(args: Array[String]): Unit = {
-    val proof = ProofParserCNFTPTP.read("examples/proofs/TPTP/FOSplitToCompress.tptp")
+    val proof     = ProofParserCNFTPTP.read("examples/proofs/TPTP/FOSplitToCompress.tptp")
     val variables = ProofParserCNFTPTP.getVariables
+    val split     = new FOCottonSplit(variables, 100)
     println("Original Proof:")
     print("Variables: ")
     println(variables.mkString(","))
     println("Proof:")
     println(proof)
-    val split = new FOCottonSplit(variables, 100)
     println(split(proof))
   }
 }
 
 /**
-  * Created by eze on 2016.06.14..
+  * The class FOCottonSplit represent a first order generalization of
+  * Cotton's splitting algorithm.
+  *
+  * @param variables The set of variables that appear in the proof
+  * @param timeout   A timeout parameter to stop the iterative splitting steps
   */
 class FOCottonSplit(override val variables : MSet[Var], val timeout: Int)
 extends FOSplit(variables) with FOAdditivityHeuristic with FORandomChoice with Timeout
-  with SetContentionHeuristic with NameEquality
-  //with SeenLiteralsHeuristic with NameEquality
-  //with SetContentionAndSeenLiteralsHeuristic with NameEquality
+  with SetContentionAndSeenLiteralsHeuristic with NameEquality

@@ -4,7 +4,8 @@ import at.logic.skeptik.expression.E
 import at.logic.skeptik.expression.formula.Atom
 
 /**
-  * Created by eze on 2016.06.14..
+  * Tha trait FORandomChoice implement a random choice for the
+  * literals to use to split the proof.
   */
 trait FORandomChoice extends AbstractFOSplitHeuristic {
   private val rand = new scala.util.Random()

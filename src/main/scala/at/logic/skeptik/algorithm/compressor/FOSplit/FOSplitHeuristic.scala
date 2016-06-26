@@ -13,7 +13,8 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 
 /**
-  * Created by eze on 2016.06.13..
+  * The trait AbstractFOSplitHeuristic is the base trait of the ones
+  * that should implement some abstract methods FOSplit.
   */
 trait AbstractFOSplitHeuristic extends FOSplit {
 
@@ -36,6 +37,13 @@ trait AbstractFOSplitHeuristic extends FOSplit {
 }
 
 
+/**
+  * The trait SeenLiteralsHeuristic explores the proof and checks for each literal if all the its uses
+  * in resolution steps are unifiable. The hope is that the literals that satisfy this condition can be
+  * consider for splitting. Unfortunatelly, experiments showed that some cases that satisfy this condition
+  * fail to generate two proofs that can be resolved after splitting.
+  *
+  */
 trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
 
   private def unifyIfPossible(literal1 : Option[E] , literal2 : Option[E]) : Option[E] =
@@ -50,8 +58,9 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
     }
 
   /**
-    * The method exploreLiterals, explores the proof to check if all
-    * the uses of a literal as pivot are unifiable along the proof
+    * The method exploreLiterals is the one that explores the proof
+    * to check for each literal if all its uses as pivot are unifiable
+    * along the proof
     *
     * @param proof The proof to explore
     * @return      A map from the literal name to the most restricted
@@ -129,7 +138,8 @@ trait FOAdditivityHeuristic extends AbstractFOSplitHeuristic  {
   */
 trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 
-  // TODO: DEBUG THIS
+  // TODO: THIS MUST BE DEBUGGED AFTER UNIFYING RESOLUTION METHODS ARE FIXED
+  // TODO: REMEMBER TO DEBUG THE COMBINED HEURISTIC TOO
   protected def isIncludeInSet(sequent: Sequent,literalsSet : MSet[E]): Boolean = {
 
     import UnifyingResolution._
@@ -187,9 +197,10 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
           foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
         }
 
-        if (!findFromMap(intersectedMap, vars)) {
-          return false
-        }
+        // According to Jan this should be commented
+        //if (!findFromMap(intersectedMap, vars)) {
+        //  return false
+        //}
 
         true
       }
@@ -216,10 +227,10 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 
     nodesSets +=  proof.root -> MSet[E](proof.root.conclusion.ant ++ proof.root.conclusion.suc :_* )
 
-    proof bottomUp { (node: Node, _ : Seq[Unit]) =>
+    proof bottomUp { (node: Node, resultFromParents : Seq[MSet[E]]) =>
       node match {
-        case Axiom(_) => ()
-        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; ()
+        case Axiom(_) => MSet[E]()
+        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; nodesSets(node).clone()
         case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
@@ -227,22 +238,22 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
             case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
-          literals += literalName -> Some(unifiedLiteral)
+          literals  += literalName  -> Some(unifiedLiteral)
           nodesSets += leftPremise  -> (nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
           val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
           if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
             literals += literalName -> None
-            println("Variables: " + variables.mkString(","))
-            println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
+            //println("Variables: " + variables.mkString(","))
+            //println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
           }
           val rightSeq = Sequent()(rightPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
           if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
-            println("Variables: " + variables.mkString(","))
             literals += literalName -> None
-            println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
+            //println("Variables: " + variables.mkString(","))
+            //println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
           }
-          ()
+          nodesSets(node).clone()
         }
       }
     }
@@ -272,7 +283,9 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 //#####################################################
 
 /**
-  * EXPERIMENT
+  * This trait combines the SetContentionHeuristic and the SeenLiteralsHeuristic
+  * in the hope of identifying more nodes that should not be used for splitting.
+  *
   */
 trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
 
@@ -294,10 +307,10 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
 
     nodesSets +=  proof.root -> MSet[E](proof.root.conclusion.ant ++ proof.root.conclusion.suc :_* )
 
-    proof bottomUp { (node: Node, _ : Seq[Unit]) =>
+    proof bottomUp { (node: Node, resultFromChildren : Seq[MSet[E]]) =>
       node match {
-        case Axiom(_) => ()
-        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node) ; ()
+        case Axiom(_) => MSet[E]()
+        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; nodesSets(node).clone()
         case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
@@ -313,22 +326,21 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
           else
             literals += (literalName -> Some(unifiedLiteral))
 
-          nodesSets += leftPremise  -> (nodesSets(node) += unifiedLiteral)
+          nodesSets += leftPremise  -> (nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
           val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
           if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
             literals += literalName -> None
-            println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
-            println("Transformed Sequent: " + leftSeq.toString)
+            //println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
+            //println("Transformed Sequent: " + leftSeq.toString)
           }
           val rightSeq = Sequent()(rightPremise.conclusion.ant ++ rightPremise.conclusion.suc :_*)
           if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
             literals += literalName -> None
-            println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
-            println("Transformed Sequent: " + rightSeq.toString)
-
+            //println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
+            //println("Transformed Sequent: " + rightSeq.toString)
           }
-          ()
+          nodesSets(node).clone()
         }
       }
     }
@@ -346,8 +358,8 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
 
   override def selectLiteral(proof: Proof[Node]) = {
     val (measureMap, measureSum) = computeMeasures(proof)
-    val literals : MSet[String] = availableLiterals(exploreLiterals(proof))
-    val availableLiteralsMap = measureMap.filter(x => literals.contains(x._1))
+    val literals : MSet[String]  = availableLiterals(exploreLiterals(proof))
+    val availableLiteralsMap     = measureMap.filter(x => literals.contains(x._1))
     chooseVariable(availableLiteralsMap, measureSum)
   }
 }
