@@ -19,7 +19,7 @@ class UnitPropagationResolution(val clause: SequentProofNode, // right premise
                                 val rightLiterals: Seq[Literal])
                                (implicit unifiableVariables: mutable.Set[Var]) extends SequentProofNode {
 
-  def unify(equations: Iterable[(E, E)])(implicit variables: mutable.Set[Var]) = MartelliMontanari(equations)
+  def unify(equations: Iterable[(E, E)]) = MartelliMontanari(equations)
 
   require(unitClauses.forall(_.conclusion.width == 1), "All unitClauses should be unit")
   require(leftLiterals.size == rightLiterals.size, "Should have as much leftLiterals as rightLiterals")
