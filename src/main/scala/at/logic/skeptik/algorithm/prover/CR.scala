@@ -46,18 +46,22 @@ object CR {
       while (true) {
         val result = ArrayBuffer.empty[Clause]
         for (lastLevelClause <- levelClauses(level)) {
+          // For each literal in clause we fetch what unit clauses exists which can be resolved with this literal
+          // e.g. unifyCandidates for Clause(!P(X), Q(a)) can be Seq(Seq(P(a), P(b), P(f(a))), Seq(!Q(X), !Q(a)))
           val unifyCandidates = lastLevelClause.literals.map(unifiableUnits(_).toSeq)
-          if (unifyCandidates.length > 1) {
-            for (resolventId <- unifyCandidates.indices) {
-              val resolvent = lastLevelClause.literals(resolventId)
-              val unifiers = unifyCandidates.take(resolventId) ++ unifyCandidates.drop(resolventId + 1)
-              val literals = lastLevelClause.literals.take(resolventId) ++ lastLevelClause.literals.drop(resolventId + 1)
-              for (unifier <- combinations(unifiers)) {
+          if (unifyCandidates.length > 1) { // If this clause is not a unit clause
+            for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
+              val conclusion = lastLevelClause.literals(conclusionId)
+              // All unifiers excluding that one for conclusion
+              val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
+              // All literals excluding conclusion
+              val literals = lastLevelClause.literals.take(conclusionId) ++ lastLevelClause.literals.drop(conclusionId + 1)
+              for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
                 val unifierUnits = unifier.map(_.literal.unit)
                 val literalUnits = literals.map(_.unit)
-                unify(literalUnits.zip(unifierUnits)) match {
+                unify(literalUnits.zip(unifierUnits)) match { // All unifiers should be unified with literals using one common mgu
                   case Some(mgu) =>
-                    val newLiteral = (mgu(resolvent.unit), resolvent.negated)
+                    val newLiteral = (mgu(conclusion.unit), conclusion.negated)
                     val newClause = newLiteral.toClause
                     result += newClause
                   case None =>
@@ -81,12 +85,8 @@ object CR {
           }
         }
 
-        for (clause <- clauses) if (clause.isUnit) {
-          unifiableUnits(clause.literal).headOption match {
-            case Some(other) => return false
-            case None =>
-          }
-        }
+
+        if (clauses exists { clause => clause.isUnit && unifiableUnits(clause.literal).nonEmpty }) return false
       }
     }
     true
