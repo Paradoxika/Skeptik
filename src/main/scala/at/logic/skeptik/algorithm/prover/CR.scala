@@ -20,10 +20,8 @@ object CR {
     * @tparam A type of elements
     * @return all possible combinations of elements
     */
-  private def combinations[A](xss: Seq[Seq[A]]): Seq[Seq[A]] = xss match {
-    case Nil => List(Nil)
-    case xs :: rss => for (x <- xs; cs <- combinations(rss)) yield x +: cs
-  }
+  private def combinations[A](xss: Seq[Seq[A]]): Seq[Seq[A]] =
+    xss.foldLeft(Seq(Seq.empty[A])) { (x, y) => for (a <- x.view; b <- y) yield a :+ b }
 
   def isSatisfiable(cnf: CNF)(implicit variables: mutable.Set[Var]): Boolean = {
 
