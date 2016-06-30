@@ -219,4 +219,10 @@ object Contraction {
     case p: Contraction => Some((p.premise, p.desired))
     case _ => None
   }
+
+  def contractIfPossible(premise: SequentProofNode, variables: MSet[Var]) : SequentProofNode = {
+    val contractedPremise = apply(premise)(variables)
+    if (contractedPremise.conclusion == premise.conclusion) premise
+    else contractedPremise
+  }
 }

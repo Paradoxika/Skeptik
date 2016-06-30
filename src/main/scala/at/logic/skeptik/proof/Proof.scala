@@ -45,6 +45,17 @@ extends Iterable[P]
   override lazy val size:Int = nodes.length
 
 
+  /**
+    * The method foldDown consumes the proof in a topDown traversal (i.e. from the leaves
+    * to the root). It applyies the function taken as parameter to each node.
+    * In the case of the leaves of the proof, the second parameter of f will be Nil
+    *
+    * @param f  The function f takes the current node visited and a sequence of the results of the
+    *           recursive calls of f in the parents of the current node (a node is the child of its
+    *           premises)
+    * @tparam X The type of the result generated after consuming the proof
+    * @return   The recursive consumption of the proof applying the function f
+    */
   def foldDown[X](f: (P, Seq[X]) => X): X = {
     val resultFrom = MMap[P,X]()
     @tailrec def iterate(pos:Int):Unit = {
@@ -70,6 +81,16 @@ extends Iterable[P]
     resultFrom(nodes(permutation(0)))
   }
 
+  /**
+    * The method bottomUp traverse the proof in a bottomUp traversal (i.e. from the
+    * root to the leaves). It applyies the function taken as parameter to each node.
+    * In the case of the root of the proof, the second parameter of f will be Nil
+    *
+    * @param f  The function f takes the current node visited and a sequence of the results of the
+    *           recursive calls of f in the children of the current node (a node is the child of its
+    *           premises)
+    * @tparam X The type of the result generated after consuming the proof
+    */
   def bottomUp[X](f:(P, Seq[X])=>X):Unit = {
     val resultsFromChildren = MMap[P, Seq[X]]()
     @tailrec def iterate(pos:Int):Unit = {
@@ -83,7 +104,7 @@ extends Iterable[P]
     iterate(0)
   }
   
-    def bottomUp2[X](f:(P, Seq[X])=>X, permutation: Seq[Int]):Unit = {
+  def bottomUp2[X](f:(P, Seq[X])=>X, permutation: Seq[Int]):Unit = {
     val resultsFromChildren = MMap[P, Seq[X]]()
     @tailrec def iterate(pos:Int):Unit = {
       if (pos >= size) return
@@ -96,14 +117,24 @@ extends Iterable[P]
     iterate(0)
   }
 
+  /**
+    * The method topDown traverse the proof in a topDown traversal (i.e. from the
+    * leaves to the root). It applyies the function taken as parameter to each node.
+    * In the case of the leaves of the proof, the second parameter of f will be Nil
+    *
+    * @param f  The function f takes the current node visited and a sequence of the results of the
+    *           recursive calls of f in the parents of the current node (a node is the child of its
+    *           premises)
+    * @tparam X The type of the result generated after consuming the proof
+    */
   def topDown[X](f: (P, Seq[X]) => X): Unit = {
-    val resultsFromChildren = MMap[P, Seq[X]]()
+    val resultsFromParents = MMap[P, Seq[X]]()
     @tailrec def iterate(pos: Int): Unit = {
       if (pos < 0) return
       val node = nodes(pos)
-      val result = f(node, resultsFromChildren.getOrElse(node, Nil))
-      resultsFromChildren -= node
-      node.premises.foreach(premise => resultsFromChildren(premise) = (result +: resultsFromChildren.getOrElse(premise, Seq())))
+      val result = f(node, resultsFromParents.getOrElse(node, Nil))
+      resultsFromParents -= node
+      node.premises.foreach(premise => resultsFromParents(premise) = (result +: resultsFromParents.getOrElse(premise, Seq())))
       iterate(pos - 1)
     }
     iterate(nodes.length - 1)
