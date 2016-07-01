@@ -63,7 +63,7 @@ object CR {
                   case Some(mgu) =>
                     val newLiteral = (mgu(conclusion.unit), conclusion.negated)
                     val newClause = newLiteral.toClause
-                    result += newClause
+                    if (!clauses.contains(newClause)) result += newClause
                   case None =>
                 }
               }
