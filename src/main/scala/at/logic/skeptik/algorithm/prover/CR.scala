@@ -26,8 +26,10 @@ object CR {
   def isSatisfiable(cnf: CNF)(implicit variables: mutable.Set[Var]): Boolean = {
 
     val levelClauses = mutable.Map.empty[Int, Seq[Clause]] // Shows level at which clause was resolved
+    val ancestor = mutable.Map.empty[Clause, Set[Clause]] // For each clause what initial (input) clauses produced it
     val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Clause]] // Shows unifiable unit clauses for each literal
     val clauses = cnf.clauses.to[ArrayBuffer] // Just all clauses (for current moment)
+    clauses.foreach(clause => ancestor(clause) = Set(clause)) // Ancesot of initial clauses is exactly this clause
     val literals = clauses.flatMap(_.literals)
     literals.foreach(unifiableUnits(_) = mutable.Set.empty)
     var level = 0
@@ -63,7 +65,10 @@ object CR {
                   case Some(mgu) =>
                     val newLiteral = (mgu(conclusion.unit), conclusion.negated)
                     val newClause = newLiteral.toClause
-                    if (!clauses.contains(newClause)) result += newClause
+                    if (!clauses.contains(newClause)) {
+                      result += newClause
+                      ancestor(newClause) = (Set.empty[Clause] /: unifier)(_ union ancestor(_))
+                    }
                   case None =>
                 }
               }
@@ -72,6 +77,14 @@ object CR {
         }
         if (result.isEmpty) {
           Breaks.break()
+        }
+        val usedAncestors = result.map(ancestor(_)).reduce(_ union _)
+        if (usedAncestors.size != levelClauses(0).size) { // If at least one ancestor wasn't used
+          val notUsedAncestors = mutable.Set((levelClauses(0).toSet diff usedAncestors).toSeq: _*) // FIXME: really, no better way?
+          // We need a clause which have not used ancestor
+          for (clause <- levelClauses(level)) if ((ancestor(clause) intersect notUsedAncestors).nonEmpty) {
+            // TODO: Somehow detect which literals should be decided to produce a conclusion from this clause
+          }
         }
         level += 1
         clauses ++= result
