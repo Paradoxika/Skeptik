@@ -34,6 +34,7 @@ object CR {
     literals.foreach(unifiableUnits(_) = mutable.Set.empty)
     var level = 0
     levelClauses(0) = cnf.clauses // Initial clauses have level 0
+    val decision = ArrayBuffer.empty[Literal]
 
     for (literal <- literals) {
       for (other <- clauses) if (other.isUnit) {
@@ -85,11 +86,22 @@ object CR {
           Breaks.break()
         }
         val usedAncestors = result.map(ancestor(_)).reduce(_ union _)
-        if (usedAncestors.size != levelClauses(0).size) { // If at least one ancestor wasn't used
+        while (usedAncestors.size != levelClauses(0).size) { // If at least one ancestor wasn't used
           val notUsedAncestors = mutable.Set((levelClauses(0).toSet diff usedAncestors).toSeq: _*) // FIXME: really, no better way?
-          // We need a clause which have not used ancestor
-          for (clause <- levelClauses(level)) if ((ancestor(clause) intersect notUsedAncestors).nonEmpty) {
-            // TODO: Somehow detect which literals should be decided to produce a conclusion from this clause
+          // We need clauses which have unused ancestor
+          val interestingClauses = levelClauses(level).filter {
+            clause => (ancestor(clause) intersect notUsedAncestors).nonEmpty
+          }
+
+          interestingClauses.headOption match {
+            case Some(clause) =>
+              // TODO: Somehow detect which literals should be decided to produce a conclusion from this clause
+              val literal: Literal = ???
+              decision += literal
+              clauses += literal.toClause
+              result ++= resolve(clause)
+            case None =>
+              throw new IllegalStateException("Not all ancestors are used, but there is no 'interesting' clauses")
           }
         }
         level += 1
