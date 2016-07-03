@@ -45,6 +45,15 @@ class CRSpec extends SpecificationWithJUnit {
         Clause(App(P, App(f, x)))(App(P, x)), // ∀x.(P(x) or !P(f(x))
         Clause()(App(P, App(f, App(f, a)))) // P(f(f(a)))
       ) shouldEqual false
+
+      test(
+        Clause()(Pa, Pb),
+        Clause(Pa)(Px),
+        Clause(Pb)(Py),
+        Clause(Pa, Pb)(),
+        Clause()(Pd),
+        Clause(Pz)(App(P, App(f, z)))
+      ) shouldEqual false
     }
   }
 }

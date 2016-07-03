@@ -82,10 +82,11 @@ object CR {
         for (lastLevelClause <- levelClauses(level)) {
           result ++= resolve(lastLevelClause)
         }
+        println(s"Resolved $result")
         if (result.isEmpty) {
           Breaks.break()
         }
-        val usedAncestors = result.map(ancestor(_)).reduce(_ union _)
+        var usedAncestors = result.map(ancestor(_)).reduce(_ union _)
         while (usedAncestors.size != levelClauses(0).size) { // If at least one ancestor wasn't used
           val notUsedAncestors = mutable.Set((levelClauses(0).toSet diff usedAncestors).toSeq: _*) // FIXME: really, no better way?
           // We need clauses which have unused ancestor
@@ -95,11 +96,58 @@ object CR {
 
           interestingClauses.headOption match {
             case Some(clause) =>
-              // TODO: Somehow detect which literals should be decided to produce a conclusion from this clause
-              val literal: Literal = ???
-              decision += literal
-              clauses += literal.toClause
+              val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
+              var bestDecision = literals.toBuffer
+              // FIXME: partly copy-pasted
+              if (unifyCandidates.length > 1) { // If this clause is not a unit clause
+                for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
+                  // All unifiers excluding that one for conclusion
+                  val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
+                  // All literals excluding conclusion
+                  val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
+
+                  val needToDecide = ArrayBuffer.empty[Literal]
+
+                  (literals /: unifiers) {
+                    case (leftLiterals, unifierChoices) =>
+                      val lit = leftLiterals.head
+                      unifierChoices.map(unifierChoice =>
+                        unify((lit.unit, unifierChoice.literal.unit) :: Nil) match {
+                          case Some(mgu) =>
+                            Some(leftLiterals.tail.map(l => (mgu(l.unit), l.negated)))
+                          case None =>
+                            None
+                        }
+                      ).find(_.isDefined).flatten match {
+                        case Some(unifiedLiterals) =>
+                          unifiedLiterals
+                        case None =>
+                          needToDecide += !leftLiterals.head
+                          leftLiterals.tail
+                      }
+                  }
+                  if (bestDecision.size >= needToDecide.size) {
+                    bestDecision = needToDecide
+                  }
+                }
+              }
+              bestDecision.foreach(literal => {
+                decision += literal
+                clauses += literal.toClause
+                literals += literal
+                ancestor(literal.toClause) = Set.empty
+              })
+              for (literal <- literals) {
+                for (otherLiteral <- bestDecision) if (otherLiteral.negated != literal.negated) { // FIXME: copy-pasted
+                  unify((literal.unit, otherLiteral.unit) :: Nil) match {
+                    case Some(_) =>
+                      unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += otherLiteral.toClause
+                    case None =>
+                  }
+                }
+              }
               result ++= resolve(clause)
+              usedAncestors = result.map(ancestor(_)).reduce(_ union _)
             case None =>
               throw new IllegalStateException("Not all ancestors are used, but there is no 'interesting' clauses")
           }
