@@ -44,36 +44,42 @@ object CR {
       }
     }
 
+    def resolve(clause: Clause): Set[Clause] = {
+      val result = mutable.Set.empty[Clause]
+      // For each literal in clause we fetch what unit clauses exists which can be resolved with this literal
+      // e.g. unifyCandidates for Clause(!P(X), Q(a)) can be Seq(Seq(P(a), P(b), P(f(a))), Seq(!Q(X), !Q(a)))
+      val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
+      if (unifyCandidates.length > 1) { // If this clause is not a unit clause
+        for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
+        val conclusion = clause.literals(conclusionId)
+          // All unifiers excluding that one for conclusion
+          val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
+          // All literals excluding conclusion
+          val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
+          for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
+          val unifierUnits = unifier.map(_.literal.unit)
+            val literalUnits = literals.map(_.unit)
+            unify(literalUnits.zip(unifierUnits)) match { // All unifiers should be unified with literals using one common mgu
+              case Some(mgu) =>
+                val newLiteral = (mgu(conclusion.unit), conclusion.negated)
+                val newClause = newLiteral.toClause
+                if (!clauses.contains(newClause)) {
+                  ancestor(newClause) = (Set.empty[Clause] /: (unifier :+ clause))(_ union ancestor(_))
+                  result += newClause
+                }
+              case None =>
+            }
+          }
+        }
+      }
+      result.toSet
+    }
+
     Breaks.breakable {
       while (true) {
         val result = ArrayBuffer.empty[Clause]
         for (lastLevelClause <- levelClauses(level)) {
-          // For each literal in clause we fetch what unit clauses exists which can be resolved with this literal
-          // e.g. unifyCandidates for Clause(!P(X), Q(a)) can be Seq(Seq(P(a), P(b), P(f(a))), Seq(!Q(X), !Q(a)))
-          val unifyCandidates = lastLevelClause.literals.map(unifiableUnits(_).toSeq)
-          if (unifyCandidates.length > 1) { // If this clause is not a unit clause
-            for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
-              val conclusion = lastLevelClause.literals(conclusionId)
-              // All unifiers excluding that one for conclusion
-              val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
-              // All literals excluding conclusion
-              val literals = lastLevelClause.literals.take(conclusionId) ++ lastLevelClause.literals.drop(conclusionId + 1)
-              for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
-                val unifierUnits = unifier.map(_.literal.unit)
-                val literalUnits = literals.map(_.unit)
-                unify(literalUnits.zip(unifierUnits)) match { // All unifiers should be unified with literals using one common mgu
-                  case Some(mgu) =>
-                    val newLiteral = (mgu(conclusion.unit), conclusion.negated)
-                    val newClause = newLiteral.toClause
-                    if (!clauses.contains(newClause)) {
-                      result += newClause
-                      ancestor(newClause) = (Set.empty[Clause] /: unifier)(_ union ancestor(_))
-                    }
-                  case None =>
-                }
-              }
-            }
-          }
+          result ++= resolve(lastLevelClause)
         }
         if (result.isEmpty) {
           Breaks.break()
