@@ -30,14 +30,14 @@ object CR {
     val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Clause]] // Shows unifiable unit clauses for each literal
     val clauses = cnf.clauses.to[ArrayBuffer] // Just all clauses (for current moment)
     clauses.foreach(clause => ancestor(clause) = Set(clause)) // Ancesot of initial clauses is exactly this clause
-    val literals = clauses.flatMap(_.literals)
+    val literals = mutable.Set(clauses.flatMap(_.literals): _*)
     literals.foreach(unifiableUnits(_) = mutable.Set.empty)
     var level = 0
     levelClauses(0) = cnf.clauses // Initial clauses have level 0
     val decision = ArrayBuffer.empty[Literal]
 
     for (literal <- literals) {
-      for (other <- clauses) if (other.isUnit) {
+      for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
         unify((literal.unit, other.literal.unit) :: Nil) match {
           case Some(_) => unifiableUnits(literal) += other
           case None =>
@@ -52,13 +52,13 @@ object CR {
       val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
       if (unifyCandidates.length > 1) { // If this clause is not a unit clause
         for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
-        val conclusion = clause.literals(conclusionId)
+          val conclusion = clause.literals(conclusionId)
           // All unifiers excluding that one for conclusion
           val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
           // All literals excluding conclusion
           val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
           for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
-          val unifierUnits = unifier.map(_.literal.unit)
+            val unifierUnits = unifier.map(_.literal.unit)
             val literalUnits = literals.map(_.unit)
             unify(literalUnits.zip(unifierUnits)) match { // All unifiers should be unified with literals using one common mgu
               case Some(mgu) =>
@@ -106,11 +106,13 @@ object CR {
         }
         level += 1
         clauses ++= result
+        literals ++= result.flatMap(_.literals)
         levelClauses(level) = result
         for (literal <- literals) {
           for (other <- result) if (other.isUnit && other.literal.negated != literal.negated) { // FIXME: copy-pasted
             unify((literal.unit, other.literal.unit) :: Nil) match {
-              case Some(_) => unifiableUnits(literal) += other
+              case Some(_) =>
+                unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other
               case None =>
             }
           }
