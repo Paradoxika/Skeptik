@@ -16,7 +16,7 @@ object TPTPAST {
   sealed abstract class RepresentedFormula
   case class SimpleSequent(ant : Seq[E], suc : Seq[E]) extends RepresentedFormula
   case class SimpleFormula(formula : E)                extends RepresentedFormula
-  case class SimpleType(atom : String, tyoe : T)       extends RepresentedFormula
+  case class SimpleType(atom : String, typ : T)       extends RepresentedFormula
 
 
   type Name        = String
