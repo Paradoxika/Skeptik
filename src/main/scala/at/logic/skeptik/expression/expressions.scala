@@ -52,6 +52,26 @@ case class App(val function: E, val argument: E) extends E {
   } 
 }
 
+object AbsRec {
+  def apply(vars : Iterable[Var], body : E) : E =
+    vars match {
+      case List(x) => Abs(x,body)
+      case x :: xs => Abs(x,apply(xs,body))
+    }
+  def unapply(e : E): Option[(List[Var],E)] = e match {
+    case e : Abs => Some(unapplyRec(e))
+    case _       => None
+  }
+  private def unapplyRec(a : Abs) : (List[Var],E) = a match {
+    case Abs(x,body) => body match {
+      case Abs(y,b) =>
+        val (vars,b2) = unapplyRec(Abs(y,b))
+        (x::vars,b2)
+      case _        => (List(x),body)
+    }
+  }
+}
+
 object AppRec {
   def apply(p: E, args: Iterable[E]) = (p /: args)((p,a) => App(p,a))
   def unapply(e:E) = e match {
