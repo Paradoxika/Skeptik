@@ -76,6 +76,20 @@ object CR {
       result.toSet
     }
 
+    def updateClauses(result: Traversable[Clause]) = {
+      clauses ++= result
+      literals ++= result.flatMap(_.literals)
+      for (literal <- literals) {
+        for (other <- result) if (other.isUnit && other.literal.negated != literal.negated) {
+          unify((literal.unit, other.literal.unit) :: Nil) match {
+            case Some(_) =>
+              unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other
+            case None =>
+          }
+        }
+      }
+    }
+
     Breaks.breakable {
       while (true) {
         val result = ArrayBuffer.empty[Clause]
@@ -147,24 +161,23 @@ object CR {
                 }
               }
               result ++= resolve(clause)
+              updateClauses(result)
+              for (lastLevelClause <- levelClauses(level)) {
+                result ++= resolve(lastLevelClause)
+              }
+              updateClauses(result)
               usedAncestors = result.map(ancestor(_)).reduce(_ union _)
+              if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) {
+                // TODO: learn a conflict clause
+                return false
+              }
             case None =>
               throw new IllegalStateException("Not all ancestors are used, but there is no 'interesting' clauses")
           }
         }
         level += 1
-        clauses ++= result
-        literals ++= result.flatMap(_.literals)
+        updateClauses(result)
         levelClauses(level) = result
-        for (literal <- literals) {
-          for (other <- result) if (other.isUnit && other.literal.negated != literal.negated) { // FIXME: copy-pasted
-            unify((literal.unit, other.literal.unit) :: Nil) match {
-              case Some(_) =>
-                unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other
-              case None =>
-            }
-          }
-        }
 
 
         if (clauses exists { clause => clause.isUnit && unifiableUnits(clause.literal).nonEmpty }) return false
