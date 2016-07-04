@@ -552,12 +552,18 @@ extends TokenParsers with PackratParsers {
   def tff_type_arguments: Parser[List[T]] = rep1sep(tff_atomic_type, elem(Comma))
 
   def tff_mapping_type: Parser[T] =
-    tff_unitary_type ~ elem(Arrow) ~ tff_atomic_type    ^^ {case l ~ _ ~ r => l -> r }
+    tff_unitary_type ~ elem(Arrow) ~ tff_atomic_type    ^^ {case l ~ _ ~ r => addToEnd(l,r) }
 
-  lazy val tff_xprod_type: PackratParser[T] = failure("Unsupported type structure") /*(
-    tff_unitary_type ~ elem(Star) ~ tff_atomic_type       ^^ {case l ~ _ ~ r => l*r}
-      ||| tff_xprod_type   ~ elem(Star) ~ tff_atomic_type ^^ {case l ~ _ ~ r => l*r}
-    )*/
+  private def addToEnd(dom : T, cod : T) : T =
+    dom match {
+      case Arrow(s,t) => s -> addToEnd(t,cod)
+      case other      => other -> cod
+    }
+
+  lazy val tff_xprod_type: PackratParser[T] = (
+    tff_unitary_type ~ elem(Star) ~ tff_atomic_type       ^^ {case l ~ _ ~ r => addToEnd(l,r)}
+      ||| tff_xprod_type   ~ elem(Star) ~ tff_atomic_type ^^ {case l ~ _ ~ r => addToEnd(l,r)}
+    )
 
   def defined_type: Parser[String] = atomic_defined_word
   def system_type: Parser[String]  = atomic_system_word
