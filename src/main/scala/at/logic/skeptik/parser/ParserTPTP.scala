@@ -250,7 +250,7 @@ extends TokenParsers with PackratParsers {
   private def toFunctionTerm(name : String , arguments : List[E]) : E =
     if(arguments.nonEmpty) FunctionTerm(name,arguments)
     else if(typedExpressions contains name) TypedConstant(name,typedExpressions(name))
-    else throw new Exception("Undefined type for constant " + name)
+    else FunctionTerm(name,arguments) //throw new Exception("Undefined type for constant " + name)
 
   def plain_term: Parser[(String,List[E])] =
     constant ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
@@ -416,10 +416,10 @@ extends TokenParsers with PackratParsers {
     )
 
   private def appendToListPair(literal : Either[E,E], acumulators : (List[E],List[E])) : (List[E],List[E]) = literal match {
-    case Left(Var("$true",_))   => (acumulators._1 , acumulators._2)
-    case Left(l)                => (acumulators._1 ++ List(l) , acumulators._2)
-    case Right(Var("$false",_)) => (acumulators._1 , acumulators._2)
-    case Right(l)               => (acumulators._1 , acumulators._2 ++ List(l))
+    case Left(x)  if x == True.apply  => acumulators
+    case Left(l)                      => (acumulators._1 ++ List(l) , acumulators._2)
+    case Right(x) if x == False.apply => acumulators
+    case Right(l)                     => (acumulators._1 , acumulators._2 ++ List(l))
   }
 
 
