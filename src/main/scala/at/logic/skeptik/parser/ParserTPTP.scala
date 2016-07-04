@@ -3,7 +3,7 @@ package at.logic.skeptik.parser
 
 import at.logic.skeptik.expression
 import at.logic.skeptik.expression._
-import at.logic.skeptik.expression.formula.{All, And, Atom, ConditionalFormula, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
+import at.logic.skeptik.expression.formula.{All, And, Atom, ConditionalFormula, Equivalence, Ex, False, FormulaEquality, Imp, Neg, Or, True}
 import at.logic.skeptik.expression.term._
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.TPTPParsers.{TPTPLexical, TPTPTokens}
@@ -296,7 +296,12 @@ extends TokenParsers with PackratParsers {
     plain_atomic_formula ||| defined_plain_formula ||| defined_infix_formula ||| system_atomic_formula
 
   def plain_atomic_formula :  Parser[E] = plain_term         ^^ {case (name,args) => Atom(name,args)}
-  def defined_plain_formula : Parser[E] = defined_plain_term ^^ {case (name,args) => Atom(name,args)}
+  def defined_plain_formula : Parser[E] = defined_plain_term ^^ {case (name,args) => if(args.isEmpty && name == "$true") True.apply
+                                                                                     else if(args.isEmpty && name == "$false") False.apply
+                                                                                     else Atom(name,args)
+                                                                }
+
+
   def defined_infix_formula : Parser[E] =
     term ~ elem(Equals) ~ term ^^ {
       case t1 ~ _ ~ t2 => FormulaEquality(t1,t2)
@@ -538,7 +543,7 @@ extends TokenParsers with PackratParsers {
     )
 
   def tff_atomic_type: Parser[T] = (
-    (atomic_word | defined_type | variable) ^^ {AtomicType(_)}
+    (atomic_word | defined_type  | variable) ^^ {t => if(t == "$i") i else if(t == "$o") o else AtomicType(t)}
       | failure("Unsupported type structure")/*atomic_word ~ elem(LeftParenthesis) ~ tff_type_arguments <~ elem(RightParenthesis) ^^ {
       case name ~ _ ~ args => AtomicType(name, args)
     }*/
