@@ -1,6 +1,7 @@
 package at.logic.skeptik.parser
 
 
+import at.logic.skeptik.expression
 import at.logic.skeptik.expression._
 import at.logic.skeptik.expression.formula.{All, And, Atom, ConditionalFormula, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
 import at.logic.skeptik.expression.term._
@@ -8,7 +9,7 @@ import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.TPTPParsers.{TPTPLexical, TPTPTokens}
 
 import scala.collection.immutable.Nil
-import scala.collection.mutable.{Set, HashSet => MSet, HashMap => MMap}
+import scala.collection.mutable.{Set, HashMap => MMap, HashSet => MSet}
 import scala.util.parsing.combinator.syntactical.TokenParsers
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.Reader
@@ -239,14 +240,17 @@ extends TokenParsers with PackratParsers {
     }
 
   def function_term: Parser[E] = (
-    plain_term                                                  ^^ {case (name,args) => FunctionTerm(name,args)}
-      | defined_plain_term                                      ^^ {case (name,args) => FunctionTerm(name,args)}
-      | system_term                                             ^^ {case (name,args) => FunctionTerm(name,args)}
+    plain_term                                                  ^^ {case (name,args) => toFunctionTerm(name,args)}
+      | defined_plain_term                                      ^^ {case (name,args) => toFunctionTerm(name,args)}
+      | system_term                                             ^^ {case (name,args) => toFunctionTerm(name,args)}
       | number                                                  ^^ {NumberTerm(_)}
       | elem("Distinct object", _.isInstanceOf[DistinctObject]) ^^ {x => DistinctObjectTerm(x.chars)} // TODO: How to encode this...
     )
 
-
+  private def toFunctionTerm(name : String , arguments : List[E]) : E =
+    if(arguments.nonEmpty) FunctionTerm(name,arguments)
+    else if(typedExpressions contains name) TypedConstant(name,typedExpressions(name))
+    else throw new Exception("Undefined type for constant " + name)
 
   def plain_term: Parser[(String,List[E])] =
     constant ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
