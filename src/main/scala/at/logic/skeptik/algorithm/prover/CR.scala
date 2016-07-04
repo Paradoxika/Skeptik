@@ -168,8 +168,8 @@ object CR {
               updateClauses(result)
               usedAncestors = result.map(ancestor(_)).reduce(_ union _)
               if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) {
-                // TODO: learn a conflict clause
-                return false
+                val newClause = decision.map(!_).toSequent
+                return isSatisfiable(CNF(cnf.clauses :+ newClause))
               }
             case None =>
               throw new IllegalStateException("Not all ancestors are used, but there is no 'interesting' clauses")
