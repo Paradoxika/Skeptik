@@ -2,13 +2,13 @@ package at.logic.skeptik.parser
 
 
 import at.logic.skeptik.expression._
-import at.logic.skeptik.expression.formula.{All, And, Atom, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
+import at.logic.skeptik.expression.formula.{All, And, Atom, ConditionalFormula, Equivalence, Ex, FormulaEquality, Imp, Neg, Or}
 import at.logic.skeptik.expression.term._
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
 import at.logic.skeptik.parser.TPTPParsers.{TPTPLexical, TPTPTokens}
 
 import scala.collection.immutable.Nil
-import scala.collection.mutable.{Set, HashSet => MSet}
+import scala.collection.mutable.{Set, HashSet => MSet, HashMap => MMap}
 import scala.util.parsing.combinator.syntactical.TokenParsers
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.Reader
@@ -49,8 +49,9 @@ extends TokenParsers with PackratParsers {
    */
   private var varSet : Set[Var] = new MSet[Var]()
   private def recordVar(v : String) {varSet += new Var(v,i)}
+  private def recordVar(v : String,t : T) {varSet += new Var(v,t)}
   def getSeenVars : Set[Var] = varSet.clone()
-  def resetVarsSeen() : Unit = { varSet.clear() }
+  def resetVarsSeen() : Unit = { varSet.clear(); typedExpressions.clear() }
 
   val  lexical = new TPTPLexical
   type Tokens  = TPTPTokens
@@ -223,10 +224,19 @@ extends TokenParsers with PackratParsers {
 
   def term: Parser[E] = (
     function_term
-      ||| variable         ^^ {x => {recordVar(x);Variable(x)}}
+      ||| variable         ^^ {stringToVariable(_)}
       ||| conditional_term
       ||| let_term
     )
+
+  private def stringToVariable(x: String) : E =
+    if(typedExpressions contains x) {
+      recordVar(x,typedExpressions(x))
+      TypedVariable(x,typedExpressions(x))
+    } else {
+      recordVar(x)
+      Variable(x)
+    }
 
   def function_term: Parser[E] = (
     plain_term                                                  ^^ {case (name,args) => FunctionTerm(name,args)}
@@ -413,9 +423,138 @@ extends TokenParsers with PackratParsers {
   ////////////////////////////////////////////////////
   // TFF Formulas
   ////////////////////////////////////////////////////
-  def tff_formula : Parser[RepresentedFormula] = failure("tff_formula parser not implemented")
+  val typedExpressions = MMap[String,T]()
 
-  def tff_logic_formula : Parser[E] = failure("tff_logic_formula parser not implemented")
+
+  def tff_formula : Parser[RepresentedFormula] = (
+    tff_logic_formula  ^^ {SimpleFormula(_)}
+      | tff_typed_atom
+      | tff_sequent
+    )
+
+  def tff_logic_formula : Parser[E] = tff_binary_formula | tff_unitary_formula
+
+  def tff_binary_formula: Parser[E]   = tff_binary_non_assoc | tff_binary_assoc
+  def tff_binary_non_assoc: Parser[E] = tff_unitary_formula ~ binary_connective ~ tff_unitary_formula ^^ {
+    case left ~ Leftrightarrow ~ right      => Equivalence(left,right)
+    case left ~ Rightarrow ~ right          => Imp(left,right)
+    case left ~ Leftarrow ~ right           => Imp(right,left)
+    case left ~ Leftrighttildearrow ~ right => Neg(Equivalence(left,right))
+    case left ~ TildePipe ~ right           => Neg(Or(left,right))
+    case left ~ TildeAmpersand ~ right      => Neg(And(left,right))
+  }
+
+  def tff_binary_assoc: Parser[E] = tff_or_formula | tff_and_formula
+
+  lazy val tff_or_formula: PackratParser[E] = (
+    tff_unitary_formula ~ elem(VLine) ~ tff_unitary_formula       ^^ {case left ~ _ ~ right => Or(left,right)}
+      ||| tff_or_formula      ~ elem(VLine) ~ tff_unitary_formula ^^ {case left ~ _ ~ right => Or(left,right)}
+    )
+
+  lazy val tff_and_formula: PackratParser[E] = (
+    tff_unitary_formula ~ elem(Ampersand) ~ tff_unitary_formula       ^^ {case left ~ _ ~ right => And(left,right)}
+      ||| tff_and_formula     ~ elem(Ampersand) ~ tff_unitary_formula ^^ {case left ~ _ ~ right => And(left,right)}
+    )
+
+  def tff_unitary_formula: Parser[E] = (
+    tff_quantified_formula
+      | tff_unary_formula
+      | tff_conditional
+      | tff_let
+      | atomic_formula
+      | elem(LeftParenthesis) ~> tff_logic_formula <~ elem(RightParenthesis)
+    )
+
+
+  def tff_quantified_formula: Parser[E] =
+    fol_quantifier ~ elem(LeftBracket) ~ rep1sep(tff_variable, elem(Comma)) ~ elem(RightBracket) ~ elem(Colon) ~ tff_unitary_formula ^^ {
+      case Exclamationmark ~ _ ~ vars ~ _ ~ _ ~ matrix => All(vars,matrix)
+      case Questionmark    ~ _ ~ vars ~ _ ~ _ ~ matrix => Ex(vars,matrix)
+    }
+
+  def tff_variable: Parser[Var] = (
+    tff_typed_variable
+      | failure("Expected type not found for quantified variable")
+    )
+
+  def tff_typed_variable: Parser[Var] =
+    variable ~ elem(Colon) ~ tff_atomic_type ^^ {case variable ~ _ ~ typ  => recordVar(variable,typ); TypedVariable(variable, typ).asInstanceOf[Var] }
+
+  def tff_unary_formula: Parser[E] = (
+    unary_connective ~ tff_unitary_formula ^^ {case Tilde ~ formula => Neg(formula)}
+      | fol_infix_unary                    ^^ {case left  ~ right   => Neg(FormulaEquality(left.t)(left, right))}
+    )
+
+  def tff_conditional: Parser[E] =
+    (acceptIf(x => x.isInstanceOf[DollarWord] && x.chars.equals("$ite_f"))(_ => "Error in tffConditional") ~ elem(LeftParenthesis)) ~>
+      tff_logic_formula ~ elem(Comma) ~ tff_logic_formula ~ elem(Comma) ~ tff_logic_formula <~ elem(RightParenthesis) ^^ {
+      case cond ~ _ ~ thn ~ _ ~ els => ConditionalFormula(cond,thn,els)
+    }
+
+  def tff_let: Parser[E] = failure("TFF let is not defined")
+
+  def tff_sequent: Parser[RepresentedFormula] = (
+    tff_tuple ~ gentzen_arrow ~ tff_tuple ^^ {case t1 ~ _ ~ t2 => SimpleSequent(t1,t2)}
+      ||| elem(LeftParenthesis) ~> tff_sequent <~ elem(RightParenthesis)
+    )
+
+  def tff_tuple: Parser[List[E]] = repsep(tff_logic_formula, elem(Comma))
+
+  // TODO: Consider adding the atom name to a types map to map seen atoms to there types.
+  def tff_typed_atom: Parser[RepresentedFormula] = (
+    tff_untyped_atom ~ elem(Colon) ~ tff_top_level_type ^^ {case atom ~ _ ~ typ => typedExpressions += (atom -> typ) ; SimpleType(atom, typ)}
+      | elem(LeftParenthesis) ~> tff_typed_atom <~ elem(RightParenthesis)
+    )
+
+  def tff_untyped_atom: Parser[String] = atomic_word | atomic_system_word
+
+  def tff_top_level_type: Parser[T] = (
+    tff_atomic_type
+      ||| tff_mapping_type
+      ||| tff_quantified_type
+      ||| elem(LeftParenthesis) ~> tff_top_level_type <~ elem(RightParenthesis)
+    )
+
+  // TODO: How to represent this?
+  def tff_quantified_type: Parser[T] = failure("Quantified types currently undefined")
+    /*
+    (elem(Exclamationmark) ~ elem(Arrow)) ~>
+      elem(LeftBracket) ~ rep1sep(tff_typed_variable, elem(Comma)) ~ elem(RightBracket) ~ elem(Colon) ~ tff_monotype ^^ {
+      case _ ~ vars ~ _ ~ _ ~ typ => QuantifiedType(vars, typ)
+    }*/
+
+  def tff_monotype: Parser[T] = (
+    tff_atomic_type
+      | elem(LeftParenthesis) ~> tff_mapping_type <~ elem(RightParenthesis)
+    )
+
+  def tff_unitary_type: Parser[T] = (
+    tff_atomic_type
+      | elem(LeftParenthesis) ~> tff_xprod_type <~ elem(RightParenthesis)
+    )
+
+  def tff_atomic_type: Parser[T] = (
+    (atomic_word | defined_type | variable) ^^ {AtomicType(_)}
+      | failure("Unsupported type structure")/*atomic_word ~ elem(LeftParenthesis) ~ tff_type_arguments <~ elem(RightParenthesis) ^^ {
+      case name ~ _ ~ args => AtomicType(name, args)
+    }*/
+    )
+
+  def tff_type_arguments: Parser[List[T]] = rep1sep(tff_atomic_type, elem(Comma))
+
+  def tff_mapping_type: Parser[T] =
+    tff_unitary_type ~ elem(Arrow) ~ tff_atomic_type    ^^ {case l ~ _ ~ r => l -> r }
+
+  lazy val tff_xprod_type: PackratParser[T] = failure("Unsupported type structure") /*(
+    tff_unitary_type ~ elem(Star) ~ tff_atomic_type       ^^ {case l ~ _ ~ r => l*r}
+      ||| tff_xprod_type   ~ elem(Star) ~ tff_atomic_type ^^ {case l ~ _ ~ r => l*r}
+    )*/
+
+  def defined_type: Parser[String] = atomic_defined_word
+  def system_type: Parser[String]  = atomic_system_word
+
+
+
 
 
   ////////////////////////////////////////////////////
