@@ -1,5 +1,6 @@
 package at.logic.skeptik.algorithm.prover
 
+import at.logic.skeptik.algorithm.prover.structure.immutable.CNF
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.Var
 
@@ -96,11 +97,10 @@ object CR {
         for (lastLevelClause <- levelClauses(level)) {
           result ++= resolve(lastLevelClause)
         }
-        println(s"Resolved $result")
         if (result.isEmpty) {
           Breaks.break()
         }
-        var usedAncestors = result.map(ancestor(_)).reduce(_ union _)
+        var usedAncestors = result.map(ancestor(_)).reduce(_ union _) ++ levelClauses(0).filter(_.literals.exists(clauses contains _.toClause))
         while (usedAncestors.size != levelClauses(0).size) { // If at least one ancestor wasn't used
           val notUsedAncestors = mutable.Set((levelClauses(0).toSet diff usedAncestors).toSeq: _*) // FIXME: really, no better way?
           // We need clauses which have unused ancestor
