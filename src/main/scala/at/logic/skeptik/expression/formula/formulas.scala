@@ -89,16 +89,16 @@ object ConditionalFormula extends Formula{
 }
 
 object FormulaEquality extends BinaryFormula(eqC(i)){
-  def apply(t:T)(left : E, right : E) = App(App(new Var(eqS, t -> (t -> o)) with Infix,left),right)
+  def apply(t:T)(left : E, right : E) = App(App(eqC(t),left),right)
 }
 
 
 object Equivalence extends BinaryFormula(equivC)
 
 object True {
-  def apply : E = new Var("True",o)
+  def apply() : E = new Var("true",o)
 }
 
 object False {
-  def apply : E = new Var("False",o)
+  def apply() : E = new Var("false",o)
 }

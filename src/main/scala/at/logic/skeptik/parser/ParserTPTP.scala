@@ -246,9 +246,8 @@ extends TokenParsers with PackratParsers {
     )
 
   private def toFunctionTerm(name : String , arguments : List[E]) : E =
-    if(arguments.nonEmpty) FunctionTerm(name,arguments)
-    else if(typedExpressions contains name) TypedConstant(name,typedExpressions(name))
-    else FunctionTerm(name,arguments) //throw new Exception("Undefined type for constant " + name)
+    if(typedExpressions contains name) FunctionTerm(name,typedExpressions(name),arguments)
+    else FunctionTerm(name,arguments)
 
   def plain_term: Parser[(String,List[E])] =
     constant ~ opt(elem(LeftParenthesis) ~> arguments <~ elem(RightParenthesis)) ^^ {
@@ -294,15 +293,15 @@ extends TokenParsers with PackratParsers {
     plain_atomic_formula ||| defined_plain_formula ||| defined_infix_formula ||| system_atomic_formula
 
   def plain_atomic_formula :  Parser[E] = plain_term         ^^ {case (name,args) => Atom(name,args)}
-  def defined_plain_formula : Parser[E] = defined_plain_term ^^ {case (name,args) => if(args.isEmpty && name == "$true") True.apply
-                                                                                     else if(args.isEmpty && name == "$false") False.apply
+  def defined_plain_formula : Parser[E] = defined_plain_term ^^ {case (name,args) => if(args.isEmpty && name == "$true") True()
+                                                                                     else if(args.isEmpty && name == "$false") False()
                                                                                      else Atom(name,args)
                                                                 }
 
 
   def defined_infix_formula : Parser[E] =
     term ~ elem(Equals) ~ term ^^ {
-      case t1 ~ _ ~ t2 => FormulaEquality(t1,t2)
+      case t1 ~ _ ~ t2 => FormulaEquality(t1.t)(t1,t2)
     }
   def system_atomic_formula: Parser[E] = system_term ^^ {case (name,args) => Atom(name,args)}
 
@@ -377,7 +376,7 @@ extends TokenParsers with PackratParsers {
 
   def fof_unary_formula: Parser[E] = (
     unary_connective ~ fof_unitary_formula ^^ {case Tilde ~ formula => Neg(formula)}
-      | fol_infix_unary                    ^^ {case left  ~ right   => Neg(FormulaEquality(i)(left,right))}
+      | fol_infix_unary                    ^^ {case left  ~ right   => Neg(FormulaEquality(left.t)(left,right))}
     )
 
   def unary_connective: Parser[Token] = elem(Tilde)
@@ -414,24 +413,23 @@ extends TokenParsers with PackratParsers {
     )
 
   private def appendToListPair(literal : Either[E,E], acumulators : (List[E],List[E])) : (List[E],List[E]) = literal match {
-    case Left(x)  if x == True.apply  => acumulators
-    case Left(l)                      => (acumulators._1 ++ List(l) , acumulators._2)
-    case Right(x) if x == False.apply => acumulators
-    case Right(l)                     => (acumulators._1 , acumulators._2 ++ List(l))
+    case Left(x)  if x == True()  => acumulators
+    case Left(l)                  => (acumulators._1 ++ List(l) , acumulators._2)
+    case Right(x) if x == False() => acumulators
+    case Right(l)                 => (acumulators._1 , acumulators._2 ++ List(l))
   }
 
 
   def literal: Parser[Either[E,E]] = (
     atomic_formula                      ^^ {Right(_)}
       ||| elem(Tilde) ~> atomic_formula ^^ {Left(_)}
-      ||| fol_infix_unary               ^^ {case left ~ right => Left(FormulaEquality(i)(left,right))}
+      ||| fol_infix_unary               ^^ {case left ~ right => Left(FormulaEquality(left.t)(left,right))}
     )
 
   ////////////////////////////////////////////////////
   // TFF Formulas
   ////////////////////////////////////////////////////
   val typedExpressions = MMap[String,T]()
-
 
   def tff_formula : Parser[RepresentedFormula] = (
     tff_logic_formula  ^^ {SimpleFormula(_)}
@@ -443,12 +441,12 @@ extends TokenParsers with PackratParsers {
 
   def tff_binary_formula: Parser[E]   = tff_binary_non_assoc | tff_binary_assoc
   def tff_binary_non_assoc: Parser[E] = tff_unitary_formula ~ binary_connective ~ tff_unitary_formula ^^ {
-    case left ~ Leftrightarrow ~ right      => Equivalence(left,right)
-    case left ~ Rightarrow ~ right          => Imp(left,right)
-    case left ~ Leftarrow ~ right           => Imp(right,left)
+    case left ~ Leftrightarrow      ~ right => Equivalence(left,right)
+    case left ~ Rightarrow          ~ right => Imp(left,right)
+    case left ~ Leftarrow           ~ right => Imp(right,left)
     case left ~ Leftrighttildearrow ~ right => Neg(Equivalence(left,right))
-    case left ~ TildePipe ~ right           => Neg(Or(left,right))
-    case left ~ TildeAmpersand ~ right      => Neg(And(left,right))
+    case left ~ TildePipe           ~ right => Neg(Or(left,right))
+    case left ~ TildeAmpersand      ~ right => Neg(And(left,right))
   }
 
   def tff_binary_assoc: Parser[E] = tff_or_formula | tff_and_formula
@@ -482,10 +480,12 @@ extends TokenParsers with PackratParsers {
   def tff_variable: Parser[Var] = (
     tff_typed_variable
       | failure("Expected type not found for quantified variable")
+    // Here the failure is replacing the option of an untyped variable.
+    // We don't allow the absence of type because we can't infer the type.
     )
 
   def tff_typed_variable: Parser[Var] =
-    variable ~ elem(Colon) ~ tff_atomic_type ^^ {case variable ~ _ ~ typ  => recordVar(variable,typ); TypedVariable(variable, typ).asInstanceOf[Var] }
+    variable ~ elem(Colon) ~ tff_atomic_type ^^ {case variable ~ _ ~ typ  => recordVar(variable,typ); typedExpressions += (variable -> typ);  TypedVariable(variable, typ).asInstanceOf[Var] }
 
   def tff_unary_formula: Parser[E] = (
     unary_connective ~ tff_unitary_formula ^^ {case Tilde ~ formula => Neg(formula)}
@@ -498,6 +498,8 @@ extends TokenParsers with PackratParsers {
       case cond ~ _ ~ thn ~ _ ~ els => ConditionalFormula(cond,thn,els)
     }
 
+  // There are many issues to represent let expressions, but they are almost never used in real problems' description.
+  // Only 2 files in over 20000 present in the TPTP problem library use let expressions so we decided not to support them.
   def tff_let: Parser[E] = failure("TFF let is not defined")
 
   def tff_sequent: Parser[RepresentedFormula] = (
@@ -507,7 +509,6 @@ extends TokenParsers with PackratParsers {
 
   def tff_tuple: Parser[List[E]] = repsep(tff_logic_formula, elem(Comma))
 
-  // TODO: Consider adding the atom name to a types map to map seen atoms to there types.
   def tff_typed_atom: Parser[RepresentedFormula] = (
     tff_untyped_atom ~ elem(Colon) ~ tff_top_level_type ^^ {case atom ~ _ ~ typ => typedExpressions += (atom -> typ) ; SimpleType(atom, typ)}
       | elem(LeftParenthesis) ~> tff_typed_atom <~ elem(RightParenthesis)
@@ -522,7 +523,7 @@ extends TokenParsers with PackratParsers {
       ||| elem(LeftParenthesis) ~> tff_top_level_type <~ elem(RightParenthesis)
     )
 
-  // TODO: How to represent this?
+  // Skeptik's type system does not support quantified types. So we don't support this part of the grammar.
   def tff_quantified_type: Parser[T] = failure("Quantified types currently undefined")
     /*
     (elem(Exclamationmark) ~ elem(Arrow)) ~>
@@ -540,9 +541,11 @@ extends TokenParsers with PackratParsers {
       | elem(LeftParenthesis) ~> tff_xprod_type <~ elem(RightParenthesis)
     )
 
+  // Skeptik's tyoe system does not support the parametrized types of the TPTP syntax, so they are not supported.
   def tff_atomic_type: Parser[T] = (
-    (atomic_word | defined_type  | variable) ^^ {t => if(t == "$i") i else if(t == "$o") o else AtomicType(t)}
-      | failure("Unsupported type structure")/*atomic_word ~ elem(LeftParenthesis) ~ tff_type_arguments <~ elem(RightParenthesis) ^^ {
+    (atomic_word | defined_type | variable) ^^ {t => if(t == "$i") i else if(t == "$o") o else AtomicType(t)}
+      | failure("Unsupported type structure")
+    /*atomic_word ~ elem(LeftParenthesis) ~ tff_type_arguments <~ elem(RightParenthesis) ^^ {
       case name ~ _ ~ args => AtomicType(name, args)
     }*/
     )
@@ -560,6 +563,8 @@ extends TokenParsers with PackratParsers {
     }
   }
 
+  // NOTE: Skeptik does not support product types, but according to the syntax this types are used only
+  //       in the domain of mapping types, so we translate them curryfied.
   lazy val tff_xprod_type: PackratParser[T] = (
     tff_unitary_type ~ elem(Star) ~ tff_atomic_type       ^^ {case l ~ _ ~ r => addToEnd(l,r)}
       ||| tff_xprod_type   ~ elem(Star) ~ tff_atomic_type ^^ {case l ~ _ ~ r => addToEnd(l,r)}
@@ -699,10 +704,10 @@ extends TokenParsers with PackratParsers {
     )
 
 
-
   def thf_type_formula: Parser[SimpleType] = thf_typeable_formula ~ elem(Colon) ~ thf_top_level_type ^^ {
     case formula ~ _ ~ typ => SimpleType("",typ) //TODO: check this
   }
+
   def thf_typeable_formula: Parser[E] = (
     thf_atom
       | elem(LeftParenthesis) ~> thf_logic_formula <~ elem(RightParenthesis)
