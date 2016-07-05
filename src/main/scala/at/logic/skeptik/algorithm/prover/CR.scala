@@ -3,9 +3,11 @@ package at.logic.skeptik.algorithm.prover
 import at.logic.skeptik.algorithm.prover.structure.immutable.CNF
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.Var
+import at.logic.skeptik.expression.substitution.immutable.Substitution
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
 import scala.util.control.Breaks
 
 /**
@@ -35,7 +37,8 @@ object CR {
     literals.foreach(unifiableUnits(_) = mutable.Set.empty)
     var level = 0
     levelClauses(0) = cnf.clauses // Initial clauses have level 0
-    val decision = ArrayBuffer.empty[Literal]
+    val decision = ArrayBuffer.empty[Clause]
+    val decisionInstantiations = mutable.Map.empty[Clause, mutable.Set[Substitution]]
 
     for (literal <- literals) {
       for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
@@ -67,6 +70,9 @@ object CR {
                 val newClause = newLiteral.toClause
                 if (!clauses.contains(newClause)) {
                   ancestor(newClause) = (Set.empty[Clause] /: (unifier :+ clause))(_ union ancestor(_))
+                  (unifier :+ clause).filter(decision contains _).foreach {
+                    c => decisionInstantiations.getOrElseUpdate(c, mutable.Set.empty) += mgu
+                  }
                   result += newClause
                 }
               case None =>
@@ -104,9 +110,9 @@ object CR {
         while (usedAncestors.size != levelClauses(0).size) { // If at least one ancestor wasn't used
           val notUsedAncestors = mutable.Set((levelClauses(0).toSet diff usedAncestors).toSeq: _*) // FIXME: really, no better way?
           // We need clauses which have unused ancestor
-          val interestingClauses = levelClauses(level).filter {
+          val interestingClauses = Random.shuffle(levelClauses(level).filter {
             clause => (ancestor(clause) intersect notUsedAncestors).nonEmpty
-          }
+          })
 
           interestingClauses.headOption match {
             case Some(clause) =>
@@ -146,7 +152,7 @@ object CR {
                 }
               }
               bestDecision.foreach(literal => {
-                decision += literal
+                decision += literal.toClause
                 clauses += literal.toClause
                 literals += literal
                 ancestor(literal.toClause) = Set.empty
@@ -168,7 +174,9 @@ object CR {
               updateClauses(result)
               usedAncestors = result.map(ancestor(_)).reduce(_ union _)
               if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) {
-                val newClause = decision.map(!_).toSequent
+                val newClause = decision.flatMap(d => decisionInstantiations.getOrElse(d, mutable.Set.empty).map {
+                  sub => (sub(d.literal.unit), !d.literal.negated)
+                }).toSequent
                 return isSatisfiable(CNF(cnf.clauses :+ newClause))
               }
             case None =>
