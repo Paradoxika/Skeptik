@@ -90,7 +90,8 @@ object CR {
       literals ++= result.flatMap(_.literals)
       for (literal <- literals) {
         for (other <- result) if (other.isUnit && other.literal.negated != literal.negated) {
-          unify((literal.unit, other.literal.unit) :: Nil) match {
+          val renamedLiteral = renameVars(Seq(literal.unit), Seq(other.literal.unit)).head
+          unify((renamedLiteral, other.literal.unit) :: Nil) match {
             case Some(_) =>
               unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other
             case None =>
