@@ -13,8 +13,8 @@ object ProblemParserTFFTPTP extends ProblemParserTFFTPTP
 
 
 /**
-  * The ProblemParserFOFTPTP trait implements a parser for problems written
-  * in the TPTP FOF syntax. We assume that there are no derivation nodes in
+  * The ProblemParserTFFTPTP trait implements a parser for problems written
+  * in the TPTP TFF syntax. We assume that there are no derivation nodes in
   * the parsed file, i.e. that we only have our axioms and conjectures.
   */
 trait ProblemParserTFFTPTP
@@ -23,8 +23,7 @@ trait ProblemParserTFFTPTP
   def problemParser : Parser[TFFProblem] = TPTP_file ^^ generateProblem
 
   def generateProblem(directives : List[TPTPDirective]) : TFFProblem = {
-    val expandedDirectives : List[TPTPDirective] = expandIncludes(directives,TPTP_file)
-    val onlyFormulas : List[TPTPDirective]       = expandedDirectives filter isSimpleFormula
+    val onlyFormulas : List[TPTPDirective]       = directives filter isSimpleFormula
     val formulas   : List[(String,String,E)]     = onlyFormulas map extractFormulas
     val statements : List[TFFProblemStatement]   = formulas map ((t : (String,String,E)) => formulaToStatement(t._1,t._2,t._3))
     TFFProblem(statements,getSeenVars)

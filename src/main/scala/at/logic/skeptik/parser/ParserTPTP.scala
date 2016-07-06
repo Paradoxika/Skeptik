@@ -105,9 +105,9 @@ extends TokenParsers with PackratParsers {
   // Actual Parsers
   import lexical._
 
-  def TPTP_file: Parser[List[TPTPDirective]] = rep(TPTP_input)
+  def TPTP_file: Parser[List[TPTPDirective]] = rep(TPTP_input) ^^ {List.concat(_ :_*)}
 
-  def TPTP_input: Parser[TPTPDirective] = annotated_formula | include
+  def TPTP_input: Parser[List[TPTPDirective]] = (annotated_formula ^^ {List(_)} | include) ^^{List.concat(_)}
 
   def annotated_formula: Parser[AnnotatedFormula] = (
     tpi_annotated
@@ -118,12 +118,12 @@ extends TokenParsers with PackratParsers {
     )
 
 
-  def include: Parser[IncludeDirective] = (
+  def include: Parser[List[TPTPDirective]] = (
     (elem(Include) ~ elem(LeftParenthesis)) ~> elem("Single quoted", _.isInstanceOf[SingleQuoted])
       ~ opt((elem(Comma) ~ elem(LeftBracket)) ~> repsep(name,elem(Comma)) <~ elem(RightBracket))
       <~ (elem(RightParenthesis) ~ elem(Dot)) ^^ {
-      case SingleQuoted(fileName) ~ Some(formulas) => IncludeDirective(fileName, formulas)
-      case SingleQuoted(fileName) ~       _        => IncludeDirective(fileName, List.empty)
+      case SingleQuoted(fileName) ~ Some(formulas) => expandIncludes(List(IncludeDirective(fileName, formulas)),TPTP_file)
+      case SingleQuoted(fileName) ~       _        => expandIncludes(List(IncludeDirective(fileName, List.empty)),TPTP_file)
     }
   )
 
@@ -246,7 +246,9 @@ extends TokenParsers with PackratParsers {
     )
 
   private def toFunctionTerm(name : String , arguments : List[E]) : E =
-    if(typedExpressions contains name) FunctionTerm(name,typedExpressions(name),arguments)
+    if(arguments.isEmpty && name == "$true") True()
+    else if(arguments.isEmpty && name == "$false") False()
+    else if(typedExpressions contains name) FunctionTerm(name,typedExpressions(name),arguments)
     else FunctionTerm(name,arguments)
 
   def plain_term: Parser[(String,List[E])] =
@@ -655,12 +657,12 @@ extends TokenParsers with PackratParsers {
       case Lambda                    ~ _ ~ varList ~ _ ~ _ ~ matrix => AbsRec(varList,matrix)
     }
 
-  def thf_quantifier: Parser[Any] = (
-    elem(Exclamationmark) ~ elem(Arrow)
-      | elem(Questionmark) ~ elem(Star)
-      | elem(Application) ~ elem(Plus)
-      | elem(Application) ~ elem(Minus)
-      | elem(Lambda)
+  def thf_quantifier: Parser[Token] = (
+    //elem(Exclamationmark) ~ elem(Arrow)
+    //  | elem(Questionmark) ~ elem(Star)
+    //  | elem(Application) ~ elem(Plus)
+    //  | elem(Application) ~ elem(Minus)
+    elem(Lambda)
       | fol_quantifier
     )
 
@@ -672,7 +674,7 @@ extends TokenParsers with PackratParsers {
 
   def thf_typed_variable: Parser[Var] =
     variable ~ elem(Colon) ~ thf_top_level_type ^^ {
-      case vari ~ _ ~ typ => recordVar(vari,typ); TypedVariable(vari, typ).asInstanceOf[Var]
+      case vari ~ _ ~ typ => recordVar(vari,typ); typedExpressions += (vari -> typ);TypedVariable(vari, typ).asInstanceOf[Var]
     }
 
   def thf_unary_formula: Parser[E] = thf_unary_connective ~ elem(LeftParenthesis) ~ thf_logic_formula <~ elem(RightParenthesis) ^^ {
@@ -704,34 +706,49 @@ extends TokenParsers with PackratParsers {
     )
 
 
-  def thf_type_formula: Parser[SimpleType] = thf_typeable_formula ~ elem(Colon) ~ thf_top_level_type ^^ {
-    case formula ~ _ ~ typ => SimpleType("",typ) //TODO: check this
-  }
-
-  def thf_typeable_formula: Parser[E] = (
-    thf_atom
-      | elem(LeftParenthesis) ~> thf_logic_formula <~ elem(RightParenthesis)
+  def thf_type_formula: Parser[SimpleType] = (
+    thf_typeable_formula ~ elem(Colon) ~ thf_top_level_type ^^ {
+      case formula ~ _ ~ typ => typedExpressions += (formula -> typ); SimpleType(formula,typ)
+    }
+    | elem(LeftParenthesis) ~> thf_type_formula <~ elem(RightParenthesis)
     )
 
-  def subtypeSign: Parser[String] = repN(2,elem(LessSign)) ^^ {_  => ""}
+  // We had to modify this from the grammar, in theory this parser should
+  // be implemented as the commented part, but that wouldn't be translatable
+  // to our data structures
+  def thf_typeable_formula: Parser[String] = (
+    atomic_word
+      | atomic_system_word
+    )/*(
+    thf_atom
+      | elem(LeftParenthesis) ~> thf_logic_formula <~ elem(RightParenthesis)
+    )*/
+
+  def subtype_sign: Parser[String] = repN(2,elem(LessSign)) ^^ { _  => ""}
+  // Subtypes can't be represented in Skeptik's type sysntem, we left this unsupported for now.
   def thf_subtype: Parser[SimpleType] = failure("Subtypes are not supported")/*constant ~ subtype_sign ~ constant ^^ {
     case l ~ _ ~ r => ???
   }*/
 
-  def thf_top_level_type: Parser[T] = thf_type_formula ^^{_.typ}//thf_logic_formula
-  def thf_unitary_type: Parser[T] = thf_type_formula ^^{_.typ}//thfUnitaryFormula
+  def thf_top_level_type: Parser[T] = (
+    tff_atomic_type
+      ||| thf_mapping_type
+      ||| elem(LeftParenthesis) ~> thf_top_level_type <~ elem(RightParenthesis)
+    )
+  def thf_unitary_type: Parser[T] = thf_top_level_type //thfUnitaryFormula
   def thf_binary_type: Parser[T] = thf_mapping_type | thf_xprod_type | thf_union_type
 
   lazy val thf_mapping_type: PackratParser[T] = (
-    thf_unitary_type ~ elem(Arrow) ~ thf_unitary_type ^^ {case l ~ _ ~ r => l -> r}
+    thf_unitary_type ~ elem(Arrow) ~ thf_unitary_type       ^^ {case l ~ _ ~ r => l -> r}
       ||| thf_unitary_type ~ elem(Arrow) ~ thf_mapping_type ^^ {case l ~ _ ~ typ => l -> typ}
     )
 
   lazy val thf_xprod_type: PackratParser[T] = (
-    thf_unitary_type ~ elem(Star) ~ thf_unitary_type ^^ {case l ~ _ ~ r => addToEnd(l,r)}
+    thf_unitary_type ~ elem(Star) ~ thf_unitary_type       ^^ {case  l  ~ _ ~ r => addToEnd(l,r)}
       ||| thf_xprod_type   ~ elem(Star) ~ thf_unitary_type ^^ {case typ ~ _ ~ r => addToEnd(typ,r)}
     )
 
+  // Type union can't be represented in Skeptik's type system so we left this undefined.
   lazy val thf_union_type: PackratParser[T] = failure("Union types are not supported")/*(
     thf_unitary_type ~ elem(Plus) ~ thf_unitary_type ^^ {case l ~ _ ~ r => +(l,r)}
       ||| thf_union_type   ~ elem(Plus) ~ thf_unitary_type ^^ {case typ ~ _ ~ r => +(typ,r)}
@@ -745,15 +762,3 @@ extends TokenParsers with PackratParsers {
   def thf_tuple: Parser[List[E]] = repsep(thf_logic_formula, elem(Comma))
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
