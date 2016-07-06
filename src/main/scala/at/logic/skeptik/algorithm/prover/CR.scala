@@ -55,13 +55,13 @@ object CR {
       // e.g. unifyCandidates for Clause(!P(X), Q(a)) can be Seq(Seq(P(a), P(b), P(f(a))), Seq(!Q(X), !Q(a)))
       val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
       if (unifyCandidates.length > 1) { // If this clause is not a unit clause
-        for (conclusionId <- 0 until unifyCandidates.size) { // Id of literal which will be a conclusion
+        for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
           val conclusion = clause.literals(conclusionId)
           // All unifiers excluding that one for conclusion
           val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
           // All literals excluding conclusion
           val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
-          for (unifier <- combinations(unifiers).toSet[Seq[Clause]]) { // We should try all combinations of unifiers
+          for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
             val unifierUnits = unifier.map(_.literal.unit)
             val literalUnits = literals.map(_.unit)
             val unificationProblem = renameVars(literalUnits, unifierUnits).zip(unifierUnits)
@@ -99,6 +99,13 @@ object CR {
       }
     }
 
+    /**
+      * Gets all unifiable variables (contained in `variables`) from
+      * given Es.
+      *
+      * @param exps where unifiable variables should be found
+      * @return unifiable variables contained at least once in exps
+      */
     def unifiableVars(exps: E*): Set[Var] = exps.flatMap {
       case App(e1, e2) =>
         unifiableVars(e1) union unifiableVars(e2)
@@ -108,27 +115,38 @@ object CR {
         if (variables contains v) Set(v) else Set.empty[Var]
     }.toSet
 
+    /**
+      * Rename quantified variables in left so that they don't intersect
+      * with quantified variables in right. It's necessary for unification
+      * to work correctly.
+      *
+      * @param left where quantified variables should be renamed
+      * @param right other resolvent
+      * @return `left` with renamed variables
+      */
     def renameVars(left: Seq[E], right: Seq[E]): Seq[E] = {
       val alreadyUsed = mutable.Set.empty[Var]
-      for (oneLeft <- left) yield {
-        val sharedVars = unifiableVars(oneLeft) intersect unifiableVars(right: _*)
+      for (oneLeft <- left) yield { // Each E in left should contain unique variables
+        val sharedVars = unifiableVars(oneLeft) intersect unifiableVars(right: _*) // Variables contained in leftOnce and right
 
         if (sharedVars.nonEmpty) {
+          // Unification variables which can be reused for new variables
           val notUsedVars = variables diff (sharedVars union unifiableVars(left: _*) union unifiableVars(right: _*) union alreadyUsed)
 
           val kvs = for (v <- sharedVars) yield {
-            val replacement = notUsedVars.headOption getOrElse {
+            val replacement = notUsedVars.headOption getOrElse { // Use some variable from uniciation variables
+              // Or create a new one
               var newVar = new Var(v + "'", i)
               while (sharedVars contains newVar) {
                 newVar = new Var(newVar + "'", i)
               }
-              variables += newVar
+              variables += newVar // It will be avaiable for unification from now
               newVar
             }
 
             alreadyUsed += replacement
 
-            if (notUsedVars.contains(replacement)) notUsedVars.remove(replacement)
+            if (notUsedVars contains replacement) notUsedVars -= replacement
             v -> replacement
           }
 
