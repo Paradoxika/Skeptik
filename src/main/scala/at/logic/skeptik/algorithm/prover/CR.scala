@@ -2,7 +2,7 @@ package at.logic.skeptik.algorithm.prover
 
 import at.logic.skeptik.algorithm.prover.structure.immutable.CNF
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
-import at.logic.skeptik.expression.Var
+import at.logic.skeptik.expression.{Abs, App, E, Var, i}
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 
 import scala.collection.mutable
@@ -29,11 +29,11 @@ object CR {
   def isSatisfiable(cnf: CNF)(implicit variables: mutable.Set[Var]): Boolean = {
 
     val levelClauses = mutable.Map.empty[Int, Seq[Clause]] // Shows level at which clause was resolved
-    val ancestor = mutable.Map.empty[Clause, Set[Clause]] // For each clause what initial (input) clauses produced it
+    val ancestor = mutable.Map.empty[Clause, mutable.Set[Clause]] // For each clause what initial (input) clauses produced it
     val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Clause]] // Shows unifiable unit clauses for each literal
-    val clauses = cnf.clauses.to[ArrayBuffer] // Just all clauses (for current moment)
-    clauses.foreach(clause => ancestor(clause) = Set(clause)) // Ancesot of initial clauses is exactly this clause
-    val literals = mutable.Set(clauses.flatMap(_.literals): _*)
+    val clauses = mutable.Set(cnf.clauses: _*) // Just all clauses (for current moment)
+    clauses.foreach(clause => ancestor(clause) = mutable.Set(clause)) // Ancestor of initial clauses is exactly this clause
+    val literals = clauses.flatMap(_.literals)
     literals.foreach(unifiableUnits(_) = mutable.Set.empty)
     var level = 0
     levelClauses(0) = cnf.clauses // Initial clauses have level 0
@@ -55,24 +55,26 @@ object CR {
       // e.g. unifyCandidates for Clause(!P(X), Q(a)) can be Seq(Seq(P(a), P(b), P(f(a))), Seq(!Q(X), !Q(a)))
       val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
       if (unifyCandidates.length > 1) { // If this clause is not a unit clause
-        for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
+        for (conclusionId <- 0 until unifyCandidates.size) { // Id of literal which will be a conclusion
           val conclusion = clause.literals(conclusionId)
           // All unifiers excluding that one for conclusion
           val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
           // All literals excluding conclusion
           val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
-          for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
+          for (unifier <- combinations(unifiers).toSet[Seq[Clause]]) { // We should try all combinations of unifiers
             val unifierUnits = unifier.map(_.literal.unit)
             val literalUnits = literals.map(_.unit)
-            unify(literalUnits.zip(unifierUnits)) match { // All unifiers should be unified with literals using one common mgu
+            val unificationProblem = renameVars(literalUnits, unifierUnits).zip(unifierUnits)
+            unify(unificationProblem) match { // All unifiers should be unified with literals using one common mgu
               case Some(mgu) =>
                 val newLiteral = (mgu(conclusion.unit), conclusion.negated)
                 val newClause = newLiteral.toClause
+                ancestor.getOrElseUpdate(newClause, mutable.Set.empty) ++=
+                  (Set.empty[Clause] /: (unifier :+ clause))(_ union ancestor(_))
+                (unifier :+ clause).filter(decision contains _).foreach {
+                  c => decisionInstantiations.getOrElseUpdate(c, mutable.Set.empty) += mgu
+                }
                 if (!clauses.contains(newClause)) {
-                  ancestor(newClause) = (Set.empty[Clause] /: (unifier :+ clause))(_ union ancestor(_))
-                  (unifier :+ clause).filter(decision contains _).foreach {
-                    c => decisionInstantiations.getOrElseUpdate(c, mutable.Set.empty) += mgu
-                  }
                   result += newClause
                 }
               case None =>
@@ -97,6 +99,47 @@ object CR {
       }
     }
 
+    def unifiableVars(exps: E*): Set[Var] = exps.flatMap {
+      case App(e1, e2) =>
+        unifiableVars(e1) union unifiableVars(e2)
+      case Abs(v, e1) =>
+        unifiableVars(v) union unifiableVars(e1)
+      case v: Var =>
+        if (variables contains v) Set(v) else Set.empty[Var]
+    }.toSet
+
+    def renameVars(left: Seq[E], right: Seq[E]): Seq[E] = {
+      val alreadyUsed = mutable.Set.empty[Var]
+      for (oneLeft <- left) yield {
+        val sharedVars = unifiableVars(oneLeft) intersect unifiableVars(right: _*)
+
+        if (sharedVars.nonEmpty) {
+          val notUsedVars = variables diff (sharedVars union unifiableVars(left: _*) union unifiableVars(right: _*) union alreadyUsed)
+
+          val kvs = for (v <- sharedVars) yield {
+            val replacement = notUsedVars.headOption getOrElse {
+              var newVar = new Var(v + "'", i)
+              while (sharedVars contains newVar) {
+                newVar = new Var(newVar + "'", i)
+              }
+              variables += newVar
+              newVar
+            }
+
+            alreadyUsed += replacement
+
+            if (notUsedVars.contains(replacement)) notUsedVars.remove(replacement)
+            v -> replacement
+          }
+
+          val sub = Substitution(kvs.toSeq: _*)
+          sub(oneLeft)
+        } else {
+          oneLeft
+        }
+      }
+    }
+
     Breaks.breakable {
       while (true) {
         val result = ArrayBuffer.empty[Clause]
@@ -106,7 +149,7 @@ object CR {
         if (result.isEmpty) {
           Breaks.break()
         }
-        var usedAncestors = result.map(ancestor(_)).reduce(_ union _) ++ levelClauses(0).filter(_.literals.exists(clauses contains _.toClause))
+        var usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ levelClauses(0).filter(_.literals.exists(clauses contains _.toClause))
         while (usedAncestors.size != levelClauses(0).size) { // If at least one ancestor wasn't used
           val notUsedAncestors = mutable.Set((levelClauses(0).toSet diff usedAncestors).toSeq: _*) // FIXME: really, no better way?
           // We need clauses which have unused ancestor
@@ -116,46 +159,36 @@ object CR {
 
           interestingClauses.headOption match {
             case Some(clause) =>
-              val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
+              val unifyCandidates = clause.literals.map(lit => unifiableUnits(lit).toSeq :+ (!lit).toClause)
               var bestDecision = literals.toBuffer
-              // FIXME: partly copy-pasted
-              if (unifyCandidates.length > 1) { // If this clause is not a unit clause
-                for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
-                  // All unifiers excluding that one for conclusion
-                  val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
-                  // All literals excluding conclusion
-                  val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
+              for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
+                // All unifiers excluding that one for conclusion
+                val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
+                // All literals excluding conclusion
+                val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
 
-                  val needToDecide = ArrayBuffer.empty[Literal]
-
-                  (literals /: unifiers) {
-                    case (leftLiterals, unifierChoices) =>
-                      val lit = leftLiterals.head
-                      unifierChoices.map(unifierChoice =>
-                        unify((lit.unit, unifierChoice.literal.unit) :: Nil) match {
-                          case Some(mgu) =>
-                            Some(leftLiterals.tail.map(l => (mgu(l.unit), l.negated)))
-                          case None =>
-                            None
-                        }
-                      ).find(_.isDefined).flatten match {
-                        case Some(unifiedLiterals) =>
-                          unifiedLiterals
-                        case None =>
-                          needToDecide += !leftLiterals.head
-                          leftLiterals.tail
+                val needToDecide = ArrayBuffer.empty[Literal]
+                for (unifier <- combinations(unifiers).toSet[Seq[Clause]]) {
+                  val unifierUnits = unifier.map(_.literal.unit)
+                  val literalUnits = literals.map(_.unit)
+                  val unificationProblem = renameVars(literalUnits, unifierUnits).zip(unifierUnits)
+                  unify(unificationProblem) match { // All unifiers should be unified with literals using one common mgu
+                    case Some(mgu) =>
+                      for (u <- unifier) if (!clauses.contains(u)) {
+                        needToDecide ++= u.literals
                       }
+                    case None =>
                   }
-                  if (bestDecision.size >= needToDecide.size) {
-                    bestDecision = needToDecide
-                  }
+                }
+                if (bestDecision.size >= needToDecide.size) {
+                  bestDecision = needToDecide
                 }
               }
               bestDecision.foreach(literal => {
                 decision += literal.toClause
                 clauses += literal.toClause
                 literals += literal
-                ancestor(literal.toClause) = Set.empty
+                ancestor(literal.toClause) = mutable.Set.empty
               })
               for (literal <- literals) {
                 for (otherLiteral <- bestDecision) if (otherLiteral.negated != literal.negated) { // FIXME: copy-pasted
@@ -172,7 +205,7 @@ object CR {
                 result ++= resolve(lastLevelClause)
               }
               updateClauses(result)
-              usedAncestors = result.map(ancestor(_)).reduce(_ union _)
+              usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _)
               if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) {
                 val newClause = decision.flatMap(d => decisionInstantiations.getOrElse(d, mutable.Set.empty).map {
                   sub => (sub(d.literal.unit), !d.literal.negated)
