@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm
 
 import at.logic.skeptik.expression.E
-import at.logic.skeptik.judgment.immutable.SeqSequent
+import at.logic.skeptik.judgment.immutable.SetSequent
 
 import scala.language.implicitConversions
 
@@ -9,20 +9,20 @@ import scala.language.implicitConversions
   * @author Daniyar Itegulov
   */
 package object prover {
-  type Clause = SeqSequent
+  type Clause = SetSequent
   type Literal = (E, Boolean) // Variable and isNegated
   type CNF = structure.immutable.CNF
 
   object Clause {
-    def apply(a: E*)(b: E*) = SeqSequent(a:_*)(b:_*)
-    def empty = SeqSequent()()
+    def apply(a: E*)(b: E*) = new SetSequent(a.toSet, b.toSet)
+    def empty = SetSequent()
   }
 
   implicit def varToLit(variable: E): Literal = (variable, false)
 
   implicit class ClauseOperations(clause: Clause) {
     lazy val literals: Seq[Literal] =
-      clause.ant.map((_, true)) ++ clause.suc.map((_, false))
+      (clause.ant.map((_, true)) ++ clause.suc.map((_, false))).toSeq
 
     def apply(pos: Int): Literal = literals(pos)
 
@@ -39,21 +39,21 @@ package object prover {
 
     def unary_! = (literal._1, !literal._2)
 
-    def toClause: Clause = if (negated) SeqSequent(unit)() else SeqSequent()(unit)
+    def toClause: Clause = if (negated) new SetSequent(Set(unit), Set.empty) else new SetSequent(Set.empty, Set(unit))
   }
 
-  implicit class UnitSequent(sequent: SeqSequent) {
+  implicit class UnitSequent(sequent: SetSequent) {
     def literal: Literal =
       if (sequent.ant.size == 1 && sequent.suc.isEmpty) (sequent.ant.head, true)
       else if (sequent.ant.isEmpty && sequent.suc.size == 1) (sequent.suc.head, false)
-      else throw new IllegalStateException("Given SeqSequent is not a unit")
+      else throw new IllegalStateException("Given SetSequent is not a unit")
   }
 
   implicit class LiteralsAreSequent(literals: Seq[Literal]) {
-    def toSequent: SeqSequent = {
+    def toSequent: SetSequent = {
       val ant = literals.flatMap(l => if (l.negated) Some(l.unit) else None)
       val suc = literals.flatMap(l => if (l.negated) None else Some(l.unit))
-      SeqSequent(ant: _*)(suc: _*)
+      new SetSequent(ant.toSet, suc.toSet)
     }
   }
 }

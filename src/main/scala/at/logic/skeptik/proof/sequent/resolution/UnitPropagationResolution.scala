@@ -36,10 +36,9 @@ class UnitPropagationResolution(val clause: SequentProofNode, // right premise
     case Some(u) => u
   }
 
-  override def auxFormulasMap: Map[SequentProofNode, SeqSequent] =
-    unitClauses.zip(leftLiterals.map(_.toClause)).toMap + (clause -> rightLiterals.toSequent)
+  override def auxFormulasMap: Map[SequentProofNode, SeqSequent] = ???
 
-  override def conclusionContext: SeqSequent = clause.conclusion --* rightLiterals.toSequent
+  override def conclusionContext: SeqSequent = ???
 
   override def mainFormulas: SeqSequent = SeqSequent()()
 
