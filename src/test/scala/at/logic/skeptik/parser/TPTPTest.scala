@@ -4,6 +4,11 @@ import at.logic.skeptik.parser.TPTPParsers._
 
 object TPTPTest {
   def main(args: Array[String]):Unit = {
+    val problem1 = ProblemParserFOFTPTP.problem("examples/problems/FOF/AGT001+1.fofp")
+    println(problem1)
+    ProblemParserFOFTPTP.resetVarsSeen()
+
+    /*
     val problem1 = ProblemParserCNFTPTP.problem("examples/problems/CNF/CNF.cnfp")
     println(problem1)
     ProblemParserCNFTPTP.resetVarsSeen()
@@ -42,5 +47,6 @@ object TPTPTest {
     val proof1 = ProofParserCNFTPTP.read("examples/proofs/TPTP/complexCNF.tptp")
     println(proof1)
     println(ProofParserCNFTPTP.getVariables)
+    */
   }
 }
