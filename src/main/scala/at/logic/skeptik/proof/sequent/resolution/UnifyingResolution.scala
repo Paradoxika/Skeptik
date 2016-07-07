@@ -51,36 +51,45 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 	def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
 		val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
 
-				val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
-				if (unifiablePairs.length > 0) {
-					findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
-				} else if (unifiablePairs.length == 0) {
-					throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A")
-				} else {
-					//Should never really be reached in this constructor
-					throw new Exception("Resolution: the resolvent is ambiguous.")
-				}
+		val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+		if (unifiablePairs.length > 0) {
+			findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
+		} else if (unifiablePairs.length == 0) {
+			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+		} else {
+			//Should never really be reached in this constructor
+			throw new Exception("Resolution: the resolvent is ambiguous.\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+		}
 	}
 
 	def apply(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
 
 		val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
-				val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+		val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
 
-				if (unifiablePairs.length == 1) {
-					val (auxL, auxR) = unifiablePairs(0)
-							new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
-				} else if (unifiablePairs.length == 0) {
-					throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B")
-				} else {
-					throw new Exception("Resolution: the resolvent is ambiguous.")
-				}
+		if (unifiablePairs.length == 1) {
+			val (auxL, auxR) = unifiablePairs(0)
+			new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
+		} else if (unifiablePairs.length == 0) {
+			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+		} else {
+			throw new Exception("Resolution: the resolvent is ambiguous.\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+		}
 	}
+
 	def unapply(p: SequentProofNode) = p match {
-	case p: UnifyingResolution => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
-	case _ => None
+		case p: UnifyingResolution => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
+		case _ => None
 	}
 
+	def resolve(leftPremise: SequentProofNode, rightPremise: SequentProofNode, unifiableVariables: MSet[Var]): UnifyingResolution = {
+		try {
+		  apply(leftPremise, rightPremise)(unifiableVariables)
+	  } catch {
+			case e: Exception =>
+				apply(rightPremise, leftPremise)(unifiableVariables)
+		}
+	}
 }
 
 

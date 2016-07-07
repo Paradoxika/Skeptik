@@ -1,0 +1,88 @@
+/*
+  This case should be compressed by all heuristics
+*/
+cnf(c_0_0, axiom, ~q(X) ).
+cnf(c_0_1, axiom, q(f(X,b)) | p(X) | r).
+cnf(c_0_2, axiom, q(f(R,Y)) | ~p(X)).
+cnf(c_0_3, axiom, q(f(a,W)) | ~r).
+cnf(c_0_4, plain, ~p(X) , inference(sr,[status(thm)],[c_0_0, c_0_2])).
+cnf(c_0_5, plain, ~r , inference(sr,[status(thm)],[c_0_0, c_0_3])).
+cnf(c_0_6, plain, p(X) | r , inference(sr,[status(thm)],[c_0_0, c_0_1])).
+cnf(c_0_7, plain, p(X) , inference(sr,[status(thm)],[c_0_5, c_0_6])).
+cnf(c_0_8, plain, ($false),inference(sr,[status(thm)],[c_0_4, c_0_7])).
+
+
+/*
+This is an extrange bug
+
+cnf(c_0_0, axiom, ~q(X) ).
+cnf(c_0_1, axiom, q(f(X,b)) | p(X) | r).
+cnf(c_0_2, axiom, q(f(R,Y)) | ~p(Y)).
+cnf(c_0_3, axiom, q(f(a,W)) | ~r).
+cnf(c_0_4, plain, ~p(Y) , inference(sr,[status(thm)],[c_0_0, c_0_2])).
+cnf(c_0_5, plain, ~r , inference(sr,[status(thm)],[c_0_0, c_0_3])).
+cnf(c_0_6, plain, p(X) | r , inference(sr,[status(thm)],[c_0_0, c_0_1])).
+cnf(c_0_7, plain, p(X) , inference(sr,[status(thm)],[c_0_5, c_0_6])).
+cnf(c_0_8, plain, ($false),inference(sr,[status(thm)],[c_0_4, c_0_7])).
+
+
+The representation of this proof is:
+
+                                   ¬r,q(f(a,W))    2     q(f(X,b)),p(X),r    2
+                                   -----------------    -----------------------
+ ¬p(Y),q(f(R,Y))  2: ¬q(X)                  ¬ r                 r, p(R)
+ -------------------------                 -----------------------------
+          ¬p(Y)                                       p(R)
+          ------------------------------------------------
+                                   {}
+
+The output is:
+
+1: { ⊢ (q (f X b)), (p X), r}   : Axiom()[]
+2: {(q X) ⊢ }   : Axiom()[]
+3: { ⊢ r, (p R)}        : UnifyingResolution(1, 2)[]
+4: {r ⊢ (q (f a W))}    : Axiom()[]
+5: {r ⊢ }       : UnifyingResolution(4, 2)[]
+6: { ⊢ (p R)}   : UnifyingResolution(3, 5)[]
+7: {(p Y) ⊢ (q (f R Y))}        : Axiom()[]
+8: {(p Y) ⊢ }   : UnifyingResolution(7, 2)[]
+9: { ⊢ }        : UnifyingResolution(6, 8)[]
+
+And then an exception, you can see this running the test written here in
+
+Skeptik/src/main/scala/at/logic/skeptik/algorithm/compressor/FOSplit/FOCottonSplit.scala
+
+The conclusions of the two proofs obtained applying the splitting procedure are:
+   ⊢ (q (f Y b)), (q (f a W)), (q (f R Y))
+
+and
+
+  (q X) ⊢
+
+This is something I don't get, because the occurrences of the literal q shouldn't share variables because they come from
+different clauses.
+
+Is this a bug?
+
+*/
+
+
+
+
+
+
+/*
+On the other hand this one does not pass and is a problem with the heuristic that let you split a node that shouldn't be
+splittend.
+Change ~p(Y) for ~p(X) in c_0_3 and it will pass.
+
+cnf(c_0_0, axiom, ~q(X) ).
+cnf(c_0_1, axiom, q(f(X,b)) | p(a) | r).
+cnf(c_0_2, axiom, q(f(R,Y)) | ~p(Y)).
+cnf(c_0_3, axiom, q(f(a,W)) | ~r).
+cnf(c_0_4, plain, ~p(Y) , inference(sr,[status(thm)],[c_0_0, c_0_2])).
+cnf(c_0_5, plain, ~r , inference(sr,[status(thm)],[c_0_0, c_0_3])).
+cnf(c_0_6, plain, p(a) | r , inference(sr,[status(thm)],[c_0_0, c_0_1])).
+cnf(c_0_7, plain, p(a) , inference(sr,[status(thm)],[c_0_5, c_0_6])).
+cnf(c_0_8, plain, ($false),inference(sr,[status(thm)],[c_0_4, c_0_7])).
+*/

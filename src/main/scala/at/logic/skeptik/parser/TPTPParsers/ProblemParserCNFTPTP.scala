@@ -1,9 +1,10 @@
 package at.logic.skeptik.parser.TPTPParsers
 
-import at.logic.skeptik.expression.E
+import at.logic.skeptik.expression.{E, Var}
 import at.logic.skeptik.parser.BaseParserTPTP
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST.{AnnotatedFormula, SimpleSequent, TPTPDirective}
 
+import collection.mutable.Set
 /**
   * @author  Ezequiel Postan
   * @since   24.05.2016
@@ -30,7 +31,7 @@ extends BaseParserTPTP {
     val expandedDirectives : List[TPTPDirective]         = expandIncludes(directives,TPTP_file)
     val formulas   : List[(String,String,Seq[E],Seq[E])] = expandedDirectives map extractFormulas
     val statements : List[CNFProblemStatement]           = formulas map ((t : (String,String,Seq[E],Seq[E])) => formulaToStatement(t._1,t._2,t._3,t._4))
-    CNFProblem(statements)
+    CNFProblem(statements,getSeenVars)
   }
 
 
@@ -52,11 +53,11 @@ extends BaseParserTPTP {
 
 }
 
-class CNFProblem(val statements : List[CNFProblemStatement]) {
-  override def toString : String = statements.mkString("\n")
+class CNFProblem(val statements : List[CNFProblemStatement],val variables : Set[Var]) {
+  override def toString : String = statements.mkString("\n") + "\nVariables: " + variables.mkString(",")
 }
 object CNFProblem {
-  def apply(statements: List[CNFProblemStatement]): CNFProblem = new CNFProblem(statements)
+  def apply(statements: List[CNFProblemStatement], variables : Set[Var]): CNFProblem = new CNFProblem(statements,variables)
 }
 
 abstract class CNFProblemStatement
