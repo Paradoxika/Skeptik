@@ -29,6 +29,7 @@ object MartelliMontanari {
         case (Abs(v1, e1), Abs(v2, e2)) => eqs = Seq((v1, v2), (e1, e2)) ++ eqs.tail
         case (v1: Var, v2: Var) if (v1 == v2) => eqs = eqs.tail
         case (v: Var, e: E) if variables contains v => {
+          if (v.occursIn(e)) return None
           // without occur-check
           val sub = Substitution(v -> e)
           for (p <- mgu) {
