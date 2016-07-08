@@ -688,7 +688,34 @@ extends TokenParsers with PackratParsers {
       | thf_conn_term
     )
 
-  def thf_conn_term: Parser[E] = failure("Undefined thf atom. Term expected but connective found" )
+  def thf_conn_term: Parser[E] = (
+    (thf_pair_connective | assoc_connective) ^^ {
+      case Equals               => FormulaEquality()
+      case NotEquals            => etaExpand(NotEquals)
+      case Leftrightarrow       => Equivalence()
+      case Rightarrow           => Imp()
+      case Leftarrow            => etaExpand(Leftarrow)
+      case Leftrighttildearrow  => etaExpand(Leftrighttildearrow)
+      case TildePipe            => etaExpand(TildePipe)
+      case TildeAmpersand       => etaExpand(TildeAmpersand)
+      case Ampersand            => And()
+      case VLine                => Or()
+    }
+      | thf_unary_connective ^^ {
+      case Tilde                              => Neg()
+      //case Exclamationmark ~ Exclamationmark  => thf.Connective(Right(thf.!!))
+      //case Questionmark ~ Questionmark        => thf.Connective(Right(thf.??))
+    }
+    )
+
+  private def etaExpand(conective : Token) : E = conective match {
+    case NotEquals            => Abs(new Var("NEW_1",o),Abs(new Var("NEW_2",o),Neg(FormulaEquality(o)(new Var("NEW_1",o),new Var("NEW_2",o)))))
+    case Leftarrow            => Abs(new Var("NEW_1",o),Abs(new Var("NEW_2",o),Imp(new Var("NEW_2",o),new Var("NEW_1",o))))
+    case Leftrighttildearrow  => Abs(new Var("NEW_1",o),Abs(new Var("NEW_2",o),Neg(Equivalence(new Var("NEW_1",o),new Var("NEW_2",o)))))
+    case TildePipe            => Abs(new Var("NEW_1",o),Abs(new Var("NEW_2",o),Neg(Or(new Var("NEW_1",o),new Var("NEW_2",o)))))
+    case TildeAmpersand       => Abs(new Var("NEW_1",o),Abs(new Var("NEW_2",o),Neg(And(new Var("NEW_1",o),new Var("NEW_2",o)))))
+  }
+
   def assoc_connective: Parser[Token] = elem(VLine) | elem(Ampersand)
 
   def thf_unary_connective: Parser[Any] = (
