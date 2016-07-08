@@ -49,7 +49,7 @@ package object prover {
       else throw new IllegalStateException("Given SetSequent is not a unit")
   }
 
-  implicit class LiteralsAreSequent(literals: Seq[Literal]) {
+  implicit class LiteralsAreSequent(literals: Iterable[Literal]) {
     def toSequent: SetSequent = {
       val ant = literals.flatMap(l => if (l.negated) Some(l.unit) else None)
       val suc = literals.flatMap(l => if (l.negated) None else Some(l.unit))

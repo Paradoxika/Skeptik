@@ -1,6 +1,5 @@
 package at.logic.skeptik.algorithm.prover
 
-import at.logic.skeptik.algorithm.prover.structure.immutable.CNF
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.{Abs, App, E, Var, i}
 import at.logic.skeptik.expression.substitution.immutable.Substitution
@@ -160,6 +159,11 @@ object CR {
       }
     }
 
+    def isUnifiable(left: E, right: E): Boolean = {
+      val renamedLeft = renameVars(Seq(left), Seq(right)).head
+      unify((renamedLeft, right) :: Nil).isDefined
+    }
+
     var finished = false
     while (!finished) {
       Breaks.breakable {
@@ -231,9 +235,15 @@ object CR {
                 updateClauses(result)
                 usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _)
                 if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) {
-                  val newClause = decision.flatMap(d => decisionInstantiations.getOrElse(d, mutable.Set.empty).map {
+                  val instances = decision.flatMap(d => decisionInstantiations.getOrElse(d, mutable.Set.empty).map {
                     sub => (sub(d.literal.unit), !d.literal.negated)
+                  })
+
+                  val newClause = (for (inst <- instances) yield {
+                    val unifiable = instances.filter(other => inst.negated == other.negated && isUnifiable(inst.unit, other.unit))
+                    unifiable.sortBy(_.unit.logicalSize).head
                   }).toSequent
+
                   conflictClauses += newClause
                   level = 0
                   levelClauses.clear()
@@ -252,7 +262,8 @@ object CR {
 
                   for (literal <- literals) {
                     for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
-                      unify((literal.unit, other.literal.unit) :: Nil) match {
+                      val renamedLeft = renameVars(Seq(literal.unit), Seq(other.literal.unit)).head
+                      unify((renamedLeft, other.literal.unit) :: Nil) match {
                         case Some(_) => unifiableUnits(literal) += other
                         case None =>
                       }
@@ -264,16 +275,17 @@ object CR {
                 throw new IllegalStateException("Not all ancestors are used, but there is no 'interesting' clauses")
             }
           }
-          if (result.isEmpty) {
-            finished = true
-            Breaks.break()
-          }
           level += 1
           updateClauses(result)
           levelClauses(level) = result
 
 
           if (clauses exists { clause => clause.isUnit && unifiableUnits(clause.literal).nonEmpty }) return false
+
+          if (result.isEmpty) {
+            finished = true
+            Breaks.break()
+          }
         }
       }
     }
