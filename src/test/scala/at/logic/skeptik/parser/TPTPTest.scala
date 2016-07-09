@@ -101,7 +101,7 @@ object TPTPExtensiveTest extends BaseParserTPTP {
     val problemsList     : String = "/home/eze/Escritorio/TPTP-Parsers/problems-download/Problems/list.txt"
 
     val problemSet = getProblems(problemsList, problemsPath)
-    val results    = new PrintWriter("results-TPTP-TFF-Parsing.log")
+    val results    = new PrintWriter("results-TPTP-TFF-Parsing-2.log")
 
     var suc  : Int = 0
     var fail : Int = 0
@@ -110,7 +110,10 @@ object TPTPExtensiveTest extends BaseParserTPTP {
     var problemRunTime   = 0L
     var testStartTime = System.nanoTime
 
-    for (problem <- problemSet) {
+    var problemList = problemSet.toList
+    problemList = problemList.sorted
+
+    for (problem <- problemList) {
       try {
         results.print("Parsing " + problem + ": ")
         results.flush()
