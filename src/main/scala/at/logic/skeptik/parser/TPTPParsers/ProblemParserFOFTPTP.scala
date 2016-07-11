@@ -21,8 +21,7 @@ extends BaseParserTPTP {
   def problemParser : Parser[FOFProblem] = TPTP_file ^^ generateProblem
 
   def generateProblem(directives : List[TPTPDirective]) : FOFProblem = {
-    val expandedDirectives : List[TPTPDirective] = expandIncludes(directives,TPTP_file)
-    val formulas   : List[(String,String,E)]     = expandedDirectives map extractFormulas
+    val formulas   : List[(String,String,E)]     = directives map extractFormulas
     val statements : List[FOFProblemStatement]   = formulas map ((t : (String,String,E)) => formulaToStatement(t._1,t._2,t._3))
     FOFProblem(statements,getSeenVars)
   }

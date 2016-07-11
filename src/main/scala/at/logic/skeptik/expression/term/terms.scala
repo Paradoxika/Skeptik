@@ -19,7 +19,7 @@ object DistinctObjectTerm extends Term {
 }
 
 object NumberTerm extends Term {
-  def apply(number : String) :E = newTerm(number,i)
+  def apply(number : String) :E = newTerm(number,AtomicType("$int"))
 }
 
 object Constant extends Term {
@@ -38,6 +38,8 @@ object FunctionTerm extends Term {
     }
     AppRec(newTerm(name,createType(args)),args)
   }
+  def apply(name : String,typ : T , args : List[E]) : E = AppRec(newTerm(name,typ),args)
+
 }
 
 object TypedNumberTerm extends Term {
