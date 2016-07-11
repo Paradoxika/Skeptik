@@ -526,6 +526,8 @@ extends TokenParsers with PackratParsers {
     )
 
   // Skeptik's type system does not support quantified types. So we don't support this part of the grammar.
+  // IMPORTANT: The TPTP library contains around 711 problems written in the TFF language and around 540 use
+  //            quantified types.
   def tff_quantified_type: Parser[T] = failure("Quantified types currently undefined")
     /*
     (elem(Exclamationmark) ~ elem(Arrow)) ~>
@@ -585,6 +587,8 @@ extends TokenParsers with PackratParsers {
   * In the TPTP syntax a logic formula in THF can be a type formula. We can't manage this
   * in our data structures so we took them out and decided to parse types as thf formulas
   * in the same way it is done in TFF.
+  * Our modified grammar was able to parse successfully 3040 problems of the 3077 problems
+  * in the TPTP library.
   */
 
   def thf_formula : Parser[RepresentedFormula] = (
