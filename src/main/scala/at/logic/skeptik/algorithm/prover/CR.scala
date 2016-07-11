@@ -238,11 +238,17 @@ object CR {
                   val instances = decision.flatMap(d => decisionInstantiations.getOrElse(d, mutable.Set.empty).map {
                     sub => (sub(d.literal.unit), !d.literal.negated)
                   })
+                  val mostGeneralInstances = mutable.Set.empty[Literal]
+                  val satisfiedInstances = mutable.Set.empty[Literal]
+                  for (inst <- instances) {
+                    if (!satisfiedInstances.contains(inst)) {
+                      val unifiable = instances.filter(other => inst.negated == other.negated && isUnifiable(inst.unit, other.unit))
+                      satisfiedInstances ++= unifiable
+                      mostGeneralInstances += unifiable.sortBy(u => u.unit.logicalSize - unifiableVars(u.unit).size).head
+                    }
+                  }
 
-                  val newClause = (for (inst <- instances) yield {
-                    val unifiable = instances.filter(other => inst.negated == other.negated && isUnifiable(inst.unit, other.unit))
-                    unifiable.sortBy(_.unit.logicalSize).head
-                  }).toSequent
+                  val newClause = mostGeneralInstances.toSequent
 
                   conflictClauses += newClause
                   level = 0
@@ -280,7 +286,7 @@ object CR {
           levelClauses(level) = result
 
 
-          if (clauses exists { clause => clause.isUnit && unifiableUnits(clause.literal).nonEmpty }) return false
+          if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) return false
 
           if (result.isEmpty) {
             finished = true
