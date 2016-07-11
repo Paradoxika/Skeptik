@@ -128,8 +128,12 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       val (left, right)   = split(p, selectedLiteral)
       val leftContracted  = Contraction.contractIfPossible(left, variables)
       val rightContracted = Contraction.contractIfPossible(right, variables)
-      val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
-      if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
+      try {
+        val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
+        if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
+      } catch {
+        case e : Exception => println("There was a problem to resolve the proofs after splitting!");p
+      }
     }
   }
 }

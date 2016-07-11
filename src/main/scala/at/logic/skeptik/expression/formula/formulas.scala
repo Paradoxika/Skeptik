@@ -9,6 +9,7 @@ abstract class Formula {
 }
 
 abstract class BinaryFormula(connective: Var) extends Formula {
+  def apply(): E = connective
   def apply(f1: E, f2: E) = App(App(connective,f1),f2)
   def unapply(e:E) = e match {
     case App(App(c,f1),f2) if c == connective => Some((f1,f2))
@@ -17,6 +18,7 @@ abstract class BinaryFormula(connective: Var) extends Formula {
 }
 
 abstract class UnaryFormula(connective: Var) extends Formula {
+  def apply() : E = connective
   def apply(f: E) = App(connective,f)
   def unapply(e:E) = e match {
     case App(c,f) if c == connective => Some(f)
@@ -89,16 +91,17 @@ object ConditionalFormula extends Formula{
 }
 
 object FormulaEquality extends BinaryFormula(eqC(i)){
-  def apply(t:T)(left : E, right : E) = App(App(new Var(eqS, t -> (t -> o)) with Infix,left),right)
+  override def apply() : E = eqC(o)
+  def apply(t:T)(left : E, right : E) = App(App(eqC(t),left),right)
 }
 
 
 object Equivalence extends BinaryFormula(equivC)
 
 object True {
-  def apply : E = new Var("True",o)
+  def apply() : E = new Var("true",o)
 }
 
 object False {
-  def apply : E = new Var("False",o)
+  def apply() : E = new Var("false",o)
 }

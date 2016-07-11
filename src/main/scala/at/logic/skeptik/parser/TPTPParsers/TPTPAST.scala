@@ -1,6 +1,6 @@
 package at.logic.skeptik.parser.TPTPParsers
 
-import at.logic.skeptik.expression.E
+import at.logic.skeptik.expression.{E, T}
 
 /**
   * TPTP Syntax representation.
@@ -16,6 +16,8 @@ object TPTPAST {
   sealed abstract class RepresentedFormula
   case class SimpleSequent(ant : Seq[E], suc : Seq[E]) extends RepresentedFormula
   case class SimpleFormula(formula : E)                extends RepresentedFormula
+  case class SimpleType(atom : String, typ : T)       extends RepresentedFormula
+
 
   type Name        = String
   type Language    = String
