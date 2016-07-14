@@ -64,6 +64,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
       def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
       def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node) = UnifyingResolution.resolve(leftNode,rightNode,variables)
+        //UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),Contraction.contractIfPossible(rightNode,variables),variables)
 
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos  , fixedLeftNeg ) = fixedPremises.head
@@ -128,12 +129,8 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       val (left, right)   = split(p, selectedLiteral)
       val leftContracted  = Contraction.contractIfPossible(left, variables)
       val rightContracted = Contraction.contractIfPossible(right, variables)
-      try {
-        val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
-        if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
-      } catch {
-        case e : Exception => println("There was a problem to resolve the proofs after splitting!");p
-      }
+      val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
+      if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
     }
   }
 }

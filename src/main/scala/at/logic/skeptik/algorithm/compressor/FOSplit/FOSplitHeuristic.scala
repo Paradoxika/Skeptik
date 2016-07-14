@@ -239,7 +239,8 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
           }
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
           literals  += literalName  -> Some(unifiedLiteral)
-          nodesSets += leftPremise  -> (nodesSets(node).clone() += unifiedLiteral)
+          val leftSet = if(resultFromParents.isEmpty) MSet[E]() else resultFromParents.reduceLeft(_ intersect _)
+          nodesSets += leftPremise  -> (leftSet += unifiedLiteral)//(nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
           val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
           if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
@@ -307,10 +308,65 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
 
     nodesSets +=  proof.root -> MSet[E](proof.root.conclusion.ant ++ proof.root.conclusion.suc :_* )
 
-    proof bottomUp { (node: Node, resultFromChildren : Seq[MSet[E]]) =>
+    def intersectionOfParentsSets(node : Node, parents : Seq[Node]) : MSet[E] = {
+      parents match {
+        case Nil =>
+          require(node == proof.root)
+          MSet[E]().clone()
+        case (n @ Contraction(premise,_)) :: Nil =>
+          require(node == premise)
+          nodesSets(n).clone()
+        case (n @ UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral)) :: Nil =>
+          require(node == leftPremise || node == rightPremise)
+          val literalName = getLiteralName(leftResolvedLiteral)
+          val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
+            case Some(s) => s
+            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+          }
+          val unifiedLiteral : E = mgu(leftResolvedLiteral)
+          nodesSets(n).clone() += unifiedLiteral
+        case (n @ Contraction(premise,_)) :: ns  =>
+          require(node == premise)
+          nodesSets(n).clone() intersect intersectionOfParentsSets(node,ns)
+        case (n @ UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral)) :: ns =>
+          require(node == leftPremise || node == rightPremise)
+          val literalName = getLiteralName(leftResolvedLiteral)
+          val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
+            case Some(s) => s
+            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+          }
+          val unifiedLiteral : E = mgu(leftResolvedLiteral)
+          (nodesSets(n).clone() intersect intersectionOfParentsSets(node,ns)) += unifiedLiteral
+      }
+    }
+
+    def removeLiteralsResolvedWithNode(node : Node, parents : Seq[Node]): Unit = {
+      parents match {
+        case Nil =>
+        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) :: ns =>
+          require(node == leftPremise || node == rightPremise)
+          val literalName = getLiteralName(leftResolvedLiteral)
+          literals += literalName -> None
+          removeLiteralsResolvedWithNode(node,ns)
+        case _ :: ns =>
+          removeLiteralsResolvedWithNode(node,ns)
+      }
+    }
+
+    def checkInclusion(node : Node, parents : Seq[Node]) : Node = {
+      nodesSets += node -> intersectionOfParentsSets(node,parents)
+      val nodeSeq = Sequent()(node.conclusion.ant ++ node.conclusion.suc :_*)
+      if(!isIncludeInSet(nodeSeq,nodesSets(node)))
+        removeLiteralsResolvedWithNode(node,parents)
+      node
+    }
+
+    // TODO: Rewrite this. resultsFromParents should have different informaciotn.
+    //       Probably reference to parents as the sets are stored in the map.
+    proof bottomUp { (node: Node, resultFromParents : Seq[Node]) =>
       node match {
-        case Axiom(_) => MSet[E]()
-        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; nodesSets(node).clone()
+        case Axiom(_) => checkInclusion(node,resultFromParents)
+        case Contraction(premise, _) => checkInclusion(node,resultFromParents)
         case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
@@ -326,21 +382,7 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
           else
             literals += (literalName -> Some(unifiedLiteral))
 
-          nodesSets += leftPremise  -> (nodesSets(node).clone() += unifiedLiteral)
-          nodesSets += rightPremise -> nodesSets(leftPremise)
-          val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
-            literals += literalName -> None
-            //println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
-            //println("Transformed Sequent: " + leftSeq.toString)
-          }
-          val rightSeq = Sequent()(rightPremise.conclusion.ant ++ rightPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
-            literals += literalName -> None
-            //println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
-            //println("Transformed Sequent: " + rightSeq.toString)
-          }
-          nodesSets(node).clone()
+          checkInclusion(node,resultFromParents)
         }
       }
     }
