@@ -28,8 +28,7 @@ extends BaseParserTPTP {
   def problemParser : Parser[CNFProblem] = TPTP_file ^^ generateProblem
 
   def generateProblem(directives : List[TPTPDirective]) : CNFProblem = {
-    val expandedDirectives : List[TPTPDirective]         = expandIncludes(directives,TPTP_file)
-    val formulas   : List[(String,String,Seq[E],Seq[E])] = expandedDirectives map extractFormulas
+    val formulas   : List[(String,String,Seq[E],Seq[E])] = directives map extractFormulas
     val statements : List[CNFProblemStatement]           = formulas map ((t : (String,String,Seq[E],Seq[E])) => formulaToStatement(t._1,t._2,t._3,t._4))
     CNFProblem(statements,getSeenVars)
   }

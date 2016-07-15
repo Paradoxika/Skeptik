@@ -30,12 +30,12 @@
 %          : v3.1.0 - Changes to NUM005 axioms
 %------------------------------------------------------------------------------
 %----Include axioms of CPlanT
-include('Axioms/AGT001+0.ax').
+include('examples/problems/Axioms/AGT001+0.ax').
 %----Include events of CPlanT
-include('Axioms/AGT001+1.ax').
+include('examples/problems/Axioms/AGT001+1.ax').
 %----Include axioms for RDN and RDN less
-include('Axioms/NUM005+0.ax').
-include('Axioms/NUM005+1.ax').
+include('examples/problems/Axioms/NUM005+0.ax').
+include('examples/problems/Axioms/NUM005+1.ax').
 %------------------------------------------------------------------------------
 fof(query_1,conjecture,
     ( accept_team(countryamedicalorganization,countryacivilorganization,towna,n6) )).

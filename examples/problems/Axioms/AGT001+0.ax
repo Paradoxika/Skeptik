@@ -20,7 +20,7 @@
 %            Number of functors    :   47 (  47 constant; 0-0 arity)
 %            Number of variables   :   35 (   0 singleton;  35 !;   0 ?)
 %            Maximal term depth    :    1 (   1 average)
-% SPC      : 
+% SPC      :
 
 % Comments : Requires NUM005+0.ax NUM005+1.ax
 %------------------------------------------------------------------------------
