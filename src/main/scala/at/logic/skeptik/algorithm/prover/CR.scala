@@ -137,9 +137,9 @@ object CR {
           val kvs = for (v <- sharedVars) yield {
             val replacement = notUsedVars.headOption getOrElse { // Use some variable from uniciation variables
               // Or create a new one
-              var newVar = new Var(v + "'", i)
+              var newVar = Var(v + "'", i)
               while (sharedVars contains newVar) {
-                newVar = new Var(newVar + "'", i)
+                newVar = Var(newVar + "'", i)
               }
               variables += newVar // It will be avaiable for unification from now
               newVar
