@@ -150,24 +150,17 @@ trait FindsVars extends checkUnifiableVariableName {
 trait CanRenameVariables extends FindsVars {
 
 	def occurCheck(p: (E, E), u: Substitution): Boolean = {
-		val first = p._1
-				val second = p._2
 
 				for (sp <- u.toList) {
 					val v = sp._1
 							val e = sp._2
 							if (!e.isInstanceOf[Var]) {
-								if (getSetOfVars(first) contains v) {
-									//check if the second contains e
-									if (e.occursIn(second) && (getSetOfVars(e) contains v)) {
-										return false
-									}
-								} else if (getSetOfVars(second) contains v) {
-									if (e.occursIn(first) && (getSetOfVars(e) contains v)) {
-										return false
-									}
-								}
+							            if(getSetOfVars(e) contains v){
+            return false
+          }
+							  
 							}
+							
 				}
 
 		true

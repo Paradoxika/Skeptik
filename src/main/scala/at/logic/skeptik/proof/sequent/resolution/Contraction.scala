@@ -139,33 +139,12 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def contract(seq: Sequent, subs: List[Substitution])(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
-    def occurCheck(p: (E, E), u: Substitution): Boolean = {
-      val first = p._1
-      val second = p._2
 
-      for (sp <- u.toList) {
-        val v = sp._1
-        val e = sp._2
-        if (!e.isInstanceOf[Var]) {
-          if (getSetOfVars(first) contains v) {
-            //check if the second contains e
-            if (e.occursIn(second) && (getSetOfVars(e) contains v)) {
-              return false
-            }
-          } else if (getSetOfVars(second) contains v) {
-            if (e.occursIn(first) && (getSetOfVars(e) contains v)) {
-              return false
-            }
-          }
-        }
-      }
-
-      true
-    }
 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
+              println("Checking " + u + "  --- " +  occurCheck(p, u))
         occurCheck(p, u) //originally returned 'true'
       }
     }
