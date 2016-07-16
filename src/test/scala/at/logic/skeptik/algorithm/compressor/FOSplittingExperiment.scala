@@ -61,7 +61,7 @@ object FOSplittingExperiment {
     var totalCountT = 0
 
     //val etempT = new PrintWriter("results-FOSplitting.log")
-    val report = new PrintWriter("report-FOSplitting-try-5-no-amb.log")
+    val report = new PrintWriter("report-FOSplitting-try-8-no-repeated-literals-in-a-clause.log")
     //val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
     //etempT.println(header)
     //etempT.flush()
@@ -72,7 +72,7 @@ object FOSplittingExperiment {
       totalCountT = totalCountT + 1
       val preParseTime = System.nanoTime
 
-      report.println("Proof: " + probY)
+      report.println("Proof " + totalCountT + ": " + probY)
       val proofToTest = ProofParserSPASS.read(probY)
       var variables = ProofParserSPASS.getVars()
 
@@ -106,6 +106,7 @@ object FOSplittingExperiment {
           report.println("Variables: " + variables.mkString(","))
           report.println(proofToTest)
           report.println("There was a problem to resolve the proofs after splitting!\n" + e.toString)
+          report.println("\n\n#########################################\n\n")
       }
     }
         /*

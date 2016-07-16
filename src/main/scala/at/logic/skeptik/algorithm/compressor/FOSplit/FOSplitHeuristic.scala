@@ -361,27 +361,55 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
       node
     }
 
-    // TODO: Rewrite this. resultsFromParents should have different informaciotn.
-    //       Probably reference to parents as the sets are stored in the map.
+    def checkResolvedLiteralIsUnifiable(leftResolvedLiteral : E, rightResolvedLiteral : E) : Unit = {
+      val literalName = getLiteralName(leftResolvedLiteral)
+      val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
+        case Some(s) => s
+        case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+      }
+      val unifiedLiteral : E = mgu(leftResolvedLiteral)
+      if(literals.contains(literalName)) {
+        val oldLiteral = literals.get(literalName).get
+        val newLiteral = unifyIfPossible(oldLiteral,Some(unifiedLiteral))
+        literals += (literalName -> newLiteral)
+      }
+      else
+        literals += (literalName -> Some(unifiedLiteral))
+    }
+
+    /**
+      * The method checkLiteralRepetition check the condition that the literal name is not used more than
+      * once in each premise with the same sign (negated or without negation)
+      *
+      * @param leftPremise Left premise of the node being checked
+      * @param rightPremise Right premise of the node being checked
+      * @param literalName  The name of the literal to be checked
+      */
+    def checkLiteralRepetition(leftPremise : Node, rightPremise : Node, literalName : String) : Unit = {
+      def numberOfOccurrences(premise : Node) : Int = {
+        var occursNeg = 0
+        var occursPos = 0
+        for(e <- premise.conclusion.ant)
+          if (getLiteralName(e) == literalName)
+            occursNeg += 1
+        for(e <- premise.conclusion.suc)
+          if(getLiteralName(e) == literalName)
+            occursPos += 1
+        Math.max(occursNeg,occursPos)
+      }
+
+      if(numberOfOccurrences(leftPremise) > 1 || numberOfOccurrences(rightPremise) > 1)
+        literals += (literalName -> None)
+    }
+
+
     proof bottomUp { (node: Node, resultFromParents : Seq[Node]) =>
       node match {
         case Axiom(_) => checkInclusion(node,resultFromParents)
         case Contraction(premise, _) => checkInclusion(node,resultFromParents)
         case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
-          val literalName = getLiteralName(leftResolvedLiteral)
-          val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
-            case Some(s) => s
-            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
-          }
-          val unifiedLiteral : E = mgu(leftResolvedLiteral)
-          if(literals.contains(literalName)) {
-            val oldLiteral = literals.get(literalName).get
-            val newLiteral = unifyIfPossible(oldLiteral,Some(unifiedLiteral))
-            literals += (literalName -> newLiteral)
-          }
-          else
-            literals += (literalName -> Some(unifiedLiteral))
-
+          checkLiteralRepetition(leftPremise, rightPremise, getLiteralName(leftResolvedLiteral))
+          checkResolvedLiteralIsUnifiable(leftResolvedLiteral, rightResolvedLiteral)
           checkInclusion(node,resultFromParents)
         }
       }
