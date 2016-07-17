@@ -6,6 +6,7 @@ import at.logic.skeptik.expression.substitution.immutable.Substitution
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.language.postfixOps
 import scala.util.Random
 import scala.util.control.Breaks
 
@@ -64,8 +65,8 @@ object CR {
           for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
             val unifierUnits = unifier.map(_.literal.unit)
             val literalUnits = literals.map(_.unit)
-            val unificationProblem = renameVars(literalUnits, unifierUnits).zip(unifierUnits)
-            unify(unificationProblem) match { // All unifiers should be unified with literals using one common mgu
+            unifyWithRename(literalUnits, unifierUnits) match {
+              // All unifiers should be unified with literals using one common mgu
               case Some(mgu) =>
                 val newLiteral = (mgu(conclusion.unit), conclusion.negated)
                 val newClause = newLiteral.toClause
@@ -90,8 +91,7 @@ object CR {
       literals ++= result.flatMap(_.literals)
       for (literal <- literals) {
         for (other <- result) if (other.isUnit && other.literal.negated != literal.negated) {
-          val renamedLiteral = renameVars(Seq(literal.unit), Seq(other.literal.unit)).head
-          unify((renamedLiteral, other.literal.unit) :: Nil) match {
+          unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
             case Some(_) =>
               unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other
             case None =>
@@ -159,6 +159,11 @@ object CR {
       }
     }
 
+    def unifyWithRename(left: Seq[E], right: Seq[E]): Option[Substitution] = {
+      val unificationProblem = renameVars(left, right).zip(right)
+      unify(unificationProblem)
+    }
+
     def isUnifiable(left: E, right: E): Boolean = {
       val renamedLeft = renameVars(Seq(left), Seq(right)).head
       unify((renamedLeft, right) :: Nil).isDefined
@@ -197,13 +202,9 @@ object CR {
                   for (unifier <- Random.shuffle(combinations(unifiers))) {
                     val unifierUnits = unifier.map(_.literal.unit)
                     val literalUnits = literals.map(_.unit)
-                    val unificationProblem = renameVars(literalUnits, unifierUnits).zip(unifierUnits)
-                    unify(unificationProblem) match {
+                    unifyWithRename(literals.map(_.unit), unifierUnits) match {
                       // All unifiers should be unified with literals using one common mgu
-                      case Some(mgu) =>
-                        for (u <- unifier) if (!clauses.contains(u)) {
-                          needToDecide ++= u.literals
-                        }
+                      case Some(mgu) => needToDecide ++= unifier.filterNot(clauses contains).flatMap(_.literals)
                       case None =>
                     }
                   }
@@ -268,8 +269,7 @@ object CR {
 
                   for (literal <- literals) {
                     for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
-                      val renamedLeft = renameVars(Seq(literal.unit), Seq(other.literal.unit)).head
-                      unify((renamedLeft, other.literal.unit) :: Nil) match {
+                      unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
                         case Some(_) => unifiableUnits(literal) += other
                         case None =>
                       }
