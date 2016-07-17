@@ -173,33 +173,40 @@ object CR {
     while (!finished) {
       Breaks.breakable {
         while (true) {
-          val result = ArrayBuffer.empty[Clause]
+          val result = ArrayBuffer.empty[Clause] // New clauses, which will be added to `clauses` after this iteration
           for (lastLevelClause <- levelClauses(level)) {
-            result ++= resolve(lastLevelClause)
+            result ++= resolve(lastLevelClause) // Try to resolve last-level clauses with some other clauses
           }
-          var usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++
-            cnf.clauses.filter(_.literals.exists(lit => (clauses contains lit.toClause) || (result contains lit.toClause)))
+          val satisfied = cnf.clauses.filter(_.literals.exists(lit => // If there is a literal in clause, which is
+            (clauses contains lit.toClause) || (result contains lit.toClause))) // contained either in `clauses` or `result`
+          var usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
           while (usedAncestors.size != cnf.clauses.size) {
             // If at least one ancestor wasn't used
-            val notUsedAncestors = mutable.Set((levelClauses(0).toSet diff usedAncestors).toSeq: _*) // FIXME: really, no better way?
-            // We need clauses which have unused ancestor
+            val notUsedAncestors = mutable.Set((cnf.clauses.toSet diff usedAncestors).toSeq: _*)
+            // We need clauses from last level which have unused ancestor
             val interestingClauses = Random.shuffle(levelClauses(level).filter {
                 clause => (ancestor(clause) intersect notUsedAncestors).nonEmpty
               })
 
             interestingClauses.headOption match {
               case Some(clause) =>
+                // We are trying to unify `clause`, so BFS-resolution proceed with this clause.
+                // So we retrieve all possible candidates for unifying of each literal and also add this
+                // negated literal (we will make appropriate decision to justify this) so we can always choose
+                // at least one candidate for resolution.
                 val unifyCandidates = clause.literals.map(lit => unifiableUnits(lit).toSeq :+ (!lit).toClause)
-                var bestDecision = literals.toBuffer
-                for (conclusionId <- unifyCandidates.indices) {
-                  // Id of literal which will be a conclusion
+                var bestDecision = literals.toBuffer // Represents best (by some measure) set of literals which should
+                                                     // be decided to resolve this clause.
+                for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
                   // All unifiers excluding that one for conclusion
                   val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
                   // All literals excluding conclusion
                   val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
 
                   val needToDecide = ArrayBuffer.empty[Literal]
-                  for (unifier <- Random.shuffle(combinations(unifiers))) {
+                  // FIXME: Look like a bug here: I check decision after trying all combinations, not after each of them.
+                  // FIXME: Too drowsy to think about this. :(
+                  for (unifier <- Random.shuffle(combinations(unifiers))) { // Try every combination of unifiers
                     val unifierUnits = unifier.map(_.literal.unit)
                     val literalUnits = literals.map(_.unit)
                     unifyWithRename(literals.map(_.unit), unifierUnits) match {
@@ -218,17 +225,17 @@ object CR {
                   literals += literal
                   ancestor(literal.toClause) = mutable.Set.empty
                 })
+                // FIXME: move this to a separate method
                 for (literal <- literals) {
                   for (otherLiteral <- bestDecision) if (otherLiteral.negated != literal.negated) {
-                    // FIXME: copy-pasted
-                    unify((literal.unit, otherLiteral.unit) :: Nil) match {
+                    unifyWithRename(Seq(literal.unit), Seq(otherLiteral.unit)) match {
                       case Some(_) =>
                         unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += otherLiteral.toClause
                       case None =>
                     }
                   }
                 }
-                result ++= resolve(clause)
+                result ++= resolve(clause) // Resolve this clauses after making necessary decisions
                 updateClauses(result)
                 for (lastLevelClause <- levelClauses(level)) {
                   result ++= resolve(lastLevelClause)
