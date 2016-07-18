@@ -293,7 +293,7 @@ object CR {
           levelClauses(level) = result
 
 
-          if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) return false
+          if (clauses contains Clause.empty) return false
 
           if (result.isEmpty) {
             finished = true
