@@ -54,7 +54,7 @@ object CR {
       val result = mutable.Set.empty[Clause]
       // For each literal in clause we fetch what unit clauses exists which can be resolved with this literal
       // e.g. unifyCandidates for Clause(!P(X), Q(a)) can be Seq(Seq(P(a), P(b), P(f(a))), Seq(!Q(X), !Q(a)))
-      val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
+      val unifyCandidates = clause.literals.map(unifiableUnits.getOrElseUpdate(_, mutable.Set.empty).toSeq)
       if (unifyCandidates.length > 1) { // If this clause is not a unit clause
         for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
           val conclusion = clause.literals(conclusionId)
