@@ -524,66 +524,25 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 				if (computed == desired) {
 					return true
 				} else {
-					//val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
-
-					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
+					
+				  val dVars = getSetOfVars(desired.ant: _*) union getSetOfVars(desired.suc: _*)
+				  
+					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, dVars)
 							if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
 								return false
 							}
 
-					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
+					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, dVars)
 							if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
 								return false
 							}
 					val intersectedMap = intersectMaps(antMap, sucMap)
-							if (!validMap(intersectedMap, vars)) {
+					println("IMap: " + intersectedMap)
+					  if (!validMap(intersectedMap, dVars)) {
 								return false
 							}
 
-//										def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-//												val subList = MSet[(Var, E)]()
-//					
-//														for (k <- m.keySet) {
-//															if (m.get(k).get.size > 0) {
-//																subList.add((k, m.get(k).get.head))
-//															}
-//														}
-//					
-//												val sub = Substitution(subList.toSeq: _*)
-//														def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
-//													if (target.size == 0) {
-//														return true
-//													}
-//													target match {
-//													case h :: t => {
-//														for (s <- source) {
-//															if (h.equals(s)) {
-//																return foundExactly(t, source)
-//															}
-//														}
-//													}
-//													case t => {
-//													  for (s <- source) {
-//															if (t.equals(s)) {
-//																return true
-//															}
-//														}
-//													}
-//													}
-//					
-//													false
-//												}
-//					
-//												val newDesiredAnt = (desired.ant).map(e => sub(e))
-//					
-//														val newDesiredSuc = (desired.suc).map(e => sub(e))
-//														foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
-//										}
-//
-//
-//										if (!findFromMap(intersectedMap, vars)) {
-//											return false
-//										}
+
 
 					true
 				}
@@ -593,8 +552,6 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 					def sucVars = getSetOfVars(seqToDelete.suc: _*)
 					def antVarsB = getSetOfVars(safeLit.ant: _*)
 					def sucVarsB = getSetOfVars(safeLit.suc: _*)
-
-					def vars = MSet[Var]() ++ antVars ++ sucVars //referenced in the helper function, so it should not be removed
 					
 					def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
 					def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)

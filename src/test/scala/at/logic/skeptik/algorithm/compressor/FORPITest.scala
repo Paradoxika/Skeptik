@@ -1,13 +1,18 @@
 package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.parser.ProofParserSPASS
+import at.logic.skeptik.expression._
+import collection.mutable.{ HashMap => MMap, HashSet => MSet }
+import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
+
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
+
 @RunWith(classOf[JUnitRunner])
-class FORPILUSpecification extends SpecificationWithJUnit with checkProofEquality {
+class FORPILUSpecification extends SpecificationWithJUnit with  checkProofEquality  {
 
   //Variants of Bruno's proof
 
@@ -65,6 +70,8 @@ class FORPILUSpecification extends SpecificationWithJUnit with checkProofEqualit
 //  print(proof2eResult)
   //val result2e = checkProofs(FORecyclePivotsWithIntersection(proof2d), "examples/proofs/SPASS/testresults/FORPILU/FORPIexample2d.result")
 
+  
+  //For debugging:
   println(proof2a)
   println("-----")
      println("-----FROM HERE")

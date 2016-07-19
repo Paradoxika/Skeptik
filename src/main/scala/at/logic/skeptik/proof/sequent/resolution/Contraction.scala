@@ -144,7 +144,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
-              println("Checking " + u + "  --- " +  occurCheck(p, u))
         occurCheck(p, u) //originally returned 'true'
       }
     }

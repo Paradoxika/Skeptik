@@ -158,9 +158,7 @@ trait CanRenameVariables extends FindsVars {
 							            if(getSetOfVars(e) contains v){
             return false
           }
-							  
-							}
-							
+					}		
 				}
 
 		true
@@ -304,7 +302,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
 
 	def validMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-			for (k <- m.keySet) {
+//		println("Checking valid map. Vars: "+ vars)	
+	  for (k <- m.keySet) {
+//			  println("Checking " + k)
 				if (vars.contains(k) && m.get(k).get.size != 1) {
 					return false
 				}

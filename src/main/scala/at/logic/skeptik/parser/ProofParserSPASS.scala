@@ -113,7 +113,7 @@ trait SPASSParsers
 
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
-      
+
       val ax = if (refs.length == 2) {
         try {
           UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
@@ -130,6 +130,7 @@ trait SPASSParsers
       val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
       proofMap += (ln -> ax)
       updateLineCounter
+            
       ax
     }
     case ~(~(~(~(~(~(~(ln, _), _), _), "Con:"), refs), lp), seq) => {
