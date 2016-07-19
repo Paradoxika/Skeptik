@@ -202,21 +202,18 @@ object CR {
                   val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
                   // All literals excluding conclusion
                   val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
-
-                  val needToDecide = ArrayBuffer.empty[Literal]
-                  // FIXME: Look like a bug here: I check decision after trying all combinations, not after each of them.
-                  // FIXME: Too drowsy to think about this. :(
                   for (unifier <- Random.shuffle(combinations(unifiers))) { // Try every combination of unifiers
                     val unifierUnits = unifier.map(_.literal.unit)
                     val literalUnits = literals.map(_.unit)
                     unifyWithRename(literals.map(_.unit), unifierUnits) match {
                       // All unifiers should be unified with literals using one common mgu
-                      case Some(mgu) => needToDecide ++= unifier.filterNot(clauses contains).flatMap(_.literals)
+                      case Some(mgu) =>
+                        val shouldDecide = unifier.filterNot(clauses contains).flatMap(_.literals)
+                        if (bestDecision.size >= shouldDecide.size) {
+                          bestDecision = shouldDecide.toBuffer
+                        }
                       case None =>
                     }
-                  }
-                  if (bestDecision.size >= needToDecide.size) {
-                    bestDecision = needToDecide
                   }
                 }
                 bestDecision.foreach(literal => {
