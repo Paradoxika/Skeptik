@@ -302,9 +302,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
 
 	def validMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-//		println("Checking valid map. Vars: "+ vars)	
 	  for (k <- m.keySet) {
-//			  println("Checking " + k)
 				if (vars.contains(k) && m.get(k).get.size != 1) {
 					return false
 				}
@@ -313,6 +311,122 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 				}
 			}
 			true
+	}
+	
+	//July 18
+			def findFirstLargeSet(map: MMap[Var, Set[E]]): Option[Var] = {
+		  if(map.size == 0){
+		    return None
+		  }
+		  
+		  if(map.head._2.size > 1){
+		    return Some(map.head._1)
+		  } else {
+		    return findFirstLargeSet(map.tail)
+		  }
+		}
+	
+	def computeIntersectedMap(computed: Sequent, desired: Sequent): (Boolean, MMap[Var, Set[E]]) = {
+				  val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
+	  
+					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, cVars)
+							if (getSetOfVars(computed.ant: _*).size > 0 && antMap.size == 0) {
+								return (false, MMap[Var, Set[E]]())
+							}
+
+					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, cVars)
+							if (getSetOfVars(computed.suc: _*).size > 0 && sucMap.size == 0) {
+								return (false, MMap[Var, Set[E]]())
+							}
+					val intersectedMap = intersectMaps(antMap, sucMap)
+					  if (!validMap(intersectedMap, cVars)) {
+								return (false, intersectedMap)
+							}	  
+					(true, intersectedMap)
+	}
+			
+	def applySub(seq: Sequent, sub: Substitution): Sequent = {
+	  val newAnt = for (a <- seq.ant) yield sub(a)
+		val newSuc = for (a <- seq.suc) yield sub(a)
+
+		val sA = addAntecedents(newAnt.toList)
+		val sS = addSuccedents(newSuc.toList)
+
+		val newComputed = sS union sA
+		newComputed
+	}
+	
+	def checkMapSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent):Boolean = {
+	  	  var pairs = List[(Var,E)]()
+	  for(k <- m.keySet){
+	    if(m.get(k).get.size == 1 && vars.contains(k)){
+	      pairs = pairs ++ List[(Var,E)]((k, m.get(k).get.head))
+	    }
+	  }
+	  val sub = Substitution(pairs: _*)
+	  
+	  //apply to sub
+	  val newComputed = applySub(computed, sub)
+	  
+	  val finalCheck = newComputed.ant.toSet.subsetOf(desired.ant.toSet) && newComputed.suc.toSet.subsetOf(desired.suc.toSet)
+	  finalCheck
+	}
+	
+	def checkInvalidMap(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): Boolean = {
+	  
+	  
+	  //Check if map is valid:
+	  					  if (validMap(m, vars) && computed.ant.toSet.subsetOf(desired.ant.toSet) && computed.suc.toSet.subsetOf(desired.suc.toSet)) {
+								return true
+							}	 
+	  
+	  //get all single vars
+	  var pairs = List[(Var,E)]()
+	  for(k <- m.keySet){
+	    if(m.get(k).get.size == 1 && vars.contains(k)){
+	      pairs = pairs ++ List[(Var,E)]((k, m.get(k).get.head))
+	    }
+	  }
+	  val sub = Substitution(pairs: _*)
+	  
+	  //apply to sub
+	  val newComputed = applySub(computed, sub)
+	  
+	  //recurse on the rest
+		//Find one variable to recurse on.		
+		val bigSetCheck = findFirstLargeSet(m)
+		val bigSet = bigSetCheck match {
+		  case Some(bigKey) => {
+		    if(vars.contains(bigKey)){
+		      m.get(bigKey).get
+		    } else {
+		      Set[Var]()
+		    }
+		  }
+		  case None => {
+		    Set[Var]()
+		  }
+		}
+		
+	  for(mVal <- bigSet){
+	    val newNewComputed = applySub(newComputed, Substitution((bigSetCheck.get, mVal)))
+	    val (mapValid,newMap) = computeIntersectedMap(newNewComputed, desired)
+	    val mapValidAndCorrect = newNewComputed.ant.toSet.subsetOf(desired.ant.toSet) && newNewComputed.suc.toSet.subsetOf(desired.suc.toSet) && mapValid
+	    if(mapValidAndCorrect){	      
+	      return true
+	    } else {
+	      val badVars = getSetOfVars(mVal) ++ MSet[Var](bigSetCheck.get)
+	      val newSetOfVars = vars -- badVars
+	      val rVal = checkInvalidMap(newMap,newSetOfVars, newNewComputed, desired)
+	      if (rVal) {
+	        return true
+	      }
+	    }
+	  }
+		
+	  
+	  //If we got here, there were no recursive calls
+	  false
 	}
 
 	def convertTypes(in: List[(E, E)]): List[(Var, E)] = {
@@ -332,41 +446,34 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 				for (c <- computed) {
 					var cVars = getSetOfVars(c)
 							for (d <- desired) {
-								val dVars = getSetOfVars(d)
-
-										val cAxiom = new Axiom(Sequent(c)())
+							  var dVars = getSetOfVars(d)
+							  val allVars = cVars union dVars
+								val cAxiom = new Axiom(Sequent(c)())
 								val dAxiom = new Axiom(Sequent(d)())
-								val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, cVars union dVars)
+								val dAxiomClean = fixSharedNoFilter(dAxiom, cAxiom, 0, allVars)
 								val dClean = dAxiomClean.conclusion.ant.head
 
-
-								val u = if(vars == null) { unify((c, dClean) :: Nil)(cVars union dVars) } else { unify((c, dClean) :: Nil)(vars) } 
-								if(vars != null) { cVars = vars }
-
+								val allCleanVars = cVars union getSetOfVars(dAxiomClean)
+								
+								val u = unify((c, dClean) :: Nil)(allVars) 
+								
 								u match {
 								case Some(s) => {
-
-									for (cv <- cVars) {
-
-												if (map.keySet.contains(cv)) {
+								  def sub = u.get
+								  for(s <- sub){
+								    val l = s._1
+								    val r = s._2
+								    if(cVars.contains(l)){
+												if (map.keySet.contains(l)) {
 													//update that set
-													def sub = u.get
-															def entry = sub.get(cv)
-															if (!entry.isEmpty) {
-																map.put(cv, map.get(cv).get ++ entry)
-															}
+																map.put(l, map.get(l).get ++ Set[E](r))
 												} else {
 													//add a new set
 													//note the conversion is safe since checkSubstitutions already confirms it's a var
-													def sub = u.get
-															def entry = sub.get(cv)
-															if (!entry.isEmpty) {
-																map.put(cv, Set[Var]() ++ entry)
-															}
+																map.put(l, Set[E](r))
 												}
-
-									}
-
+								    }
+								  }
 								}
 								case None => {
 								}

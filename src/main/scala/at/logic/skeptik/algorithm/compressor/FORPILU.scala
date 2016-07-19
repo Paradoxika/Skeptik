@@ -527,23 +527,26 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 					
 				  val dVars = getSetOfVars(desired.ant: _*) union getSetOfVars(desired.suc: _*)
 				  
-					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, dVars)
-							if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
+				  val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
+				  
+				  
+					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, cVars)
+							if (getSetOfVars(computed.ant: _*).size > 0 && antMap.size == 0) {
 								return false
 							}
 
-					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, dVars)
-							if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
+					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, cVars)
+							if (getSetOfVars(computed.suc: _*).size > 0 && sucMap.size == 0) {
 								return false
 							}
 					val intersectedMap = intersectMaps(antMap, sucMap)
-					println("IMap: " + intersectedMap)
-					  if (!validMap(intersectedMap, dVars)) {
-								return false
+					  if (!validMap(intersectedMap, cVars)) {
+
+								return checkInvalidMap(intersectedMap, cVars, computed, desired)// false
 							}
-
-
-
+					if (!checkMapSub(intersectedMap, cVars, computed, desired)){
+					  return false
+					}
 					true
 				}
 			}
@@ -573,13 +576,13 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 			val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
 					p match {
 					case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)
-							&& checkForResSmart(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion)) => {
+							&& checkForResSmart(safeLiterals.suc, auxL, p) && finalCheck(left.conclusion, safeLiterals.toSeqSequent )) => {
 								auxMap.put(p, auxL)
 								mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
 								edgesToDelete.markRightEdge(p)
 							}
 					case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.ant, auxR) &&
-							checkForResSmart(safeLiterals.ant, auxR, p) && finalCheck(safeLiterals.toSeqSequent, right.conclusion)) => {
+							checkForResSmart(safeLiterals.ant, auxR, p) && finalCheck(right.conclusion, safeLiterals.toSeqSequent )) => {
 								auxMap.put(p, auxR)
 								mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
 								edgesToDelete.markLeftEdge(p)

@@ -72,11 +72,11 @@ class FORPILUSpecification extends SpecificationWithJUnit with  checkProofEquali
 
   
   //For debugging:
-  println(proof2a)
+  println(proofa)
   println("-----")
      println("-----FROM HERE")
      try{
-  println("Testing proof: \n" + FORecyclePivotsWithIntersection(proof2a))
+  println("Testing proof: \n" + FORecyclePivotsWithIntersection(proofb))
      } catch {
        case _ => {
          println("error")

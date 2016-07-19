@@ -66,7 +66,7 @@ class FORPILUHelperSpecification extends SpecificationWithJUnit   {
 
       val followsC = App(App(Var("follows", i -> (i -> i)), p8), p3)
     val succeedsC = App(App(Var("succeeds", i -> (i -> i)), p3), p3)
-    val succeedsCB = App(App(Var("succeeds", i -> (i -> i)), p3), p3)
+    val succeedsCB = App(App(Var("succeeds", i -> (i -> i)), p3), p8)
     
     val found = Sequent()(follows) + succeeds + succeedsB
     val actual = Sequent()(followsC) + succeedsC + succeedsCB + labels
@@ -87,7 +87,7 @@ class FORPILUHelperSpecification extends SpecificationWithJUnit   {
     val Bfound = Sequent()(BsucceedsA) + BsucceedsB + BsucceedsC
     val Bactual = Sequent()(BActsucceedsA) + BActsucceedsB + BActsucceedsC 
     
-    val BresultNew = FORPIHelperTester.finalCheckTest( Bactual, Bfound)
+    val BresultNew = FORPIHelperTester.finalCheckTest(Bfound, Bactual)
     println(BresultNew)  
     
     
