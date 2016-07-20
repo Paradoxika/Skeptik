@@ -43,8 +43,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
   def split(proof: Proof[Node], selectedLiteral : E): (Node,Node) = {
     def manageContraction(node : Node, fixedPremises : Seq[(Node,Node)]) : (Node , Node) = {
       require(fixedPremises.length == 1)
-      val (left,right) = fixedPremises.head
-      (Contraction.contractIfPossible(left,variables),Contraction.contractIfPossible(right,variables))
+      fixedPremises.head
     }
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
@@ -63,8 +62,8 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       def containsPos(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.suc,literal)
       def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
       def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
-      def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node) = UnifyingResolution.resolve(leftNode,rightNode,variables)
-        //UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),Contraction.contractIfPossible(rightNode,variables),variables)
+      def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node) = //UnifyingResolution.resolve(leftNode,rightNode,variables)
+        UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),Contraction.contractIfPossible(rightNode,variables),variables)
 
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos  , fixedLeftNeg ) = fixedPremises.head
@@ -123,14 +122,20 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
           count = count + 1
       count
     }
-    if(selectLiteral(p).isEmpty) p
-    else {
-      val selectedLiteral = selectLiteral(p).get
-      val (left, right)   = split(p, selectedLiteral)
-      val leftContracted  = Contraction.contractIfPossible(left, variables)
-      val rightContracted = Contraction.contractIfPossible(right, variables)
-      val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
-      if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
+    try {
+      if (selectLiteral(p).isEmpty) p
+      else {
+        val selectedLiteral = selectLiteral(p).get
+        val (left, right) = split(p, selectedLiteral)
+        val leftContracted = Contraction.contractIfPossible(left, variables)
+        val rightContracted = Contraction.contractIfPossible(right, variables)
+        val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
+        if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
+      }
+    } catch {
+      case e : Exception =>
+        println("There was a problem in splitting!\nProof:\n" + p + "Problem: " + e)
+        p
     }
   }
 }

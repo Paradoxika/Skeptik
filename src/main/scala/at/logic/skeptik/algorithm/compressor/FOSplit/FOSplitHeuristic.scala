@@ -257,7 +257,7 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
       }
 
 
-    val literals       = sequent.ant ++ sequent.suc
+    val literals = sequent.ant ++ sequent.suc
 
     if(literals.isEmpty && literalsSet.isEmpty) return true
 
@@ -321,18 +321,15 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
           val leftSet = if(resultFromParents.isEmpty) MSet[E]() else resultFromParents.reduceLeft(_ intersect _)
           nodesSets += leftPremise  -> (leftSet += unifiedLiteral)//(nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
+
           val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludedInSet(leftSeq,nodesSets(leftPremise))) {
+          if(!isIncludedInSet(leftSeq,nodesSets(leftPremise)))
             literals += literalName -> None
-            //println("Variables: " + variables.mkString(","))
-            //println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
-          }
+
           val rightSeq = Sequent()(rightPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludedInSet(rightSeq,nodesSets(rightPremise))) {
+          if(!isIncludedInSet(rightSeq,nodesSets(rightPremise)))
             literals += literalName -> None
-            //println("Variables: " + variables.mkString(","))
-            //println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
-          }
+
           nodesSets(node).clone()
         }
       }
@@ -435,11 +432,8 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
     def checkInclusion(node : Node, parents : Seq[Node]) : Node = {
       nodesSets += node -> intersectionOfParentsSets(node,parents)
       val nodeSeq = Sequent()(node.conclusion.ant ++ node.conclusion.suc :_*)
-      if(!isIncludedInSet(nodeSeq,nodesSets(node))) {
-        println("NOT INCLUDED\nSequent: " + nodeSeq.toString + "\nSet: " + nodesSets(node).toString)
+      if(!isIncludedInSet(nodeSeq,nodesSets(node)))
         removeLiteralsResolvedWithNode(node, parents)
-      } else
-        println("INCLUDED\nSequent: " + nodeSeq.toString + "\nSet: " + nodesSets(node).toString)
       node
     }
 
