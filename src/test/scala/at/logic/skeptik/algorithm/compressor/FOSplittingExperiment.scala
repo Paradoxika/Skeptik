@@ -55,13 +55,13 @@ object FOSplittingExperiment {
   def main(args: Array[String]): Unit = {
 
     val path = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/"
-    val proofList = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/list2.txt"
+    val proofList = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/list.txt"
 
     val problemSetS = getProblems(proofList, path)
     var totalCountT = 0
 
     //val etempT = new PrintWriter("results-FOSplitting.log")
-    val report = new PrintWriter("report-FOSplitting-try-8-no-repeated-literals-in-a-clause.log")
+    val report = new PrintWriter("report-FOSplitting-10.log")
     //val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
     //etempT.println(header)
     //etempT.flush()
