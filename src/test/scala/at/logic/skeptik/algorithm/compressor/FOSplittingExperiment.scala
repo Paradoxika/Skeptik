@@ -55,7 +55,7 @@ object FOSplittingExperiment {
   def main(args: Array[String]): Unit = {
 
     val path = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/"
-    val proofList = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/list.txt"
+    val proofList = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/list2.txt"
 
     val problemSetS = getProblems(proofList, path)
     var totalCountT = 0
@@ -107,6 +107,7 @@ object FOSplittingExperiment {
           report.println(proofToTest)
           report.println("There was a problem to resolve the proofs after splitting!\n" + e.toString)
           report.println("\n\n#########################################\n\n")
+          report.flush()
       }
     }
         /*

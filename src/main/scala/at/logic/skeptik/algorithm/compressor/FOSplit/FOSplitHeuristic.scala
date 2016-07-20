@@ -3,7 +3,7 @@ package at.logic.skeptik.algorithm.compressor.FOSplit
 import at.logic.skeptik.algorithm.unifier.MartelliMontanari
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.expression.substitution.immutable.Substitution
-import at.logic.skeptik.expression.{App, E, Var}
+import at.logic.skeptik.expression.{Abs, App, E, Var}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.lk.Axiom
@@ -140,8 +140,84 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 
   // TODO: THIS MUST BE DEBUGGED AFTER UNIFYING RESOLUTION METHODS ARE FIXED
   // TODO: REMEMBER TO DEBUG THE COMBINED HEURISTIC TOO
-  protected def isIncludeInSet(sequent: Sequent,literalsSet : MSet[E]): Boolean = {
+  protected def isIncludedInSet(sequent: Sequent, literalsSet : MSet[E]): Boolean = {
 
+    val literals = sequent.ant ++ sequent.suc
+
+    if(literals.isEmpty && literalsSet.isEmpty) return true
+
+    val constantPrefix = "converted_to_constant_"
+
+    def convertVariablesIntoNewConstants(e: E): E =
+      e match {
+        case Var(name, typ) => if (Character.isUpperCase(name.charAt(0))) Var(constantPrefix + name, typ) else Var(name, typ)
+        case App(fun, arg) => App(convertVariablesIntoNewConstants(fun), convertVariablesIntoNewConstants(arg))
+        case Abs(x, body) => Abs(convertVariablesIntoNewConstants(x).asInstanceOf[Var], convertVariablesIntoNewConstants(body))
+      }
+
+    // We first convert all variables in the literals set to constants so we can calculate substitutions
+    // that only act on the literals that come from the sequent
+    val literalSetWithoutVariables = literalsSet.map(convertVariablesIntoNewConstants)
+
+    // Now, for each literal we calculate the occurrences of a literal with the same name in the set
+    // Note that a literal like q(X) may have more than one occurrence in the set, e.g. q(a),q(converted_to_constant_X)
+    val occurrences: MMap[E, List[E]] = MMap[E, List[E]]()
+    for (l <- literals)
+      occurrences += (l -> literalSetWithoutVariables.filter(getLiteralName(_) == getLiteralName(l)).toList)
+
+    val literalSubstitutions: MMap[E, List[Substitution]] =
+      occurrences map {
+        case (e1, ls) =>
+          e1 -> ls.map(x => MartelliMontanari((e1, x) :: Nil)(this.variables)).filter(_.nonEmpty).map(_.get)
+      }
+
+    // If we find a literal that can't be included in the
+    // set we know that the whole set won't be contained
+    for (l <- literals)
+      if (literalSubstitutions(l).isEmpty) return false
+
+
+    //TODO : Check this. If it is ok, I am a genious :)
+    def createCompatibleSubstitution(restriction : MMap[Var,E],subs: List[List[Substitution]]): List[Substitution] =
+      subs match {
+        case Nil      => List(Substitution(restriction.toList :_*))
+        case x :: xs  =>
+          x flatMap { s =>
+            val newRestrictions = restriction.clone()
+            val pairs           = s.iterator
+            for((v,e) <- pairs) {
+              if (!(newRestrictions contains v))
+                newRestrictions += (v -> e)
+              else if (newRestrictions(v) != e)
+                return Nil
+            }
+            createCompatibleSubstitution(newRestrictions,xs)//Substitution(restriction.toList :_*) :: createCompatibleSubstitution(restriction,xs)
+          }
+      }
+
+
+    val substitutionByLiteralName = MMap[String,List[Substitution]]()
+    val literalsNames = literalSubstitutions.keySet.map(getLiteralName)
+    for(l <- literalsNames) {
+      val substitutionsToCompare = literalSubstitutions.filter({case (k, v) => getLiteralName(k) == l}).values.toList
+      //println("A substitution list: " + substitutionsToCompare)
+      substitutionByLiteralName += (l -> createCompatibleSubstitution(MMap[Var,E](),substitutionsToCompare))
+      //println("Resulted substitution list: " + substitutionByLiteralName(l))
+    }
+
+    // And we repeat the process with the substitutions of each literalName
+    val a = substitutionByLiteralName.values.toList
+    //println("List of the substitutions from all literals: " + a)
+    val substitutions = createCompatibleSubstitution(MMap[Var,E](),a)
+    //println("Fibal substitutions considering all literals: " + substitutions)
+    if(substitutions.isEmpty)
+      false
+    else {
+      val randomSub = substitutions.head // Any substitution of the list should be fine
+      (literals map {x => randomSub(x)}).toSet subsetOf literalSetWithoutVariables
+    }
+
+    /*
     import UnifyingResolution._
 
     def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
@@ -219,6 +295,7 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
     def sucVarsC = getSetOfVars(safeClean.conclusion.suc: _*)
     def allvarsNew = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB ++ antVarsC ++ sucVarsC
     desiredIsContained(safeClean.conclusion, sequent)(allvarsNew)
+    */
   }
 
   def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
@@ -243,13 +320,13 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
           nodesSets += leftPremise  -> (leftSet += unifiedLiteral)//(nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
           val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
+          if(!isIncludedInSet(leftSeq,nodesSets(leftPremise))) {
             literals += literalName -> None
             //println("Variables: " + variables.mkString(","))
             //println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
           }
           val rightSeq = Sequent()(rightPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
+          if(!isIncludedInSet(rightSeq,nodesSets(rightPremise))) {
             literals += literalName -> None
             //println("Variables: " + variables.mkString(","))
             //println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
@@ -356,8 +433,11 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
     def checkInclusion(node : Node, parents : Seq[Node]) : Node = {
       nodesSets += node -> intersectionOfParentsSets(node,parents)
       val nodeSeq = Sequent()(node.conclusion.ant ++ node.conclusion.suc :_*)
-      if(!isIncludeInSet(nodeSeq,nodesSets(node)))
-        removeLiteralsResolvedWithNode(node,parents)
+      if(!isIncludedInSet(nodeSeq,nodesSets(node))) {
+        println("NOT INCLUDED\nSequent: " + nodeSeq.toString + "\nSet: " + nodesSets(node).toString)
+        removeLiteralsResolvedWithNode(node, parents)
+      } else
+        println("INCLUDED\nSequent: " + nodeSeq.toString + "\nSet: " + nodesSets(node).toString)
       node
     }
 
