@@ -30,6 +30,8 @@ object CR {
 
     val levelClauses = mutable.Map.empty[Int, Seq[Clause]] // Shows level at which clause was resolved
     val ancestor = mutable.Map.empty[Clause, mutable.Set[Clause]] // For each clause what initial (input) clauses produced it
+    val implicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Clause]]
+    val reverseImplicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Seq[Clause]]]
     val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Clause]] // Shows unifiable unit clauses for each literal
     val clauses = mutable.Set(cnf.clauses: _*) // Just all clauses (for current moment)
     clauses.foreach(clause => ancestor(clause) = mutable.Set(clause)) // Ancestor of initial clauses is exactly this clause
@@ -76,6 +78,8 @@ object CR {
                   c => decisionInstantiations.getOrElseUpdate(c, mutable.Set.empty) += mgu
                 }
                 if (!clauses.contains(newClause)) {
+                  unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newClause)
+                  reverseImplicationGraph.getOrElseUpdate(newClause, ArrayBuffer.empty) += unifier
                   result += newClause
                 }
               case None =>
@@ -155,6 +159,33 @@ object CR {
           sub(oneLeft)
         } else {
           oneLeft
+        }
+      }
+    }
+
+    def reset(newClause: Clause): Unit = {
+      conflictClauses += newClause
+      level = 0
+      levelClauses.clear()
+      ancestor.clear()
+      unifiableUnits.clear()
+      clauses.clear()
+      clauses ++= cnf.clauses ++ conflictClauses
+      cnf.clauses.foreach(clause => ancestor(clause) = mutable.Set(clause))
+      conflictClauses.foreach(clause => ancestor(clause) = mutable.Set.empty)
+      literals.clear()
+      literals ++= clauses.flatMap(_.literals)
+      literals.foreach(unifiableUnits(_) = mutable.Set.empty)
+      levelClauses(0) = cnf.clauses ++ conflictClauses
+      decision.clear()
+      decisionInstantiations.clear()
+
+      for (literal <- literals) {
+        for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
+          unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
+            case Some(_) => unifiableUnits(literal) += other
+            case None =>
+          }
         }
       }
     }
@@ -255,30 +286,7 @@ object CR {
 
                   val newClause = mostGeneralInstances.toSequent
 
-                  conflictClauses += newClause
-                  level = 0
-                  levelClauses.clear()
-                  ancestor.clear()
-                  unifiableUnits.clear()
-                  clauses.clear()
-                  clauses ++= cnf.clauses ++ conflictClauses
-                  cnf.clauses.foreach(clause => ancestor(clause) = mutable.Set(clause))
-                  conflictClauses.foreach(clause => ancestor(clause) = mutable.Set.empty)
-                  literals.clear()
-                  literals ++= clauses.flatMap(_.literals)
-                  literals.foreach(unifiableUnits(_) = mutable.Set.empty)
-                  levelClauses(0) = cnf.clauses ++ conflictClauses
-                  decision.clear()
-                  decisionInstantiations.clear()
-
-                  for (literal <- literals) {
-                    for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
-                      unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
-                        case Some(_) => unifiableUnits(literal) += other
-                        case None =>
-                      }
-                    }
-                  }
+                  reset(newClause)
                   Breaks.break()
                 }
               case None =>
@@ -290,7 +298,27 @@ object CR {
           levelClauses(level) = result
 
 
-          if (clauses contains Clause.empty) return false
+          if (clauses contains Clause.empty) {
+            if (decision.isEmpty) return false
+
+            def findConflictClause(current: Clause): Clause = {
+              if (reverseImplicationGraph contains current) {
+                val conflictClauses = for (unifier <- reverseImplicationGraph(current))
+                  yield unifier.map(findConflictClause).fold(Clause.empty)(_ union _)
+                conflictClauses.sortBy(_.width).head
+              } else {
+                if (decision contains current) {
+                  current
+                } else {
+                  Clause.empty
+                }
+              }
+            }
+
+            val newClause = findConflictClause(Clause.empty)
+            reset(newClause)
+            Breaks.break()
+          }
 
           if (result.isEmpty) {
             finished = true
