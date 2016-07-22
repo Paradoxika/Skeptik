@@ -72,14 +72,14 @@ object CR {
               case Some(mgu) =>
                 val newLiteral = (mgu(conclusion.unit), conclusion.negated)
                 val newClause = newLiteral.toClause
+                unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newClause)
+                reverseImplicationGraph.getOrElseUpdate(newClause, ArrayBuffer.empty) += ((unifier, mgu))
                 ancestor.getOrElseUpdate(newClause, mutable.Set.empty) ++=
                   (Set.empty[Clause] /: (unifier :+ clause))(_ union ancestor(_))
                 (unifier :+ clause).filter(decision contains _).foreach {
                   c => decisionInstantiations.getOrElseUpdate(c, mutable.Set.empty) += mgu
                 }
                 if (!clauses.contains(newClause)) {
-                  unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newClause)
-                  reverseImplicationGraph.getOrElseUpdate(newClause, ArrayBuffer.empty) += ((unifier, mgu))
                   result += newClause
                 }
               case None =>
@@ -285,6 +285,7 @@ object CR {
                   }
 
                   val newClause = mostGeneralInstances.toSequent
+                  println(s"Derived $newClause")
 
                   reset(newClause)
                   Breaks.break()
@@ -316,6 +317,7 @@ object CR {
             }
 
             val newClause = findConflictClause(Clause.empty)
+            println(s"Derived $newClause")
             reset(newClause)
             Breaks.break()
           }
