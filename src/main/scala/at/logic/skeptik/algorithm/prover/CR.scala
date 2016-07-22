@@ -31,7 +31,7 @@ object CR {
     val levelClauses = mutable.Map.empty[Int, Seq[Clause]] // Shows level at which clause was resolved
     val ancestor = mutable.Map.empty[Clause, mutable.Set[Clause]] // For each clause what initial (input) clauses produced it
     val implicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Clause]]
-    val reverseImplicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Seq[Clause]]]
+    val reverseImplicationGraph = mutable.Map.empty[Clause, ArrayBuffer[(Seq[Clause], Substitution)]]
     val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Clause]] // Shows unifiable unit clauses for each literal
     val clauses = mutable.Set(cnf.clauses: _*) // Just all clauses (for current moment)
     clauses.foreach(clause => ancestor(clause) = mutable.Set(clause)) // Ancestor of initial clauses is exactly this clause
@@ -79,7 +79,7 @@ object CR {
                 }
                 if (!clauses.contains(newClause)) {
                   unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newClause)
-                  reverseImplicationGraph.getOrElseUpdate(newClause, ArrayBuffer.empty) += unifier
+                  reverseImplicationGraph.getOrElseUpdate(newClause, ArrayBuffer.empty) += ((unifier, mgu))
                   result += newClause
                 }
               case None =>
@@ -301,14 +301,14 @@ object CR {
           if (clauses contains Clause.empty) {
             if (decision.isEmpty) return false
 
-            def findConflictClause(current: Clause): Clause = {
+            def findConflictClause(current: Clause, substitution: Substitution = Substitution.empty): Clause = {
               if (reverseImplicationGraph contains current) {
-                val conflictClauses = for (unifier <- reverseImplicationGraph(current))
-                  yield unifier.map(findConflictClause).fold(Clause.empty)(_ union _)
+                val conflictClauses = for ((unifier, mgu) <- reverseImplicationGraph(current))
+                  yield unifier.map(findConflictClause(_, substitution ++ mgu)).fold(Clause.empty)(_ union _)
                 conflictClauses.sortBy(_.width).head
               } else {
                 if (decision contains current) {
-                  current
+                  (substitution(current.literal.unit), current.literal.negated).toClause
                 } else {
                   Clause.empty
                 }
