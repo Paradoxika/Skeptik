@@ -62,7 +62,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       def containsPos(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.suc,literal)
       def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
       def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
-      def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node) = //UnifyingResolution.resolve(leftNode,rightNode,variables)
+      def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node) =
         UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),Contraction.contractIfPossible(rightNode,variables),variables)
 
       require(fixedPremises.length == 2)

@@ -12,7 +12,7 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
 
-object TestInclussion {
+object TestInclusion {
 
   protected def getLiteralName(literal: E) : String =
     literal match {
@@ -164,11 +164,11 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
       node match {
         case Axiom(_)          => ()
         case Contraction(_, _) => ()
-        case UnifyingResolution(_, _, leftResolvedLiteral, rightResolvedLiteral) => {
+        case UnifyingResolution(_, _, leftResolvedLiteral, rightResolvedLiteral) =>
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
-            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+            case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
           val unifiedLiteral = mgu(leftResolvedLiteral)
           if(literals.contains(literalName)) {
@@ -179,7 +179,6 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
           else
             literals += (literalName -> Some(unifiedLiteral))
           ()
-        }
       }
     }
     literals
@@ -310,7 +309,7 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
       node match {
         case Axiom(_) => MSet[E]()
         case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; nodesSets(node).clone()
-        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
+        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) =>
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
@@ -319,7 +318,7 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
           literals  += literalName  -> Some(unifiedLiteral)
           val leftSet = if(resultFromParents.isEmpty) MSet[E]() else resultFromParents.reduceLeft(_ intersect _)
-          nodesSets += leftPremise  -> (leftSet += unifiedLiteral)//(nodesSets(node).clone() += unifiedLiteral)
+          nodesSets += leftPremise  -> (leftSet += unifiedLiteral) //(nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
 
           val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
@@ -331,7 +330,6 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
             literals += literalName -> None
 
           nodesSets(node).clone()
-        }
       }
     }
     literals
@@ -394,10 +392,9 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
           nodesSets(n).clone()
         case (n @ UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral)) :: Nil =>
           require(node == leftPremise || node == rightPremise)
-          val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
-            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+            case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
           nodesSets(n).clone() += unifiedLiteral
@@ -406,10 +403,9 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
           nodesSets(n).clone() intersect intersectionOfParentsSets(node,ns)
         case (n @ UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral)) :: ns =>
           require(node == leftPremise || node == rightPremise)
-          val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
-            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+            case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
           (nodesSets(n).clone() intersect intersectionOfParentsSets(node,ns)) += unifiedLiteral
@@ -441,7 +437,7 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
       val literalName = getLiteralName(leftResolvedLiteral)
       val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
         case Some(s) => s
-        case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+        case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
       }
       val unifiedLiteral : E = mgu(leftResolvedLiteral)
       if(literals.contains(literalName)) {
@@ -483,11 +479,10 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
       node match {
         case Axiom(_) => checkInclusion(node,resultFromParents)
         case Contraction(premise, _) => checkInclusion(node,resultFromParents)
-        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
+        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) =>
           checkLiteralRepetition(leftPremise, rightPremise, getLiteralName(leftResolvedLiteral))
           checkResolvedLiteralIsUnifiable(leftResolvedLiteral, rightResolvedLiteral)
           checkInclusion(node,resultFromParents)
-        }
       }
     }
     literals
