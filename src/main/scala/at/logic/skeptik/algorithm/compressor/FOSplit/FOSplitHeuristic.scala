@@ -3,7 +3,7 @@ package at.logic.skeptik.algorithm.compressor.FOSplit
 import at.logic.skeptik.algorithm.unifier.MartelliMontanari
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.expression.substitution.immutable.Substitution
-import at.logic.skeptik.expression.{App, E, Var}
+import at.logic.skeptik.expression.{Abs, App, E, Var, i}
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.lk.Axiom
@@ -11,6 +11,96 @@ import at.logic.skeptik.proof.sequent.resolution.{Contraction, UnifyingResolutio
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 
 import scala.collection.mutable.{HashMap => MMap, HashSet => MSet}
+
+object TestInclusion {
+
+  protected def getLiteralName(literal: E) : String =
+    literal match {
+      case Atom(Var(name,_),_) => name
+      case App(function,arg)   => getLiteralName(function)
+      case Var(name,_)         => name
+      case _                   => throw new Exception("Literal name not found: " + literal.toString)
+    }
+
+  protected def isIncludedInSet(sequent: Sequent, literalsSet : MSet[E]): Boolean = {
+
+    val literals = sequent.ant ++ sequent.suc
+
+    if(literals.isEmpty && literalsSet.isEmpty) return true
+
+    val constantPrefix = "converted_to_constant_"
+
+    def convertVariablesIntoNewConstants(e: E): E =
+      e match {
+        case Var(name, typ) => if (Character.isUpperCase(name.charAt(0))) Var(constantPrefix + name, typ) else Var(name, typ)
+        case App(fun, arg) => App(convertVariablesIntoNewConstants(fun), convertVariablesIntoNewConstants(arg))
+        case Abs(x, body) => Abs(convertVariablesIntoNewConstants(x).asInstanceOf[Var], convertVariablesIntoNewConstants(body))
+      }
+
+    // We first convert all variables in the literals set to constants so we can calculate substitutions
+    // that only act on the literals that come from the sequent
+    val literalSetWithoutVariables = literalsSet.map(convertVariablesIntoNewConstants)
+
+    // Now, for each literal we calculate the occurrences of a literal with the same name in the set
+    // Note that a literal like q(X) may have more than one occurrence in the set, e.g. q(a),q(converted_to_constant_X)
+    val occurrences: MMap[E, List[E]] = MMap[E, List[E]]()
+    for (l <- literals)
+      occurrences += (l -> literalSetWithoutVariables.filter(getLiteralName(_) == getLiteralName(l)).toList)
+
+    val literalSubstitutions: MMap[E, List[Substitution]] =
+      occurrences map {
+        case (e1, ls) =>
+          e1 -> ls.map(x => MartelliMontanari((e1, x) :: Nil)(MSet(Var("U",i),Var("V",i),Var("W",i)))).filter(_.nonEmpty).map(_.get)
+      }
+
+    // If we find a literal that can't be included in the
+    // set we know that the whole set won't be contained
+    for (l <- literals)
+      if (literalSubstitutions(l).isEmpty) return false
+
+    def createCompatibleSubstitution(restriction : MMap[Var,E],subs: List[List[Substitution]]): List[Substitution] =
+      subs match {
+        case Nil      => List(Substitution(restriction.toList :_*))
+        case x :: xs  =>
+          x flatMap { s =>
+            val newRestrictions = restriction.clone()
+            val pairs           = s.iterator
+            var flag = false
+            for((v,e) <- pairs) {
+              if (!(newRestrictions contains v))
+                newRestrictions += (v -> e)
+              else if (newRestrictions(v) != e)
+                flag = true
+            }
+            if(flag) Nil
+            else createCompatibleSubstitution(newRestrictions,xs)
+          }
+      }
+
+
+    val substitutionByLiteralName = MMap[String,List[Substitution]]()
+    val literalsNames = literalSubstitutions.keySet.map(getLiteralName)
+    for(l <- literalsNames) {
+      val substitutionsToCompare = literalSubstitutions.filter({case (k, v) => getLiteralName(k) == l}).values.toList
+      substitutionByLiteralName += (l -> createCompatibleSubstitution(MMap[Var,E](),substitutionsToCompare))
+    }
+
+    // And we repeat the process with the substitutions of each literalName
+    val substitutions = createCompatibleSubstitution(MMap[Var,E](),substitutionByLiteralName.values.toList)
+    if(substitutions.isEmpty)
+      false
+    else {
+      val randomSub = substitutions.head // Any substitution of the list should be fine
+      (literals map {x => randomSub(x)}).toSet subsetOf literalSetWithoutVariables
+    }
+  }
+
+  def main(args: Array[String]) = {
+    val testSeq = Sequent()(List(Atom("p3", List(Var("U", i), Var("W", i))), Atom("p3", List(Var("U", i), Var("V", i))), Atom("p3", List(Var("W", i), Var("V", i)))): _*)
+    val testSet = MSet(Atom("p3", List(Var("V", i), Var("V", i))), Atom("p3", List(Var("c21", i), Var("c19", i))), Atom("p3", List(Var("c19", i), Var("c21", i))))
+    println(isIncludedInSet(testSeq, testSet))
+  }
+}
 
 /**
   * The trait AbstractFOSplitHeuristic is the base trait of the ones
@@ -74,11 +164,11 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
       node match {
         case Axiom(_)          => ()
         case Contraction(_, _) => ()
-        case UnifyingResolution(_, _, leftResolvedLiteral, rightResolvedLiteral) => {
+        case UnifyingResolution(_, _, leftResolvedLiteral, rightResolvedLiteral) =>
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
-            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+            case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
           val unifiedLiteral = mgu(leftResolvedLiteral)
           if(literals.contains(literalName)) {
@@ -89,7 +179,6 @@ trait SeenLiteralsHeuristic extends AbstractFOSplitHeuristic {
           else
             literals += (literalName -> Some(unifiedLiteral))
           ()
-        }
       }
     }
     literals
@@ -138,88 +227,77 @@ trait FOAdditivityHeuristic extends AbstractFOSplitHeuristic  {
   */
 trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
 
-  // TODO: THIS MUST BE DEBUGGED AFTER UNIFYING RESOLUTION METHODS ARE FIXED
-  // TODO: REMEMBER TO DEBUG THE COMBINED HEURISTIC TOO
-  protected def isIncludeInSet(sequent: Sequent,literalsSet : MSet[E]): Boolean = {
-
-    import UnifyingResolution._
-
-    def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
-      if (computed == desired) {
-        true
-      } else {
-        val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
-
-        val antMap = generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
-        if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
-          return false
-        }
-        val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
-        if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
-          return false
-        }
-        val intersectedMap = intersectMaps(antMap, sucMap)
-
-        if (!validMap(intersectedMap, vars)) {
-          return false
-        }
-
-        def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-          val subList = MSet[(Var, E)]()
-
-          for (k <- m.keySet) {
-            if (m.get(k).get.size > 0) {
-              subList.add((k, m.get(k).get.head))
-            }
-          }
-
-          val sub = Substitution(subList.toSeq: _*)
-          def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
-            if (target.size == 0) {
-              return true
-            }
-            target match {
-              case h :: t => {
-                for (s <- source) {
-                  if (h.equals(s)) {
-                    return foundExactly(t, source)
-                  }
-                }
-              }
-            }
-
-            false
-          }
-
-          val newDesiredAnt = (desired.ant).map(e => sub(e))
-
-          val newDesiredSuc = (desired.suc).map(e => sub(e))
-          foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
-        }
-
-        // According to Jan this should be commented
-        //if (!findFromMap(intersectedMap, vars)) {
-        //  return false
-        //}
-
-        true
+  protected def isIncludedInSet(sequent: Sequent, literalsSet : MSet[E]): Boolean = {
+    val constantPrefix = "converted_to_constant_"
+    def convertVariablesIntoNewConstants(e: E): E =
+      e match {
+        case Var(name, typ) => if (Character.isUpperCase(name.charAt(0))) Var(constantPrefix + name, typ) else Var(name, typ)
+        case App(fun, arg) => App(convertVariablesIntoNewConstants(fun), convertVariablesIntoNewConstants(arg))
+        case Abs(x, body) => Abs(convertVariablesIntoNewConstants(x).asInstanceOf[Var], convertVariablesIntoNewConstants(body))
       }
+
+    def createCompatibleSubstitution(restriction : MMap[Var,E],subs: List[List[Substitution]]): List[Substitution] =
+      subs match {
+        case Nil      => List(Substitution(restriction.toList :_*))
+        case x :: xs  =>
+          x flatMap { s =>
+            val newRestrictions = restriction.clone()
+            val pairs           = s.iterator
+            var satissfyRestrictions = true
+            for((v,e) <- pairs) {
+              if (!(newRestrictions contains v))
+                newRestrictions += (v -> e)
+              else if (newRestrictions(v) != e)
+                satissfyRestrictions = false
+            }
+            if(satissfyRestrictions) createCompatibleSubstitution(newRestrictions,xs)
+            else Nil
+          }
+      }
+
+
+    val literals = sequent.ant ++ sequent.suc
+
+    if(literals.isEmpty && literalsSet.isEmpty) return true
+
+    // We first convert all variables in the literals set to constants so we can calculate substitutions
+    // that only act on the literals that come from the sequent
+    val literalSetWithoutVariables = literalsSet.map(convertVariablesIntoNewConstants)
+
+    // Now, for each literal we calculate the occurrences of a literal with the same name in the set
+    // Note that a literal like q(X) may have more than one occurrence in the set, e.g. q(a),q(converted_to_constant_X)
+    val occurrences: MMap[E, List[E]] = MMap[E, List[E]]()
+    for (l <- literals)
+      occurrences += (l -> literalSetWithoutVariables.filter(getLiteralName(_) == getLiteralName(l)).toList)
+
+    val literalSubstitutions: MMap[E, List[Substitution]] =
+      occurrences map {
+        case (e1, ls) =>
+          e1 -> ls.map(x => MartelliMontanari((e1, x) :: Nil)(this.variables)).filter(_.nonEmpty).map(_.get)
+      }
+
+    // If we find a literal that can't be included in the
+    // set we know that the whole set won't be contained
+    for (l <- literals)
+      if (literalSubstitutions(l).isEmpty) return false
+
+    val substitutionByLiteralName = MMap[String,List[Substitution]]()
+    val literalsNames = literalSubstitutions.keySet.map(getLiteralName)
+    for(l <- literalsNames) {
+      val substitutionsToCompare = literalSubstitutions.filter({case (k, v) => getLiteralName(k) == l}).values.toList
+      substitutionByLiteralName += (l -> createCompatibleSubstitution(MMap[Var,E](),substitutionsToCompare))
     }
 
-    def antVars = getSetOfVars(sequent.ant: _*)
-    def sucVars = getSetOfVars(sequent.suc: _*)
-    def antVarsB = getSetOfVars(literalsSet.toList:_*)//safeLit.ant: _*)
-    def sucVarsB = getSetOfVars(literalsSet.toList:_*)//safeLit.suc: _*)
-    def vars = MSet[Var]() ++ antVars ++ sucVars
-    def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
-
-    def safeClean = fixSharedNoFilter(Axiom(literalsSet/*safeLit*/), Axiom(sequent), 0, allvars)
-
-    def antVarsC = getSetOfVars(safeClean.conclusion.ant: _*)
-    def sucVarsC = getSetOfVars(safeClean.conclusion.suc: _*)
-    def allvarsNew = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB ++ antVarsC ++ sucVarsC
-    desiredIsContained(safeClean.conclusion, sequent)(allvarsNew)
+    // And we repeat the process with the substitutions of each literalName
+    val substitutions = createCompatibleSubstitution(MMap[Var,E](),substitutionByLiteralName.values.toList)
+    if(substitutions.isEmpty)
+      false
+    else {
+      val randomSub = substitutions.head // Any substitution of the list should be fine
+      (literals map {x => randomSub(x)}).toSet subsetOf literalSetWithoutVariables
+    }
   }
+
 
   def exploreLiterals(proof: Proof[Node]) : MMap[String,Option[E]] = {
     val nodesSets = MMap[Node, MSet[E]]()
@@ -231,7 +309,7 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
       node match {
         case Axiom(_) => MSet[E]()
         case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; nodesSets(node).clone()
-        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
+        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) =>
           val literalName = getLiteralName(leftResolvedLiteral)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
@@ -239,22 +317,19 @@ trait SetContentionHeuristic extends AbstractFOSplitHeuristic {
           }
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
           literals  += literalName  -> Some(unifiedLiteral)
-          nodesSets += leftPremise  -> (nodesSets(node).clone() += unifiedLiteral)
+          val leftSet = if(resultFromParents.isEmpty) MSet[E]() else resultFromParents.reduceLeft(_ intersect _)
+          nodesSets += leftPremise  -> (leftSet += unifiedLiteral) //(nodesSets(node).clone() += unifiedLiteral)
           nodesSets += rightPremise -> nodesSets(leftPremise)
+
           val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
+          if(!isIncludedInSet(leftSeq,nodesSets(leftPremise)))
             literals += literalName -> None
-            //println("Variables: " + variables.mkString(","))
-            //println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
-          }
+
           val rightSeq = Sequent()(rightPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
+          if(!isIncludedInSet(rightSeq,nodesSets(rightPremise)))
             literals += literalName -> None
-            //println("Variables: " + variables.mkString(","))
-            //println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
-          }
+
           nodesSets(node).clone()
-        }
       }
     }
     literals
@@ -307,41 +382,107 @@ trait SetContentionAndSeenLiteralsHeuristic extends SetContentionHeuristic {
 
     nodesSets +=  proof.root -> MSet[E](proof.root.conclusion.ant ++ proof.root.conclusion.suc :_* )
 
-    proof bottomUp { (node: Node, resultFromChildren : Seq[MSet[E]]) =>
-      node match {
-        case Axiom(_) => MSet[E]()
-        case Contraction(premise, _) => nodesSets += premise -> nodesSets(node).clone() ; nodesSets(node).clone()
-        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) => {
-          val literalName = getLiteralName(leftResolvedLiteral)
+    def intersectionOfParentsSets(node : Node, parents : Seq[Node]) : MSet[E] = {
+      parents match {
+        case Nil =>
+          require(node == proof.root)
+          MSet[E]().clone()
+        case (n @ Contraction(premise,_)) :: Nil =>
+          require(node == premise)
+          nodesSets(n).clone()
+        case (n @ UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral)) :: Nil =>
+          require(node == leftPremise || node == rightPremise)
           val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
             case Some(s) => s
-            case None    => throw new Exception("Resolved Literasl can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+            case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
           val unifiedLiteral : E = mgu(leftResolvedLiteral)
-          if(literals.contains(literalName)) {
-            val oldLiteral = literals.get(literalName).get
-            val newLiteral = unifyIfPossible(oldLiteral,Some(unifiedLiteral))
-            literals += (literalName -> newLiteral)
+          nodesSets(n).clone() += unifiedLiteral
+        case (n @ Contraction(premise,_)) :: ns  =>
+          require(node == premise)
+          nodesSets(n).clone() intersect intersectionOfParentsSets(node,ns)
+        case (n @ UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral)) :: ns =>
+          require(node == leftPremise || node == rightPremise)
+          val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
+            case Some(s) => s
+            case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
           }
-          else
-            literals += (literalName -> Some(unifiedLiteral))
+          val unifiedLiteral : E = mgu(leftResolvedLiteral)
+          (nodesSets(n).clone() intersect intersectionOfParentsSets(node,ns)) += unifiedLiteral
+      }
+    }
 
-          nodesSets += leftPremise  -> (nodesSets(node).clone() += unifiedLiteral)
-          nodesSets += rightPremise -> nodesSets(leftPremise)
-          val leftSeq = Sequent()(leftPremise.conclusion.ant ++ leftPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(leftSeq,nodesSets(leftPremise))) {
-            literals += literalName -> None
-            //println("Left NOT included:\nPremise: " + leftPremise.conclusion.toString +"\nSet: " + nodesSets(leftPremise).mkString(","))
-            //println("Transformed Sequent: " + leftSeq.toString)
-          }
-          val rightSeq = Sequent()(rightPremise.conclusion.ant ++ rightPremise.conclusion.suc :_*)
-          if(!isIncludeInSet(rightSeq,nodesSets(rightPremise))) {
-            literals += literalName -> None
-            //println("Right NOT included:\nPremise: " + rightPremise.conclusion.toString +"\nSet: " + nodesSets(rightPremise).mkString(","))
-            //println("Transformed Sequent: " + rightSeq.toString)
-          }
-          nodesSets(node).clone()
-        }
+    def removeLiteralsResolvedWithNode(node : Node, parents : Seq[Node]): Unit = {
+      parents match {
+        case Nil =>
+        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) :: ns =>
+          require(node == leftPremise || node == rightPremise)
+          val literalName = getLiteralName(leftResolvedLiteral)
+          literals += literalName -> None
+          removeLiteralsResolvedWithNode(node,ns)
+        case _ :: ns =>
+          removeLiteralsResolvedWithNode(node,ns)
+      }
+    }
+
+    def checkInclusion(node : Node, parents : Seq[Node]) : Node = {
+      nodesSets += node -> intersectionOfParentsSets(node,parents)
+      val nodeSeq = Sequent()(node.conclusion.ant ++ node.conclusion.suc :_*)
+      if(!isIncludedInSet(nodeSeq,nodesSets(node)))
+        removeLiteralsResolvedWithNode(node, parents)
+      node
+    }
+
+    def checkResolvedLiteralIsUnifiable(leftResolvedLiteral : E, rightResolvedLiteral : E) : Unit = {
+      val literalName = getLiteralName(leftResolvedLiteral)
+      val mgu         = MartelliMontanari((leftResolvedLiteral, rightResolvedLiteral) :: Nil)(this.variables) match {
+        case Some(s) => s
+        case None    => throw new Exception("Resolved Literals can't be unified: " + leftResolvedLiteral.toString + ", " + rightResolvedLiteral.toString)
+      }
+      val unifiedLiteral : E = mgu(leftResolvedLiteral)
+      if(literals.contains(literalName)) {
+        val oldLiteral = literals.get(literalName).get
+        val newLiteral = unifyIfPossible(oldLiteral,Some(unifiedLiteral))
+        literals += (literalName -> newLiteral)
+      }
+      else
+        literals += (literalName -> Some(unifiedLiteral))
+    }
+
+    /**
+      * The method checkLiteralRepetition check the condition that the literal name is not used more than
+      * once in each premise with the same sign (negated or without negation)
+      *
+      * @param leftPremise Left premise of the node being checked
+      * @param rightPremise Right premise of the node being checked
+      * @param literalName  The name of the literal to be checked
+      */
+    def checkLiteralRepetition(leftPremise : Node, rightPremise : Node, literalName : String) : Unit = {
+      def numberOfOccurrences(premise : Node) : Int = {
+        var occursNeg = 0
+        var occursPos = 0
+        for(e <- premise.conclusion.ant)
+          if (getLiteralName(e) == literalName)
+            occursNeg += 1
+        for(e <- premise.conclusion.suc)
+          if(getLiteralName(e) == literalName)
+            occursPos += 1
+        Math.max(occursNeg,occursPos)
+      }
+
+      if(numberOfOccurrences(leftPremise) > 1 || numberOfOccurrences(rightPremise) > 1)
+        literals += (literalName -> None)
+    }
+
+
+    proof bottomUp { (node: Node, resultFromParents : Seq[Node]) =>
+      node match {
+        case Axiom(_) => checkInclusion(node,resultFromParents)
+        case Contraction(premise, _) => checkInclusion(node,resultFromParents)
+        case UnifyingResolution(leftPremise, rightPremise, leftResolvedLiteral, rightResolvedLiteral) =>
+          checkLiteralRepetition(leftPremise, rightPremise, getLiteralName(leftResolvedLiteral))
+          checkResolvedLiteralIsUnifiable(leftResolvedLiteral, rightResolvedLiteral)
+          checkInclusion(node,resultFromParents)
       }
     }
     literals
