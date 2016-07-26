@@ -82,6 +82,15 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 		case _ => None
 	}
 
+	def resolve(leftPremise: SequentProofNode, rightPremise: SequentProofNode, desiredSequent : Sequent, unifiableVariables: MSet[Var]) = {
+		try {
+			apply(leftPremise, rightPremise, desiredSequent)(unifiableVariables)
+		} catch {
+			case e: Exception =>
+				apply(rightPremise, leftPremise, desiredSequent)(unifiableVariables)
+		}
+	}
+
 	def resolve(leftPremise: SequentProofNode, rightPremise: SequentProofNode, unifiableVariables: MSet[Var]): UnifyingResolution = {
 		def applyManagingAmbiguity(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
 

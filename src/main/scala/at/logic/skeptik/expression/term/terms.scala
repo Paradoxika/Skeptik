@@ -39,7 +39,10 @@ object FunctionTerm extends Term {
     AppRec(newTerm(name,createType(args)),args)
   }
   def apply(name : String,typ : T , args : List[E]) : E = AppRec(newTerm(name,typ),args)
-
+  def unapply(e:E) = e match {
+    case AppRec(f,args) if e.t == i && args.nonEmpty => Some((f,args))
+    case _ => None
+  }
 }
 
 object TypedNumberTerm extends Term {
