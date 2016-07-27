@@ -11,7 +11,8 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 object ProofGeneratorTests {
   def main(arfs : Array[String]) = {
     //safeSymbolsTest()
-    testContraction()
+    //testContraction()
+    randomLiteralTest()
   }
 
   def testContraction() = {
@@ -27,6 +28,11 @@ object ProofGeneratorTests {
     val atom = Atom("p",List(Var("V",i),Var("a",i),App(App(Var("f",i->(i->i)),Var("X",i)),Var("b",i))))
     generator.saveSymbols(atom)
     generator.printState
+  }
+
+  def randomLiteralTest() = {
+    val generator = new ProofGenerator(10)
+    println(generator.generateRandomLiteral())
   }
 
 }

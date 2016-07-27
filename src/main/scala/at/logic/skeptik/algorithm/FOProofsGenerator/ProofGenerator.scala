@@ -95,7 +95,76 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
       Sequent(conclusion.ant :_*)(conclusion.suc :_*) + substitution(literalToExpand)
   }
 
-  def generateResolution(conclusion : Sequent) : (Sequent,Sequent) = ???
+  private def randomFunctionArity()  : Int = {
+    val aritySeed = randomGenerator.nextInt(10)
+    if(0 <= aritySeed && aritySeed < 4) 1
+    else if(4 <= aritySeed && aritySeed < 9) 2
+    else 3
+  }
+
+  private def randomPredicateArity() : Int = {
+    val aritySeed = randomGenerator.nextInt(10)
+    if(0 <= aritySeed && aritySeed < 3) 1
+    else if(3 <= aritySeed && aritySeed < 7) 2
+    else if(7 <= aritySeed && aritySeed < 9) 3
+    else 4
+  }
+
+  private def generateOneArgument() : E = {
+    def isVariable(t: Int) = 0 <= t && t <= 6
+    def isConstant(t: Int) = 7 <= t && t <= 8
+    val argumentType: Int = randomGenerator.nextInt(10)
+    if (isVariable(argumentType)) {
+      val generatedVariable = freshVar()
+      variables += generatedVariable
+      generatedVariable
+    } else if (isConstant(argumentType))
+      Var("c" + randomGenerator.nextInt(numberOfConstants), i)
+    else {
+      val functionId = "f" + randomGenerator.nextInt(numberOfFunctions)
+      if(functions contains functionId)
+        FunctionTerm(functionId,generateArguments(functions(functionId)))
+      else {
+        functions += (functionId -> randomFunctionArity())
+        FunctionTerm(functionId,generateArguments(functions(functionId)))
+      }
+    }
+  }
+
+  private def generateArguments(amount : Int) : List[E] = {
+    require(amount >= 0)
+    if (amount == 0) Nil
+    else
+      generateOneArgument() :: generateArguments(amount - 1)
+  }
+
+
+  def generateRandomLiteral() : E = {
+    val predicateId : String = "p" + randomGenerator.nextInt(numberOfPredicates)
+    if(predicates contains predicateId)
+      Atom(predicateId,generateArguments(predicates(predicateId)))
+    else {
+      predicates += (predicateId -> randomPredicateArity())
+      Atom(predicateId,generateArguments(predicates(predicateId)))
+    }
+  }
+
+  def generateResolution(conclusion : Sequent) : (Sequent,Sequent) = {
+    def devideSequent(sequent: Sequent) : (Sequent,Sequent) =
+      if(isEmptyClause(conclusion))
+        (Sequent()(),Sequent()())
+      else {
+        val (leftAnt,rightAnt) = sequent.ant.toList.splitAt(randomGenerator.nextInt(conclusion.ant.size))
+        val (leftSuc,rightSuc) = sequent.suc.toList.splitAt(randomGenerator.nextInt(conclusion.suc.size))
+        (Sequent(leftAnt:_*)(leftSuc:_*), Sequent(rightAnt:_*)(rightSuc:_*))
+      }
+
+    val (leftBaseSequent,rightBaseSequent) = devideSequent(conclusion)
+    val newLiteral : E = generateRandomLiteral()
+    ???
+  }
+
+
   def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent) = ???
 
 
