@@ -32,7 +32,7 @@ object CR {
     val depthLiterals = mutable.Map.empty[Int, Seq[Literal]] // Shows literals that were propagated at this depth
     val ancestor = mutable.Map.empty[Literal, mutable.Set[Clause]] // For each literal what initial clauses produced it
     val implicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Literal]] // For each clause (or literal) what literals was produced from it
-    val reverseImplicationGraph = mutable.Map.empty[Literal, ArrayBuffer[(Clause, Seq[Literal], Substitution)]] // For each literal what clause, literals and mgu were used to produce it
+    val reverseImplicationGraph = mutable.Map.empty[Literal, mutable.Set[(Clause, Seq[Literal], Substitution)]] // For each literal what clause, literals and mgu were used to produce it
     val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Literal]] // Shows unifiable literals for each literal
     val literals = mutable.Set(cnf.clauses.flatMap(_.literals): _*) // All literals contained in propagated literals and initial clauses
     val propagatedLiterals = mutable.Set.empty[Literal]
@@ -90,7 +90,7 @@ object CR {
               val newLiteral = Literal(mgu(conclusion.unit), conclusion.negated)
               val newClause = newLiteral.toClause
               unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newLiteral)
-              reverseImplicationGraph.getOrElseUpdate(newLiteral, ArrayBuffer.empty) += ((clause, unifier, mgu))
+              reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += ((clause, unifier, mgu))
               ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
                 (Set.empty[Clause] /: unifier)(_ union ancestor(_)) + clause
               if (!result.contains(newLiteral) && !propagatedLiterals.contains(newLiteral)) {
@@ -232,18 +232,17 @@ object CR {
       Breaks.breakable {
         while (true) {
           val result = ArrayBuffer.empty[Literal] // New literals, which are propagated on this step
-          for (clause <- allClauses) {
+          for (clause <- allClauses if !clause.isUnit) {
             result ++= resolve(clause) // Try to resolve all clause with some other clauses
           }
 
           // If there is a literal in clause, which is contained either in `clauses` or `result`
           def satisfied = cnf.clauses.filter(_.literals.exists(lit => (propagatedLiterals contains lit) || (result contains lit))) // FIXME: should unify
 
-          var usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
-          while (usedAncestors.size != cnf.clauses.toSet.size) {
+          def usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
+          def notUsedAncestors = Random.shuffle(cnf.clauses.toSet diff usedAncestors)
+          while (notUsedAncestors.nonEmpty) {
             // If at least one ancestor wasn't used
-            val notUsedAncestors = Random.shuffle(cnf.clauses.toSet diff usedAncestors)
-
             val clause = notUsedAncestors.head
             // We are trying to unify `clause`, so BFS-resolution proceed with this clause.
             // So we retrieve all possible candidates for unifying of each literal and also add this
@@ -253,7 +252,6 @@ object CR {
             decision += decisionLiteral
             ancestor(decisionLiteral) = mutable.Set.empty
             result += decisionLiteral
-            usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
           }
           println(s"Decided $decision and resolved $result")
           depth += 1
@@ -269,22 +267,25 @@ object CR {
               if (decision.isEmpty) return false
 
               def findConflictClause(current: Literal, substitution: Substitution = Substitution.empty): Clause = {
-                if (reverseImplicationGraph contains current) {
+                if (allClauses contains current.toClause) {
+                  Clause.empty
+                } else if (decision contains current) {
+                  !substitution(current)
+                } else if (reverseImplicationGraph contains current) {
                   val conflictClauses = for ((_, unifier, mgu) <- reverseImplicationGraph(current))
-                    yield unifier.map(findConflictClause(_, substitution ++ mgu)).fold(Clause.empty)(_ union _)
-                  conflictClauses.sortBy(_.width).head
+                    yield unifier.map(findConflictClause(_, mgu)).fold(Clause.empty)(_ union _)
+                  conflictClauses.toSeq.sortBy(_.width).head
                 } else {
-                  if (decision contains current) {
-                    !substitution(current)
-                  } else {
-                    Clause.empty
-                  }
+                  throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
                 }
               }
 
-              println(s"Conflict clause from $conflictLiteral is ${findConflictClause(conflictLiteral)}")
-              println(s"Conflict clause from $otherLiteral is ${findConflictClause(otherLiteral)}")
-              val newClause = findConflictClause(conflictLiteral) union findConflictClause(otherLiteral)
+              val mgu = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
+              val conflictClauseLeft = findConflictClause(conflictLiteral, mgu)
+              val conflictClauseRight = findConflictClause(otherLiteral, mgu)
+              println(s"Conflict clause from $conflictLiteral is $conflictClauseLeft")
+              println(s"Conflict clause from $otherLiteral is $conflictClauseRight")
+              val newClause = conflictClauseLeft union conflictClauseRight
               println(s"Derived $newClause")
               if (newClause == Clause.empty) return false
               reset(newClause)
