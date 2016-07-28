@@ -20,15 +20,16 @@ object ProofGeneratorTests {
     //randomLiteralTest()
     //for(i <- 1 to 10)
     //  generateResolutionTest()
-    val (proof,vars) = proofGenerationTest(6)
-    val timeout = 1
+    val (proof,vars) = proofGenerationTest(7)
+    println(proof)
+    /*val timeout = 1
     val cottonSplit = new FOCottonSplit(vars, timeout)
     val compressedProof = cottonSplit(proof)
     if(proof.size > compressedProof.size) {
       println(proof)
       println("\n\n")
       println(compressedProof)
-    }
+    }*/
 
   }
 
@@ -63,7 +64,9 @@ object ProofGeneratorTests {
     try {
       (generator.generateProof(),generator.getVariables())
     } catch {
-      case e : Exception => proofGenerationTest(proofHeight)
+      case e : Exception =>
+        println("FAIL")
+        proofGenerationTest(proofHeight)
     }
   }
 

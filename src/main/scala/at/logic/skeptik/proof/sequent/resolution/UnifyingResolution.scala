@@ -55,10 +55,10 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 		if (unifiablePairs.length > 0) {
 			findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
 		} else if (unifiablePairs.length == 0) {
-			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A\nDesired: " + desired + "\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
 		} else {
 			//Should never really be reached in this constructor
-			throw new Exception("Resolution: the resolvent is ambiguous.\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+			throw new Exception("Resolution: the resolvent is ambiguous.\nDesired" + desired + "\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
 		}
 	}
 
