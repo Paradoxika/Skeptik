@@ -9,7 +9,6 @@ import collection.mutable.{Set => MSet}
 
 import at.logic.skeptik.proof.Proof
 
-
 /**
   * Created by eze on 2016.07.25..
   */
@@ -20,17 +19,20 @@ object ProofGeneratorTests {
     //randomLiteralTest()
     //for(i <- 1 to 10)
     //  generateResolutionTest()
-    val (proof,vars) = proofGenerationTest(7)
-    println(proof)
-    /*val timeout = 1
-    val cottonSplit = new FOCottonSplit(vars, timeout)
-    val compressedProof = cottonSplit(proof)
-    if(proof.size > compressedProof.size) {
+    //while(true) {
+      val (proof, vars) = proofGenerationTest(2)
       println(proof)
-      println("\n\n")
-      println(compressedProof)
-    }*/
-
+      val timeout = 1
+      val cottonSplit = new FOCottonSplit(vars, timeout)
+      val compressedProof = cottonSplit(proof)
+      if (proof.size > compressedProof.size) {
+        println(proof)
+        println("\n")
+        println(compressedProof)
+        println("\n#####################\n")
+      } else
+        println("NO COMPRESSION\n#####################\n")
+    //}
   }
 
   def testContraction() = {

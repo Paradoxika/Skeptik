@@ -9,9 +9,38 @@ import collection.mutable.{HashSet => MSet}
 import java.io.PrintWriter
 
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
+import at.logic.skeptik.expression.{Var, i}
+import at.logic.skeptik.expression.formula.Atom
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
+import at.logic.skeptik.proof.sequent.lk.Axiom
 
 import scala.io.Source
 
+
+object SmallTest {
+  def main(args : Array[String]) : Unit = {
+    val vars = MSet[Var](Var("V0", i), Var("V1", i), Var("V2", i), Var("V3", i), Var("V4", i), Var("V5", i), Var("V6", i))
+    val a1 = Atom("p", List(Var("V1", i)))
+    val a2 = Atom("q", List(Var("V2", i), Var("V3", i)))
+    val seq1 = Sequent(a1, a2)()
+    val a3 = Atom("q", List(Var("V4", i), Var("V5", i)))
+    val seq2 = Sequent()(a3)
+    val a4 = Atom("p", List(Var("V6", i)))
+    val seq3 = Sequent(a4)()
+    val a5 = Atom("p", List(Var("V0", i)))
+    val a6 = Atom("p", List(Var("c0", i)))
+    val seq4 = Sequent()(a5, a6)
+
+    val res1 = UnifyingResolution.resolve(Axiom(seq1), Axiom(seq2), Sequent(a1)(), vars)
+    val res2 = UnifyingResolution.resolve(Axiom(seq3), Axiom(seq4), Sequent()(a5), vars)
+    val root = UnifyingResolution.resolve(res1, res2, Sequent()(), vars)
+    val proof = Proof(root)
+    println(proof)
+
+
+    (new FOCottonSplit(vars,1))(proof)
+  }
+}
 /**
   * This object is created to run experiments with the FOSpliting Algorithm
   */

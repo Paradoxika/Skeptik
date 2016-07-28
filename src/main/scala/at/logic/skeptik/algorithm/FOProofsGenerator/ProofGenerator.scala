@@ -28,9 +28,11 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
                      val numberOfFunctions : Int = 3) extends ProofGeneratorTrait {
 
 
-  def isEmptyClause(sequent : Sequent) : Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
-  def isVariable(s : String) : Boolean = s.charAt(0).isUpper
-  def anyOfTheTwo[A](a : A,b : A) = if(randomGenerator.nextBoolean()) a else b
+  def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
+
+  def isVariable(s: String): Boolean = s.charAt(0).isUpper
+
+  def anyOfTheTwo[A](a: A, b: A) = if (randomGenerator.nextBoolean()) a else b
 
   def printState = {
     println("Predicates: " + predicates.mkString(","))
@@ -41,76 +43,76 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
 
   private val randomGenerator = new Random()
 
-  private var varNumber  = -1
+  private var varNumber = -1
   private var consNumber = -1
   private var funcNumber = -1
   private var predNumber = -1
 
-  def freshVar() : Var = {
+  def freshVar(): Var = {
     varNumber += 1
-    val v = Var("V-" + varNumber,i)
+    val v = Var("V-" + varNumber, i)
     variables += v
     v
   }
 
-  private val constants  : MSet[Var]        = MSet[Var]()
-  private val variables  : MSet[Var]        = MSet[Var]()
-  private val functions  : MMap[String,Int] = MMap[String,Int]()
-  private val predicates : MMap[String,Int] = MMap[String,Int]()
+  private val constants: MSet[Var] = MSet[Var]()
+  private val variables: MSet[Var] = MSet[Var]()
+  private val functions: MMap[String, Int] = MMap[String, Int]()
+  private val predicates: MMap[String, Int] = MMap[String, Int]()
 
   def getVariables() = variables.clone()
 
-  def generateContraction(conclusion : Sequent) : Sequent = {
-    def generateSubstitution(e : E) : Substitution = {
-      val substitution : MMap[Var,E] = MMap[Var,E]()
-      def addRepleacement(exp : E) : Unit =
+  def generateContraction(conclusion: Sequent): Sequent = {
+    def generateSubstitutionForContraction(e: E): Substitution = {
+      val substitution: MMap[Var, E] = MMap[Var, E]()
+      def addRepleacement(exp: E): Unit =
         exp match {
-          case FunctionTerm(_,args) => args foreach addRepleacement
-          case v @ Var(name,i)  =>
-            if(!isVariable(name) && !(substitution contains v))
+          case FunctionTerm(_, args) => args foreach addRepleacement
+          case v@Var(name, i) =>
+            if (!isVariable(name) && !(substitution contains v))
               substitution += (v -> freshVar())
         }
 
       e match {
-        case Atom(Var(_,_),args) => args foreach addRepleacement
+        case Atom(Var(_, _), args) => args foreach addRepleacement
       }
-      Substitution(substitution.toList :_*)
+      Substitution(substitution.toList: _*)
     }
 
-    if(isEmptyClause(conclusion))
+    if (isEmptyClause(conclusion))
       throw new IllegalArgumentException("Empty sequent as generateContraction method's parameter")
 
     val literals =
-      if(conclusion.ant.isEmpty) conclusion.suc
-      else if(conclusion.suc.isEmpty) conclusion.ant
-      else anyOfTheTwo(conclusion.ant,conclusion.suc)
+      if (conclusion.ant.isEmpty) conclusion.suc
+      else if (conclusion.suc.isEmpty) conclusion.ant
+      else anyOfTheTwo(conclusion.ant, conclusion.suc)
 
-    val literalToExpand : E = literals(randomGenerator.nextInt(literals.size))
+    val literalToExpand: E = literals(randomGenerator.nextInt(literals.size))
 
-    val substitution = generateSubstitution(literalToExpand)
+    val substitution = generateSubstitutionForContraction(literalToExpand)
 
-    if(literals == conclusion.ant)
-      substitution(literalToExpand) +: Sequent(conclusion.ant :_*)(conclusion.suc :_*)
+    if (literals == conclusion.ant)
+      substitution(literalToExpand) +: Sequent(conclusion.ant: _*)(conclusion.suc: _*)
     else
-      Sequent(conclusion.ant :_*)(conclusion.suc :_*) + substitution(literalToExpand)
+      Sequent(conclusion.ant: _*)(conclusion.suc: _*) + substitution(literalToExpand)
   }
 
-  private def randomFunctionArity()  : Int = {
+  private def randomFunctionArity(): Int = {
     val aritySeed = randomGenerator.nextInt(10)
-    if(0 <= aritySeed && aritySeed < 4) 1
-    else if(4 <= aritySeed && aritySeed < 9) 2
+    if (0 <= aritySeed && aritySeed < 4) 1
+    else if (4 <= aritySeed && aritySeed < 9) 2
     else 3
   }
 
-  private def randomPredicateArity() : Int = {
+  private def randomPredicateArity(): Int = {
     val aritySeed = randomGenerator.nextInt(10)
-    if(0 <= aritySeed && aritySeed < 3) 1
-    else if(3 <= aritySeed && aritySeed < 7) 2
-    else if(7 <= aritySeed && aritySeed < 9) 3
+    if (0 <= aritySeed && aritySeed < 3) 1
+    else if (3 <= aritySeed && aritySeed < 7) 2
+    else if (7 <= aritySeed && aritySeed < 9) 3
     else 4
   }
 
-  private def generateOneArgument() : E = {
+  private def generateOneArgument(): E = {
     def isVariable(t: Int) = 0 <= t && t <= 6
     def isConstant(t: Int) = 7 <= t && t <= 8
     val argumentType: Int = randomGenerator.nextInt(10)
@@ -122,16 +124,16 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
       Var("c" + randomGenerator.nextInt(numberOfConstants), i)
     else {
       val functionId = "f" + randomGenerator.nextInt(numberOfFunctions)
-      if(functions contains functionId)
-        FunctionTerm(functionId,generateArguments(functions(functionId)))
+      if (functions contains functionId)
+        FunctionTerm(functionId, generateArguments(functions(functionId)))
       else {
         functions += (functionId -> randomFunctionArity())
-        FunctionTerm(functionId,generateArguments(functions(functionId)))
+        FunctionTerm(functionId, generateArguments(functions(functionId)))
       }
     }
   }
 
-  private def generateArguments(amount : Int) : List[E] = {
+  private def generateArguments(amount: Int): List[E] = {
     require(amount >= 0)
     if (amount == 0) Nil
     else
@@ -139,44 +141,44 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
   }
 
 
-  def generateRandomLiteral() : E = {
-    val predicateId : String = "p" + randomGenerator.nextInt(numberOfPredicates)
-    if(predicates contains predicateId)
-      Atom(predicateId,generateArguments(predicates(predicateId)))
+  def generateRandomLiteral(): E = {
+    val predicateId: String = "p" + randomGenerator.nextInt(numberOfPredicates)
+    if (predicates contains predicateId)
+      Atom(predicateId, generateArguments(predicates(predicateId)))
     else {
       predicates += (predicateId -> randomPredicateArity())
-      Atom(predicateId,generateArguments(predicates(predicateId)))
+      Atom(predicateId, generateArguments(predicates(predicateId)))
     }
+  }
+
+
+  private def generateSubstitution(e : E) : Substitution = {
+    val substitution: MMap[Var, E] = MMap[Var, E]()
+    def addRepleacement(exp: E): Unit =
+      exp match {
+        case FunctionTerm(_, args) => args foreach addRepleacement
+        case v@Var(name, i) =>
+          if (!(substitution contains v) && randomGenerator.nextInt(10) < 7)
+            substitution += (v -> freshVar())
+      }
+
+    e match {
+      case Atom(Var(_,_),args) => args foreach addRepleacement
+    }
+    Substitution(substitution.toList :_*)
   }
 
   def generateResolution(conclusion : Sequent) : (Sequent,Sequent) = {
     def devideSequent(sequent: Sequent) : (Sequent,Sequent) =
-      if(isEmptyClause(conclusion))
+      if(isEmptyClause(sequent))
         (Sequent()(),Sequent()())
       else {
-        val antSeed : Int = if(conclusion.ant.isEmpty) 1 else conclusion.ant.size
-        val sucSeed : Int = if(conclusion.suc.isEmpty) 1 else conclusion.suc.size
+        val antSeed : Int = if(sequent.ant.isEmpty) 1 else sequent.ant.size
+        val sucSeed : Int = if(sequent.suc.isEmpty) 1 else sequent.suc.size
         val (leftAnt,rightAnt) = sequent.ant.toList.splitAt(randomGenerator.nextInt(antSeed))
         val (leftSuc,rightSuc) = sequent.suc.toList.splitAt(randomGenerator.nextInt(sucSeed))
         (Sequent(leftAnt:_*)(leftSuc:_*), Sequent(rightAnt:_*)(rightSuc:_*))
       }
-
-
-    def generateSubstitution(e : E) : Substitution = {
-      val substitution : MMap[Var,E] = MMap[Var,E]()
-      def addRepleacement(exp : E) : Unit =
-        exp match {
-          case FunctionTerm(_,args) => args foreach addRepleacement
-          case v @ Var(name,i)  =>
-            if(!(substitution contains v) && randomGenerator.nextInt(10) < 7)
-              substitution += (v -> freshVar())
-        }
-
-      e match {
-        case Atom(Var(_,_),args) => args foreach addRepleacement
-      }
-      Substitution(substitution.toList :_*)
-    }
 
     val (leftBaseSequent,rightBaseSequent) = devideSequent(conclusion)
     val newLiteral : E = generateRandomLiteral()
@@ -194,7 +196,16 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
   }
 
 
-  def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent) = ???
+  def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent,Sequent) = {
+    val newLiteral : E = generateRandomLiteral()
+    val newLiteral2 = generateSubstitution(newLiteral)(newLiteral)
+    val newLiteral3 = generateSubstitution(newLiteral)(newLiteral)
+
+    if(randomGenerator.nextBoolean())
+      (newLiteral +: leftParent, Sequent()() + newLiteral2, newLiteral3 +: rightParent)
+    else
+      (leftParent + newLiteral, newLiteral2 +: Sequent()(), rightParent + newLiteral3)
+  }
 
 
   /**
@@ -232,6 +243,17 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
       Contraction(generatePremises(height-1,premise),sequent)(variables)
     }
 
+    def irregularResolutionStep(sequent: Sequent, height : Int) : Node = {
+      val (left,right) = generateResolution(sequent)
+      val (leftGrand,common,rightGrand) = generateResolutionSharingPremise(left,right)
+      val commonNode     : Node = generatePremises(height - 1,common)
+      val leftGrandNode  : Node = generatePremises(height-1,leftGrand)
+      val rightGrandNode : Node = generatePremises(height-1,rightGrand)
+      val leftPremise    : Node = UnifyingResolution.resolve(leftGrandNode,commonNode,left,variables)
+      val rightPremise   : Node = UnifyingResolution.resolve(commonNode,rightGrandNode,right,variables)
+      UnifyingResolution.resolve(leftPremise,rightPremise,sequent,variables)
+    }
+
     def generatePremises(height : Int ,sequent : Sequent) : Node = {
       if(isEmptyClause(sequent))
         resolutionStep(sequent,height)
@@ -239,7 +261,10 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
           Axiom(sequent)
       else {
         if(randomGenerator.nextInt(100) < 95)
-          resolutionStep(sequent,height)
+          if(randomGenerator.nextInt(100) < 75)
+            resolutionStep(sequent,height)
+          else
+            irregularResolutionStep(sequent,height)
         else
           contractionStep(sequent,height)
       }
