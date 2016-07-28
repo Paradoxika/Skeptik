@@ -5,6 +5,7 @@ import at.logic.skeptik.expression.{E, Var}
 import at.logic.skeptik.judgment.immutable.SeqSequent
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.algorithm.prover._
+import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 
 import scala.collection.mutable
 

@@ -2,6 +2,7 @@ package at.logic.skeptik.algorithm.prover
 
 import at.logic.skeptik.algorithm.prover.choosing.{LiteralChooser, SimpleLiteralChooser}
 import at.logic.skeptik.algorithm.prover.conflict.{ConflictAnalyser, SimpleConflictAnalyser}
+import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 import at.logic.skeptik.algorithm.prover.util.DecisionLevel
 
 import scala.collection.mutable

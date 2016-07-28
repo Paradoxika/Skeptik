@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.prover.util
 
-import at.logic.skeptik.algorithm.prover.Literal
+import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 
 import scala.collection.mutable
 

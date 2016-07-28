@@ -1,5 +1,6 @@
 package at.logic.skeptik.algorithm.prover
 
+import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.{Abs, App, E, Var, i}
 import at.logic.skeptik.expression.substitution.immutable.Substitution
@@ -28,74 +29,80 @@ object CR {
 
   def isSatisfiable(cnf: CNF)(implicit variables: mutable.Set[Var]): Boolean = {
 
-    val levelClauses = mutable.Map.empty[Int, Seq[Clause]] // Shows level at which clause was resolved
-    val ancestor = mutable.Map.empty[Clause, mutable.Set[Clause]] // For each clause what initial (input) clauses produced it
-    val implicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Clause]]
-    val reverseImplicationGraph = mutable.Map.empty[Clause, ArrayBuffer[(Seq[Clause], Substitution)]]
-    val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Clause]] // Shows unifiable unit clauses for each literal
-    val clauses = mutable.Set(cnf.clauses: _*) // Just all clauses (for current moment)
-    clauses.foreach(clause => ancestor(clause) = mutable.Set(clause)) // Ancestor of initial clauses is exactly this clause
-    val literals = clauses.flatMap(_.literals)
-    literals.foreach(unifiableUnits(_) = mutable.Set.empty)
-    var level = 0
-    levelClauses(0) = cnf.clauses // Initial clauses have level 0
-    val decision = ArrayBuffer.empty[Clause]
-    val decisionInstantiations = mutable.Map.empty[Clause, mutable.Set[Substitution]]
-    val conflictClauses = mutable.Set.empty[Clause] // Clauses learned from conflicts
+    val depthLiterals = mutable.Map.empty[Int, Seq[Literal]] // Shows literals that were propagated at this depth
+    val ancestor = mutable.Map.empty[Literal, mutable.Set[Clause]] // For each literal what initial clauses produced it
+    val implicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Literal]] // For each clause (or literal) what literals was produced from it
+    val reverseImplicationGraph = mutable.Map.empty[Literal, ArrayBuffer[(Clause, Seq[Literal], Substitution)]] // For each literal what clause, literals and mgu were used to produce it
+    val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Literal]] // Shows unifiable literals for each literal
+    val literals = mutable.Set(cnf.clauses.flatMap(_.literals): _*) // All literals contained in propagated literals and initial clauses
+    val propagatedLiterals = mutable.Set.empty[Literal]
+    var depth = 0 // Current depth
+    val decision = ArrayBuffer.empty[Literal] // Literals, which were decided
+    val conflictClauses = mutable.Set.empty[Clause]
 
+    def allClauses: Seq[Clause] = cnf.clauses ++ conflictClauses
+
+    // Initial unit-clauses are considered as propagated
+    propagatedLiterals ++= cnf.clauses.filter(_.isUnit).map(_.literal)
+
+    /*
+     * Filling in the unifiableUnits structure: if there is some unit clauses from initial clauses, then we
+     * can use them to propagate something at step 1.
+     */
     for (literal <- literals) {
-      for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
-        unify((literal.unit, other.literal.unit) :: Nil) match {
-          case Some(_) => unifiableUnits(literal) += other
+      for (other <- allClauses) if (other.isUnit && other.literal.negated != literal.negated) {
+        unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
+          case Some(_) => unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other.literal
           case None =>
         }
       }
     }
 
-    def resolve(clause: Clause): Set[Clause] = {
-      val result = mutable.Set.empty[Clause]
+    /**
+      * Try to resolve given clause.
+      *
+      * @param clause initial non-unit clause
+      * @return Set of literals, which were propagated from given clause
+      */
+    def resolve(clause: Clause): Set[Literal] = {
+      val result = mutable.Set.empty[Literal]
       // For each literal in clause we fetch what unit clauses exists which can be resolved with this literal
       // e.g. unifyCandidates for Clause(!P(X), Q(a)) can be Seq(Seq(P(a), P(b), P(f(a))), Seq(!Q(X), !Q(a)))
       val unifyCandidates = clause.literals.map(unifiableUnits.getOrElseUpdate(_, mutable.Set.empty).toSeq)
-      if (unifyCandidates.length > 1) { // If this clause is not a unit clause
-        for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
-          val conclusion = clause.literals(conclusionId)
-          // All unifiers excluding that one for conclusion
-          val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
-          // All literals excluding conclusion
-          val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
-          for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
-            val unifierUnits = unifier.map(_.literal.unit)
-            val literalUnits = literals.map(_.unit)
-            unifyWithRename(literalUnits, unifierUnits) match {
-              // All unifiers should be unified with literals using one common mgu
-              case Some(mgu) =>
-                val newLiteral = (mgu(conclusion.unit), conclusion.negated)
-                val newClause = newLiteral.toClause
-                unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newClause)
-                reverseImplicationGraph.getOrElseUpdate(newClause, ArrayBuffer.empty) += ((unifier, mgu))
-                ancestor.getOrElseUpdate(newClause, mutable.Set.empty) ++=
-                  (Set.empty[Clause] /: (unifier :+ clause))(_ union ancestor(_))
-                (unifier :+ clause).filter(decision contains _).foreach {
-                  c => decisionInstantiations.getOrElseUpdate(c, mutable.Set.empty) += mgu
-                }
-                if (!clauses.contains(newClause)) {
-                  result += newClause
-                }
-              case None =>
-            }
+      for (conclusionId <- unifyCandidates.indices) {
+        // Id of literal which will be a conclusion
+        val conclusion = clause.literals(conclusionId)
+        // All unifiers excluding that one for conclusion
+        val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
+        // All literals excluding conclusion
+        val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
+        for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
+          val unifierUnits = unifier.map(_.unit)
+          val literalUnits = literals.map(_.unit)
+          unifyWithRename(literalUnits, unifierUnits) match {
+            // All unifiers should be unified with literals using one common mgu
+            case Some(mgu) =>
+              val newLiteral = Literal(mgu(conclusion.unit), conclusion.negated)
+              val newClause = newLiteral.toClause
+              unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newLiteral)
+              reverseImplicationGraph.getOrElseUpdate(newLiteral, ArrayBuffer.empty) += ((clause, unifier, mgu))
+              ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
+                (Set.empty[Clause] /: unifier)(_ union ancestor(_)) + clause
+              if (!result.contains(newLiteral) && !propagatedLiterals.contains(newLiteral)) {
+                result += newLiteral
+              }
+            case None =>
           }
         }
       }
       result.toSet
     }
 
-    def updateClauses(result: Traversable[Clause]) = {
-      clauses ++= result
-      literals ++= result.flatMap(_.literals)
+    def updateClauses(result: Traversable[Literal]) = {
+      literals ++= result
       for (literal <- literals) {
-        for (other <- result) if (other.isUnit && other.literal.negated != literal.negated) {
-          unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
+        for (other <- result) if (other.negated != literal.negated) {
+          unifyWithRename(Seq(literal.unit), Seq(other.unit)) match {
             case Some(_) =>
               unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other
             case None =>
@@ -163,33 +170,40 @@ object CR {
       }
     }
 
+    /**
+      * Resets system to initial state and add `newClause` as
+      * conflict driven clause.
+      *
+      * @param newClause clause to be added as conflict
+      */
     def reset(newClause: Clause): Unit = {
-      conflictClauses += newClause
-      level = 0
-      levelClauses.clear()
+      depth = 0
+      depthLiterals.clear()
       ancestor.clear()
       unifiableUnits.clear()
-      clauses.clear()
-      clauses ++= cnf.clauses ++ conflictClauses
-      cnf.clauses.foreach(clause => ancestor(clause) = mutable.Set(clause))
-      conflictClauses.foreach(clause => ancestor(clause) = mutable.Set.empty)
       literals.clear()
-      literals ++= clauses.flatMap(_.literals)
+      literals ++= cnf.clauses.flatMap(_.literals)
       literals.foreach(unifiableUnits(_) = mutable.Set.empty)
-      levelClauses(0) = cnf.clauses ++ conflictClauses
       decision.clear()
-      decisionInstantiations.clear()
 
       for (literal <- literals) {
-        for (other <- clauses) if (other.isUnit && other.literal.negated != literal.negated) {
+        for (other <- allClauses) if (other.isUnit && other.literal.negated != literal.negated) {
           unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
-            case Some(_) => unifiableUnits(literal) += other
+            case Some(_) => unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other.literal
             case None =>
           }
         }
       }
     }
 
+    /**
+      * Pairwise unification (zipped) with renaming of mutual variables.
+      *
+      * @param left expressions to be unified.
+      * @param right expression to be unified
+      * @return Some(sub) if there is a substitution `sub` which unifies .
+      *         None if there is no substitution.
+      */
     def unifyWithRename(left: Seq[E], right: Seq[E]): Option[Substitution] = {
       val unificationProblem = renameVars(left, right).zip(right)
       unify(unificationProblem)
@@ -204,122 +218,61 @@ object CR {
     while (!finished) {
       Breaks.breakable {
         while (true) {
-          val result = ArrayBuffer.empty[Clause] // New clauses, which will be added to `clauses` after this iteration
-          for (lastLevelClause <- levelClauses(level)) {
-            result ++= resolve(lastLevelClause) // Try to resolve last-level clauses with some other clauses
+          val result = ArrayBuffer.empty[Literal] // New literals, which are propagated on this step
+          for (clause <- allClauses) {
+            result ++= resolve(clause) // Try to resolve initial clause with some other clauses
           }
-          val satisfied = cnf.clauses.filter(_.literals.exists(lit => // If there is a literal in clause, which is
-            (clauses contains lit.toClause) || (result contains lit.toClause))) // contained either in `clauses` or `result`
+
+          // If there is a literal in clause, which is contained either in `clauses` or `result`
+          def satisfied = cnf.clauses.filter(_.literals.exists(lit => result contains lit)) // FIXME: should unify
+
           var usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
           while (usedAncestors.size != cnf.clauses.size) {
             // If at least one ancestor wasn't used
-            val notUsedAncestors = mutable.Set((cnf.clauses.toSet diff usedAncestors).toSeq: _*)
-            // We need clauses from last level which have unused ancestor
-            val interestingClauses = Random.shuffle(levelClauses(level).filter {
-                clause => (ancestor(clause) intersect notUsedAncestors).nonEmpty
-              })
+            val notUsedAncestors = Random.shuffle(cnf.clauses.toSet diff usedAncestors)
 
-            interestingClauses.headOption match {
-              case Some(clause) =>
-                // We are trying to unify `clause`, so BFS-resolution proceed with this clause.
-                // So we retrieve all possible candidates for unifying of each literal and also add this
-                // negated literal (we will make appropriate decision to justify this) so we can always choose
-                // at least one candidate for resolution.
-                val unifyCandidates = clause.literals.map(lit => unifiableUnits(lit).toSeq :+ (!lit).toClause)
-                var bestDecision = literals.toBuffer // Represents best (by some measure) set of literals which should
-                                                     // be decided to resolve this clause.
-                for (conclusionId <- unifyCandidates.indices) { // Id of literal which will be a conclusion
-                  // All unifiers excluding that one for conclusion
-                  val unifiers = unifyCandidates.take(conclusionId) ++ unifyCandidates.drop(conclusionId + 1)
-                  // All literals excluding conclusion
-                  val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
-                  for (unifier <- Random.shuffle(combinations(unifiers))) { // Try every combination of unifiers
-                    val unifierUnits = unifier.map(_.literal.unit)
-                    val literalUnits = literals.map(_.unit)
-                    unifyWithRename(literals.map(_.unit), unifierUnits) match {
-                      // All unifiers should be unified with literals using one common mgu
-                      case Some(mgu) =>
-                        val shouldDecide = unifier.filterNot(clauses contains).flatMap(_.literals)
-                        if (bestDecision.size >= shouldDecide.size) {
-                          bestDecision = shouldDecide.toBuffer
-                        }
-                      case None =>
-                    }
-                  }
-                }
-                bestDecision.foreach(literal => {
-                  decision += literal.toClause
-                  clauses += literal.toClause
-                  literals += literal
-                  ancestor(literal.toClause) = mutable.Set.empty
-                })
-                // FIXME: move this to a separate method
-                for (literal <- literals) {
-                  for (otherLiteral <- bestDecision) if (otherLiteral.negated != literal.negated) {
-                    unifyWithRename(Seq(literal.unit), Seq(otherLiteral.unit)) match {
-                      case Some(_) =>
-                        unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += otherLiteral.toClause
-                      case None =>
-                    }
-                  }
-                }
-                result ++= resolve(clause) // Resolve this clauses after making necessary decisions
-                updateClauses(result)
-                for (lastLevelClause <- levelClauses(level)) {
-                  result ++= resolve(lastLevelClause)
-                }
-                updateClauses(result)
-                usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _)
-                if (clauses exists { clause => clause.isUnit && unifiableUnits.getOrElseUpdate(clause.literal, mutable.Set.empty).nonEmpty }) {
-                  val instances = decision.flatMap(d => decisionInstantiations.getOrElse(d, mutable.Set.empty).map {
-                    sub => (sub(d.literal.unit), !d.literal.negated)
-                  })
-                  val mostGeneralInstances = mutable.Set.empty[Literal]
-                  val satisfiedInstances = mutable.Set.empty[Literal]
-                  for (inst <- instances) {
-                    if (!satisfiedInstances.contains(inst)) {
-                      val unifiable = instances.filter(other => inst.negated == other.negated && isUnifiable(inst.unit, other.unit))
-                      satisfiedInstances ++= unifiable
-                      mostGeneralInstances += unifiable.sortBy(u => u.unit.logicalSize - unifiableVars(u.unit).size).head
-                    }
-                  }
-
-                  val newClause = mostGeneralInstances.toSequent
-                  println(s"Derived $newClause")
-
-                  reset(newClause)
-                  Breaks.break()
-                }
-              case None =>
-                throw new IllegalStateException("Not all ancestors are used, but there is no 'interesting' clauses")
-            }
+            val clause = notUsedAncestors.head
+            // We are trying to unify `clause`, so BFS-resolution proceed with this clause.
+            // So we retrieve all possible candidates for unifying of each literal and also add this
+            // negated literal (we will make appropriate decision to justify this) so we can always choose
+            // at least one candidate for resolution.
+            val decisionLiteral = Random.shuffle(clause.literals).head
+            decision += decisionLiteral
+            ancestor(decisionLiteral) = mutable.Set.empty
+            result += decisionLiteral
+            usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
           }
-          level += 1
+          println(s"Decided $decision and resolved $result")
+          depth += 1
           updateClauses(result)
-          levelClauses(level) = result
+          depthLiterals(depth) = result
+          propagatedLiterals ++= result
 
 
-          if (clauses contains Clause.empty) {
-            if (decision.isEmpty) return false
+          propagatedLiterals.find(unifiableUnits(_).nonEmpty) match {
+            case Some(conflictLiteral) =>
+              if (decision.isEmpty) return false
 
-            def findConflictClause(current: Clause, substitution: Substitution = Substitution.empty): Clause = {
-              if (reverseImplicationGraph contains current) {
-                val conflictClauses = for ((unifier, mgu) <- reverseImplicationGraph(current))
-                  yield unifier.map(findConflictClause(_, substitution ++ mgu)).fold(Clause.empty)(_ union _)
-                conflictClauses.sortBy(_.width).head
-              } else {
-                if (decision contains current) {
-                  (substitution(current.literal.unit), current.literal.negated).toClause
+              def findConflictClause(current: Literal, substitution: Substitution = Substitution.empty): Clause = {
+                if (reverseImplicationGraph contains current) {
+                  val conflictClauses = for ((_, unifier, mgu) <- reverseImplicationGraph(current))
+                    yield unifier.map(findConflictClause(_, substitution ++ mgu)).fold(Clause.empty)(_ union _)
+                  conflictClauses.sortBy(_.width).head
                 } else {
-                  Clause.empty
+                  if (decision contains current) {
+                    substitution(current)
+                  } else {
+                    Clause.empty
+                  }
                 }
               }
-            }
 
-            val newClause = findConflictClause(Clause.empty)
-            println(s"Derived $newClause")
-            reset(newClause)
-            Breaks.break()
+              val newClause = findConflictClause(conflictLiteral) union
+                findConflictClause(unifiableUnits(conflictLiteral).head)
+              if (newClause == Clause.empty) return false
+              reset(newClause)
+              Breaks.break()
+            case None =>
           }
 
           if (result.isEmpty) {

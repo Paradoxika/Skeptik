@@ -1,6 +1,7 @@
 package at.logic.skeptik.algorithm.prover.structure.mutable
 
 import at.logic.skeptik.algorithm.prover._
+import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer

@@ -1,6 +1,8 @@
 package at.logic.skeptik.expression
 package substitution
 
+import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
+
 //ToDo: (B) Take care of bound variable renaming, in order to avoid variable capture. 
 abstract class AbstractSubstitution {
   protected def m: Map[Var,E]
@@ -14,4 +16,6 @@ abstract class AbstractSubstitution {
     }
     rec(e, Set())
   }
+
+  def apply(literal: Literal): Literal = Literal(apply(literal.unit), literal.negated)
 }
