@@ -1,8 +1,13 @@
 package at.logic.skeptik.algorithm.FOProofsGenerator
 
+import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
 import at.logic.skeptik.expression.{App, Var, i, o}
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
+import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
+import collection.mutable.{Set => MSet}
+
+import at.logic.skeptik.proof.Proof
 
 
 /**
@@ -12,7 +17,19 @@ object ProofGeneratorTests {
   def main(arfs : Array[String]) = {
     //safeSymbolsTest()
     //testContraction()
-    randomLiteralTest()
+    //randomLiteralTest()
+    //for(i <- 1 to 10)
+    //  generateResolutionTest()
+    val (proof,vars) = proofGenerationTest(6)
+    val timeout = 1
+    val cottonSplit = new FOCottonSplit(vars, timeout)
+    val compressedProof = cottonSplit(proof)
+    if(proof.size > compressedProof.size) {
+      println(proof)
+      println("\n\n")
+      println(compressedProof)
+    }
+
   }
 
   def testContraction() = {
@@ -33,6 +50,21 @@ object ProofGeneratorTests {
   def randomLiteralTest() = {
     val generator = new ProofGenerator(10)
     println(generator.generateRandomLiteral())
+  }
+
+  def generateResolutionTest() = {
+    val generator = new ProofGenerator(10)
+    println(generator.generateResolution(Sequent()()))
+    println("")
+  }
+
+  def proofGenerationTest(proofHeight : Int) : (Proof[Node],MSet[Var]) = {
+    val generator = new ProofGenerator(proofHeight)
+    try {
+      (generator.generateProof(),generator.getVariables())
+    } catch {
+      case e : Exception => proofGenerationTest(proofHeight)
+    }
   }
 
 }
