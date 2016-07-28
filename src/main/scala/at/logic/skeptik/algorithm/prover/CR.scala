@@ -43,16 +43,21 @@ object CR {
     def allClauses: Seq[Clause] = cnf.clauses ++ conflictClauses
 
     // Initial unit-clauses are considered as propagated
-    propagatedLiterals ++= cnf.clauses.filter(_.isUnit).map(_.literal)
+    {
+      val unitClauses = allClauses.filter(_.isUnit).map(_.literal)
+      propagatedLiterals ++= unitClauses
+      unitClauses.foreach(literal => ancestor.getOrElseUpdate(literal, mutable.Set.empty) += literal.toClause)
+    }
 
     /*
      * Filling in the unifiableUnits structure: if there is some unit clauses from initial clauses, then we
      * can use them to propagate something at step 1.
      */
+    literals.foreach(unifiableUnits(_) = mutable.Set.empty)
     for (literal <- literals) {
       for (other <- allClauses) if (other.isUnit && other.literal.negated != literal.negated) {
         unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
-          case Some(_) => unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other.literal
+          case Some(_) => unifiableUnits(literal) += other.literal
           case None =>
         }
       }
@@ -100,11 +105,11 @@ object CR {
 
     def updateClauses(result: Traversable[Literal]) = {
       literals ++= result
+      result.foreach(unifiableUnits(_) = mutable.Set.empty)
       for (literal <- literals) {
         for (other <- result) if (other.negated != literal.negated) {
           unifyWithRename(Seq(literal.unit), Seq(other.unit)) match {
-            case Some(_) =>
-              unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other
+            case Some(_) => unifiableUnits(literal) += other
             case None =>
           }
         }
@@ -177,22 +182,30 @@ object CR {
       * @param newClause clause to be added as conflict
       */
     def reset(newClause: Clause): Unit = {
+      conflictClauses += newClause
       depth = 0
       depthLiterals.clear()
       ancestor.clear()
       unifiableUnits.clear()
       literals.clear()
-      literals ++= cnf.clauses.flatMap(_.literals)
-      literals.foreach(unifiableUnits(_) = mutable.Set.empty)
+      literals ++= allClauses.flatMap(_.literals)
+      propagatedLiterals.clear()
       decision.clear()
 
+      literals.foreach(unifiableUnits(_) = mutable.Set.empty)
       for (literal <- literals) {
         for (other <- allClauses) if (other.isUnit && other.literal.negated != literal.negated) {
           unifyWithRename(Seq(literal.unit), Seq(other.literal.unit)) match {
-            case Some(_) => unifiableUnits.getOrElseUpdate(literal, mutable.Set.empty) += other.literal
+            case Some(_) => unifiableUnits(literal) += other.literal
             case None =>
           }
         }
+      }
+
+      {
+        val unitClauses = allClauses.filter(_.isUnit).map(_.literal)
+        propagatedLiterals ++= unitClauses
+        unitClauses.foreach(literal => ancestor.getOrElseUpdate(literal, mutable.Set.empty) += literal.toClause)
       }
     }
 
@@ -220,14 +233,14 @@ object CR {
         while (true) {
           val result = ArrayBuffer.empty[Literal] // New literals, which are propagated on this step
           for (clause <- allClauses) {
-            result ++= resolve(clause) // Try to resolve initial clause with some other clauses
+            result ++= resolve(clause) // Try to resolve all clause with some other clauses
           }
 
           // If there is a literal in clause, which is contained either in `clauses` or `result`
-          def satisfied = cnf.clauses.filter(_.literals.exists(lit => result contains lit)) // FIXME: should unify
+          def satisfied = cnf.clauses.filter(_.literals.exists(lit => (propagatedLiterals contains lit) || (result contains lit))) // FIXME: should unify
 
           var usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
-          while (usedAncestors.size != cnf.clauses.size) {
+          while (usedAncestors.size != cnf.clauses.toSet.size) {
             // If at least one ancestor wasn't used
             val notUsedAncestors = Random.shuffle(cnf.clauses.toSet diff usedAncestors)
 
@@ -251,6 +264,8 @@ object CR {
 
           propagatedLiterals.find(unifiableUnits(_).nonEmpty) match {
             case Some(conflictLiteral) =>
+              val otherLiteral = unifiableUnits(conflictLiteral).head
+              println(s"There is a conflict from $conflictLiteral and $otherLiteral")
               if (decision.isEmpty) return false
 
               def findConflictClause(current: Literal, substitution: Substitution = Substitution.empty): Clause = {
@@ -260,15 +275,17 @@ object CR {
                   conflictClauses.sortBy(_.width).head
                 } else {
                   if (decision contains current) {
-                    substitution(current)
+                    !substitution(current)
                   } else {
                     Clause.empty
                   }
                 }
               }
 
-              val newClause = findConflictClause(conflictLiteral) union
-                findConflictClause(unifiableUnits(conflictLiteral).head)
+              println(s"Conflict clause from $conflictLiteral is ${findConflictClause(conflictLiteral)}")
+              println(s"Conflict clause from $otherLiteral is ${findConflictClause(otherLiteral)}")
+              val newClause = findConflictClause(conflictLiteral) union findConflictClause(otherLiteral)
+              println(s"Derived $newClause")
               if (newClause == Clause.empty) return false
               reset(newClause)
               Breaks.break()
