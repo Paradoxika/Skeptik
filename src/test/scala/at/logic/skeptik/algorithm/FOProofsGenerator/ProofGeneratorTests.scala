@@ -65,7 +65,7 @@ object ProofGeneratorTests {
       (generator.generateProof(),generator.getVariables())
     } catch {
       case e : Exception =>
-        println("FAIL")
+        println("FAIL\n" + e + "\n")
         proofGenerationTest(proofHeight)
     }
   }

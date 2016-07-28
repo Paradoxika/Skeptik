@@ -519,8 +519,8 @@ def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: Sequen
 			rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution = null)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
 		if (pairs.length == 0) {
-			println("Desired: " + desired +"\nleftPremise: " + leftPremise + "\nrightPremise: " + rightPremise)
-			throw new Exception("Resolution: Cannot find desired resolvent")
+			//println("Resolution: Cannot find desired resolvent\nDesired: " + desired +"\nleftPremise: " + leftPremise + "\nrightPremise: " + rightPremise)
+			throw new Exception("Resolution: Cannot find desired resolvent\nDesired: " + desired +"\nleftPremise: " + leftPremise + "\nrightPremise: " + rightPremise)
 		} else {
 
 			val (auxL, auxR) = pairs(0)
