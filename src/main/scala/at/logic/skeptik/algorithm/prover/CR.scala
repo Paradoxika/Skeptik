@@ -179,10 +179,10 @@ object CR {
       * Resets system to initial state and add `newClause` as
       * conflict driven clause.
       *
-      * @param newClause clause to be added as conflict
+      * @param newClauses clauses to be added as conflict
       */
-    def reset(newClause: Clause): Unit = {
-      conflictClauses += newClause
+    def reset(newClauses: Traversable[Clause]): Unit = {
+      conflictClauses ++= newClauses
       depth = 0
       depthLiterals.clear()
       ancestor.clear()
@@ -259,38 +259,41 @@ object CR {
           depthLiterals(depth) = result
           propagatedLiterals ++= result
 
+          val newClauses = ArrayBuffer.empty[Clause]
+          propagatedLiterals.filter(unifiableUnits(_).nonEmpty).foreach { conflictLiteral =>
+            val otherLiteral = unifiableUnits(conflictLiteral).head
+            println(s"There is a conflict from $conflictLiteral and $otherLiteral")
+            if (decision.isEmpty) return false
 
-          propagatedLiterals.find(unifiableUnits(_).nonEmpty) match {
-            case Some(conflictLiteral) =>
-              val otherLiteral = unifiableUnits(conflictLiteral).head
-              println(s"There is a conflict from $conflictLiteral and $otherLiteral")
-              if (decision.isEmpty) return false
-
-              def findConflictClause(current: Literal, substitution: Substitution = Substitution.empty): Clause = {
-                if (allClauses contains current.toClause) {
-                  Clause.empty
-                } else if (decision contains current) {
-                  !substitution(current)
-                } else if (reverseImplicationGraph contains current) {
-                  val conflictClauses = for ((_, unifier, mgu) <- reverseImplicationGraph(current))
-                    yield unifier.map(findConflictClause(_, mgu)).fold(Clause.empty)(_ union _)
-                  conflictClauses.toSeq.sortBy(_.width).head
-                } else {
-                  throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
-                }
+            def findConflictClause(current: Literal, substitution: Substitution = Substitution.empty): Clause = {
+              if (allClauses contains current.toClause) {
+                Clause.empty
+              } else if (decision contains current) {
+                !substitution(current)
+              } else if (reverseImplicationGraph contains current) {
+                val conflictClauses = for ((_, unifier, mgu) <- reverseImplicationGraph(current))
+                  yield unifier.map(findConflictClause(_, mgu)).fold(Clause.empty)(_ union _)
+                conflictClauses.toSeq.sortBy(_.width).head
+              } else {
+                throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
               }
+            }
 
-              val mgu = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
-              val conflictClauseLeft = findConflictClause(conflictLiteral, mgu)
-              val conflictClauseRight = findConflictClause(otherLiteral, mgu)
-              println(s"Conflict clause from $conflictLiteral is $conflictClauseLeft")
-              println(s"Conflict clause from $otherLiteral is $conflictClauseRight")
-              val newClause = conflictClauseLeft union conflictClauseRight
-              println(s"Derived $newClause")
-              if (newClause == Clause.empty) return false
-              reset(newClause)
-              Breaks.break()
-            case None =>
+            val mgu = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
+            val conflictClauseLeft = findConflictClause(conflictLiteral, mgu)
+            val conflictClauseRight = findConflictClause(otherLiteral, mgu)
+
+            println(s"Conflict clause from $conflictLiteral is $conflictClauseLeft")
+            println(s"Conflict clause from $otherLiteral is $conflictClauseRight")
+            val newClause = conflictClauseLeft union conflictClauseRight
+            println(s"Derived $newClause")
+            if (newClause == Clause.empty) return false
+            newClauses += newClause
+          }
+
+          if (newClauses.nonEmpty) {
+            reset(newClauses)
+            Breaks.break()
           }
 
           if (result.isEmpty) {
