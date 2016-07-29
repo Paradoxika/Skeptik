@@ -403,7 +403,7 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   def areAlphaEq(a: E, b: E)(implicit unifiableVariables: MSet[Var]): Boolean = {
-    checkHelperAlphaManual(Seq[E](a), Seq[E](b))
+    findRenaming(Sequent(a)(), Sequent(b)()) != null
   }
 
   def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): (List[E], Substitution) = {
@@ -519,7 +519,7 @@ trait FOCollectEdgesUsingSafeLiterals
   protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
 
     def desiredIsContained(computed: Sequent, desired: Sequent): Boolean = {
-      if (checkIfConclusionsAreEqual(computed,desired)) {
+      if (checkIfConclusionsAreEqual(computed, desired)) {
         return true
       } else {
         val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
@@ -544,7 +544,7 @@ trait FOCollectEdgesUsingSafeLiterals
     def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
     def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
 
-    desiredIsContained(safeClean.conclusion, seqToDelete)//(allvarsC)
+    desiredIsContained(safeClean.conclusion, seqToDelete)
 
   }
 

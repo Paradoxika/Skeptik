@@ -85,7 +85,6 @@ object FOLowerUnits
     } else {
       Substitution()
     }
-    
 
     if (u.conclusion.ant.size > 0) {
       cleanMGU(node.asInstanceOf[UnifyingResolution].auxL)
@@ -421,12 +420,11 @@ object FOLowerUnits
     (olderA, olderB)
   }
 
-  
   def getNewFixedNode(fixedNode: SequentProofNode, oldNode: SequentProofNode, oldSub: Substitution, vars: MSet[Var]): SequentProofNode = {
     val out = fixedNode match {
       case Axiom(c) if (oldNode != null && !fixedNode.equals(oldNode)) => {
-        val foSub = new FOSubstitution(fixedNode, oldSub)(vars)        
-        if (checkIfConclusionsAreEqual(foSub, fixedNode)){
+        val foSub = new FOSubstitution(fixedNode, oldSub)(vars)
+        if (checkIfConclusionsAreEqual(foSub, fixedNode)) {
           fixedNode
         } else {
           foSub
@@ -434,11 +432,11 @@ object FOLowerUnits
       }
       case _ if (oldNode != null && !fixedNode.equals(oldNode)) => {
         val foSub = new FOSubstitution(fixedNode, oldSub)(vars)
-        if (checkIfConclusionsAreEqual(foSub, fixedNode)){
+        if (checkIfConclusionsAreEqual(foSub, fixedNode)) {
           fixedNode
         } else {
           foSub
-        }        
+        }
       }
       case _ => {
         fixedNode
@@ -883,11 +881,11 @@ object FOLowerUnits
       node
     } else {
       val newNode = new FOSubstitution(node, subs.head)(vars)
-        if (checkIfConclusionsAreEqual(newNode, node)){
-          node
-        } else {
-          newNode
-        }       
+      if (checkIfConclusionsAreEqual(newNode, node)) {
+        node
+      } else {
+        newNode
+      }
       applySubs(newNode, subs.tail, vars)
     }
   }

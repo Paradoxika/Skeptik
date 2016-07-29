@@ -454,7 +454,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def checkInvalidMap(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): Boolean = {
-      return checkInvalidMapAndReturnSub(m, vars, computed, desired) != null
+    return checkInvalidMapAndReturnSub(m, vars, computed, desired) != null
   }
 
   def convertTypes(in: List[(E, E)]): List[(Var, E)] = {
@@ -510,6 +510,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     map
   }
 
+  //Assumes no pair (Var,E) in s such that E is not a Var
   def checkSubstitutions(s: Substitution): Boolean = {
     for (e <- s.values) {
       e match {
@@ -538,42 +539,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       }
     }
     v
-  }
-
-  def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
-    if (computed.size != desired.size) {
-      return false
-    } else if (computed.size == 0 && desired.size == 0) {
-      return true
-    }
-
-    for (f <- computed) {
-
-      for (g <- desired) {
-        val u = unify((f, g) :: Nil)
-        u match {
-          case Some(s) => {
-            if (checkSubstitutions(s)) {
-              //add current subs to this (not checkSubs is used above! modify with care)
-              return checkHelperAlphaManual(computed.filter(!_.equals(f)), desired.filter(!_.equals(g)))
-            }
-          }
-          case None => {
-          }
-        }
-      }
-
-    }
-    false
-  }
-
-  def checkHalf(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {
-    //july 28
-    //    if (computed.size == desired.size) {
-    checkHelperAlphaManual(computed, desired)
-    //    } else {
-    //      false
-    //    }
   }
 
   def invertSub(s: Substitution): Substitution = {
@@ -743,12 +708,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
           val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
           val intersectedMap = intersectMaps(antMap, sucMap)
           if (!validMap(intersectedMap, commonVars)) {
-            return false
-          }
-          if (checkHalf(computed.ant.distinct, desired.ant.distinct)(unifiableVars)) {
-            if (checkHalf(computed.suc.distinct, desired.suc.distinct)(unifiableVars)) {
-              return true
-            }
+            return checkInvalidMap(intersectedMap, commonVars, computed, desired) //false
+          } else {
+            return true
           }
         }
         false
