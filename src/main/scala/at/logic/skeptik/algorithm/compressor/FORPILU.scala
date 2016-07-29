@@ -519,7 +519,7 @@ trait FOCollectEdgesUsingSafeLiterals
   protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
 
     def desiredIsContained(computed: Sequent, desired: Sequent): Boolean = {
-      if (computed == desired) {
+      if (checkIfConclusionsAreEqual(computed,desired)) {
         return true
       } else {
         val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)

@@ -79,10 +79,8 @@ object FOLowerUnits
 
     val cleanMGU = if (!node.asInstanceOf[UnifyingResolution].leftPremise.equals(u)) {
       val newVars = vars union getSetOfVars(node.asInstanceOf[UnifyingResolution].leftClean)
-      println("Adasdasd " + node.asInstanceOf[UnifyingResolution].leftClean.conclusion + " " + node.asInstanceOf[UnifyingResolution].leftPremise.conclusion )
       val cmgu = findRenaming(node.asInstanceOf[UnifyingResolution].leftClean.conclusion,
         node.asInstanceOf[UnifyingResolution].leftPremise.conclusion)(newVars)
-      println("CLEAN MGU: " + cmgu)
       cmgu
     } else {
       Substitution()
@@ -221,7 +219,6 @@ object FOLowerUnits
       proof.childrenOf.get(node).get
     } else {
       for (n <- proof) {
-        println("C")
         if (findRenaming(n.conclusion, node.conclusion)(vars) != null) {
           return proof.childrenOf.get(n).get
         }
@@ -352,7 +349,6 @@ object FOLowerUnits
             case e: Exception => {
               if (e.getMessage != null) {
                 if (e.getMessage.equals("Resolution (MRR): the resolvent is ambiguous.")) {
-                  println("A")
                   if (findRenaming(fixedLeft.conclusion, left.conclusion)(vars) != null &&
                     findRenaming(fixedRight.conclusion, right.conclusion)(vars) != null) {
                     return UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
@@ -425,16 +421,10 @@ object FOLowerUnits
     (olderA, olderB)
   }
 
-  def checkIfConclusionsAreEqual(x: SequentProofNode, y: SequentProofNode): Boolean = {
-        val a = y.conclusion.ant.toSet.subsetOf(x.conclusion.ant.toSet) && y.conclusion.suc.toSet.subsetOf(x.conclusion.suc.toSet)
-        val b = x.conclusion.ant.toSet.subsetOf(y.conclusion.ant.toSet) && x.conclusion.suc.toSet.subsetOf(y.conclusion.suc.toSet)
-        return a && b
-  }
   
   def getNewFixedNode(fixedNode: SequentProofNode, oldNode: SequentProofNode, oldSub: Substitution, vars: MSet[Var]): SequentProofNode = {
     val out = fixedNode match {
       case Axiom(c) if (oldNode != null && !fixedNode.equals(oldNode)) => {
-        println("making FOSUB?? a" + new FOSubstitution(fixedNode, oldSub)(vars))
         val foSub = new FOSubstitution(fixedNode, oldSub)(vars)        
         if (checkIfConclusionsAreEqual(foSub, fixedNode)){
           fixedNode
@@ -443,7 +433,6 @@ object FOLowerUnits
         }
       }
       case _ if (oldNode != null && !fixedNode.equals(oldNode)) => {
-        println("making FOSUB?? b " + new FOSubstitution(fixedNode, oldSub)(vars))
         val foSub = new FOSubstitution(fixedNode, oldSub)(vars)
         if (checkIfConclusionsAreEqual(foSub, fixedNode)){
           fixedNode
@@ -552,11 +541,9 @@ object FOLowerUnits
     val mergedCarry = unionSequents(stuff._3, stuff._4)
 
     val cleanMGU = if (newGoalIfDesperate == null) {
-      println("D")
       findRenaming(newGoalD, out.conclusion)(vars)
 
     } else {
-      println("E")
       findRenaming(newGoalIfDesperate, out.conclusion)(vars)
 
     }
@@ -612,7 +599,6 @@ object FOLowerUnits
     val mergedCarry = unionSequents(finalUpdatedCarryB, finalUpdatedCarryA)
 
     val testCarry = getCarry(mergedCarry)
-    println("nasdasd")
     val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
     val fixedCarry = updateCarry(testCarry, renamingBackward)
 
@@ -690,7 +676,6 @@ object FOLowerUnits
           val out = UnifyingResolutionMRR(contractedNewLeft, contractedNewRight, newGoalD)(vars)
 
           val mergedCarry = unionSequents(stuff._3, stuff._4)
-          println("B")
           val cleanMGU = findRenaming(newGoalD, out.conclusion)(vars)
           val testCarry = getCarry(mergedCarry)
 
@@ -897,7 +882,6 @@ object FOLowerUnits
     if (subs.size < 1) {
       node
     } else {
-      println("making FOSUB?? aaa" + new FOSubstitution(node, subs.head)(vars))
       val newNode = new FOSubstitution(node, subs.head)(vars)
         if (checkIfConclusionsAreEqual(newNode, node)){
           node

@@ -522,23 +522,11 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   
   
   println("OUTPUT OF INTEREST -------------")
-//  println("l: " + leftNodeD)
-//  println("r: " + rightNodeD)
-//  println("d: " + desiredE)
-//  //UnifyingResolution(leftNodeD, rightNodeD, desiredE)(usedVars)
-//  //UnifyingResolution(rightNodeD, leftNodeD, desiredE)(usedVars)
-  println("--------------")
-  println(FDSpairsC)
-      println("DISIRED: " + FDSdesiredC)
-          println(FDSleftC)
-              println(FDSrightC)
-  println(FDSleftCleanC)
-  println("FDSresultC: (actual found sequent) " + FDSresultC)
-  println("FDSexpectedC: (what a good function would return; should be a renaming of DESIRED) " + FDSexpectedC)
-  println("--------------")
-  tester.findDesiredSequent(FDSpairsC, FDSdesiredC, FDSleftC, FDSrightC, FDSleftCleanC, false)(usedVars)
+  println("7a: " + findSeqTest7A)
+  println("7b: " + findSeqTest7B)
+  val out = tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars)
+  println("out: " + out)
   println("^^^^^^^^^^^^^^^^^^^^^")
-      println("lasts?? " + rename1expectedc + " --- " +rename1outc + " " + rename1cFinal)
   
   "CanRenameVariables" should {
     "not worry about shared variables if one node is empty" in {

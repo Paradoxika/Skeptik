@@ -76,7 +76,7 @@ class FORPILUSpecification extends SpecificationWithJUnit with  checkProofEquali
   println("-----")
      println("-----FROM HERE")
      try{
-  println("Testing proof: \n" + FORecyclePivotsWithIntersection(proofb))
+  println("Testing proof: \n" + FORecyclePivotsWithIntersection(proof2d))
      } catch {
        case _ => {
          println("error")

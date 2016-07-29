@@ -273,7 +273,7 @@ trait checkProofEquality extends FindDesiredSequent {
     if (findRenaming(nodes.head.conclusion, seqs.head)(vars) != null) {
       return checkSequents(nodes.tail, seqs.tail)
     } else {
-      println("desired not found " + nodes.head.conclusion + " AND " + seqs.head)
+      println("desired not found " + nodes.head.conclusion + " AND " + seqs.head + " " + vars)
       false
     }
   }
