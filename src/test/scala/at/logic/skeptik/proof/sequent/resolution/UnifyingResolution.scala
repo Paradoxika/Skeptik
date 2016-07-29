@@ -289,8 +289,10 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val rename1rightc = Axiom(Sequent(App(Var("q", i -> i), y))(App(Var("p", i -> i), z)))
   val rename1expectedc = Axiom(Sequent(App(Var("q", i -> i), x))(App(Var("q", i -> i), Var("NEW0", i)))).conclusion
   val rename1outc = renameTester.fixSharedNoFilter(rename1leftc, rename1rightc, 0, usedVars).conclusion
+  println("..........................")
   val rename1cFinal = findRenaming(rename1expectedc, rename1outc)(usedVars) != null
-
+   println("..........................")
+  
   //no shared variables
   val rename1leftd = Axiom(Sequent()(App(Var("p", i -> i), x)))
   val rename1rightd = Axiom(Sequent()(App(Var("p", i -> i), z)))
@@ -303,6 +305,25 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val rename2c = (App(Var("p", i -> i), a), App(Var("p", i -> i), z))
   val rename2d = (App(Var("p", i -> i), x), App(Var("p", i -> i), Var("1", i)))
 
+  println("OUTPUT OF INTEREST -------------")
+//  println("l: " + leftNodeD)
+//  println("r: " + rightNodeD)
+//  println("d: " + desiredE)
+//  //UnifyingResolution(leftNodeD, rightNodeD, desiredE)(usedVars)
+//  //UnifyingResolution(rightNodeD, leftNodeD, desiredE)(usedVars)
+  println("--------------")
+  println(FDSpairsC)
+      println("DISIRED: " + FDSdesiredC)
+          println(FDSleftC)
+              println(FDSrightC)
+  println(FDSleftCleanC)
+  println("FDSresultC: (actual found sequent) " + FDSresultC)
+  println("FDSexpectedC: (what a good function would return; should be a renaming of DESIRED) " + FDSexpectedC)
+  println("--------------")
+  tester.findDesiredSequent(FDSpairsC, FDSdesiredC, FDSleftC, FDSrightC, FDSleftCleanC, false)(usedVars)
+  println("^^^^^^^^^^^^^^^^^^^^^")
+      println("lasts?? " + rename1expectedc + " --- " +rename1outc + " " + rename1cFinal)
+  
   "CanRenameVariables" should {
     "not worry about shared variables if one node is empty" in {
       rename1outa must beEqualTo(rename1expecteda)
