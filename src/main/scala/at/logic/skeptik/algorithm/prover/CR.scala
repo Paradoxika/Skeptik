@@ -86,10 +86,10 @@ object CR {
           val literalUnits = literals.map(_.unit)
           unifyWithRename(literalUnits, unifierUnits) match {
             // All unifiers should be unified with literals using one common mgu
-            case Some(mgu) =>
-              val newLiteral = Literal(mgu(conclusion.unit), conclusion.negated)
+            case Some((leftMgu, _)) =>
+              val newLiteral = Literal(leftMgu(conclusion.unit), conclusion.negated)
               unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newLiteral)
-              reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += ((clause, unifier, mgu))
+              reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += ((clause, unifier, leftMgu))
               ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
                 (Set.empty[Clause] /: unifier)(_ union ancestor(_)) + clause
               if (decision contains newLiteral) {
@@ -230,11 +230,14 @@ object CR {
       * @return Some(sub, renameSub) if there is a substitution `sub` which unifies left and right and `renameSub` which modifies left before it.
       *         None if there is no substitution.
       */
-    def unifyWithRename(left: Seq[E], right: Seq[E]): Option[Substitution] = {
+    def unifyWithRename(left: Seq[E], right: Seq[E]): Option[(Substitution, Substitution)] = {
       val (renameSubstitution, renamedLeft) = renameVars(left, right)
       val unificationProblem = renamedLeft.zip(right)
       val unificationSubstitution = unify(unificationProblem)
-      unificationSubstitution.map(s => for ((key, value) <- renameSubstitution) yield (key, s(value)))
+      unificationSubstitution.map(s => {
+        val unificationRenamedSubstitution = for ((key, value) <- renameSubstitution) yield (key, s(value))
+        (new Substitution(unificationRenamedSubstitution ++ s), s)
+      })
     }
 
     while (true) {
@@ -244,7 +247,7 @@ object CR {
       }
 
       // If there is a literal in clause, which is contained either in `clauses` or `result`
-      def satisfied = cnf.clauses.filter(_.literals.exists(lit => (propagatedLiterals contains lit) || (result contains lit))) // FIXME: should unify
+      def satisfied = cnf.clauses.filter(_.literals.exists(lit => (propagatedLiterals contains lit) || (result contains lit)))
 
       def usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
       def notUsedAncestors = Random.shuffle(cnf.clauses.toSet diff usedAncestors)
@@ -293,9 +296,9 @@ object CR {
           }
         }
 
-        val mgu = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
-        val conflictClauseLeft = findConflictClause(conflictLiteral, mgu)
-        val conflictClauseRight = findConflictClause(otherLiteral, mgu)
+        val (leftMgu, rightMgu) = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
+        val conflictClauseLeft = findConflictClause(conflictLiteral, leftMgu)
+        val conflictClauseRight = findConflictClause(otherLiteral, rightMgu)
 
         println(s"Conflict clause from $conflictLiteral is $conflictClauseLeft")
         println(s"Conflict clause from $otherLiteral is $conflictClauseRight")
