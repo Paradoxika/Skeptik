@@ -4,6 +4,7 @@ import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.{Abs, App, E, Var, i}
 import at.logic.skeptik.expression.substitution.immutable.Substitution
+import at.logic.skeptik.expression.substitution.mutable.{Substitution => MSubstitution}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -87,7 +88,6 @@ object CR {
             // All unifiers should be unified with literals using one common mgu
             case Some(mgu) =>
               val newLiteral = Literal(mgu(conclusion.unit), conclusion.negated)
-              val newClause = newLiteral.toClause
               unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newLiteral)
               reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += ((clause, unifier, mgu))
               ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
@@ -150,17 +150,19 @@ object CR {
       * @param right other resolvent
       * @return `left` with renamed variables
       */
-    def renameVars(left: Seq[E], right: Seq[E]): Seq[E] = {
+    def renameVars(left: Seq[E], right: Seq[E]): (Substitution, Seq[E]) = {
       val alreadyUsed = mutable.Set.empty[Var]
-      for (oneLeft <- left) yield { // Each E in left should contain unique variables
-        val sharedVars = unifiableVars(oneLeft) intersect unifiableVars(right: _*) // Variables contained in leftOnce and right
+      val leftSubstitution = MSubstitution.empty
+      val renamedLeft = for (oneLeft <- left) yield { // Each E in left should contain unique variables
+        val leftE = leftSubstitution(oneLeft)
+        val sharedVars = unifiableVars(leftE) intersect unifiableVars(right: _*) // Variables contained in leftOnce and right
 
         if (sharedVars.nonEmpty) {
           // Unification variables which can be reused for new variables
           val notUsedVars = variables diff (sharedVars union unifiableVars(left: _*) union unifiableVars(right: _*) union alreadyUsed)
 
           val kvs = for (v <- sharedVars) yield {
-            val replacement = notUsedVars.headOption getOrElse { // Use some variable from uniciation variables
+            val replacement = notUsedVars.headOption getOrElse { // Use some variable from unification variables
               // Or create a new one
               var newVar = Var(v + "'", i)
               while (sharedVars contains newVar) {
@@ -176,12 +178,14 @@ object CR {
             v -> replacement
           }
 
-          val sub = Substitution(kvs.toSeq: _*)
-          sub(oneLeft)
+          leftSubstitution ++= kvs
+
+          leftSubstitution(leftE)
         } else {
-          oneLeft
+          leftE
         }
       }
+      (leftSubstitution.toImmutable, renamedLeft)
     }
 
     /**
@@ -223,12 +227,14 @@ object CR {
       *
       * @param left expressions to be unified.
       * @param right expression to be unified
-      * @return Some(sub) if there is a substitution `sub` which unifies .
+      * @return Some(sub, renameSub) if there is a substitution `sub` which unifies left and right and `renameSub` which modifies left before it.
       *         None if there is no substitution.
       */
     def unifyWithRename(left: Seq[E], right: Seq[E]): Option[Substitution] = {
-      val unificationProblem = renameVars(left, right).zip(right)
-      unify(unificationProblem)
+      val (renameSubstitution, renamedLeft) = renameVars(left, right)
+      val unificationProblem = renamedLeft.zip(right)
+      val unificationSubstitution = unify(unificationProblem)
+      unificationSubstitution.map(s => for ((key, value) <- renameSubstitution) yield (key, s(value)))
     }
 
     while (true) {
