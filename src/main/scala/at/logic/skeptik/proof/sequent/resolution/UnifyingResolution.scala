@@ -83,11 +83,25 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 	}
 
 	def resolve(leftPremise: SequentProofNode, rightPremise: SequentProofNode, unifiableVariables: MSet[Var]): UnifyingResolution = {
+		def applyManagingAmbiguity(leftPremise: SequentProofNode, rightPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
+
+			val leftPremiseClean = fixSharedNoFilter(leftPremise, rightPremise, 0, unifiableVariables)
+			val unifiablePairs = (for (auxL <- leftPremiseClean.conclusion.suc; auxR <- rightPremise.conclusion.ant) yield (auxL, auxR)).filter(isUnifiable)
+
+			if (unifiablePairs.length >= 1) {
+				val (auxL, auxR) = unifiablePairs(0)
+				new UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
+			} else if (unifiablePairs.length == 0) {
+				throw new Exception("Resolution: the conclusions of the given premises are not resolvable. B\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+			} else {
+				throw new Exception("Resolution: the resolvent is ambiguous.\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+			}
+		}
 		try {
-		  apply(leftPremise, rightPremise)(unifiableVariables)
+			applyManagingAmbiguity(leftPremise, rightPremise)(unifiableVariables)
 	  } catch {
 			case e: Exception =>
-				apply(rightPremise, leftPremise)(unifiableVariables)
+				applyManagingAmbiguity(rightPremise, leftPremise)(unifiableVariables)
 		}
 	}
 }
@@ -157,26 +171,15 @@ trait FindsVars extends checkUnifiableVariableName {
 trait CanRenameVariables extends FindsVars {
 
 	def occurCheck(p: (E, E), u: Substitution): Boolean = {
-		val first = p._1
-				val second = p._2
-
-				for (sp <- u.toList) {
-					val v = sp._1
-							val e = sp._2
-							if (!e.isInstanceOf[Var]) {
-								if (getSetOfVars(first) contains v) {
-									//check if the second contains e
-									if (e.occursIn(second) && (getSetOfVars(e) contains v)) {
-										return false
-									}
-								} else if (getSetOfVars(second) contains v) {
-									if (e.occursIn(first) && (getSetOfVars(e) contains v)) {
-										return false
-									}
-								}
-							}
+		for (sp <- u.toList) {
+			val v = sp._1
+			val e = sp._2
+			if (!e.isInstanceOf[Var]) {
+				if(getSetOfVars(e) contains v){
+					return false
 				}
-
+			}
+		}
 		true
 	}
 
@@ -507,6 +510,7 @@ def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: Sequen
 			rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution = null)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
 		if (pairs.length == 0) {
+			println("Desired: " + desired +"\nleftPremise: " + leftPremise + "\nrightPremise: " + rightPremise)
 			throw new Exception("Resolution: Cannot find desired resolvent")
 		} else {
 

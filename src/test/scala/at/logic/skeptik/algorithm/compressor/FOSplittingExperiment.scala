@@ -60,46 +60,57 @@ object FOSplittingExperiment {
     val problemSetS = getProblems(proofList, path)
     var totalCountT = 0
 
-    val etempT = new PrintWriter("results-FOSplitting.log")
-    val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
-    etempT.println(header)
-    etempT.flush()
+    //val etempT = new PrintWriter("results-FOSplitting.log")
+    val report = new PrintWriter("report-FOSplitting-10.log")
+    //val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
+    //etempT.println(header)
+    //etempT.flush()
     val noDataString = ",-1,-1,-1,-1,-1,-1,-1,-1,-1"
 
     for (probY <- problemSetS) {
+
       totalCountT = totalCountT + 1
+      val preParseTime = System.nanoTime
+
+      report.println("Proof " + totalCountT + ": " + probY)
+      val proofToTest = ProofParserSPASS.read(probY)
+      var variables = ProofParserSPASS.getVars()
+
+      val postParseTime = System.nanoTime
+
+      val proofLength = proofToTest.size
+      val numRes = countResolutionNodes(proofToTest)
+      val parseTime = postParseTime - preParseTime
+
+      val startTime = System.nanoTime
+
+      val timeout = 1
+      val cottonSplit = new FOCottonSplit(variables, timeout)
       try {
-
-        val preParseTime = System.nanoTime
-
-        println("Proof: " + probY)
-        val proofToTest = ProofParserSPASS.read(probY)
-        var variables   = ProofParserSPASS.getVars()
-
-        println("Variables: " + variables.mkString(","))
-        println(proofToTest)
-
-        val postParseTime = System.nanoTime
-
-        val proofLength = proofToTest.size
-        val numRes = countResolutionNodes(proofToTest)
-        val parseTime = postParseTime-preParseTime
-
-        val startTime = System.nanoTime
-
-        val timeout = 100
-        val cottonSplit = new FOCottonSplit(variables,timeout)
         val compressedProof = cottonSplit(proofToTest)
+
         val resNodesAfter = countResolutionNodes(compressedProof)
-        if(resNodesAfter < numRes) {
-          println("Proof after split has "+ (numRes - resNodesAfter) + "less nodes resolution nodes")
-          println(compressedProof)
+        if (resNodesAfter < numRes) {
+          report.println("Proof after split has " + (numRes - resNodesAfter) + " less resolution node(s)")
+          report.println(proofToTest)
+          report.println(compressedProof)
         } else {
-          println("The proof was not compressed\n\n")
-          println(compressedProof)
-          println("\n\n#########################################\n\n")
+          report.println("The proof was not compressed\n\n")
+          //println(compressedProof)
+          report.println("\n\n#########################################\n\n")
         }
 
+        report.flush()
+      } catch {
+        case e: Exception =>
+          report.println("Variables: " + variables.mkString(","))
+          report.println(proofToTest)
+          report.println("There was a problem to resolve the proofs after splitting!\n" + e.toString)
+          report.println("\n\n#########################################\n\n")
+          report.flush()
+      }
+    }
+        /*
         if (compressedProof.root.conclusion.ant.nonEmpty || compressedProof.root.conclusion.suc.nonEmpty) {
           etempT.println(probY.substring(path.length) + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")
           etempT.flush()
@@ -141,6 +152,6 @@ object FOSplittingExperiment {
       }
     }
     println("total: " + totalCountT)
+    */
   }
-
 }
