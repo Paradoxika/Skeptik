@@ -22,7 +22,9 @@ import scala.io.Source
   */
 object ProofsDataRecollection {
 
-
+  private def format(x : Int) : String =
+    if(x < 10) " " + x.toString
+    else x.toString
 
   def getProblems(file: String, path: String): MSet[String] = {
     val outTj = MSet[String]()
@@ -36,23 +38,23 @@ object ProofsDataRecollection {
   }
 
   def main(args : Array[String]) : Unit = {
-    val path = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/"
-    val proofList = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/list.txt"
+    val path      : String = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/"
+    val proofList : String = "/home/eze/Escritorio/Skeptik/GoodProofs/ALL/list.txt"
 
     val problemSetS = getProblems(proofList, path)
 
     val report = new PrintWriter("proofsData.log")
-    report.println("Size,Height,Predicates,Functiones,Constants,Variables")
+    report.println("Size,Height,Axioms,Contractions,Resolutions,Predicates,Functions,Constants,Variables")
     report.flush()
 
-    var totalCountT = 0
+    var totalCountT : Int = 0
     for (probY <- problemSetS) {
       totalCountT = totalCountT + 1
       println("Proof " + totalCountT + ": " + probY)
-      val proof = ProofParserSPASS.read(probY)
-      val vars : MSet[Var] = ProofParserSPASS.getVars()
-      val (p, f, c, v) = numberOf(proof,vars)
-      report.println(proof.size.toString + "," + proofHeight(proof).toString + "," + p.toString + "," + f.toString + "," + c.toString + "," + v.toString)
+      val proof     : Proof[Node] = ProofParserSPASS.read(probY)
+      val vars      : MSet[Var]   = ProofParserSPASS.getVars()
+      val proofData : ProofData   = numberOf(proof,vars)
+      report.println(format(proof.size)+ ", " + format(proofHeight(proof)) + ", " + proofData.toString)
       report.flush()
     }
   }
@@ -69,18 +71,27 @@ object ProofsDataRecollection {
   }
 
 
-  def numberOf(proof : Proof[Node], vars : MSet[Var]) : (Int,Int,Int,Int) = {
+  def numberOf(proof : Proof[Node], vars : MSet[Var]) : ProofData = {
+    var axioms       = MSet[Node]()
+    var resolutions  = MSet[Node]()
+    var contractions = MSet[Node]()
+
+    val variables  = MSet[Var]()
+    val constants  = MSet[String]()
+    val functions  = MSet[String]()
     val predicates = MSet[String]()
-    val functions = MSet[String]()
-    val constants = MSet[String]()
-    val variables = MSet[Var]()
+
     def exploreNode(node: Node): Unit =
       node match {
-        case Axiom(sequent) => exploreSequent(sequent)
+        case Axiom(sequent) =>
+          axioms += node
+          exploreSequent(sequent)
         case Contraction(premise, desired) =>
+          contractions += node
           exploreSequent(desired)
           exploreNode(premise)
         case UnifyingResolution(leftPremise, rightPremise, _, _) =>
+          resolutions += node
           exploreNode(leftPremise)
           exploreNode(rightPremise)
           val sequent = UnifyingResolution.resolve(leftPremise, rightPremise, vars)
@@ -116,6 +127,21 @@ object ProofsDataRecollection {
     }
 
     exploreNode(proof.root)
-    (predicates.size,functions.size,constants.size,variables.size)
+    new ProofData(axioms.size, contractions.size, resolutions.size,
+      predicates.size, functions.size, constants.size,variables.size)
   }
+}
+
+class ProofData(val numberOfAxioms : Int, val numberOfContractions : Int, val numberOfResolutions : Int,
+                val numberOfPredicates : Int, val numberOfFunctions : Int, val numberOfConstants : Int,
+                val numberOfVariables : Int) {
+
+  private def format(x : Int) : String =
+    if(x < 10) " " + x.toString
+    else x.toString
+
+  override def toString :String =
+    format(numberOfAxioms) + ", " + format(numberOfContractions) + ", " + format(numberOfResolutions) + ", " +
+      format(numberOfPredicates) + ", " + format(numberOfFunctions) + ", " + format(numberOfConstants) + ", " +
+        format(numberOfVariables)
 }
