@@ -73,4 +73,47 @@ object CRTest extends App {
       Var("G", i), Var("H", i), Var("I", i))
     println(CR.isSatisfiable(new CNF(clauses)))
   }
+
+  {
+    val problem = ProblemParserCNFTPTP.problem("examples/problems/CNF/NUM019-1.cnfp")
+    val clauses = problem.statements.map {
+      case axiom: CNFAxiomStatement => new SetSequent(axiom.ant.toSet, axiom.suc.toSet)
+      case negConj: CNFNegatedConjectureStatement => new SetSequent(negConj.ant.toSet, negConj.suc.toSet)
+    }
+    implicit val variables = mutable.Set(Var("A", i), Var("B", i),
+      Var("X", i), Var("Y", i), Var("Z", i))
+    println(CR.isSatisfiable(new CNF(clauses)))
+  }
+
+  {
+    val problem = ProblemParserCNFTPTP.problem("examples/problems/CNF/PUZ008-2.cnfp")
+    val clauses = problem.statements.map {
+      case axiom: CNFAxiomStatement => new SetSequent(axiom.ant.toSet, axiom.suc.toSet)
+      case negConj: CNFNegatedConjectureStatement => new SetSequent(negConj.ant.toSet, negConj.suc.toSet)
+    }
+    implicit val variables = mutable.Set(Var("A", i), Var("B", i),
+      Var("X", i), Var("Y", i), Var("Z", i))
+    println(CR.isSatisfiable(new CNF(clauses)))
+  }
+
+  {
+    val problem = ProblemParserCNFTPTP.problem("examples/problems/CNF/SET006-1.cnfp")
+    val clauses = problem.statements.map {
+      case axiom: CNFAxiomStatement => new SetSequent(axiom.ant.toSet, axiom.suc.toSet)
+      case negConj: CNFNegatedConjectureStatement => new SetSequent(negConj.ant.toSet, negConj.suc.toSet)
+    }
+    implicit val variables = mutable.Set(Var("Subset", i), Var("Superset", i),
+      Var("Element", i), Var("Set1", i), Var("Set2", i), Var("Intersection", i))
+    println(CR.isSatisfiable(new CNF(clauses)))
+  }
+
+  {
+    val problem = ProblemParserCNFTPTP.problem("examples/problems/CNF/ANA002-4.cnfp")
+    val clauses = problem.statements.map {
+      case axiom: CNFAxiomStatement => new SetSequent(axiom.ant.toSet, axiom.suc.toSet)
+      case negConj: CNFNegatedConjectureStatement => new SetSequent(negConj.ant.toSet, negConj.suc.toSet)
+    }
+    implicit val variables = mutable.Set(Var("X", i), Var("Y", i), Var("Z", i))
+    println(CR.isSatisfiable(new CNF(clauses)))
+  }
 }

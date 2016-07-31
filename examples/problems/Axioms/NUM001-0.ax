@@ -1,0 +1,45 @@
+%--------------------------------------------------------------------------
+% File     : NUM001-0 : TPTP v6.4.0. Bugfixed v4.0.0.
+% Domain   : Number Theory
+% Axioms   : Number theory axioms
+% Version  : [LS74] axioms : Incomplete.
+% English  :
+
+% Refs     : [LS74]  Lawrence & Starkey (1974), Experimental Tests of Resol
+% Source   : [SPRFN]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses     :    6 (   0 non-Horn;   4 unit;   2 RR)
+%            Number of atoms       :    8 (   0 equality)
+%            Maximal clause size   :    2 (   1 average)
+%            Number of predicates  :    1 (   0 propositional; 2-2 arity)
+%            Number of functors    :    4 (   1 constant; 0-2 arity)
+%            Number of variables   :   10 (   1 singleton)
+%            Maximal term depth    :    3 (   2 average)
+% SPC      : 
+
+% Comments :
+% Bugfixes : v4.0.0 - Duplicate successor_equality1 removed.
+%--------------------------------------------------------------------------
+cnf(adding_zero,axiom,
+    ( equalish(add(A,n0),A) )).
+
+cnf(addition,axiom,
+    ( equalish(add(A,successor(B)),successor(add(A,B))) )).
+
+cnf(times_zero,axiom,
+    ( equalish(multiply(A,n0),n0) )).
+
+cnf(times,axiom,
+    ( equalish(multiply(A,successor(B)),add(multiply(A,B),A)) )).
+
+cnf(successor_equality1,axiom,
+    ( ~ equalish(successor(A),successor(B))
+    | equalish(A,B) )).
+
+cnf(successor_substitution,axiom,
+    ( ~ equalish(A,B)
+    | equalish(successor(A),successor(B)) )).
+
+%--------------------------------------------------------------------------

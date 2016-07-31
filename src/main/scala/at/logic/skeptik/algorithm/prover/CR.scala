@@ -236,7 +236,8 @@ object CR {
       val unificationSubstitution = unify(unificationProblem)
       unificationSubstitution.map(s => {
         val unificationRenamedSubstitution = for ((key, value) <- renameSubstitution) yield (key, s(value))
-        (new Substitution(unificationRenamedSubstitution ++ s), s)
+        val left = s.filterNot { case (k, v) => renameSubstitution.contains(k) }
+        (new Substitution(unificationRenamedSubstitution ++ left), s)
       })
     }
 
