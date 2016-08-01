@@ -20,13 +20,12 @@ object ProofGeneratorTests {
     //for(i <- 1 to 10)
     //  generateResolutionTest()
     //while(true) {
-      val (proof, vars) = proofGenerationTest(2)
+      val (proof, vars) = proofGenerationTest(6)
       println(proof)
       val timeout = 1
       val cottonSplit = new FOCottonSplit(vars, timeout)
       val compressedProof = cottonSplit(proof)
       if (proof.size > compressedProof.size) {
-        println(proof)
         println("\n")
         println(compressedProof)
         println("\n#####################\n")

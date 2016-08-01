@@ -24,9 +24,12 @@ import util.Random
   * @param numberOfFunctions  The top limit on the number of functions in the proofs generated
   *
   */
-class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , val numberOfPredicates : Int = 15,
-                     val numberOfFunctions : Int = 3) extends ProofGeneratorTrait {
+class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
+
+  val numberOfPredicates : Int = proofHeight * 3
+  val numberOfConstants  : Int = numberOfPredicates/4
+  val numberOfFunctions  : Int = numberOfPredicates/5
 
   def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
 
@@ -197,14 +200,35 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
 
 
   def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent,Sequent) = {
-    val newLiteral : E = generateRandomLiteral()
-    val newLiteral2 = generateSubstitution(newLiteral)(newLiteral)
-    val newLiteral3 = generateSubstitution(newLiteral)(newLiteral)
+    def getCommonSequent(seq1 : Sequent, seq2 : Sequent) : (Sequent,Sequent,Sequent) = {
+      var leftSeq   : Sequent = seq1
+      var rightSeq  : Sequent = seq2
+      var commonSeq : Sequent = Sequent()()
+      for(l <- seq1.ant)
+        if(seq2.ant.contains(l)) {
+          leftSeq   = l -: leftSeq
+          rightSeq  = l -: rightSeq
+          commonSeq = l +: commonSeq
+        }
+      for(l <- seq1.suc)
+        if(seq2.suc.contains(l)) {
+          leftSeq   = leftSeq - l
+          rightSeq  = rightSeq -l
+          commonSeq = commonSeq + l
+        }
+      (leftSeq,commonSeq,rightSeq)
+    }
+
+    val newLiteral1 : E = generateRandomLiteral()
+    val newLiteral2 : E = generateSubstitution(newLiteral1)(newLiteral1)
+    val newLiteral3 : E = generateSubstitution(newLiteral1)(newLiteral1)
+
+    val (leftWithoutCommon,common,rightWithoutCommon) = getCommonSequent(leftParent,rightParent)
 
     if(randomGenerator.nextBoolean())
-      (newLiteral +: leftParent, Sequent()() + newLiteral2, newLiteral3 +: rightParent)
+      (newLiteral1 +: leftWithoutCommon, common + newLiteral2, newLiteral3 +: rightWithoutCommon)
     else
-      (leftParent + newLiteral, newLiteral2 +: Sequent()(), rightParent + newLiteral3)
+      (leftWithoutCommon + newLiteral1, newLiteral2 +: common, rightWithoutCommon + newLiteral3)
   }
 
 
@@ -230,25 +254,27 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
     }
   }
 
+  private def rInt() : Int = 1 + randomGenerator.nextInt(1)
+
   def generateProof(baseNode : Sequent) : Proof[Node] = {
     def convertNodeIntoProof(root : Node) : Proof[Node] = Proof(root)
     def resolutionStep(sequent : Sequent, height : Int) : Node = {
       val (leftSequent,rightSequent) = generateResolution(sequent)
-      val leftPremise  : Node        = generatePremises(height - 1,leftSequent)
-      val rightPremise : Node        = generatePremises(height - 1,rightSequent)
+      val leftPremise  : Node        = generatePremises(height - rInt(),leftSequent)
+      val rightPremise : Node        = generatePremises(height - rInt(),rightSequent)
       UnifyingResolution.resolve(leftPremise,rightPremise,sequent,variables)
     }
     def contractionStep(sequent: Sequent, height : Int) : Node = {
       val premise : Sequent = generateContraction(sequent)
-      Contraction(generatePremises(height-1,premise),sequent)(variables)
+      Contraction(generatePremises(height - rInt(),premise),sequent)(variables)
     }
 
     def irregularResolutionStep(sequent: Sequent, height : Int) : Node = {
       val (left,right) = generateResolution(sequent)
       val (leftGrand,common,rightGrand) = generateResolutionSharingPremise(left,right)
-      val commonNode     : Node = generatePremises(height - 1,common)
-      val leftGrandNode  : Node = generatePremises(height-1,leftGrand)
-      val rightGrandNode : Node = generatePremises(height-1,rightGrand)
+      val commonNode     : Node = generatePremises(height - rInt(),common)
+      val leftGrandNode  : Node = generatePremises(height - rInt(),leftGrand)
+      val rightGrandNode : Node = generatePremises(height - rInt(),rightGrand)
       val leftPremise    : Node = UnifyingResolution.resolve(leftGrandNode,commonNode,left,variables)
       val rightPremise   : Node = UnifyingResolution.resolve(commonNode,rightGrandNode,right,variables)
       UnifyingResolution.resolve(leftPremise,rightPremise,sequent,variables)
@@ -257,11 +283,11 @@ class ProofGenerator(val proofHeight : Int, val numberOfConstants : Int = 5 , va
     def generatePremises(height : Int ,sequent : Sequent) : Node = {
       if(isEmptyClause(sequent))
         resolutionStep(sequent,height)
-      else if(height == 0)
+      else if(height <= 0)
           Axiom(sequent)
       else {
-        if(randomGenerator.nextInt(100) < 95)
-          if(randomGenerator.nextInt(100) < 75)
+        if(randomGenerator.nextInt(100) < 85)
+          if(randomGenerator.nextInt(100) < 80)
             resolutionStep(sequent,height)
           else
             irregularResolutionStep(sequent,height)

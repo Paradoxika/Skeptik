@@ -70,7 +70,7 @@ object RandomProofsTest {
     var averageResolutions  = 0.0
     var averageContractions = 0.0
     for(i <- 0 until numberOfProofs) {
-      println(data(i).size + " , " /*+ heights(i) + " , "*/ + axioms(i) + " , " + contractions(i) + " , " + resolutions(i))
+      println(data(i).size + " , " + heights(i) + " , " + axioms(i) + " , " + contractions(i) + " , " + resolutions(i))
       averageSize         += data(i).size
       averageHeight       += heights(i)
       averageAxioms       += axioms(i)
@@ -142,7 +142,7 @@ object FilesTests {
     var averageResolutions  = 0.0
     var averageContractions = 0.0
     for(i <- 0 until numberOfProofs) {
-      println(data(i).size + " , " /*+ heights(i) + " , "*/ + axioms(i) + " , " + contractions(i) + " , " + resolutions(i))
+      println(data(i).size + " , " + heights(i) + " , " + axioms(i) + " , " + contractions(i) + " , " + resolutions(i))
       averageSize         += data(i).size
       averageHeight       += heights(i)
       averageAxioms       += axioms(i)
