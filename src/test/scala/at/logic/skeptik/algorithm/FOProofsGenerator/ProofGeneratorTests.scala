@@ -1,12 +1,13 @@
 package at.logic.skeptik.algorithm.FOProofsGenerator
 
+import at.logic.skeptik.algorithm.compressor.FOLowerUnits
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
 import at.logic.skeptik.expression.{App, Var, i, o}
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import collection.mutable.{Set => MSet}
 
+import collection.mutable.{Set => MSet}
 import at.logic.skeptik.proof.Proof
 
 /**
@@ -20,11 +21,13 @@ object ProofGeneratorTests {
     //for(i <- 1 to 10)
     //  generateResolutionTest()
     //while(true) {
-      val (proof, vars) = proofGenerationTest(6)
+      val (proof, vars) = proofGenerationTest(4)
       println(proof)
       val timeout = 1
       val cottonSplit = new FOCottonSplit(vars, timeout)
-      val compressedProof = cottonSplit(proof)
+      val compressedProof =
+         //FOLowerUnits(proof)
+         cottonSplit(proof)
       if (proof.size > compressedProof.size) {
         println("\n")
         println(compressedProof)

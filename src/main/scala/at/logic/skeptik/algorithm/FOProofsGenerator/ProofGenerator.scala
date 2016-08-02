@@ -27,9 +27,9 @@ import util.Random
 class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
 
-  val numberOfPredicates: Int = proofHeight * 3
-  val numberOfConstants: Int = numberOfPredicates / 2
-  val numberOfFunctions: Int = numberOfPredicates / 5
+  var numberOfPredicates: Int = proofHeight * 3
+  val numberOfConstants: Int = numberOfPredicates * 2
+  val numberOfFunctions: Int = numberOfPredicates
 
   def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
 
@@ -74,6 +74,8 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
           case v@Var(name, i) =>
             if (!isVariable(name) && !(substitution contains v))
               substitution += (v -> freshVar())
+            if (isVariable(name) && !(substitution contains v))
+              substitution += (v -> freshVar())
         }
 
       e match {
@@ -116,8 +118,8 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   }
 
   private def generateOneArgument(): E = {
-    def isVariable(t: Int) = 0 <= t && t <= 1
-    def isConstant(t: Int) = 2 <= t && t <= 8
+    def isVariable(t: Int) = false //0 <= t && t < 0
+    def isConstant(t: Int) = 0 <= t && t <= 7
     val argumentType: Int = randomGenerator.nextInt(10)
     if (isVariable(argumentType)) {
       val generatedVariable = freshVar()
@@ -172,34 +174,59 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   }
 
   def generateResolution(conclusion: Sequent): (Sequent, Sequent) = {
-    def devideSequent(sequent: Sequent): (Sequent, Sequent) =
-      if (isEmptyClause(sequent))
-        (Sequent()(), Sequent()())
-      else {
-        val antSeed: Int = if (sequent.ant.isEmpty) 1 else sequent.ant.size
-        val sucSeed: Int = if (sequent.suc.isEmpty) 1 else sequent.suc.size
-        val (leftAnt, rightAnt) = sequent.ant.toList.splitAt(randomGenerator.nextInt(antSeed))
-        val (leftSuc, rightSuc) = sequent.suc.toList.splitAt(randomGenerator.nextInt(sucSeed))
-        (Sequent(leftAnt: _*)(leftSuc: _*), Sequent(rightAnt: _*)(rightSuc: _*))
-      }
-
-    def newPredicateName(arity : Int) : String = {
-      val name = "p" + randomGenerator.nextInt(numberOfPredicates)
-      predicates += name-> arity
-      name
-    }
-    def getInverseSubstitution(sequent : Sequent) : Substitution = {
-      def isConstant(name : String) : Boolean = name.charAt(0).isLower || name.charAt(0).isDigit
-      def isVariable(name : String) : Boolean = name.charAt(0).isUpper
-      val substitution = MMap[Var,E]()
+    def generateSubstitutionForEmpryCase(e: E): Substitution = {
+      val substitution: MMap[Var, E] = MMap[Var, E]()
       def addRepleacement(exp: E): Unit =
         exp match {
           case FunctionTerm(_, args) => args foreach addRepleacement
           case v@Var(name, i) =>
-            if (!(substitution contains v) && isConstant(name) && randomGenerator.nextInt(100) < 50)
+            if (!(substitution contains v) && randomGenerator.nextInt(10) < 1)
               substitution += (v -> freshVar())
-            if (!(substitution contains v) && isVariable(name))
-              substitution += (v -> v)
+        }
+
+      e match {
+        case Atom(Var(_, _), args) => args foreach addRepleacement
+      }
+      Substitution(substitution.toList: _*)
+    }
+
+
+    def devideSequent(sequent: Sequent): (Sequent, Sequent) =
+      if (isEmptyClause(sequent))
+        (Sequent()(), Sequent()())
+      else {
+        val antSeed: Int = if (sequent.ant.isEmpty) 1 else sequent.ant.size / 2
+        val sucSeed: Int = if (sequent.suc.isEmpty) 1 else sequent.suc.size / 2
+        val (leftAnt, rightAnt) = sequent.ant.toList.splitAt(antSeed)//randomGenerator.nextInt(antSeed))
+        val (leftSuc, rightSuc) = sequent.suc.toList.splitAt(sucSeed)//randomGenerator.nextInt(sucSeed))
+        (Sequent(leftAnt: _*)(leftSuc: _*), Sequent(rightAnt: _*)(rightSuc: _*))
+      }
+
+    def newPredicateName(arity : Int) : String = {
+      numberOfPredicates += 1
+      val name = "p" + numberOfPredicates
+      if(predicates contains name)
+        newPredicateName(arity)
+      predicates += name -> arity
+      name
+    }
+    def getInverseSubstitution(sequent : Sequent) : Substitution = {
+      def isConstant(name : String) : Boolean = name.charAt(0).isLower || name.charAt(0).isDigit
+      def isVari1able(name : String) : Boolean = name.charAt(0).isUpper
+      val maxSize      = 1 + randomGenerator.nextInt(2)
+      var currentSize  = 0
+      val substitution = MMap[Var,E]()
+      def addRepleacement(exp: E): Unit =
+        if(currentSize <= maxSize) {
+          currentSize += 1
+          exp match {
+            case FunctionTerm(_, args) => args foreach addRepleacement
+            case v@Var(name, i) =>
+              if (!(substitution contains v) && isConstant(name) && randomGenerator.nextInt(100) < 80)
+                substitution += (v -> freshVar())
+              if (!(substitution contains v) && isVariable(name))
+                substitution += (v -> v)
+          }
         }
 
       def exploreLiteral(exp : E) : Unit =
@@ -216,7 +243,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     def generateLiteral(leftSequent : Sequent, rightSequent : Sequent) : (Sequent,E,Sequent,E) =
       if(isEmptyClause(leftSequent) && isEmptyClause(rightSequent)) {
         val literal = generateRandomLiteral()
-        (leftSequent,literal,rightSequent,generateSubstitution(literal)(literal))
+        (leftSequent,literal,rightSequent,generateSubstitutionForEmpryCase(literal)(literal))
       } else {
         val sub1 = getInverseSubstitution(leftSequent)
         val sub2 = getInverseSubstitution(rightSequent)
