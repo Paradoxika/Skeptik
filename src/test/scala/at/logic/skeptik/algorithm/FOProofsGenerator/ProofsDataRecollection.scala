@@ -44,7 +44,7 @@ object RandomProofsTest {
 
     var next = 0
     for (i <- 1 to numberOfProofs) {
-      val (proof,vars) : (Proof[Node],MSet[Var]) = generateProof(3)
+      val (proof,vars) : (Proof[Node],MSet[Var]) = generateProof(4)
       val proofData    : ProofData               = numberOf(proof,vars)
       proofData.setHeight(proofHeight(proof))
       report.println(format(proofData.size)+ ", " + format(proofData.height) + ", " + proofData.toString)

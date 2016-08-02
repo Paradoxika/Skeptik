@@ -27,9 +27,9 @@ import util.Random
 class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
 
-  val numberOfPredicates : Int = proofHeight * 3
-  val numberOfConstants  : Int = numberOfPredicates/4
-  val numberOfFunctions  : Int = numberOfPredicates/5
+  val numberOfPredicates: Int = proofHeight * 3
+  val numberOfConstants: Int = numberOfPredicates / 2
+  val numberOfFunctions: Int = numberOfPredicates / 5
 
   def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
 
@@ -53,7 +53,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
   def freshVar(): Var = {
     varNumber += 1
-    val v = Var("V-" + varNumber, i)
+    val v = Var("V" + varNumber, i)
     variables += v
     v
   }
@@ -116,8 +116,8 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   }
 
   private def generateOneArgument(): E = {
-    def isVariable(t: Int) = 0 <= t && t <= 6
-    def isConstant(t: Int) = 7 <= t && t <= 8
+    def isVariable(t: Int) = 0 <= t && t <= 2
+    def isConstant(t: Int) = 3 <= t && t <= 8
     val argumentType: Int = randomGenerator.nextInt(10)
     if (isVariable(argumentType)) {
       val generatedVariable = freshVar()
@@ -155,7 +155,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   }
 
 
-  private def generateSubstitution(e : E) : Substitution = {
+  private def generateSubstitution(e: E): Substitution = {
     val substitution: MMap[Var, E] = MMap[Var, E]()
     def addRepleacement(exp: E): Unit =
       exp match {
@@ -166,69 +166,64 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       }
 
     e match {
-      case Atom(Var(_,_),args) => args foreach addRepleacement
+      case Atom(Var(_, _), args) => args foreach addRepleacement
     }
-    Substitution(substitution.toList :_*)
+    Substitution(substitution.toList: _*)
   }
 
-  def generateResolution(conclusion : Sequent) : (Sequent,Sequent) = {
-    def devideSequent(sequent: Sequent) : (Sequent,Sequent) =
-      if(isEmptyClause(sequent))
-        (Sequent()(),Sequent()())
+  def generateResolution(conclusion: Sequent): (Sequent, Sequent) = {
+    def devideSequent(sequent: Sequent): (Sequent, Sequent) =
+      if (isEmptyClause(sequent))
+        (Sequent()(), Sequent()())
       else {
-        val antSeed : Int = if(sequent.ant.isEmpty) 1 else sequent.ant.size
-        val sucSeed : Int = if(sequent.suc.isEmpty) 1 else sequent.suc.size
-        val (leftAnt,rightAnt) = sequent.ant.toList.splitAt(randomGenerator.nextInt(antSeed))
-        val (leftSuc,rightSuc) = sequent.suc.toList.splitAt(randomGenerator.nextInt(sucSeed))
-        (Sequent(leftAnt:_*)(leftSuc:_*), Sequent(rightAnt:_*)(rightSuc:_*))
+        val antSeed: Int = if (sequent.ant.isEmpty) 1 else sequent.ant.size
+        val sucSeed: Int = if (sequent.suc.isEmpty) 1 else sequent.suc.size
+        val (leftAnt, rightAnt) = sequent.ant.toList.splitAt(randomGenerator.nextInt(antSeed))
+        val (leftSuc, rightSuc) = sequent.suc.toList.splitAt(randomGenerator.nextInt(sucSeed))
+        (Sequent(leftAnt: _*)(leftSuc: _*), Sequent(rightAnt: _*)(rightSuc: _*))
       }
 
-    val (leftBaseSequent,rightBaseSequent) = devideSequent(conclusion)
-    val newLiteral : E = generateRandomLiteral()
+    val (leftBaseSequent, rightBaseSequent) = devideSequent(conclusion)
+    val newLiteral: E = generateRandomLiteral()
     val newLiteral2 = generateSubstitution(newLiteral)(newLiteral)
 
-    if(randomGenerator.nextBoolean())
-      if(randomGenerator.nextBoolean())
-        (newLiteral +: leftBaseSequent,rightBaseSequent + newLiteral2)
+    if (randomGenerator.nextBoolean())
+      if (randomGenerator.nextBoolean())
+        (newLiteral +: leftBaseSequent, rightBaseSequent + newLiteral2)
       else
         (leftBaseSequent + newLiteral, newLiteral2 +: rightBaseSequent)
-    else if(randomGenerator.nextBoolean())
-      (newLiteral2 +: leftBaseSequent,rightBaseSequent + newLiteral)
+    else if (randomGenerator.nextBoolean())
+      (newLiteral2 +: leftBaseSequent, rightBaseSequent + newLiteral)
     else
       (leftBaseSequent + newLiteral2, newLiteral +: rightBaseSequent)
   }
 
+  private var sequentIndex = 0
+  private val sequentsOfSizeOne = MMap[Int, Sequent]()
+  private def addToUnitSequents(sequent: Sequent): Unit = {
+    sequentsOfSizeOne += (sequentIndex -> sequent)
+    sequentIndex += 1
+  }
+  private def getUnitSequen() : Sequent =
+    sequentsOfSizeOne(randomGenerator.nextInt(sequentIndex))
 
   def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent,Sequent) = {
-    def getCommonSequent(seq1 : Sequent, seq2 : Sequent) : (Sequent,Sequent,Sequent) = {
-      var leftSeq   : Sequent = seq1
-      var rightSeq  : Sequent = seq2
-      var commonSeq : Sequent = Sequent()()
-      for(l <- seq1.ant)
-        if(seq2.ant.contains(l)) {
-          leftSeq   = l -: leftSeq
-          rightSeq  = l -: rightSeq
-          commonSeq = l +: commonSeq
-        }
-      for(l <- seq1.suc)
-        if(seq2.suc.contains(l)) {
-          leftSeq   = leftSeq - l
-          rightSeq  = rightSeq -l
-          commonSeq = commonSeq + l
-        }
-      (leftSeq,commonSeq,rightSeq)
+    def getSequentAndLiterals() : (E,Sequent,E) = {
+      val newSequent : Sequent = getUnitSequen()
+      require(newSequent.ant.size + newSequent.suc.size == 1)
+      val newLiteral1 : E = if(newSequent.ant.isEmpty) newSequent.suc.head else newSequent.ant.head
+      val newLiteral2 : E = generateSubstitution(newLiteral1)(newLiteral1)
+      val newLiteral3 : E = generateSubstitution(newLiteral1)(newLiteral1)
+
+      (newLiteral2,newSequent,newLiteral3)
     }
 
-    val newLiteral1 : E = generateRandomLiteral()
-    val newLiteral2 : E = generateSubstitution(newLiteral1)(newLiteral1)
-    val newLiteral3 : E = generateSubstitution(newLiteral1)(newLiteral1)
+    val (leftLiteral,centralSequent,rightLiteral) = getSequentAndLiterals()
 
-    val (leftWithoutCommon,common,rightWithoutCommon) = getCommonSequent(leftParent,rightParent)
-
-    if(randomGenerator.nextBoolean())
-      (newLiteral1 +: leftWithoutCommon, common + newLiteral2, newLiteral3 +: rightWithoutCommon)
+    if(centralSequent.ant.isEmpty)
+      (leftLiteral +: leftParent, centralSequent, rightLiteral +: rightParent)
     else
-      (leftWithoutCommon + newLiteral1, newLiteral2 +: common, rightWithoutCommon + newLiteral3)
+      (leftParent + leftLiteral, centralSequent, rightParent + rightLiteral)
   }
 
 
@@ -281,6 +276,9 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     }
 
     def generatePremises(height : Int ,sequent : Sequent) : Node = {
+      if(sequent.ant.size + sequent.suc.size == 1)
+        addToUnitSequents(sequent)
+
       if(isEmptyClause(sequent))
         resolutionStep(sequent,height)
       else if(height <= 0)
