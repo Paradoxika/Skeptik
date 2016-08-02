@@ -116,8 +116,8 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   }
 
   private def generateOneArgument(): E = {
-    def isVariable(t: Int) = 0 <= t && t <= 2
-    def isConstant(t: Int) = 3 <= t && t <= 8
+    def isVariable(t: Int) = 0 <= t && t <= 1
+    def isConstant(t: Int) = 2 <= t && t <= 8
     val argumentType: Int = randomGenerator.nextInt(10)
     if (isVariable(argumentType)) {
       val generatedVariable = freshVar()
@@ -183,19 +183,62 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
         (Sequent(leftAnt: _*)(leftSuc: _*), Sequent(rightAnt: _*)(rightSuc: _*))
       }
 
+    def newPredicateName(arity : Int) : String = {
+      val name = "p" + randomGenerator.nextInt(numberOfPredicates)
+      predicates += name-> arity
+      name
+    }
+    def getInverseSubstitution(sequent : Sequent) : Substitution = {
+      def isConstant(name : String) : Boolean = name.charAt(0).isLower || name.charAt(0).isDigit
+      def isVariable(name : String) : Boolean = name.charAt(0).isUpper
+      val substitution = MMap[Var,E]()
+      def addRepleacement(exp: E): Unit =
+        exp match {
+          case FunctionTerm(_, args) => args foreach addRepleacement
+          case v@Var(name, i) =>
+            if (!(substitution contains v) && isConstant(name) && randomGenerator.nextInt(100) < 50)
+              substitution += (v -> freshVar())
+            if (!(substitution contains v) && isVariable(name))
+              substitution += (v -> v)
+        }
+
+      def exploreLiteral(exp : E) : Unit =
+        exp match {
+          case Atom(Var(_, _), args) => args foreach addRepleacement
+        }
+
+      sequent.ant foreach exploreLiteral
+      sequent.suc foreach exploreLiteral
+
+      Substitution(substitution.toList : _*)
+    }
+
+    def generateLiteral(leftSequent : Sequent, rightSequent : Sequent) : (Sequent,E,Sequent,E) =
+      if(isEmptyClause(leftSequent) && isEmptyClause(rightSequent)) {
+        val literal = generateRandomLiteral()
+        (leftSequent,literal,rightSequent,generateSubstitution(literal)(literal))
+      } else {
+        val sub1 = getInverseSubstitution(leftSequent)
+        val sub2 = getInverseSubstitution(rightSequent)
+        val (e2, v1) = sub1.toList.unzip
+        val (e1, v2) = sub2.toList.unzip
+        val arg1 = v1 ++ e1
+        val arg2 = e2 ++ v2
+        require(arg1.size == arg2.size)
+        val literalName : String = newPredicateName(arg1.size)
+        val newLeftSeq  = Sequent(leftSequent.ant map {x => sub1(x)}  : _*)(leftSequent.suc map {x => sub1(x)} : _*)
+        val newRightSeq = Sequent(rightSequent.ant map {x => sub2(x)}  : _*)(rightSequent.suc map {x => sub2(x)} : _*)
+        (newLeftSeq,Atom(literalName,arg1),newRightSeq,Atom(literalName,arg2))
+      }
+
+
     val (leftBaseSequent, rightBaseSequent) = devideSequent(conclusion)
-    val newLiteral: E = generateRandomLiteral()
-    val newLiteral2 = generateSubstitution(newLiteral)(newLiteral)
+    val (newLeftSeq,leftResolvedLiteral,newRightSeq,rightResolvedLiteral) : (Sequent,E,Sequent,E) = generateLiteral(leftBaseSequent,rightBaseSequent)
 
     if (randomGenerator.nextBoolean())
-      if (randomGenerator.nextBoolean())
-        (newLiteral +: leftBaseSequent, rightBaseSequent + newLiteral2)
-      else
-        (leftBaseSequent + newLiteral, newLiteral2 +: rightBaseSequent)
-    else if (randomGenerator.nextBoolean())
-      (newLiteral2 +: leftBaseSequent, rightBaseSequent + newLiteral)
+      (leftResolvedLiteral +: newLeftSeq, newRightSeq + rightResolvedLiteral)
     else
-      (leftBaseSequent + newLiteral2, newLiteral +: rightBaseSequent)
+      (newLeftSeq + leftResolvedLiteral, rightResolvedLiteral +: newRightSeq)
   }
 
   private var sequentIndex = 0

@@ -20,7 +20,7 @@ object ProofGeneratorTests {
     //for(i <- 1 to 10)
     //  generateResolutionTest()
     //while(true) {
-      val (proof, vars) = proofGenerationTest(4)
+      val (proof, vars) = proofGenerationTest(6)
       println(proof)
       val timeout = 1
       val cottonSplit = new FOCottonSplit(vars, timeout)
