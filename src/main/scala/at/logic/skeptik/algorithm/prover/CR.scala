@@ -92,7 +92,7 @@ object CR {
               reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += ((clause, unifier, leftMgu))
               ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
                 (Set.empty[Clause] /: unifier)(_ union ancestor(_)) + clause
-              if (decision contains newLiteral) {
+              if (decision.contains(newLiteral) && !findDecisionLiterals(newLiteral).contains(newLiteral)) {
                 decision -= newLiteral
                 result += newLiteral
               }
@@ -204,6 +204,7 @@ object CR {
       literals ++= allClauses.flatMap(_.literals)
       propagatedLiterals.clear()
       decision.clear()
+      reverseImplicationGraph.clear()
 
       literals.foreach(unifiableUnits(_) = mutable.Set.empty)
       for (literal <- literals) {
@@ -241,6 +242,26 @@ object CR {
       })
     }
 
+    /**
+      * Finds decision literals, used in propagation of a literal.
+      *
+      * @param current literal
+      * @return set of decision literals used in propagation of `current`
+      */
+    def findDecisionLiterals(current: Literal): Set[Literal] = {
+      if (allClauses contains current.toClause) {
+        Set.empty
+      } else if (decision contains current) {
+        Set(current)
+      } else if (reverseImplicationGraph contains current) {
+        val decisionLiterals = for ((_, unifier, mgu) <- reverseImplicationGraph(current))
+          yield unifier.map(findDecisionLiterals).fold(Set.empty)(_ union _)
+        decisionLiterals.toSeq.sortBy(_.size).head
+      } else {
+        throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
+      }
+    }
+
     while (true) {
       val result = ArrayBuffer.empty[Literal] // New literals, which are propagated on this step
       for (clause <- allClauses if !clause.isUnit) {
@@ -251,7 +272,7 @@ object CR {
       def satisfied = cnf.clauses.filter(_.literals.exists(lit => (propagatedLiterals contains lit) || (result contains lit)))
 
       def usedAncestors = result.map(ancestor(_)).fold(mutable.Set.empty)(_ union _) ++ satisfied
-      def notUsedAncestors = Random.shuffle(cnf.clauses.toSet diff usedAncestors)
+      def notUsedAncestors = Random.shuffle((cnf.clauses.toSet diff usedAncestors).toSeq)
       while (notUsedAncestors.nonEmpty) {
         // If at least one ancestor wasn't used
         val clause = notUsedAncestors.head
@@ -277,7 +298,7 @@ object CR {
         if (decision.isEmpty) return false
 
         /**
-          * Finds decision literals, used in propagation of a literal.
+          * Finds conflict clause, used consisting of negation of all decisions-ancestors of `current`.
           *
           * @param current literal
           * @param substitution last instantiation of this literal
