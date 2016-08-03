@@ -29,7 +29,8 @@ object CR {
 
   def isSatisfiable(cnf: CNF)(implicit variables: mutable.Set[Var]): Boolean = {
 
-    val depthLiterals = mutable.Map.empty[Int, Seq[Literal]] // Shows literals that were propagated at this depth
+    val depthLiterals = mutable.Map.empty[Int, mutable.Set[Literal]] // Shows literals that were propagated at this depth
+    depthLiterals(0) = mutable.Set.empty
     val ancestor = mutable.Map.empty[Literal, mutable.Set[Clause]] // For each literal what initial clauses produced it
     val implicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Literal]] // For each clause (or literal) what literals was produced from it
     val reverseImplicationGraph = mutable.Map.empty[Literal, mutable.Set[(Clause, Seq[Literal], Substitution)]] // For each literal what clause, literals and mgu were used to produce it
@@ -198,6 +199,7 @@ object CR {
       conflictClauses ++= newClauses
       depth = 0
       depthLiterals.clear()
+      depthLiterals(0) = mutable.Set.empty
       ancestor.clear()
       unifiableUnits.clear()
       literals.clear()
@@ -283,12 +285,17 @@ object CR {
         val decisionLiteral = Random.shuffle(clause.literals).head
         decision += decisionLiteral
         ancestor(decisionLiteral) = mutable.Set.empty
-        result += decisionLiteral
+        depthLiterals(depth) += decisionLiteral
+        updateSystem(Seq(decisionLiteral))
+
+        for (ancestor <- notUsedAncestors) {
+          result ++= resolve(ancestor)
+        }
       }
       println(s"Decided $decision and resolved $result")
       updateSystem(result)
       depth += 1
-      depthLiterals(depth) = result
+      depthLiterals(depth) = mutable.Set(result: _*)
 
       val conflictLearnedClauses = ArrayBuffer.empty[Clause]
       propagatedLiterals.filter(unifiableUnits(_).nonEmpty).foreach { conflictLiteral =>
