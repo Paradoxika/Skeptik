@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.FOProofsGenerator
 
-import at.logic.skeptik.algorithm.compressor.FOLowerUnits
+import at.logic.skeptik.algorithm.compressor.{FOLowerUnits, FORecyclePivots}
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
 import at.logic.skeptik.expression.{App, Var, i, o}
 import at.logic.skeptik.expression.formula.Atom
@@ -14,27 +14,32 @@ import at.logic.skeptik.proof.Proof
   * Created by eze on 2016.07.25..
   */
 object ProofGeneratorTests {
-  def main(arfs : Array[String]) = {
+  def main(arfs : Array[String]) : Unit = {
     //safeSymbolsTest()
     //testContraction()
     //randomLiteralTest()
     //for(i <- 1 to 10)
     //  generateResolutionTest()
-    //while(true) {
-      val (proof, vars) = proofGenerationTest(4)
-      println(proof)
-      val timeout = 1
-      val cottonSplit = new FOCottonSplit(vars, timeout)
-      val compressedProof =
-         //FOLowerUnits(proof)
-         cottonSplit(proof)
-      if (proof.size > compressedProof.size) {
-        println("\n")
-        println(compressedProof)
-        println("\n#####################\n")
-      } else
-        println("NO COMPRESSION\n#####################\n")
-    //}
+    try {
+      while(true) {
+        val (proof, vars) = proofGenerationTest(7)
+        println(proof)
+        val timeout = 1
+        val cottonSplit = new FOCottonSplit(vars, timeout)
+        val compressedProof =
+          //FORecyclePivots(proof)
+          cottonSplit(proof)
+        if (proof.size > compressedProof.size) {
+          println("\n")
+          println(compressedProof)
+          println((proof.size - compressedProof.size).toString + " node(s) less\n\n#####################\n")
+          return
+        } else
+          println("NO COMPRESSION\n#####################\n")
+      }
+    } catch {
+      case e : Exception => main(null)
+    }
   }
 
   def testContraction() = {

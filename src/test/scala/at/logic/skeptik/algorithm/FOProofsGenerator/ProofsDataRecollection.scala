@@ -12,7 +12,7 @@ import at.logic.skeptik.proof.sequent.lk.Axiom
 import at.logic.skeptik.proof.sequent.resolution.{Contraction, UnifyingResolution}
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 
-import collection.mutable.{HashSet, Set => MSet}
+import collection.mutable.{Set => MSet}
 import scala.io.Source
 
 
@@ -82,7 +82,7 @@ object RandomProofsTest {
     averageAxioms       /= numberOfProofs
     averageResolutions  /= numberOfProofs
     averageContractions /= numberOfProofs
-    println("Avarages")
+    println("Averages")
     println(averageSize + " , " + averageHeight + " , " + averageAxioms + " , " + averageContractions + " , " + averageResolutions)
   }
 }

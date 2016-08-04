@@ -19,9 +19,6 @@ import util.Random
   * first order proofs.
   *
   * @param proofHeight        The height of the proof
-  * @param numberOfConstants  The top limit on the number of constants in the proofs generated
-  * @param numberOfPredicates The top limit on the number of predicates in the proofs generated
-  * @param numberOfFunctions  The top limit on the number of functions in the proofs generated
   *
   */
 class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
@@ -71,10 +68,8 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       def addRepleacement(exp: E): Unit =
         exp match {
           case FunctionTerm(_, args) => args foreach addRepleacement
-          case v@Var(name, i) =>
-            if (!isVariable(name) && !(substitution contains v))
-              substitution += (v -> freshVar())
-            if (isVariable(name) && !(substitution contains v))
+          case v@Var(name, i)        =>
+            if (!(substitution contains v))
               substitution += (v -> freshVar())
         }
 
@@ -252,10 +247,15 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
         val arg1 = v1 ++ e1
         val arg2 = e2 ++ v2
         require(arg1.size == arg2.size)
-        val literalName : String = newPredicateName(arg1.size)
-        val newLeftSeq  = Sequent(leftSequent.ant map {x => sub1(x)}  : _*)(leftSequent.suc map {x => sub1(x)} : _*)
-        val newRightSeq = Sequent(rightSequent.ant map {x => sub2(x)}  : _*)(rightSequent.suc map {x => sub2(x)} : _*)
-        (newLeftSeq,Atom(literalName,arg1),newRightSeq,Atom(literalName,arg2))
+        if(arg1.isEmpty) {
+          val literal = generateRandomLiteral()
+          (leftSequent,literal,rightSequent,generateSubstitutionForEmpryCase(literal)(literal))
+        } else {
+          val literalName: String = newPredicateName(arg1.size)
+          val newLeftSeq = Sequent(leftSequent.ant map { x => sub1(x) }: _*)(leftSequent.suc map { x => sub1(x) }: _*)
+          val newRightSeq = Sequent(rightSequent.ant map { x => sub2(x) }: _*)(rightSequent.suc map { x => sub2(x) }: _*)
+          (newLeftSeq, Atom(literalName, arg1), newRightSeq, Atom(literalName, arg2))
+        }
       }
 
 
@@ -274,12 +274,25 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     sequentsOfSizeOne += (sequentIndex -> sequent)
     sequentIndex += 1
   }
-  private def getUnitSequen() : Sequent =
-    sequentsOfSizeOne(randomGenerator.nextInt(sequentIndex))
+  private def getUnitSequent() : Sequent = {
+    if(randomGenerator.nextInt(100) < 10)
+      sequentsOfSizeOne(randomGenerator.nextInt(sequentIndex))
+    else
+      if (randomGenerator.nextBoolean()) {
+        val s = Sequent(generateRandomLiteral())()
+        addToUnitSequents(s)
+        s
+      } else {
+        val s = Sequent()(generateRandomLiteral())
+        addToUnitSequents(s)
+        s
+      }
+
+  }
 
   def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent,Sequent) = {
     def getSequentAndLiterals() : (E,Sequent,E) = {
-      val newSequent : Sequent = getUnitSequen()
+      val newSequent : Sequent = getUnitSequent()
       require(newSequent.ant.size + newSequent.suc.size == 1)
       val newLiteral1 : E = if(newSequent.ant.isEmpty) newSequent.suc.head else newSequent.ant.head
       val newLiteral2 : E = generateSubstitution(newLiteral1)(newLiteral1)
@@ -363,6 +376,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
           contractionStep(sequent,height)
       }
     }
+
     if(!isEmptyClause(baseNode)) {
       baseNode.ant foreach saveSymbols
       baseNode.suc foreach saveSymbols
