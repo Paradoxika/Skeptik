@@ -90,21 +90,44 @@ object CR {
             case Some((leftMgu, _)) =>
               val newLiteral = Literal(leftMgu(conclusion.unit), conclusion.negated)
               unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newLiteral)
-              reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += ((clause, unifier, leftMgu))
-              ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
-                (Set.empty[Clause] /: unifier)(_ union ancestor(_)) + clause
-              if (decision.contains(newLiteral) && !findDecisionLiterals(newLiteral).contains(newLiteral)) {
-                decision -= newLiteral
-                result += newLiteral
-              }
-              if (!result.contains(newLiteral) && !propagatedLiterals.contains(newLiteral)) {
-                result += newLiteral
+              val newEntry = (clause, unifier, leftMgu)
+              if (!unifier.exists(isAncestor(_, newLiteral))) {
+                reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += newEntry
+                ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
+                  (Set.empty[Clause] /: unifier) (_ union ancestor(_)) + clause
+                if (decision.contains(newLiteral)) {
+                  decision -= newLiteral
+                  result += newLiteral
+                }
+                if (!result.contains(newLiteral) && !propagatedLiterals.contains(newLiteral)) {
+                  result += newLiteral
+                }
               }
             case None =>
           }
         }
       }
       result.toSet
+    }
+
+    /**
+      * Check if `initial` is an ancestor of `initial` in implication graph.
+      * @param current to check as a descendant
+      * @param ancestor to check as an ancestor
+      * @return true, if initial is ancestor of current
+      *         false, otherwise
+      */
+    def isAncestor(current: Literal, ancestor: Literal): Boolean = {
+      if (current == ancestor) return true
+      if (allClauses contains current.toClause) {
+        false
+      } else if (decision contains current) {
+        false
+      } else {
+        reverseImplicationGraph(current).exists {
+          case (clause, unifiers, sub) => unifiers.exists(isAncestor(_, ancestor))
+        }
+      }
     }
 
     /**
@@ -244,26 +267,6 @@ object CR {
       })
     }
 
-    /**
-      * Finds decision literals, used in propagation of a literal.
-      *
-      * @param current literal
-      * @return set of decision literals used in propagation of `current`
-      */
-    def findDecisionLiterals(current: Literal): Set[Literal] = {
-      if (allClauses contains current.toClause) {
-        Set.empty
-      } else if (decision contains current) {
-        Set(current)
-      } else if (reverseImplicationGraph contains current) {
-        val decisionLiterals = for ((_, unifier, mgu) <- reverseImplicationGraph(current))
-          yield unifier.map(findDecisionLiterals).fold(Set.empty)(_ union _)
-        decisionLiterals.toSeq.sortBy(_.size).head
-      } else {
-        throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
-      }
-    }
-
     while (true) {
       val result = ArrayBuffer.empty[Literal] // New literals, which are propagated on this step
       for (clause <- allClauses if !clause.isUnit) {
@@ -302,7 +305,6 @@ object CR {
         // For each literal, which can be unified with some other literal
         val otherLiteral = unifiableUnits(conflictLiteral).head
         println(s"There is a conflict from $conflictLiteral and $otherLiteral")
-        if (decision.isEmpty) return false
 
         /**
           * Finds conflict clause, used consisting of negation of all decisions-ancestors of `current`.
