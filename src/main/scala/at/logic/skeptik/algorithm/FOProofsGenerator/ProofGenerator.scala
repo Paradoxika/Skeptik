@@ -416,6 +416,55 @@ trait ProofGeneratorTrait {
 
 object ProofToTPTPFile {
   def apply(proof : Proof[Node]) : String = {
-    ???
+    var formulaName : Int = 0
+    var tptpProof   : String = ""
+    def addFormula(annotatedFormula : String) : Unit =
+      tptpProof += annotatedFormula + "\n"
+
+    proof foldDown { (node : Node, premises : Seq[String]) =>
+      node match {
+        case Axiom(_)                    =>
+          require(premises.isEmpty)
+          val name = "c" + formulaName
+          addFormula("cnf(" + name + ",axiom," + sequentToString(node.conclusion) + ").")
+          formulaName += 1
+          name
+        case Contraction(_,_)            =>
+          require(premises.length == 1)
+          val name = "c" + formulaName
+          addFormula("cnf(" + name + ",plain," + sequentToString(node.conclusion) + ",inference(cn,[status(thm)],[" + premises.head + "])).")
+          formulaName += 1
+          name
+        case UnifyingResolution(_,_,_,_) =>
+          require(premises.length == 2)
+          val name = "c" + formulaName
+          addFormula("cnf(" + name + ",plain," + sequentToString(node.conclusion) + ",inference(sr,[status(thm)],[" + premises(0) + "," + premises(1) + "])).")
+          formulaName += 1
+          name
+      }
+    }
+    tptpProof
   }
+
+  private def sequentToString(sequent : Sequent) : String = {
+    def literalToString(literal : E) : String =
+      literal match {
+        case Atom(Var(name,_),args) => name + "(" + (args map termToString).mkString(",") + ")"
+      }
+
+    def termToString(term : E) : String =
+      term match {
+        case Var(name,_) => name
+        case FunctionTerm(Var(name,_),args) => name + "(" + (args map termToString).mkString(",") + ")"
+      }
+
+    val antString = (sequent.ant map ((x : E) => "~" + literalToString(x))).mkString(" | ")
+    val sucString = (sequent.suc map literalToString).mkString(" | ")
+    if(sequent.ant.isEmpty && sequent.suc.isEmpty) "$false"
+    else if(sequent.ant.isEmpty) sucString
+    else if(sequent.suc.isEmpty) antString
+    else antString + " | " + sucString
+  }
+
+
 }
