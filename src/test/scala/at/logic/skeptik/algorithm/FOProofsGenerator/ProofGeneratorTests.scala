@@ -20,9 +20,11 @@ object ProofGeneratorTests {
     //randomLiteralTest()
     //for(i <- 1 to 10)
     //  generateResolutionTest()
+    val atom = Atom("p",List(Var("V",i),Var("a",i),App(App(Var("f",i->(i->i)),Var("X",i)),Var("b",i))))
+    val sequent = Sequent(atom)()
     try {
       while(true) {
-        val (proof, vars) = proofGenerationTest(7)
+        val (proof, vars) = proofGenerationTest(4,Sequent()())
         println(proof)
         val timeout = 1
         val cottonSplit = new FOCottonSplit(vars, timeout)
@@ -68,14 +70,14 @@ object ProofGeneratorTests {
     println("")
   }
 
-  def proofGenerationTest(proofHeight : Int) : (Proof[Node],MSet[Var]) = {
+  def proofGenerationTest(proofHeight : Int, root : Sequent) : (Proof[Node],MSet[Var]) = {
     val generator = new ProofGenerator(proofHeight)
     try {
-      (generator.generateProof(),generator.getVariables())
+      (generator.generateProof(root),generator.getVariables())
     } catch {
       case e : Exception =>
         println("FAIL\n" + e + "\n")
-        proofGenerationTest(proofHeight)
+        proofGenerationTest(proofHeight,root)
     }
   }
 

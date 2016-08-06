@@ -24,9 +24,9 @@ import util.Random
 class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
 
-  var numberOfPredicates: Int = proofHeight * 3
-  val numberOfConstants: Int = numberOfPredicates * 2
-  val numberOfFunctions: Int = numberOfPredicates
+  var numberOfPredicates : Int = proofHeight * 3
+  val numberOfConstants  : Int = numberOfPredicates * 2
+  val numberOfFunctions  : Int = numberOfPredicates
 
   def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
 
@@ -43,7 +43,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
   private val randomGenerator = new Random()
 
-  private var varNumber = -1
+  private var varNumber  = -1
   private var consNumber = -1
   private var funcNumber = -1
   private var predNumber = -1
@@ -55,10 +55,10 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     v
   }
 
-  private val constants: MSet[Var] = MSet[Var]()
-  private val variables: MSet[Var] = MSet[Var]()
-  private val functions: MMap[String, Int] = MMap[String, Int]()
-  private val predicates: MMap[String, Int] = MMap[String, Int]()
+  private val constants  : MSet[Var]         = MSet[Var]()
+  private val variables  : MSet[Var]         = MSet[Var]()
+  private val functions  : MMap[String, Int] = MMap[String, Int]()
+  private val predicates : MMap[String, Int] = MMap[String, Int]()
 
   def getVariables() = variables.clone()
 
@@ -113,14 +113,14 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   }
 
   private def generateOneArgument(): E = {
-    def isVariable(t: Int) = false //0 <= t && t < 0
-    def isConstant(t: Int) = 0 <= t && t <= 7
+    def isAVariable(t: Int) = false //0 <= t && t < 0
+    def isAConstant(t: Int) = 0 <= t && t <= 7
     val argumentType: Int = randomGenerator.nextInt(10)
-    if (isVariable(argumentType)) {
+    if (isAVariable(argumentType)) {
       val generatedVariable = freshVar()
       variables += generatedVariable
       generatedVariable
-    } else if (isConstant(argumentType))
+    } else if (isAConstant(argumentType))
       Var("c" + randomGenerator.nextInt(numberOfConstants), i)
     else {
       val functionId = "f" + randomGenerator.nextInt(numberOfFunctions)
@@ -268,9 +268,9 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       (newLeftSeq + leftResolvedLiteral, rightResolvedLiteral +: newRightSeq)
   }
 
-  private var sequentIndex = 0
+  private var sequentIndex      = 0
   private val sequentsOfSizeOne = MMap[Int, Sequent]()
-  private def addToUnitSequents(sequent: Sequent): Unit = {
+  private def addToUnitSequents(sequent : Sequent): Unit = {
     sequentsOfSizeOne += (sequentIndex -> sequent)
     sequentIndex += 1
   }
@@ -287,7 +287,6 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
         addToUnitSequents(s)
         s
       }
-
   }
 
   def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent,Sequent) = {
@@ -332,27 +331,27 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     }
   }
 
-  private def rInt() : Int = 1 + randomGenerator.nextInt(1)
+  private def heightReduction() : Int = 1 + randomGenerator.nextInt(1)
 
   def generateProof(baseNode : Sequent) : Proof[Node] = {
     def convertNodeIntoProof(root : Node) : Proof[Node] = Proof(root)
     def resolutionStep(sequent : Sequent, height : Int) : Node = {
       val (leftSequent,rightSequent) = generateResolution(sequent)
-      val leftPremise  : Node        = generatePremises(height - rInt(),leftSequent)
-      val rightPremise : Node        = generatePremises(height - rInt(),rightSequent)
+      val leftPremise  : Node        = generatePremises(height - heightReduction(),leftSequent)
+      val rightPremise : Node        = generatePremises(height - heightReduction(),rightSequent)
       UnifyingResolution.resolve(leftPremise,rightPremise,sequent,variables)
     }
     def contractionStep(sequent: Sequent, height : Int) : Node = {
       val premise : Sequent = generateContraction(sequent)
-      Contraction(generatePremises(height - rInt(),premise),sequent)(variables)
+      Contraction(generatePremises(height - heightReduction(),premise),sequent)(variables)
     }
 
     def irregularResolutionStep(sequent: Sequent, height : Int) : Node = {
       val (left,right) = generateResolution(sequent)
       val (leftGrand,common,rightGrand) = generateResolutionSharingPremise(left,right)
-      val commonNode     : Node = generatePremises(height - rInt(),common)
-      val leftGrandNode  : Node = generatePremises(height - rInt(),leftGrand)
-      val rightGrandNode : Node = generatePremises(height - rInt(),rightGrand)
+      val commonNode     : Node = generatePremises(height - heightReduction(),common)
+      val leftGrandNode  : Node = generatePremises(height - heightReduction(),leftGrand)
+      val rightGrandNode : Node = generatePremises(height - heightReduction(),rightGrand)
       val leftPremise    : Node = UnifyingResolution.resolve(leftGrandNode,commonNode,left,variables)
       val rightPremise   : Node = UnifyingResolution.resolve(commonNode,rightGrandNode,right,variables)
       UnifyingResolution.resolve(leftPremise,rightPremise,sequent,variables)
@@ -383,6 +382,27 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     }
     convertNodeIntoProof(generatePremises(proofHeight,baseNode))
   }
+
+  def generateFolder(destinationPath : String = "" , numberOfProofs : Int) : Unit = {
+    import java.nio.file._
+
+    try {
+      val directoryName = "GeneratedProofs"
+      val path = Paths.get(destinationPath, directoryName)
+      val dir  = Files.createDirectory(path)
+      for (i <- 1 to numberOfProofs) {
+        val filePath = Paths.get(destinationPath, directoryName, "Proof" + i)
+        val file     = Files.createFile(filePath)
+        Files.write(file,ProofToTPTPFile(generateProof()).getBytes())
+      }
+    } catch  {
+      case e : FileAlreadyExistsException => println("Files already exists")
+      case e : NoSuchFileException        => println("The directory selected does not exist")
+      case e : Throwable                  => println("Unexpected problem\n" + e)
+    }
+  }
+
+
 }
 
 /**
@@ -392,4 +412,10 @@ trait ProofGeneratorTrait {
   def generateProof(root : Sequent): Proof[Node]
 
   def generateProof() : Proof[Node] = generateProof(Sequent()())
+}
+
+object ProofToTPTPFile {
+  def apply(proof : Proof[Node]) : String = {
+    ???
+  }
 }
