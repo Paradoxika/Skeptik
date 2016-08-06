@@ -5,7 +5,7 @@ import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.parser.{BaseParserTPTP, ProofParser}
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
-import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
+import at.logic.skeptik.proof.sequent.resolution.{Contraction, UnifyingResolution}
 import at.logic.skeptik.proof.sequent.lk.{Axiom, R, UncheckedInference}
 
 import at.logic.skeptik.parser.TPTPParsers.TPTPAST._
@@ -63,9 +63,13 @@ extends BaseParserTPTP {
   private def prossesDirective(directive : TPTPDirective) : Node = {
     val annotatedFormula : AnnotatedFormula = directive.asInstanceOf[AnnotatedFormula]
     require(annotatedFormula.language == lexical.CNF.chars)
-    annotatedFormula.annotations match {
-      case None             => annotatedFormulaToAxiom(annotatedFormula)
-      case Some((source,_)) => annotatedFormulaToNode(annotatedFormula,source)
+    if(annotatedFormula.role == "axiom")
+      annotatedFormulaToAxiom(annotatedFormula)
+    else {
+      annotatedFormula.annotations match {
+        case None              => annotatedFormulaToAxiom(annotatedFormula)
+        case Some((source, _)) => annotatedFormulaToNode(annotatedFormula, source)
+      }
     }
   }
 
@@ -94,6 +98,7 @@ extends BaseParserTPTP {
     val parents       = extractParents(parentList)
     inferenceRule match {
       case "sr" => annotatedFormulaToResolution(nodeName,formula,parents)
+      case "cn" => annotatedFormulaToContraction(nodeName,formula,parents)
       case _    => throw new Exception("Inference Rule not supported: "+ inferenceRule)
     }
     // TODO: Complete this. The only thing to do is to compare the inferenceRule with the accepted ones
@@ -147,6 +152,21 @@ extends BaseParserTPTP {
       val resolution = unify(nodeMap(parents(0)), nodeMap(parents(1)), sequent, variables)
       nodeMap += (nodeName -> resolution)
       resolution
+    }
+  }
+
+  private def annotatedFormulaToContraction(nodeName : String, formula: Option[RepresentedFormula] , parents : List[String]) : Node = {
+    require(parents.length == 1)
+    if (formula.isEmpty) {
+      nodeMap += (nodeName -> Contraction(nodeMap(parents(0)))(variables))
+      nodeMap(nodeName)
+    } else {
+      val sequent = formula match {
+        case Some(SimpleSequent(ant, suc)) => Sequent(ant: _*)(suc: _*)
+        case _                             => throw new Exception("Unexpected formula found, a sequent was spected")
+      }
+      nodeMap += (nodeName -> Contraction(nodeMap(parents(0)),sequent)(variables))
+      nodeMap(nodeName)
     }
   }
 
