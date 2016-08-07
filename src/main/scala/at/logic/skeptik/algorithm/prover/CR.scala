@@ -33,7 +33,7 @@ object CR {
     depthLiterals(0) = mutable.Set.empty
     val ancestor = mutable.Map.empty[Literal, mutable.Set[Clause]] // For each literal what initial clauses produced it
     val implicationGraph = mutable.Map.empty[Clause, ArrayBuffer[Literal]] // For each clause (or literal) what literals was produced from it
-    val reverseImplicationGraph = mutable.Map.empty[Literal, mutable.Set[(Clause, Seq[Literal], Substitution)]] // For each literal what clause, literals and mgu were used to produce it
+    val reverseImplicationGraph = mutable.Map.empty[Literal, mutable.Set[(Clause, Seq[(Literal, Substitution)])]] // For each literal what clause, literals and mgu were used to produce it
     val unifiableUnits = mutable.Map.empty[Literal, mutable.Set[Literal]] // Shows unifiable literals for each literal
     val literals = mutable.Set(cnf.clauses.flatMap(_.literals): _*) // All literals contained in propagated literals and initial clauses
     val propagatedLiterals = mutable.Set.empty[Literal]
@@ -85,14 +85,13 @@ object CR {
         for (unifier <- combinations(unifiers)) { // We should try all combinations of unifiers
           val unifierUnits = unifier.map(_.unit)
           val literalUnits = literals.map(_.unit)
-          unifyWithRename(literalUnits, unifierUnits) match {
+          unifyWithRename(unifierUnits, literalUnits) match {
             // All unifiers should be unified with literals using one common mgu
-            case Some((leftMgu, _)) =>
-              val newLiteral = Literal(leftMgu(conclusion.unit), conclusion.negated)
+            case Some((leftMgu, rightMgu)) =>
+              val newLiteral = Literal(rightMgu(conclusion.unit), conclusion.negated)
               unifier.foreach(implicationGraph.getOrElseUpdate(_, ArrayBuffer.empty) += newLiteral)
-              val newEntry = (clause, unifier, leftMgu)
               if (!unifier.exists(isAncestor(_, newLiteral))) {
-                reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += newEntry
+                reverseImplicationGraph.getOrElseUpdate(newLiteral, mutable.Set.empty) += ((clause, unifier zip leftMgu))
                 ancestor.getOrElseUpdate(newLiteral, mutable.Set.empty) ++=
                   (Set.empty[Clause] /: unifier) (_ union ancestor(_)) + clause
                 if (decision.contains(newLiteral)) {
@@ -125,7 +124,7 @@ object CR {
         false
       } else {
         reverseImplicationGraph(current).exists {
-          case (clause, unifiers, sub) => unifiers.exists(isAncestor(_, ancestor))
+          case (clause, unifiers) => unifiers.exists { case (lit, _) => isAncestor(lit, ancestor) }
         }
       }
     }
@@ -171,45 +170,31 @@ object CR {
       * to work correctly.
       *
       * @param left where quantified variables should be renamed
-      * @param right other resolvent
-      * @return `left` with renamed variables
+      * @param usedVars already used variables
+      * @return proper substitution to rename without variable collisions
       */
-    def renameVars(left: Seq[E], right: Seq[E]): (Substitution, Seq[E]) = {
-      val alreadyUsed = mutable.Set.empty[Var]
-      val leftSubstitution = MSubstitution.empty
-      val renamedLeft = for (oneLeft <- left) yield { // Each E in left should contain unique variables
-        val leftE = leftSubstitution(oneLeft)
-        val sharedVars = unifiableVars(leftE) intersect unifiableVars(right: _*) // Variables contained in leftOnce and right
+    def renameVars(left: E, usedVars: Set[Var]): Substitution = {
+      val sharedVars = unifiableVars(left) intersect usedVars // Variables which should be renamed
 
-        if (sharedVars.nonEmpty) {
-          // Unification variables which can be reused for new variables
-          val notUsedVars = variables diff (sharedVars union unifiableVars(left: _*) union unifiableVars(right: _*) union alreadyUsed)
+      // Unification variables which can be reused for new variables
+      val notUsedVars = variables diff (sharedVars union unifiableVars(left) union usedVars)
 
-          val kvs = for (v <- sharedVars) yield {
-            val replacement = notUsedVars.headOption getOrElse { // Use some variable from unification variables
-              // Or create a new one
-              var newVar = Var(v + "'", i)
-              while (sharedVars contains newVar) {
-                newVar = Var(newVar + "'", i)
-              }
-              variables += newVar // It will be avaiable for unification from now
-              newVar
-            }
-
-            alreadyUsed += replacement
-
-            if (notUsedVars contains replacement) notUsedVars -= replacement
-            v -> replacement
+      val kvs = for (v <- sharedVars) yield {
+        val replacement = notUsedVars.headOption getOrElse { // Use some variable from unification variables
+          // Or create a new one
+          var newVar = Var(v + "'", i)
+          while (sharedVars contains newVar) {
+            newVar = Var(newVar + "'", i)
           }
-
-          leftSubstitution ++= kvs
-
-          leftSubstitution(leftE)
-        } else {
-          leftE
+          variables += newVar // It will be available for unification from now
+          newVar
         }
+
+        if (notUsedVars contains replacement) notUsedVars -= replacement
+        v -> replacement
       }
-      (leftSubstitution.toImmutable, renamedLeft)
+
+      new Substitution(kvs.toMap)
     }
 
     /**
@@ -253,17 +238,29 @@ object CR {
       *
       * @param left expressions to be unified.
       * @param right expression to be unified
-      * @return Some(sub, renameSub) if there is a substitution `sub` which unifies left and right and `renameSub` which modifies left before it.
+      * @return Some(leftSubs, rightSub) where leftSubs contains substitution for all left expressions and rightSub
+      *           is the signle substitution for all right expressions
       *         None if there is no substitution.
       */
-    def unifyWithRename(left: Seq[E], right: Seq[E]): Option[(Substitution, Substitution)] = {
-      val (renameSubstitution, renamedLeft) = renameVars(left, right)
-      val unificationProblem = renamedLeft.zip(right)
+    def unifyWithRename(left: Seq[E], right: Seq[E]): Option[(Seq[Substitution], Substitution)] = {
+      var usedVars = unifiableVars(right: _*)
+      val newLeftWithSub = for (oneLeft <- left) yield {
+        val substitution = renameVars(oneLeft, usedVars)
+        val newLeft = substitution(oneLeft)
+        usedVars ++= unifiableVars(newLeft)
+        (newLeft, substitution)
+      }
+      val newLeft = newLeftWithSub.map(_._1)
+      val subs = newLeftWithSub.map(_._2)
+      val unificationProblem = newLeft.zip(right)
       val unificationSubstitution = unify(unificationProblem)
       unificationSubstitution.map(s => {
-        val unificationRenamedSubstitution = for ((key, value) <- renameSubstitution) yield (key, s(value))
-        val left = s.filterNot { case (k, v) => renameSubstitution.contains(k) }
-        (new Substitution(unificationRenamedSubstitution ++ left), s)
+        val unifiedSubs = for (renameSubstitution <- subs) yield {
+          val unificationRenamedSubstitution = for ((key, value) <- renameSubstitution) yield (key, s(value))
+          val left = s.filterNot { case (k, v) => renameSubstitution.contains(k) }
+          new Substitution(unificationRenamedSubstitution ++ left)
+        }
+        (unifiedSubs, s)
       })
     }
 
@@ -319,15 +316,15 @@ object CR {
           } else if (decision contains current) {
             !substitution(current)
           } else if (reverseImplicationGraph contains current) {
-            val conflictClauses = for ((_, unifier, mgu) <- reverseImplicationGraph(current))
-              yield unifier.map(findConflictClause(_, mgu)).fold(Clause.empty)(_ union _)
+            val conflictClauses = for ((_, unifier) <- reverseImplicationGraph(current))
+              yield unifier.map { case (lit, mgu) => findConflictClause(lit, mgu(substitution)) }.fold(Clause.empty)(_ union _)
             conflictClauses.toSeq.sortBy(_.width).head
           } else {
             throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
           }
         }
 
-        val (leftMgu, rightMgu) = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
+        val (Seq(leftMgu), rightMgu) = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
         val conflictClauseLeft = findConflictClause(conflictLiteral, leftMgu)
         val conflictClauseRight = findConflictClause(otherLiteral, rightMgu)
 
