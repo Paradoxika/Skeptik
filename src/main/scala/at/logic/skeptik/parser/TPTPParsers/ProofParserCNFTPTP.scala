@@ -32,6 +32,7 @@ extends BaseParserTPTP {
   private var nodeMap   = new MMap[String,Node]
   private var variables = Set[Var]()
   def getVariables      = variables.clone()
+  def resetVariables()  = variables.clear()
 
   def reset() {
     resetVarsSeen()

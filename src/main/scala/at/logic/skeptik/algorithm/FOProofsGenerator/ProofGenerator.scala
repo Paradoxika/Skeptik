@@ -24,8 +24,8 @@ import util.Random
 class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
 
-  var numberOfPredicates : Int = proofHeight * 3
-  val numberOfConstants  : Int = numberOfPredicates * 2
+  var numberOfPredicates : Int = proofHeight * 2
+  val numberOfConstants  : Int = numberOfPredicates * 3
   val numberOfFunctions  : Int = numberOfPredicates
 
   def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
@@ -47,6 +47,13 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   private var consNumber = -1
   private var funcNumber = -1
   private var predNumber = -1
+  def resetVars() : Unit = {
+    varNumber  = -1
+    consNumber = -1
+    funcNumber = -1
+    predNumber = -1
+  }
+
 
   def freshVar(): Var = {
     varNumber += 1
@@ -200,7 +207,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     def newPredicateName(arity : Int) : String = {
       numberOfPredicates += 1
       val name = "p" + numberOfPredicates
-      if(predicates contains name)
+      if (predicates contains name)
         newPredicateName(arity)
       predicates += name -> arity
       name
@@ -366,7 +373,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       else if(height <= 0)
           Axiom(sequent)
       else {
-        if(randomGenerator.nextInt(100) < 85)
+        if(randomGenerator.nextInt(100) < 90)
           if(randomGenerator.nextInt(100) < 80)
             resolutionStep(sequent,height)
           else
@@ -380,10 +387,19 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       baseNode.ant foreach saveSymbols
       baseNode.suc foreach saveSymbols
     }
-    convertNodeIntoProof(generatePremises(proofHeight,baseNode))
+    val p = convertNodeIntoProof(generatePremises(proofHeight,baseNode))
+    resetVars()
+    p
   }
 
   def generateFolder(destinationPath : String = "" , numberOfProofs : Int) : Unit = {
+    def generateProofWrapper() : Proof[Node] =
+      try {
+        generateProof()
+      } catch {
+        case e : Exception => generateProofWrapper()
+      }
+
     import java.nio.file._
 
     try {
@@ -393,7 +409,8 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       for (i <- 1 to numberOfProofs) {
         val filePath = Paths.get(destinationPath, directoryName, "Proof" + i)
         val file     = Files.createFile(filePath)
-        Files.write(file,ProofToTPTPFile(generateProof()).getBytes())
+        val nextProof = generateProofWrapper()
+        Files.write(file,ProofToTPTPFile(nextProof).getBytes())
       }
     } catch  {
       case e : FileAlreadyExistsException => println("Files already exists")
