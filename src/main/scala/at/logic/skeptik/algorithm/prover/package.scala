@@ -1,6 +1,7 @@
 package at.logic.skeptik.algorithm
 
 import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
+import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 import at.logic.skeptik.expression.{Abs, App, E, Var, i}
 import at.logic.skeptik.judgment.Sequent
@@ -100,5 +101,42 @@ package object prover {
     }
 
     new Substitution(kvs.toMap)
+  }
+
+  /**
+    * Pairwise unification (zipped) with renaming of mutual variables.
+    * Left expressions are considered to have different variables:
+    *
+    * If left(0) contains Var("X") and left(1) contains Var("X"), then left(1)'s variable will
+    * be renamed to Var("X'").
+    *
+    * While right expressions have common variables.
+    *
+    * @param left expressions to be unified, where variables are considered different
+    * @param right expressions to be unified, where variables are common
+    * @return Some(leftSubs, rightSub) where leftSubs contains substitution for all left expressions and rightSub
+    *           is the signle substitution for all right expressions
+    *         None if there is no substitution.
+    */
+  def unifyWithRename(left: Seq[E], right: Seq[E]): Option[(Seq[Substitution], Substitution)] = {
+    var usedVars = unifiableVars(right: _*)
+    val newLeftWithSub = for (oneLeft <- left) yield {
+      val substitution = renameVars(oneLeft, usedVars)
+      val newLeft = substitution(oneLeft)
+      usedVars ++= unifiableVars(newLeft)
+      (newLeft, substitution)
+    }
+    val newLeft = newLeftWithSub.map(_._1)
+    val subs = newLeftWithSub.map(_._2)
+    val unificationProblem = newLeft.zip(right)
+    val unificationSubstitution = unify(unificationProblem)
+    unificationSubstitution.map(s => {
+      val unifiedSubs = for (renameSubstitution <- subs) yield {
+        val unificationRenamedSubstitution = for ((key, value) <- renameSubstitution) yield (key, s(value))
+        val left = s.filterNot { case (k, v) => renameSubstitution.contains(k) }
+        new Substitution(unificationRenamedSubstitution ++ left)
+      }
+      (unifiedSubs, s)
+    })
   }
 }

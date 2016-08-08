@@ -183,37 +183,6 @@ object CR {
       }
     }
 
-    /**
-      * Pairwise unification (zipped) with renaming of mutual variables.
-      *
-      * @param left expressions to be unified.
-      * @param right expression to be unified
-      * @return Some(leftSubs, rightSub) where leftSubs contains substitution for all left expressions and rightSub
-      *           is the signle substitution for all right expressions
-      *         None if there is no substitution.
-      */
-    def unifyWithRename(left: Seq[E], right: Seq[E]): Option[(Seq[Substitution], Substitution)] = {
-      var usedVars = unifiableVars(right: _*)
-      val newLeftWithSub = for (oneLeft <- left) yield {
-        val substitution = renameVars(oneLeft, usedVars)
-        val newLeft = substitution(oneLeft)
-        usedVars ++= unifiableVars(newLeft)
-        (newLeft, substitution)
-      }
-      val newLeft = newLeftWithSub.map(_._1)
-      val subs = newLeftWithSub.map(_._2)
-      val unificationProblem = newLeft.zip(right)
-      val unificationSubstitution = unify(unificationProblem)
-      unificationSubstitution.map(s => {
-        val unifiedSubs = for (renameSubstitution <- subs) yield {
-          val unificationRenamedSubstitution = for ((key, value) <- renameSubstitution) yield (key, s(value))
-          val left = s.filterNot { case (k, v) => renameSubstitution.contains(k) }
-          new Substitution(unificationRenamedSubstitution ++ left)
-        }
-        (unifiedSubs, s)
-      })
-    }
-
     while (true) {
       val result = ArrayBuffer.empty[Literal] // New literals, which are propagated on this step
       for (clause <- allClauses if !clause.isUnit) {
