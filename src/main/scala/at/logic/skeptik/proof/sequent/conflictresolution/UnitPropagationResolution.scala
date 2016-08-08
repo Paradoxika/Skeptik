@@ -1,10 +1,8 @@
 package at.logic.skeptik.proof.sequent.conflictresolution
 
 import at.logic.skeptik.algorithm.prover._
-import at.logic.skeptik.algorithm.unifier.MartelliMontanari
-import at.logic.skeptik.expression.{E, Var}
-import at.logic.skeptik.judgment.Sequent
-import at.logic.skeptik.judgment.immutable.SetSequent
+import at.logic.skeptik.expression.Var
+import at.logic.skeptik.judgment.immutable.SeqSequent
 import at.logic.skeptik.proof.sequent.SequentProofNode
 
 import scala.collection.mutable
@@ -14,13 +12,8 @@ import scala.collection.mutable
   *
   * @author Daniyar Itegulov
   */
-class UnitPropagationResolution(val left: Seq[SequentProofNode],
-                                val right: SequentProofNode,
-                                val desiredIndex: Int)
-                               (implicit variables: mutable.Set[Var]) extends SequentProofNode {
-
-  def unify(equations: Iterable[(E, E)]) = MartelliMontanari(equations)
-
+case class UnitPropagationResolution(left: Seq[SequentProofNode], right: SequentProofNode, desiredIndex: Int)
+                                    (implicit variables: mutable.Set[Var]) extends SequentProofNode {
   require(left.forall(_.conclusion.width == 1), "All left conclusions should be unit")
   require(desiredIndex < right.conclusion.width, "Desired should be a literal from right conclusion")
   require(left.size + 1 == right.conclusion.size, "There should be enough left premises to derive desired")
@@ -36,12 +29,12 @@ class UnitPropagationResolution(val left: Seq[SequentProofNode],
     case Some(u) => u
   }
 
-  override def auxFormulasMap: Map[SequentProofNode, Sequent] =
-    (left.map(spn => spn -> spn.conclusion) :+ (right -> rightLiterals.toSequent)).toMap
+  override def auxFormulasMap: Map[SequentProofNode, SeqSequent] =
+    (left.map(spn => spn -> spn.conclusion) :+ (right -> rightLiterals.toSequent.toSeqSequent)).toMap
 
-  override def conclusionContext: Sequent = rightMgu(right.conclusion.literals(desiredIndex))
+  override def conclusionContext: SeqSequent = rightMgu(right.conclusion.literals(desiredIndex)).toSeqSequent
 
-  override def mainFormulas: Sequent = SetSequent()()
+  override def mainFormulas: SeqSequent = SeqSequent()()
 
   override def premises: Seq[SequentProofNode] = left :+ right
 }

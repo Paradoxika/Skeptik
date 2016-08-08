@@ -118,7 +118,8 @@ package object prover {
     *           is the signle substitution for all right expressions
     *         None if there is no substitution.
     */
-  def unifyWithRename(left: Seq[E], right: Seq[E]): Option[(Seq[Substitution], Substitution)] = {
+  def unifyWithRename(left: Seq[E], right: Seq[E])
+                     (implicit variables: mutable.Set[Var]): Option[(Seq[Substitution], Substitution)] = {
     var usedVars = unifiableVars(right: _*)
     val newLeftWithSub = for (oneLeft <- left) yield {
       val substitution = renameVars(oneLeft, usedVars)
