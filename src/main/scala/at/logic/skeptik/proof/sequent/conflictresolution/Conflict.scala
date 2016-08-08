@@ -1,6 +1,7 @@
-package at.logic.skeptik.proof.sequent.resolution
+package at.logic.skeptik.proof.sequent.conflictresolution
 
-import at.logic.skeptik.judgment.immutable.SeqSequent
+import at.logic.skeptik.judgment.Sequent
+import at.logic.skeptik.judgment.immutable.SetSequent
 import at.logic.skeptik.proof.sequent.{Binary, SequentProofNode}
 
 /**
@@ -13,11 +14,11 @@ class Conflict(val leftPremise: SequentProofNode,
   require(leftPremise.conclusion.width == 1, "Left premise should be a unit clause")
   require(rightPremise.conclusion.width == 1, "Right premise should be a unit clause")
 
-  override def mainFormulas: SeqSequent = SeqSequent()()
+  override def mainFormulas: Sequent = SetSequent()()
 
-  override def conclusionContext: SeqSequent = SeqSequent()()
+  override def conclusionContext: Sequent = SetSequent()()
 
-  override def leftAuxFormulas: SeqSequent = leftPremise.conclusion
+  override def leftAuxFormulas: Sequent = leftPremise.conclusion
 
-  override def rightAuxFormulas: SeqSequent = rightPremise.conclusion
+  override def rightAuxFormulas: Sequent = rightPremise.conclusion
 }
