@@ -1,9 +1,12 @@
 package at.logic.skeptik.algorithm.prover
 
 import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
-import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
+import at.logic.skeptik.expression.Var
 import at.logic.skeptik.expression.substitution.immutable.Substitution
-import at.logic.skeptik.expression.{E, Var}
+import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.proof.sequent.conflictresolution._
+import at.logic.skeptik.proof.sequent.lk.Axiom
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -26,7 +29,7 @@ object CR {
   private def combinations[A](xss: Seq[Seq[A]]): Seq[Seq[A]] =
     xss.foldLeft(Seq(Seq.empty[A])) { (x, y) => for (a <- x.view; b <- y) yield a :+ b }
 
-  def isSatisfiable(cnf: CNF)(implicit variables: mutable.Set[Var]): Boolean = {
+  def prove(cnf: CNF)(implicit variables: mutable.Set[Var]): Option[Proof[SequentProofNode]] = {
 
     val depthLiterals = mutable.Map.empty[Int, mutable.Set[Literal]] // Shows literals that were propagated at this depth
     depthLiterals(0) = mutable.Set.empty
@@ -39,6 +42,9 @@ object CR {
     var depth = 0 // Current depth
     val decision = ArrayBuffer.empty[Literal] // Literals, which were decided
     val conflictClauses = mutable.Set.empty[Clause]
+    val clauseProof = mutable.Map.empty[Clause, SequentProofNode] // Stores axioms for initial clauses and conflict proof for cdcl clauses
+
+    cnf.clauses.foreach(clause => clauseProof(clause) = Axiom(clause.toSeqSequent))
 
     def allClauses: Seq[Clause] = cnf.clauses ++ conflictClauses
 
@@ -183,6 +189,50 @@ object CR {
       }
     }
 
+    /**
+      * Finds conflict clause, used consisting of negation of all decisions-ancestors of `current`.
+      *
+      * @param current literal
+      * @param substitution last instantiation of this literal
+      * @return clause, representing disjunction of negated decision literals, used in propagation of current literal
+      */
+    def findConflictClause(current: Literal, substitution: Substitution = Substitution.empty): Clause = {
+      if (allClauses contains current.toClause) {
+        Clause.empty
+      } else if (decision contains current) {
+        !substitution(current)
+      } else if (reverseImplicationGraph contains current) {
+        val conflictClauses = for ((clause, unifier) <- reverseImplicationGraph(current))
+          yield (clause, unifier,
+              unifier.map {
+                case (lit, mgu) => findConflictClause(lit, mgu(substitution))
+              }.fold(Clause.empty)(_ union _)
+            )
+        val (bestClause, bestUnifier, bestConflictClause) = conflictClauses.toSeq.sortBy(_._3.width).head
+        reverseImplicationGraph(current).clear()
+        reverseImplicationGraph(current) += ((bestClause, bestUnifier))
+        bestConflictClause
+      } else {
+        throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
+      }
+    }
+
+    def buildProof(current: Literal): SequentProofNode = {
+      if (allClauses contains current.toClause) {
+        Axiom(current.toClause.toSeqSequent)
+      } else if (decision contains current) {
+        Decision(current.toClause)
+      } else if (reverseImplicationGraph contains current) {
+        val (clause, unifier) = reverseImplicationGraph(current).head
+        val premiseProofs = unifier.map {
+          case (lit, _) => buildProof(lit)
+        }
+        UnitPropagationResolution(premiseProofs, clauseProof(clause), current)
+      } else {
+        throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
+      }
+    }
+
     while (true) {
       val result = ArrayBuffer.empty[Literal] // New literals, which are propagated on this step
       for (clause <- allClauses if !clause.isUnit) {
@@ -222,45 +272,26 @@ object CR {
         val otherLiteral = unifiableUnits(conflictLiteral).head
         println(s"There is a conflict from $conflictLiteral and $otherLiteral")
 
-        /**
-          * Finds conflict clause, used consisting of negation of all decisions-ancestors of `current`.
-          *
-          * @param current literal
-          * @param substitution last instantiation of this literal
-          * @return clause, representing disjunction of negated decision literals, used in propagation of current literal
-          */
-        def findConflictClause(current: Literal, substitution: Substitution = Substitution.empty): Clause = {
-          if (allClauses contains current.toClause) {
-            Clause.empty
-          } else if (decision contains current) {
-            !substitution(current)
-          } else if (reverseImplicationGraph contains current) {
-            val conflictClauses = for ((_, unifier) <- reverseImplicationGraph(current))
-              yield unifier.map { case (lit, mgu) => findConflictClause(lit, mgu(substitution)) }.fold(Clause.empty)(_ union _)
-            conflictClauses.toSeq.sortBy(_.width).head
-          } else {
-            throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
-          }
-        }
-
         val (Seq(leftMgu), rightMgu) = unifyWithRename(Seq(conflictLiteral.unit), Seq(otherLiteral.unit)).get
         val conflictClauseLeft = findConflictClause(conflictLiteral, leftMgu)
         val conflictClauseRight = findConflictClause(otherLiteral, rightMgu)
 
         println(s"Conflict clause from $conflictLiteral is $conflictClauseLeft")
         println(s"Conflict clause from $otherLiteral is $conflictClauseRight")
-        val newClause = conflictClauseLeft union conflictClauseRight
+        val newClause = unique(conflictClauseLeft union conflictClauseRight)
+        val conflict = Conflict(buildProof(conflictLiteral), buildProof(otherLiteral))
+        clauseProof(newClause) = ConflictDrivenClauseLearning(conflict)
         println(s"Derived $newClause")
-        if (newClause == Clause.empty) return false
+        if (newClause == Clause.empty) return Some(Proof(conflict))
         conflictLearnedClauses += newClause
       }
 
       if (conflictLearnedClauses.nonEmpty) {
         reset(conflictLearnedClauses)
       } else if (result.isEmpty) {
-        return true
+        return None
       }
     }
-    true
+    None
   }
 }

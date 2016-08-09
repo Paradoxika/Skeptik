@@ -29,14 +29,14 @@ class CRSpec extends SpecificationWithJUnit {
   val Pz = App(P, z)
   implicit val vars = mutable.Set(x, y, z)
 
-  private def test(clauses: Clause*) = CR.isSatisfiable(new CNF(ArrayBuffer(clauses:_*)))
+  private def test(clauses: Clause*) = CR.prove(new CNF(ArrayBuffer(clauses:_*)))
 
   "CR" should {
     "find satisfiable" in {
       test(
         Clause()(App(P, x)),
         Clause()(App(P, a))
-      ) shouldEqual true
+      ) shouldEqual Some
     }
 
     "find unsatisfiable" in {
@@ -44,7 +44,7 @@ class CRSpec extends SpecificationWithJUnit {
         Clause(App(P, a))(), // P(a)
         Clause(App(P, App(f, x)))(App(P, x)), // ∀x.(P(x) or !P(f(x))
         Clause()(App(P, App(f, App(f, a)))) // P(f(f(a)))
-      ) shouldEqual false
+      ) shouldEqual Some
 
       test(
         Clause()(Pa, Pb),
@@ -53,7 +53,7 @@ class CRSpec extends SpecificationWithJUnit {
         Clause(Pa, Pb)(),
         Clause()(Pd),
         Clause(Pz)(App(P, App(f, z)))
-      ) shouldEqual false
+      ) shouldEqual Some
     }
   }
 }
