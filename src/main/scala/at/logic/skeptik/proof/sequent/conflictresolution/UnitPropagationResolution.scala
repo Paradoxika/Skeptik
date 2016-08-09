@@ -30,7 +30,7 @@ case class UnitPropagationResolution(left: Seq[SequentProofNode], right: Sequent
       unifyWithRename(leftAux, rightAux).flatMap {
         case (lmgu, rmgu) =>
           val conclusion = rmgu(right.conclusion.literals(desiredIndex))
-          if (conclusion.negated != desired.negated || !isUnifiable(conclusion.unit, desired.unit)) {
+          if (conclusion.negated != desired.negated || conclusion.unit != desired.unit) {
             None // If desired literal is not a resulting literal
           } else {
             Some(lmgu, rmgu, rightLiterals, desiredIndex) // Pack some additional information to Option
