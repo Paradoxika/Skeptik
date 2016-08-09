@@ -141,14 +141,27 @@ package object prover {
   }
 
   /**
-    * @param left first E to check
-    * @param right second E to check
+    * Checks if there is such unification, which don't use unification variables from `what`.
+    *
+    * @param what what should be instantiated
+    * @param from from what should be instantiated
     * @param variables unifiaction variables
-    * @return true, if there exists some unification for left and right
+    * @return true, if there exists some unification for what and from according to rules
     *         false, otherwise
     */
-  def isUnifiable(left: E, right: E)(implicit variables: mutable.Set[Var]): Boolean =
-    unifyWithRename(Seq(left), Seq(right)).isDefined
+  def isInstantiation(what: E, from: E)(implicit variables: mutable.Set[Var]): Boolean = {
+    val usedVars = unifiableVars(what)
+    val sub = renameVars(from, usedVars)
+    val newFrom = sub(from)
+    val newVars = unifiableVars(what)
+    variables --= newVars // newVars are fixed
+    val result = unify((what, newFrom) :: Nil) match {
+      case None => false
+      case Some(_) => true
+    }
+    variables ++= newVars // Should revert variables set back to initial state
+    result
+  }
 
   /**
     * Leaves only unique literals in sequent.
