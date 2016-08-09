@@ -734,6 +734,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     "find the correct sequent in unifying resolution (4)" in {
       ur4.conclusion.equals(ac4) must beEqualTo(true)
     }
+    //----
   }
   "checkUnifiableVariableName" should {
     "return true for X" in {
