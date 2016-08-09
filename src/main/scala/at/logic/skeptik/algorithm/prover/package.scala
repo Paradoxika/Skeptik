@@ -4,8 +4,7 @@ import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 import at.logic.skeptik.algorithm.unifier.{MartelliMontanari => unify}
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 import at.logic.skeptik.expression.{Abs, App, E, Var, i}
-import at.logic.skeptik.judgment.Sequent
-import at.logic.skeptik.judgment.immutable.SetSequent
+import at.logic.skeptik.judgment.immutable.SeqSequent
 
 import scala.collection.mutable
 import scala.language.implicitConversions
@@ -14,21 +13,21 @@ import scala.language.implicitConversions
   * @author Daniyar Itegulov
   */
 package object prover {
-  type Clause = SetSequent
+  type Clause = SeqSequent
   type CNF = structure.immutable.CNF
 
   object Clause {
-    def apply(a: E*)(b: E*) = new SetSequent(a.toSet, b.toSet)
-    def empty = SetSequent()
+    def apply(a: E*)(b: E*) = new SeqSequent(a, b)
+    def empty = SeqSequent()()
   }
 
   implicit def varToLit(variable: E): Literal = Literal(variable, negated = false)
 
   implicit def literalToClause(literal: Literal): Clause = literal.toClause
 
-  implicit class ClauseOperations(clause: Sequent) {
+  implicit class ClauseOperations(clause: SeqSequent) {
     lazy val literals: Seq[Literal] =
-      (clause.ant.map(Literal(_, negated = true)) ++ clause.suc.map(Literal(_, negated = false))).toSeq
+      clause.ant.map(Literal(_, negated = true)) ++ clause.suc.map(Literal(_, negated = false))
 
     def apply(pos: Int): Literal = literals(pos)
 
@@ -39,18 +38,18 @@ package object prover {
     def isUnit: Boolean = clause.width == 1
   }
 
-  implicit class UnitSequent(sequent: SetSequent) {
+  implicit class UnitSequent(sequent: SeqSequent) {
     def literal: Literal =
       if (sequent.ant.size == 1 && sequent.suc.isEmpty) Literal(sequent.ant.head, negated = true)
       else if (sequent.ant.isEmpty && sequent.suc.size == 1) Literal(sequent.suc.head, negated = false)
-      else throw new IllegalStateException("Given SetSequent is not a unit")
+      else throw new IllegalStateException("Given SeqSequent is not a unit")
   }
 
   implicit class LiteralsAreSequent(literals: Iterable[Literal]) {
-    def toSequent: SetSequent = {
+    def toSequent: SeqSequent = {
       val ant = literals.flatMap(l => if (l.negated) Some(l.unit) else None)
       val suc = literals.flatMap(l => if (l.negated) None else Some(l.unit))
-      new SetSequent(ant.toSet, suc.toSet)
+      new SeqSequent(ant.toSeq, suc.toSeq)
     }
   }
 
@@ -139,5 +138,31 @@ package object prover {
       }
       (unifiedSubs, s)
     })
+  }
+
+  /**
+    * @param left first E to check
+    * @param right second E to check
+    * @param variables unifiaction variables
+    * @return true, if there exists some unification for left and right
+    *         false, otherwise
+    */
+  def isUnifiable(left: E, right: E)(implicit variables: mutable.Set[Var]): Boolean =
+    unifyWithRename(Seq(left), Seq(right)).isDefined
+
+  /**
+    * Leaves only unique literals in sequent.
+    *
+    * @param sequent initial sequent
+    * @return initial sequent, where duplicate literals were removed
+    */
+  def unique(sequent: SeqSequent) = {
+    def loop(set: Set[Literal], literals: Seq[Literal]): Seq[Literal] = literals match {
+      case hd :: tail if set contains hd => loop(set, tail)
+      case hd :: tail => hd +: loop(set + hd, tail)
+      case Nil => Nil
+    }
+
+    loop(Set(), sequent.literals).toSequent
   }
 }
