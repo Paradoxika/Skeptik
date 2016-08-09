@@ -75,12 +75,12 @@ extends BaseParserTPTP {
   }
 
   private def annotatedFormulaToAxiom(annotatedFormula : AnnotatedFormula) : Node = annotatedFormula.formula match {
-    case SimpleSequent(ant,suc) => {
+    case SimpleSequent(ant,suc) =>
       val axiom = Axiom(Sequent(ant:_*)(suc:_*))
       nodeMap += (annotatedFormula.name -> axiom)
       axiom
-    }
     case SimpleFormula(formula) => throw new Exception("Not sequent formula detected: " + annotatedFormula.name)
+    case SimpleType(_,_)        => throw new Exception("Not sequent formula detected: " + annotatedFormula.name)
   }
 
   private def annotatedFormulaToNode(annotatedFormula : AnnotatedFormula, source: Source) : Node = {

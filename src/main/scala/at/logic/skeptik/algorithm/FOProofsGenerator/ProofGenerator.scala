@@ -24,9 +24,9 @@ import util.Random
 class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
 
-  var numberOfPredicates : Int = proofHeight * 2
-  val numberOfConstants  : Int = numberOfPredicates * 3
-  val numberOfFunctions  : Int = numberOfPredicates
+  var numberOfPredicates: Int = proofHeight * 2
+  val numberOfConstants: Int  = numberOfPredicates * 3
+  val numberOfFunctions: Int  = numberOfPredicates
 
   def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
 
@@ -47,11 +47,19 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   private var consNumber = -1
   private var funcNumber = -1
   private var predNumber = -1
-  def resetVars() : Unit = {
+
+  def resetState(): Unit = {
+    numberOfPredicates = proofHeight * 2
     varNumber  = -1
     consNumber = -1
     funcNumber = -1
     predNumber = -1
+    constants.clear()
+    functions.clear()
+    predicates.clear()
+    variables.clear()
+    sequentIndex = 0
+    sequentsOfSizeOne.clear()
   }
 
 
@@ -62,12 +70,13 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     v
   }
 
-  private val constants  : MSet[Var]         = MSet[Var]()
-  private val variables  : MSet[Var]         = MSet[Var]()
-  private val functions  : MMap[String, Int] = MMap[String, Int]()
-  private val predicates : MMap[String, Int] = MMap[String, Int]()
+  private val constants: MSet[Var] = MSet[Var]()
+  private val variables: MSet[Var] = MSet[Var]()
+  private val functions: MMap[String, Int] = MMap[String, Int]()
+  private val predicates: MMap[String, Int] = MMap[String, Int]()
 
-  def getVariables() = variables.clone()
+  private var varCopy = variables.clone()
+  def getVariables() = varCopy.clone()
 
   def generateContraction(conclusion: Sequent): Sequent = {
     def generateSubstitutionForContraction(e: E): Substitution = {
@@ -104,14 +113,14 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       Sequent(conclusion.ant: _*)(conclusion.suc: _*) + substitution(literalToExpand)
   }
 
-  private def randomFunctionArity(): Int = {
+  private def randomFunctionArity() : Int = {
     val aritySeed = randomGenerator.nextInt(10)
     if (0 <= aritySeed && aritySeed < 4) 1
     else if (4 <= aritySeed && aritySeed < 9) 2
     else 3
   }
 
-  private def randomPredicateArity(): Int = {
+  private def randomPredicateArity() : Int = {
     val aritySeed = randomGenerator.nextInt(10)
     if (0 <= aritySeed && aritySeed < 3) 1
     else if (3 <= aritySeed && aritySeed < 7) 2
@@ -119,7 +128,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     else 4
   }
 
-  private def generateOneArgument(): E = {
+  private def generateOneArgument() : E = {
     def isAVariable(t: Int) = false //0 <= t && t < 0
     def isAConstant(t: Int) = 0 <= t && t <= 7
     val argumentType: Int = randomGenerator.nextInt(10)
@@ -140,7 +149,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     }
   }
 
-  private def generateArguments(amount: Int): List[E] = {
+  private def generateArguments(amount: Int) : List[E] = {
     require(amount >= 0)
     if (amount == 0) Nil
     else
@@ -159,7 +168,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   }
 
 
-  private def generateSubstitution(e: E): Substitution = {
+  private def generateSubstitution(e: E) : Substitution = {
     val substitution: MMap[Var, E] = MMap[Var, E]()
     def addRepleacement(exp: E): Unit =
       exp match {
@@ -175,7 +184,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     Substitution(substitution.toList: _*)
   }
 
-  def generateResolution(conclusion: Sequent): (Sequent, Sequent) = {
+  def generateResolution(conclusion: Sequent) : (Sequent, Sequent) = {
     def generateSubstitutionForEmpryCase(e: E): Substitution = {
       val substitution: MMap[Var, E] = MMap[Var, E]()
       def addRepleacement(exp: E): Unit =
@@ -193,7 +202,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     }
 
 
-    def devideSequent(sequent: Sequent): (Sequent, Sequent) =
+    def devideSequent(sequent: Sequent) : (Sequent, Sequent) =
       if (isEmptyClause(sequent))
         (Sequent()(), Sequent()())
       else {
@@ -388,28 +397,31 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       baseNode.suc foreach saveSymbols
     }
     val p = convertNodeIntoProof(generatePremises(proofHeight,baseNode))
-    resetVars()
+    varCopy = variables.clone()
+    resetState()
     p
   }
 
-  def generateFolder(destinationPath : String = "" , numberOfProofs : Int) : Unit = {
-    def generateProofWrapper() : Proof[Node] =
+  def generateFolder(destinationPath : String = "" , numberOfProofs : Int, rootSequent : Sequent) : Unit = {
+    def generateProofWrapper(node : Sequent) : Proof[Node] =
       try {
-        generateProof()
+        generateProof(node)
       } catch {
-        case e : Exception => generateProofWrapper()
+        case e : Exception =>
+          resetState()
+          generateProofWrapper(node)
       }
 
     import java.nio.file._
 
     try {
       val directoryName = "GeneratedProofs"
-      val path = Paths.get(destinationPath, directoryName)
-      val dir  = Files.createDirectory(path)
+      val path : Path   = Paths.get(destinationPath, directoryName)
+      Files.createDirectory(path)
       for (i <- 1 to numberOfProofs) {
-        val filePath = Paths.get(destinationPath, directoryName, "Proof" + i)
-        val file     = Files.createFile(filePath)
-        val nextProof = generateProofWrapper()
+        val filePath    = Paths.get(destinationPath, directoryName, "Proof" + i)
+        val file        = Files.createFile(filePath)
+        val nextProof = generateProofWrapper(rootSequent)
         Files.write(file,ProofToTPTPFile(nextProof).getBytes())
       }
     } catch  {
@@ -426,14 +438,13 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   * The trait ProofGeneratorTrait should be use as the interface of the client to generate random proofs
   */
 trait ProofGeneratorTrait {
-  def generateProof(root : Sequent): Proof[Node]
-
-  def generateProof() : Proof[Node] = generateProof(Sequent()())
+  def generateProof()               : Proof[Node] = generateProof(Sequent()())
+  def generateProof(root : Sequent) : Proof[Node]
 }
 
 object ProofToTPTPFile {
   def apply(proof : Proof[Node]) : String = {
-    var formulaName : Int = 0
+    var formulaName : Int    = 0
     var tptpProof   : String = ""
     def addFormula(annotatedFormula : String) : Unit =
       tptpProof += annotatedFormula + "\n"
@@ -471,7 +482,7 @@ object ProofToTPTPFile {
 
     def termToString(term : E) : String =
       term match {
-        case Var(name,_) => name
+        case Var(name,_)                    => name
         case FunctionTerm(Var(name,_),args) => name + "(" + (args map termToString).mkString(",") + ")"
       }
 
@@ -482,6 +493,4 @@ object ProofToTPTPFile {
     else if(sequent.suc.isEmpty) antString
     else antString + " | " + sucString
   }
-
-
 }

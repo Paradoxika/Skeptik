@@ -1,6 +1,6 @@
 package at.logic.skeptik.algorithm.FOProofsGenerator
 
-import at.logic.skeptik.algorithm.compressor.{FOLowerUnits, FORecyclePivots}
+import at.logic.skeptik.algorithm.compressor.{FOLowerUnits, FORecyclePivotsWithIntersection}
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
 import at.logic.skeptik.expression.{App, Var, i, o}
 import at.logic.skeptik.expression.formula.Atom
@@ -23,27 +23,32 @@ object ProofGeneratorTests {
     //safeSymbolsTest()
     //testContraction()
     //randomLiteralTest()
-    compressionTests(1000,7)
+    //compressionTests(1000,7,1)
+    tests(1000,7,1)
   }
 
-  def tests(proofN : Int) = {
-    val generator = new ProofGenerator(5)
-    generator.generateFolder("/home/eze/Escritorio/GeneratedProofs",proofN)
-    var rpiN  = 0
-    var rpiF  = 0
-    var splN  = 0
-    var splF  = 0
-    var splAv = 0.0
-    var rpiAv = 0.0
-    var proofAvSize = 0
+  def tests(proofN : Int, height : Int, timeout : Int) = {
+    val generator = new ProofGenerator(height)
+    generator.generateFolder("/home/eze/Escritorio/GeneratedProofs", proofN, Sequent()())
+    var proofsLenghtsSum      = 0
+    var rpiProofsLenghtsSum   = 0
+    var splitProofsLenghtsSum = 0
+    var rpiN      = 0
+    var rpiF      = 0
+    var splN      = 0
+    var splF      = 0
+    var splAv     = 0.0
+    var rpiAv     = 0.0
+    var splitFail = 0
+
     for(i <- 1 to proofN) {
       val proof = ProofParserCNFTPTP.read("/home/eze/Escritorio/GeneratedProofs/GeneratedProofs/Proof" + i)
-      proofAvSize += countResolutionNodes(proof)
+      proofsLenghtsSum += proof.size
 
       val vars  = ProofParserCNFTPTP.getVariables
       ProofParserCNFTPTP.reset()
       ProofParserCNFTPTP.resetVariables()
-      val cottonSplit = new FOCottonSplit(vars, 1)
+      val cottonSplit = new FOCottonSplit(vars, timeout)
       var rpiCompressedProof   : Proof[Node] = null
       var splitCompressedProof : Proof[Node] = null
       try {
@@ -55,111 +60,108 @@ object ProofGeneratorTests {
       }
 
       try {
-        rpiCompressedProof = FORecyclePivots(proof)
+        rpiCompressedProof = FORecyclePivotsWithIntersection(proof)
       } catch {
         case e : Exception =>
           rpiF += 1
           rpiCompressedProof = proof
       }
 
-      if (countResolutionNodes(proof) > countResolutionNodes(rpiCompressedProof)) {
+      if (countResolutionNodes(proof) > countResolutionNodes(rpiCompressedProof)
+        && countResolutionNodes(rpiCompressedProof) > countResolutionNodes(proof) / 2) {
         rpiN += 1
-        rpiAv += (countResolutionNodes(rpiCompressedProof) * 1.0) / countResolutionNodes(proof)
-      }
-      if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)) {
-        splN += 1
-        splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
-        println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
-      }
-    }
-    println("Average proof size: " + (proofAvSize * 1.0)/proofN)
-    println("FOSplit\nReduced: " + splN + " proof(s)\nFailed in : " + splF + " proof(s)\nThe average compression was to " + splAv/splN)
-    println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv/rpiN)
-
-  }
-
-  def countResolutionNodes(p: Proof[Node]): Int = {
-    var count = 0
-    for (n <- p.nodes)
-      if (n.isInstanceOf[UnifyingResolution])
-        count = count + 1
-    count
-    p.size
-  }
-
-  def compressionTests(proofN : Int, height : Int) : Unit = {
-    var rpiN  = 0
-    var rpiF  = 0
-    var splN  = 0
-    var splF  = 0
-    var splAv = 0.0
-    var rpiAv = 0.0
-    var proofAvSize = 0
-
-    for(i <- 1 to proofN) {
-      val (proof, vars) = proofGenerationTest(height,Sequent()())
-      proofAvSize += proof.size
-
-      val cottonSplit = new FOCottonSplit(vars, 1)
-      var rpiCompressedProof   : Proof[Node] = null
-      var splitCompressedProof : Proof[Node] = null
-      try {
-        splitCompressedProof = cottonSplit(proof)
-      } catch {
-        case e : Exception =>
-          splF += 1
-          splitCompressedProof = proof
-      }
-      try {
-        rpiCompressedProof = FORecyclePivots(proof)
-      } catch {
-        case e : Exception =>
-          rpiF += 1
-          rpiCompressedProof = proof
-      }
-
-      if (countResolutionNodes(proof) > countResolutionNodes(rpiCompressedProof) && countResolutionNodes(rpiCompressedProof) > countResolutionNodes(proof) / 2) {
-        rpiN += 1
+        rpiProofsLenghtsSum += rpiCompressedProof.size
         rpiAv += (countResolutionNodes(rpiCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FORPI: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(rpiCompressedProof))
+      } else
+        rpiProofsLenghtsSum += proof.size
 
-      }
-
-      if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof) && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 2) {
+      if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)
+        && splitCompressedProof.root.conclusion.ant.isEmpty
+        && splitCompressedProof.root.conclusion.suc.isEmpty
+        && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 2) {
         splN += 1
+        splitProofsLenghtsSum += splitCompressedProof.size
         splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
-      }
+      } else if(splitCompressedProof.root.conclusion.ant.nonEmpty || splitCompressedProof.root.conclusion.suc.nonEmpty) {
+        splitFail += 1
+        splitProofsLenghtsSum += proof.size
+      } else
+        splitProofsLenghtsSum += proof.size
     }
-    println("Average proof size: " + (proofAvSize * 1.0)/proofN)
+    println("Average proof size: " + (proofsLenghtsSum * 1.0)/proofN)
     println("FOSplit\nReduced: " + splN + " proof(s)\nFailed in : " + splF + " proof(s)\nThe average compression was to " + splAv/splN)
+    println("Total compression ratio: " + ((proofsLenghtsSum - splitProofsLenghtsSum)*1.0)/proofsLenghtsSum)
     println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv/rpiN)
-      /*
-          val atom = Atom("p",List(Var("V",i),Var("a",i),App(App(Var("f",i->(i->i)),Var("X",i)),Var("b",i))))
-          val sequent = Sequent(atom)()
-          var com = 0
-          try {
-            while(n < 100) {
-              n += 1
-              val (proof, vars) = proofGenerationTest(5,Sequent()())
-              println(proof)
-              val timeout = 1
-              val cottonSplit = new FOCottonSplit(vars, timeout)
-              val rpiCompressedProof = FORecyclePivots(proof)
-              val splitCompressedProof = cottonSplit(proof)
-              if (proof.size > splitCompressedProof.size) {
-                println("\n")
-                com += 1
-                println(compressedProof)
-                println((proof.size - compressedProof.size).toString + " node(s) less\nAfter " + n +" proofs\n\n#####################\n")
-                return
-              } else
-                println("NO COMPRESSION\n#####################\n")
-            }
-            println("Compressed: " + com)
-          } catch {
-            case e : Exception => main(null)
-          }*/
+    println("Total compression ratio: " + ((proofsLenghtsSum - rpiProofsLenghtsSum)*1.0)/proofsLenghtsSum)
+  }
+
+  def countResolutionNodes(p: Proof[Node]): Int = p.size
+
+  def compressionTests(proofN : Int, height : Int, timeout : Int) : Unit = {
+    var proofsLenghtsSum = 0
+    var rpiProofsLenghtsSum = 0
+    var splitProofsLenghtsSum = 0
+    var rpiN      = 0
+    var rpiF      = 0
+    var splN      = 0
+    var splF      = 0
+    var splAv     = 0.0
+    var rpiAv     = 0.0
+    var splitFail = 0
+    for(i <- 1 to proofN) {
+      val (proof, vars) = proofGenerationTest(height,Sequent()())
+      proofsLenghtsSum += proof.size
+
+      val cottonSplit = new FOCottonSplit(vars, timeout)
+      var rpiCompressedProof   : Proof[Node] = null
+      var splitCompressedProof : Proof[Node] = null
+      try {
+        splitCompressedProof = cottonSplit(proof)
+      } catch {
+        case e : Exception =>
+          splF += 1
+          splitCompressedProof = proof
+      }
+      try {
+        rpiCompressedProof = FORecyclePivotsWithIntersection(proof)
+      } catch {
+        case e : Exception =>
+          rpiF += 1
+          rpiCompressedProof = proof
+      }
+
+      if (countResolutionNodes(proof) > countResolutionNodes(rpiCompressedProof)
+        && countResolutionNodes(rpiCompressedProof) > countResolutionNodes(proof) / 2) {
+        rpiN += 1
+        rpiProofsLenghtsSum += rpiCompressedProof.size
+        rpiAv += (countResolutionNodes(rpiCompressedProof) * 1.0) / countResolutionNodes(proof)
+        println("FORPI: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(rpiCompressedProof))
+      } else
+        rpiProofsLenghtsSum += proof.size
+
+      if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)
+        && splitCompressedProof.root.conclusion.ant.isEmpty
+        && splitCompressedProof.root.conclusion.suc.isEmpty
+        && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 2) {
+        splN += 1
+        splitProofsLenghtsSum += splitCompressedProof.size
+        splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
+        println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
+      } else if(splitCompressedProof.root.conclusion.ant.nonEmpty || splitCompressedProof.root.conclusion.suc.nonEmpty) {
+        splitFail += 1
+        splitProofsLenghtsSum += proof.size
+      } else
+        splitProofsLenghtsSum += proof.size
+    }
+
+    println("Average proof size: " + (proofsLenghtsSum * 1.0)/proofN)
+    println("FOSplit\nReduced: " + splN + " proof(s)\nFailed in : " + splF + " proof(s)\nThe average compression was to " + splAv/splN)
+    println("Total compression ratio: " + ((proofsLenghtsSum - splitProofsLenghtsSum)*1.0)/proofsLenghtsSum)
+    println("Bad compression: " + splitFail)
+    println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv/rpiN)
+    println("Total compression ratio: " + ((proofsLenghtsSum - rpiProofsLenghtsSum)*1.0)/proofsLenghtsSum)
   }
 
   def testContraction() = {
