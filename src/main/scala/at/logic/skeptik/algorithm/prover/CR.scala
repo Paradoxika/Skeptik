@@ -217,6 +217,12 @@ object CR {
       }
     }
 
+    /**
+      * Creates formal proof, which formally reasons `current` literal.
+      *
+      * @param current literal to be proved
+      * @return formal proof, which conclusion is the `current`
+      */
     def buildProof(current: Literal): SequentProofNode = {
       if (allClauses contains current.toClause) {
         Axiom(current.toClause.toSeqSequent)
