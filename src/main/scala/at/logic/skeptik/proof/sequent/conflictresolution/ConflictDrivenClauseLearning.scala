@@ -2,8 +2,7 @@ package at.logic.skeptik.proof.sequent.conflictresolution
 
 import at.logic.skeptik.algorithm.prover._
 import at.logic.skeptik.expression.substitution.immutable.Substitution
-import at.logic.skeptik.judgment.Sequent
-import at.logic.skeptik.judgment.immutable.{SeqSequent, SetSequent}
+import at.logic.skeptik.judgment.immutable.SeqSequent
 import at.logic.skeptik.proof.sequent.SequentProofNode
 
 /**
@@ -11,7 +10,7 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
   */
 case class ConflictDrivenClauseLearning(conflict: Conflict) extends SequentProofNode {
 
-  private def findDecisions(proofNode: SequentProofNode, sub: Substitution): Sequent = {
+  private def findDecisions(proofNode: SequentProofNode, sub: Substitution): SeqSequent = {
     proofNode match {
       case Decision(clause) =>
         !sub(clause.literals.head)
@@ -21,13 +20,13 @@ case class ConflictDrivenClauseLearning(conflict: Conflict) extends SequentProof
         // We don't need to traverse right premise, because it's either initial clause or conflict driven clause
         left.zip(resolution.leftMgus).map {
           case (node, mgu) => findDecisions(node, mgu(sub))
-        }.fold(SetSequent.empty)(_ union _)
+        }.fold(SeqSequent()())(_ union _)
       case _ =>
-        SetSequent.empty
+        SeqSequent()()
     }
   }
 
-  val conflictDrivenClause = findDecisions(conflict, Substitution.empty)
+  val conflictDrivenClause = unique(findDecisions(conflict, Substitution.empty))
 
   override def auxFormulasMap: Map[SequentProofNode, SeqSequent] = Map.empty
 

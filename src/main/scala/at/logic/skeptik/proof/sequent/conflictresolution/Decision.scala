@@ -1,13 +1,12 @@
 package at.logic.skeptik.proof.sequent.conflictresolution
 
-import at.logic.skeptik.judgment.Sequent
 import at.logic.skeptik.judgment.immutable.SeqSequent
 import at.logic.skeptik.proof.sequent.SequentProofNode
 
 /**
   * @author Daniyar Itegulov
   */
-case class Decision(clause: Sequent) extends SequentProofNode {
+case class Decision(clause: SeqSequent) extends SequentProofNode {
 
   require(clause.width == 1, "Decision clause should be unit")
 
