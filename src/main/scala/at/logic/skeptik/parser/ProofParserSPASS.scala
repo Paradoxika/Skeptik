@@ -29,6 +29,9 @@ trait SPASSParsers
 
   private val vars = Set[Var]()
 
+  def getVars() = vars.clone()
+  def cleanVars() = vars.clear()
+
   private val exprMap = new MMap[String, E] //will map axioms/proven expressions to the location (line number) where they were proven
 
   private val varMap = new MMap[String, E] //will map variable names to an expression object for that variable
@@ -90,7 +93,7 @@ trait SPASSParsers
         UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
         case e: Exception => {
-          e.printStackTrace()
+          //e.printStackTrace()
           UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
         }
       }
@@ -119,7 +122,7 @@ trait SPASSParsers
           UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
         } catch {
           case e: Exception => {
-            e.printStackTrace()
+            //e.printStackTrace()
             UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
