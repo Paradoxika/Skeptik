@@ -347,7 +347,7 @@ object FOLowerUnits
           } catch {
             case e: Exception => {
               if (e.getMessage != null) {
-                if (e.getMessage.equals("Resolution (MRR): the resolvent is ambiguous.")) {
+                if (e.getMessage.contains("Resolution (MRR): the resolvent is ambiguous.")) {
                   if (findRenaming(fixedLeft.conclusion, left.conclusion)(vars) != null &&
                     findRenaming(fixedRight.conclusion, right.conclusion)(vars) != null) {
                     return UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
@@ -566,7 +566,7 @@ object FOLowerUnits
     var urMRRout = try {
       UnifyingResolutionMRR(newFixedLeft, newFixedRight)(vars)
     } catch {
-      case e: MRRException if (e.getMessage != null && e.getMessage.equals("Resolution (MRR): the conclusions of the given premises are not resolvable.")) => {
+      case e: MRRException if (e.getMessage != null && e.getMessage.contains("Resolution (MRR): the conclusions of the given premises are not resolvable.")) => {
         UnifyingResolutionMRR(newFixedRight, newFixedLeft)(vars)
       }
     }
@@ -866,7 +866,7 @@ object FOLowerUnits
       UnifyingResolution(newRight, leftContractedSmart)(vars)
     } catch {
       case e: Exception => {
-        if (e.getMessage.equals("Resolution: the resolvent is ambiguous.")) {
+        if (e.getMessage.contains("Resolution: the resolvent is ambiguous.")) {
           UnifyingResolution(leftContractedSmart, newRight)(vars)
         } else {
           throw e
@@ -949,7 +949,7 @@ object FOLowerUnits
       UnifyingResolution(left, right)(unifiableVariables)
     } catch {
       case e: Exception => {
-        if (e.getMessage.equals("Resolution: the resolvent is ambiguous.")) {
+        if (e.getMessage.contains("Resolution: the resolvent is ambiguous.")) {
           multipleResolution(left, right, leftIsUnit)(unifiableVariables)
         } else {
           throw new Exception("Could not invoke multiple resolution")

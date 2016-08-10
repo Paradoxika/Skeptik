@@ -93,7 +93,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 						special = UnifyingResolutionMRR(p, special)
 					} catch {
 					case e: Exception => {
-						if (e.getMessage().equals("Resolution (MRR): the resolvent is ambiguous.")) {
+						if (e.getMessage().contains("Resolution (MRR): the resolvent is ambiguous.")) {
 							special = fixAmbiguity(p, special)
 									tryReversed = false
 						} else {
@@ -107,7 +107,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 							special = UnifyingResolutionMRR(special, p)
 						} catch {
 						case e: Exception => {
-							if (e.getMessage().equals("Resolution (MRR): the resolvent is ambiguous.")) {
+							if (e.getMessage().contains("Resolution (MRR): the resolvent is ambiguous.")) {
 								special = fixAmbiguity(special, p)
 							}
 						}
