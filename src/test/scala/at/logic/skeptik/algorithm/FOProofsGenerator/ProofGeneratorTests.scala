@@ -20,11 +20,25 @@ object ProofGeneratorTests {
   var n = 0
 
   def main(arfs : Array[String]) : Unit = {
-    //safeSymbolsTest()
     //testContraction()
     //randomLiteralTest()
-    //compressionTests(1000,7,1)
-    tests(1000,7,1)
+    compressionTests(1000,7,1)
+    //tests(1000,7,1)
+    //f()
+  }
+
+  def f() : Unit = {
+    var proof : Proof[Node] = null
+    try {
+      while (true) {
+        proof = proofGenerationTest(2, Sequent()())._1
+        FORecyclePivotsWithIntersection(proof)
+      }
+    } catch {
+      case e : Exception =>
+        println("\n" + proof)
+        println("\n" + e)
+    }
   }
 
   def tests(proofN : Int, height : Int, timeout : Int) = {
@@ -39,7 +53,7 @@ object ProofGeneratorTests {
     var splF      = 0
     var splAv     = 0.0
     var rpiAv     = 0.0
-    var splitFail = 0
+    //var splitFail = 0
 
     for(i <- 1 to proofN) {
       val proof = ProofParserCNFTPTP.read("/home/eze/Escritorio/GeneratedProofs/GeneratedProofs/Proof" + i)
@@ -85,7 +99,7 @@ object ProofGeneratorTests {
         splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
       } else if(splitCompressedProof.root.conclusion.ant.nonEmpty || splitCompressedProof.root.conclusion.suc.nonEmpty) {
-        splitFail += 1
+        //splitFail += 1
         splitProofsLenghtsSum += proof.size
       } else
         splitProofsLenghtsSum += proof.size
@@ -109,7 +123,6 @@ object ProofGeneratorTests {
     var splF      = 0
     var splAv     = 0.0
     var rpiAv     = 0.0
-    var splitFail = 0
     for(i <- 1 to proofN) {
       val (proof, vars) = proofGenerationTest(height,Sequent()())
       proofsLenghtsSum += proof.size
@@ -150,7 +163,6 @@ object ProofGeneratorTests {
         splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
       } else if(splitCompressedProof.root.conclusion.ant.nonEmpty || splitCompressedProof.root.conclusion.suc.nonEmpty) {
-        splitFail += 1
         splitProofsLenghtsSum += proof.size
       } else
         splitProofsLenghtsSum += proof.size
@@ -159,7 +171,6 @@ object ProofGeneratorTests {
     println("Average proof size: " + (proofsLenghtsSum * 1.0)/proofN)
     println("FOSplit\nReduced: " + splN + " proof(s)\nFailed in : " + splF + " proof(s)\nThe average compression was to " + splAv/splN)
     println("Total compression ratio: " + ((proofsLenghtsSum - splitProofsLenghtsSum)*1.0)/proofsLenghtsSum)
-    println("Bad compression: " + splitFail)
     println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv/rpiN)
     println("Total compression ratio: " + ((proofsLenghtsSum - rpiProofsLenghtsSum)*1.0)/proofsLenghtsSum)
   }
@@ -170,14 +181,6 @@ object ProofGeneratorTests {
     println(generator.generateContraction(Sequent(atom)()))
   }
 
-
-  def safeSymbolsTest() = {
-    val generator = new ProofGenerator(10)
-    // Here atom represents: p(V,a,f(X,b))
-    val atom = Atom("p",List(Var("V",i),Var("a",i),App(App(Var("f",i->(i->i)),Var("X",i)),Var("b",i))))
-    generator.saveSymbols(atom)
-    generator.printState
-  }
 
   def randomLiteralTest() = {
     val generator = new ProofGenerator(10)

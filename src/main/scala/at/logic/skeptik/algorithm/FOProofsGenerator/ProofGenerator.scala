@@ -23,34 +23,31 @@ import util.Random
   */
 class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
-
-  var numberOfPredicates: Int = proofHeight * 2
-  val numberOfConstants: Int  = numberOfPredicates * 3
-  val numberOfFunctions: Int  = numberOfPredicates
-
-  def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
-
+  ///////////////////////////////////////////////
+  // Auxiliary methods
+  ///////////////////////////////////////////////
   def isVariable(s: String): Boolean = s.charAt(0).isUpper
-
+  def isEmptyClause(sequent: Sequent): Boolean = sequent.ant.isEmpty && sequent.suc.isEmpty
   def anyOfTheTwo[A](a: A, b: A) = if (randomGenerator.nextBoolean()) a else b
+  private def heightReduction() : Int = 1 + randomGenerator.nextInt(1)
 
-  def printState = {
-    println("Predicates: " + predicates.mkString(","))
-    println("Functions: " + functions.mkString(","))
-    println("Constants: " + constants.toList.map(_.toString).sorted.mkString(","))
-    println("Variables: " + variables.toList.map(_.toString).sorted.mkString(","))
-  }
+  ///////////////////////////////////////////////
+  // Members of the class and auxiliary methods
+  ///////////////////////////////////////////////
+  var numberOfPredicates: Int = proofHeight * 2
+  val numberOfConstants: Int = numberOfPredicates * 3
+  val numberOfFunctions: Int = numberOfPredicates
 
   private val randomGenerator = new Random()
 
-  private var varNumber  = -1
+  private var varNumber = -1
   private var consNumber = -1
   private var funcNumber = -1
   private var predNumber = -1
 
   def resetState(): Unit = {
     numberOfPredicates = proofHeight * 2
-    varNumber  = -1
+    varNumber = -1
     consNumber = -1
     funcNumber = -1
     predNumber = -1
@@ -60,6 +57,23 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     variables.clear()
     sequentIndex = 0
     sequentsOfSizeOne.clear()
+  }
+
+  private var sequentIndex      = 0
+  private val sequentsOfSizeOne = MMap[Int, Sequent]()
+  private def addToUnitSequents(sequent : Sequent): Unit = {
+    sequentsOfSizeOne += (sequentIndex -> sequent)
+    sequentIndex += 1
+  }
+  private def getUnitSequent() : Sequent = {
+    if(randomGenerator.nextInt(100) < 10)
+      sequentsOfSizeOne(randomGenerator.nextInt(sequentIndex))
+    else {
+      val s = if (randomGenerator.nextBoolean()) Sequent(generateRandomLiteral())()
+      else Sequent()(generateRandomLiteral())
+      addToUnitSequents(s)
+      s
+    }
   }
 
 
@@ -78,19 +92,40 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   private var varCopy = variables.clone()
   def getVariables() = varCopy.clone()
 
+  ///////////////////////////////////////////////
+  // Statistical distribution methods
+  ///////////////////////////////////////////////
+  private def randomFunctionArity() : Int = {
+    val aritySeed = randomGenerator.nextInt(10)
+    if (0 <= aritySeed && aritySeed < 4) 1
+    else if (4 <= aritySeed && aritySeed < 9) 2
+    else 3
+  }
+
+  private def randomPredicateArity() : Int = {
+    val aritySeed = randomGenerator.nextInt(10)
+    if (0 <= aritySeed && aritySeed < 3) 1
+    else if (3 <= aritySeed && aritySeed < 7) 2
+    else if (7 <= aritySeed && aritySeed < 9) 3
+    else 4
+  }
+
+  ///////////////////////////////////////////////
+  // Proof generation methods
+  ///////////////////////////////////////////////
   def generateContraction(conclusion: Sequent): Sequent = {
     def generateSubstitutionForContraction(e: E): Substitution = {
       val substitution: MMap[Var, E] = MMap[Var, E]()
-      def addRepleacement(exp: E): Unit =
+      def addReplacement(exp: E): Unit =
         exp match {
-          case FunctionTerm(_, args) => args foreach addRepleacement
+          case FunctionTerm(_, args) => args foreach addReplacement
           case v@Var(name, i)        =>
             if (!(substitution contains v))
               substitution += (v -> freshVar())
         }
 
       e match {
-        case Atom(Var(_, _), args) => args foreach addRepleacement
+        case Atom(Var(_, _), args) => args foreach addReplacement
       }
       Substitution(substitution.toList: _*)
     }
@@ -113,20 +148,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       Sequent(conclusion.ant: _*)(conclusion.suc: _*) + substitution(literalToExpand)
   }
 
-  private def randomFunctionArity() : Int = {
-    val aritySeed = randomGenerator.nextInt(10)
-    if (0 <= aritySeed && aritySeed < 4) 1
-    else if (4 <= aritySeed && aritySeed < 9) 2
-    else 3
-  }
 
-  private def randomPredicateArity() : Int = {
-    val aritySeed = randomGenerator.nextInt(10)
-    if (0 <= aritySeed && aritySeed < 3) 1
-    else if (3 <= aritySeed && aritySeed < 7) 2
-    else if (7 <= aritySeed && aritySeed < 9) 3
-    else 4
-  }
 
   private def generateOneArgument() : E = {
     def isAVariable(t: Int) = false //0 <= t && t < 0
@@ -152,8 +174,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   private def generateArguments(amount: Int) : List[E] = {
     require(amount >= 0)
     if (amount == 0) Nil
-    else
-      generateOneArgument() :: generateArguments(amount - 1)
+    else generateOneArgument() :: generateArguments(amount - 1)
   }
 
 
@@ -170,16 +191,16 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
   private def generateSubstitution(e: E) : Substitution = {
     val substitution: MMap[Var, E] = MMap[Var, E]()
-    def addRepleacement(exp: E): Unit =
+    def addReplacement(exp: E): Unit =
       exp match {
-        case FunctionTerm(_, args) => args foreach addRepleacement
+        case FunctionTerm(_, args) => args foreach addReplacement
         case v@Var(name, i) =>
           if (!(substitution contains v) && randomGenerator.nextInt(10) < 7)
             substitution += (v -> freshVar())
       }
 
     e match {
-      case Atom(Var(_, _), args) => args foreach addRepleacement
+      case Atom(Var(_, _), args) => args foreach addReplacement
     }
     Substitution(substitution.toList: _*)
   }
@@ -187,22 +208,22 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
   def generateResolution(conclusion: Sequent) : (Sequent, Sequent) = {
     def generateSubstitutionForEmpryCase(e: E): Substitution = {
       val substitution: MMap[Var, E] = MMap[Var, E]()
-      def addRepleacement(exp: E): Unit =
+      def addReplacement(exp: E): Unit =
         exp match {
-          case FunctionTerm(_, args) => args foreach addRepleacement
+          case FunctionTerm(_, args) => args foreach addReplacement
           case v@Var(name, i) =>
             if (!(substitution contains v) && randomGenerator.nextInt(10) < 1)
               substitution += (v -> freshVar())
         }
 
       e match {
-        case Atom(Var(_, _), args) => args foreach addRepleacement
+        case Atom(Var(_, _), args) => args foreach addReplacement
       }
       Substitution(substitution.toList: _*)
     }
 
 
-    def devideSequent(sequent: Sequent) : (Sequent, Sequent) =
+    def divideSequent(sequent: Sequent) : (Sequent, Sequent) =
       if (isEmptyClause(sequent))
         (Sequent()(), Sequent()())
       else {
@@ -221,17 +242,17 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       predicates += name -> arity
       name
     }
+
     def getInverseSubstitution(sequent : Sequent) : Substitution = {
       def isConstant(name : String) : Boolean = name.charAt(0).isLower || name.charAt(0).isDigit
-      def isVari1able(name : String) : Boolean = name.charAt(0).isUpper
       val maxSize      = 1 + randomGenerator.nextInt(2)
       var currentSize  = 0
       val substitution = MMap[Var,E]()
-      def addRepleacement(exp: E): Unit =
+      def addReplacement(exp: E): Unit =
         if(currentSize <= maxSize) {
           currentSize += 1
           exp match {
-            case FunctionTerm(_, args) => args foreach addRepleacement
+            case FunctionTerm(_, args) => args foreach addReplacement
             case v@Var(name, i) =>
               if (!(substitution contains v) && isConstant(name) && randomGenerator.nextInt(100) < 80)
                 substitution += (v -> freshVar())
@@ -242,7 +263,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
       def exploreLiteral(exp : E) : Unit =
         exp match {
-          case Atom(Var(_, _), args) => args foreach addRepleacement
+          case Atom(Var(_, _), args) => args foreach addReplacement
         }
 
       sequent.ant foreach exploreLiteral
@@ -253,29 +274,29 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
 
     def generateLiteral(leftSequent : Sequent, rightSequent : Sequent) : (Sequent,E,Sequent,E) =
       if(isEmptyClause(leftSequent) && isEmptyClause(rightSequent)) {
-        val literal = generateRandomLiteral()
+        val literal  = generateRandomLiteral()
         (leftSequent,literal,rightSequent,generateSubstitutionForEmpryCase(literal)(literal))
       } else {
-        val sub1 = getInverseSubstitution(leftSequent)
-        val sub2 = getInverseSubstitution(rightSequent)
+        val sub1     = getInverseSubstitution(leftSequent)
+        val sub2     = getInverseSubstitution(rightSequent)
         val (e2, v1) = sub1.toList.unzip
         val (e1, v2) = sub2.toList.unzip
-        val arg1 = v1 ++ e1
-        val arg2 = e2 ++ v2
+        val arg1     = v1 ++ e1
+        val arg2     = e2 ++ v2
         require(arg1.size == arg2.size)
         if(arg1.isEmpty) {
           val literal = generateRandomLiteral()
           (leftSequent,literal,rightSequent,generateSubstitutionForEmpryCase(literal)(literal))
         } else {
-          val literalName: String = newPredicateName(arg1.size)
-          val newLeftSeq = Sequent(leftSequent.ant map { x => sub1(x) }: _*)(leftSequent.suc map { x => sub1(x) }: _*)
-          val newRightSeq = Sequent(rightSequent.ant map { x => sub2(x) }: _*)(rightSequent.suc map { x => sub2(x) }: _*)
+          val literalName : String  = newPredicateName(arg1.size)
+          val newLeftSeq  : Sequent = Sequent(leftSequent.ant map { x => sub1(x) }: _*)(leftSequent.suc map { x => sub1(x) }: _*)
+          val newRightSeq : Sequent = Sequent(rightSequent.ant map { x => sub2(x) }: _*)(rightSequent.suc map { x => sub2(x) }: _*)
           (newLeftSeq, Atom(literalName, arg1), newRightSeq, Atom(literalName, arg2))
         }
       }
 
 
-    val (leftBaseSequent, rightBaseSequent) = devideSequent(conclusion)
+    val (leftBaseSequent, rightBaseSequent) = divideSequent(conclusion)
     val (newLeftSeq,leftResolvedLiteral,newRightSeq,rightResolvedLiteral) : (Sequent,E,Sequent,E) = generateLiteral(leftBaseSequent,rightBaseSequent)
 
     if (randomGenerator.nextBoolean())
@@ -284,26 +305,7 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       (newLeftSeq + leftResolvedLiteral, rightResolvedLiteral +: newRightSeq)
   }
 
-  private var sequentIndex      = 0
-  private val sequentsOfSizeOne = MMap[Int, Sequent]()
-  private def addToUnitSequents(sequent : Sequent): Unit = {
-    sequentsOfSizeOne += (sequentIndex -> sequent)
-    sequentIndex += 1
-  }
-  private def getUnitSequent() : Sequent = {
-    if(randomGenerator.nextInt(100) < 10)
-      sequentsOfSizeOne(randomGenerator.nextInt(sequentIndex))
-    else
-      if (randomGenerator.nextBoolean()) {
-        val s = Sequent(generateRandomLiteral())()
-        addToUnitSequents(s)
-        s
-      } else {
-        val s = Sequent()(generateRandomLiteral())
-        addToUnitSequents(s)
-        s
-      }
-  }
+
 
   def generateResolutionSharingPremise(leftParent : Sequent, rightParent : Sequent) : (Sequent,Sequent,Sequent) = {
     def getSequentAndLiterals() : (E,Sequent,E) = {
@@ -347,7 +349,6 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     }
   }
 
-  private def heightReduction() : Int = 1 + randomGenerator.nextInt(1)
 
   def generateProof(baseNode : Sequent) : Proof[Node] = {
     def convertNodeIntoProof(root : Node) : Proof[Node] = Proof(root)
@@ -402,6 +403,9 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
     p
   }
 
+  ///////////////////////////////////////////////
+  // Proof storing methods
+  ///////////////////////////////////////////////
   def generateFolder(destinationPath : String = "" , numberOfProofs : Int, rootSequent : Sequent) : Unit = {
     def generateProofWrapper(node : Sequent) : Proof[Node] =
       try {
@@ -430,8 +434,6 @@ class ProofGenerator(val proofHeight : Int) extends ProofGeneratorTrait {
       case e : Throwable                  => println("Unexpected problem\n" + e)
     }
   }
-
-
 }
 
 /**
