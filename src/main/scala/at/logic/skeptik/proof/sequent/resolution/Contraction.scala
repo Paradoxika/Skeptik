@@ -140,7 +140,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
   def contract(seq: Sequent, subs: List[Substitution])(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
 
-
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
@@ -196,5 +195,11 @@ object Contraction {
   def unapply(p: SequentProofNode) = p match {
     case p: Contraction => Some((p.premise, p.desired))
     case _ => None
+  }
+
+  def contractIfPossible(premise: SequentProofNode, variables: MSet[Var]) : SequentProofNode = {
+    val contractedPremise = apply(premise)(variables)
+    if (contractedPremise.conclusion == premise.conclusion) premise
+    else contractedPremise
   }
 }
