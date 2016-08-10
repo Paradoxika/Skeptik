@@ -23,7 +23,8 @@ class ProofParserSPASSSpecification extends SpecificationWithJUnit {
   val computed4 = proof4.toString
   val expected4 = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/ProofParserSPASS/example1.result").mkString
 
-  println(computed2)
+  //println(computed2) 
+  //if this fails, check EOL characters in result files.
   "ProofParserSPASS" should {
     "Parse the first proof correctly" in {
       computed1.trim must beEqualTo(expected1.trim)
