@@ -24,19 +24,19 @@ class ProofParserSPASSSpecification extends SpecificationWithJUnit {
   val expected4 = scala.io.Source.fromFile("examples/proofs/SPASS/testresults/ProofParserSPASS/example1.result").mkString
 
   //println(computed2) 
-  //if this fails, check EOL characters in result files.
+  //if this fails, check EOL characters in result files - that's what .filter(_ >= ' ') removes anyways though.
   "ProofParserSPASS" should {
     "Parse the first proof correctly" in {
-      computed1.trim must beEqualTo(expected1.trim)
+      computed1.trim.filter(_ >= ' ') must beEqualTo(expected1.trim.filter(_ >= ' '))
     }
     "Parse the second proof correctly" in {
-      computed2.trim must beEqualTo(expected2.trim)
+      computed2.trim.filter(_ >= ' ') must beEqualTo(expected2.trim.filter(_ >= ' '))
     }
     "Parse the third proof correctly" in {
-      computed3.trim must beEqualTo(expected3.trim)
+      computed3.trim.filter(_ >= ' ') must beEqualTo(expected3.trim.filter(_ >= ' '))
     }
     "Parse the fourth proof correctly" in {
-      computed4.trim must beEqualTo(expected4.trim)
+      computed4.trim.filter(_ >= ' ') must beEqualTo(expected4.trim.filter(_ >= ' '))
     }
   }
 }
