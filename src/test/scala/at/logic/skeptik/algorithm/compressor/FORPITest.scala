@@ -71,18 +71,52 @@ class FORPILUSpecification extends SpecificationWithJUnit with  checkProofEquali
   //val result2e = checkProofs(FORecyclePivotsWithIntersection(proof2d), "examples/proofs/SPASS/testresults/FORPILU/FORPIexample2d.result")
 
   
+  //August 9th 2016 Examples
+  
+     val proofA9a = ProofParserSPASS.read("examples/proofs/SPASS/FORPIExamples/e1.spass")   
+//     println("Proof parsed.")
+//     println(proofA9a)
+     val cproofA9 = FORecyclePivotsWithIntersection(proofA9a)
+//     println("A9A: ")
+//     println(cproofA9)
+     val resultA9a = checkProofs(cproofA9, "examples/proofs/SPASS/testresults/FORPILU/e1r.spass")     
+     
+     val proofA9b = ProofParserSPASS.read("examples/proofs/SPASS/FORPIExamples/e2.spass")   
+//     println("Proof parsed.")
+//     println(proofA9b)
+     val cproofA9b = FORecyclePivotsWithIntersection(proofA9b)
+//     println("A9B: ")
+//     println(cproofA9b)   
+     val resultA9b = checkProofs(cproofA9b, "examples/proofs/SPASS/testresults/FORPILU/e2r.spass")     
+     
+     
+     
+     val proofA9c = ProofParserSPASS.read("examples/proofs/SPASS/FORPIExamples/e3.spass")   
+//     println("Proof parsed.")
+//     println(proofA9c)
+     val cproofA9c = FORecyclePivotsWithIntersection(proofA9c)
+//     println("A9C: ")
+//     println(cproofA9c)    
+     val resultA9c = checkProofs(cproofA9c, "examples/proofs/SPASS/testresults/FORPILU/e3r.spass")     
+  
+  
   //For debugging:
-  println(proofa)
-  println("-----")
-     println("-----FROM HERE")
-     try{
-  println("Testing proof: \n" + FORecyclePivotsWithIntersection(proof2d))
-     } catch {
-       case _ => {
-         println("error")
-       }
-     }
-     println(result2a)
+//
+//     println("-----FROM HERE")
+//     try{
+//  
+//     val proofA9a = ProofParserSPASS.read("examples/proofs/SPASS/FORPIExamples/e1.spass")   
+////     println("Proof parsed.")
+////     println(proofA9a)
+//     val cproofA9 = FORecyclePivotsWithIntersection(proofA9a) 
+//     val resultA9a = checkProofs(cproofA9, "examples/proofs/SPASS/testresults/FORPILU/e1r.spass") 
+//     } catch {
+//       case e: Exception => {
+//         println("error")
+//         e.printStackTrace()
+//       }
+//     }
+
   "FORPILU" should {
     "Compress the proof correctly (small compression)" in {
       resulta must beEqualTo(true)
@@ -120,5 +154,16 @@ class FORPILUSpecification extends SpecificationWithJUnit with  checkProofEquali
     "Compute the intersection correctly" in {
       result2d must beEqualTo(true)
     }
+    
+    //August 9th 2016 Tests:
+    "Compress a small example correctly - no null pointer" in {
+      resultA9a must beEqualTo(true)
+    }
+    "Compress a small example correctly - no scala.MatchError" in {
+      resultA9b must beEqualTo(true)
+    }
+    "Compress a small example correctly - no scala.MatchError (2)" in {
+      resultA9c must beEqualTo(true)
+    }    
   }
 }

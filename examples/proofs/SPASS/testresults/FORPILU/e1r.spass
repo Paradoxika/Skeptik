@@ -1,0 +1,7 @@
+1: { ⊢ (p0 V3 (f1 c8)), (p2 V1), (p2 c0)} 	: Axiom()[]
+2: {(p0 c7 (f1 c8)) ⊢ } 	: Axiom()[]
+3: { ⊢ (p2 V1), (p2 c0)} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (p2 c0)} 	: Contraction(3)[]
+5: {(p2 V0), (p2 c0) ⊢ } 	: Axiom()[]
+6: {(p2 c0) ⊢ } 	: Contraction(5)[]
+7: { ⊢ } 	: UnifyingResolution(4, 6)[]

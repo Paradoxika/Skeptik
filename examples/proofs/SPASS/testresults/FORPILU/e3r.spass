@@ -1,0 +1,5 @@
+1: { ⊢ (p1 c8)} 	: Axiom()[]
+2: { ⊢ (p5 c8)} 	: Axiom()[]
+3: {(p5 V0), (p1 V0) ⊢ } 	: Axiom()[]
+4: {(p1 c8) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolutionMRR(1, 4)[]

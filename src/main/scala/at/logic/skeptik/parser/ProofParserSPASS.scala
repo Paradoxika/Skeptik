@@ -93,7 +93,7 @@ trait SPASSParsers
         UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
         case e: Exception => {
-          //e.printStackTrace()
+          e.printStackTrace()
           UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
         }
       }
@@ -122,7 +122,7 @@ trait SPASSParsers
           UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
         } catch {
           case e: Exception => {
-            //e.printStackTrace()
+            e.printStackTrace()
             UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
