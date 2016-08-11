@@ -178,4 +178,15 @@ package object prover {
 
     loop(Set(), sequent.literals).toSequent
   }
+
+  /**
+    * Computes all combinations of list of lists.
+    * Example: combinations(Seq(Seq(1, 2), Seq(1, 3))) == Seq(Seq(1, 1), Seq(1, 3), Seq(2, 1), Seq(2, 3))
+    *
+    * @param xss sequence of sequences of possible elements
+    * @tparam A type of elements
+    * @return all possible combinations of elements
+    */
+  def combinations[A](xss: Seq[Seq[A]]): Seq[Seq[A]] =
+    xss.foldLeft(Seq(Seq.empty[A])) { (x, y) => for (a <- x.view; b <- y) yield a :+ b }
 }
