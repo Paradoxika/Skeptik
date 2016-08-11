@@ -524,7 +524,7 @@ trait FOCollectEdgesUsingSafeLiterals
       } else {
         val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
 
-        val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(computed, desired)
+        val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(computed, desired, cVars)//Aug11
         if (mapIsUniquelyValid) {
           if (!checkMapSub(intersectedMap, cVars, computed, desired)) {
             return false

@@ -7,6 +7,7 @@ import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
 import collection.immutable.Set
 import collection.mutable.{ HashMap => MMap, Set => MSet }
 import at.logic.skeptik.expression.substitution.immutable.Substitution
+import at.logic.skeptik.expression.formula.Atom
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
@@ -515,6 +516,51 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   println("Ur4: " + ur4) //pass
   println("D: " + d4)
 
+  
+  
+  ///////August 11 2016 Tests Begin
+  
+    val desiredA11a = Sequent()(Atom("p16",List(Var("V3",i))),
+                            Atom("p17",List(Var("V3",i))),
+                            Atom("p17",List(Var("V6",i)))
+                           )
+    val left    = Axiom(Sequent()(Atom("p16",List(Var("V3",i))),
+                                  Atom("p19",List(Var("V3",i),Var("V3",i),Var("V6",i)))
+                                 )
+                       )
+    val right   = Axiom(Sequent(Atom("p19",List(Var("V3",i),Var("V3",i),Var("V6",i))))
+                               (Atom("p17",List(Var("V3",i))),
+                                Atom("p17",List(Var("V6",i)))
+                               )
+                       )
+    val varsa    = MSet[Var](Var("V3",i),Var("V6",i))
+    println("L: " + left)
+    println("R: " + right)
+    val  URA11a = UnifyingResolution(left, right, desiredA11a)(varsa)
+    println("UR: " + URA11a)
+    println("--------------------------\n\n\n\n")
+    
+    
+    val desiredA11b = Sequent()(Atom("p26",List(Var("V2",i))),
+                             Atom("p26",List(Var("V18",i))))
+    val left2    = Axiom(Sequent()(Atom("p26",List(Var("V18",i))),
+                                  Atom("p27",List(Var("V2",i),Var("V18",i)))
+                                 )
+                       )
+    val right2   = Axiom(Sequent(Atom("p27",List(Var("V2",i),Var("V18",i))))
+                               (Atom("p26",List(Var("V2",i))))
+                       )
+    val varsb    = MSet[Var](Var("V2",i),Var("V18",i))
+//    var UR2 = UnifyingResolution(left2,right2)(vars2)
+    var URA11b = UnifyingResolution(left2,right2, desiredA11b)(varsb)
+    println("L: " + left2)
+    println("R: " + right2)
+    println("UR: " + URA11b)  
+  
+  
+  
+  ///////August 11 2016 Tests End  
+  
   println("OUTPUT OF INTEREST -------------")
   println("7a: " + findSeqTest7A)
   println("7b: " + findSeqTest7B)
@@ -597,6 +643,14 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     "return the correct conclusion context" in {
       findRenaming(URur.conclusionContext, Sequent(App(Var("p", i -> i), y))())(usedVars) != null must beEqualTo(true)
     }
+    
+    //August 11 2016 Tests
+    "Find the desired sequent (general test)" in {
+      findRenaming(URA11a.conclusion, desiredA11a)(varsa) != null must beEqualTo(true)
+    }
+    "Find the desired sequent (checks if invalidMap function uses appropriate variables)" in {
+      findRenaming(URA11b.conclusion, desiredA11b)(varsb) != null must beEqualTo(true)
+    }    
   }
   "FindDesiredSequent" should {
     "Throw an exception as the recursive base case" in {

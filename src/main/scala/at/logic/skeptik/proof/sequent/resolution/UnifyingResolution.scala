@@ -365,22 +365,22 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     true
   }
 
-  //July 18
-  def findFirstLargeSet(map: MMap[Var, Set[E]]): Option[Var] = {
+  //July 18 //Aug11
+  def findFirstLargeSet(map: MMap[Var, Set[E]], vars: MSet[Var]): Option[Var] = {
     if (map.size == 0) {
       return None
     }
-
-    if (map.head._2.size > 1) {
+    println("MAP HEAD: " + map.head._2 + " " + map.head._1)
+    if (map.head._2.size > 1 && vars.contains(map.head._1)) {
       return Some(map.head._1)
     } else {
-      return findFirstLargeSet(map.tail)
+      return findFirstLargeSet(map.tail, vars)
     }
   }
 
-  def computeIntersectedMap(computed: Sequent, desired: Sequent): (Boolean, MMap[Var, Set[E]]) = {
-    val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
-
+  def computeIntersectedMap(computed: Sequent, desired: Sequent, vars: MSet[Var]): (Boolean, MMap[Var, Set[E]]) = {
+    val cVars = vars //getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)//Aug11
+    println("cVars: " + cVars + " computed: " + computed)
     val antMap = generateSubstitutionOptions(computed.ant, desired.ant, cVars)
     if (getSetOfVars(computed.ant: _*).size > 0 && antMap.size == 0) {
       return (false, MMap[Var, Set[E]]())
@@ -426,11 +426,14 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def checkInvalidMapAndReturnSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): Substitution = {
-
+    println("Computed: " + computed)
+    println("Desired: " + desired)
     //Check if map is valid:
     if (validMap(m, vars) && computed.ant.toSet.subsetOf(desired.ant.toSet) && computed.suc.toSet.subsetOf(desired.suc.toSet)) {
       //get the sub
       val sub = getUniqueSubstitutions(m, vars)
+      
+      println("B")
       return sub
     }
 
@@ -439,7 +442,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
     //recurse on the rest
     //Find one variable to recurse on.		
-    val bigSetCheck = findFirstLargeSet(m)
+    val bigSetCheck = findFirstLargeSet(m, vars)
     val bigSet = bigSetCheck match {
       case Some(bigKey) => {
         if (vars.contains(bigKey)) {
@@ -452,16 +455,22 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         Set[Var]()
       }
     }
-
+    println("bigSetCheck: " + bigSetCheck)
+    println("bigSet: " + bigSet + " from m: " + m)
     for (mVal <- bigSet) {
+      println("sub: " + Substitution((bigSetCheck.get, mVal)))
       val newNewComputed = applySub(newComputed, Substitution((bigSetCheck.get, mVal)))
-      val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired)
+      println("newNewComputed: " + newNewComputed + " " + vars)
+      val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired, vars)
+      println("newMap: " + newMap)
       val mapValidAndCorrect = newNewComputed.ant.toSet.subsetOf(desired.ant.toSet) && newNewComputed.suc.toSet.subsetOf(desired.suc.toSet) && mapValid
       if (mapValidAndCorrect) {
         return Substitution((bigSetCheck.get, mVal))
       } else {
         val badVars = getSetOfVars(mVal) ++ MSet[Var](bigSetCheck.get)
         val newSetOfVars = vars -- badVars
+        println("C " + newSetOfVars)
+        
         val rVal = checkInvalidMapAndReturnSub(newMap, newSetOfVars, newNewComputed, desired)
         if (rVal != null) {
           val newList = rVal.toList ++ List[(Var, E)]((bigSetCheck.get, mVal))
@@ -590,6 +599,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
+    println("COMPUTED: " + computed)
+    println("DESIRED: " + desired)
     if (checkIfConclusionsAreEqual(computed, desired)) {
       return Substitution()
     } else {
