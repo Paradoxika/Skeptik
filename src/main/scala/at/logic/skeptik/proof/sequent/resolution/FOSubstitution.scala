@@ -27,7 +27,7 @@ class FOSubstitution(val premise: SequentProofNode, val sub: Substitution)(impli
 
   object FOSubstitution {
     def apply(premise: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]) = {
-      new FOSubstitution(premise, sub)
+       new FOSubstitution(premise, sub)
     }
 
     def unapply(p: SequentProofNode) = p match {

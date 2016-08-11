@@ -72,10 +72,10 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 	}
 
 	def apply(premises: List[SequentProofNode], desired: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-		//Find the special node
+	  
+	  //Find the special node
 		val repeats = premises.diff(premises.distinct).distinct
-
-				if (repeats.size != 0) {
+				if (repeats.size == 0) {
 					throw new MRRException("MRR assumption failed")
 				}
 		var special = repeats.head
@@ -93,7 +93,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 						special = UnifyingResolutionMRR(p, special)
 					} catch {
 					case e: Exception => {
-						if (e.getMessage().equals("Resolution (MRR): the resolvent is ambiguous.")) {
+						if (e.getMessage().contains("Resolution (MRR): the resolvent is ambiguous.")) {
 							special = fixAmbiguity(p, special)
 									tryReversed = false
 						} else {
@@ -107,7 +107,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 							special = UnifyingResolutionMRR(special, p)
 						} catch {
 						case e: Exception => {
-							if (e.getMessage().equals("Resolution (MRR): the resolvent is ambiguous.")) {
+							if (e.getMessage().contains("Resolution (MRR): the resolvent is ambiguous.")) {
 								special = fixAmbiguity(special, p)
 							}
 						}

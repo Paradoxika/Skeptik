@@ -19,6 +19,9 @@ object ProofParserSPASS extends ProofCombinatorParser[Node] with SPASSParsers
 trait SPASSParsers
   extends JavaTokenParsers with RegexParsers with checkUnifiableVariableName {
 
+  
+
+  
   private var count = 1 //the count of the line as given by the SPASS proof
   private var lineCounter = 0 //the actual line number, as in the file
 
@@ -90,7 +93,7 @@ trait SPASSParsers
         UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
       } catch {
         case e: Exception => {
-          //e.printStackTrace()
+          e.printStackTrace()
           UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
         }
       }
@@ -113,12 +116,13 @@ trait SPASSParsers
 
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
+
       val ax = if (refs.length == 2) {
         try {
           UnifyingResolutionMRR(firstPremise, secondPremise, desiredSequent)(vars)
         } catch {
           case e: Exception => {
-            //e.printStackTrace()
+            e.printStackTrace()
             UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
@@ -129,6 +133,7 @@ trait SPASSParsers
       val ay = newAxiomFromLists(lp ++ seq._1, seq._2)
       proofMap += (ln -> ax)
       updateLineCounter
+            
       ax
     }
     case ~(~(~(~(~(~(~(ln, _), _), _), "Con:"), refs), lp), seq) => {

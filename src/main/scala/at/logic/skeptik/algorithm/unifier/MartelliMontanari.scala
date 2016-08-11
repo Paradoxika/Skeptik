@@ -4,6 +4,7 @@ import collection.mutable.{ HashMap => MMap, Set => MSet }
 import at.logic.skeptik.expression.{ E, Var, App, Abs }
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 import at.logic.skeptik.expression.substitution.mutable.{ Substitution => MSub }
+import at.logic.skeptik.expression.AppRec
 
 object MartelliMontanari {
 
@@ -12,7 +13,7 @@ object MartelliMontanari {
     val mgu = new MSub
 
     var counter = 0
-
+    
     while (!eqs.isEmpty) {
 
 //            println("mgu: " + counter)
