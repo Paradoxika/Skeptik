@@ -55,10 +55,10 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 		if (unifiablePairs.length > 0) {
 			findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, false)
 		} else if (unifiablePairs.length == 0) {
-			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+			throw new Exception("Resolution: the conclusions of the given premises are not resolvable. A\nDesired: " + desired + "\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
 		} else {
 			//Should never really be reached in this constructor
-			throw new Exception("Resolution: the resolvent is ambiguous.\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
+			throw new Exception("Resolution: the resolvent is ambiguous.\nDesired" + desired + "\nLeft premise: " + leftPremise.toString() +"\nRight premise: " + rightPremise.toString() + "\nVariables: " + unifiableVariables.mkString(","))
 		}
 	}
 
@@ -80,6 +80,15 @@ object UnifyingResolution extends CanRenameVariables with FindDesiredSequent {
 	def unapply(p: SequentProofNode) = p match {
 		case p: UnifyingResolution => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
 		case _ => None
+	}
+
+	def resolve(leftPremise: SequentProofNode, rightPremise: SequentProofNode, desiredSequent : Sequent, unifiableVariables: MSet[Var]) = {
+		try {
+			apply(leftPremise, rightPremise, desiredSequent)(unifiableVariables)
+		} catch {
+			case e: Exception =>
+				apply(rightPremise, leftPremise, desiredSequent)(unifiableVariables)
+		}
 	}
 
 	def resolve(leftPremise: SequentProofNode, rightPremise: SequentProofNode, unifiableVariables: MSet[Var]): UnifyingResolution = {
@@ -510,8 +519,8 @@ def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: Sequen
 			rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution = null)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
 		if (pairs.length == 0) {
-			println("Desired: " + desired +"\nleftPremise: " + leftPremise + "\nrightPremise: " + rightPremise)
-			throw new Exception("Resolution: Cannot find desired resolvent")
+			//println("Resolution: Cannot find desired resolvent\nDesired: " + desired +"\nleftPremise: " + leftPremise + "\nrightPremise: " + rightPremise)
+			throw new Exception("Resolution: Cannot find desired resolvent\nDesired: " + desired +"\nleftPremise: " + leftPremise + "\nrightPremise: " + rightPremise)
 		} else {
 
 			val (auxL, auxR) = pairs(0)
