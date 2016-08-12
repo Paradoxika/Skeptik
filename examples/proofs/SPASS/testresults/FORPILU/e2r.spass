@@ -1,5 +1,0 @@
-1: { ⊢ (p3 V0), (p3 c2)} 	: Axiom()[]
-2: { ⊢ (p3 c2)} 	: Contraction(1)[]
-3: {(p3 c2) ⊢ } 	: Axiom()[]
-4: {(p3 c2) ⊢ } 	: FOSubstitution(3)[]
-5: { ⊢ } 	: UnifyingResolutionMRR(2, 4)[]
