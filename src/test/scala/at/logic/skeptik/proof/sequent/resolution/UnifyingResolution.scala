@@ -552,12 +552,34 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
                        )
     val varsb    = MSet[Var](Var("V2",i),Var("V18",i))
 //    var UR2 = UnifyingResolution(left2,right2)(vars2)
-    var URA11b = UnifyingResolution(left2,right2, desiredA11b)(varsb)
+    val URA11b = UnifyingResolution(left2,right2, desiredA11b)(varsb)
     println("L: " + left2)
     println("R: " + right2)
     println("UR: " + URA11b)  
   
-  
+    /*
+    Desired: (p16 c12), (p16 V6) ⊢ 
+		//The following are swapped compared to e-mail
+		Right premise: (p17 c12 V6), (p16 V6) ⊢ 
+		Left premise: (p16 V7) ⊢ (p17 V7 V6)
+    */
+      val desiredA11c = Sequent(Atom("p16",List(Var("c12",i))),
+                            Atom("p16",List(Var("V6",i))))()
+                            
+    val rightA11c   = Axiom(Sequent(Atom("p16",List(Var("V6",i))),
+                                  Atom("p17",List(Var("c12",i),Var("V6",i)))
+                                )())
+                                
+    val leftA11c   = Axiom(Sequent(Atom("p16",List(Var("V7",i))))
+                               (Atom("p17",List(Var("V7",i),Var("V6",i)))
+                               )
+                       )
+    val varsA11c    = MSet[Var](Var("V3",i),Var("V7",i),Var("V6",i))
+    println("L: " + leftA11c)
+    println("R: " + rightA11c)
+        println("Initial desired: " + desiredA11c)
+
+    val  URA11c = UnifyingResolution(leftA11c, rightA11c, desiredA11c)(varsA11c)  
   
   ///////August 11 2016 Tests End  
   
@@ -650,7 +672,10 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     }
     "Find the desired sequent (checks if invalidMap function uses appropriate variables)" in {
       findRenaming(URA11b.conclusion, desiredA11b)(varsb) != null must beEqualTo(true)
-    }    
+    }
+    "Find the desired sequent (checks if containmentOnly flag is set properly)" in {
+      findRenaming(URA11c.conclusion, desiredA11c)(varsA11c) != null must beEqualTo(true)
+    }       
   }
   "FindDesiredSequent" should {
     "Throw an exception as the recursive base case" in {

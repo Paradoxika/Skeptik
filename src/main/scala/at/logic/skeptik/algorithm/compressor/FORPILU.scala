@@ -532,7 +532,7 @@ trait FOCollectEdgesUsingSafeLiterals
             return true
           }
         } else {
-          return checkInvalidMap(intersectedMap, cVars, computed, desired)
+          return checkInvalidMap(intersectedMap, cVars, computed, desired, true)
         }
       }
     }

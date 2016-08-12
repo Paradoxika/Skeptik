@@ -131,6 +131,11 @@ class FORPILUHelperSpecification extends SpecificationWithJUnit {
   println(Dactual)
   val DresultNew = FORPIHelperTester.finalCheckTest(Dfound, Dactual)
   println(DresultNew)
+  
+  println("Interesting output begins: --------------------")
+  println("Actual: " + actual)
+  println("Found: " + found)
+  println("Result: " + resultNew)
 
   "FORPILUHelpers" should {
     "finalCheck must check containment" in {
