@@ -370,7 +370,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     if (map.size == 0) {
       return None
     }
-    println("MAP HEAD: " + map.head._2 + " " + map.head._1)
     if (map.head._2.size > 1 && vars.contains(map.head._1)) {
       return Some(map.head._1)
     } else {
@@ -379,8 +378,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def computeIntersectedMap(computed: Sequent, desired: Sequent, vars: MSet[Var]): (Boolean, MMap[Var, Set[E]]) = {
-    val cVars = vars //getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)//Aug11
-    println("cVars: " + cVars + " computed: " + computed)
+    val cVars = vars //Aug11
     val antMap = generateSubstitutionOptions(computed.ant, desired.ant, cVars)
     if (getSetOfVars(computed.ant: _*).size > 0 && antMap.size == 0) {
       return (false, MMap[Var, Set[E]]())
@@ -433,17 +431,13 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     }
   }
   
-  def checkInvalidMapAndReturnSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean): Substitution = {
-    println("Computed: " + computed)
-    println("Desired: " + desired)
-    
+  def checkInvalidMapAndReturnSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean): Substitution = {    
     //Check if map is valid: 
     val subsetContainedOrEquals = checkSubsetOrEquality(containmentOnly, computed, desired)
     if (validMap(m, vars) && subsetContainedOrEquals) {
     //get the sub
       val sub = getUniqueSubstitutions(m, vars)
       
-      println("B")
       return sub
     }
 
@@ -465,39 +459,28 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         Set[Var]()
       }
     }
-    println("bigSetCheck: " + bigSetCheck)
-    println("bigSet: " + bigSet + " from m: " + m)
     for (mVal <- bigSet) {
-      println("CHECKING AN MVAL ----------------")
-      println("sub: " + Substitution((bigSetCheck.get, mVal)))
       val newNewComputed = applySub(newComputed, Substitution((bigSetCheck.get, mVal)))
-      println("newNewComputed: " + newNewComputed + " " + vars)
       val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired, vars)
-      println("newMap: " + newMap) //checkIfConclusionsAreEqual
-//      val mapValidAndCorrect = newNewComputed.ant.toSet.subsetOf(desired.ant.toSet) && newNewComputed.suc.toSet.subsetOf(desired.suc.toSet) && mapValid
-      //Aug11b
+      //Aug11
       val subsetOrEqualityVerified = checkSubsetOrEquality(containmentOnly, newNewComputed, desired)
       val mapValidAndCorrect = subsetOrEqualityVerified && mapValid
       
       if (mapValidAndCorrect) {
-        println("X")
         return Substitution((bigSetCheck.get, mVal))
       } else {
         val badVars = getSetOfVars(mVal) ++ MSet[Var](bigSetCheck.get)
         val newSetOfVars = vars -- badVars
-        println("C " + newSetOfVars + " _______ recursive call next.")
         
         val rVal = checkInvalidMapAndReturnSub(newMap, newSetOfVars, newNewComputed, desired, containmentOnly)
         if (rVal != null) {
           val newList = rVal.toList ++ List[(Var, E)]((bigSetCheck.get, mVal))
-          println("Y " + rVal)
           return Substitution(newList: _*)
         }
       }
     }
 
     //If we got here, there were no recursive calls
-    println("uH oh?")//Not hit
     null
   }
 
@@ -617,8 +600,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
-    println("COMPUTED: " + computed)
-    println("DESIRED: " + desired)
     if (checkIfConclusionsAreEqual(computed, desired)) {
       return Substitution()
     } else {
@@ -633,7 +614,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         val intersectedMap = intersectMaps(antMap, sucMap)
 
         val computedVars = getSetOfVars(computedClean)
-        println("VALID MAP? " + intersectedMap)
         if (!validMap(intersectedMap, computedVars)) {
           val invalidOut = checkInvalidMapAndReturnSub(intersectedMap, computedVars, computed, desired, false)
           return checkRenamingSubstitution(invalidOut)

@@ -581,6 +581,30 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
 
     val  URA11c = UnifyingResolution(leftA11c, rightA11c, desiredA11c)(varsA11c)  
   
+    /*
+ * 	Desired: (p15 (f9 V20 V3)), (p15 (f9 V18 V19)) ⊢ (p25 V20)
+		leftPremise: (p15 (f9 V18 V19)), (p15 (f9 V20 V3)) ⊢ (p20 V22), (p25 V20)
+		rightPremise: (p20 c15) ⊢ 
+ */
+    
+    val A11f9a = App(App(Var("f9", i -> (i -> i)), Var("V20",i)), new Var("V3", i))
+    val A11p15desiredA = Atom("p15",List(A11f9a))
+    val A11f9b = App(App(Var("f9", i -> (i -> i)), Var("V18",i)), new Var("V19", i))
+    val A11p15desiredB = Atom("p15",List(A11f9b))    
+      val desiredA11d = A11p15desiredB +: Sequent(A11p15desiredA)(Atom("p25",List(Var("V20",i))))
+                            
+    val rightA11d   = Axiom(Sequent(Atom("p20",List(Var("c15",i))))())
+                                
+    val leftA11d   = Axiom(A11p15desiredA +: Sequent(A11p15desiredB)(Atom("p20",List(Var("V22",i))),Atom("p25",List(Var("V20",i)))))
+
+    val varsA11d    = MSet[Var](Var("V3",i),Var("V20",i),Var("V18",i),Var("V19",i),Var("V22",i))
+    println("L: " + leftA11d)
+    println("R: " + rightA11d)
+        println("Initial desired: " + desiredA11d)
+
+    val  URA11d = UnifyingResolution(leftA11d, rightA11d, desiredA11d)(varsA11d)
+    println("URd: " + URA11d) 
+    
   ///////August 11 2016 Tests End  
   
   println("OUTPUT OF INTEREST -------------")
@@ -673,9 +697,12 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     "Find the desired sequent (checks if invalidMap function uses appropriate variables)" in {
       findRenaming(URA11b.conclusion, desiredA11b)(varsb) != null must beEqualTo(true)
     }
-    "Find the desired sequent (checks if containmentOnly flag is set properly)" in {
+    "Find the desired sequent (checks if containmentOnly flag is set properly (1))" in {
       findRenaming(URA11c.conclusion, desiredA11c)(varsA11c) != null must beEqualTo(true)
-    }       
+    }     
+    "Find the desired sequent (checks if containmentOnly flag is set properly (2))" in {
+      findRenaming(URA11d.conclusion, desiredA11d)(varsA11d) != null must beEqualTo(true)
+    }        
   }
   "FindDesiredSequent" should {
     "Throw an exception as the recursive base case" in {
