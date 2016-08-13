@@ -23,8 +23,9 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-library" % "2.11.6", // apparently needed because of timeout and deprecated actors library
   //"org.scala-lang" % "scala-xml" % "2.11.4",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",
-  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1" // seems inactive
-  )
+  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1", // seems inactive
+	"com.typesafe.akka" %% "akka-actor" % "2.4.9-RC2"
+)
 
 
 licenses := Seq("CC BY-NC-SA" -> url("http://creativecommons.org/licenses/by-nc-sa/3.0/"))
