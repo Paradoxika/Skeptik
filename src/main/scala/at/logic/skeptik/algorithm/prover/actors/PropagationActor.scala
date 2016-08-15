@@ -80,11 +80,14 @@ class PropagationActor(unifyingActor: ActorRef) extends Actor with ActorLogging 
                 val newLiteral = Literal(rightMgu(conclusion.unit), conclusion.negated)
                 val newImplications = unifier.map(_ -> newLiteral)
                 if (!unifier.exists(isAncestor(_, newLiteral))) {
-                    val newEntry = (clause, unifier zip leftMgu)
-                    val newEntriesSet = reverseImplicationGraph(newLiteral) + newEntry
-                    reverseImplicationGraph = reverseImplicationGraph + (newLiteral -> newEntriesSet)
-                    ancestor(newLiteral) ++= (Set.empty[Clause] /: unifier) (_ union ancestor(_)) + clause
-                    mainActor ! Propagated(newLiteral, ancestor(newLiteral).toSeq, reverseImplicationGraph)
+                  val newEntry = (clause, unifier zip leftMgu)
+                  val newEntriesSet = reverseImplicationGraph(newLiteral) + newEntry
+                  reverseImplicationGraph = reverseImplicationGraph + (newLiteral -> newEntriesSet)
+                  ancestor(newLiteral) ++= (Set.empty[Clause] /: unifier) (_ union ancestor(_)) + clause
+                  if (decisions.contains(newLiteral)) {
+                    decisions -= newLiteral
+                  }
+                  mainActor ! Propagated(newLiteral, ancestor(newLiteral).toSeq, reverseImplicationGraph)
                 }
               }
             case _ =>

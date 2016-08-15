@@ -87,6 +87,11 @@ class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
       log.info(s"Propagated $newLiteral")
       // Update system state
       usedAncestors ++= ancestors
+
+      if (decisions contains newLiteral) {
+        decisions = decisions.filterNot(_ == newLiteral)
+      }
+
       addLiteral(newLiteral)
 
       // Check for a conflict
@@ -100,7 +105,7 @@ class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
       newClauses += newClause
 
       if (newClause.isEmpty) {
-        promise.success(false)
+        promise.trySuccess(false)
       }
 
       if (clauseResolving == 0 && conflictsDeriving == 0) {

@@ -52,6 +52,7 @@ class ConflictActor(unifyingActor: ActorRef) extends Actor with ActorLogging {
       val conflictClauseLeft = findConflictClause(leftLiteral, leftMgu)
       val conflictClauseRight = findConflictClause(rightLiteral, rightMgu)
       val newClause = unique(conflictClauseLeft union conflictClauseRight)
+      log.info(s"Derived conflict clause $newClause")
       sender ! Derived(newClause)
     case other =>
       log.warning(s"Didn't expect, but got $other")
