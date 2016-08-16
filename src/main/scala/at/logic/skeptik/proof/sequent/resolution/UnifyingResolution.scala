@@ -32,12 +32,17 @@ class UnifyingResolution(val leftPremise: SequentProofNode, val rightPremise: Se
       u
     }
   }
-
+  
+  //Removes one copy of the formula
+  def remove(e: E, list: List[E]) = list diff List(e)
+  
   override val conclusionContext = {
-    val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
-      (rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
-    val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-      rightPremise.conclusion.suc.map(e => mgu(e))
+      val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
+      remove(auxR, rightPremise.conclusion.ant.toList).map(e => mgu(e))
+      val succedent = remove(auxL, leftClean.conclusion.suc.toList).map(e => mgu(e)) ++
+       rightPremise.conclusion.suc.map(e => mgu(e))
+    
+    
     if (overRide == null) {
       new Sequent(antecedent, succedent)
     } else {
@@ -600,6 +605,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
+    println("Computed: " + computed)
+    println("Desired: " + desired)
+    
     if (checkIfConclusionsAreEqual(computed, desired)) {
       return Substitution()
     } else {
@@ -698,7 +706,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
       var desiredEquivToComputedRelaxed = false
       var computedCleanIsMoreGeneral = false
       if (relaxation != null) {
-
         def applyRelaxation(seq: Sequent, relax: Substitution): Sequent = {
           val newAnt = seq.ant.map(e => relax(e)).distinct
           val newSuc = seq.suc.map(e => relax(e)).distinct
@@ -712,7 +719,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         desiredEquivToComputedRelaxed = findRenaming(computedSequentRelaxed, desired) != null
         computedCleanIsMoreGeneral = isMoreGeneral(computedSequentClean, desired)
       }
-
+      
       //July 28 - changed order of arguments for findRenaming      
       val condition = (findRenaming(computedSequentClean, desired) != null) || desiredEquivToComputedRelaxed || computedCleanIsMoreGeneral
 

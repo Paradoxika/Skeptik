@@ -606,6 +606,90 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     println("URd: " + URA11d) 
     
   ///////August 11 2016 Tests End  
+    
+    //Aug 15
+    /*
+    Desired:  ⊢ (p1 c10)
+leftPremise:  ⊢ (p1 c10), (p1 c10)
+rightPremise: (p1 c10) ⊢
+*/
+    
+    val A15desiredA = Sequent()(Atom("p1",List(Var("c10",i))))    
+    
+                            
+    val rightA15A   = Axiom(Sequent(Atom("p1",List(Var("c10",i))))())
+    val leftA15A   = Axiom(Sequent()(Atom("p1",List(Var("c10",i)))) + Atom("p1",List(Var("c10",i))))
+    
+    val varsA15A    = MSet[Var]()
+
+    val A15ResA = UnifyingResolution(leftA15A, rightA15A, A15desiredA)(varsA15A)
+        println("FinalOutA: " + A15ResA + " and desired: " + A15desiredA)
+
+    
+    /*
+     * java.lang.Exception: Resolution: Cannot find desired resolvent
+Desired:  ⊢ (p2 c10)
+leftPremise:  ⊢ (p2 c10), (p2 c10)
+rightPremise: (p2 c10) ⊢
+     */
+    
+    val A15desiredB = Sequent()(Atom("p2",List(Var("c10",i))))    
+    
+                            
+    val rightA15B   = Axiom(Sequent(Atom("p2",List(Var("c10",i))))())
+    val leftA15B   = Axiom(Sequent()(Atom("p2",List(Var("c10",i)))) + Atom("p2",List(Var("c10",i))))
+    
+    val varsA15B    = MSet[Var]()
+
+    val A15ResB = UnifyingResolution(leftA15B, rightA15B, A15desiredB)(varsA15B)
+    println("FinalOutB: " + A15ResB + " and desired: " + A15desiredB)
+    
+    /*
+     * java.lang.Exception: Resolution: the conclusions of the given premises are not resolvable. A
+Desired: (p1 c0) ⊢
+Left premise: (p1 c0), (p1 c0) ⊢
+Right premise:  ⊢ (p1 c0)
+     * 
+     */
+    
+    
+    val A15desiredC = Sequent(Atom("p1",List(Var("c0",i))))()    
+    
+                            
+    val rightA15C   = Axiom(Sequent()(Atom("p1",List(Var("c0",i)))))
+    val leftA15C   = Axiom(Atom("p1",List(Var("c0",i))) +: Sequent(Atom("p1",List(Var("c0",i))))())
+    
+    val varsA15C    = MSet[Var]()
+
+    println("LC: " + leftA15C)
+    println("RC: " + rightA15C)
+    println("DC: " + A15desiredC)
+//    val A15ResC = UnifyingResolution(leftA15C, rightA15C, A15desiredC)(varsA15C)
+    val A15ResC = UnifyingResolution(rightA15C,leftA15C, A15desiredC)(varsA15C)
+    
+    println("FinalOutC: " + A15ResC + " and desired: " + A15desiredC)
+    
+    /*
+     * java.lang.Exception: Resolution: Cannot find desired resolvent
+Desired: (p2 c7 c11 c5) ⊢ (p1 c6 c6)
+leftPremise: (p2 c7 c11 c5) ⊢ (p1 c6 c6), (p1 c6 c6)
+rightPremise: (p1 c6 c6) ⊢
+     * 
+     */
+    
+    val A15desiredD = Sequent(Atom("p2",List(Var("c7",i),Var("c11",i),Var("c5",i))))(Atom("p1",List(Var("c6",i),Var("c6",i))))    
+    
+                            
+    val rightA15D   = Axiom(Sequent(Atom("p1",List(Var("c6",i),Var("c6",i))))())
+    val leftA15D   = Axiom(Sequent(Atom("p2",List(Var("c7",i),Var("c11",i),Var("c5",i))))(Atom("p1",List(Var("c6",i),Var("c6",i)))) +Atom("p1",List(Var("c6",i),Var("c6",i))) )
+    
+    val varsA15D    = MSet[Var]()
+
+    val A15ResD = UnifyingResolution(leftA15D, rightA15D, A15desiredD)(varsA15D)
+    println("FinalOutD: " + A15ResD + " and desired: " + A15desiredD)    
+    
+    ///August 15 2016 tests end
+    
   
   println("OUTPUT OF INTEREST -------------")
   println("7a: " + findSeqTest7A)
@@ -702,7 +786,21 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
     }     
     "Find the desired sequent (checks if containmentOnly flag is set properly (2))" in {
       findRenaming(URA11d.conclusion, desiredA11d)(varsA11d) != null must beEqualTo(true)
-    }        
+    } 
+    
+    //August 15 2016 TEsts
+    "Not remove all copies of the aux formula (1)" in {
+      A15ResA.conclusion must beEqualTo(A15desiredA)
+    }    
+    "Not remove all copies of the aux formula (2)" in {
+      A15ResB.conclusion must beEqualTo(A15desiredB)
+    }
+    "Not remove all copies of the aux formula (3)" in {
+      A15ResC.conclusion must beEqualTo(A15desiredC)
+    }
+    "Not remove all copies of the aux formula (4)" in {
+      A15ResD.conclusion must beEqualTo(A15desiredD)
+    }    
   }
   "FindDesiredSequent" should {
     "Throw an exception as the recursive base case" in {
