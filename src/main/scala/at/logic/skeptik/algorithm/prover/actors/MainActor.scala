@@ -5,6 +5,9 @@ import at.logic.skeptik.algorithm.prover._
 import at.logic.skeptik.algorithm.prover.actors.messages._
 import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 import at.logic.skeptik.expression.Var
+import at.logic.skeptik.expression.substitution.immutable.Substitution
+import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.proof.sequent.SequentProofNode
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -17,7 +20,7 @@ import scala.util.Random
 class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
                (implicit variables: mutable.Set[Var]) extends Actor with ActorLogging {
   @volatile
-  var allClauses = cnf.clauses
+  var allClauses = cnf.clauses.toSet
   val propagatedLiterals = mutable.Set.empty[Literal]
   @volatile
   var unifiableUnits = Map.empty[Literal, Set[Literal]].withDefaultValue(Set.empty[Literal])
@@ -39,9 +42,17 @@ class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
   @volatile
   var clauseResolving = 0
 
-  val promise = Promise[Boolean]()
+  val promise = Promise[Option[Proof[SequentProofNode]]]()
 
-  def propagate(): Unit = {
+  def propagate(reverseImpGraph: Map[Literal, Set[(Clause, Seq[(Literal, Substitution)])]]): Unit = {
+    for (decisionLiteral <- decisions) {
+      // Check for a conflict
+      if (unifiableUnits(decisionLiteral).nonEmpty) {
+        val otherLiteral = unifiableUnits(decisionLiteral).head
+        conflictsDeriving += 1
+        conflictActor ! Conflict(decisionLiteral, otherLiteral, allClauses, decisions, reverseImpGraph)
+      }
+    }
     if (newClauses.nonEmpty) {
       allClauses = allClauses ++ newClauses
       newClauses.clear()
@@ -80,7 +91,7 @@ class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
     unifiableUnits = unifiableUnits ++ newUnifiables ++ newSelfUnifiables
   }
 
-  propagate()
+  propagate(Map.empty)
 
   override def receive: Receive = {
     case Propagated(newLiteral, ancestors, reverseImpGraph) =>
@@ -100,18 +111,18 @@ class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
         conflictsDeriving += 1
         conflictActor ! Conflict(newLiteral, otherLiteral, allClauses, decisions, reverseImpGraph)
       }
-    case Derived(newClause) =>
+    case Derived(newClause, reverseImpGraph, conflict) =>
       conflictsDeriving -= 1
       newClauses += newClause
 
       if (newClause.isEmpty) {
-        promise.trySuccess(false)
+        promise.trySuccess(Some(Proof(conflict)))
       }
 
       if (clauseResolving == 0 && conflictsDeriving == 0) {
-        propagate()
+        propagate(reverseImpGraph)
       }
-    case Resolved() =>
+    case Resolved(reverseImpGraph) =>
       clauseResolving -= 1
       if (clauseResolving == 0) {
         def satisfied = cnf.clauses.filter(_.literals.exists(lit => propagatedLiterals contains lit))
@@ -133,7 +144,7 @@ class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
         }
       }
       if (clauseResolving == 0 && conflictsDeriving == 0) {
-        propagate()
+        propagate(reverseImpGraph)
       }
     case "promise" =>
       sender ! promise

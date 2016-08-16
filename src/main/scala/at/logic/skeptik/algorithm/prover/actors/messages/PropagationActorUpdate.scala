@@ -6,4 +6,4 @@ import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
 /**
   * @author Daniyar Itegulov
   */
-case class PropagationActorUpdate(newClauses: Seq[Clause], newUnifiableUnits: Map[Literal, Set[Literal]])
+case class PropagationActorUpdate(newClauses: Set[Clause], newUnifiableUnits: Map[Literal, Set[Literal]])

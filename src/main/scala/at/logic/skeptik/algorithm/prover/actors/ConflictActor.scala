@@ -1,13 +1,18 @@
 package at.logic.skeptik.algorithm.prover.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.actor.{Actor, ActorLogging}
 import akka.pattern.ask
 import akka.util.Timeout
 import at.logic.skeptik.algorithm.prover._
 import at.logic.skeptik.algorithm.prover.actors.messages._
 import at.logic.skeptik.algorithm.prover.structure.immutable.Literal
+import at.logic.skeptik.expression.Var
 import at.logic.skeptik.expression.substitution.immutable.Substitution
+import at.logic.skeptik.proof.sequent.conflictresolution.{Decision, UnitPropagationResolution}
+import at.logic.skeptik.proof.sequent.lk.Axiom
+import at.logic.skeptik.proof.sequent.{SequentProofNode, conflictresolution}
 
+import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -15,11 +20,18 @@ import scala.language.postfixOps
 /**
   * @author Daniyar Itegulov
   */
-class ConflictActor(unifyingActor: ActorRef) extends Actor with ActorLogging {
-  private implicit val timeout: Timeout = 2 seconds
+class ConflictActor extends Actor with ActorLogging {
+  private implicit val timeout: Timeout = 5 seconds
+
+  private val clauseProof = mutable.Map.empty[Clause, SequentProofNode]
+
+  val unifyingActor = context.actorSelection("../unify")
+  val mainActor = context.actorSelection("../main")
 
   override def receive: Receive = {
     case Conflict(leftLiteral, rightLiteral, allClauses, decisions, reverseImpGraph) =>
+      allClauses.foreach(clause => clauseProof(clause) = Axiom(clause.toSeqSequent))
+
       log.info(s"Conflict from $leftLiteral and $rightLiteral")
 
       /**
@@ -45,15 +57,45 @@ class ConflictActor(unifyingActor: ActorRef) extends Actor with ActorLogging {
         }
       }
 
+      /**
+        * Creates formal proof, which formally reasons `current` literal.
+        *
+        * @param current literal to be proved
+        * @return formal proof, which conclusion is the `current`
+        */
+      def buildProof(current: Literal)(implicit variables: mutable.Set[Var]): SequentProofNode = {
+        if (allClauses contains current.toClause) {
+          Axiom(current.toClause.toSeqSequent)
+        } else if (decisions contains current) {
+          Decision(current.toClause)
+        } else if (reverseImpGraph contains current) {
+          val (clause, unifier) = reverseImpGraph(current).head
+          val premiseProofs = unifier.map {
+            case (lit, _) => buildProof(lit)
+          }
+          UnitPropagationResolution(premiseProofs, clauseProof(clause), current)
+        } else {
+          throw new IllegalStateException("Literal was propagated, but there is no history in implication graph")
+        }
+      }
+
+      val variablesFuture = (unifyingActor ? GetVariables()).mapTo[Set[Var]]
       val future = (unifyingActor ? Unify(Seq(leftLiteral.unit), Seq(rightLiteral.unit)))
         .mapTo[Option[(Seq[Substitution], Substitution)]]
 
-      val (Seq(leftMgu), rightMgu) = Await.result(future, Duration.Inf).get
-      val conflictClauseLeft = findConflictClause(leftLiteral, leftMgu)
-      val conflictClauseRight = findConflictClause(rightLiteral, rightMgu)
-      val newClause = unique(conflictClauseLeft union conflictClauseRight)
-      log.info(s"Derived conflict clause $newClause")
-      sender ! Derived(newClause)
+      Await.result(future.zip(variablesFuture), Duration.Inf) match {
+        case (Some((Seq(leftMgu), rightMgu)), variables) =>
+          implicit val vars = mutable.Set(variables.toSeq: _*)
+          val conflictClauseLeft = findConflictClause(leftLiteral, leftMgu)
+          val conflictClauseRight = findConflictClause(rightLiteral, rightMgu)
+          val newClause = unique(conflictClauseLeft union conflictClauseRight)
+          val conflictProof = conflictresolution.Conflict(buildProof(leftLiteral), buildProof(rightLiteral))
+          clauseProof(newClause) = conflictresolution.ConflictDrivenClauseLearning(conflictProof)
+          log.info(s"Derived conflict clause $newClause")
+          mainActor ! Derived(newClause, reverseImpGraph, conflictProof)
+        case _ =>
+          log.error("leftLiteral and rightLiteral should be unifiable")
+      }
     case other =>
       log.warning(s"Didn't expect, but got $other")
   }

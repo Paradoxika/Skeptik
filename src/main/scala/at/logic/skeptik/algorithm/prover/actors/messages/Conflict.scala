@@ -9,6 +9,6 @@ import at.logic.skeptik.expression.substitution.immutable.Substitution
   */
 case class Conflict(leftConflict: Literal,
                     rightConflict: Literal,
-                    allClauses: Seq[Clause],
+                    allClauses: Set[Clause],
                     decisions: Seq[Literal],
                     reverseImpGraph: Map[Literal, Set[(Clause, Seq[(Literal, Substitution)])]])

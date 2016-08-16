@@ -29,13 +29,13 @@ class PropagationActor(unifyingActor: ActorRef) extends Actor with ActorLogging 
   private val decisions = ArrayBuffer.empty[Literal]
   // All clauses include initial and CDCL clauses
   @volatile
-  private var allClauses = Seq.empty[Clause]
+  private var allClauses = Set.empty[Clause]
   // For each literal what initial clauses produced it
   private val ancestor = mutable.Map.empty[Literal, mutable.Set[Clause]].withDefaultValue(mutable.Set.empty)
 
   import context.dispatcher
 
-  private implicit val timeout: Timeout = 2 seconds
+  private implicit val timeout: Timeout = 5 seconds
 
   val mainActor = context.actorSelection("../main")
 
@@ -62,7 +62,6 @@ class PropagationActor(unifyingActor: ActorRef) extends Actor with ActorLogging 
   override def receive: Receive = {
     case Resolve(clause) =>
       val unifyCandidates = clause.literals.map(unifiableUnits(_).toSeq)
-      val futures = ArrayBuffer.empty[Future[Option[(Seq[Substitution], Substitution)]]]
       for (conclusionId <- unifyCandidates.indices) {
         // Id of literal which will be a conclusion
         val conclusion = clause.literals(conclusionId)
@@ -72,30 +71,27 @@ class PropagationActor(unifyingActor: ActorRef) extends Actor with ActorLogging 
         val literals = clause.literals.take(conclusionId) ++ clause.literals.drop(conclusionId + 1)
         for (unifier <- combinations(unifiers)) {
           // We should try all combinations of unifiers
-          val future = (unifyingActor ? Unify(unifier, literals)).mapTo[Option[(Seq[Substitution], Substitution)]]
-          futures += future
-          future.onSuccess {
+          val future = (unifyingActor ? Unify(unifier, literals))
+            .mapTo[Option[(Seq[Substitution], Substitution)]]
+          Await.result(future, Duration.Inf) match {
             case Some((leftMgu, rightMgu)) =>
-              reverseImplicationGraph.synchronized {
-                val newLiteral = Literal(rightMgu(conclusion.unit), conclusion.negated)
-                val newImplications = unifier.map(_ -> newLiteral)
-                if (!unifier.exists(isAncestor(_, newLiteral))) {
-                  val newEntry = (clause, unifier zip leftMgu)
-                  val newEntriesSet = reverseImplicationGraph(newLiteral) + newEntry
-                  reverseImplicationGraph = reverseImplicationGraph + (newLiteral -> newEntriesSet)
-                  ancestor(newLiteral) ++= (Set.empty[Clause] /: unifier) (_ union ancestor(_)) + clause
-                  if (decisions.contains(newLiteral)) {
-                    decisions -= newLiteral
-                  }
-                  mainActor ! Propagated(newLiteral, ancestor(newLiteral).toSeq, reverseImplicationGraph)
+              val newLiteral = Literal(rightMgu(conclusion.unit), conclusion.negated)
+              val newImplications = unifier.map(_ -> newLiteral)
+              if (!unifier.exists(isAncestor(_, newLiteral))) {
+                val newEntry = (clause, unifier zip leftMgu)
+                val newEntriesSet = reverseImplicationGraph(newLiteral) + newEntry
+                reverseImplicationGraph = reverseImplicationGraph + (newLiteral -> newEntriesSet)
+                ancestor(newLiteral) ++= (Set.empty[Clause] /: unifier) (_ union ancestor(_)) + clause
+                if (decisions.contains(newLiteral)) {
+                  decisions -= newLiteral
                 }
+                mainActor ! Propagated(newLiteral, ancestor(newLiteral).toSeq, reverseImplicationGraph)
               }
             case _ =>
           }
         }
       }
-      Await.ready(Future.sequence(futures), Duration.Inf)
-      sender ! Resolved()
+      mainActor ! Resolved(reverseImplicationGraph)
     case Decision(newLiteral) =>
       decisions += newLiteral
     case PropagationActorUpdate(newClauses, newUnifiableUnits) =>
