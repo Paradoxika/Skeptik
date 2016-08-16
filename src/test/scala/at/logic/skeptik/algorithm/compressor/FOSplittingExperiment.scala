@@ -2,13 +2,15 @@ package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
-import at.logic.skeptik.proof.sequent.resolution.{FOSubstitution, UnifyingResolution}
+import at.logic.skeptik.proof.sequent.resolution.{FOSubstitution, Contraction, UnifyingResolution}
 import at.logic.skeptik.parser.ProofParserSPASS
+import at.logic.skeptik.parser.TPTPParsers.ProofParserCNFTPTP
 
 import collection.mutable.{HashSet => MSet}
 import java.io.PrintWriter
 
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
+import at.logic.skeptik.algorithm.FOProofsGenerator.{ProofGenerator,ProofToTPTPFile}
 import at.logic.skeptik.expression.{Var, i}
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -38,7 +40,7 @@ object SmallTest {
     println(proof)
 
 
-    (new FOCottonSplit(vars,1))(proof)
+    println((new FOCottonSplit(vars,1))(proof))
   }
 }
 /**
@@ -113,7 +115,7 @@ object FOSplittingExperiment {
 
       val startTime = System.nanoTime
 
-      val timeout = 1
+      val timeout = 1000
       val cottonSplit = new FOCottonSplit(variables, timeout)
       try {
         val compressedProof = cottonSplit(proofToTest)
@@ -182,5 +184,73 @@ object FOSplittingExperiment {
     }
     println("total: " + totalCountT)
     */
+  }
+}
+
+/**
+  * This class let us generate random proofs to test the algorithm and
+  * analyse the cases where it fails.
+  *
+  */
+object FOSplittingReview {
+  def main(args : Array[String]) : Unit = {
+    val generator = new ProofGenerator(2)
+    var proof : Proof[SequentProofNode] = null
+    var vars  : collection.mutable.Set[Var] = null
+    try {
+      while (true) {
+        proof = generator.generateProof()
+        vars  = generator.getVariables()
+        val split = new FOCottonSplit(vars, 1)
+        if(proof.size < 10)
+          split(proof)
+      }
+    } catch {
+      case e : Exception =>
+        println(ProofToTPTPFile(proof))
+        println()
+        println(proof)
+        println()
+        println(e)
+    }
+  }
+}
+
+object ProofDebug {
+  def main(args : Array[String]) : Unit = {
+    val proofTPTP =
+      """
+        |cnf(c0,axiom,p5(c5) | p3(c3)).
+        |cnf(c1,axiom,~p3(c3)).
+        |cnf(c2,plain,p5(c5),inference(sr,[status(thm)],[c0,c1])).
+        |cnf(c3,axiom,~p5(V1) | p3(V1) | p3(c3)).
+        |cnf(c4,plain,~p5(V1) | p3(V1),inference(sr,[status(thm)],[c3,c1])).
+        |cnf(c5,plain,p3(c5),inference(sr,[status(thm)],[c2,c4])).
+        |cnf(c6,axiom,~p3(c5) | ~p3(V0)).
+        |cnf(c7,plain,~p3(c5),inference(cn,[status(thm)],[c6])).
+        |cnf(c8,plain,$false,inference(sr,[status(thm)],[c5,c7])).
+      """.stripMargin
+    val proof = ProofParserCNFTPTP.extractFromString(proofTPTP)
+    val vars  = ProofParserCNFTPTP.getVariables
+    ProofParserCNFTPTP.resetVariables()
+    println(proof)
+    try{
+      val split = new FOCottonSplit(vars, 1)
+      split(proof)
+    } catch {
+      case e : Exception =>
+        println(ProofToTPTPFile(proof))
+        println()
+        println(proof)
+        println()
+        println(e)
+    }
+  }
+}
+
+object TestContraction {
+  def main(args : Array[String]) : Unit = {
+    val sequent = Sequent()(Atom("p1",List(Var("c1",i))),Atom("p1",List(Var("V0",i))))
+    println(Contraction.contractIfPossible(Axiom(sequent),MSet[Var](Var("V0",i))))
   }
 }
