@@ -42,9 +42,12 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
 
   def split(proof: Proof[Node], selectedLiteral : E): (Node,Node) = {
     def manageContraction(node : Node, fixedPremises : Seq[(Node,Node)]) : (Node , Node) = {
+      def contract(premise : Node, vars : MSet[Var]) : Node =
+          Contraction.contractIfPossible(premise,vars)
+
       require(fixedPremises.length == 1)
       val (left,right) = fixedPremises.head
-      (Contraction.contractIfPossible(left,variables),Contraction.contractIfPossible(right,variables))
+      (contract(left,variables),contract(right,variables))
     }
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
@@ -113,6 +116,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
           else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral))
             resolveAndUnifyNodes(fixedLeftNeg,fixedRightNeg,node.conclusion)
           else fixedRightNeg // This is arbitrary
+
         (finalLeftProof,finalRighttProof)
       }
     }
@@ -142,6 +146,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
         //println("Selected Literal: " + selectedLiteral)
         val (left, right)   = split(p, selectedLiteral)
         //println("Left: " + Proof(left))
+        //println()
         //println("Right: " + Proof(right))
         val leftContracted  = Contraction.contractIfPossible(left, variables)
         val rightContracted = Contraction.contractIfPossible(right, variables)

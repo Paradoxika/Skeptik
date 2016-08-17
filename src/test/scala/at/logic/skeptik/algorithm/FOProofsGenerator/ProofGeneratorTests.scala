@@ -22,7 +22,7 @@ object ProofGeneratorTests {
   def main(arfs : Array[String]) : Unit = {
     //testContraction()
     //randomLiteralTest()
-    compressionTests(1000,7,1000)
+    compressionTests(1000,7,1)
     //tests(1000,7,1)
     //f()
   }
@@ -124,6 +124,7 @@ object ProofGeneratorTests {
     var splAv     = 0.0
     var rpiAv     = 0.0
     var splitFail = 0
+    var rpiFail   = 0
     for(i <- 1 to proofN) {
       val (proof, vars) = proofGenerationTest(height,Sequent()())
       proofsLenghtsSum += proof.size
@@ -149,6 +150,8 @@ object ProofGeneratorTests {
       if (countResolutionNodes(proof) > countResolutionNodes(rpiCompressedProof)
         && countResolutionNodes(rpiCompressedProof) > countResolutionNodes(proof) / 2) {
         rpiN += 1
+        if(rpiCompressedProof.root.conclusion.ant.nonEmpty || rpiCompressedProof.root.conclusion.suc.nonEmpty)
+          rpiFail += 1
         rpiProofsLenghtsSum += rpiCompressedProof.size
         rpiAv += (countResolutionNodes(rpiCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FORPI: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(rpiCompressedProof))
@@ -176,6 +179,7 @@ object ProofGeneratorTests {
     println("Number of fails: " + splitFail)
     println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv/rpiN)
     println("Total compression ratio: " + ((proofsLenghtsSum - rpiProofsLenghtsSum)*1.0)/proofsLenghtsSum)
+    println("Number of fails: " + rpiFail)
   }
 
   def testContraction() = {

@@ -115,7 +115,7 @@ object FOSplittingExperiment {
 
       val startTime = System.nanoTime
 
-      val timeout = 1000
+      val timeout = 100
       val cottonSplit = new FOCottonSplit(variables, timeout)
       try {
         val compressedProof = cottonSplit(proofToTest)
@@ -194,7 +194,7 @@ object FOSplittingExperiment {
   */
 object FOSplittingReview {
   def main(args : Array[String]) : Unit = {
-    val generator = new ProofGenerator(2)
+    val generator = new ProofGenerator(3)
     var proof : Proof[SequentProofNode] = null
     var vars  : collection.mutable.Set[Var] = null
     try {
@@ -202,11 +202,20 @@ object FOSplittingReview {
         proof = generator.generateProof()
         vars  = generator.getVariables()
         val split = new FOCottonSplit(vars, 1)
-        if(proof.size < 10)
-          split(proof)
+        val compr = split(proof)
+        if(proof.size < 16
+          && (compr.root.conclusion.ant.nonEmpty || compr.root.conclusion.suc.nonEmpty)) {
+          println(ProofToTPTPFile(proof))
+          println()
+          println(proof)
+          println()
+          println(compr)
+          return
+        }
       }
     } catch {
       case e : Exception =>
+        //FOSplittingReview.main(new Array[String](2))
         println(ProofToTPTPFile(proof))
         println()
         println(proof)
@@ -220,15 +229,16 @@ object ProofDebug {
   def main(args : Array[String]) : Unit = {
     val proofTPTP =
       """
-        |cnf(c0,axiom,p5(c5) | p3(c3)).
-        |cnf(c1,axiom,~p3(c3)).
-        |cnf(c2,plain,p5(c5),inference(sr,[status(thm)],[c0,c1])).
-        |cnf(c3,axiom,~p5(V1) | p3(V1) | p3(c3)).
-        |cnf(c4,plain,~p5(V1) | p3(V1),inference(sr,[status(thm)],[c3,c1])).
-        |cnf(c5,plain,p3(c5),inference(sr,[status(thm)],[c2,c4])).
-        |cnf(c6,axiom,~p3(c5) | ~p3(V0)).
-        |cnf(c7,plain,~p3(c5),inference(cn,[status(thm)],[c6])).
-        |cnf(c8,plain,$false,inference(sr,[status(thm)],[c5,c7])).
+        |cnf(c3,axiom,p5(f1(c3,c11))).
+        |cnf(c4,axiom,p9(c8)).
+        |cnf(c5,axiom,~p9(V6) | p5(V6)).
+        |cnf(c6,plain,p5(c8),inference(sr,[status(thm)],[c4,c5])).
+        |cnf(c9,axiom,~p5(c8) | p8(c11,c3)).
+        |cnf(c10,plain,p8(c11,c3),inference(sr,[status(thm)],[c6,c9])).
+        |cnf(c12,axiom,~p5(f1(V3,V4)) | ~p8(V4,V3) | ~p5(V5)).
+        |cnf(c13,plain,~p5(f1(V3,V4)) | ~p8(V4,V3),inference(sr,[status(thm)],[c6,c12])).
+        |cnf(c14,plain,~p5(f1(c3,c11)),inference(sr,[status(thm)],[c10,c13])).
+        |cnf(c15,plain,$false,inference(sr,[status(thm)],[c3,c14])).
       """.stripMargin
     val proof = ProofParserCNFTPTP.extractFromString(proofTPTP)
     val vars  = ProofParserCNFTPTP.getVariables
@@ -236,7 +246,7 @@ object ProofDebug {
     println(proof)
     try{
       val split = new FOCottonSplit(vars, 1)
-      split(proof)
+      println(split(proof))
     } catch {
       case e : Exception =>
         println(ProofToTPTPFile(proof))
