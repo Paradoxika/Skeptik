@@ -18,30 +18,38 @@ object CRTest extends App {
     }
   }
 
+  def time[A](a: => A): Long = {
+    val now = System.nanoTime
+    val result = a
+    (System.nanoTime - now) / 1000
+  }
+
+  def test(testName: String)(implicit vars: mutable.Set[Var]) {
+    val clauses = problemToClauses(ProblemParserCNFTPTP.problem(s"examples/problems/CNF/$testName.cnfp"))
+    val t = time(CR.prove(new CNF(clauses)))
+    println(s"Computed $testName in $t microseconds")
+  }
+
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/ANA013-2.cnfp"))
     implicit val variables = mutable.Set(Var("V_x", i), Var("V_U", i), Var("T", i), Var("T_a", i))
-    println(CR.prove(new CNF(clauses)))
+    test("ANA013-2")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/ALG002-1.cnfp"))
     implicit val variables = mutable.Set(Var("X", i), Var("Y", i), Var("Z", i))
-    println(CR.prove(new CNF(clauses)))
+    test("ALG002-1")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/KRS001-1.cnfp"))
     implicit val variables = mutable.Set(Var("X1", i), Var("X2", i), Var("X3", i))
-    println(CR.prove(new CNF(clauses)))
+    test("KRS001-1")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/FLD010-3.cnfp"))
     implicit val variables = mutable.Set(Var("X", i), Var("Y", i), Var("Z", i),
       Var("V", i), Var("U", i), Var("W", i), Var("A", i), Var("B", i),
       Var("C", i), Var("D", i))
-    println(CR.prove(new CNF(clauses)))
+    test("FLD010-3")
   }
 
   // Bloats too fast -- need some time to finish
@@ -52,45 +60,39 @@ object CRTest extends App {
 //  }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/MGT017-1.cnfp"))
     implicit val variables = mutable.Set(Var("A", i), Var("B", i), Var("C", i),
       Var("D", i), Var("E", i), Var("F", i),
       Var("G", i), Var("H", i), Var("I", i))
-    println(CR.prove(new CNF(clauses)))
+    test("MGT017-1")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/NUM019-1.cnfp"))
     implicit val variables = mutable.Set(Var("A", i), Var("B", i),
       Var("X", i), Var("Y", i), Var("Z", i))
-    println(CR.prove(new CNF(clauses)))
+    test("NUM019-1")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/PUZ008-2.cnfp"))
     implicit val variables = mutable.Set(Var("A", i), Var("B", i),
       Var("X", i), Var("Y", i), Var("Z", i))
-    println(CR.prove(new CNF(clauses)))
+    test("PUZ008-2")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/SET006-1.cnfp"))
     implicit val variables = mutable.Set(Var("Subset", i), Var("Superset", i),
       Var("Element", i), Var("Set1", i), Var("Set2", i), Var("Intersection", i))
-    println(CR.prove(new CNF(clauses)))
+    test("SET006-1")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/ANA002-4.cnfp"))
     implicit val variables = mutable.Set(Var("X", i), Var("Y", i), Var("Z", i))
-    println(CR.prove(new CNF(clauses)))
+    test("ANA002-4")
   }
 
   {
-    val clauses = problemToClauses(ProblemParserCNFTPTP.problem("examples/problems/CNF/FLD041-3.cnfp"))
     implicit val variables = mutable.Set(Var("X", i), Var("Y", i), Var("Z", i),
       Var("V", i), Var("U", i), Var("W", i), Var("A", i), Var("B", i),
       Var("C", i), Var("D", i))
-    println(CR.prove(new CNF(clauses)))
+    test("FLD041-3")
   }
 }
