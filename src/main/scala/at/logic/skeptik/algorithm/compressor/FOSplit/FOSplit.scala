@@ -143,27 +143,24 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       if (selectLiteral(p).isEmpty) p
       else {
         val selectedLiteral = selectLiteral(p).get
-        //println("Selected Literal: " + selectedLiteral)
         val (left, right)   = split(p, selectedLiteral)
-        //println("Left: " + Proof(left))
-        //println()
-        //println("Right: " + Proof(right))
         val leftContracted  = Contraction.contractIfPossible(left, variables)
         val rightContracted = Contraction.contractIfPossible(right, variables)
 
-        if(isEmptyClause(leftContracted.conclusion))
+        if(FOSplittingUtils.isMoreGeneralOrEqual(leftContracted,p.root,variables))
           return leftContracted
-        if(isEmptyClause(rightContracted.conclusion))
+        if(FOSplittingUtils.isMoreGeneralOrEqual(rightContracted,p.root,variables))
           return rightContracted
 
-        val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
-        if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
+        val compressedProof =
+          UnifyingResolution.resolve(leftContracted, rightContracted, variables)
+        if(FOSplittingUtils.isMoreGeneralOrEqual(compressedProof,p.root,variables)
+           && countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof
+        else p
       }
     } catch {
       case e : Exception =>
-        //println("There was a problem in splitting!\nProof:\n" + p + "Problem: " + e)
-        //p
-        throw e
+        p
     }
   }
 
@@ -178,3 +175,11 @@ abstract class SimpleSplit(override val variables : MSet[Var], val literal : E) 
 
 class TestSplt(override val variables : MSet[Var], override val literal : E)
 extends SimpleSplit(variables,literal) with NameEquality
+
+object FOSplittingUtils {
+  def isMoreGeneralOrEqual(node : Node, originalConclussion : Node, vars : MSet[Var]) : Boolean = {
+    val literals = collection.mutable.HashSet(originalConclussion.conclusion.ant ++ originalConclussion.conclusion.suc :_*)
+    TestInclusion.isIncludedInSet(node.conclusion,literals,vars)
+  }
+
+}

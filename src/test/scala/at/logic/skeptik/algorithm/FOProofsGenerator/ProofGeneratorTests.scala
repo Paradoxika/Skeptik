@@ -125,8 +125,9 @@ object ProofGeneratorTests {
     var rpiAv     = 0.0
     var splitFail = 0
     var rpiFail   = 0
-    for(i <- 1 to proofN) {
-      val (proof, vars) = proofGenerationTest(height,Sequent()())
+    var c = 0
+    for(h <- 1 to proofN) {
+      val (proof, vars) = proofGenerationTest(height,Sequent()())//Sequent(Atom("q",List(Var("Z",i))))(Atom("p",List(Var("a",i)))))
       proofsLenghtsSum += proof.size
 
       val cottonSplit = new FOCottonSplit(vars, timeout)
@@ -159,24 +160,23 @@ object ProofGeneratorTests {
         rpiProofsLenghtsSum += proof.size
 
       if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)
-        && splitCompressedProof.root.conclusion.ant.isEmpty
-        && splitCompressedProof.root.conclusion.suc.isEmpty
         && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 2) {
         splN += 1
         splitProofsLenghtsSum += splitCompressedProof.size
         splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
-      } else if(splitCompressedProof.root.conclusion.ant.nonEmpty || splitCompressedProof.root.conclusion.suc.nonEmpty) {
+      } /*else if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)
+        && countResolutionNodes(splitCompressedProof) <= countResolutionNodes(proof) / 2) {
         splitFail += 1
-        splitProofsLenghtsSum += proof.size
-      } else
+        splitProofsLenghtsSum += splitCompressedProof.size
+      }*/ else
         splitProofsLenghtsSum += proof.size
     }
 
     println("Average proof size: " + (proofsLenghtsSum * 1.0)/proofN)
     println("FOSplit\nReduced: " + splN + " proof(s)\nFailed in : " + splF + " proof(s)\nThe average compression was to " + splAv/splN)
     println("Total compression ratio: " + ((proofsLenghtsSum - splitProofsLenghtsSum)*1.0)/proofsLenghtsSum)
-    println("Number of fails: " + splitFail)
+    println("Number of too artifietial proof(s): " + splitFail)
     println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv/rpiN)
     println("Total compression ratio: " + ((proofsLenghtsSum - rpiProofsLenghtsSum)*1.0)/proofsLenghtsSum)
     println("Number of fails: " + rpiFail)
