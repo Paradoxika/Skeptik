@@ -182,4 +182,6 @@ object FOSplittingUtils {
     TestInclusion.isIncludedInSet(node.conclusion,literals,vars)
   }
 
+  def isMoreGeneralOrEqual(literal1 : E, literal2 : E, vars : MSet[Var]) : Boolean =
+    isMoreGeneralOrEqual(Axiom(SeqSequent()(literal1)),Axiom(SeqSequent()(literal2)),vars)
 }

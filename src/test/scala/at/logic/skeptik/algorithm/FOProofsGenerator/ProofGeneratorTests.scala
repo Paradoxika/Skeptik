@@ -2,6 +2,7 @@ package at.logic.skeptik.algorithm.FOProofsGenerator
 
 import at.logic.skeptik.algorithm.compressor.{FOLowerUnits, FORecyclePivotsWithIntersection}
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
+import at.logic.skeptik.algorithm.compressor.FOSplit.EPFOSplit
 import at.logic.skeptik.expression.{App, Var, i, o}
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -130,7 +131,7 @@ object ProofGeneratorTests {
       val (proof, vars) = proofGenerationTest(height,Sequent()())//Sequent(Atom("q",List(Var("Z",i))))(Atom("p",List(Var("a",i)))))
       proofsLenghtsSum += proof.size
 
-      val cottonSplit = new FOCottonSplit(vars, timeout)
+      val cottonSplit = new EPFOSplit(vars,timeout)//FOCottonSplit(vars, timeout)
       var rpiCompressedProof   : Proof[Node] = null
       var splitCompressedProof : Proof[Node] = null
       try {

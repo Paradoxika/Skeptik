@@ -10,6 +10,7 @@ import collection.mutable.{HashSet => MSet}
 import java.io.PrintWriter
 
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
+import at.logic.skeptik.algorithm.compressor.FOSplit.EPFOSplit
 import at.logic.skeptik.algorithm.FOProofsGenerator.{ProofGenerator,ProofToTPTPFile}
 import at.logic.skeptik.expression.{Var, i}
 import at.logic.skeptik.expression.formula.Atom
@@ -105,7 +106,7 @@ object FOSplittingExperiment {
 
       report.println("Proof " + totalCountT + ": " + probY)
       val proofToTest = ProofParserSPASS.read(probY)
-      var variables = ProofParserSPASS.getVars()
+      var variables   = ProofParserSPASS.getVars()
 
       val postParseTime = System.nanoTime
 
@@ -115,8 +116,8 @@ object FOSplittingExperiment {
 
       val startTime = System.nanoTime
 
-      val timeout = 100
-      val cottonSplit = new FOCottonSplit(variables, timeout)
+      val timeout = 1
+      val cottonSplit = new EPFOSplit(variables, timeout)
       try {
         val compressedProof = cottonSplit(proofToTest)
 
@@ -201,9 +202,9 @@ object FOSplittingReview {
       while (true) {
         proof = generator.generateProof()
         vars  = generator.getVariables()
-        val split = new FOCottonSplit(vars, 1)
+        val split = new EPFOSplit(vars, 1)
         val compr = split(proof)
-        if(proof.size < 16
+        /*if(proof.size < 16
           && (compr.root.conclusion.ant.nonEmpty || compr.root.conclusion.suc.nonEmpty)) {
           println(ProofToTPTPFile(proof))
           println()
@@ -211,7 +212,7 @@ object FOSplittingReview {
           println()
           println(compr)
           return
-        }
+        }*/
       }
     } catch {
       case e : Exception =>
@@ -229,23 +230,33 @@ object ProofDebug {
   def main(args : Array[String]) : Unit = {
     val proofTPTP =
       """
-        |cnf(c3,axiom,p5(f1(c3,c11))).
-        |cnf(c4,axiom,p9(c8)).
-        |cnf(c5,axiom,~p9(V6) | p5(V6)).
-        |cnf(c6,plain,p5(c8),inference(sr,[status(thm)],[c4,c5])).
-        |cnf(c9,axiom,~p5(c8) | p8(c11,c3)).
-        |cnf(c10,plain,p8(c11,c3),inference(sr,[status(thm)],[c6,c9])).
-        |cnf(c12,axiom,~p5(f1(V3,V4)) | ~p8(V4,V3) | ~p5(V5)).
-        |cnf(c13,plain,~p5(f1(V3,V4)) | ~p8(V4,V3),inference(sr,[status(thm)],[c6,c12])).
-        |cnf(c14,plain,~p5(f1(c3,c11)),inference(sr,[status(thm)],[c10,c13])).
-        |cnf(c15,plain,$false,inference(sr,[status(thm)],[c3,c14])).
+        |cnf(c0,axiom,p3(V2) | p11(V2,V2) | p4(V4,f3(f1(V4,f2(V5,V4,V6)),V7))).
+        |cnf(c1,axiom,~p4(c10,f3(f1(c10,f2(c12,c10,c5)),c1))).
+        |cnf(c2,plain,p3(V2) | p11(V2,V2),inference(sr,[status(thm)],[c0,c1])).
+        |cnf(c3,axiom,~p11(V2,V2) | p9(V2) | p4(V8,f3(f1(V8,f2(V9,V8,c5)),c1))).
+        |cnf(c4,plain,~p11(V2,V2) | p9(V2),inference(sr,[status(thm)],[c3,c1])).
+        |cnf(c5,plain,p3(V2) | p9(V2),inference(sr,[status(thm)],[c2,c4])).
+        |cnf(c6,axiom,p10(c6) | p9(c12)).
+        |cnf(c7,axiom,~p9(c12)).
+        |cnf(c8,plain,p10(c6),inference(sr,[status(thm)],[c6,c7])).
+        |cnf(c9,axiom,~p9(V3) | ~p10(V3) | p9(c12)).
+        |cnf(c10,plain,~p9(V3) | ~p10(V3),inference(sr,[status(thm)],[c9,c7])).
+        |cnf(c11,plain,~p9(c6),inference(sr,[status(thm)],[c8,c10])).
+        |cnf(c12,plain,p3(c6),inference(sr,[status(thm)],[c5,c11])).
+        |cnf(c13,axiom,p7(c6) | p7(V1)).
+        |cnf(c14,plain,p7(c6),inference(cn,[status(thm)],[c13])).
+        |cnf(c15,axiom,~p7(V0) | p8(V0,V0)).
+        |cnf(c16,axiom,~p3(V0) | ~p8(V0,V0)).
+        |cnf(c17,plain,~p7(V0) | ~p3(V0),inference(sr,[status(thm)],[c15,c16])).
+        |cnf(c18,plain,~p3(c6),inference(sr,[status(thm)],[c14,c17])).
+        |cnf(c19,plain,$false,inference(sr,[status(thm)],[c12,c18])).
       """.stripMargin
     val proof = ProofParserCNFTPTP.extractFromString(proofTPTP)
     val vars  = ProofParserCNFTPTP.getVariables
     ProofParserCNFTPTP.resetVariables()
     println(proof)
     try{
-      val split = new FOCottonSplit(vars, 1)
+      val split = new EPFOSplit(vars, 1)
       println(split(proof))
     } catch {
       case e : Exception =>
