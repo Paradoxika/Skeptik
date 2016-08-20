@@ -19,15 +19,28 @@ import scala.util.Random
   */
 class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
                (implicit variables: mutable.Set[Var]) extends Actor with ActorLogging {
+  /*
+   * All mutable variables (vars) should be marked with @volatile.
+   *
+   * See this for more details: http://doc.akka.io/docs/akka/current/general/jmm.html
+   */
+
+  // Initial clauses + conflict driven clauses
   @volatile
   var allClauses = cnf.clauses.toSet
+  // Literals, propagated at all depths
   val propagatedLiterals = mutable.Set.empty[Literal]
+  // For each literal we want to know what literals are unifiable with it
   @volatile
   var unifiableUnits = Map.empty[Literal, Set[Literal]].withDefaultValue(Set.empty[Literal])
+  // Decided literals
   @volatile
   var decisions = Seq.empty[Literal]
+  // All literals (as a part of initial clause or as a propagated literal)
   val literals = mutable.Set.empty[Literal]
+  // Clauses to be added on this level
   val newClauses = ArrayBuffer.empty[Clause]
+  // Initial clauses, which already have been used
   val usedAncestors = mutable.Set.empty[Clause]
 
   literals ++= allClauses.flatMap(_.literals)
@@ -37,11 +50,14 @@ class MainActor(cnf: CNF, propagationActor: ActorRef, conflictActor: ActorRef)
     unitClauses.foreach(addLiteral)
   }
 
+  // Number of conflicts, which are being (at this time) derived by ConflictActor
   @volatile
   var conflictsDeriving = 0
+  // Number of clauses, which are being (at this time) resolved by PropagationActor
   @volatile
   var clauseResolving = 0
 
+  // Promise for result of alrogithm
   val promise = Promise[Option[Proof[SequentProofNode]]]()
 
   def propagate(reverseImpGraph: Map[Literal, Set[(Clause, Seq[(Literal, Substitution)])]]): Unit = {

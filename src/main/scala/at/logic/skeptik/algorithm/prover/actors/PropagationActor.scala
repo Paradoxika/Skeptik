@@ -19,21 +19,20 @@ import scala.language.postfixOps
   * @author Daniyar Itegulov
   */
 class PropagationActor(unifyingActor: ActorRef) extends Actor with ActorLogging {
+  // For each literal we want to know what literals are unifiable with it
   @volatile
   private var unifiableUnits = Map.empty[Literal, Set[Literal]].withDefaultValue(Set.empty)
-  // For each clause (or literal) what literals was produced from it
+  // For each propagated literal we want to know what initial (or cdcl) clause and what literals were used for it
   @volatile
   private var reverseImplicationGraph =
     Map.empty[Literal, Set[(Clause, Seq[(Literal, Substitution)])]].withDefaultValue(Set.empty)
-  // Literals which were decided
+  // Decided literals
   private val decisions = ArrayBuffer.empty[Literal]
-  // All clauses include initial and CDCL clauses
+  // Initial clauses + conflict driven clauses
   @volatile
   private var allClauses = Set.empty[Clause]
   // For each literal what initial clauses produced it
   private val ancestor = mutable.Map.empty[Literal, mutable.Set[Clause]].withDefaultValue(mutable.Set.empty)
-
-  import context.dispatcher
 
   private implicit val timeout: Timeout = 5 seconds
 

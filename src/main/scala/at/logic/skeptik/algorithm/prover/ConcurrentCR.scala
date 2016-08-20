@@ -12,6 +12,8 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 
+import scala.language.postfixOps
+
 /**
   * @author Daniyar Itegulov
   */

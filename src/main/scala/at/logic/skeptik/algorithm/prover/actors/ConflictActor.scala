@@ -23,6 +23,7 @@ import scala.language.postfixOps
 class ConflictActor extends Actor with ActorLogging {
   private implicit val timeout: Timeout = 5 seconds
 
+  // Proof for initial and cdcl clauses
   private val clauseProof = mutable.Map.empty[Clause, SequentProofNode]
 
   val unifyingActor = context.actorSelection("../unify")
