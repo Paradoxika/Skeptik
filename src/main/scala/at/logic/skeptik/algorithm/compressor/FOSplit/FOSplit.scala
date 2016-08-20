@@ -134,7 +134,7 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       }
     } catch {
       case e : Exception =>
-        println("There was a problem in splitting!\nProof:\n" + p + "Problem: " + e)
+        //println("There was a problem in splitting!\nProof:\n" + p + "Problem: " + e)
         p
     }
   }
