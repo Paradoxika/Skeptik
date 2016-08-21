@@ -80,7 +80,7 @@ class ConflictActor extends Actor with ActorLogging {
         }
       }
 
-      val variablesFuture = (unifyingActor ? GetVariables()).mapTo[Set[Var]]
+      val variablesFuture = (unifyingActor ? GetVariables).mapTo[Set[Var]]
       val future = (unifyingActor ? Unify(Seq(leftLiteral.unit), Seq(rightLiteral.unit)))
         .mapTo[Option[(Seq[Substitution], Substitution)]]
 
