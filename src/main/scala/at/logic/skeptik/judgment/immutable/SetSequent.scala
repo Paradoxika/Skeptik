@@ -37,5 +37,6 @@ class SetSequent(val ant: Set[E], val suc: Set[E]) extends Sequent with SequentL
 
 object SetSequent {
   def apply()()  = new SetSequent(Set(),Set())
+  def empty = new SetSequent(Set(), Set())
 }
 
