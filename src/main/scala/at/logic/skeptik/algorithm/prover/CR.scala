@@ -216,7 +216,7 @@ object CR {
       if (allClauses contains current.toClause) {
         Axiom(current.toClause.toSeqSequent)
       } else if (decision contains current) {
-        Decision(current.toClause)
+        Decision(current)
       } else if (reverseImplicationGraph contains current) {
         val (clause, unifier) = reverseImplicationGraph(current).head
         val premiseProofs = unifier.map {
