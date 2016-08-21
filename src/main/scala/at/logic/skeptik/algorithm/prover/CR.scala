@@ -16,7 +16,7 @@ import scala.util.Random
 /**
   * @author Daniyar Itegulov
   */
-object CR {
+object CR extends Prover {
 
   def prove(cnf: CNF)(implicit variables: mutable.Set[Var]): Option[Proof[SequentProofNode]] = {
 
