@@ -131,7 +131,7 @@ object ProofGeneratorTests {
       val (proof, vars) = proofGenerationTest(height,Sequent()())//Sequent(Atom("q",List(Var("Z",i))))(Atom("p",List(Var("a",i)))))
       proofsLenghtsSum += proof.size
 
-      val cottonSplit = new EPFOSplit(vars,timeout)//FOCottonSplit(vars, timeout)
+      val cottonSplit = new FOCottonSplit(vars, timeout)//EPFOSplit(vars,timeout)//
       var rpiCompressedProof   : Proof[Node] = null
       var splitCompressedProof : Proof[Node] = null
       try {
@@ -161,8 +161,10 @@ object ProofGeneratorTests {
         rpiProofsLenghtsSum += proof.size
 
       if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)
-        && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 2) {
+        && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 20000) {
         splN += 1
+        if(countResolutionNodes(splitCompressedProof) <= countResolutionNodes(proof) / 2)
+          splitFail += 1
         splitProofsLenghtsSum += splitCompressedProof.size
         splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
