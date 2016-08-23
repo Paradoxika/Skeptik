@@ -29,5 +29,5 @@ object FOCottonSplitTest {
   * @param timeout   A timeout parameter to stop the iterative splitting steps
   */
 class FOCottonSplit(override val variables : MSet[Var], val timeout: Int)
-extends FOSplit(variables) with FOAdditivityHeuristic with FOHighestAdditivityChoise with Timeout
+extends FOSplit(variables) with FOAdditivityHeuristic with FOHighestAdditivityChoice with Timeout
   with SetContentionAndSeenLiteralsHeuristic with NameEquality

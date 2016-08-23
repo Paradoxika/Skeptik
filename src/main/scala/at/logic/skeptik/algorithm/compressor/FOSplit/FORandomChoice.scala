@@ -33,8 +33,8 @@ trait FORandomChoice extends AbstractFOSplitHeuristic {
   }
 }
 
-trait FOHighestAdditivityChoise {
-  def  chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long) = {
+trait FOHighestAdditivityChoice {
+  def chooseVariable(literalAdditivity: collection.Map[String,Long], totalAdditivity: Long) = {
     def maxAdd(literal1: (String,Long), literal2 : (String,Long)) : (String,Long) =
       if(literal1._2 > literal2._2) literal1 else literal2
     val iterator = literalAdditivity.toIterator
