@@ -155,7 +155,7 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   val isUnit3 = Sequent(App(Var("q", i -> i), x))(App(Var("r", i -> i), y))
   
   println("---")
-  println("Testing proof: \n" + FOLowerUnits(proofg))
+  println("Testing proof: \n " + FOLowerUnits(proofd))
 
   "FOLowerUnits" should {
     
@@ -255,7 +255,6 @@ trait checkProofEquality extends FindDesiredSequent {
     val sequents = for (l <- lines) yield SequentParser(l)
     val traversableSequents = sequents.toTraversable
     if (proofNodesReversed.size != traversableSequents.size) {
-      println("Not the same size..")
       return false
     }
 
@@ -273,7 +272,7 @@ trait checkProofEquality extends FindDesiredSequent {
     if (findRenaming(nodes.head.conclusion, seqs.head)(vars) != null) {
       return checkSequents(nodes.tail, seqs.tail)
     } else {
-      println("desired not found " + nodes.head.conclusion + " AND " + seqs.head + " " + vars)
+      println("desired not found " + nodes.head.conclusion + " AND " + seqs.head)
       false
     }
   }

@@ -7,7 +7,6 @@ import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
 import collection.immutable.Set
 import collection.mutable.{ HashMap => MMap, Set => MSet }
 import at.logic.skeptik.expression.substitution.immutable.Substitution
-import at.logic.skeptik.expression.formula.Atom
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
@@ -97,7 +96,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   //test unapply
   val resultF = urD match {
     case u: UnifyingResolution => true
-    case _                     => false
+    case _ => false
   }
 
   class FindDesiredTest extends FindDesiredSequent {
@@ -238,7 +237,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
 
   val gsMap6 = MMap[Var, Set[Var]]()
   gsMap6.put(x, Set[Var](y))
-  gsMap6.put(u, Set[Var](Var("1", i)))
+  gsMap6.put(u, Set[Var]( Var("1", i) ))
   val gsSeq6A = Seq[E](App(Var("q", i -> i), x)) ++ Seq[E](App(Var("p", i -> i), u))
   val gsSeq6B = Seq[E](App(Var("q", i -> i), y)) ++ Seq[E](App(Var("p", i -> i), Var("1", i)))
 
@@ -290,9 +289,7 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val rename1rightc = Axiom(Sequent(App(Var("q", i -> i), y))(App(Var("p", i -> i), z)))
   val rename1expectedc = Axiom(Sequent(App(Var("q", i -> i), x))(App(Var("q", i -> i), Var("NEW0", i)))).conclusion
   val rename1outc = renameTester.fixSharedNoFilter(rename1leftc, rename1rightc, 0, usedVars).conclusion
-  println("..........................")
   val rename1cFinal = findRenaming(rename1expectedc, rename1outc)(usedVars) != null
-  println("..........................")
 
   //no shared variables
   val rename1leftd = Axiom(Sequent()(App(Var("p", i -> i), x)))
@@ -306,306 +303,6 @@ class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsV
   val rename2c = (App(Var("p", i -> i), a), App(Var("p", i -> i), z))
   val rename2d = (App(Var("p", i -> i), x), App(Var("p", i -> i), Var("1", i)))
 
-  //July 28 Tests
-  /*
-     * 	java.lang.Exception: Resolution: Cannot find desired resolvent
-				Desired: (p5 V-290), (p5 V-290) ⊢
-				leftPremise: (p5 V-290) ⊢ (p10 V-292 V-293)
-				rightPremise: (p5 V-290), (p10 V-291 c2) ⊢
-     */
-  val v290 = new Var("V-290", i)
-  usedVars += v290
-  val v291 = new Var("V-291", i)
-  usedVars += v291
-  val v292 = new Var("V-292", i)
-  usedVars += v292
-  val v293 = new Var("V-293", i)
-  usedVars += v293
-
-  val p10 = App(App(Var("p10", i -> (i -> i)), v292), v293)
-  val p10c = App(App(Var("p10", i -> (i -> i)), v291), new Var("c2", i))
-  val p5 = App(Var("p5", i -> (i -> i)), v290)
-
-  val l = new Axiom(Sequent(p5)(p10))
-  val r = new Axiom(p10c +: Sequent(p5)())
-
-  println("L: " + l)
-  println("R: " + r)
-  val d1 = p5 +: Sequent(p5)()
-
-  val urNoD = UnifyingResolution(l, r)(usedVars)
-  println("no desired: " + urNoD)
-
-  val ur1 = UnifyingResolution(l, r, d1)(usedVars)
-
-  //(p5 X), (p5 V-290) ⊢ 
-  val p5b = App(Var("p5", i -> (i -> i)), x)
-  val ac1 = p5 +: Sequent(p5b)()
-
-  println("ur1: " + ur1)
-  println("ac1: " + ac1)
-  println("desired1: " + d1)
-
-  /*
-    	Desired: (p10 V-0), (p9 V-2), (p11 c4 V-113), (p2 V-176), (p13 V-202 V-203), (p11 V-219 V-113) ⊢
-			leftPremise: (p2 V-176), (p13 V-202 V-203), (p11 V-219 V-113) ⊢ (p8 V-223 V-224 V-225 V-226)
-			rightPremise: (p10 V-0), (p9 V-2), (p11 c4 V-113), (p8 V-220 V-221 V-222 c4) ⊢
-    */
-
-  val v0 = new Var("V-0", i)
-  usedVars += v0
-  val v2 = new Var("V-2", i)
-  usedVars += v2
-  val v113 = new Var("V-113", i)
-  usedVars += v113
-  val v176 = new Var("V-176", i)
-  usedVars += v176
-  val v202 = new Var("V-202", i)
-  usedVars += v202
-  val v203 = new Var("V-203", i)
-  usedVars += v203
-  val v219 = new Var("V-219", i)
-  usedVars += v219
-  val v223 = new Var("V-223", i)
-  usedVars += v223
-  val v224 = new Var("V-224", i)
-  usedVars += v224
-  val v225 = new Var("V-225", i)
-  usedVars += v225
-  val v226 = new Var("V-226", i)
-  usedVars += v226
-  val v220 = new Var("V-220", i)
-  usedVars += v220
-  val v221 = new Var("V-221", i)
-  usedVars += v221
-  val v222 = new Var("V-222", i)
-  usedVars += v222
-
-  //(p2 V-176), (p13 V-202 V-203), (p11 V-219 V-113) ⊢ (p8 V-223 V-224 V-225 V-226)
-  val p2 = App(Var("p2", i -> (i -> i)), v176)
-  val p13 = App(App(Var("p13", i -> (i -> i)), v202), v203)
-  val p11 = App(App(Var("p11", i -> (i -> i)), v219), v113)
-  val p8 = App(App(App(App(Var("p10", i -> (i -> (i -> (i -> i)))), v223), v224), v225), v226)
-
-  val l2 = Axiom(p2 +: (p13 +: Sequent(p11)(p8)))
-
-  //(p10 V-0), (p9 V-2), (p11 c4 V-113), (p8 V-220 V-221 V-222 c4) ⊢
-  val p10f = App(Var("p10", i -> (i -> i)), v0)
-  val p9 = App(Var("p9", i -> (i -> i)), v2)
-  val p11b = App(App(Var("p11", i -> (i -> i)), new Var("c4", i)), v113)
-  val p8b = App(App(App(App(Var("p10", i -> (i -> (i -> (i -> i)))), v220), v221), v222), new Var("c4", i))
-  val r2 = Axiom(p10f +: (p9 +: (p11b +: (Sequent(p8b)()))))
-
-  //(p10 V-0), (p9 V-2), (p11 c4 V-113), (p2 V-176), (p13 V-202 V-203), (p11 V-219 V-113) ⊢
-  val d2 = p10f +: (p9 +: (p11b +: (p2 +: (p13 +: Sequent(p11)()))))
-  println("L: " + l2)
-  println("R: " + r2)
-  val ur2 = UnifyingResolution(l2, r2, d2)(usedVars)
-  //(p2 V-176), (p13 V-202 V-203), (p11 V-219 X), (p11 c4 V-113), (p9 V-2), (p10 V-0) ⊢ 
-  val p11c = App(App(Var("p11", i -> (i -> i)), v219), x)
-
-  val ac2 = p10f +: (p9 +: (p11b +: (p11c +: (p13 +: Sequent(p2)()))))
-
-  println("ur2: " + ur2) //pass
-  println("ac2: " + ac2) //pass
-  println("D2: " + d2)
-
-  /*
-     * 	Desired:  ⊢ (p6 V-235 V-236 V-237), (p1 V-399 V-400), (p1 V-399 V-400)
-				leftPremise:  ⊢ (p1 V-399 V-400), (p0 V-401 V-402 V-403 V-404)
-				rightPremise: (p0 V-405 V-402 V-406 V-407) ⊢ (p6 V-235 V-236 V-237), (p1 V-399 V-400)
-     */
-  val v235 = new Var("V-235", i)
-  usedVars += v235
-  val v236 = new Var("V-236", i)
-  usedVars += v236
-  val v237 = new Var("V-237", i)
-  usedVars += v237
-  val v399 = new Var("V-399", i)
-  usedVars += v399
-  val v400 = new Var("V-400", i)
-  usedVars += v400
-  val v401 = new Var("V-401", i)
-  usedVars += v401
-  val v402 = new Var("V-402", i)
-  usedVars += v402
-  val v403 = new Var("V-403", i)
-  usedVars += v403
-  val v404 = new Var("V-404", i)
-  usedVars += v404
-  val v405 = new Var("V-405", i)
-  usedVars += v405
-  val v406 = new Var("V-406", i)
-  usedVars += v406
-  val v407 = new Var("V-407", i)
-  usedVars += v407
-  //leftPremise:  ⊢ (p1 V-399 V-400), (p0 V-401 V-402 V-403 V-404)
-  val p1 = App(App(Var("p1", i -> (i -> i)), v399), v400)
-  val p0 = App(App(App(App(Var("p0", i -> (i -> (i -> (i -> i)))), v401), v402), v403), v404)
-
-  val l3 = Axiom(Sequent()(p1) + p0)
-
-  //(p0 V-405 V-402 V-406 V-407) ⊢ (p6 V-235 V-236 V-237), (p1 V-399 V-400)
-  val p0b = App(App(App(App(Var("p0", i -> (i -> (i -> (i -> i)))), v405), v402), v406), v407)
-  val p6 = App(App(App(Var("p6", i -> (i -> (i -> i))), v235), v236), v237)
-
-  val r3 = Axiom(Sequent(p0b)(p6) + p1)
-
-  //⊢ (p6 V-235 V-236 V-237), (p1 V-399 V-400), (p1 V-399 V-400)
-  val d3 = Sequent()(p6) + p1 + p1
-
-  println("R: " + r3)
-  println("L: " + l3)
-
-  val ur3 = UnifyingResolution(l3, r3, d3)(usedVars)
-
-  //⊢ (p1 X V-222), (p6 V-235 V-236 V-237), (p1 V-399 V-400)
-  val p1b = App(App(Var("p1", i -> (i -> i)), x), v222)
-  val ac3 = Sequent()(p1b) + p6 + p1
-  println("ur3: " + ur3) //pass
-  println("ac3: " + ac3) //pass  
-  println("D: " + d3)
-
-  /*
-     * 	Desired:  ⊢ (p4 c0 V-191), (p4 V-194 V-191)
-				leftPremise:  ⊢ (p4 V-194 V-191), (p13 V-195 c3 (f0 V-196 V-197))
-				rightPremise: (p13 V-195 c3 (f0 V-198 V-199)) ⊢ (p4 c0 V-191)
-     * 
-     */
-  val v191 = new Var("V-191", i)
-  usedVars += v191
-  val v194 = new Var("V-194", i)
-  usedVars += v194
-  val v195 = new Var("V-195", i)
-  usedVars += v195
-  val v196 = new Var("V-196", i)
-  usedVars += v196
-  val v197 = new Var("V-197", i)
-  usedVars += v197
-  val v198 = new Var("V-198", i)
-  usedVars += v198
-  val v199 = new Var("V-199", i)
-  usedVars += v199
-
-  //⊢ (p4 V-194 V-191), (p13 V-195 c3 (f0 V-196 V-197))
-  val p4 = App(App(Var("p4", i -> (i -> i)), v194), v191)
-  val f0 = App(App(Var("f0", i -> (i -> i)), v196), v197)
-  val p13q = App(App(App(Var("p13", i -> (i -> (i -> i))), v195), new Var("c3", i)), f0)
-  val l4 = Axiom(Sequent()(p4) + p13q)
-
-  //rightPremise: (p13 V-195 c3 (f0 V-198 V-199)) ⊢ (p4 c0 V-191)
-  val f0b = App(App(Var("f0", i -> (i -> i)), v198), v199)
-  val p13b = App(App(App(Var("p13", i -> (i -> (i -> i))), v195), new Var("c3", i)), f0b)
-  val p4b = App(App(Var("p4", i -> (i -> i)), new Var("c0", i)), v191)
-
-  val r4 = Axiom(Sequent(p13b)(p4b))
-
-  // ⊢ (p4 c0 V-191), (p4 V-194 V-191)
-  val d4 = Sequent()(p4) + p4b
-
-  println("L: " + l4)
-  println("R: " + r4)
-  //    println("D: " + d4)
-
-  val ur4 = UnifyingResolution(l4, r4, d4)(usedVars)
-
-  //⊢ (p4 V-194 V-222), (p4 c0 V-191)
-  val p4c = App(App(Var("p4", i -> (i -> i)), v194), v222)
-  val ac4 = Sequent()(p4c) + p4b
-  println("ac4: " + ac4)
-  println("Ur4: " + ur4) //pass
-  println("D: " + d4)
-
-  
-  
-  ///////August 11 2016 Tests Begin
-  
-    val desiredA11a = Sequent()(Atom("p16",List(Var("V3",i))),
-                            Atom("p17",List(Var("V3",i))),
-                            Atom("p17",List(Var("V6",i)))
-                           )
-    val left    = Axiom(Sequent()(Atom("p16",List(Var("V3",i))),
-                                  Atom("p19",List(Var("V3",i),Var("V3",i),Var("V6",i)))
-                                 )
-                       )
-    val right   = Axiom(Sequent(Atom("p19",List(Var("V3",i),Var("V3",i),Var("V6",i))))
-                               (Atom("p17",List(Var("V3",i))),
-                                Atom("p17",List(Var("V6",i)))
-                               )
-                       )
-    val varsa    = MSet[Var](Var("V3",i),Var("V6",i))
-    println("L: " + left)
-    println("R: " + right)
-    val  URA11a = UnifyingResolution(left, right, desiredA11a)(varsa)
-    println("UR: " + URA11a)
-    println("--------------------------\n\n\n\n")
-    
-    
-    val desiredA11b = Sequent()(Atom("p26",List(Var("V2",i))),
-                             Atom("p26",List(Var("V18",i))))
-    val left2    = Axiom(Sequent()(Atom("p26",List(Var("V18",i))),
-                                  Atom("p27",List(Var("V2",i),Var("V18",i)))
-                                 )
-                       )
-    val right2   = Axiom(Sequent(Atom("p27",List(Var("V2",i),Var("V18",i))))
-                               (Atom("p26",List(Var("V2",i))))
-                       )
-    val varsb    = MSet[Var](Var("V2",i),Var("V18",i))
-//    var UR2 = UnifyingResolution(left2,right2)(vars2)
-    val URA11b = UnifyingResolution(left2,right2, desiredA11b)(varsb)
-    println("L: " + left2)
-    println("R: " + right2)
-    println("UR: " + URA11b)  
-  
-    /*
-    Desired: (p16 c12), (p16 V6) ⊢ 
-		//The following are swapped compared to e-mail
-		Right premise: (p17 c12 V6), (p16 V6) ⊢ 
-		Left premise: (p16 V7) ⊢ (p17 V7 V6)
-    */
-      val desiredA11c = Sequent(Atom("p16",List(Var("c12",i))),
-                            Atom("p16",List(Var("V6",i))))()
-                            
-    val rightA11c   = Axiom(Sequent(Atom("p16",List(Var("V6",i))),
-                                  Atom("p17",List(Var("c12",i),Var("V6",i)))
-                                )())
-                                
-    val leftA11c   = Axiom(Sequent(Atom("p16",List(Var("V7",i))))
-                               (Atom("p17",List(Var("V7",i),Var("V6",i)))
-                               )
-                       )
-    val varsA11c    = MSet[Var](Var("V3",i),Var("V7",i),Var("V6",i))
-    println("L: " + leftA11c)
-    println("R: " + rightA11c)
-        println("Initial desired: " + desiredA11c)
-
-    val  URA11c = UnifyingResolution(leftA11c, rightA11c, desiredA11c)(varsA11c)  
-  
-    /*
- * 	Desired: (p15 (f9 V20 V3)), (p15 (f9 V18 V19)) ⊢ (p25 V20)
-		leftPremise: (p15 (f9 V18 V19)), (p15 (f9 V20 V3)) ⊢ (p20 V22), (p25 V20)
-		rightPremise: (p20 c15) ⊢ 
- */
-    
-    val A11f9a = App(App(Var("f9", i -> (i -> i)), Var("V20",i)), new Var("V3", i))
-    val A11p15desiredA = Atom("p15",List(A11f9a))
-    val A11f9b = App(App(Var("f9", i -> (i -> i)), Var("V18",i)), new Var("V19", i))
-    val A11p15desiredB = Atom("p15",List(A11f9b))    
-      val desiredA11d = A11p15desiredB +: Sequent(A11p15desiredA)(Atom("p25",List(Var("V20",i))))
-                            
-    val rightA11d   = Axiom(Sequent(Atom("p20",List(Var("c15",i))))())
-                                
-    val leftA11d   = Axiom(A11p15desiredA +: Sequent(A11p15desiredB)(Atom("p20",List(Var("V22",i))),Atom("p25",List(Var("V20",i)))))
-
-    val varsA11d    = MSet[Var](Var("V3",i),Var("V20",i),Var("V18",i),Var("V19",i),Var("V22",i))
-    println("L: " + leftA11d)
-    println("R: " + rightA11d)
-        println("Initial desired: " + desiredA11d)
-
-    val  URA11d = UnifyingResolution(leftA11d, rightA11d, desiredA11d)(varsA11d)
-    println("URd: " + URA11d) 
-    
-  ///////August 11 2016 Tests End  
     
     //Aug 15
     /*
@@ -691,13 +388,6 @@ rightPremise: (p1 c6 c6) ⊢
     ///August 15 2016 tests end
     
   
-  println("OUTPUT OF INTEREST -------------")
-  println("7a: " + findSeqTest7A)
-  println("7b: " + findSeqTest7B)
-  val out = tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars)
-  println("out: " + out)
-  println("^^^^^^^^^^^^^^^^^^^^^")
-
   "CanRenameVariables" should {
     "not worry about shared variables if one node is empty" in {
       rename1outa must beEqualTo(rename1expecteda)
@@ -773,20 +463,7 @@ rightPremise: (p1 c6 c6) ⊢
     "return the correct conclusion context" in {
       findRenaming(URur.conclusionContext, Sequent(App(Var("p", i -> i), y))())(usedVars) != null must beEqualTo(true)
     }
-    
-    //August 11 2016 Tests
-    "Find the desired sequent (general test)" in {
-      findRenaming(URA11a.conclusion, desiredA11a)(varsa) != null must beEqualTo(true)
-    }
-    "Find the desired sequent (checks if invalidMap function uses appropriate variables)" in {
-      findRenaming(URA11b.conclusion, desiredA11b)(varsb) != null must beEqualTo(true)
-    }
-    "Find the desired sequent (checks if containmentOnly flag is set properly (1))" in {
-      findRenaming(URA11c.conclusion, desiredA11c)(varsA11c) != null must beEqualTo(true)
-    }     
-    "Find the desired sequent (checks if containmentOnly flag is set properly (2))" in {
-      findRenaming(URA11d.conclusion, desiredA11d)(varsA11d) != null must beEqualTo(true)
-    } 
+
     
     //August 15 2016 TEsts
     "Not remove all copies of the aux formula (1)" in {
@@ -812,28 +489,24 @@ rightPremise: (p1 c6 c6) ⊢
     "Recurse correctly in finding the desired sequent" in {
       FDSresultC.conclusion must beEqualTo(FDSexpectedC)
     }
-
-    // --- formerly checkHalf tests
     "check that a unification is not applied for a sequent half (2 specific vars)" in {
-      tester.findRenaming(findSeqTest1A.suc, findSeqTest1B.suc)(usedVars) != null must beEqualTo(false)
+      tester.checkHalf(findSeqTest1A.suc, findSeqTest1B.suc)(usedVars) must beEqualTo(false)
     }
     "check that a unification is not applied for a sequent half (1 specific var)" in {
-      tester.findRenaming(findSeqTest2A.suc, findSeqTest2B.suc)(usedVars) != null must beEqualTo(false)
+      tester.checkHalf(findSeqTest2A.suc, findSeqTest2B.suc)(usedVars) must beEqualTo(false)
     }
     "check that they're equal mod renaming for a sequent half(1 specific var)" in {
-      tester.findRenaming(findSeqTest3A.suc, findSeqTest3B.suc)(usedVars) != null must beEqualTo(true)
+      tester.checkHalf(findSeqTest3A.suc, findSeqTest3B.suc)(usedVars) must beEqualTo(true)
     }
     "check that they're equal mod renaming for a sequent half (2 universal vars)" in {
-      tester.findRenaming(findSeqTest4A.suc, findSeqTest4B.suc)(usedVars) != null must beEqualTo(true)
+      tester.checkHalf(findSeqTest4A.suc, findSeqTest4B.suc)(usedVars) must beEqualTo(true)
     }
     "check that they're equal mod renaming for a sequent half (different length)" in {
-      tester.findRenaming(findSeqTest5A.ant, findSeqTest5B.ant)(usedVars) != null must beEqualTo(false)
+      tester.checkHalf(findSeqTest5A.ant, findSeqTest5B.ant)(usedVars) must beEqualTo(false)
     }
     "check that they're equal mod renaming for a sequent half (different distribution of formulas)" in {
-      tester.findRenaming(findSeqTest6A.ant, findSeqTest6B.ant)(usedVars) != null must beEqualTo(false)
+      tester.checkHalf(findSeqTest6A.ant, findSeqTest6B.ant)(usedVars) must beEqualTo(false)
     }
-    // ---
-
     "check that they're equal mod renaming for an entire sequent (different distribution of formulas)" in {
       tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars) != null must beEqualTo(false)
     }
@@ -903,42 +576,24 @@ rightPremise: (p1 c6 c6) ⊢
     "generateSubstitutionOptions should return the correct map" in {
       tester.generateSubstitutionOptions(gsSeq6A, gsSeq6B) must beEqualTo(gsMap6)
     }
-
-    //----formerly checkHelperAlphaManual tests
-    "findRenaming should return the correct result (x->y; true)" in {
-      tester.findRenaming(chSeq1A, chSeq1B)(usedVars) != null must beEqualTo(true)
+    "checkHelperAlphaManual should return the correct result (x->y; true)" in {
+      tester.checkHelperAlphaManual(chSeq1A, chSeq1B)(usedVars) must beEqualTo(true)
     }
-    "findRenaming should return the correct result (x->c; false)" in {
-      tester.findRenaming(chSeq2A, chSeq2B)(usedVars) != null must beEqualTo(false)
+    "checkHelperAlphaManual should return the correct result (x->c; false)" in {
+      tester.checkHelperAlphaManual(chSeq2A, chSeq2B)(usedVars) must beEqualTo(false)
     }
-    "findRenaming should return the correct result (even distribution)" in {
-      tester.findRenaming(chSeq4A, chSeq4B)(usedVars) != null must beEqualTo(true)
+    "checkHelperAlphaManual should return the correct result (even distribution)" in {
+      tester.checkHelperAlphaManual(chSeq4A, chSeq4B)(usedVars) must beEqualTo(true)
     }
-    "findRenaming should return the correct result (longer desired)" in {
-      tester.findRenaming(chSeq5A, chSeq5B)(usedVars) != null must beEqualTo(false)
+    "checkHelperAlphaManual should return the correct result (longer desired)" in {
+      tester.checkHelperAlphaManual(chSeq5A, chSeq5B)(usedVars) must beEqualTo(false)
     }
-    "findRenaming should return the correct result (longer computed)" in {
-      tester.findRenaming(chSeq6A, chSeq6B)(usedVars) != null must beEqualTo(false)
+    "checkHelperAlphaManual should return the correct result (longer computed)" in {
+      tester.checkHelperAlphaManual(chSeq6A, chSeq6B)(usedVars) must beEqualTo(false)
     }
-    "findRenaming should return the correct result (number in desired; longer)" in {
-      tester.findRenaming(chSeq7A, chSeq7B)(usedVars) != null must beEqualTo(false)
+    "checkHelperAlphaManual should return the correct result (number in desired; longer)" in {
+      tester.checkHelperAlphaManual(chSeq7A, chSeq7B)(usedVars) must beEqualTo(false)
     }
-    //----
-
-    //July 28 tests
-    "find the correct sequent in unifying resolution (1)" in {
-      ur1.conclusion.equals(ac1) must beEqualTo(true)
-    }
-    "find the correct sequent in unifying resolution (2)" in {
-      ur2.conclusion.equals(ac2) must beEqualTo(true)
-    }
-    "find the correct sequent in unifying resolution (3)" in {
-      ur3.conclusion.equals(ac3) must beEqualTo(true)
-    }
-    "find the correct sequent in unifying resolution (4)" in {
-      ur4.conclusion.equals(ac4) must beEqualTo(true)
-    }
-    //----
   }
   "checkUnifiableVariableName" should {
     "return true for X" in {

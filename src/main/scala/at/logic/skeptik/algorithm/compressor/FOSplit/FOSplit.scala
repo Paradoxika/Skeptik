@@ -42,8 +42,12 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
 
   def split(proof: Proof[Node], selectedLiteral : E): (Node,Node) = {
     def manageContraction(node : Node, fixedPremises : Seq[(Node,Node)]) : (Node , Node) = {
+      def contract(premise : Node, vars : MSet[Var]) : Node =
+          Contraction.contractIfPossible(premise,vars)
+
       require(fixedPremises.length == 1)
-      fixedPremises.head
+      val (left,right) = fixedPremises.head
+      (contract(left,variables),contract(right,variables))
     }
 
     def manageResolution(node : Node ,fixedPremises : Seq[(Node,Node)]) : (Node,Node) = {
@@ -54,6 +58,8 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
             case (App(function,_), x) => equalNames(function,x)
             case (x, App(function,_)) => equalNames(x,function)
             case (Var(name1,_),Var(name2,_)) => name1 == name2
+            case (Atom(Var(name1, _), _), Var(name2,_)) => name1 == name2
+            case (Var(name1, _), Atom(Var(name2,_),_)) => name1 == name2
             case (Atom(Var(name1, _), _), _) => false
             case _ => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
           }
@@ -62,8 +68,14 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       def containsPos(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.suc,literal)
       def containsNeg(sequent: SeqSequent, literal: E) : Boolean = seqContains(sequent.ant,literal)
       def contains(sequent: SeqSequent, literal: E) : Boolean = containsPos(sequent,literal) || containsNeg(sequent,literal)
-      def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node) =
-        UnifyingResolution.resolve(Contraction.contractIfPossible(leftNode,variables),Contraction.contractIfPossible(rightNode,variables),variables)
+      def resolveAndUnifyNodes(leftNode : Node ,rightNode:Node, desired : SeqSequent) =
+        try {
+          UnifyingResolution.resolve(leftNode, rightNode, desired, variables)
+        } catch {
+          case e : Exception =>
+            UnifyingResolution.resolve(leftNode, rightNode, variables)
+        }
+
 
       require(fixedPremises.length == 2)
       lazy val (fixedLeftPos  , fixedLeftNeg ) = fixedPremises.head
@@ -91,15 +103,20 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
         val finalLeftProof =
           if(!contains(leftConclusionPos,leftResolvedLiteral)) fixedLeftPos
           else if(!contains(rightConclusionPos,rightResolvedLiteral)) fixedRightPos
-          else if(containsPos(leftConclusionPos,leftResolvedLiteral) && containsNeg(rightConclusionPos,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftPos,fixedRightPos)
-          else if(containsNeg(leftConclusionPos,leftResolvedLiteral) && containsPos(rightConclusionPos,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftPos,fixedRightPos)
+          else if(containsPos(leftConclusionPos,leftResolvedLiteral) && containsNeg(rightConclusionPos,rightResolvedLiteral))
+            resolveAndUnifyNodes(fixedLeftPos,fixedRightPos,node.conclusion)
+          else if(containsNeg(leftConclusionPos,leftResolvedLiteral) && containsPos(rightConclusionPos,rightResolvedLiteral))
+            resolveAndUnifyNodes(fixedLeftPos,fixedRightPos,node.conclusion)
           else fixedRightPos // This is arbitrary
         val finalRighttProof =
           if(!contains(leftConclusionNeg,leftResolvedLiteral)) fixedLeftNeg
           else if(!contains(rightConclusionNeg,rightResolvedLiteral)) fixedRightNeg
-          else if(containsPos(leftConclusionNeg,leftResolvedLiteral) && containsNeg(rightConclusionNeg,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftNeg,fixedRightNeg)
-          else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral)) resolveAndUnifyNodes(fixedLeftNeg,fixedRightNeg)
+          else if(containsPos(leftConclusionNeg,leftResolvedLiteral) && containsNeg(rightConclusionNeg,rightResolvedLiteral))
+            resolveAndUnifyNodes(fixedLeftNeg,fixedRightNeg,node.conclusion)
+          else if(containsNeg(leftConclusionNeg,leftResolvedLiteral) && containsPos(rightConclusionNeg,rightResolvedLiteral))
+            resolveAndUnifyNodes(fixedLeftNeg,fixedRightNeg,node.conclusion)
           else fixedRightNeg // This is arbitrary
+
         (finalLeftProof,finalRighttProof)
       }
     }
@@ -126,18 +143,29 @@ abstract class FOSplit(val variables : MSet[Var]) extends (Proof[Node] => Proof[
       if (selectLiteral(p).isEmpty) p
       else {
         val selectedLiteral = selectLiteral(p).get
-        val (left, right) = split(p, selectedLiteral)
-        val leftContracted = Contraction.contractIfPossible(left, variables)
+        val (left, right)   = split(p, selectedLiteral)
+        val leftContracted  = Contraction.contractIfPossible(left, variables)
         val rightContracted = Contraction.contractIfPossible(right, variables)
-        val compressedProof = UnifyingResolution.resolve(leftContracted, rightContracted, variables)
-        if (countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof else p
+
+        if(FOSplittingUtils.isMoreGeneralOrEqual(leftContracted,p.root,variables))
+          return leftContracted
+        if(FOSplittingUtils.isMoreGeneralOrEqual(rightContracted,p.root,variables))
+          return rightContracted
+
+        val compressedProof =
+          UnifyingResolution.resolve(leftContracted, rightContracted, variables)
+        if(FOSplittingUtils.isMoreGeneralOrEqual(compressedProof,p.root,variables)
+           && countResolutionNodes(compressedProof) < countResolutionNodes(p)) compressedProof
+        else p
       }
     } catch {
       case e : Exception =>
-        println("There was a problem in splitting!\nProof:\n" + p + "Problem: " + e)
         p
     }
   }
+
+  def isEmptyClause(clause : SeqSequent) : Boolean =
+    clause.ant.isEmpty && clause.suc.isEmpty
 }
 
 abstract class SimpleSplit(override val variables : MSet[Var], val literal : E) extends FOSplit(variables) {
@@ -147,3 +175,13 @@ abstract class SimpleSplit(override val variables : MSet[Var], val literal : E) 
 
 class TestSplt(override val variables : MSet[Var], override val literal : E)
 extends SimpleSplit(variables,literal) with NameEquality
+
+object FOSplittingUtils {
+  def isMoreGeneralOrEqual(node : Node, originalConclussion : Node, vars : MSet[Var]) : Boolean = {
+    val literals = collection.mutable.HashSet(originalConclussion.conclusion.ant ++ originalConclussion.conclusion.suc :_*)
+    TestInclusion.isIncludedInSet(node.conclusion,literals,vars)
+  }
+
+  def isMoreGeneralOrEqual(literal1 : E, literal2 : E, vars : MSet[Var]) : Boolean =
+    isMoreGeneralOrEqual(Axiom(SeqSequent()(literal1)),Axiom(SeqSequent()(literal2)),vars)
+}
