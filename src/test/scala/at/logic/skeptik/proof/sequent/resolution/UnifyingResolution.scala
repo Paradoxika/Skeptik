@@ -12,6 +12,9 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 
+import at.logic.skeptik.expression.formula.Atom
+
+
 @RunWith(classOf[JUnitRunner])
 class UnifyingResolutionSpecification extends SpecificationWithJUnit with FindsVars with FindDesiredSequent {
 
