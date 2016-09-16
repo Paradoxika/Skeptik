@@ -17,10 +17,11 @@ class UnifyingResolutionMRR(override val leftPremise: SequentProofNode, override
 		extends UnifyingResolution(leftPremise, rightPremise, auxL, auxR, leftClean, overRide) {
 
 	override val conclusionContext = {
-			val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
-					(rightPremise.conclusion.ant.filter(_ != auxR)).map(e => mgu(e))
-					val succedent = (leftClean.conclusion.suc.filter(_ != auxL)).map(e => mgu(e)) ++
-					rightPremise.conclusion.suc.map(e => mgu(e))
+
+      val antecedent = leftClean.conclusion.ant.map(e => mgu(e)) ++
+      remove(auxR, rightPremise.conclusion.ant.toList).map(e => mgu(e))
+      val succedent = remove(auxL, leftClean.conclusion.suc.toList).map(e => mgu(e)) ++
+       rightPremise.conclusion.suc.map(e => mgu(e))	  
 					if (overRide == null) {
 						new Sequent(antecedent, succedent)
 					} else {
