@@ -343,7 +343,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 	}
 
 	def areAlphaEq(a: E, b: E)(implicit unifiableVariables: MSet[Var]): Boolean = {
-		checkHelperAlphaManual(Seq[E](a), Seq[E](b))
+		    findRenaming(Sequent(a)(), Sequent(b)()) != null
+//	  checkHelperAlphaManual(Seq[E](a), Seq[E](b))
 	}
 
 	def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): (List[E], Substitution) = {
@@ -447,11 +448,10 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 trait FOCollectEdgesUsingSafeLiterals
 extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 
-	//ensure that the node that will be replacing the unifying resolution is entirely safe
-	protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
-
-
-
+  //ensure that the node that will be replacing the unifying resolution is entirely safe
+  protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
+    println("FINALCHECK: " + safeLit + " and " + seqToDelete) 
+    
 			def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
 				if (computed == desired) {
 					return true
@@ -511,20 +511,38 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 
 					true
 				}
-			}
+			}    
+    
+//    def desiredIsContained(computed: Sequent, desired: Sequent): Boolean = {
+//      if (checkIfConclusionsAreEqual(computed, desired)) {
+//        return true
+//      } else {
+//        val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
+//
+//        val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(computed, desired, cVars)//Aug11
+//        if (mapIsUniquelyValid) {
+//          if (!checkMapSub(intersectedMap, cVars, computed, desired)) {
+//            return false
+//          } else {
+//            return true
+//          }
+//        } else {
+//          return checkInvalidMap(intersectedMap, cVars, computed, desired, true)
+//        }
+//      }
+//    }
 
-			def antVars = getSetOfVars(seqToDelete.ant: _*)
-					def sucVars = getSetOfVars(seqToDelete.suc: _*)
-					def antVarsB = getSetOfVars(safeLit.ant: _*)
-					def sucVarsB = getSetOfVars(safeLit.suc: _*)
+    def antVars = getSetOfVars(seqToDelete.ant: _*)
+    def sucVars = getSetOfVars(seqToDelete.suc: _*)
+    def antVarsB = getSetOfVars(safeLit.ant: _*)
+    def sucVarsB = getSetOfVars(safeLit.suc: _*)
+    def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
+    def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
 					def vars = MSet[Var]() ++ antVars ++ sucVars 
-					def allvars = MSet[Var]() ++ antVars ++ sucVars ++ antVarsB ++ sucVarsB
 
-					def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
+    desiredIsContained(safeClean.conclusion, seqToDelete)(vars)
 
-					desiredIsContained(safeClean.conclusion, seqToDelete)(vars)
-
-	}
+  }
 
 	protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
 		val edgesToDelete = new FOEdgesToDelete()
@@ -571,19 +589,78 @@ extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
 trait FOIntersection
 extends FOAbstractRPIAlgorithm {
-	protected def computeSafeLiterals(proof: SequentProofNode,
-			childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
-			edgesToDelete: FOEdgesToDelete): IClause = {
-			childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof) } match {
-			case Nil =>
-			if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
-			proof.conclusion.toSetSequent
-			case h :: t =>
-			t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
-			{
-				acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)
-			}
-			}
-			}
-	}
+//  	protected def computeSafeLiterals(proof: SequentProofNode,
+//			childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
+//			edgesToDelete: FOEdgesToDelete): IClause = {
+//			childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof) } match {
+//			case Nil =>
+//			if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
+//			proof.conclusion.toSetSequent
+//			case h :: t =>
+//			t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
+//			{
+//				acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)
+//			}
+//			}
+//			}
+//	}
+ protected def computeSafeLiterals(proof: SequentProofNode,
+                                    childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
+                                    edgesToDelete: FOEdgesToDelete): IClause = {
+    childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof) } match {
+      case Nil =>
+        if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
+        proof.conclusion.toSetSequent
+      case h :: t =>
+        t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
+          {
+            smartIntersect(acc, safeLiteralsFromChild(v, proof, edgesToDelete))
+          }
+        }
+    }
+  }
+
+  protected def smartIntersect(l: IClause, r: IClause) = {
+    var out = Sequent()()
+    val uVars = getSetOfVars(Axiom(l.toSeqSequent)) union getSetOfVars(Axiom(r.toSeqSequent))
+    for (la <- l.ant) {
+      for (ra <- r.ant) {
+        unify((la, ra) :: Nil)(uVars) match {
+          case None => {}
+          case Some(sub) => {
+            val newLA = getCleanLiteral(la, sub, out)
+            out = newLA +: out
+          }
+        }
+      }
+    }
+
+    for (ls <- l.suc) {
+      for (rs <- r.suc) {
+        unify((ls, rs) :: Nil)(uVars) match {
+          case None => {}
+          case Some(sub) => {
+            val newLS = getCleanLiteral(ls, sub, out)
+            out = out + newLS
+          }
+        }
+      }
+    }
+
+    out.toSetSequent
+
+  }
+
+  def getCleanLiteral(l: E, s: Substitution, rest: Sequent) = {
+    val restAx = Axiom(rest)
+    val lsubbed = s(l)
+    val lsAx = Axiom(Sequent(lsubbed)())
+    val vars = getSetOfVars(restAx) union getSetOfVars(lsAx)
+
+    val lsAxClean = fixSharedNoFilter(lsAx, restAx, 0, vars)
+
+    val cleanL = lsAxClean.conclusion.ant.head
+
+    cleanL
+  }
 }

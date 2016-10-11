@@ -61,6 +61,7 @@ class FORPILUSpecification extends SpecificationWithJUnit with checkProofEqualit
 
   println("-----")
   println("Testing proof: \n" + FORecyclePivots(proofb))
+  
   "FORPILU" should {
     "Compress the proof correctly (small compression)" in {
       resulta must beEqualTo(true)

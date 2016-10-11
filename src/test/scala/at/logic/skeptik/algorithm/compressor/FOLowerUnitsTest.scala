@@ -155,7 +155,7 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   val isUnit3 = Sequent(App(Var("q", i -> i), x))(App(Var("r", i -> i), y))
   
   println("---")
-  println("Testing proof: \n " + FOLowerUnits(proofd))
+  println("Testing proof: \n" + FOLowerUnits(prooff))
 
   "FOLowerUnits" should {
     
