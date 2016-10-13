@@ -452,9 +452,19 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   def checkMapSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): Boolean = {
     //apply to sub
     val newComputed = applyUniqueSubstitutions(m, vars, computed)
-
+    println("computed: " + computed)
+    println("newcomputed: " + newComputed)
+    println("...should be in: " + desired)
     val finalCheck = newComputed.ant.toSet.subsetOf(desired.ant.toSet) && newComputed.suc.toSet.subsetOf(desired.suc.toSet)
     finalCheck
+    
+//    //apply to sub
+//    val newComputed = applyUniqueSubstitutions(m, vars, desired)
+//    println("computed: " + computed)
+//    println("newcomputed: " + newComputed)
+//    println("...should be in: " + desired)
+//    val finalCheck = computed.ant.toSet.subsetOf(newComputed.ant.toSet) && computed.suc.toSet.subsetOf(newComputed.suc.toSet)
+//    finalCheck    
   }
 	
 //	def checkHelperAlphaManual(computed: Seq[E], desired: Seq[E])(implicit unifiableVariables: MSet[Var]): Boolean = {

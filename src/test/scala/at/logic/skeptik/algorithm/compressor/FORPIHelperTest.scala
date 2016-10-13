@@ -67,8 +67,11 @@ class FORPILUHelperSpecification extends SpecificationWithJUnit {
 
   val found = Sequent()(follows) + succeeds + succeedsB
   val actual = Sequent()(followsC) + succeedsC + succeedsCB + labels
-
-  val resultNew = FORPIHelperTester.finalCheckTest(found, actual)
+  println("Found: " + found)
+  println("Actual: " + actual)
+//  val resultNew = FORPIHelperTester.finalCheckTest(found, actual)
+  val resultNew = FORPIHelperTester.finalCheckTest(actual, found)
+  
   println(resultNew)
 
   //⊢ (succeeds W U), (succeeds U V), (succeeds W V)
@@ -83,7 +86,7 @@ class FORPILUHelperSpecification extends SpecificationWithJUnit {
   val Bfound = Sequent()(BsucceedsA) + BsucceedsB + BsucceedsC
   val Bactual = Sequent()(BActsucceedsA) + BActsucceedsB + BActsucceedsC
 
-  val BresultNew = FORPIHelperTester.finalCheckTest(Bfound, Bactual)
+  val BresultNew = FORPIHelperTester.finalCheckTest(Bactual, Bfound)
   println(BresultNew)
 
   // (a_member_of W U), (a_member_of V U), (path_connected U), (a_path_from_to_in (skf3 U V W) W V U)
@@ -104,7 +107,7 @@ class FORPILUHelperSpecification extends SpecificationWithJUnit {
   val Cfound = Sequent()(amember) + amemberB + path + apath
   val Cactual = Sequent()(Actamember) + ActamemberB + Actpath + Actapath
 
-  val CresultNew = FORPIHelperTester.finalCheckTest(Cfound, Cactual)
+  val CresultNew = FORPIHelperTester.finalCheckTest(Cactual, Cfound)
   println(CresultNew)
 
   //(a_path_from_to_in U V W X), (a_group_isomorphism_from_to (alpha_hat U) (first_homotop_grp X V) (first_homotop_grp X W))
@@ -173,5 +176,7 @@ object FORPIHelperTester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsing
   def finalCheckTest(safeLit: Sequent, seqToDelete: Sequent) = {
     println("Checking " + safeLit + " and " + seqToDelete)
     finalCheck(safeLit, seqToDelete)
+
+    
   }
 }

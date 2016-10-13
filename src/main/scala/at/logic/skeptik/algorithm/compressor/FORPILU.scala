@@ -222,6 +222,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 								fixedRight
 							}
 
+					
 					def newFixedLeft = if (!mguMap.get(fixedLeft).isEmpty) {
 						new FOSubstitution(fixedLeft, mguMap.get(fixedLeft).get)(unifiableVariables)
 					} else {
@@ -243,6 +244,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 										fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 							}
 						} else {
+//						  						UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
 
 							attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString, left, right, auxL, auxR, mguMap)(unifiableVariables)
 						}
@@ -262,6 +264,15 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 			ambiguousErrorString: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E, 
 			mguMap: MMap[SequentProofNode, Substitution])(implicit unifiableVariables: MSet[Var]) = {
 
+	  
+	  
+	  println("ANOTHER PROBLEM AREA")
+	  println("FL: " + fixedLeft)
+	  println("FLtype? "+ fixedLeft.isInstanceOf[FOSubstitution]) 
+	  println("FR: " + fixedRight)
+	  println("NFR: " + newFixedRight)
+	  println("L: " + left)
+	  println("R: " + right)
 		try {
 
 			UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
@@ -278,6 +289,9 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 			}
 		}
 		case e: Exception => {
+		  println(e.getMessage())
+//		  UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
+		  println("oh?")
 			throw new Exception("FORPI Failed!")
 		}
 		}
@@ -289,7 +303,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				val leftEq = !fLeft.equals(left)
 				val rightEq = !fRight.equals(right)
 
-				val fLeftClean = if (!fLeft.equals(left)) {
+	 val fLeftClean = if (!fLeft.equals(left)) {
 					new FOSubstitution(fLeft, oldMGU).conclusion
 				} else {
 					fLeft.conclusion
@@ -321,13 +335,19 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 			fRight
 		}
 
+		println("PROBLEM AREA ENTERED:")
+		println("FL: " + finalLeft)
+		println("FR: " + finalRight)
+		println("NT: " + newTarget)
 		val out = try {
-			UnifyingResolution(finalLeft, finalRight, newTarget)
+			UnifyingResolution(finalLeft, finalRight)//, newTarget) //13 Oct
 		} catch {
 		case e: Exception => {
-			UnifyingResolution(finalRight, finalLeft, newTarget)
+		  println("In fix ambig: " + e.getMessage)
+			UnifyingResolution(finalRight, finalLeft)//, newTarget)
 		}
 		}
+		println("out? " + out)
 		out
 	}
 
@@ -450,87 +470,99 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 
   //ensure that the node that will be replacing the unifying resolution is entirely safe
   protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent): Boolean = {
-    println("FINALCHECK: " + safeLit + " and " + seqToDelete) 
+    println("Final check: " + seqToDelete + " Should be in " + safeLit)
     
-			def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
-				if (computed == desired) {
-					return true
-				} else {
-					val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
-
-					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
-							if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
-								return false
-							}
-					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
-							if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
-								return false
-							}
-					val intersectedMap = intersectMaps(antMap, sucMap)
-
-							if (!validMap(intersectedMap, vars)) {
-								return false
-							}
-
-					def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
-							val subList = MSet[(Var, E)]()
-
-									for (k <- m.keySet) {
-										if (m.get(k).get.size > 0) {
-											subList.add((k, m.get(k).get.head))
-										}
-									}
-
-							val sub = Substitution(subList.toSeq: _*)
-									def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
-								if (target.size == 0) {
-									return true
-								}
-								target match {
-								case h :: t => {
-									for (s <- source) {
-										if (h.equals(s)) {
-											return foundExactly(t, source)
-										}
-									}
-								}
-								}
-
-								false
-							}
-
-							val newDesiredAnt = (desired.ant).map(e => sub(e))
-
-									val newDesiredSuc = (desired.suc).map(e => sub(e))
-									foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
-					}
-
-					if (!findFromMap(intersectedMap, vars)) {
-						return false
-					}
-
-					true
-				}
-			}    
     
-//    def desiredIsContained(computed: Sequent, desired: Sequent): Boolean = {
-//      if (checkIfConclusionsAreEqual(computed, desired)) {
-//        return true
-//      } else {
-//        val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
+//			def desiredIsContained(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Boolean = {
+//				if (computed == desired) {
+//					return true
+//				} else {
+//					val commonVars = (getSetOfVars(Axiom(computed.ant)) intersect getSetOfVars(Axiom(computed.suc)))
 //
-//        val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(computed, desired, cVars)//Aug11
-//        if (mapIsUniquelyValid) {
+//					val antMap = generateSubstitutionOptions(computed.ant, desired.ant, unifiableVariables)
+//							if (getSetOfVars(desired.ant: _*).size > 0 && antMap.size == 0) {
+//								return false
+//							}
+//					val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, unifiableVariables)
+//							if (getSetOfVars(desired.suc: _*).size > 0 && sucMap.size == 0) {
+//								return false
+//							}
+//					val intersectedMap = intersectMaps(antMap, sucMap)
+//
+//							if (!validMap(intersectedMap, vars)) {
+//								return false
+//							}
+//
+//					def findFromMap(m: MMap[Var, Set[E]], vars: MSet[Var]): Boolean = {
+//							val subList = MSet[(Var, E)]()
+//
+//									for (k <- m.keySet) {
+//										if (m.get(k).get.size > 0) {
+//											subList.add((k, m.get(k).get.head))
+//										}
+//									}
+//
+//							val sub = Substitution(subList.toSeq: _*)
+//									def foundExactly(target: Seq[E], source: Seq[E]): Boolean = {
+//								if (target.size == 0) {
+//									return true
+//								}
+//								target match {
+//								case h :: t => {
+//									for (s <- source) {
+//										if (h.equals(s)) {
+//											return foundExactly(t, source)
+//										}
+//									}
+//								}
+//								}
+//
+//								false
+//							}
+//
+//							val newDesiredAnt = (desired.ant).map(e => sub(e))
+//
+//									val newDesiredSuc = (desired.suc).map(e => sub(e))
+//									foundExactly(newDesiredAnt, computed.ant) && foundExactly(newDesiredSuc, computed.suc)
+//					}
+//
+//					if (!findFromMap(intersectedMap, vars)) {
+//						return false
+//					}
+//
+//					true
+//				}
+//			}    
+    
+    def desiredIsContained(safe: Sequent, toDelete: Sequent): Boolean = {
+      if (checkIfConclusionsAreEqual(safe, toDelete)) {
+        return true
+      } else if (toDelete.ant.toSet.subsetOf(safe.ant.toSet) && toDelete.suc.toSet.subsetOf(safe.suc.toSet)) {
+        return true
+      } else {
+//        val cVars = getSetOfVars(computed.ant: _*) union getSetOfVars(computed.suc: _*)
+        val cVars = getSetOfVars(toDelete.ant: _*) union getSetOfVars(toDelete.suc: _*)
+
+        println("cVars: " + cVars)
+//        val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(desired, computed, cVars)//Aug11
+        val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(safe, toDelete, cVars)//Aug11
+        
+        if (mapIsUniquelyValid) {
+          println("Map is unique?")
 //          if (!checkMapSub(intersectedMap, cVars, computed, desired)) {
-//            return false
-//          } else {
-//            return true
-//          }
-//        } else {
-//          return checkInvalidMap(intersectedMap, cVars, computed, desired, true)
-//        }
-//      }
-//    }
+          if (!checkMapSub(intersectedMap, cVars, toDelete, safe)) {          
+            return false
+          } else {
+            return true
+          }
+        } else {
+          println("Checking invalid map...")
+//          return checkInvalidMap(intersectedMap, cVars, safe, toDelete, true)
+          return checkInvalidMap(intersectedMap, cVars, toDelete, safe, true)
+          
+        }
+      }
+    }
 
     def antVars = getSetOfVars(seqToDelete.ant: _*)
     def sucVars = getSetOfVars(seqToDelete.suc: _*)
@@ -540,7 +572,7 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
     def safeClean = fixSharedNoFilter(Axiom(safeLit), Axiom(seqToDelete), 0, allvars)
 					def vars = MSet[Var]() ++ antVars ++ sucVars 
 
-    desiredIsContained(safeClean.conclusion, seqToDelete)(vars)
+    desiredIsContained(safeClean.conclusion, seqToDelete)//(vars)
 
   }
 
