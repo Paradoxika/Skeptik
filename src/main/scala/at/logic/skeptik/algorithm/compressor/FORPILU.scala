@@ -213,7 +213,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 					val nonEmptyLeftMap = !auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty
 							val nonEmptyRightMap = !auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty
 
-							val ambiguousErrorString = "Resolution (MRR): the resolvent is ambiguous."
+							val ambiguousErrorStringMRR = "Resolution (MRR): the resolvent is ambiguous."
+							val ambiguousErrorString = "Resolution: the resolvent is ambiguous."
 
 							//We may have to apply a FO sub
 							def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
@@ -228,29 +229,34 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 					} else {
 						fixedLeft
 					}					
-
-					try {
-
+					var oFlag = "?"
+					val out = try {
+					  oFlag = "A"
 						UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
-
+						
 					} catch {
 					case e: Exception => {
 						if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
 							if (nonEmptyLeftMap && !nonEmptyRightMap) {
 								val oldMGU = mguMap.get(left).get
+								oFlag = "B"
 										fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 							} else {
 								val oldMGU = mguMap.get(right).get
+								oFlag = "C"
 										fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 							}
 						} else {
 //						  						UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
-
-							attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString, left, right, auxL, auxR, mguMap)(unifiableVariables)
+              oFlag = "D"
+							attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString,ambiguousErrorStringMRR, left, right, auxL, auxR, mguMap)(unifiableVariables)
 						}
 					}
 					}
-
+					
+					println(oFlag + "  instead of: " + p)
+					println("RETURNING OUT: " + out)
+					out
 				}
 
 				// When the inference is not UR, nothing is done 
@@ -261,44 +267,68 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 	}
 
 	def attemptGreedyContraction(fixedLeft: SequentProofNode, fixedRight: SequentProofNode, newFixedRight: SequentProofNode, 
-			ambiguousErrorString: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E, 
+			ambiguousErrorString: String,ambiguousErrorStringMRR: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E, 
 			mguMap: MMap[SequentProofNode, Substitution])(implicit unifiableVariables: MSet[Var]) = {
 
 	  
 	  
-	  println("ANOTHER PROBLEM AREA")
-	  println("FL: " + fixedLeft)
-	  println("FLtype? "+ fixedLeft.isInstanceOf[FOSubstitution]) 
-	  println("FR: " + fixedRight)
-	  println("NFR: " + newFixedRight)
-	  println("L: " + left)
-	  println("R: " + right)
+//	  println("ANOTHER PROBLEM AREA")
+//	  println("FL: " + fixedLeft)
+//	  //println("FLtype? "+ fixedLeft.isInstanceOf[FOSubstitution]) 
+//	  println("FR: " + fixedRight)
+//	  println("NFR: " + newFixedRight)
+//	  println("L: " + left)
+//	  println("R: " + right)
+//	  println("vars? " + unifiableVariables)
+//	  Console.out.flush
 		try {
 
-			UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
+	      //UnifyingResolutionMRR(fixedLeft, newFixedRight)(unifiableVariables)
+		  UnifyingResolution(fixedLeft, newFixedRight)(unifiableVariables)
 		} catch {
-		case e: Exception if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) => {
+		case e: Exception if (e.getMessage() != null && (e.getMessage.contains(ambiguousErrorString) || e.getMessage.contains(ambiguousErrorStringMRR) )) => {
 
 			try {
+			  println("was ambig?")
 				UnifyingResolutionMRR(fixedLeft, Contraction(fixedRight)(unifiableVariables))(unifiableVariables)
 			} catch {
 			case f: Exception => {
-				val oldMGU = mguMap.get(left).get
+			  println("....entering fix ambig " + f.getMessage())
+				val oldMGU = if(!mguMap.get(left).isEmpty){
+				  mguMap.get(left).get
+				} else {
+				  null
+				}
 						fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
 			}
 			}
 		}
 		case e: Exception => {
-		  println(e.getMessage())
-//		  UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
-		  println("oh?")
+		  println("THIS IS THE MESSAGE: " + e.getMessage())
+		  println("?? " + (e.getMessage.contains(ambiguousErrorString) || e.getMessage.contains(ambiguousErrorStringMRR) ))
+		  Console.out.flush
+		  UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
+		  println("Changing order helped.")
 			throw new Exception("FORPI Failed!")
 		}
 		}
 	}
 
-	def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]) = {
-		val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
+	//TODO: handle case when oldMGU is NULL. Now that is possible
+	def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+		println("fLeft: " + fLeft)
+		println("fRight: " + fRight)
+	  try{
+		    val quickFix = UnifyingResolution(Contraction(fLeft), fRight)
+		    return quickFix
+		}catch {
+		  case _ => { //do nothing
+		    }
+		  }
+		
+	  
+	  
+	  val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
 
 				val leftEq = !fLeft.equals(left)
 				val rightEq = !fRight.equals(right)
