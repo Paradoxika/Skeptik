@@ -295,23 +295,28 @@ abstract class FOAbstractRPILUAlgorithm
     }
   }
   
-  def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode,
-                   auxL: E, auxR: E, oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-
-    //TODO: put this in a helper?
-    try {
-      val quickFix = UnifyingResolution(Contraction(fLeft), fRight)
+  def tryGreedyContraction(left: SequentProofNode, right: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+        try {
+      val quickFix = UnifyingResolution(Contraction(left), right)
       return quickFix
     } catch {
       case _: Throwable => { //do nothing
       }
     }
 
-    try {
-      val quickFixReverse = UnifyingResolution(fLeft, Contraction(fRight))
+      val quickFixReverse = UnifyingResolution(left, Contraction(right))
       return quickFixReverse
+
+  }
+  
+  def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode,
+                   auxL: E, auxR: E, oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+
+    try {
+      val quickFix = tryGreedyContraction(fLeft, fRight)
+      return quickFix
     } catch {
-      case _: Throwable => { //do nothing
+      case _: Throwable => { //do nothing - we work to do.
       }
     }
 
@@ -351,41 +356,12 @@ abstract class FOAbstractRPILUAlgorithm
 
     val newTarget = rightRemainderWithNewMGU.union(tempLeft.conclusion)
 
-    val finalLeft = if (leftEq) {
-      makeFOSub(fLeft,mgu)
-    } else {
-      fLeft
-    }
+    val finalLeft = useFOSubIfEqual(leftEq, fLeft, mgu) 
+    val finalRight = useFOSubIfEqual(rightEq, fRight, mgu) 
 
-    val finalRight = if (rightEq) {
-      makeFOSub(fRight,mgu)
-    } else {
-      fRight
-    }
+    val newFinalRight = findTargetIfEqual(rightEq, right, finalRight)
+    val newFinalLeft = findTargetIfEqual(leftEq, left, finalLeft)
 
-    val newFinalRight = if (rightEq) {
-      try {
-        findTarget(right, finalRight)
-      } catch {
-        case _: Throwable => {
-          finalRight
-        }
-      }
-    } else {
-      finalRight
-    }
-
-    val newFinalLeft = if (leftEq) {
-      try {
-        findTarget(left, finalLeft)
-      } catch {
-        case _: Throwable => {
-          finalLeft
-        }
-      }
-    } else {
-      finalLeft
-    }
 
     //TODO: build from right as well?				
     val newConclusion = buildConclusion(oldConclusion, left, newFinalLeft)
@@ -398,6 +374,30 @@ abstract class FOAbstractRPILUAlgorithm
       }
     }
     out
+  }
+  
+  def useFOSubIfEqual(equal: Boolean, premise: SequentProofNode, 
+      sub: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    if(equal){
+      return makeFOSub(premise,sub)
+    } else {
+      premise
+    }
+  }
+  
+  def findTargetIfEqual(equal: Boolean, oldPremise: SequentProofNode, 
+      newPremise: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    if (equal) {
+      try {
+        findTarget(oldPremise, newPremise)
+      } catch {
+        case _: Throwable => {
+          newPremise
+        }
+      }
+    } else {
+      newPremise
+    }
   }
 
   def buildConclusion(oldConclusion: Sequent, left: SequentProofNode, newLeft: SequentProofNode): Sequent = {
