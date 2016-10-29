@@ -328,9 +328,8 @@ abstract class FOAbstractRPILUAlgorithm
       Substitution()
     }
 
-    //TODO: change this! use findRenaming
-    val leftEq = !fLeft.equals(left)
-    val rightEq = !fRight.equals(right)
+    val leftEq = findRenaming(fLeft, left) != null 
+    val rightEq = findRenaming(fLeft, left) != null 
 
     val fLeftClean = if (!fLeft.equals(left)) {
       makeFOSub(fLeft,mgu).conclusion

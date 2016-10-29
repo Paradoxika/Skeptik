@@ -600,6 +600,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     return s
   }
 
+  def findRenaming(computed: SequentProofNode, desired: SequentProofNode)(implicit unifiableVariables: MSet[Var]): Substitution = {
+    return findRenaming(computed.conclusion, desired.conclusion)
+  }
+
+  
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
     if (checkIfConclusionsAreEqual(computed, desired)) {
       return Substitution()
