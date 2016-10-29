@@ -75,6 +75,7 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
 
   val rightNodeE = new Axiom(rightSeqE)
 
+  //TODO: fix when 3-way MRR is understood.
 //  val urE = UnifyingResolutionMRR(leftNodeEB, leftNodeEB, rightNodeE, desiredE)(usedVars)
 
   //Test aux formula
@@ -125,14 +126,15 @@ class UnifyingResolutionMRRSpecification extends SpecificationWithJUnit with Fin
 
   val rightNodeL = new Axiom(rightSeqL)
 
+  //TODO: fix when 3-way is understood
 //  val urL = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
 //  val expectedL = Sequent()()
 
   //3+desired
   //see above (test 'E')
 
-  //unapply
-//  val urM = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL)(usedVars)
+  //unapply   //TODO: fix when 3-way is understood
+//  val urM = UnifyingResolutionMRR(leftNodeLB, leftNodeLB, rightNodeL.)(usedVars)
 //  val outM = urM match {
 //    case u: UnifyingResolutionMRR => true
 //    case _ => false

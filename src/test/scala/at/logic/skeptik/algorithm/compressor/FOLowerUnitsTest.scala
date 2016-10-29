@@ -48,9 +48,9 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   
   
 //  //7: unit is resolved against several nodes, but still lowered correctly:
-//  val proofg = ProofParserSPASS.read("examples/proofs/SPASS/example7.spass")
-//  println("FINALG: \n " + FOLowerUnits(proofg))
-//  val resultg = checkProofs(FOLowerUnits(proofg), "examples/proofs/SPASS/testresults/FOLowerUnits/example7.result")
+  val proofg = ProofParserSPASS.read("examples/proofs/SPASS/example7.spass")
+  println("FINALG: \n " + FOLowerUnits(proofg))
+  val resultg = checkProofs(FOLowerUnits(proofg), "examples/proofs/SPASS/testresults/FOLowerUnits/example7.result")
 
   //8: unit can't be lowered
   val proofh = ProofParserSPASS.read("examples/proofs/SPASS/example8.spass")
@@ -181,9 +181,9 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
       resultf must beEqualTo(true)
     }
     
-//    "Compress the seventh proof correctly (unit resolved against several clauses; lowered)" in {
-//      resultg must beEqualTo(true)
-//    }
+    "Compress the seventh proof correctly (unit resolved against several clauses; lowered)" in {
+      resultg must beEqualTo(true)
+    }
     "Compress the eigth proof correctly (unit cannot be lowered)" in {
       resulth must beEqualTo(true)
     }
