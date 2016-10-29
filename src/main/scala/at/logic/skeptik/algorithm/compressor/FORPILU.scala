@@ -240,16 +240,16 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 							if (nonEmptyLeftMap && !nonEmptyRightMap) {
 								val oldMGU = mguMap.get(left).get
 								oFlag = "B"
-										fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+										fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
 							} else {
 								val oldMGU = mguMap.get(right).get
 								oFlag = "C"
-										fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+										fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
 							}
 						} else {
 //						  						UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
               oFlag = "D"
-							attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString,ambiguousErrorStringMRR, left, right, auxL, auxR, mguMap)(unifiableVariables)
+							attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString,ambiguousErrorStringMRR, left, right, auxL, auxR, mguMap, p.conclusion)(unifiableVariables)
 						}
 					}
 					}
@@ -268,7 +268,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 
 	def attemptGreedyContraction(fixedLeft: SequentProofNode, fixedRight: SequentProofNode, newFixedRight: SequentProofNode, 
 			ambiguousErrorString: String,ambiguousErrorStringMRR: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E, 
-			mguMap: MMap[SequentProofNode, Substitution])(implicit unifiableVariables: MSet[Var]) = {
+			mguMap: MMap[SequentProofNode, Substitution], oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]) = {
 
 	  
 	  
@@ -299,7 +299,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				} else {
 				  null
 				}
-						fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR)(unifiableVariables)
+						fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR, oldConclusion)(unifiableVariables)
 			}
 			}
 		}
@@ -314,37 +314,62 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 		}
 	}
 
-	//TODO: handle case when oldMGU is NULL. Now that is possible
-	def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+	//TODO: only use FOSub if something changes
+	def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode, 
+	    auxL: E, auxR: E, oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 		println("fLeft: " + fLeft)
 		println("fRight: " + fRight)
 	  try{
 		    val quickFix = UnifyingResolution(Contraction(fLeft), fRight)
 		    return quickFix
 		}catch {
-		  case _ => { //do nothing
+		  case _ : Throwable => { //do nothing
 		    }
 		  }
+		
+	  try{
+		    val quickFixReverse = UnifyingResolution(fLeft, Contraction(fRight))
+		    return quickFixReverse
+		}catch {
+		  case _ : Throwable => { //do nothing
+		    }
+		  }		
 		
 	  
 	  
 	  val newMGU = unify((auxL, auxR) :: Nil).get //should always be non-empty
 
+	  println("newMGU: " + newMGU)
+	  println("oldMGU: " + oldMGU)
+	  
+	  val mgu = if (oldMGU != null){
+	    oldMGU
+	  } else {
+	    Substitution()
+	  }
+	  
+	  //TODO: change this! use findRenaming
 				val leftEq = !fLeft.equals(left)
 				val rightEq = !fRight.equals(right)
 
 	 val fLeftClean = if (!fLeft.equals(left)) {
-					new FOSubstitution(fLeft, oldMGU).conclusion
+					new FOSubstitution(fLeft, mgu).conclusion	   
+//					new FOSubstitution(fLeft, oldMGU).conclusion
 				} else {
 					fLeft.conclusion
 				}
-		val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, oldMGU, leftEq, true)
+//		val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, oldMGU, leftEq, true)
+		val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, mgu, leftEq, true)
+				
 				val fRightClean = if (!fRight.equals(right)) {
-					new FOSubstitution(fRight, oldMGU).conclusion
+//					new FOSubstitution(fRight, oldMGU).conclusion
+					new FOSubstitution(fRight, mgu).conclusion					
 				} else {
 					fRight.conclusion
 				}
-		val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, oldMGU, rightEq, false)
+//		val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, oldMGU, rightEq, false)
+		val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, mgu, rightEq, false)
+		
 				val rightRemainderWithNewMGU = (new FOSubstitution(Axiom(rightRemainder), newMGU)).conclusion
 
 				val tempLeft = new FOSubstitution(new FOSubstitution(Axiom(leftRemainder), leftSub), newMGU)
@@ -354,23 +379,60 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 		val newTarget = rightRemainderWithNewMGU.union(tempLeft.conclusion)
 
 		val finalLeft = if (leftEq) {
-			new FOSubstitution(fLeft, oldMGU)
+//			new FOSubstitution(fLeft, oldMGU)
+			new FOSubstitution(fLeft, mgu)		  
 		} else {
 			fLeft
 		}
 
 		val finalRight = if (rightEq) {
-			new FOSubstitution(fRight, oldMGU)
+//			new FOSubstitution(fRight, oldMGU)
+			new FOSubstitution(fRight, mgu)	  
 		} else {
 			fRight
 		}
 
+
+		val newFinalRight = if (rightEq) {
+		  try {
+		  findTarget(right, finalRight)
+		  } catch {
+		    case _ : Throwable => {
+		      finalRight
+		    }
+		  }		} else {
+		  finalRight
+		}
+		
+		val newFinalLeft = if (leftEq) {
+		  try {
+		  findTarget(left, finalLeft)
+		  } catch {
+		    case _ : Throwable => {
+		      finalLeft
+		    }
+		  }
+		} else {
+		  finalLeft
+		}		
+		
 		println("PROBLEM AREA ENTERED:")
 		println("FL: " + finalLeft)
-		println("FR: " + finalRight)
+		println("FR: " + newFinalRight)
 		println("NT: " + newTarget)
+		println(" L: " + left)
+		println(" R: " + right)
+		println("al: " + auxL)
+		println("ar: " + auxR)
+				
+		val newConclusion = buildConclusion(oldConclusion, left, newFinalLeft)
+		println("NEW???: " + newConclusion)
+		println("old   : " + oldConclusion)
+		
 		val out = try {
-			UnifyingResolution(finalLeft, finalRight)//, newTarget) //13 Oct
+			UnifyingResolution(finalLeft, newFinalRight, oldConclusion)//, newTarget) //28 Oct
+			//UnifyingResolution(finalLeft, finalRight)//, newTarget) //13 Oct
+			
 		} catch {
 		case e: Exception => {
 		  println("In fix ambig: " + e.getMessage)
@@ -381,6 +443,23 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 		out
 	}
 
+	def buildConclusion(oldConclusion: Sequent, left: SequentProofNode, newLeft: SequentProofNode): Sequent = {
+	  val antDiff = left.conclusion.ant.diff(newLeft.conclusion.ant)
+	  val sucDiff = left.conclusion.suc.diff(newLeft.conclusion.suc)
+	  
+	  val newAnt = oldConclusion.ant ++ antDiff
+	  val newSuc = oldConclusion.suc ++ sucDiff
+	  
+	  return Sequent(newAnt: _*)(newSuc: _*)
+	}
+	
+	def findTarget(original: SequentProofNode, fixed: SequentProofNode)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+	  return Contraction(fixed, original.conclusion)
+	  
+	  
+	}
+	
+	
 	def findRemainder(seq: Sequent, target: E, mgu: Substitution, applySub: Boolean, removeFromAnt: Boolean)(implicit unifiableVariables: MSet[Var]): (Sequent, Substitution) = {	  
 		val (newAnt, antSub) = if (removeFromAnt) { checkHalf(seq.ant, target, mgu, applySub) } else { (seq.ant.toList, null) }
 		val (newSuc, sucSub) = if (!removeFromAnt) { checkHalf(seq.suc, target, mgu, applySub) } else { (seq.suc.toList, null) }
@@ -397,11 +476,16 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 //	  checkHelperAlphaManual(Seq[E](a), Seq[E](b))
 	}
 
+	
+	//TODO: should this be removed?
 	def checkHalf(half: Seq[E], target: E, sub: Substitution, applySub: Boolean)(implicit unifiableVariables: MSet[Var]): (List[E], Substitution) = {
 		def filterHelper(e: E): Boolean = {
 				areAlphaEq(sub(e), target)
 		}
 
+		println("HALF: " + half)
+		println("Sub: " + sub)
+		
 		val newSeq = if (applySub) {
 			half.filter(!filterHelper(_))
 		} else {

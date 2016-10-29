@@ -33,18 +33,49 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
+    println("premise (" + premise.logicalSize + "): " + premise)
+    println("desired (" + desired.logicalSize + "): " + desired)
+    
+    val renaming = findRenaming(premise, desired)
+    if (renaming != null) {
+      println(" and they're equal? " + renaming)
+      return (desired.ant, desired.suc, null)
+    }
+    
     if (premise.logicalSize > 0) {
       require(premise.logicalSize > desired.logicalSize)
     }
-
+    println("going to if...")
     if (desired.logicalSize == 0) {
       contract(premise, null)
     } else {
+      println("else...")
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
-      if (findRenaming(premiseDistinct, desiredDistinct) == null) {
+      println("invoking findRenaming... " + premiseDistinct + " - " + desiredDistinct)
+      val renamingB = findRenaming(premiseDistinct, desiredDistinct)
+      val renamingBC =null// findRenaming(premise, desired)
+      
+      println("find renaming came back with .. " + renamingBC)
+            println("find renaming came back with (distinct) .. " + renamingB )
+      if (renamingB == null) {
+        println("dissafe? " + renamingB + " and " + renamingBC)
+//        return (premise.ant, premise.suc, null)
+//          require(false)
+        
+        if(premise.ant.size == desired.ant.size && premise.suc.size == desired.suc.size){
+          require(false) //there was no contraction performed, yet we couldn't find a renaming. They're not the same
+        }
+        
         desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
+         
+        
+//        (desired.ant, desired.suc, null)
+//      } else {
+//        (premise.ant, premise.suc, null)
+//      }
       }
+//      desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
       (desired.ant, desired.suc, null)
     }
   }
@@ -55,10 +86,14 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     val antMaps = getMaps(premise.ant, desired.ant)
 
     val allMaps = antMaps ++ sucMaps
+    println("ALLMAPS: " + allMaps)
+//    val checkMap(allMaps)
     val finalMerge = buildMap(allMaps, desired)
 
   }
 
+ 
+  
   def getMaps(premiseHalf: Seq[E], desiredHalf: Seq[E]): Seq[Seq[Substitution]] = {
 
     val allSubs = for {

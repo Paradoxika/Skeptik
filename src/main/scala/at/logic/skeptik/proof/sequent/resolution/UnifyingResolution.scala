@@ -568,12 +568,13 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 	  
 	  //
 	  def checkInvalidMapAndReturnSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean): Substitution = {    
-//     println("Entering checkInvalid: " + computed)
-//     println("....:   " + desired)
-//     println("map: " + m)
+     println("Entering checkInvalid: " + computed)
+     println("....                 : " + desired)
+     println("map: " + m)
 	    
 	  //Check if map is valid: 
     val subsetContainedOrEquals = checkSubsetOrEquality(containmentOnly, computed, desired)
+    println("first: " + validMap(m, vars) + " and second: " + subsetContainedOrEquals)
     if (validMap(m, vars) && subsetContainedOrEquals) {
     //get the sub
       val sub = getUniqueSubstitutions(m, vars)
@@ -614,7 +615,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 //    println("bigSetKey: " + bigSetKey)
 //    println("bigSet: " + bigSet)
     for (mVal <- bigSet) {
-//      println("Trying " + bigSetKey.get + " mapped to " + mVal)
+      println("Trying " + bigSetKey.get + " mapped to " + mVal)
       val newNewComputed = applySub(newComputed, Substitution((bigSetKey.get, mVal)))
       val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired, vars)
       //Aug11
@@ -687,12 +688,15 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   
 	//
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
-    
+    println("IN FR: C: " + computed)
+    println("IN FR: D: " + desired)
     if (checkIfConclusionsAreEqual(computed, desired)) {
+      println("FR says eq?")
       return Substitution()
     } else {
+      println("IN FR: else: ")
       if (computed.logicalSize == desired.logicalSize) {
-
+        println("IN FR: same size: ")
         val computedClean = fixSharedNoFilter(Axiom(computed), Axiom(desired), 0, unifiableVariables)
 
         //Note that this no longer assumes the sequents have no common variables!
@@ -703,10 +707,13 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 //        println("FR: map: " + intersectedMap)
         val computedVars = getSetOfVars(computedClean)
         if (!validMap(intersectedMap, computedVars)) {
-          val invalidOut = checkInvalidMapAndReturnSub(intersectedMap, computedVars, computed, desired, false)
-//          println("FR: invalid out: " + invalidOut)
+          
+          println("FR: entering checkInvalidAndReturn------------- " + unifiableVariables)
+          val invalidOut = checkInvalidMapAndReturnSub(intersectedMap, computedVars, computedClean.conclusion, desired, false)
+          println("FR: invalid out: " + invalidOut)
           return checkRenamingSubstitution(invalidOut)
         }
+        println("FR says valid map: " + intersectedMap)
         val sub = checkRenamingSubstitution(getUniqueSubstitutions(intersectedMap, computedVars))
         val out = if (sub == null) { sub } else {
           val newComputed = applySub(computedClean.conclusion, sub) //was computed
@@ -848,7 +855,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   
  def findDesiredSequent(pairs: Seq[(E, E)], desired: Sequent, leftPremise: SequentProofNode,
                          rightPremise: SequentProofNode, leftPremiseClean: SequentProofNode, isMRR: Boolean, relaxation: Substitution = null)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
-
     if (pairs.length == 0) {
       throw new Exception("Resolution: Cannot find desired resolvent")
     } else {
@@ -900,12 +906,33 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         computedCleanIsMoreGeneral = isMoreGeneral(computedSequentClean, desired)
       }
       
-//       println("FDD: computed: " + computedSequentClean)
-//       println("FDD: desired:  " + desired)      
+       println("FDD: computed: " + computedSequentClean)
+       println("FDD: desired:  " + desired)      
       
+       var contractionWorked = false
+       
+       try{
+                println("FROM HERE----------------------------------- " + Axiom(computedSequentClean))
+       val temp = Contraction(Axiom(computedSequentClean), desired)
+       val tempR = findRenaming(temp.conclusion, desired) != null
+       println("OH? " + temp + " and " + (tempR != null) )
+       println("OHR " + tempR)
+       
+       if (tempR){
+         println("XXXX this: " +Axiom(computedSequentClean))
+         println("XXXX was obtained from: " + temp)
+         println("~~~~~~~~~~~~~~~~~~")
+       }
+       contractionWorked = true //comment out to ignore Oct 28 change
+       } catch {
+         case _:Throwable => {
+           println("..")
+         }
+       }
+       
       //July 28 - changed order of arguments for findRenaming      
-       val condition = (findRenaming(computedSequentClean, desired) != null) || desiredEquivToComputedRelaxed || computedCleanIsMoreGeneral
-
+       val condition = (findRenaming(computedSequentClean, desired) != null) || contractionWorked || desiredEquivToComputedRelaxed || computedCleanIsMoreGeneral
+       println("CONDITION: " + condition)
 
 //       println("FDD: mapping: " + findRenaming(computedSequentClean, desired))
       
