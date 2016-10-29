@@ -218,19 +218,17 @@ abstract class FOAbstractRPILUAlgorithm
 
         //We may have to apply a FO sub
         def newFixedRight = if (!mguMap.get(fixedRight).isEmpty) {
-          new FOSubstitution(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
+          makeFOSub(fixedRight, mguMap.get(fixedRight).get)(unifiableVariables)
         } else {
           fixedRight
         }
 
         def newFixedLeft = if (!mguMap.get(fixedLeft).isEmpty) {
-          new FOSubstitution(fixedLeft, mguMap.get(fixedLeft).get)(unifiableVariables)
+          makeFOSub(fixedLeft, mguMap.get(fixedLeft).get)(unifiableVariables)
         } else {
           fixedLeft
         }
-        var oFlag = "?"
         val out = try {
-          oFlag = "A"
           UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
 
         } catch {
@@ -238,15 +236,12 @@ abstract class FOAbstractRPILUAlgorithm
             if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
               if (nonEmptyLeftMap && !nonEmptyRightMap) {
                 val oldMGU = mguMap.get(left).get
-                oFlag = "B"
                 fixAmbiguous(fixedLeft, newFixedRight, oldMGU, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
               } else {
                 val oldMGU = mguMap.get(right).get
-                oFlag = "C"
                 fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
               }
             } else {
-              oFlag = "D"
               attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, mguMap, p.conclusion)(unifiableVariables)
             }
           }
@@ -291,7 +286,15 @@ abstract class FOAbstractRPILUAlgorithm
     }
   }
 
-  //TODO: only use FOSub if something changes
+  def makeFOSub(premise: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+    val FOSub = new FOSubstitution(premise, sub)
+    if (checkIfConclusionsAreEqual(FOSub, premise)){
+      premise 
+    } else {
+      FOSub
+    }
+  }
+  
   def fixAmbiguous(fLeft: SequentProofNode, fRight: SequentProofNode, oldMGU: Substitution, left: SequentProofNode, right: SequentProofNode,
                    auxL: E, auxR: E, oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
@@ -325,35 +328,37 @@ abstract class FOAbstractRPILUAlgorithm
     val rightEq = !fRight.equals(right)
 
     val fLeftClean = if (!fLeft.equals(left)) {
-      new FOSubstitution(fLeft, mgu).conclusion
+      makeFOSub(fLeft,mgu).conclusion
     } else {
       fLeft.conclusion
     }
     val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, mgu, leftEq, true)
 
     val fRightClean = if (!fRight.equals(right)) {
-      new FOSubstitution(fRight, mgu).conclusion
+      makeFOSub(fRight,mgu).conclusion
     } else {
       fRight.conclusion
     }
     val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, mgu, rightEq, false)
 
-    val rightRemainderWithNewMGU = (new FOSubstitution(Axiom(rightRemainder), newMGU)).conclusion
+    val rightRemainderWithNewMGU = makeFOSub(Axiom(rightRemainder), newMGU).conclusion
 
-    val tempLeft = new FOSubstitution(new FOSubstitution(Axiom(leftRemainder), leftSub), newMGU)
+    
+        val tempLeft = makeFOSub(makeFOSub(Axiom(leftRemainder), leftSub), newMGU)
+    
     val tempRight = Axiom(rightRemainderWithNewMGU)
     val cleanLeftRemainder = fixSharedNoFilter(tempLeft, tempRight, 0, unifiableVariables).conclusion
 
     val newTarget = rightRemainderWithNewMGU.union(tempLeft.conclusion)
 
     val finalLeft = if (leftEq) {
-      new FOSubstitution(fLeft, mgu)
+      makeFOSub(fLeft,mgu)
     } else {
       fLeft
     }
 
     val finalRight = if (rightEq) {
-      new FOSubstitution(fRight, mgu)
+      makeFOSub(fRight,mgu)
     } else {
       fRight
     }
