@@ -20,14 +20,27 @@ class FOSubstitution(val premise: SequentProofNode, val sub: Substitution)(impli
   def mainFormulas = conclusion intersect premise.mainFormulas
 
   override lazy val conclusion = {
-    val antecedent = premise.conclusion.ant.map(e => sub(e))
-    val succedent = premise.conclusion.suc.map(e => sub(e))
+    val antecedent = if (sub != null) {
+      premise.conclusion.ant.map(e => sub(e))
+    } else {
+      premise.conclusion.ant
+    }
+    val succedent = if (sub != null) {
+      premise.conclusion.suc.map(e => sub(e))
+    } else {
+      premise.conclusion.suc
+    }
     new Sequent(antecedent, succedent)
   }
 
   object FOSubstitution {
     def apply(premise: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]) = {
-      new FOSubstitution(premise, sub)
+      if(sub != null){
+        new FOSubstitution(premise, sub)
+      } else {
+        premise
+      }
+      
     }
 
     def unapply(p: SequentProofNode) = p match {

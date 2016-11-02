@@ -47,7 +47,7 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   val resultf = checkProofs(FOLowerUnits(prooff), "examples/proofs/SPASS/testresults/FOLowerUnits/example6.result")
   
   
-  //7: unit is resolved against several nodes, but still lowered correctly:
+//  //7: unit is resolved against several nodes, but still lowered correctly:
   val proofg = ProofParserSPASS.read("examples/proofs/SPASS/example7.spass")
   println("FINALG: \n " + FOLowerUnits(proofg))
   val resultg = checkProofs(FOLowerUnits(proofg), "examples/proofs/SPASS/testresults/FOLowerUnits/example7.result")
@@ -155,7 +155,7 @@ class FOLowerUnitsSpecification extends SpecificationWithJUnit with checkProofEq
   val isUnit3 = Sequent(App(Var("q", i -> i), x))(App(Var("r", i -> i), y))
   
   println("---")
-  println("Testing proof: \n " + FOLowerUnits(proofd))
+//  println("Testing proof: \n" + FOLowerUnits(proofg))
 
   "FOLowerUnits" should {
     

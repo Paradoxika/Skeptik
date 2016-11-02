@@ -55,6 +55,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   val conB = Contraction(premiseB)(usedVars)
 
+ println("cB done")
+  
   //third test case
   //(eq (f X) 2), (eq (f NEW2) 2) ⊢
   val f1C = AppRec(e, List(App(f, x), two))
@@ -81,7 +83,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val expectedD = Sequent(App(A, b))(App(B, b))
 
   val conD = Contraction(premiseD)(usedVars)
-
+println("cD done")
   //fifth test case
   //multiple contractions: {A(X), A(b), B(Y), B(a) |- }, the result should be {A(b), B(a) |-}.
   val a = new Var("a", i)
@@ -104,7 +106,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
 
   val expSeqFTemp = Sequent()(App(A, a))
   val expectedF = expSeqFTemp + App(A, b) + App(B, b)
-
+println("cE done")
   val conF = Contraction(premiseF, expectedF)(usedVars)
 
   //Seventh test case
@@ -161,6 +163,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val expectedNewSuc = Seq[E](App(A, x)) ++ Seq[E](App(B, c))
   val expectedCon = (expectedNewAnt, expectedNewSuc, null)
 
+  println("conJ done")
+  
   //checkEmpty
   //instances length == 0; require passes
   val ce1E = App(A, x)
@@ -293,11 +297,14 @@ class ContractionSpecification extends SpecificationWithJUnit {
   val nonemptyMapC = MMap[Var, Set[E]]((x, Set[E](App(B, y)))) //invalid
   val mixedInput3E = Seq[MMap[Var, Set[E]]](nonemptyMap) ++ Seq[MMap[Var, Set[E]]](nonemptyMapC) ++ Seq[MMap[Var, Set[E]]](nonemptyMap)
 
+  
   //both empty
   val manyEmpty = Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](emptyMap) ++ Seq[MMap[Var, Set[E]]](emptyMap)
   val manyEmptyExpected = emptyMap
   val manyEmptyOut = conJ.mergeMaps(manyEmpty, Sequent()())
 
+  
+  println("all the way to appply tests done")
   //object (apply) tests------
 
   //no desired - should contract all the way
@@ -318,6 +325,13 @@ class ContractionSpecification extends SpecificationWithJUnit {
     case _ => false
   }
 
+  println("______________________________________________________________")
+//  println("initial: " + premiseF)
+//  println("expected: " + expectedF)
+//  println("actual: " + conF.conclusion)
+  
+  println("ACTUAL RESULT: " +  Contraction(Axiom(coc5seqA), coc5seqB)(usedVars))//conJ.checkOrContract(coc5seqA, coc5seqB)(usedVars) )
+  
   "Contraction" should {
     "return the correct resolvent when necessary to make a contract" in {
       Sequent(f2A)() must beEqualTo(conA.conclusion)
@@ -430,6 +444,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "check empty - length != 0, pass" in {
       conJ.checkEmpty(ce3ins, ce3E, ce3des) must beEqualTo(true)
     }
+    
+   
     "check if the supplied desired sequent is safe - both empty" in {
       conJ.desiredIsSafe(ds1seqA, ds1seqB)(usedVars) must beEqualTo((): Unit) //don't care what it returns (in fact, it's not specified)
     }
@@ -439,6 +455,7 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "check if the supplied desired sequent is safe - safe" in {
       conJ.desiredIsSafe(ds3seqA, ds3seqB)(usedVars) must beEqualTo((): Unit) //don't care what it returns (in fact, it's not specified)
     }
+    
     "check if a desired sequent was supplied -- both empty" in {
       conJ.checkOrContract(coc1seqA, coc1seqB)(usedVars) must beEqualTo((List(), List(), null ))
     }
@@ -451,9 +468,11 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "check if a desired sequent was supplied --premise size > 0; pass req" in {
       conJ.checkOrContract(coc4seqA, coc4seqB)(usedVars) must beEqualTo((List(App(A, x)), List(), null))
     }
-    "check if a desired sequent was supplied -- premise size > 0; fail req" in {
-      conJ.checkOrContract(coc5seqA, coc5seqB)(usedVars) must throwA[Exception]
-    }
+//This test removed 28 Oct 2016 - we're allowed to pass the initial into contraction as the desired.
+//it's stupid, and you'd never do it, but you should be able to.    
+//    "check if a desired sequent was supplied -- premise size > 0; fail req" in {
+//      conJ.checkOrContract(coc5seqA, coc5seqB)(usedVars) must throwA[Exception]
+//    } 
     "return the correct conclusion context" in {
       (Contraction(Axiom(cc1seqA))(usedVars)).conclusionContext must beEqualTo(Sequent(App(A, x))())
     }
@@ -463,6 +482,8 @@ class ContractionSpecification extends SpecificationWithJUnit {
     "recursively contract correctly - things to contract" in {
       conJ.contract(con2seqA, null)(usedVars) must beEqualTo((List(App(A, y), App(B, y)), List(), List(Substitution((x,y)))))
     }
+    
+    
     "get the right substitution maps for a sequent half -- both empty" in {
       conJ.getMaps(gm1seqA, gm1seqB) must beEqualTo(Seq[Seq[Substitution]]())
     }

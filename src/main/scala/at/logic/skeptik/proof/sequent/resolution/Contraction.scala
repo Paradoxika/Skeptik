@@ -13,7 +13,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit unifiableVariables: MSet[Var])
-  extends SequentProofNode with Unary with CanRenameVariables with FindsVars with FindDesiredSequent {
+    extends SequentProofNode with Unary with CanRenameVariables with FindsVars with FindDesiredSequent {
 
   def conclusionContext = conclusion
   def auxFormulas = premise.mainFormulas diff conclusion
@@ -33,17 +33,31 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
 
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
+
+    val renaming = findRenaming(premise, desired)
+    if (renaming != null) {
+      return (desired.ant, desired.suc, null)
+    }
+
     if (premise.logicalSize > 0) {
       require(premise.logicalSize > desired.logicalSize)
     }
-
     if (desired.logicalSize == 0) {
       contract(premise, null)
     } else {
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
-      if (findRenaming(premiseDistinct, desiredDistinct) == null) {
+
+      val renamingDistinct = findRenaming(premiseDistinct, desiredDistinct)
+
+      if (renamingDistinct == null) {
+
+        if (premise.ant.size == desired.ant.size && premise.suc.size == desired.suc.size) {
+          require(false) //there was no contraction performed, yet we couldn't find a renaming. They're not the same
+        }
+
         desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
+
       }
       (desired.ant, desired.suc, null)
     }
@@ -147,7 +161,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       }
     }
     def isUnifiableWrapper(p: (E, E)) = {
-      val outa = isUnifiable(p)(unifiableVariables) // && 
+      val outa = isUnifiable(p)(unifiableVariables)
       val outb = !(p._1.equals(p._2))
       outa && outb
     }
@@ -194,10 +208,10 @@ object Contraction {
 
   def unapply(p: SequentProofNode) = p match {
     case p: Contraction => Some((p.premise, p.desired))
-    case _ => None
+    case _              => None
   }
 
-  def contractIfPossible(premise: SequentProofNode, variables: MSet[Var]) : SequentProofNode = {
+  def contractIfPossible(premise: SequentProofNode, variables: MSet[Var]): SequentProofNode = {
     val contractedPremise = apply(premise)(variables)
     if (contractedPremise.conclusion == premise.conclusion) premise
     else contractedPremise

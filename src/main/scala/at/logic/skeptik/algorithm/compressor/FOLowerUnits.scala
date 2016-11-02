@@ -434,10 +434,20 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 	def getNewFixedNode(fixedNode: SequentProofNode, oldNode: SequentProofNode, oldSub: Substitution, vars: MSet[Var]): SequentProofNode = {
 		val out = fixedNode match {
 		case Axiom(c) if (oldNode != null && !fixedNode.equals(oldNode)) => {
-			new FOSubstitution(fixedNode, oldSub)(vars)
+			val newFO = new FOSubstitution(fixedNode, oldSub)(vars)
+			if (checkIfConclusionsAreEqual(newFO, fixedNode)){
+			  fixedNode
+			} else {
+			  newFO
+			}
 		}
 		case _ if (oldNode != null && !fixedNode.equals(oldNode)) => {
-			new FOSubstitution(fixedNode, oldSub)(vars)
+			val newFO = new FOSubstitution(fixedNode, oldSub)(vars)
+		  if (checkIfConclusionsAreEqual(newFO, fixedNode)){
+			  fixedNode
+			} else {
+			  newFO
+			}
 		}
 		case _ => {
 			fixedNode
@@ -902,7 +912,12 @@ extends (Proof[SequentProofNode] => Proof[SequentProofNode]) with CanRenameVaria
 		if (subs.size < 1) {
 			node
 		} else {
-			val newNode = new FOSubstitution(node, subs.head)(vars)
+			val newNodeFO = new FOSubstitution(node, subs.head)(vars)
+			val newNode = if (checkIfConclusionsAreEqual(newNodeFO, node)){
+			  node
+			} else {
+			  newNodeFO
+			}
 					applySubs(newNode, subs.tail, vars)
 		}
 	}

@@ -91,6 +91,8 @@ trait SPASSParsers
       } catch {
         case e: Exception => {
           //e.printStackTrace()
+          println("C " + e.getMessage)
+          println("Line: " + ln)
           UnifyingResolution(secondPremise, firstPremise, desiredSequent)(vars)
         }
       }
@@ -119,10 +121,12 @@ trait SPASSParsers
         } catch {
           case e: Exception => {
             //e.printStackTrace()
+            println("B " + e.getMessage)
             UnifyingResolutionMRR(secondPremise, firstPremise, desiredSequent)(vars)
           }
         }
       } else {
+        println("A")
         UnifyingResolutionMRR(getAllNodes(refs), desiredSequent)(vars)
       }
 

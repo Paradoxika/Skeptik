@@ -60,6 +60,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 					val (auxL, auxR) = unifiablePairs(0)
 							var ax = null.asInstanceOf[SequentProofNode]
 									ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
+					println("before con: " + ax)
 					var con = Contraction(ax)(unifiableVariables)
 					//If they're ever equal, contraction did nothing; discard the contraction
 					while (!con.conclusion.equals(ax.conclusion)) {
