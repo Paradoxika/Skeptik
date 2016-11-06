@@ -2,6 +2,7 @@ package at.logic.skeptik.algorithm.FOProofsGenerator
 
 import at.logic.skeptik.algorithm.compressor.{FOLowerUnits, FORecyclePivotsWithIntersection}
 import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
+import at.logic.skeptik.algorithm.compressor.FOSplit.EPFOSplit
 import at.logic.skeptik.expression.{App, Var, i, o}
 import at.logic.skeptik.expression.formula.Atom
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
@@ -123,11 +124,14 @@ object ProofGeneratorTests {
     var splF      = 0
     var splAv     = 0.0
     var rpiAv     = 0.0
-    for(i <- 1 to proofN) {
-      val (proof, vars) = proofGenerationTest(height,Sequent()())
+    var splitFail = 0
+    var rpiFail   = 0
+    var c = 0
+    for(h <- 1 to proofN) {
+      val (proof, vars) = proofGenerationTest(height,Sequent()())//Sequent(Atom("q",List(Var("Z",i))))(Atom("p",List(Var("a",i)))))
       proofsLenghtsSum += proof.size
 
-      val cottonSplit = new FOCottonSplit(vars, timeout)
+      val cottonSplit = new FOCottonSplit(vars, timeout)//EPFOSplit(vars,timeout)//
       var rpiCompressedProof   : Proof[Node] = null
       var splitCompressedProof : Proof[Node] = null
       try {
@@ -148,6 +152,8 @@ object ProofGeneratorTests {
       if (countResolutionNodes(proof) > countResolutionNodes(rpiCompressedProof)
         && countResolutionNodes(rpiCompressedProof) > countResolutionNodes(proof) / 2) {
         rpiN += 1
+        if(rpiCompressedProof.root.conclusion.ant.nonEmpty || rpiCompressedProof.root.conclusion.suc.nonEmpty)
+          rpiFail += 1
         rpiProofsLenghtsSum += rpiCompressedProof.size
         rpiAv += (countResolutionNodes(rpiCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FORPI: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(rpiCompressedProof))
@@ -155,24 +161,28 @@ object ProofGeneratorTests {
         rpiProofsLenghtsSum += proof.size
 
       if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)
-        && splitCompressedProof.root.conclusion.ant.isEmpty
-        && splitCompressedProof.root.conclusion.suc.isEmpty
-        && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 2) {
+        && countResolutionNodes(splitCompressedProof) > countResolutionNodes(proof) / 20000) {
         splN += 1
+        if(countResolutionNodes(splitCompressedProof) <= countResolutionNodes(proof) / 2)
+          splitFail += 1
         splitProofsLenghtsSum += splitCompressedProof.size
         splAv += (countResolutionNodes(splitCompressedProof) * 1.0) / countResolutionNodes(proof)
         println("FOSplit: " + countResolutionNodes(proof) + " -> " + countResolutionNodes(splitCompressedProof))
-      } else if(splitCompressedProof.root.conclusion.ant.nonEmpty || splitCompressedProof.root.conclusion.suc.nonEmpty) {
-        splitProofsLenghtsSum += proof.size
-      } else
+      } /*else if (countResolutionNodes(proof) > countResolutionNodes(splitCompressedProof)
+        && countResolutionNodes(splitCompressedProof) <= countResolutionNodes(proof) / 2) {
+        splitFail += 1
+        splitProofsLenghtsSum += splitCompressedProof.size
+      }*/ else
         splitProofsLenghtsSum += proof.size
     }
 
     println("Average proof size: " + (proofsLenghtsSum * 1.0)/proofN)
     println("FOSplit\nReduced: " + splN + " proof(s)\nFailed in : " + splF + " proof(s)\nThe average compression was to " + splAv/splN)
     println("Total compression ratio: " + ((proofsLenghtsSum - splitProofsLenghtsSum)*1.0)/proofsLenghtsSum)
+    println("Number of too artifietial proof(s): " + splitFail)
     println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv/rpiN)
     println("Total compression ratio: " + ((proofsLenghtsSum - rpiProofsLenghtsSum)*1.0)/proofsLenghtsSum)
+    println("Number of fails: " + rpiFail)
   }
 
   def testContraction() = {

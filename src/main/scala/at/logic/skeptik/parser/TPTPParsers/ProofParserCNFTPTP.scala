@@ -49,6 +49,17 @@ extends BaseParserTPTP {
     p
   }
 
+  def extractFromString(file : String) : Proof[Node] = {
+    val p =
+      phrase(proof)(new lexical.Scanner(file)) match {
+        case Success(p2, _) => p2
+        case Error(message, _) => throw new Exception("Error: " + message)
+        case Failure(message, _) => throw new Exception("Failure: " + message)
+      }
+    reset()
+    p
+  }
+
   ////////////////////////////////////////////////////////////////////
   // Proof generation
   ////////////////////////////////////////////////////////////////////

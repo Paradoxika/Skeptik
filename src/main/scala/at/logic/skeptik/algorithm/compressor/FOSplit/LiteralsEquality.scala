@@ -27,3 +27,12 @@ trait NameEquality extends AbstractEquality {
       case _                                              => throw new Exception("The literal is not an instance of an Atom\nLiterals: " + selectedLiteral.toString + ", " + nodeLiteral.toString)
     }
 }
+
+trait AlphaEquivalenceAsEquality extends AbstractEquality {
+  def equalLiterals(selectedLiteral: E, nodeLiteral: E): Boolean =
+    (FOSplittingUtils.isMoreGeneralOrEqual(selectedLiteral,nodeLiteral,this.variables)
+    && FOSplittingUtils.isMoreGeneralOrEqual(nodeLiteral,selectedLiteral,this.variables))
+
+
+}
+

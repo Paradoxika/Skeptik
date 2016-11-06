@@ -22,7 +22,7 @@ object TestInclusion {
       case _                   => throw new Exception("Literal name not found: " + literal.toString)
     }
 
-  protected def isIncludedInSet(sequent: Sequent, literalsSet : MSet[E]): Boolean = {
+  def isIncludedInSet(sequent: Sequent, literalsSet : MSet[E], variables : collection.mutable.Set[Var]): Boolean = {
 
     val literals = sequent.ant ++ sequent.suc
 
@@ -50,7 +50,7 @@ object TestInclusion {
     val literalSubstitutions: MMap[E, List[Substitution]] =
       occurrences map {
         case (e1, ls) =>
-          e1 -> ls.map(x => MartelliMontanari((e1, x) :: Nil)(MSet(Var("U",i),Var("V",i),Var("W",i)))).filter(_.nonEmpty).map(_.get)
+          e1 -> ls.map(x => MartelliMontanari((e1, x) :: Nil)(variables)).filter(_.nonEmpty).map(_.get)
       }
 
     // If we find a literal that can't be included in the
@@ -65,15 +65,15 @@ object TestInclusion {
           x flatMap { s =>
             val newRestrictions = restriction.clone()
             val pairs           = s.iterator
-            var flag = false
+            var satissfyRestrictions = true
             for((v,e) <- pairs) {
               if (!(newRestrictions contains v))
                 newRestrictions += (v -> e)
               else if (newRestrictions(v) != e)
-                flag = true
+                satissfyRestrictions = false
             }
-            if(flag) Nil
-            else createCompatibleSubstitution(newRestrictions,xs)
+            if(satissfyRestrictions) createCompatibleSubstitution(newRestrictions,xs)
+            else Nil
           }
       }
 
@@ -98,7 +98,9 @@ object TestInclusion {
   def main(args: Array[String]) = {
     val testSeq = Sequent()(List(Atom("p3", List(Var("U", i), Var("W", i))), Atom("p3", List(Var("U", i), Var("V", i))), Atom("p3", List(Var("W", i), Var("V", i)))): _*)
     val testSet = MSet(Atom("p3", List(Var("V", i), Var("V", i))), Atom("p3", List(Var("c21", i), Var("c19", i))), Atom("p3", List(Var("c19", i), Var("c21", i))))
-    println(isIncludedInSet(testSeq, testSet))
+    val s = Sequent(Atom("q",List(Var("V136",i))))(Atom("p",List(Var("a",i))))
+    val set = MSet(Atom("q",List(Var("Z",i))),Atom("p",List(Var("a",i))))
+    println(isIncludedInSet(s, set,MSet(Var("V136",i),Var("Z",i))))
   }
 }
 
