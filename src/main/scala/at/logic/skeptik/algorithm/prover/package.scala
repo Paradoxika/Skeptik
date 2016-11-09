@@ -25,8 +25,8 @@ package object prover {
 
   implicit def literalToClause(literal: Literal): Clause = literal.toClause
 
-  implicit class ClauseOperations(clause: SeqSequent) {
-    lazy val literals: Seq[Literal] =
+  implicit class ClauseOperations(val clause: SeqSequent) extends AnyVal {
+    def literals: Seq[Literal] =
       clause.ant.map(Literal(_, negated = true)) ++ clause.suc.map(Literal(_, negated = false))
 
     def apply(pos: Int): Literal = literals(pos)
@@ -38,14 +38,14 @@ package object prover {
     def isUnit: Boolean = clause.width == 1
   }
 
-  implicit class UnitSequent(sequent: SeqSequent) {
+  implicit class UnitSequent(val sequent: SeqSequent) extends AnyVal {
     def literal: Literal =
       if (sequent.ant.size == 1 && sequent.suc.isEmpty) Literal(sequent.ant.head, negated = true)
       else if (sequent.ant.isEmpty && sequent.suc.size == 1) Literal(sequent.suc.head, negated = false)
       else throw new IllegalStateException("Given SeqSequent is not a unit")
   }
 
-  implicit class LiteralsAreSequent(literals: Iterable[Literal]) {
+  implicit class LiteralsAreSequent(val literals: Iterable[Literal]) extends AnyVal {
     def toSequent: SeqSequent = {
       val ant = literals.flatMap(l => if (l.negated) Some(l.unit) else None)
       val suc = literals.flatMap(l => if (l.negated) None else Some(l.unit))

@@ -29,7 +29,9 @@ object SkeptikBuild extends Build {
  
   // Custom Run Tasks
   val skeptik = InputKey[Unit]("skeptik", "bla")
+  val skeptikProve = InputKey[Unit]("skeptik-prove", "Skeptik prove CLI")
   val skeptikSettings = Seq(fullRunInputTask(skeptik,Runtime,"at.logic.skeptik.ProofCompressionCLI"),
+                            fullRunInputTask(skeptikProve,Runtime,"at.logic.skeptik.ProveCLI"),
                              trapExit in skeptik := true ,
                              fork in skeptik := false,
                              traceLevel in skeptik := 0)

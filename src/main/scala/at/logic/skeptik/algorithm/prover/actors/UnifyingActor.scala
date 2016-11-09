@@ -15,7 +15,7 @@ class UnifyingActor(implicit variables: mutable.Set[Var]) extends Actor with Act
   override def receive: Receive = {
     case Unify(left, right) =>
       sender ! unifyWithRename(left.map(_.unit), right.map(_.unit))
-    case GetVariables() =>
+    case GetVariables =>
       sender ! variables.toSet
     case other =>
       log.warning(s"Didn't expect, but got $other")

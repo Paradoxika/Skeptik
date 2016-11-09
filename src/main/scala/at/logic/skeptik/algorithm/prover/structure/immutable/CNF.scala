@@ -16,5 +16,5 @@ case class CNF(clauses: Seq[Clause]) {
 
   def -(that: CNF): CNF = new CNF(clauses.filterNot(that.clauses.toSet))
 
-  def toMutableCnf: mutable.CNF = new mutable.CNF(clauses.to[ArrayBuffer])
+  def toMutableCNF: mutable.CNF = new mutable.CNF(clauses.to[ArrayBuffer])
 }

@@ -17,7 +17,7 @@ import scala.language.postfixOps
 /**
   * @author Daniyar Itegulov
   */
-object ConcurrentCR {
+object ConcurrentCR extends Prover {
   def prove(cnf: CNF)(implicit variables: mutable.Set[Var]): Option[Proof[SequentProofNode]] = {
     implicit val timeout: Timeout = 2 seconds
     implicit val system = ActorSystem()

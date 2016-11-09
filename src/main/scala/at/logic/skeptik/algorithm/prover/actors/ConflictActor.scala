@@ -68,7 +68,7 @@ class ConflictActor extends Actor with ActorLogging {
         if (allClauses contains current.toClause) {
           Axiom(current.toClause.toSeqSequent)
         } else if (decisions contains current) {
-          Decision(current.toClause)
+          Decision(current)
         } else if (reverseImpGraph contains current) {
           val (clause, unifier) = reverseImpGraph(current).head
           val premiseProofs = unifier.map {
@@ -80,7 +80,7 @@ class ConflictActor extends Actor with ActorLogging {
         }
       }
 
-      val variablesFuture = (unifyingActor ? GetVariables()).mapTo[Set[Var]]
+      val variablesFuture = (unifyingActor ? GetVariables).mapTo[Set[Var]]
       val future = (unifyingActor ? Unify(Seq(leftLiteral.unit), Seq(rightLiteral.unit)))
         .mapTo[Option[(Seq[Substitution], Substitution)]]
 

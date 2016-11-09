@@ -15,7 +15,7 @@ object CDCL {
   def isSatisfiable(immutableCnf: CNF,
                     literalChooser: LiteralChooser = SimpleLiteralChooser,
                     conflictAnalyser: ConflictAnalyser = SimpleConflictAnalyser): Boolean = {
-    val cnf = immutableCnf.toMutableCnf
+    val cnf = immutableCnf.toMutableCNF
     val levels = ArrayBuffer[DecisionLevel]() // Stack of decision levels
     val unitPropagationQueue = mutable.Queue.empty[Literal] // Queue of literals that should be propagated
 

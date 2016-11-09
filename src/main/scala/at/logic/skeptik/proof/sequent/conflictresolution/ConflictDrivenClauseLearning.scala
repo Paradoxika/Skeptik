@@ -12,8 +12,8 @@ case class ConflictDrivenClauseLearning(conflict: Conflict) extends SequentProof
 
   private def findDecisions(proofNode: SequentProofNode, sub: Substitution): SeqSequent = {
     proofNode match {
-      case Decision(clause) =>
-        !sub(clause.literals.head)
+      case Decision(literal) =>
+        !sub(literal)
       case conflict@Conflict(left, right) =>
         findDecisions(left, conflict.leftMgu) union findDecisions(right, conflict.rightMgu)
       case resolution@UnitPropagationResolution(left, right, _) =>

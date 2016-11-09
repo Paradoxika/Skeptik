@@ -16,7 +16,7 @@ import scala.util.Random
 /**
   * @author Daniyar Itegulov
   */
-object CR {
+object CR extends Prover {
 
   def prove(cnf: CNF)(implicit variables: mutable.Set[Var]): Option[Proof[SequentProofNode]] = {
 
@@ -216,7 +216,7 @@ object CR {
       if (allClauses contains current.toClause) {
         Axiom(current.toClause.toSeqSequent)
       } else if (decision contains current) {
-        Decision(current.toClause)
+        Decision(current)
       } else if (reverseImplicationGraph contains current) {
         val (clause, unifier) = reverseImplicationGraph(current).head
         val premiseProofs = unifier.map {
