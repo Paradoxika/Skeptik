@@ -15,6 +15,7 @@ import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import java.io.PrintWriter
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
+import java.util.Calendar 
 
 object FORPIExperimentDriver extends checkProofEquality {
 
@@ -62,11 +63,19 @@ object FORPIExperimentDriver extends checkProofEquality {
     outTj
   }
 
+    def getTimeString(): String = {
+    val today = Calendar.getInstance().getTime()
+    val out = today.toString().replace(":","-")
+    out
+  }
+  
   def main(args: Array[String]): Unit = {
     val prefixLen = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs".length() 
     val path = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
     val proofList = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt"
 
+    val expPrefix = "LU " + getTimeString()
+    
     val problemSetS = getProblems(proofList, path)
     var errorCount = 0
     var parseErrorCount = 0
@@ -74,17 +83,20 @@ object FORPIExperimentDriver extends checkProofEquality {
     var successCount = 0
     
 
-    val parseErrorLogger = new PrintWriter("FORPI_parseErrors.txt")
+    val parseErrorLogger = new PrintWriter(expPrefix + "_parseErrors.txt")
     
-    val compressionErrorLogger = new PrintWriter("FORPI_compressionErrors.txt")
+    val compressionErrorLogger = new PrintWriter(expPrefix + "_compressionErrors.txt")
     //    val eTypeLogger = new PrintWriter("errorTypes.elog")
     //    val eProblemsLogger = new PrintWriter("errorProblems.elog")
-    val etempT = new PrintWriter("FORPI_results-10oct2016.txt")
+    val etempT = new PrintWriter(expPrefix + "_results.txt")
     val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
     etempT.println(header)
     etempT.flush
     val noDataString = ",-1,-1,-1,-1,-1,-1,-1,-1,-1"
 
+    var totalNodes = 0
+    var compressedNodes = 0
+    
     for (probY <- problemSetS) {
       totalCount = totalCount + 1
       try {
@@ -107,10 +119,15 @@ object FORPIExperimentDriver extends checkProofEquality {
         val parseTime = postParseTime-preParseTime
         
         val startTime = System.nanoTime
-        
+        totalNodes = proofLength + totalNodes
         val compressedProof =  if (proofToTest != null) { 
           try{
-            FORecyclePivotsWithIntersection(proofToTest) 
+            FORecyclePivotsWithIntersection(proofToTest)
+            
+//            FORecyclePivotsWithIntersection(FOLowerUnits(proofToTest)) //Done 10 Nov 2016
+//                        FOLowerUnits(FORecyclePivotsWithIntersection(proofToTest))//Done 10 Nov 2016
+//               FORecyclePivotsWithIntersection(proofToTest) //Done on 10 oct 2016 //Re-done on Nov 2016
+//                FOLowerUnits(proofToTest)
           } catch {
             case f: Exception => {
               compressionErrorLogger.println(probY)
@@ -120,6 +137,8 @@ object FORPIExperimentDriver extends checkProofEquality {
           }
           } else { null }
 
+        compressedNodes = if (compressedProof != null) { compressedNodes + compressedProof.size} else { compressedNodes} 
+        
         if (compressedProof == null || compressedProof.root.conclusion.ant.size != 0 || compressedProof.root.conclusion.suc.size != 0) {
           etempT.println(probY.substring(prefixLen) + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")
           etempT.flush
@@ -170,6 +189,10 @@ object FORPIExperimentDriver extends checkProofEquality {
     println("Parse Errors: " + parseErrorCount)
     println("Compression Errors: " + errorCount)
     println("Succesful count: " + successCount)
+    
+    println("---")
+    println("total: " + totalNodes)
+    println("compr: " + compressedNodes)
     parseErrorLogger.flush
     parseErrorLogger.close
     

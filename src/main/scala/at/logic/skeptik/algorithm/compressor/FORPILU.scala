@@ -206,7 +206,7 @@ abstract class FOAbstractRPILUAlgorithm
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))
         fixedRight
       }
-
+      
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, auxL, auxR) => {
 
@@ -280,8 +280,37 @@ abstract class FOAbstractRPILUAlgorithm
         }
       }
       case e: Exception => {
+        if(checkIfConclusionsAreEqual(fixedRight, fixedLeft)){
+          fixedRight
+        } else if (checkSubsetOrEquality(true, fixedRight.conclusion, oldConclusion)) {
+          println("NEW")
+          fixedRight
+        } else {
+        val debugproofR = new Proof[SequentProofNode](fixedRight)
+        val debugproofL = new Proof[SequentProofNode](fixedLeft)
+        println("oc: " + oldConclusion)
+        println("L: " + left)
+        println("R: " + right)
+        println("NFR: " + newFixedRight)
+        println("FR: " + fixedRight)
+        println("FL: " + fixedLeft)
+        println("Lproof")
+        println(debugproofL)
+        println("Rproof")
+        println(debugproofR)        
+        try {
         UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
-        throw new Exception("FORPI Failed!")
+        } catch {
+          case f: Exception => {
+            fixedRight//do this intelligently
+          }
+          case _ => {
+            throw new Exception("FORPI Failed!")
+          }
+          
+        }
+        
+        }
       }
     }
   }
@@ -316,7 +345,7 @@ abstract class FOAbstractRPILUAlgorithm
       val quickFix = tryGreedyContraction(fLeft, fRight)
       return quickFix
     } catch {
-      case _: Throwable => { //do nothing - we work to do.
+      case _: Throwable => { //do nothing - we have work to do.
       }
     }
 
@@ -361,10 +390,18 @@ abstract class FOAbstractRPILUAlgorithm
     val newFinalLeft = findTargetIfEqual(leftEq, left, finalLeft)
 
     val out = try {
-      UnifyingResolution(finalLeft, newFinalRight, oldConclusion) //28 Oct
+      println("OC: " + oldConclusion)
+      UnifyingResolution(newFinalLeft, newFinalRight, oldConclusion) //28 Oct 
     } catch {
       case e: Exception => {
-        UnifyingResolution(finalRight, finalLeft)
+//        UnifyingResolution(finalRight, finalLeft)
+//        println(e.getMessage)
+        println(oldConclusion)
+        if (e.getMessage.contains("Cannot find desired resolvent")){
+          UnifyingResolution(contractIfHelpful(newFinalLeft), contractIfHelpful(newFinalRight), contractIfHelpful(Axiom(oldConclusion)).conclusion)
+        } else {
+          UnifyingResolution(finalRight, finalLeft)
+        }
       }
     }
     out
@@ -565,12 +602,18 @@ trait FOCollectEdgesUsingSafeLiterals
           && checkForResSmart(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion)) => {
           auxMap.put(p, auxL)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
+          println("MARKED-R between " + p + " and " + p.asInstanceOf[UnifyingResolution].rightPremise)
+          println("..or? " + p.asInstanceOf[UnifyingResolution].leftPremise)
+          println("safe: " + safeLiterals)
           edgesToDelete.markRightEdge(p)
         }
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.ant, auxR) &&
           checkForResSmart(safeLiterals.ant, auxR, p) && finalCheck(safeLiterals.toSeqSequent, right.conclusion)) => {
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
+          println("MARKED-L between " + p + " and " + p.asInstanceOf[UnifyingResolution].leftPremise)
+          println("..or? " + p.asInstanceOf[UnifyingResolution].rightPremise)
+          println("safe: " + safeLiterals)          
           edgesToDelete.markLeftEdge(p)
         }
         case _ =>

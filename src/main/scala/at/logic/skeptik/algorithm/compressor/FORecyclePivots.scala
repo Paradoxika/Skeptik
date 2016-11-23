@@ -17,6 +17,7 @@ abstract class FORecyclePivots
     if (edgesToDelete.isEmpty) {
       proof
     } else {
+      println(edgesToDelete.edges.size)
       Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, auxMap, mguMap)))
     }
 

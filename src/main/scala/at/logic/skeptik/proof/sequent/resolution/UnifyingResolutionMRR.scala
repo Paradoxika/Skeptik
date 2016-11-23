@@ -42,7 +42,8 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 				if (unifiablePairs.length > 0) {
 					findDesiredSequent(unifiablePairs, desired, leftPremise, rightPremise, leftPremiseClean, true, relaxation)
 				} else if (unifiablePairs.length == 0) {
-					throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.")
+					throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.\n" + leftPremise + "\n" + rightPremise + "\n" + relaxation)
+				  
 				} else {
 					//Should never really be reached in this constructor
 					throw new MRRException("Resolution (MRR): the resolvent is ambiguous.")
@@ -60,7 +61,6 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 					val (auxL, auxR) = unifiablePairs(0)
 							var ax = null.asInstanceOf[SequentProofNode]
 									ax = new UnifyingResolutionMRR(leftPremise, rightPremise, auxL, auxR, leftPremiseClean, null)
-					println("before con: " + ax)
 					var con = Contraction(ax)(unifiableVariables)
 					//If they're ever equal, contraction did nothing; discard the contraction
 					while (!con.conclusion.equals(ax.conclusion)) {
@@ -69,7 +69,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 								con = Contraction(ax)(unifiableVariables)
 					}
 					ax
-				} else if (unifiablePairs.length == 0) throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.")
+					} else if (unifiablePairs.length == 0) throw new MRRException("Resolution (MRR): the conclusions of the given premises are not resolvable.\n" + leftPremise + "\n" + rightPremise)
 				else throw new MRRException("Resolution (MRR): the resolvent is ambiguous.")
 	}
 

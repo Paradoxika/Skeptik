@@ -318,6 +318,15 @@ trait checkUnifiableVariableName {
 
 trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {
 
+  def contractIfHelpful(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
+    val con = Contraction(premise)(unifiableVariables)
+    if(con.conclusion.size < premise.conclusion.size){
+      con
+    } else {
+      premise
+    }
+  }
+  
   def intersectMaps(a: MMap[Var, Set[E]], b: MMap[Var, Set[E]]): MMap[Var, Set[E]] = {
     val out = MMap[Var, Set[E]]()
 
