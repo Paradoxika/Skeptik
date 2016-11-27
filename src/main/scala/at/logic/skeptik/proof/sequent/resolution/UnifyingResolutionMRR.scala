@@ -124,7 +124,7 @@ object UnifyingResolutionMRR extends CanRenameVariables with FindDesiredSequent 
 	}
 
 	def unapply(p: SequentProofNode) = p match {
-	case p: UnifyingResolutionMRR => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))
+	case p: UnifyingResolutionMRR => Some((p.leftPremise, p.rightPremise, p.auxL, p.auxR))	
 	case _ => None
 	}
 

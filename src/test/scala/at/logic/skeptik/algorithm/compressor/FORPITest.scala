@@ -72,7 +72,9 @@ println("FORPI Test: 2c completed")
 println("FORPI Test: 2d completed")
 
   println("-----")
-  println("Testing proof: \n" + FORecyclePivots(proofb))
+  println("input proof: \n" + proof2a)
+  println("-----")
+  println("Testing proof: \n" + FORecyclePivotsWithIntersection(proof2a))
   
   "FORPILU" should {
     "Compress the proof correctly (small compression)" in {

@@ -226,17 +226,6 @@ object FOLowerUnits
     }
   }
 
-  //  def tryReversingArguments(l: SequentProofNode, r: SequentProofNode, goal: Sequent, vars: MSet[Var]) = {
-  //    try {
-  //      UnifyingResolutionMRR(r, l, goal)(vars)
-  //    } catch {
-  //      case e: Exception => {
-  //        //Do nothing
-  //        null
-  //      }
-  //    }
-  //  }
-
   def updateCarry(oldCarry: Sequent, sub: Substitution): Sequent = {
     if (oldCarry == null) {
       return null.asInstanceOf[Sequent]
@@ -294,7 +283,6 @@ object FOLowerUnits
     def visit(node: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
       lazy val fixedLeft = fixedPremises.head;
       lazy val fixedRight = fixedPremises.last;
-
       val fixedP = node match {
         case Axiom(conclusion) => node
         case UnifyingResolution(left, right, _, _) if unitsSet contains left => {
@@ -348,12 +336,10 @@ object FOLowerUnits
             case e: Exception => {
               if (e.getMessage() != null) {
                 if (e.getMessage.contains("Resolution (MRR): the resolvent is ambiguous.")) {
-
                   if (findRenaming(fixedLeft.conclusion, left.conclusion)(vars) != null &&
                     findRenaming(fixedRight.conclusion, right.conclusion)(vars) != null) {
                     return UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
                   }
-
                   resolveUsingMultipleCarriedSubs(node, fixedRight, fixedLeft, right, left, mguMap, vars, carryMap, carryMapList)
 
                 } else {
@@ -374,7 +360,6 @@ object FOLowerUnits
                             findRenaming(fixedRight.conclusion, right.conclusion)(vars) != null) {
                             return UnifyingResolutionMRR(fixedLeft, fixedRight, node.conclusion)(vars)
                           }
-
                           resolveUsingMultipleCarriedSubs(node, fixedRight, fixedLeft, right, left, mguMap, vars, carryMap, carryMapList)
 
                         }
@@ -525,10 +510,7 @@ object FOLowerUnits
 
     } catch {
       case e: Exception => {
-        println(e.getMessage())
-        println(contractedFixedLeft)
-        println(newFixedRight)
-        println(newGoalD)
+
         val triedAll = tryToResolveUsingAllCarrys(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars, false)
         val carriesOut = if (triedAll._1 == null) {
           val triedCon = tryToResolveUsingAllCarrys(node, left, right, fixedLeft, fixedRight, carryMapList, mguMap, vars, true)
@@ -544,7 +526,6 @@ object FOLowerUnits
     }
 
     var outAfterContraction = out
-    println(outAfterContraction)
     val outContracted = Contraction(out)(vars)
 
     val newSize = (outContracted.conclusion.ant.size + outContracted.conclusion.suc.size)
@@ -633,9 +614,9 @@ object FOLowerUnits
 
     val testCarry = getCarry(mergedCarry)
 
+
     val renamingBackward = findRenaming(urMRRout.asInstanceOf[UnifyingResolution].leftClean.conclusion, newFixedLeft.conclusion)(vars)
     val fixedCarry = updateCarry(testCarry, renamingBackward)
-
     if (testCarry != null) {
       addToMap(urMRRout, testCarry, carryMap)
       addCarryToMapList(urMRRout, testCarry, carryMapList)
@@ -931,8 +912,13 @@ object FOLowerUnits
     if (isUnitClause(left.conclusion)) {
       if (isUnitClause(right.conclusion)) {
         //Both units; no need to contract either
-        UnifyingResolution(left, right)(vars)
-
+        try{
+          UnifyingResolution(left, right)(vars)
+        } catch {
+          case e: Exception => {
+            UnifyingResolution(right, left)(vars)
+          }
+        }
       } else {
         //only right is non-unit
         val contracted = Contraction(right)(vars)
@@ -1067,10 +1053,8 @@ object FOLowerUnits
     if (units.length == 0) {
       return proof
     }
-
     try {
       val fixMap = fixProofNodes(units.toSet, proof, varsC)
-
       def placeLoweredResolution(leftN: SequentProofNode, rightN: SequentProofNode) = {
         try {
           contractAndUnify(leftN, rightN, varsC, units)
@@ -1082,7 +1066,6 @@ object FOLowerUnits
           }
         }
       }
-
       val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
       val p = Proof(root)

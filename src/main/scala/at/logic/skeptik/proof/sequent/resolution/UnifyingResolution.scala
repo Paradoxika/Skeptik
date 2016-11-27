@@ -546,7 +546,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         Set[Var]()
       }
     }
+
     for (mVal <- bigSet) {
+
       val newNewComputed = applySub(newComputed, Substitution((bigSetKey.get, mVal)))
       val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired, vars)
       //Aug11
@@ -628,6 +630,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         val intersectedMap = intersectMaps(antMap, sucMap)
         val computedVars = getSetOfVars(computedClean)
         if (!validMap(intersectedMap, computedVars)) {
+                    
           val invalidOut = checkInvalidMapAndReturnSub(intersectedMap, computedVars, computedClean.conclusion, desired, false)
           return checkRenamingSubstitution(invalidOut)
         }
