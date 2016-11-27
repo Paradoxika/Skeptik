@@ -367,13 +367,13 @@ abstract class FOAbstractRPILUAlgorithm
           println("B")
           fixedLeft  
           
-          //1:30am change: these two 
-        } else if (checkSubsetOrEquality(true, oldConclusion, fixedRight.conclusion) && oldConclusionIsNotEmpty) {
-          println("C")
-          fixedRight          
-        } else if (checkSubsetOrEquality(true, oldConclusion, fixedLeft.conclusion) && oldConclusionIsNotEmpty) {
-          println("D")
-          fixedLeft           
+//          //1:30am change: these two 
+//        } else if (checkSubsetOrEquality(true, oldConclusion, fixedRight.conclusion) && oldConclusionIsNotEmpty) {
+//          println("C")
+//          fixedRight          
+//        } else if (checkSubsetOrEquality(true, oldConclusion, fixedLeft.conclusion) && oldConclusionIsNotEmpty) {
+//          println("D")
+//          fixedLeft           
 
   
           
