@@ -161,8 +161,13 @@ abstract class FOAbstractRPILUAlgorithm
 
     var resMap = new MMap[SequentProofNode, MSet[Substitution]]()
     p match {
-      case Axiom(conclusion) => p
+//      case Axiom(conclusion) => p
     
+      
+//      case FOSubstitution(prem,_) => {
+//        p
+//      }
+      
       case Contraction(_, _) if isMRRContraction(p.asInstanceOf[Contraction]) => {
         println("About to contract.")
         println("fixedleft:  " + fixedLeft)
@@ -177,7 +182,7 @@ abstract class FOAbstractRPILUAlgorithm
              val con = contractIfHelpful(fixedLeft)(unifiableVariables)
              println("CON : " + con)
              if (!checkSubsetOrEquality(true, p.conclusion, con.conclusion) && (p.conclusion.ant.size !=0 || p.conclusion.suc.size != 0)){
-               println("kk")
+               println("CON-con")
                con
              } else {
                p
@@ -266,6 +271,8 @@ abstract class FOAbstractRPILUAlgorithm
           } else {
             val res = UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
             println("RES: " + res)
+            println("--L: " + fixedLeft)
+            println("--R: " + newFixedRight)
             res
           }
           //-----26 Nov 2016 ends
@@ -386,6 +393,7 @@ abstract class FOAbstractRPILUAlgorithm
 //            println("FL: " + fixedLeft)
 //            println("NFR: " + newFixedRight)
 //            println("oc: " + oldConclusion)
+            
             val out = if (checkIfConclusionsAreEqual(fixedLeft, left)) {
               println("using FR")
               fixedRight
@@ -601,6 +609,7 @@ abstract class FOAbstractRPIAlgorithm
           safeLiterals
         } else {
           def auxRb = findActualAux(left.conclusion.suc, auxR, child.asInstanceOf[UnifyingResolution].mgu)
+          println("adding " + auxRb + " as safe for " + childWithSafeLiterals._1)
           addLiteralSmart(safeLiterals, auxRb, false, left, right)
         }
 
@@ -609,7 +618,9 @@ abstract class FOAbstractRPIAlgorithm
           safeLiterals
         } else {
           def auxLb = findActualAux(right.conclusion.ant, auxL, child.asInstanceOf[UnifyingResolution].mgu)
-          addLiteralSmart(safeLiterals, auxL, true, left, right)
+          println("adding " + auxL + " as safe for " + childWithSafeLiterals._1)
+          
+          addLiteralSmart(safeLiterals, auxL, true, left, right)//TODO: should this be auxLb?
         }
 
       case (p, safeLiterals) => {
@@ -703,6 +714,7 @@ trait FOCollectEdgesUsingSafeLiterals
           auxMap.put(p, auxL)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           println("marking edge between " + p + " and " + right)
+          println("so " + left + " should be safe: " + safeLiterals)
           edgesToDelete.markRightEdge(p)
         }
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.ant, auxR) &&
@@ -710,6 +722,8 @@ trait FOCollectEdgesUsingSafeLiterals
           auxMap.put(p, auxR)
           mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           println("marking edge between " + p + " and " + left)
+          println("so " + right + " should be safe: " + safeLiterals)
+          
           edgesToDelete.markLeftEdge(p)
         }
         case _ =>

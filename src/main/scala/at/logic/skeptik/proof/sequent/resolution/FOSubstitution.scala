@@ -33,6 +33,23 @@ class FOSubstitution(val premise: SequentProofNode, val sub: Substitution)(impli
     new Sequent(antecedent, succedent)
   }
 
+//  object FOSubstitution {
+//    def apply(premise: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]) = {
+//      if(sub != null){
+//        new FOSubstitution(premise, sub)
+//      } else {
+//        premise
+//      }
+//      
+//    }
+//
+//    def unapply(p: SequentProofNode) = p match {
+//      case p: FOSubstitution => Some((p.premise, p.sub))
+//      case _ => None
+//    }
+//  }
+}
+
   object FOSubstitution {
     def apply(premise: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]) = {
       if(sub != null){
@@ -48,4 +65,3 @@ class FOSubstitution(val premise: SequentProofNode, val sub: Substitution)(impli
       case _ => None
     }
   }
-}

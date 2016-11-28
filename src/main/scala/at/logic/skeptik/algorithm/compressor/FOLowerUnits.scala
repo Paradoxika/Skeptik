@@ -162,7 +162,8 @@ object FOLowerUnits
     val newSeq = addAntecedents(listOfUnits)
 
     val con = try {
-      Contraction(Axiom(newSeq))(vars)
+      //Contraction(Axiom(newSeq))(vars)
+      contractIfHelpful(Axiom(newSeq))(vars)
     } catch {
       case e: Exception => {
         null
@@ -526,7 +527,7 @@ object FOLowerUnits
     }
 
     var outAfterContraction = out
-    val outContracted = Contraction(out)(vars)
+    val outContracted = contractIfHelpful(out)(vars)//Contraction(out)(vars)
 
     val newSize = (outContracted.conclusion.ant.size + outContracted.conclusion.suc.size)
     val oldSize = (out.conclusion.ant.size + out.conclusion.suc.size)
@@ -546,9 +547,11 @@ object FOLowerUnits
       }
     } else {
       if (newGoalIfDesperate == null) {
-        Contraction(Axiom(out.conclusion))(vars).conclusion
+        //Contraction(Axiom(out.conclusion))(vars).conclusion
+        contractIfHelpful(Axiom(out.conclusion))(vars).conclusion
       } else {
-        Contraction(Axiom(newGoalIfDesperate))(vars).conclusion
+        //Contraction(Axiom(newGoalIfDesperate))(vars).conclusion
+        contractIfHelpful(Axiom(newGoalIfDesperate))(vars).conclusion
       }
     }
 
@@ -668,22 +671,24 @@ object FOLowerUnits
           val newGoalD = stuff._1
 
           val contractedNewLeft = if (attemptContraction) {
-            val tempConL = Contraction(fixedLeft)(vars)
-            if (tempConL.conclusion.logicalSize < fixedLeft.conclusion.logicalSize) {
-              tempConL
-            } else {
-              fixedLeft
-            }
+//            val tempConL = Contraction(fixedLeft)(vars)
+//            if (tempConL.conclusion.logicalSize < fixedLeft.conclusion.logicalSize) {
+//              tempConL
+//            } else {
+//              fixedLeft
+//            }
+            contractIfHelpful(fixedLeft)(vars)
           } else {
             fixedLeft
           }
           val contractedNewRight = if (attemptContraction) {
-            val tempConR = Contraction(fixedRight)(vars)
-            if (tempConR.conclusion.logicalSize < fixedRight.conclusion.logicalSize) {
-              tempConR
-            } else {
-              fixedRight
-            }
+//            val tempConR = Contraction(fixedRight)(vars)
+//            if (tempConR.conclusion.logicalSize < fixedRight.conclusion.logicalSize) {
+//              tempConR
+//            } else {
+//              fixedRight
+//            }
+            contractIfHelpful(fixedRight)(vars)
           } else {
             fixedRight
           }
@@ -843,12 +848,13 @@ object FOLowerUnits
 
   def smartContraction(left: SequentProofNode, right: SequentProofNode, units: List[SequentProofNode], vars: MSet[Var]): SequentProofNode = {
     val newRight = {
-      val tempCon = Contraction(right)(vars)
-      if (tempCon.conclusion.logicalSize < right.conclusion.logicalSize) {
-        tempCon
-      } else {
-        right
-      }
+//      val tempCon = Contraction(right)(vars)
+//      if (tempCon.conclusion.logicalSize < right.conclusion.logicalSize) {
+//        tempCon
+//      } else {
+//        right
+//      }
+      contractIfHelpful(right)(vars)
     }
 
     val rightsUnit = findUnitInSeq(newRight, units, vars)
@@ -872,13 +878,18 @@ object FOLowerUnits
     }
 
     val newLeftAx = Axiom(newLeftSequent)
-    val newLeftCon = Contraction(newLeftAx)(vars)
+    val newLeftCon = contractIfHelpful(newLeftAx)(vars)//Contraction(newLeftAx)(vars)
 
-    val conSubs = newLeftCon.subs
+//    val conSubs = newLeftCon.subs
+    val conSubs = if (newLeftCon.isInstanceOf[Contraction]){
+      newLeftCon.asInstanceOf[Contraction].subs
+    } else {
+      List[Substitution](Substitution())
+    }
 
     val leftSubstituted = applySubs(left, conSubs, vars)
 
-    val leftContractedSmart = Contraction(leftSubstituted)(vars)//TODO: should this applied to the right as well?
+    val leftContractedSmart = contractIfHelpful(leftSubstituted)(vars)//Contraction(leftSubstituted)(vars)//TODO: should this applied to the right as well?
 
     val smarterContractionResolution = try {
       UnifyingResolution(newRight, leftContractedSmart)(vars)
@@ -921,42 +932,44 @@ object FOLowerUnits
         }
       } else {
         //only right is non-unit
-        val contracted = Contraction(right)(vars)
-        if (contracted.conclusion.logicalSize < right.conclusion.logicalSize) {
-          finishResolution(left, contracted, true)(vars)
-        } else {
-          finishResolution(left, right, true)(vars)
-        }
+        val contracted = contractIfHelpful(right)(vars)//Contraction(right)(vars)
+        finishResolution(left, contracted, true)(vars)
+//        if (contracted.conclusion.logicalSize < right.conclusion.logicalSize) {
+//          finishResolution(left, contracted, true)(vars)
+//        } else {
+//          finishResolution(left, right, true)(vars)
+//        }
       }
     } else {
       if (isUnitClause(right.conclusion)) {
         //only left is non-unit
-        val contracted = Contraction(left)(vars)
-        if (contracted.conclusion.logicalSize < left.conclusion.logicalSize) {
-          finishResolution(contracted, right, false)(vars)
-        } else {
-          finishResolution(left, right, false)(vars)
-
-        }
+        val contracted = contractIfHelpful(left)(vars) //Contraction(left)(vars)
+        finishResolution(contracted, right, false)(vars)
+//        if (contracted.conclusion.logicalSize < left.conclusion.logicalSize) {
+//          finishResolution(contracted, right, false)(vars)
+//        } else {
+//          finishResolution(left, right, false)(vars)
+//        }
       } else {
         //both are non-units
-        val contractedL = Contraction(left)(vars)
-        val contractedR = Contraction(right)(vars)
+        val contractedL = contractIfHelpful(left)(vars)//Contraction(left)(vars)
+        val contractedR = contractIfHelpful(right)(vars) //Contraction(right)(vars)
 
-        val finalL = if (contractedL.conclusion.logicalSize < left.conclusion.logicalSize) {
-          contractedL
-        } else {
-          left
-        }
-
-        val finalR = if (contractedR.conclusion.logicalSize < right.conclusion.logicalSize) {
-          contractedR
-        } else {
-          right
-        }
+//        val finalL = if (contractedL.conclusion.logicalSize < left.conclusion.logicalSize) {
+//          contractedL
+//        } else {
+//          left
+//        }
+//
+//        val finalR = if (contractedR.conclusion.logicalSize < right.conclusion.logicalSize) {
+//          contractedR
+//        } else {
+//          right
+//        }
 
         try {
-          UnifyingResolution(finalL, finalR)(vars)
+          //was finalL, finalR
+          UnifyingResolution(contractedL, contractedR)(vars)
 
         } catch {
           case e: Exception => {
