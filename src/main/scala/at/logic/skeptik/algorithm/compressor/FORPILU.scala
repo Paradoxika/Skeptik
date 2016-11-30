@@ -70,6 +70,49 @@ abstract class FOAbstractRPILUAlgorithm
     false
   }
 
+  
+protected def checkContracted(old: Sequent, fixed: Sequent): Boolean = {
+  var antMissing = false
+  for (oldAnt <- old.ant){
+    var litFound = false
+    for(fixAnt <- fixed.ant){
+          val uvars = getMSet(getSetOfVars(oldAnt) union getSetOfVars(fixAnt))
+      unify((oldAnt, fixAnt) :: Nil)(uvars) match {
+        case Some(_) => {
+          litFound = true
+        }
+        case None => {
+          //Do nothing
+        }
+      }
+    }
+    if (!litFound){
+      antMissing = true
+    }
+  }
+  var sucMissing = false
+  for (oldSuc <- old.suc){
+    var litFound = false
+    for(fixSuc <- fixed.suc){
+          val uvars = getMSet(getSetOfVars(oldSuc) union getSetOfVars(fixSuc))
+      unify((oldSuc, fixSuc) :: Nil)(uvars) match {
+        case Some(_) => {
+          litFound = true
+        }
+        case None => {
+          //Do nothing
+        }
+      }
+    }
+    if (!litFound){
+      sucMissing = true
+    }
+  }  
+  
+  return antMissing || sucMissing
+  
+}
+  
 protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
 
     if (seq.size < 1) {
@@ -143,7 +186,7 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
 
     def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
     def newAux = oldMGU(aux)
-    println("newAux: " + newAux)
+//    println("newAux: " + newAux)
     for (safeLit <- safeLiteralsHalf) {
       val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
       val uvarsB = getMSet(uvars)
@@ -274,9 +317,10 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
 //            }
             //4:40
 //            if(finalCheck(con.conclusion, p.conclusion, true) || finalCheck(p.conclusion, con.conclusion, true)){ 
-            if(!finalCheck(p.conclusion, fixedLeft.conclusion, true) && !checkSubsetOrEquality(true, p.conclusion, con.conclusion)){//12:08 TODO
 //            if(!finalCheck(fixedLeft.conclusion, p.conclusion, true)){
-              
+            
+//            if(!finalCheck(p.conclusion, fixedLeft.conclusion, true) && !checkSubsetOrEquality(true, p.conclusion, con.conclusion)){//12:08 TODO            
+            if(!checkContracted(p.conclusion, fixedLeft.conclusion)){//11:50am
               println("using FL (con): "+ fixedLeft)
               fixedLeft
             } else {
@@ -289,12 +333,12 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
 
       // If we've got a proof of false, we propagate it down the proof
       case UnifyingResolution(_, _, _, _) if (fixedLeft.conclusion.ant.isEmpty) && (fixedLeft.conclusion.suc.isEmpty) => {
-        println("URmatch, using FL")
+//        println("URmatch, using FL")
         fixedLeft
       }
 
       case UnifyingResolution(_, _, _, _) if (fixedRight.conclusion.ant.isEmpty) && (fixedRight.conclusion.suc.isEmpty) => {
-        println("URmatch, using FR ")
+//        println("URmatch, using FR ")
         fixedRight
         
       }
@@ -303,7 +347,7 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
         val sub = p.asInstanceOf[UnifyingResolution].mgu
         mguMap.put(fixedRight, sub)
-                println("URmatchb, using FR " + fixedRight)
+//                println("URmatchb, using FR " + fixedRight)
 
         fixedRight
 //        contractIfHelpful(fixedRight)(unifiableVariables)
@@ -311,7 +355,7 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
         val sub = p.asInstanceOf[UnifyingResolution].mgu
         mguMap.put(fixedLeft, sub)
-                println("URmatchb, using Fl " + fixedLeft)
+//                println("URmatchb, using Fl " + fixedLeft)
 
         fixedLeft
 //        contractIfHelpful(fixedLeft)(unifiableVariables)
@@ -320,7 +364,7 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
 
       // If premises haven't been changed, we keep the proof as is (memory optimization)
       case UnifyingResolution(left, right, _, _) if (left eq fixedLeft) && (right eq fixedRight) => {
-        println("urmatch p " + p.conclusion)
+//        println("urmatch p " + p.conclusion)
         //10:25 all of this (used to return p)
         try {
           val lDistinct = Sequent(fixedLeft.conclusion.ant.distinct: _*)(fixedLeft.conclusion.suc.distinct: _*)
@@ -343,12 +387,12 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
 //                 UnifyingResolutionMRR(newL, newR)(unifiableVariables)
 //              }
 //            }
-          println("k,p: " + k.conclusion)
-          println("     " + p.conclusion)
-          println(fixedLeft)
-          println(newL)
-          println(fixedRight)
-          println(newR)
+//          println("k,p: " + k.conclusion)
+//          println("     " + p.conclusion)
+//          println(fixedLeft)
+//          println(newL)
+//          println(fixedRight)
+//          println(newR)
               k
         }catch {
           case a: Throwable => {
@@ -377,7 +421,7 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.suc, pivot))
-                println("URmatchc, using Fl " + fixedLeft)
+//                println("URmatchc, using Fl " + fixedLeft)
 
         fixedLeft
 //        contractIfHelpful(fixedLeft)(unifiableVariables)
@@ -386,7 +430,7 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
         assert(!checkForRes(fixedLeft.conclusion.toSetSequent.ant, pivot))
-                println("URmatchc, using FR " + fixedRight)
+//                println("URmatchc, using FR " + fixedRight)
 
         fixedRight
 //        contractIfHelpful(fixedRight)(unifiableVariables)
@@ -394,11 +438,11 @@ protected def checkForResBoth(seq: Sequent, aux: E): Boolean = {
 
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, auxL, auxR) => {
-println("ur-main: " + p.conclusion)
-println(done.contains(p.conclusion.toString))
-if(done.contains(p.conclusion.toString)){
-  p
-}
+//println("ur-main: " + p.conclusion)
+//println(done.contains(p.conclusion.toString))
+//if(done.contains(p.conclusion.toString)){
+//  p
+//}
 
         val nonEmptyLeftMap = !auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty
         val nonEmptyRightMap = !auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty
@@ -472,10 +516,10 @@ if(done.contains(p.conclusion.toString)){
 //            val res = UnifyingResolutionMRR(newFixedRight, fixedLeft)(unifiableVariables)
 //            val res = UnifyingResolutionMRR(contractIfHelpful(newFixedRight)(unifiableVariables), contractIfHelpful(fixedLeft)(unifiableVariables))(unifiableVariables)
             
-            println("RES: " + res)
-            println("--L: " + fixedLeft)
-            println("--R: " + newFixedRight)
-            println("--p: " + p.conclusion)
+//            println("RES: " + res)
+//            println("--L: " + fixedLeft)
+//            println("--R: " + newFixedRight)
+//            println("--p: " + p.conclusion)
             res
           }
           //-----26 Nov 2016 ends
@@ -491,12 +535,12 @@ if(done.contains(p.conclusion.toString)){
                 fixAmbiguous(newFixedLeft, fixedRight, oldMGU, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
               }
             } else {
-              println("*"); e.printStackTrace();
-              println(fixedLeft)
-              println(fixedRight)
-              println(newFixedRight)
-
-              println("*")
+//              println("*"); e.printStackTrace();
+//              println(fixedLeft)
+//              println(fixedRight)
+//              println(newFixedRight)
+//
+//              println("*")
               //                            attemptGreedyContraction(fixedLeft, fixedRight, newFixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, mguMap, p.conclusion)(unifiableVariables)
               //                             attemptGreedyContraction(contractIfHelpful(fixedLeft)(unifiableVariables), contractIfHelpful(fixedRight)(unifiableVariables), contractIfHelpful(newFixedRight)(unifiableVariables), ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, mguMap, p.conclusion)(unifiableVariables)
               try {
@@ -532,12 +576,12 @@ if(done.contains(p.conclusion.toString)){
                                ambiguousErrorString: String, ambiguousErrorStringMRR: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E,
                                mguMap: MMap[SequentProofNode, Substitution], oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
     
-    println("l: " + left)
-    println("r: " + right)
-    println("FR: " + fixedRight)
-    println("FL: " + fixedLeft)
-    println("NFR: " + newFixedRight)
-    println("oc: " + oldConclusion)
+//    println("l: " + left)
+//    println("r: " + right)
+//    println("FR: " + fixedRight)
+//    println("FL: " + fixedLeft)
+//    println("NFR: " + newFixedRight)
+//    println("oc: " + oldConclusion)
     try {
       UnifyingResolution(fixedLeft, newFixedRight)(unifiableVariables)
     } catch {
@@ -863,7 +907,7 @@ abstract class FOAbstractRPIAlgorithm
           safeLiterals
         } else {
           def auxRb = findActualAux(left.conclusion.suc, auxR, child.asInstanceOf[UnifyingResolution].mgu)
-          println("adding " + auxRb + " as safe for " + childWithSafeLiterals._1)
+//          println("adding " + auxRb + " as safe for " + childWithSafeLiterals._1)
           addLiteralSmart(safeLiterals, auxRb, false, left, right)
         }
 
@@ -872,7 +916,7 @@ abstract class FOAbstractRPIAlgorithm
           safeLiterals
         } else {
           def auxLb = findActualAux(right.conclusion.ant, auxL, child.asInstanceOf[UnifyingResolution].mgu)
-          println("adding " + auxL + " as safe for " + childWithSafeLiterals._1)
+//          println("adding " + auxL + " as safe for " + childWithSafeLiterals._1)
           //          println("diff: " + auxL + " and ")
           //          println("      " + auxLb)
           addLiteralSmart(safeLiterals, auxL, true, left, right) //TODO: should this be auxLb?
@@ -963,22 +1007,22 @@ trait FOCollectEdgesUsingSafeLiterals
     var mguMap = new MMap[SequentProofNode, Substitution]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
-      println(safeLiterals + " are safe for " + p)
-      if(p.isInstanceOf[UnifyingResolution]){
-          p match {
-            case UnifyingResolution(left, right, auxL, auxR) => {
-            val whatA = checkForRes(safeLiterals.ant, auxL) 
-            val whatB =  checkForResSmart(safeLiterals.ant, auxL, p)
-            val whatC = checkForRes(safeLiterals.suc, auxL)
-            val whatD = checkForResSmart(safeLiterals.suc, auxL, p)
-            println(p)
-            println("L: " + auxL + " and R: " + auxR)
-            println(whatA + " " + whatB + " " + whatC + " " + whatD)
-            
-            }
-          }
-          
-      }
+//      println(safeLiterals + " are safe for " + p)
+//      if(p.isInstanceOf[UnifyingResolution]){
+//          p match {
+//            case UnifyingResolution(left, right, auxL, auxR) => {
+//            val whatA = checkForRes(safeLiterals.ant, auxL) 
+//            val whatB =  checkForResSmart(safeLiterals.ant, auxL, p)
+//            val whatC = checkForRes(safeLiterals.suc, auxL)
+//            val whatD = checkForResSmart(safeLiterals.suc, auxL, p)
+//            println(p)
+//            println("L: " + auxL + " and R: " + auxR)
+//            println(whatA + " " + whatB + " " + whatC + " " + whatD)
+//            
+//            }
+//          }
+//          
+//      }
       p match {
 
         case UnifyingResolution(left, right, auxL, auxR) if (
