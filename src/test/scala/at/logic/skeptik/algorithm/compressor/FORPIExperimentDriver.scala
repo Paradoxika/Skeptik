@@ -74,7 +74,7 @@ object FORPIExperimentDriver extends checkProofEquality {
     val path = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
     val proofList = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt"
 
-    val expPrefix = "LU " + getTimeString()
+    val expPrefix = "CADE-FORPI " + getTimeString()
     
     val problemSetS = getProblems(proofList, path)
     var errorCount = 0

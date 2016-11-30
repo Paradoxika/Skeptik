@@ -3,6 +3,7 @@ package at.logic.skeptik.algorithm.compressor
 import at.logic.skeptik.proof.sequent._
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.judgment.immutable.SetSequent
+import collection.mutable.{ HashMap => MMap, HashSet => MSet }
 
 abstract class FORecyclePivots
   extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with FOUnitsCollectingBeforeFixing {
@@ -13,12 +14,12 @@ abstract class FORecyclePivots
     val edgesToDelete = firstPassResults._1
     val auxMap = firstPassResults._2
     val mguMap = firstPassResults._3
-
+    val dMap = new MSet[String]()
     if (edgesToDelete.isEmpty) {
       proof
     } else {
       println(edgesToDelete.edges.size + " edges to delete")
-      Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, auxMap, mguMap)))
+      Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, auxMap, mguMap, dMap)))
     }
 
   }

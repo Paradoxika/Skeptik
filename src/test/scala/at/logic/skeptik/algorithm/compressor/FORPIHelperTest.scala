@@ -175,7 +175,7 @@ object FORPIHelperTester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsing
 
   def finalCheckTest(safeLit: Sequent, seqToDelete: Sequent) = {
     println("Checking " + safeLit + " and " + seqToDelete)
-    finalCheck(safeLit, seqToDelete)
+    finalCheck(safeLit, seqToDelete, false)
 
     
   }
