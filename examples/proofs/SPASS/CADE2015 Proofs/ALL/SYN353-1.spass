@@ -1,0 +1,72 @@
+1[0:Inp] || f(U,V,W) f(a,a,z(U,V,W))* -> f(W,U,V) f(V,W,U).
+2[0:Inp] || f(U,V,W) f(W,V,z(V,W,U))* -> f(V,W,U).
+3[0:Inp] || f(U,V,W) f(W,V,z(V,W,U))* -> f(W,U,V).
+4[0:Inp] ||  -> f(U,V,W) f(W,V,z(V,W,U))*.
+6[0:Inp] || f(U,V,W) f(W,z(W,U,V),U)* -> f(W,U,V).
+7[0:Inp] || f(U,V,W) f(W,z(W,U,V),U)* -> f(V,W,U).
+8[0:Inp] ||  -> f(U,V,W) f(W,z(W,U,V),U)*.
+10[0:Inp] || f(z(U,V,W),V,U)* -> f(U,V,W) f(W,U,V).
+11[0:Inp] || f(z(U,V,W),V,U)* -> f(U,V,W) f(V,W,U).
+12[0:Inp] || f(U,V,W) f(V,W,U) -> f(z(W,U,V),U,W)*.
+17[0:Inp] || f(U,V,W) f(W,U,V) f(V,W,U) f(z(V,W,U),z(V,W,U),z(V,W,U))* -> .
+30[0:Res:4.1,1.1] || f(a,a,U)* -> f(U,a,a)* f(U,a,a)* f(a,U,a)*.
+32[0:Con:30.2] || f(a,a,U)*+ -> f(U,a,a)* f(a,U,a)*.
+33[0:Res:4.1,32.0] ||  -> f(U,a,a) f(z(a,a,U),a,a)* f(a,z(a,a,U),a).
+35[0:Res:33.1,10.0] ||  -> f(U,a,a) f(a,z(a,a,U),a)* f(a,a,U) f(U,a,a).
+37[0:Con:35.3] ||  -> f(U,a,a) f(a,z(a,a,U),a)* f(a,a,U).
+38[0:Res:37.1,6.1] || f(a,U,a)* -> f(U,a,a)* f(a,a,U)* f(a,a,U)*.
+40[0:Con:38.3] || f(a,U,a)*+ -> f(U,a,a)* f(a,a,U)*.
+45[0:Res:8.1,40.0] ||  -> f(a,U,a) f(z(a,a,U),a,a)* f(a,a,z(a,a,U)).
+49[0:Res:45.1,11.0] ||  -> f(a,U,a) f(a,a,z(a,a,U))* f(a,a,U) f(a,U,a).
+50[0:Con:49.3] ||  -> f(a,U,a) f(a,a,z(a,a,U))* f(a,a,U).
+51[0:Res:50.1,2.1] || f(U,a,a)* -> f(a,U,a)* f(a,a,U)* f(a,a,U)*.
+55[0:Con:51.3] || f(U,a,a)*+ -> f(a,U,a)* f(a,a,U)*.
+58[0:Res:12.2,55.0] || f(a,U,a) f(U,a,a) -> f(a,z(a,a,U),a)* f(a,a,z(a,a,U)).
+67[0:Res:58.2,6.1] || f(a,U,a) f(U,a,a) f(a,U,a) -> f(a,a,z(a,a,U))* f(a,a,U).
+70[0:Con:67.2] || f(a,U,a) f(U,a,a) -> f(a,a,z(a,a,U))* f(a,a,U).
+72[0:Res:70.2,2.1] || f(a,U,a)* f(U,a,a)* f(U,a,a)* -> f(a,a,U)* f(a,a,U)*.
+76[0:Con:72.2] || f(a,U,a)*+ f(U,a,a)* -> f(a,a,U)*.
+77[0:Res:8.1,76.0] || f(z(a,a,U),a,a)* -> f(a,U,a) f(a,a,z(a,a,U)).
+86[0:Res:45.1,77.0] ||  -> f(a,U,a) f(a,a,z(a,a,U))* f(a,U,a) f(a,a,z(a,a,U))*.
+88[0:Con:86.2] ||  -> f(a,U,a) f(a,a,z(a,a,U))*.
+94[0:Res:88.1,3.1] || f(U,a,a)* -> f(a,U,a)* f(a,U,a)*.
+97[0:Con:94.2] || f(U,a,a)*+ -> f(a,U,a)*.
+101[0:Res:33.1,97.0] ||  -> f(U,a,a) f(a,z(a,a,U),a)* f(a,z(a,a,U),a)*.
+102[0:Con:101.2] ||  -> f(U,a,a) f(a,z(a,a,U),a)*.
+104[0:Res:102.1,7.1] || f(a,U,a)* -> f(U,a,a)* f(U,a,a)*.
+107[0:Con:104.2] || f(a,U,a)*+ -> f(U,a,a)*.
+108[0:Res:8.1,107.0] ||  -> f(a,U,a) f(z(a,a,U),a,a)*.
+115[0:Res:108.1,11.0] ||  -> f(a,U,a)* f(a,a,U)* f(a,U,a)*.
+117[0:Con:115.2] ||  -> f(a,U,a)* f(a,a,U)*.
+122[0:Res:117.0,76.0] || f(U,a,a)* -> f(a,a,U)* f(a,a,U)*.
+123[0:Res:117.1,32.0] ||  -> f(a,U,a)* f(U,a,a)* f(a,U,a)*.
+124[0:Con:123.2] ||  -> f(a,U,a)* f(U,a,a)*.
+125[0:Con:122.2] || f(U,a,a)*+ -> f(a,a,U)*.
+137[0:Res:124.0,107.0] ||  -> f(U,a,a)* f(U,a,a)*.
+141[0:Con:137.1] ||  -> f(U,a,a)*.
+149[0:Res:141.0,125.0] ||  -> f(a,a,U)*.
+153[0:Res:149.0,1.1] || f(U,V,W)*+ -> f(W,U,V)* f(V,W,U)*.
+155[0:Res:8.1,153.0] ||  -> f(U,V,W) f(U,W,z(W,U,V)) f(z(W,U,V),U,W)*.
+158[0:Res:12.2,153.0] || f(U,V,W)+ f(V,W,U) -> f(W,z(W,U,V),U)* f(U,W,z(W,U,V))*.
+230[0:Res:8.1,158.0] || f(z(U,V,W),V,U)+ -> f(V,W,U) f(V,z(V,U,z(U,V,W)),U)* f(U,V,z(V,U,z(U,V,W)))*.
+435[0:Res:155.2,230.0] ||  -> f(U,V,W) f(U,W,z(W,U,V)) f(U,V,W) f(U,z(U,W,z(W,U,V)),W)* f(W,U,z(U,W,z(W,U,V)))*.
+448[0:Con:435.2] ||  -> f(U,V,W) f(U,W,z(W,U,V)) f(U,z(U,W,z(W,U,V)),W)* f(W,U,z(U,W,z(W,U,V)))*.
+683[0:Res:448.3,2.1] || f(z(U,V,W),V,U) -> f(V,W,U) f(V,U,z(U,V,W)) f(V,z(V,U,z(U,V,W)),U)* f(V,U,z(U,V,W)).
+685[0:Con:683.4] || f(z(U,V,W),V,U) -> f(V,W,U) f(V,U,z(U,V,W)) f(V,z(V,U,z(U,V,W)),U)*.
+696[0:Res:685.3,6.1] || f(z(U,V,W),V,U)* f(U,z(U,V,W),V) -> f(V,W,U) f(V,U,z(U,V,W)) f(V,U,z(U,V,W)).
+698[0:Con:696.4] || f(z(U,V,W),V,U)* f(U,z(U,V,W),V) -> f(V,W,U) f(V,U,z(U,V,W)).
+701[0:Res:155.2,698.0] || f(U,z(U,V,W),V)* -> f(V,W,U) f(V,U,z(U,V,W))* f(V,W,U) f(V,U,z(U,V,W))*.
+716[0:Con:701.3] || f(U,z(U,V,W),V)*+ -> f(V,W,U) f(V,U,z(U,V,W))*.
+731[0:Res:8.1,716.0] ||  -> f(U,V,W) f(U,V,W) f(U,W,z(W,U,V))*.
+744[0:Con:731.1] ||  -> f(U,V,W) f(U,W,z(W,U,V))*.
+760[0:Res:744.1,3.1] || f(U,V,W)* -> f(W,U,V)* f(W,U,V)*.
+761[0:Con:760.2] || f(U,V,W)*+ -> f(W,U,V)*.
+764[0:Res:4.1,761.0] ||  -> f(U,V,W) f(z(V,W,U),W,V)*.
+878[0:Res:764.1,10.0] ||  -> f(U,V,W)* f(V,W,U)* f(U,V,W)*.
+880[0:Con:878.2] ||  -> f(U,V,W)* f(V,W,U)*.
+884[0:Res:880.1,761.0] ||  -> f(U,V,W)* f(U,V,W)*.
+886[0:Con:884.1] ||  -> f(U,V,W)*.
+887[0:Res:886.0,17.3] || f(U,V,W)*+ f(W,U,V)* f(V,W,U)* -> .
+888[0:Res:886.0,887.0] || f(U,V,W)*+ f(W,U,V)* -> .
+889[0:Res:886.0,888.0] || f(U,V,W)* -> .
+890[0:Res:886.0,889.0] ||  -> .

@@ -1,0 +1,23 @@
+1[0:Inp] || between(U,V,W)*+ between(X,U,W)* -> between(X,U,V)*.
+2[0:Inp] || equidistant(U,V,W,W)* -> equalish(U,V).
+3[0:Inp] || between(U,V,W) between(X,Y,V) -> between(X,outer_pasch(Y,X,U,W,V),U)*.
+4[0:Inp] || between(U,V,W) between(X,Y,V) -> between(W,Y,outer_pasch(Y,X,U,W,V))*.
+5[0:Inp] ||  -> between(U,V,extension(U,V,W,X))*.
+6[0:Inp] ||  -> equidistant(U,extension(V,U,W,X),W,X)*.
+7[0:Inp] || equalish(U,V)* between(W,X,U)*+ -> between(W,X,V)*.
+8[0:Inp] || between(a,a,b)* -> .
+9[0:Res:1.2,8.0] || between(a,a,U)* between(a,b,U) -> .
+12[0:Res:6.0,2.0] ||  -> equalish(U,extension(V,U,W,W))*.
+19[0:Res:5.0,1.0] || between(U,V,extension(V,W,X,Y))* -> between(U,V,W).
+21[0:Res:5.0,19.0] ||  -> between(U,U,U)*.
+26[0:Res:21.0,7.1] || equalish(U,V) -> between(U,U,V)*.
+27[0:Res:3.2,1.0] || between(U,V,W) between(X,Y,V) between(Z,X,U) -> between(Z,X,outer_pasch(Y,X,U,W,V))*.
+33[0:Res:26.1,1.0] || equalish(U,V) between(W,U,V)*+ -> between(W,U,U)*.
+38[0:Res:4.2,9.0] || between(U,V,a) between(W,a,V) between(a,b,outer_pasch(a,W,U,a,V))* -> .
+60[0:Res:5.0,33.1] || equalish(U,extension(V,U,W,X))* -> between(V,U,U).
+70[0:Res:12.0,60.0] ||  -> between(U,V,V)*.
+136[0:Res:27.3,38.2] || between(U,V,a)* between(b,a,V)* between(a,b,U)* between(U,V,a)* between(b,a,V)* -> .
+137[0:Con:136.3] || between(U,V,a)*+ between(b,a,V)* between(a,b,U)* -> .
+309[0:Res:70.0,137.0] || between(b,a,a) between(a,b,U)* -> .
+318[0:Res:5.0,309.1] || between(b,a,a)* -> .
+330[0:Res:70.0,318.0] ||  -> .

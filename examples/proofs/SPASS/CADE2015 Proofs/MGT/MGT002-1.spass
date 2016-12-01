@@ -1,0 +1,31 @@
+1[0:Inp] || organization(U,V) -> reproducibility(U,sk1(V,U),V)*.
+2[0:Inp] || reorganization_free(U,V,W)*+ -> reorganization_free(U,V,V)*.
+3[0:Inp] || reorganization_free(U,V,W)*+ -> reorganization_free(U,W,W)*.
+4[0:Inp] || greater(U,V)* organization(W,X) organization(Y,Z) inertia(W,X1,X)*+ inertia(Y,X2,Z)* reproducibility(W,U,X)* reproducibility(Y,V,Z)* reorganization_free(W,X,X)* reorganization_free(Y,Z,Z)* -> greater(X1,X2)*.
+6[0:Inp] || greater(U,V) organization(W,U) organization(W,V) reproducibility(W,X,U)*+ reproducibility(W,Y,V)* reorganization_free(W,V,U)* -> greater(X,Y)*.
+7[0:Inp] ||  -> organization(sk2,sk5)*.
+8[0:Inp] ||  -> organization(sk2,sk6)*.
+9[0:Inp] ||  -> reorganization_free(sk2,sk5,sk6)*.
+10[0:Inp] ||  -> inertia(sk2,sk3,sk5)*.
+11[0:Inp] ||  -> inertia(sk2,sk4,sk6)*.
+12[0:Inp] ||  -> greater(sk6,sk5)*.
+13[0:Inp] || greater(sk4,sk3)* -> .
+14[0:Res:12.0,6.5] || organization(U,sk6) organization(U,sk5) reproducibility(U,V,sk6)*+ reproducibility(U,W,sk5)* reorganization_free(U,sk5,sk6) -> greater(V,W)*.
+20[0:Res:8.0,1.0] ||  -> reproducibility(sk2,sk1(sk6,sk2),sk6)*.
+27[0:Res:7.0,1.0] ||  -> reproducibility(sk2,sk1(sk5,sk2),sk5)*.
+31[0:Res:9.0,3.0] ||  -> reorganization_free(sk2,sk6,sk6)*.
+33[0:Res:9.0,2.0] ||  -> reorganization_free(sk2,sk5,sk5)*.
+49[0:Res:11.0,4.3] || greater(U,V)* organization(sk2,sk6) organization(W,X) inertia(W,Y,X)*+ reproducibility(sk2,U,sk6)* reproducibility(W,V,X)* reorganization_free(sk2,sk6,sk6) reorganization_free(W,X,X)* -> greater(sk4,Y).
+62[0:Res:1.1,14.2] || organization(U,sk6) organization(U,sk6) organization(U,sk5) reproducibility(U,V,sk5) reorganization_free(U,sk5,sk6) -> greater(sk1(sk6,U),V)*.
+63[0:Con:62.1] || organization(U,sk6) organization(U,sk5) reproducibility(U,V,sk5) reorganization_free(U,sk5,sk6) -> greater(sk1(sk6,U),V)*.
+87[0:Res:10.0,49.3] || greater(U,V)* organization(sk2,sk6) organization(sk2,sk5) reproducibility(sk2,U,sk6)*+ reproducibility(sk2,V,sk5)* reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5) -> greater(sk4,sk3).
+322[0:Res:20.0,87.3] || greater(sk1(sk6,sk2),U)* organization(sk2,sk6) organization(sk2,sk5) reproducibility(sk2,U,sk5) reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5) -> greater(sk4,sk3).
+331[0:Res:63.4,322.0] || organization(sk2,sk6) organization(sk2,sk5) reproducibility(sk2,U,sk5)* reorganization_free(sk2,sk5,sk6) organization(sk2,sk6) organization(sk2,sk5) reproducibility(sk2,U,sk5)* reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5) -> greater(sk4,sk3).
+337[0:Con:331.4] || organization(sk2,sk6) organization(sk2,sk5) reproducibility(sk2,U,sk5)* reorganization_free(sk2,sk5,sk6) reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5) -> greater(sk4,sk3).
+341[0:Res:27.0,337.2] || organization(sk2,sk6) organization(sk2,sk5) reorganization_free(sk2,sk5,sk6) reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5)* -> greater(sk4,sk3).
+344[0:Res:33.0,341.4] || organization(sk2,sk6) organization(sk2,sk5) reorganization_free(sk2,sk5,sk6)* reorganization_free(sk2,sk6,sk6) -> greater(sk4,sk3).
+345[0:Res:9.0,344.2] || organization(sk2,sk6) organization(sk2,sk5) reorganization_free(sk2,sk6,sk6)* -> greater(sk4,sk3).
+349[0:Res:31.0,345.2] || organization(sk2,sk6) organization(sk2,sk5) -> greater(sk4,sk3)*.
+350[0:Res:349.2,13.0] || organization(sk2,sk6) organization(sk2,sk5)* -> .
+351[0:Res:7.0,350.1] || organization(sk2,sk6)* -> .
+352[0:Res:8.0,351.0] ||  -> .

@@ -1,0 +1,22 @@
+1[0:Inp] ||  -> iext(uri_owl_complementOf,uri_ex_c,skc1)*.
+3[0:Inp] ||  -> iext(uri_owl_onProperty,skc1,uri_rdf_type)*.
+5[0:Inp] ||  -> iext(uri_owl_hasSelf,skc1,literal_typed(dat_str_true,uri_xsd_boolean))*.
+8[0:Inp] || iext(uri_rdf_type,U,V)* -> icext(V,U).
+9[0:Inp] || icext(U,V) -> iext(uri_rdf_type,V,U)*.
+10[0:Inp] || iext(uri_owl_complementOf,U,V)*+ -> icext(U,W)* icext(V,W)*.
+11[0:Inp] || icext(U,V)* icext(W,V)* iext(uri_owl_complementOf,W,U)*+ -> .
+12[0:Inp] || icext(U,V)* iext(uri_owl_onProperty,U,W)*+ iext(uri_owl_hasSelf,U,X)* -> iext(W,V,V)*.
+13[0:Inp] || iext(U,V,V)*+ iext(uri_owl_onProperty,W,U)* iext(uri_owl_hasSelf,W,X)* -> icext(W,V)*.
+19[0:Res:1.0,10.0] ||  -> icext(uri_ex_c,U)* icext(skc1,U).
+20[0:Res:1.0,11.2] || icext(skc1,U) icext(uri_ex_c,U)* -> .
+22[0:Res:3.0,12.1] || icext(skc1,U) iext(uri_owl_hasSelf,skc1,V)*+ -> iext(uri_rdf_type,U,U)*.
+23[0:Res:5.0,22.1] || icext(skc1,U) -> iext(uri_rdf_type,U,U)*.
+24[0:Res:9.1,13.0] || icext(U,U)* iext(uri_owl_onProperty,V,uri_rdf_type)+ iext(uri_owl_hasSelf,V,W)* -> icext(V,U)*.
+25[0:Res:23.1,8.0] || icext(skc1,U)*+ -> icext(U,U)*.
+28[0:Res:3.0,24.1] || icext(U,U)* iext(uri_owl_hasSelf,skc1,V)*+ -> icext(skc1,U)*.
+29[0:Res:5.0,28.1] || icext(U,U)*+ -> icext(skc1,U)*.
+30[0:Res:19.0,29.0] ||  -> icext(skc1,uri_ex_c)* icext(skc1,uri_ex_c)*.
+31[0:Con:30.1] ||  -> icext(skc1,uri_ex_c)*.
+32[0:Res:31.0,25.0] ||  -> icext(uri_ex_c,uri_ex_c)*.
+33[0:Res:32.0,20.1] || icext(skc1,uri_ex_c)* -> .
+35[0:Res:31.0,33.0] ||  -> .

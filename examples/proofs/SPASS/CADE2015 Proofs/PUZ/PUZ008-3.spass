@@ -1,0 +1,49 @@
+1[0:Inp] ||  -> safe(n0,U)*.
+2[0:Inp] || greater_or_equal(U,V) -> safe(U,V)*.
+3[0:Inp] ||  -> greater_or_equal(U,n0)*.
+4[0:Inp] || greater_or_equal(U,V) -> greater_or_equal(s(U),s(V))*.
+6[0:Inp] || safe(U,V) safe(W,s(X)) achievable(west(m(W),c(X)),boatoneast,east(m(U),c(s(V)))) -> achievable(west(m(W),c(s(X))),boatonwest,east(m(U),c(V)))*.
+7[0:Inp] || safe(U,V) safe(W,s(s(X))) achievable(west(m(U),c(s(s(V)))),boatonwest,east(m(W),c(X)))* -> achievable(west(m(U),c(V)),boatoneast,east(m(W),c(s(s(X))))).
+10[0:Inp] || safe(U,V) safe(s(W),X) achievable(west(m(W),c(X)),boatoneast,east(m(s(U)),c(V))) -> achievable(west(m(s(W)),c(X)),boatonwest,east(m(U),c(V)))*.
+11[0:Inp] || safe(U,V) safe(s(s(W)),X) achievable(west(m(s(s(U))),c(V)),boatonwest,east(m(W),c(X)))* -> achievable(west(m(U),c(V)),boatoneast,east(m(s(s(W))),c(X))).
+13[0:Inp] || safe(U,V) safe(s(W),s(X)) achievable(west(m(s(U)),c(s(V))),boatonwest,east(m(W),c(X)))* -> achievable(west(m(U),c(V)),boatoneast,east(m(s(W)),c(s(X)))).
+14[0:Inp] || safe(U,V) safe(s(W),s(X)) achievable(west(m(W),c(X)),boatoneast,east(m(s(U)),c(s(V)))) -> achievable(west(m(s(W)),c(s(X))),boatonwest,east(m(U),c(V)))*.
+15[0:Inp] ||  -> achievable(west(m(s(s(s(n0)))),c(s(s(s(n0))))),boatonwest,east(m(n0),c(n0)))*.
+16[0:Inp] || achievable(west(m(n0),c(n0)),U,east(m(s(s(s(n0)))),c(s(s(s(n0))))))* -> .
+19[0:Res:13.3,16.0] || safe(n0,n0) safe(s(s(s(n0))),s(s(s(n0)))) achievable(west(m(s(n0)),c(s(n0))),boatonwest,east(m(s(s(n0))),c(s(s(n0)))))* -> .
+24[0:Res:10.3,19.2] || safe(s(s(n0)),s(s(n0))) safe(s(n0),s(n0)) achievable(west(m(n0),c(s(n0))),boatoneast,east(m(s(s(s(n0)))),c(s(s(n0)))))* safe(n0,n0) safe(s(s(s(n0))),s(s(s(n0)))) -> .
+46[0:Res:14.3,11.2] || safe(U,V) safe(s(s(W)),s(X)) achievable(west(m(s(W)),c(X)),boatoneast,east(m(s(U)),c(s(V))))* safe(W,s(X)) safe(s(s(U)),V) -> achievable(west(m(W),c(s(X))),boatoneast,east(m(s(s(U))),c(V))).
+47[0:Res:6.3,11.2] || safe(U,V) safe(s(s(W)),s(X)) achievable(west(m(s(s(W))),c(X)),boatoneast,east(m(U),c(s(V))))* safe(W,s(X)) safe(s(s(U)),V) -> achievable(west(m(W),c(s(X))),boatoneast,east(m(s(s(U))),c(V))).
+55[0:Res:15.0,7.2] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) -> achievable(west(m(s(s(s(n0)))),c(s(n0))),boatoneast,east(m(n0),c(s(s(n0)))))*.
+59[0:Res:6.3,7.2] || safe(U,V) safe(W,s(s(X))) achievable(west(m(W),c(s(X))),boatoneast,east(m(U),c(s(V))))* safe(W,X) safe(U,s(s(V))) -> achievable(west(m(W),c(X)),boatoneast,east(m(U),c(s(s(V))))).
+118[0:Res:55.2,59.2] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) -> achievable(west(m(s(s(s(n0)))),c(n0)),boatoneast,east(m(n0),c(s(s(s(n0))))))*.
+298[0:Res:118.6,47.2] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(n0,s(s(n0))) safe(s(s(s(n0))),s(n0)) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) -> achievable(west(m(s(n0)),c(s(n0))),boatoneast,east(m(s(s(n0))),c(s(s(n0)))))*.
+303[0:Con:298.6] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) -> achievable(west(m(s(n0)),c(s(n0))),boatoneast,east(m(s(s(n0))),c(s(s(n0)))))*.
+774[0:Res:303.8,46.2] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(n0,s(s(n0))) safe(s(s(s(n0))),s(n0)) -> achievable(west(m(n0),c(s(s(n0)))),boatoneast,east(m(s(s(s(n0)))),c(s(n0))))*.
+775[0:Con:774.8] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) -> achievable(west(m(n0),c(s(s(n0)))),boatoneast,east(m(s(s(s(n0)))),c(s(n0))))*.
+1245[0:Res:775.8,59.2] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) -> achievable(west(m(n0),c(s(n0))),boatoneast,east(m(s(s(s(n0)))),c(s(s(n0)))))*.
+1248[0:Con:1245.8] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) -> achievable(west(m(n0),c(s(n0))),boatoneast,east(m(s(s(s(n0)))),c(s(s(n0)))))*.
+1260[0:Res:1248.8,24.2] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(s(s(n0)),s(s(n0))) safe(s(n0),s(n0)) safe(n0,n0) safe(s(s(s(n0))),s(s(s(n0))))* -> .
+1263[0:Con:1260.8] || safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(n0,n0) safe(s(s(s(n0))),s(s(s(n0))))* -> .
+1295[0:Res:2.1,1263.9] || greater_or_equal(s(s(s(n0))),s(s(s(n0))))* safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0))) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(n0,n0) -> .
+1296[0:Res:4.1,1295.0] || greater_or_equal(s(s(n0)),s(s(n0))) safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),s(s(n0)))* safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(n0,n0) -> .
+1297[0:Res:2.1,1296.4] || greater_or_equal(s(s(s(n0))),s(s(n0)))* greater_or_equal(s(s(n0)),s(s(n0))) safe(s(s(s(n0))),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(n0,n0) -> .
+1298[0:Res:4.1,1297.0] || greater_or_equal(s(s(n0)),s(n0)) greater_or_equal(s(s(n0)),s(s(n0))) safe(s(s(s(n0))),s(n0))* safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0))) safe(n0,n0) -> .
+1323[0:Res:2.1,1298.2] || greater_or_equal(s(s(s(n0))),s(n0)) greater_or_equal(s(s(n0)),s(n0)) greater_or_equal(s(s(n0)),s(s(n0))) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(s(s(n0)),s(s(n0)))* safe(n0,n0) -> .
+1324[0:Res:2.1,1323.8] || greater_or_equal(s(s(n0)),s(s(n0))) greater_or_equal(s(s(s(n0))),s(n0))* greater_or_equal(s(s(n0)),s(n0)) greater_or_equal(s(s(n0)),s(s(n0))) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(n0,n0) -> .
+1325[0:Con:1324.3] || greater_or_equal(s(s(n0)),s(s(n0))) greater_or_equal(s(s(s(n0))),s(n0))* greater_or_equal(s(s(n0)),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(n0,n0) -> .
+1326[0:Res:4.1,1325.1] || greater_or_equal(s(s(n0)),n0) greater_or_equal(s(s(n0)),s(s(n0)))* greater_or_equal(s(s(n0)),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),n0) safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(n0,n0) -> .
+1327[0:Res:4.1,1326.1] || greater_or_equal(s(n0),s(n0)) greater_or_equal(s(s(n0)),n0) greater_or_equal(s(s(n0)),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(s(s(n0))),n0)* safe(n0,s(s(s(n0)))) safe(s(n0),s(n0)) safe(n0,n0) -> .
+1355[0:Res:2.1,1327.5] || greater_or_equal(s(s(s(n0))),n0) greater_or_equal(s(n0),s(n0)) greater_or_equal(s(s(n0)),n0) greater_or_equal(s(s(n0)),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(n0,s(s(s(n0))))* safe(s(n0),s(n0)) safe(n0,n0) -> .
+1356[0:Res:1.0,1355.6] || greater_or_equal(s(s(s(n0))),n0)* greater_or_equal(s(n0),s(n0)) greater_or_equal(s(s(n0)),n0) greater_or_equal(s(s(n0)),s(n0)) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(n0),s(n0)) safe(n0,n0) -> .
+1358[0:Res:3.0,1356.0] || greater_or_equal(s(n0),s(n0)) greater_or_equal(s(s(n0)),n0) greater_or_equal(s(s(n0)),s(n0))* safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(n0),s(n0)) safe(n0,n0) -> .
+1359[0:Res:4.1,1358.2] || greater_or_equal(s(n0),n0) greater_or_equal(s(n0),s(n0)) greater_or_equal(s(s(n0)),n0) safe(n0,s(s(n0))) safe(n0,s(n0)) safe(s(n0),s(n0))* safe(n0,n0) -> .
+1392[0:Res:2.1,1359.5] || greater_or_equal(s(n0),s(n0)) greater_or_equal(s(n0),n0) greater_or_equal(s(n0),s(n0)) greater_or_equal(s(s(n0)),n0) safe(n0,s(s(n0)))* safe(n0,s(n0)) safe(n0,n0) -> .
+1393[0:Con:1392.2] || greater_or_equal(s(n0),s(n0)) greater_or_equal(s(n0),n0) greater_or_equal(s(s(n0)),n0) safe(n0,s(s(n0)))* safe(n0,s(n0)) safe(n0,n0) -> .
+1394[0:Res:1.0,1393.3] || greater_or_equal(s(n0),s(n0)) greater_or_equal(s(n0),n0) greater_or_equal(s(s(n0)),n0)* safe(n0,s(n0)) safe(n0,n0) -> .
+1396[0:Res:3.0,1394.2] || greater_or_equal(s(n0),s(n0))* greater_or_equal(s(n0),n0) safe(n0,s(n0)) safe(n0,n0) -> .
+1397[0:Res:4.1,1396.0] || greater_or_equal(n0,n0) greater_or_equal(s(n0),n0) safe(n0,s(n0))* safe(n0,n0) -> .
+1429[0:Res:1.0,1397.2] || greater_or_equal(n0,n0) greater_or_equal(s(n0),n0)* safe(n0,n0) -> .
+1431[0:Res:3.0,1429.1] || greater_or_equal(n0,n0) safe(n0,n0)* -> .
+1432[0:Res:1.0,1431.1] || greater_or_equal(n0,n0)* -> .
+1435[0:Res:3.0,1432.0] ||  -> .

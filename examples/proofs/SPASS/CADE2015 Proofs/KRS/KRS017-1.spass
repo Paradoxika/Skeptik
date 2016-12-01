@@ -1,0 +1,9 @@
+1[0:Inp] e(U) ||  -> r(U,u0r3(U))*.
+2[0:Inp] e(U) || r(V,W)* r(U,W)* -> a(V).
+6[0:Inp] ||  -> e(exists__dfg)*.
+7[0:Inp] || a(exists__dfg)* -> .
+9[0:Res:6.0,1.0] ||  -> r(exists__dfg,u0r3(exists__dfg))*.
+10[0:Res:2.3,7.0] e(U) || r(U,V)* r(exists__dfg,V)* -> .
+11[0:Res:6.0,10.0] || r(exists__dfg,U)* r(exists__dfg,U)* -> .
+13[0:Con:11.1] || r(exists__dfg,U)* -> .
+20[0:Res:9.0,13.0] ||  -> .

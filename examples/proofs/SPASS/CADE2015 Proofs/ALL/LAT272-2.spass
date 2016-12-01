@@ -1,0 +1,7 @@
+1[0:Inp] || c_in(U,V,t_a)* c_Tarski_OisLub(V,v_cl,W,t_a)* -> c_in(c_Pair(U,W,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+2[0:Inp] ||  -> c_Tarski_OisLub(v_S,v_cl,v_L,t_a)*.
+3[0:Inp] ||  -> c_in(v_x,v_S,t_a)*.
+4[0:Inp] || c_in(c_Pair(v_x,v_L,t_a,t_a),v_r,tc_prod(t_a,t_a))* -> .
+7[0:Res:1.2,4.0] || c_in(v_x,U,t_a) c_Tarski_OisLub(U,v_cl,v_L,t_a)* -> .
+9[0:Res:3.0,7.1] || c_Tarski_OisLub(v_S,v_cl,v_L,t_a)* -> .
+10[0:Res:2.0,9.0] ||  -> .

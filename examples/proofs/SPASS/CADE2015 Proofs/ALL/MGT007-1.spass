@@ -1,0 +1,49 @@
+1[0:Inp] || organization(U,V) -> reliability(U,sk1(V,U),V)*.
+2[0:Inp] || organization(U,V) -> accountability(U,sk2(V,U),V)*.
+6[0:Inp] || greater(U,V)* greater(W,X)* organization(Y,Z) organization(X1,X2) reproducibility(Y,X3,Z)*+ reproducibility(X1,X4,X2)* accountability(Y,U,Z)* accountability(X1,V,X2)* reliability(Y,W,Z)* reliability(X1,X,X2)* -> greater(X3,X4)*.
+7[0:Inp] || greater(U,V)* organization(W,U) organization(W,V) accountability(W,X,U)*+ accountability(W,Y,V)* reliability(W,Z,U)* reliability(W,X1,V)* reorganization(W,X2,X3)* -> greater(X1,Z)* greater(U,X3)* greater(X2,V)*.
+8[0:Inp] || greater(U,V)* organization(W,U) organization(W,V) accountability(W,X,U)*+ accountability(W,Y,V)* reliability(W,Z,U)* reliability(W,X1,V)* reorganization(W,X2,X3)* -> greater(Y,X)* greater(U,X3)* greater(X2,V)*.
+9[0:Inp] ||  -> organization(sk4,sk7)*.
+10[0:Inp] ||  -> organization(sk4,sk8)*.
+11[0:Inp] ||  -> reorganization(sk4,sk9,sk10)*.
+12[0:Inp] ||  -> reproducibility(sk4,sk5,sk7)*.
+13[0:Inp] ||  -> reproducibility(sk4,sk6,sk8)*.
+14[0:Inp] || greater(sk9,sk7)* -> .
+15[0:Inp] ||  -> greater(sk8,sk7)*.
+16[0:Inp] || greater(sk8,sk10)* -> .
+17[0:Inp] || greater(sk5,sk6)* -> .
+22[0:Res:15.0,8.7] || organization(U,sk8) organization(U,sk7) reorganization(U,V,W)*+ accountability(U,X,sk8)* accountability(U,Y,sk7)* reliability(U,Z,sk8)* reliability(U,X1,sk7)* -> greater(Y,X)* greater(V,sk7) greater(sk8,W).
+29[0:Res:10.0,1.0] ||  -> reliability(sk4,sk1(sk8,sk4),sk8)*.
+30[0:Res:10.0,2.0] ||  -> accountability(sk4,sk2(sk8,sk4),sk8)*.
+33[0:Res:10.0,7.1] || greater(sk8,U) organization(sk4,U) accountability(sk4,V,U)*+ reliability(sk4,W,U)* reorganization(sk4,X,Y)* accountability(sk4,Z,sk8)* reliability(sk4,X1,sk8)* -> greater(W,X1)* greater(X,U)* greater(sk8,Y).
+100[0:Res:12.0,6.4] || greater(U,V)* greater(W,X)* organization(sk4,sk7) organization(Y,Z) reproducibility(Y,X1,Z)*+ accountability(sk4,U,sk7)* accountability(Y,V,Z)* reliability(sk4,W,sk7)* reliability(Y,X,Z)* -> greater(sk5,X1).
+250[0:Res:2.1,33.2] || organization(sk4,U) greater(sk8,U) organization(sk4,U) reliability(sk4,V,U)* reorganization(sk4,W,X)* accountability(sk4,Y,sk8)* reliability(sk4,Z,sk8)* -> greater(V,Z)* greater(W,U)* greater(sk8,X).
+251[0:Con:250.2] || organization(sk4,U) greater(sk8,U) reliability(sk4,V,U)*+ reorganization(sk4,W,X)* accountability(sk4,Y,sk8)* reliability(sk4,Z,sk8)* -> greater(V,Z)* greater(W,U)* greater(sk8,X).
+305[0:Res:11.0,22.2] || organization(sk4,sk8) organization(sk4,sk7) accountability(sk4,U,sk8)*+ accountability(sk4,V,sk7)* reliability(sk4,W,sk8)* reliability(sk4,X,sk7)* -> greater(V,U)* greater(sk9,sk7) greater(sk8,sk10).
+354[0:Res:13.0,100.4] || greater(U,V)* greater(W,X)* organization(sk4,sk7) organization(sk4,sk8) accountability(sk4,U,sk7)*+ accountability(sk4,V,sk8)* reliability(sk4,W,sk7)* reliability(sk4,X,sk8)* -> greater(sk5,sk6).
+370[0:Res:30.0,305.2] || organization(sk4,sk8) organization(sk4,sk7) accountability(sk4,U,sk7)+ reliability(sk4,V,sk8)* reliability(sk4,W,sk7)* -> greater(U,sk2(sk8,sk4))* greater(sk9,sk7) greater(sk8,sk10).
+373[0:Res:2.1,370.2] || organization(sk4,sk7) organization(sk4,sk8) organization(sk4,sk7) reliability(sk4,U,sk8)* reliability(sk4,V,sk7)* -> greater(sk2(sk7,sk4),sk2(sk8,sk4))* greater(sk9,sk7) greater(sk8,sk10).
+374[0:Con:373.2] || organization(sk4,sk7) organization(sk4,sk8) reliability(sk4,U,sk8)*+ reliability(sk4,V,sk7)* -> greater(sk2(sk7,sk4),sk2(sk8,sk4))* greater(sk9,sk7) greater(sk8,sk10).
+382[0:Res:29.0,374.2] || organization(sk4,sk7) organization(sk4,sk8) reliability(sk4,U,sk7)*+ -> greater(sk2(sk7,sk4),sk2(sk8,sk4))* greater(sk9,sk7) greater(sk8,sk10).
+385[0:Res:1.1,382.2] || organization(sk4,sk7) organization(sk4,sk7) organization(sk4,sk8) -> greater(sk2(sk7,sk4),sk2(sk8,sk4))* greater(sk9,sk7) greater(sk8,sk10).
+386[0:Con:385.1] || organization(sk4,sk7) organization(sk4,sk8) -> greater(sk2(sk7,sk4),sk2(sk8,sk4))* greater(sk9,sk7) greater(sk8,sk10).
+518[0:Res:1.1,251.2] || organization(sk4,U) organization(sk4,U) greater(sk8,U) reorganization(sk4,V,W)* accountability(sk4,X,sk8)* reliability(sk4,Y,sk8) -> greater(sk1(U,sk4),Y)* greater(V,U)* greater(sk8,W).
+519[0:Con:518.1] || organization(sk4,U) greater(sk8,U) reorganization(sk4,V,W)*+ accountability(sk4,X,sk8)* reliability(sk4,Y,sk8) -> greater(sk1(U,sk4),Y)* greater(V,U)* greater(sk8,W).
+523[0:Res:11.0,519.2] || organization(sk4,U) greater(sk8,U) accountability(sk4,V,sk8)*+ reliability(sk4,W,sk8) -> greater(sk1(U,sk4),W)* greater(sk9,U) greater(sk8,sk10).
+524[0:Res:30.0,523.2] || organization(sk4,U) greater(sk8,U) reliability(sk4,V,sk8) -> greater(sk1(U,sk4),V)* greater(sk9,U) greater(sk8,sk10).
+639[0:Res:2.1,354.4] || organization(sk4,sk7) greater(sk2(sk7,sk4),U)* greater(V,W)* organization(sk4,sk7) organization(sk4,sk8) accountability(sk4,U,sk8) reliability(sk4,V,sk7)* reliability(sk4,W,sk8)* -> greater(sk5,sk6).
+640[0:Con:639.3] || organization(sk4,sk7) greater(sk2(sk7,sk4),U)*+ greater(V,W)* organization(sk4,sk8) accountability(sk4,U,sk8) reliability(sk4,V,sk7)* reliability(sk4,W,sk8)* -> greater(sk5,sk6).
+657[0:Res:386.2,640.1] || organization(sk4,sk7) organization(sk4,sk8) organization(sk4,sk7) greater(U,V)* organization(sk4,sk8) accountability(sk4,sk2(sk8,sk4),sk8)* reliability(sk4,U,sk7)* reliability(sk4,V,sk8)* -> greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+660[0:Con:657.2] || organization(sk4,sk7) organization(sk4,sk8) greater(U,V)* accountability(sk4,sk2(sk8,sk4),sk8)*+ reliability(sk4,U,sk7)* reliability(sk4,V,sk8)* -> greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+691[0:Res:30.0,660.3] || organization(sk4,sk7) organization(sk4,sk8) greater(U,V)* reliability(sk4,U,sk7)*+ reliability(sk4,V,sk8)* -> greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+694[0:Res:1.1,691.3] || organization(sk4,sk7) organization(sk4,sk7) organization(sk4,sk8) greater(sk1(sk7,sk4),U)* reliability(sk4,U,sk8) -> greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+695[0:Con:694.1] || organization(sk4,sk7) organization(sk4,sk8) greater(sk1(sk7,sk4),U)* reliability(sk4,U,sk8) -> greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+708[0:Res:524.3,695.2] || organization(sk4,sk7) greater(sk8,sk7) reliability(sk4,U,sk8)* organization(sk4,sk7) organization(sk4,sk8) reliability(sk4,U,sk8)* -> greater(sk9,sk7) greater(sk8,sk10) greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+713[0:Con:708.3] || organization(sk4,sk7) greater(sk8,sk7) reliability(sk4,U,sk8)* organization(sk4,sk8) -> greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+718[0:Res:29.0,713.2] || organization(sk4,sk7) greater(sk8,sk7)* organization(sk4,sk8) -> greater(sk9,sk7) greater(sk8,sk10) greater(sk5,sk6).
+721[0:Res:15.0,718.1] || organization(sk4,sk7) organization(sk4,sk8) -> greater(sk9,sk7) greater(sk8,sk10)* greater(sk5,sk6).
+722[0:Res:721.3,16.0] || organization(sk4,sk7) organization(sk4,sk8) -> greater(sk9,sk7)* greater(sk5,sk6).
+726[0:Res:722.2,14.0] || organization(sk4,sk7) organization(sk4,sk8) -> greater(sk5,sk6)*.
+727[0:Res:726.2,17.0] || organization(sk4,sk7)* organization(sk4,sk8) -> .
+728[0:Res:9.0,727.0] || organization(sk4,sk8)* -> .
+729[0:Res:10.0,728.0] ||  -> .

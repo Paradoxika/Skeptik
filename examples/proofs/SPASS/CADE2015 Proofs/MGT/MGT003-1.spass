@@ -1,0 +1,31 @@
+1[0:Inp] || reorganization_free(U,V,W)*+ -> reorganization_free(U,V,V)*.
+2[0:Inp] || reorganization_free(U,V,W)*+ -> reorganization_free(U,W,W)*.
+3[0:Inp] || organization(U,V) -> inertia(U,sk1(V,U),V)*.
+4[0:Inp] || greater(U,V)* organization(W,X) organization(Y,Z) survival_chance(W,X1,X)*+ survival_chance(Y,X2,Z)* inertia(W,U,X)* inertia(Y,V,Z)* reorganization_free(W,X,X)* reorganization_free(Y,Z,Z)* -> greater(X1,X2)*.
+5[0:Inp] || greater(U,V) organization(W,U) organization(W,V) inertia(W,X,U)*+ inertia(W,Y,V)* reorganization_free(W,V,U)* -> greater(X,Y)*.
+6[0:Inp] ||  -> organization(sk2,sk5)*.
+7[0:Inp] ||  -> organization(sk2,sk6)*.
+8[0:Inp] ||  -> reorganization_free(sk2,sk5,sk6)*.
+9[0:Inp] ||  -> survival_chance(sk2,sk3,sk5)*.
+10[0:Inp] ||  -> survival_chance(sk2,sk4,sk6)*.
+11[0:Inp] ||  -> greater(sk6,sk5)*.
+12[0:Inp] || greater(sk4,sk3)* -> .
+13[0:Res:11.0,5.5] || organization(U,sk6) organization(U,sk5) inertia(U,V,sk6)*+ inertia(U,W,sk5)* reorganization_free(U,sk5,sk6)* -> greater(V,W)*.
+17[0:Res:7.0,3.0] ||  -> inertia(sk2,sk1(sk6,sk2),sk6)*.
+22[0:Res:6.0,3.0] ||  -> inertia(sk2,sk1(sk5,sk2),sk5)*.
+25[0:Res:8.0,2.0] ||  -> reorganization_free(sk2,sk6,sk6)*.
+27[0:Res:8.0,1.0] ||  -> reorganization_free(sk2,sk5,sk5)*.
+43[0:Res:10.0,4.3] || greater(U,V)* organization(sk2,sk6) organization(W,X) survival_chance(W,Y,X)*+ inertia(sk2,U,sk6)* inertia(W,V,X)* reorganization_free(sk2,sk6,sk6)* reorganization_free(W,X,X)* -> greater(sk4,Y).
+54[0:Res:3.1,13.2] || organization(U,sk6) organization(U,sk6) organization(U,sk5) inertia(U,V,sk5) reorganization_free(U,sk5,sk6) -> greater(sk1(sk6,U),V)*.
+55[0:Con:54.1] || organization(U,sk6) organization(U,sk5) inertia(U,V,sk5) reorganization_free(U,sk5,sk6) -> greater(sk1(sk6,U),V)*.
+64[0:Res:9.0,43.3] || greater(U,V)* organization(sk2,sk6) organization(sk2,sk5) inertia(sk2,U,sk6)*+ inertia(sk2,V,sk5)* reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5)* -> greater(sk4,sk3).
+202[0:Res:17.0,64.3] || greater(sk1(sk6,sk2),U)* organization(sk2,sk6) organization(sk2,sk5) inertia(sk2,U,sk5) reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5) -> greater(sk4,sk3).
+209[0:Res:55.4,202.0] || organization(sk2,sk6) organization(sk2,sk5) inertia(sk2,U,sk5)* reorganization_free(sk2,sk5,sk6) organization(sk2,sk6) organization(sk2,sk5) inertia(sk2,U,sk5)* reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5)* -> greater(sk4,sk3).
+211[0:Con:209.4] || organization(sk2,sk6) organization(sk2,sk5) inertia(sk2,U,sk5)*+ reorganization_free(sk2,sk5,sk6) reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5)* -> greater(sk4,sk3).
+215[0:Res:22.0,211.2] || organization(sk2,sk6) organization(sk2,sk5) reorganization_free(sk2,sk5,sk6) reorganization_free(sk2,sk6,sk6) reorganization_free(sk2,sk5,sk5)* -> greater(sk4,sk3).
+218[0:Res:27.0,215.4] || organization(sk2,sk6) organization(sk2,sk5) reorganization_free(sk2,sk5,sk6)* reorganization_free(sk2,sk6,sk6) -> greater(sk4,sk3).
+219[0:Res:8.0,218.2] || organization(sk2,sk6) organization(sk2,sk5) reorganization_free(sk2,sk6,sk6)* -> greater(sk4,sk3).
+223[0:Res:25.0,219.2] || organization(sk2,sk6) organization(sk2,sk5) -> greater(sk4,sk3)*.
+224[0:Res:223.2,12.0] || organization(sk2,sk6) organization(sk2,sk5)* -> .
+225[0:Res:6.0,224.1] || organization(sk2,sk6)* -> .
+226[0:Res:7.0,225.0] ||  -> .

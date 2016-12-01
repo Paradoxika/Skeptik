@@ -1,0 +1,4 @@
+1[0:Inp] || c_in(U,V,W) c_in(U,c_uminus(V,tc_set(W)),W)* -> .
+2[0:Inp] ||  -> c_in(v_a,U,tc_IntDef_Oint)*.
+3[0:Res:2.0,1.1] || c_in(v_a,U,tc_IntDef_Oint)* -> .
+4[0:Res:2.0,3.0] ||  -> .

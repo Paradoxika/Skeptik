@@ -1,0 +1,9 @@
+1[0:Inp] ||  -> big_f(skc2,skc3) big_f(skc2,f(skc2))*.
+2[0:Inp] || big_f(U,skc3) -> big_f(U,f(skc2))*.
+3[0:Inp] || big_f(skc2,f(skc2)) big_f(skf2(U),f(skc2))* -> .
+4[0:Inp] || big_f(skc2,U) big_f(skc2,f(skc2)) -> big_f(skf2(U),U)*.
+6[0:Res:4.2,3.1] || big_f(skc2,f(skc2))* big_f(skc2,f(skc2))* big_f(skc2,f(skc2))* -> .
+9[0:Con:6.1] || big_f(skc2,f(skc2))* -> .
+10[0:Res:1.1,9.0] ||  -> big_f(skc2,skc3)*.
+11[0:Res:2.1,9.0] || big_f(skc2,skc3)* -> .
+12[0:Res:10.0,11.0] ||  -> .

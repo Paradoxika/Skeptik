@@ -1,0 +1,5 @@
+1[0:Inp] || c_in(c_Message_Omsg_OMPair(U,V),c_Message_Oparts(W),tc_Message_Omsg)* -> c_in(V,c_Message_Oparts(W),tc_Message_Omsg).
+2[0:Inp] ||  -> c_in(c_Message_Omsg_OMPair(v_X,v_Y),c_Message_Oparts(v_H),tc_Message_Omsg)*.
+3[0:Inp] || c_in(v_Y,c_Message_Oparts(v_H),tc_Message_Omsg)* -> .
+5[0:Res:2.0,1.0] ||  -> c_in(v_Y,c_Message_Oparts(v_H),tc_Message_Omsg)*.
+6[0:Res:5.0,3.0] ||  -> .

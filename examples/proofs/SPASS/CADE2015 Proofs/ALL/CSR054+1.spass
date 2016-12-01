@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> mtvisible(c_currentworlddatacollectormt_nonhomocentric)*.
+28[0:Inp] || tptpofobject(f_instancewithrelationtofn(c_airport_physical,c_airporthasiatacode,s_tlh),U)* -> .
+33[0:Inp] || mtvisible(c_currentworlddatacollectormt_nonhomocentric) -> tptpofobject(f_instancewithrelationtofn(c_airport_physical,c_airporthasiatacode,s_tlh),f_tptpquantityfn_21(n_170))*.
+43[0:Res:33.1,28.0] || mtvisible(c_currentworlddatacollectormt_nonhomocentric)* -> .
+44[0:Res:1.0,43.0] ||  -> .

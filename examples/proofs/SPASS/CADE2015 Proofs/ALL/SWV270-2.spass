@@ -1,0 +1,18 @@
+1[0:Inp] || c_in(c_Message_Omsg_OMPair(U,V),c_Message_Oparts(W),tc_Message_Omsg)* -> c_in(U,c_Message_Oparts(W),tc_Message_Omsg).
+2[0:Inp] || c_in(c_Message_Omsg_OMPair(U,V),c_Message_Osynth(W),tc_Message_Omsg)* -> c_in(U,c_Message_Osynth(W),tc_Message_Omsg) c_in(c_Message_Omsg_OMPair(U,V),W,tc_Message_Omsg).
+3[0:Inp] || c_in(U,V,tc_Message_Omsg) -> c_in(U,c_Message_Oparts(V),tc_Message_Omsg)*.
+4[0:Inp] || c_in(U,c_union(V,W,X),X)* -> c_in(U,V,X) c_in(U,W,X).
+5[0:Inp] || c_in(U,V,W) -> c_in(U,c_union(V,X,W),W)*.
+6[0:Inp] || c_in(U,V,W) -> c_in(U,c_union(X,V,W),W)*.
+7[0:Inp] ||  -> c_in(c_Message_Omsg_OMPair(v_X,v_Y),c_union(c_Message_Oparts(v_H),c_Message_Osynth(v_H),tc_Message_Omsg),tc_Message_Omsg)*.
+8[0:Inp] || c_in(v_X,c_union(c_Message_Oparts(v_H),c_Message_Osynth(v_H),tc_Message_Omsg),tc_Message_Omsg)* -> .
+9[0:Res:6.1,8.0] || c_in(v_X,c_Message_Osynth(v_H),tc_Message_Omsg)* -> .
+10[0:Res:5.1,8.0] || c_in(v_X,c_Message_Oparts(v_H),tc_Message_Omsg)* -> .
+16[0:Res:7.0,4.0] ||  -> c_in(c_Message_Omsg_OMPair(v_X,v_Y),c_Message_Oparts(v_H),tc_Message_Omsg)* c_in(c_Message_Omsg_OMPair(v_X,v_Y),c_Message_Osynth(v_H),tc_Message_Omsg).
+20[0:Res:3.1,1.0] || c_in(c_Message_Omsg_OMPair(U,V),W,tc_Message_Omsg)* -> c_in(U,c_Message_Oparts(W),tc_Message_Omsg).
+32[0:Res:16.0,1.0] ||  -> c_in(c_Message_Omsg_OMPair(v_X,v_Y),c_Message_Osynth(v_H),tc_Message_Omsg)* c_in(v_X,c_Message_Oparts(v_H),tc_Message_Omsg).
+37[0:Res:32.0,2.0] ||  -> c_in(v_X,c_Message_Oparts(v_H),tc_Message_Omsg) c_in(v_X,c_Message_Osynth(v_H),tc_Message_Omsg) c_in(c_Message_Omsg_OMPair(v_X,v_Y),v_H,tc_Message_Omsg)*.
+72[0:Res:37.2,20.0] ||  -> c_in(v_X,c_Message_Oparts(v_H),tc_Message_Omsg)* c_in(v_X,c_Message_Osynth(v_H),tc_Message_Omsg) c_in(v_X,c_Message_Oparts(v_H),tc_Message_Omsg)*.
+73[0:Con:72.2] ||  -> c_in(v_X,c_Message_Oparts(v_H),tc_Message_Omsg)* c_in(v_X,c_Message_Osynth(v_H),tc_Message_Omsg).
+74[0:Res:73.0,10.0] ||  -> c_in(v_X,c_Message_Osynth(v_H),tc_Message_Omsg)*.
+75[0:Res:74.0,9.0] ||  -> .

@@ -1,0 +1,15 @@
+1[0:Inp] || can(monkey(U,floor,nothing),ladder(U,floor),V) -> can(monkey(U,ceiling,nothing),ladder(U,floor),V)*.
+3[0:Inp] || can(monkey(U,floor,the_ladder),ladder(U,floor),V)*+ -> can(monkey(W,floor,the_ladder),ladder(W,floor),V)*.
+5[0:Inp] || can(monkey(U,floor,nothing),V,W)*+ -> can(monkey(X,floor,nothing),V,W)*.
+6[0:Inp] || can(monkey(U,V,the_ladder),ladder(U,W),X)*+ -> can(monkey(U,V,nothing),ladder(U,floor),X)*.
+8[0:Inp] || can(monkey(U,V,nothing),W,bananas(U,V))* -> can(monkey(U,V,the_bananas),W,bananas(U,V)).
+9[0:Inp] || can(monkey(U,V,nothing),ladder(U,V),W)* -> can(monkey(U,V,the_ladder),ladder(U,V),W).
+10[0:Inp] ||  -> can(monkey(l0,floor,nothing),ladder(l1,floor),bananas(l2,ceiling))*.
+11[0:Inp] || can(monkey(U,V,the_bananas),W,X)* -> .
+12[0:Res:8.1,11.0] || can(monkey(U,V,nothing),W,bananas(U,V))* -> .
+13[0:Res:10.0,5.0] ||  -> can(monkey(U,floor,nothing),ladder(l1,floor),bananas(l2,ceiling))*.
+14[0:Res:1.1,12.0] || can(monkey(U,floor,nothing),ladder(U,floor),bananas(U,ceiling))* -> .
+17[0:Res:13.0,9.0] ||  -> can(monkey(l1,floor,the_ladder),ladder(l1,floor),bananas(l2,ceiling))*.
+18[0:Res:17.0,3.0] ||  -> can(monkey(U,floor,the_ladder),ladder(U,floor),bananas(l2,ceiling))*.
+21[0:Res:18.0,6.0] ||  -> can(monkey(U,floor,nothing),ladder(U,floor),bananas(l2,ceiling))*.
+23[0:Res:21.0,14.0] ||  -> .

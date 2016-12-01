@@ -1,0 +1,5 @@
+2[0:Inp] ||  -> in(skc4,skc5)*.
+5[0:Inp] || subset(skc4,union(skc5))* -> .
+7[0:Inp] || in(U,V) -> subset(U,union(V))*.
+11[0:Res:7.1,5.0] || in(skc4,skc5)* -> .
+12[0:Res:2.0,11.0] ||  -> .

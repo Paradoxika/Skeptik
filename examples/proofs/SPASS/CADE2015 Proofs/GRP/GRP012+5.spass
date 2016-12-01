@@ -1,0 +1,21 @@
+1[0:Inp] ||  -> product(skc8,skc9,skc7)*.
+2[0:Inp] ||  -> product(U,skc5,U)*.
+3[0:Inp] ||  -> product(skc5,U,U)*.
+4[0:Inp] ||  -> product(U,inverse(U),skc5)*.
+6[0:Inp] ||  -> product(inverse(skc9),inverse(skc8),skc6)*.
+8[0:Inp] || product(inverse(skc6),inverse(skc7),skc5)* -> .
+9[0:Inp] || product(U,V,W)*+ product(X,W,Y)* product(X,U,Z)* -> product(Z,V,Y)*.
+10[0:Inp] || product(U,V,W)*+ product(X,V,Y)* product(Z,X,U)* -> product(Z,Y,W)*.
+12[0:Res:3.0,10.0] || product(U,V,W)*+ product(X,U,skc5)* -> product(X,W,V)*.
+15[0:Res:4.0,10.0] || product(U,inverse(V),W)*+ product(X,U,V)* -> product(X,W,skc5)*.
+19[0:Res:3.0,9.0] || product(U,V,W)*+ product(U,skc5,X)* -> product(X,V,W)*.
+22[0:Res:4.0,9.0] || product(U,skc5,V)*+ product(U,W,X)* -> product(X,inverse(W),V)*.
+50[0:Res:4.0,12.0] || product(U,V,skc5) -> product(U,skc5,inverse(V))*.
+95[0:Res:4.0,19.0] || product(U,skc5,V) -> product(V,inverse(U),skc5)*.
+205[0:Res:6.0,15.0] || product(U,inverse(skc9),skc8)* -> product(U,skc6,skc5).
+275[0:Res:2.0,22.0] || product(U,V,W) -> product(W,inverse(V),U)*.
+722[0:Res:95.1,8.0] || product(skc7,skc5,inverse(skc6))* -> .
+735[0:Res:50.1,722.0] || product(skc7,skc6,skc5)* -> .
+1203[0:Res:275.1,205.0] || product(skc8,skc9,U)*+ -> product(U,skc6,skc5)*.
+2164[0:Res:1.0,1203.0] ||  -> product(skc7,skc6,skc5)*.
+2169[0:Res:2164.0,735.0] ||  -> .

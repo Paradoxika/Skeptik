@@ -1,0 +1,28 @@
+1[0:Inp] ||  -> truth(isa(U,knave)) truth(isa(U,knight))*.
+7[0:Inp] ||  -> reply(U,V,no) reply(U,V,yes)*.
+14[0:Inp] || truth(isa(other,U))* truth(isa(asked,V))* reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),W)*+ -> .
+45[0:Res:7.1,14.2] || truth(isa(other,U))*+ truth(isa(asked,V))* -> reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+54[0:Res:1.1,45.0] || truth(isa(asked,U))*+ -> truth(isa(other,knave)) reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+55[0:Res:1.1,54.0] ||  -> truth(isa(asked,knave)) truth(isa(other,knave)) reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+59[0:Res:55.2,14.2] || truth(isa(other,U))*+ truth(isa(asked,V))* -> truth(isa(asked,knave))* truth(isa(other,knave)).
+60[0:Res:1.1,59.0] || truth(isa(asked,U))* -> truth(isa(other,knave)) truth(isa(asked,knave))* truth(isa(other,knave)).
+61[0:Con:60.3] || truth(isa(asked,U))*+ -> truth(isa(other,knave)) truth(isa(asked,knave))*.
+62[0:Res:1.1,61.0] ||  -> truth(isa(asked,knave))* truth(isa(other,knave)) truth(isa(asked,knave))*.
+63[0:Con:62.2] ||  -> truth(isa(asked,knave))* truth(isa(other,knave)).
+64[0:Res:63.0,54.0] ||  -> truth(isa(other,knave)) truth(isa(other,knave)) reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+65[0:Con:64.1] ||  -> truth(isa(other,knave)) reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+71[0:Res:65.1,14.2] || truth(isa(other,U))*+ truth(isa(asked,V))* -> truth(isa(other,knave)).
+72[0:Res:1.1,71.0] || truth(isa(asked,U))* -> truth(isa(other,knave)) truth(isa(other,knave)).
+73[0:Con:72.2] || truth(isa(asked,U))* -> truth(isa(other,knave)).
+75[0:Res:63.0,73.0] ||  -> truth(isa(other,knave))* truth(isa(other,knave))*.
+76[0:Con:75.1] ||  -> truth(isa(other,knave))*.
+78[0:Res:76.0,45.0] || truth(isa(asked,U))*+ -> reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+81[0:Res:1.1,78.0] ||  -> truth(isa(asked,knave)) reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+84[0:Res:81.1,14.2] || truth(isa(other,U))*+ truth(isa(asked,V))* -> truth(isa(asked,knave))*.
+86[0:Res:76.0,84.0] || truth(isa(asked,U))*+ -> truth(isa(asked,knave))*.
+88[0:Res:1.1,86.0] ||  -> truth(isa(asked,knave))* truth(isa(asked,knave))*.
+89[0:Con:88.1] ||  -> truth(isa(asked,knave))*.
+91[0:Res:89.0,78.0] ||  -> reply(asked,or__dfg(isa(asked,knight),isa(other,knight)),no)*.
+94[0:Res:91.0,14.2] || truth(isa(other,U))*+ truth(isa(asked,V))* -> .
+96[0:Res:76.0,94.0] || truth(isa(asked,U))* -> .
+100[0:Res:89.0,96.0] ||  -> .

@@ -1,0 +1,7 @@
+1[0:Inp] ||  -> big_f(f(a,b),f(b,c))*.
+2[0:Inp] ||  -> big_f(f(b,c),f(a,c))*.
+3[0:Inp] || big_f(f(a,b),f(a,c))* -> .
+4[0:Inp] || big_f(U,V)*+ big_f(W,U)* -> big_f(W,V)*.
+6[0:Res:2.0,4.0] || big_f(U,f(b,c)) -> big_f(U,f(a,c))*.
+8[0:Res:6.1,3.0] || big_f(f(a,b),f(b,c))* -> .
+10[0:Res:1.0,8.0] ||  -> .

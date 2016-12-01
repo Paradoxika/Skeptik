@@ -1,0 +1,7 @@
+5[0:Inp] ||  -> iext(uri_owl_propertyDisjointWith,uri_skos_prefLabel,uri_skos_altLabel)*.
+6[0:Inp] ||  -> iext(uri_skos_prefLabel,uri_ex_foo,literal_plain(dat_str_foo))*.
+7[0:Inp] ||  -> iext(uri_skos_altLabel,uri_ex_foo,literal_plain(dat_str_foo))*.
+10[0:Inp] || iext(U,V,W)*+ iext(X,V,W)* iext(uri_owl_propertyDisjointWith,X,U)* -> .
+22[0:Res:7.0,10.0] || iext(U,uri_ex_foo,literal_plain(dat_str_foo))* iext(uri_owl_propertyDisjointWith,U,uri_skos_altLabel) -> .
+39[0:Res:6.0,22.0] || iext(uri_owl_propertyDisjointWith,uri_skos_prefLabel,uri_skos_altLabel)* -> .
+42[0:Res:5.0,39.0] ||  -> .

@@ -1,0 +1,17 @@
+1[0:Inp] ||  -> mtvisible(c_tptp_spindlecollectormt)*.
+15[0:Inp] ||  -> genlmt(c_tptp_spindlecollectormt,c_tptp_member2668_mt)*.
+60[0:Inp] || tptptypes_5_802(f_subcollectionofwithrelationfromtypefn(c_orientationvector,c_orientation,c_partiallytangible),c_tptpcol_16_8886)* -> .
+61[0:Inp] || tptptypes_6_818(U,V) -> tptptypes_5_802(U,V)*.
+62[0:Inp] || tptptypes_7_819(U,V) -> tptptypes_6_818(U,V)*.
+63[0:Inp] || tptptypes_8_823(U,V) -> tptptypes_7_819(U,V)*.
+64[0:Inp] || tptptypes_9_824(U,V) -> tptptypes_8_823(U,V)*.
+69[0:Inp] || mtvisible(c_tptp_member2668_mt) -> tptptypes_9_824(f_subcollectionofwithrelationfromtypefn(c_orientationvector,c_orientation,c_partiallytangible),c_tptpcol_16_8886)*.
+72[0:Inp] mtvisible(U) || genlmt(U,V)* -> mtvisible(V).
+82[0:Res:1.0,72.0] || genlmt(c_tptp_spindlecollectormt,U)* -> mtvisible(U).
+83[0:Res:61.1,60.0] || tptptypes_6_818(f_subcollectionofwithrelationfromtypefn(c_orientationvector,c_orientation,c_partiallytangible),c_tptpcol_16_8886)* -> .
+124[0:Res:15.0,82.0] ||  -> mtvisible(c_tptp_member2668_mt)*.
+171[0:Res:62.1,83.0] || tptptypes_7_819(f_subcollectionofwithrelationfromtypefn(c_orientationvector,c_orientation,c_partiallytangible),c_tptpcol_16_8886)* -> .
+172[0:Res:63.1,171.0] || tptptypes_8_823(f_subcollectionofwithrelationfromtypefn(c_orientationvector,c_orientation,c_partiallytangible),c_tptpcol_16_8886)* -> .
+173[0:Res:64.1,172.0] || tptptypes_9_824(f_subcollectionofwithrelationfromtypefn(c_orientationvector,c_orientation,c_partiallytangible),c_tptpcol_16_8886)* -> .
+176[0:Res:69.1,173.0] || mtvisible(c_tptp_member2668_mt)* -> .
+177[0:Res:124.0,176.0] ||  -> .

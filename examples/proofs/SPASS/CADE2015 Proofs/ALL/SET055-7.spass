@@ -1,0 +1,6 @@
+74[0:Inp] || subclass(U,V)* subclass(V,U)* -> equalish(V,U).
+163[0:Inp] ||  -> subclass(U,U)*.
+165[0:Inp] || equalish(x,x)* -> .
+167[0:Res:74.2,165.0] || subclass(x,x)* subclass(x,x)* -> .
+171[0:Con:167.1] || subclass(x,x)* -> .
+192[0:Res:163.0,171.0] ||  -> .

@@ -1,0 +1,25 @@
+9[0:Inp] ||  -> genls(c_tptpcol_8_39940,c_tptpcol_7_39939)*.
+10[0:Inp] ||  -> genls(c_tptpcol_9_40196,c_tptpcol_8_39940)*.
+11[0:Inp] ||  -> genls(c_tptpcol_10_40324,c_tptpcol_9_40196)*.
+12[0:Inp] ||  -> genls(c_tptpcol_11_40388,c_tptpcol_10_40324)*.
+13[0:Inp] ||  -> genls(c_tptpcol_12_40420,c_tptpcol_11_40388)*.
+14[0:Inp] ||  -> genls(c_tptpcol_13_40421,c_tptpcol_12_40420)*.
+15[0:Inp] ||  -> genls(c_tptpcol_14_40429,c_tptpcol_13_40421)*.
+16[0:Inp] ||  -> genls(c_tptpcol_15_40430,c_tptpcol_14_40429)*.
+19[0:Inp] || genls(c_tptpcol_15_40430,c_tptpcol_7_39939)* -> .
+95[0:Inp] || genls(U,V)*+ genls(W,U)* -> genls(W,V)*.
+98[0:Res:95.2,19.0] || genls(U,c_tptpcol_7_39939)*+ genls(c_tptpcol_15_40430,U)* -> .
+202[0:Res:9.0,98.0] || genls(c_tptpcol_15_40430,c_tptpcol_8_39940)* -> .
+249[0:Res:15.0,95.0] || genls(U,c_tptpcol_14_40429) -> genls(U,c_tptpcol_13_40421)*.
+250[0:Res:14.0,95.0] || genls(U,c_tptpcol_13_40421) -> genls(U,c_tptpcol_12_40420)*.
+251[0:Res:13.0,95.0] || genls(U,c_tptpcol_12_40420) -> genls(U,c_tptpcol_11_40388)*.
+252[0:Res:12.0,95.0] || genls(U,c_tptpcol_11_40388) -> genls(U,c_tptpcol_10_40324)*.
+253[0:Res:11.0,95.0] || genls(U,c_tptpcol_10_40324) -> genls(U,c_tptpcol_9_40196)*.
+254[0:Res:10.0,95.0] || genls(U,c_tptpcol_9_40196) -> genls(U,c_tptpcol_8_39940)*.
+476[0:Res:254.1,202.0] || genls(c_tptpcol_15_40430,c_tptpcol_9_40196)* -> .
+483[0:Res:253.1,476.0] || genls(c_tptpcol_15_40430,c_tptpcol_10_40324)* -> .
+484[0:Res:252.1,483.0] || genls(c_tptpcol_15_40430,c_tptpcol_11_40388)* -> .
+485[0:Res:251.1,484.0] || genls(c_tptpcol_15_40430,c_tptpcol_12_40420)* -> .
+486[0:Res:250.1,485.0] || genls(c_tptpcol_15_40430,c_tptpcol_13_40421)* -> .
+497[0:Res:249.1,486.0] || genls(c_tptpcol_15_40430,c_tptpcol_14_40429)* -> .
+498[0:Res:16.0,497.0] ||  -> .

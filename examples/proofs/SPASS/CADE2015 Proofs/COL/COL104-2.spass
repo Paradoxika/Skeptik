@@ -1,0 +1,11 @@
+1[0:Inp] || c_in(c_Pair(U,V,tc_Comb_Ocomb,tc_Comb_Ocomb),c_Comb_Ocontract,tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb)) -> c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(W,U),c_Comb_Ocomb_Oop_A_D_D(W,V),tc_Comb_Ocomb,tc_Comb_Ocomb),c_Comb_Ocontract,tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))*.
+2[0:Inp] || c_in(U,V,tc_prod(W,W)) -> c_in(U,c_Transitive__Closure_Ortrancl(V,W),tc_prod(W,W))*.
+3[0:Inp] || c_in(c_Pair(U,V,W,W),c_Transitive__Closure_Ortrancl(X,W),tc_prod(W,W))*+ c_in(c_Pair(V,Y,W,W),c_Transitive__Closure_Ortrancl(X,W),tc_prod(W,W))* -> c_in(c_Pair(U,Y,W,W),c_Transitive__Closure_Ortrancl(X,W),tc_prod(W,W))*.
+4[0:Inp] ||  -> c_in(c_Pair(v_y,v_za,tc_Comb_Ocomb,tc_Comb_Ocomb),c_Comb_Ocontract,tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))*.
+5[0:Inp] ||  -> c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(v_z,v_x),c_Comb_Ocomb_Oop_A_D_D(v_z,v_y),tc_Comb_Ocomb,tc_Comb_Ocomb),c_Transitive__Closure_Ortrancl(c_Comb_Ocontract,tc_Comb_Ocomb),tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))*.
+6[0:Inp] || c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(v_z,v_x),c_Comb_Ocomb_Oop_A_D_D(v_z,v_za),tc_Comb_Ocomb,tc_Comb_Ocomb),c_Transitive__Closure_Ortrancl(c_Comb_Ocontract,tc_Comb_Ocomb),tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))* -> .
+7[0:Res:4.0,1.0] ||  -> c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(U,v_y),c_Comb_Ocomb_Oop_A_D_D(U,v_za),tc_Comb_Ocomb,tc_Comb_Ocomb),c_Comb_Ocontract,tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))*.
+11[0:Res:5.0,3.1] || c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(v_z,v_y),U,tc_Comb_Ocomb,tc_Comb_Ocomb),c_Transitive__Closure_Ortrancl(c_Comb_Ocontract,tc_Comb_Ocomb),tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))* -> c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(v_z,v_x),U,tc_Comb_Ocomb,tc_Comb_Ocomb),c_Transitive__Closure_Ortrancl(c_Comb_Ocontract,tc_Comb_Ocomb),tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb)).
+21[0:Res:2.1,11.0] || c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(v_z,v_y),U,tc_Comb_Ocomb,tc_Comb_Ocomb),c_Comb_Ocontract,tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb)) -> c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(v_z,v_x),U,tc_Comb_Ocomb,tc_Comb_Ocomb),c_Transitive__Closure_Ortrancl(c_Comb_Ocontract,tc_Comb_Ocomb),tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))*.
+22[0:Res:21.1,6.0] || c_in(c_Pair(c_Comb_Ocomb_Oop_A_D_D(v_z,v_y),c_Comb_Ocomb_Oop_A_D_D(v_z,v_za),tc_Comb_Ocomb,tc_Comb_Ocomb),c_Comb_Ocontract,tc_prod(tc_Comb_Ocomb,tc_Comb_Ocomb))* -> .
+26[0:Res:7.0,22.0] ||  -> .

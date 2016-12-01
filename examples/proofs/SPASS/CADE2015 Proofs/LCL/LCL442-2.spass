@@ -1,0 +1,32 @@
+1[0:Inp] || c_in(c_PropLog_Opl_Oop_A_N_62(U,c_PropLog_Opl_Ofalse,V),c_PropLog_Othms(W,V),tc_PropLog_Opl(V))*+ -> c_in(c_PropLog_Opl_Oop_A_N_62(U,X,V),c_PropLog_Othms(W,V),tc_PropLog_Opl(V))*.
+2[0:Inp] || c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) c_in(c_PropLog_Opl_Oop_A_N_62(X,c_PropLog_Opl_Ofalse,W),c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) -> c_in(c_PropLog_Opl_Oop_A_N_62(c_PropLog_Opl_Oop_A_N_62(U,X,W),c_PropLog_Opl_Ofalse,W),c_PropLog_Othms(V,W),tc_PropLog_Opl(W))*.
+3[0:Inp] || c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) -> c_in(U,c_PropLog_Othms(c_union(V,X,tc_PropLog_Opl(W)),W),tc_PropLog_Opl(W))*.
+4[0:Inp] || c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) -> c_in(U,c_PropLog_Othms(c_union(X,V,tc_PropLog_Opl(W)),W),tc_PropLog_Opl(W))*.
+5[0:Inp] || c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) -> c_in(c_PropLog_Opl_Oop_A_N_62(X,U,W),c_PropLog_Othms(V,W),tc_PropLog_Opl(W))*.
+6[0:Inp] || c_PropLog_Oeval(v_tt,v_pl1,t_a) -> c_in(v_pl1,c_PropLog_Othms(c_PropLog_Ohyps(v_pl1,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))*.
+7[0:Inp] ||  -> c_PropLog_Oeval(v_tt,v_pl1,t_a) c_in(c_PropLog_Opl_Oop_A_N_62(v_pl1,c_PropLog_Opl_Ofalse,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl1,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))*.
+8[0:Inp] || c_PropLog_Oeval(v_tt,v_pl2,t_a) -> c_in(v_pl2,c_PropLog_Othms(c_PropLog_Ohyps(v_pl2,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))*.
+9[0:Inp] ||  -> c_PropLog_Oeval(v_tt,v_pl2,t_a) c_in(c_PropLog_Opl_Oop_A_N_62(v_pl2,c_PropLog_Opl_Ofalse,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl2,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))*.
+10[0:Inp] || c_in(c_PropLog_Opl_Oop_A_N_62(v_pl1,v_pl2,t_a),c_PropLog_Othms(c_union(c_PropLog_Ohyps(v_pl1,v_tt,t_a),c_PropLog_Ohyps(v_pl2,v_tt,t_a),tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* -> c_PropLog_Oeval(v_tt,v_pl1,t_a).
+11[0:Inp] || c_PropLog_Oeval(v_tt,v_pl2,t_a) c_in(c_PropLog_Opl_Oop_A_N_62(v_pl1,v_pl2,t_a),c_PropLog_Othms(c_union(c_PropLog_Ohyps(v_pl1,v_tt,t_a),c_PropLog_Ohyps(v_pl2,v_tt,t_a),tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* -> .
+12[0:Inp] || c_PropLog_Oeval(v_tt,v_pl1,t_a) c_in(c_PropLog_Opl_Oop_A_N_62(c_PropLog_Opl_Oop_A_N_62(v_pl1,v_pl2,t_a),c_PropLog_Opl_Ofalse,t_a),c_PropLog_Othms(c_union(c_PropLog_Ohyps(v_pl1,v_tt,t_a),c_PropLog_Ohyps(v_pl2,v_tt,t_a),tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* -> c_PropLog_Oeval(v_tt,v_pl2,t_a).
+13[0:Res:9.1,1.0] ||  -> c_PropLog_Oeval(v_tt,v_pl2,t_a) c_in(c_PropLog_Opl_Oop_A_N_62(v_pl2,U,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl2,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))*.
+14[0:Res:7.1,1.0] ||  -> c_PropLog_Oeval(v_tt,v_pl1,t_a) c_in(c_PropLog_Opl_Oop_A_N_62(v_pl1,U,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl1,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))*.
+16[0:Res:4.1,1.0] || c_in(c_PropLog_Opl_Oop_A_N_62(U,c_PropLog_Opl_Ofalse,V),c_PropLog_Othms(W,V),tc_PropLog_Opl(V)) -> c_in(c_PropLog_Opl_Oop_A_N_62(U,X,V),c_PropLog_Othms(c_union(Y,W,tc_PropLog_Opl(V)),V),tc_PropLog_Opl(V))*.
+21[0:Res:3.1,10.0] || c_in(c_PropLog_Opl_Oop_A_N_62(v_pl1,v_pl2,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl1,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))* -> c_PropLog_Oeval(v_tt,v_pl1,t_a).
+26[0:Res:4.1,11.1] || c_in(c_PropLog_Opl_Oop_A_N_62(v_pl1,v_pl2,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl2,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))* c_PropLog_Oeval(v_tt,v_pl2,t_a) -> .
+29[0:Res:14.1,21.0] ||  -> c_PropLog_Oeval(v_tt,v_pl1,t_a)* c_PropLog_Oeval(v_tt,v_pl1,t_a)*.
+30[0:Con:29.1] ||  -> c_PropLog_Oeval(v_tt,v_pl1,t_a)*.
+33[0:Res:5.1,26.0] || c_in(v_pl2,c_PropLog_Othms(c_PropLog_Ohyps(v_pl2,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))* c_PropLog_Oeval(v_tt,v_pl2,t_a) -> .
+35[0:Res:2.2,1.0] || c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) c_in(c_PropLog_Opl_Oop_A_N_62(X,c_PropLog_Opl_Ofalse,W),c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) -> c_in(c_PropLog_Opl_Oop_A_N_62(c_PropLog_Opl_Oop_A_N_62(U,X,W),Y,W),c_PropLog_Othms(V,W),tc_PropLog_Opl(W))*.
+36[0:Res:8.1,33.0] || c_PropLog_Oeval(v_tt,v_pl2,t_a)* c_PropLog_Oeval(v_tt,v_pl2,t_a)* -> .
+37[0:Con:36.1] || c_PropLog_Oeval(v_tt,v_pl2,t_a)* -> .
+51[0:Res:35.2,12.1] || c_in(v_pl1,c_PropLog_Othms(c_union(c_PropLog_Ohyps(v_pl1,v_tt,t_a),c_PropLog_Ohyps(v_pl2,v_tt,t_a),tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a)) c_in(c_PropLog_Opl_Oop_A_N_62(v_pl2,c_PropLog_Opl_Ofalse,t_a),c_PropLog_Othms(c_union(c_PropLog_Ohyps(v_pl1,v_tt,t_a),c_PropLog_Ohyps(v_pl2,v_tt,t_a),tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* c_PropLog_Oeval(v_tt,v_pl1,t_a) -> c_PropLog_Oeval(v_tt,v_pl2,t_a).
+67[0:Res:16.1,51.1] || c_in(c_PropLog_Opl_Oop_A_N_62(v_pl2,c_PropLog_Opl_Ofalse,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl2,v_tt,t_a),t_a),tc_PropLog_Opl(t_a)) c_in(v_pl1,c_PropLog_Othms(c_union(c_PropLog_Ohyps(v_pl1,v_tt,t_a),c_PropLog_Ohyps(v_pl2,v_tt,t_a),tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* c_PropLog_Oeval(v_tt,v_pl1,t_a) -> c_PropLog_Oeval(v_tt,v_pl2,t_a).
+69[0:Res:3.1,67.1] || c_in(v_pl1,c_PropLog_Othms(c_PropLog_Ohyps(v_pl1,v_tt,t_a),t_a),tc_PropLog_Opl(t_a)) c_in(c_PropLog_Opl_Oop_A_N_62(v_pl2,c_PropLog_Opl_Ofalse,t_a),c_PropLog_Othms(c_PropLog_Ohyps(v_pl2,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))* c_PropLog_Oeval(v_tt,v_pl1,t_a) -> c_PropLog_Oeval(v_tt,v_pl2,t_a).
+70[0:Res:13.1,69.1] || c_in(v_pl1,c_PropLog_Othms(c_PropLog_Ohyps(v_pl1,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))* c_PropLog_Oeval(v_tt,v_pl1,t_a) -> c_PropLog_Oeval(v_tt,v_pl2,t_a) c_PropLog_Oeval(v_tt,v_pl2,t_a).
+73[0:Con:70.3] || c_in(v_pl1,c_PropLog_Othms(c_PropLog_Ohyps(v_pl1,v_tt,t_a),t_a),tc_PropLog_Opl(t_a))* c_PropLog_Oeval(v_tt,v_pl1,t_a) -> c_PropLog_Oeval(v_tt,v_pl2,t_a).
+74[0:Res:6.1,73.0] || c_PropLog_Oeval(v_tt,v_pl1,t_a)* c_PropLog_Oeval(v_tt,v_pl1,t_a)* -> c_PropLog_Oeval(v_tt,v_pl2,t_a).
+75[0:Con:74.1] || c_PropLog_Oeval(v_tt,v_pl1,t_a)* -> c_PropLog_Oeval(v_tt,v_pl2,t_a).
+76[0:Res:30.0,75.0] ||  -> c_PropLog_Oeval(v_tt,v_pl2,t_a)*.
+77[0:Res:76.0,37.0] ||  -> .

@@ -1,0 +1,15 @@
+1[0:Inp] || big_f(U,b)+ -> big_f(U,f(a))* big_f(a,f(a))*.
+2[0:Inp] ||  -> big_f(a,b) big_f(a,f(a))*.
+4[0:Inp] || big_f(a,U) -> big_f(a,b) big_f(g(U),U)*.
+5[0:Inp] || big_f(a,U) big_f(a,f(a)) -> big_f(g(U),U)*.
+7[0:Inp] || big_f(a,U) big_f(g(U),U)* -> big_f(a,b).
+8[0:Inp] || big_f(a,U) big_f(a,f(a)) big_f(g(U),U)* -> .
+10[0:Res:4.2,7.1] || big_f(a,U)* big_f(a,U)* -> big_f(a,b)* big_f(a,b)*.
+11[0:Con:10.1] || big_f(a,U)*+ -> big_f(a,b)*.
+13[0:Res:2.1,11.0] ||  -> big_f(a,b)* big_f(a,b)*.
+14[0:Con:13.1] ||  -> big_f(a,b)*.
+15[0:Res:14.0,1.0] ||  -> big_f(a,f(a))* big_f(a,f(a))*.
+16[0:Con:15.1] ||  -> big_f(a,f(a))*.
+17[0:Res:5.2,8.2] || big_f(a,U)* big_f(a,f(a))* big_f(a,U)* big_f(a,f(a))* -> .
+18[0:Con:17.0] || big_f(a,f(a))* -> .
+20[0:Res:16.0,18.0] ||  -> .

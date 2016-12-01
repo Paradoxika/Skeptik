@@ -1,0 +1,12 @@
+1[0:Inp] ||  -> subset(skc7,skc4)*.
+3[0:Inp] ||  -> relation_of2_as_subset(skc6,skc5,skc7)*.
+5[0:Inp] || relation_of2_as_subset(skc6,skc5,skc4)* -> .
+14[0:Inp] || relation_of2_as_subset(U,V,W)* -> subset(relation_rng(U),W)*.
+16[0:Inp] || subset(U,V)* subset(W,U)* -> subset(W,V)*.
+17[0:Inp] || subset(relation_rng(U),V)* relation_of2_as_subset(U,W,X)* -> relation_of2_as_subset(U,W,V)*.
+20[0:Res:1.0,16.1] || subset(U,skc7) -> subset(U,skc4)*.
+24[0:Res:3.0,14.0] ||  -> subset(relation_rng(skc6),skc7)*.
+27[0:Res:17.2,5.0] || subset(relation_rng(skc6),skc4)* relation_of2_as_subset(skc6,skc5,U)* -> .
+28[0:Res:3.0,27.1] || subset(relation_rng(skc6),skc4)* -> .
+31[0:Res:20.1,28.0] || subset(relation_rng(skc6),skc7)* -> .
+33[0:Res:24.0,31.0] ||  -> .

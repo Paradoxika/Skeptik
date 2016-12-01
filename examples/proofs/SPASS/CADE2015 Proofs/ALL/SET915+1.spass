@@ -1,0 +1,5 @@
+3[0:Inp] || in(skc4,skc5)* -> .
+4[0:Inp] || disjoint(singleton(skc4),skc5)* -> .
+6[0:Inp] ||  -> in(U,V) disjoint(singleton(U),V)*.
+9[0:Res:6.1,4.0] ||  -> in(skc4,skc5)*.
+11[0:Res:9.0,3.0] ||  -> .

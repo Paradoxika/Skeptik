@@ -1,0 +1,22 @@
+1[0:Inp] || f(w(U),g(U,V))* -> f(U,g(U,V)).
+2[0:Inp] || f(U,g(U,V)) -> f(w(U),g(U,V))*.
+3[0:Inp] || f(U,g(V,U))+ f(V,g(V,U)) -> f(g(V,U),U)* f(g(V,U),w(V))*.
+5[0:Inp] ||  -> f(U,g(V,U)) f(V,g(V,U)) f(g(V,U),U)* f(g(V,U),w(V))*.
+8[0:Inp] || f(g(U,V),V)* f(g(U,V),w(U))*+ -> f(V,g(U,V)) f(U,g(U,V)).
+10[0:Inp] || f(U,g(V,U)) f(V,g(V,U)) f(g(V,U),U)* f(g(V,U),w(V))*+ -> .
+12[0:Fac:5.2,5.3] ||  -> f(w(U),g(U,w(U))) f(U,g(U,w(U))) f(g(U,w(U)),w(U))*.
+13[0:Res:2.1,3.0] || f(U,g(U,w(U))) f(U,g(U,w(U))) -> f(g(U,w(U)),w(U))* f(g(U,w(U)),w(U))*.
+14[0:Con:13.1] || f(U,g(U,w(U))) -> f(g(U,w(U)),w(U))*.
+25[0:Res:12.2,8.1] || f(g(U,w(U)),w(U))* -> f(w(U),g(U,w(U))) f(U,g(U,w(U))) f(w(U),g(U,w(U))) f(U,g(U,w(U))).
+26[0:Con:25.3] || f(g(U,w(U)),w(U))* -> f(w(U),g(U,w(U))) f(U,g(U,w(U))).
+28[0:Res:12.2,26.0] ||  -> f(w(U),g(U,w(U)))* f(U,g(U,w(U))) f(w(U),g(U,w(U)))* f(U,g(U,w(U))).
+29[0:Con:28.2] ||  -> f(w(U),g(U,w(U)))* f(U,g(U,w(U))).
+30[0:Res:29.0,1.0] ||  -> f(U,g(U,w(U)))* f(U,g(U,w(U)))*.
+33[0:Con:30.1] ||  -> f(U,g(U,w(U)))*.
+36[0:Res:14.1,10.3] || f(U,g(U,w(U))) f(w(U),g(U,w(U))) f(U,g(U,w(U))) f(g(U,w(U)),w(U))* -> .
+37[0:Con:36.2] || f(U,g(U,w(U))) f(w(U),g(U,w(U))) f(g(U,w(U)),w(U))* -> .
+38[0:Res:14.1,37.2] || f(U,g(U,w(U))) f(U,g(U,w(U))) f(w(U),g(U,w(U)))* -> .
+39[0:Con:38.1] || f(U,g(U,w(U))) f(w(U),g(U,w(U)))* -> .
+40[0:Res:2.1,39.1] || f(U,g(U,w(U)))* f(U,g(U,w(U)))* -> .
+41[0:Con:40.1] || f(U,g(U,w(U)))* -> .
+42[0:Res:33.0,41.0] ||  -> .

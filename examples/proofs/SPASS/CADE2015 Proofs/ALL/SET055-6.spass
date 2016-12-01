@@ -1,0 +1,9 @@
+69[0:Inp] ||  -> subclass(U,V) member(not_subclass_element(U,V),U)*.
+70[0:Inp] || member(not_subclass_element(U,V),V)* -> subclass(U,V).
+74[0:Inp] || subclass(U,V)* subclass(V,U)* -> equalish(V,U).
+159[0:Inp] || equalish(x,x)* -> .
+161[0:Res:74.2,159.0] || subclass(x,x)* subclass(x,x)* -> .
+165[0:Con:161.1] || subclass(x,x)* -> .
+414[0:Res:69.1,70.0] ||  -> subclass(U,U)* subclass(U,U)*.
+415[0:Con:414.1] ||  -> subclass(U,U)*.
+416[0:Res:415.0,165.0] ||  -> .

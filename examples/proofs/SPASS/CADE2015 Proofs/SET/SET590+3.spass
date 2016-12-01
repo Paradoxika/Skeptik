@@ -1,0 +1,8 @@
+2[0:Inp] || subset(difference(skc3,skc2),skc3)* -> .
+3[0:Inp] ||  -> subset(U,V) member(skf1(V,U),U)*.
+4[0:Inp] || member(U,difference(V,W))* -> member(U,V).
+5[0:Inp] || member(skf1(U,V),U)*+ -> subset(W,U)*.
+14[0:Res:3.1,4.0] ||  -> subset(difference(U,V),W) member(skf1(W,difference(U,V)),U)*.
+22[0:Res:14.1,5.0] ||  -> subset(difference(U,V),U)* subset(W,U)*.
+26[0:Con:22.1] ||  -> subset(difference(U,V),U)*.
+27[0:Res:26.0,2.0] ||  -> .

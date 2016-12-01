@@ -1,0 +1,12 @@
+10[0:Inp] ||  -> sum__dfg(U,additive_identity,U)*.
+23[0:Inp] || sum__dfg(U,V,W)*+ sum__dfg(U,V,X)* -> equalish(X,W)*.
+24[0:Inp] || product(U,V,W)* product(U,V,X)* -> equalish(X,W)*.
+25[0:Inp] ||  -> product(additive_identity,U,additive_identity)*.
+27[0:Inp] || equalish(U,additive_identity) -> product(U,h(U,V),V)*.
+30[0:Inp] || equalish(b,additive_identity)* -> .
+32[0:Res:24.2,30.0] || product(U,V,additive_identity)* product(U,V,b) -> .
+50[0:Res:25.0,32.0] || product(additive_identity,U,b)* -> .
+53[0:Res:27.1,50.0] || equalish(additive_identity,additive_identity)* -> .
+182[0:Res:10.0,23.0] || sum__dfg(U,additive_identity,V)* -> equalish(V,U).
+194[0:Res:10.0,182.0] ||  -> equalish(U,U)*.
+206[0:Res:194.0,53.0] ||  -> .

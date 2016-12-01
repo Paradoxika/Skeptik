@@ -1,0 +1,14 @@
+1[0:Inp] ||  -> value(truth,truth)*.
+2[0:Inp] ||  -> value(falsity,falsity)*.
+3[0:Inp] || value(U,truth) value(V,truth) -> value(xor__dfg(V,U),falsity)*.
+4[0:Inp] || value(U,falsity) value(V,truth) -> value(xor__dfg(V,U),truth)*.
+6[0:Inp] || value(U,falsity) value(V,falsity) -> value(xor__dfg(V,U),falsity)*.
+7[0:Inp] || value(xor__dfg(xor__dfg(xor__dfg(xor__dfg(truth,falsity),falsity),truth),falsity),U)* -> .
+9[0:Res:6.2,7.0] || value(falsity,falsity) value(xor__dfg(xor__dfg(xor__dfg(truth,falsity),falsity),truth),falsity)* -> .
+21[0:Res:3.2,9.1] || value(truth,truth) value(xor__dfg(xor__dfg(truth,falsity),falsity),truth)* value(falsity,falsity) -> .
+53[0:Res:4.2,21.1] || value(falsity,falsity) value(xor__dfg(truth,falsity),truth)* value(truth,truth) value(falsity,falsity) -> .
+55[0:Con:53.3] || value(falsity,falsity) value(xor__dfg(truth,falsity),truth)* value(truth,truth) -> .
+56[0:Res:4.2,55.1] || value(falsity,falsity) value(truth,truth)* value(falsity,falsity) value(truth,truth)* -> .
+58[0:Con:56.2] || value(falsity,falsity) value(truth,truth)* -> .
+59[0:Res:1.0,58.1] || value(falsity,falsity)* -> .
+60[0:Res:2.0,59.0] ||  -> .

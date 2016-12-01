@@ -1,0 +1,29 @@
+1[0:Inp] || less_or_equal(U,minimum(V,W))* -> less_or_equal(U,V).
+2[0:Inp] || less_or_equal(U,minimum(V,W))* -> less_or_equal(U,W).
+3[0:Inp] || less_or_equal(minimum(U,V),n0)* -> less_or_equal(V,n0) less_or_equal(U,n0).
+4[0:Inp] || less_or_equal(U,half(V)) less_or_equal(W,half(V)) -> less_or_equal(add(W,U),V)*.
+5[0:Inp] || less_or_equal(half(U),n0)* -> less_or_equal(U,n0).
+6[0:Inp] || less_or_equal(delta_1(U),n0)* -> less_or_equal(U,n0).
+7[0:Inp] || less_or_equal(delta_2(U),n0)* -> less_or_equal(U,n0).
+8[0:Inp] || less_or_equal(absolute(add(U,negate(a_real_number))),delta_1(V)) -> less_or_equal(V,n0) less_or_equal(absolute(add(f(U),negate(f(a_real_number)))),V)*.
+9[0:Inp] || less_or_equal(absolute(add(U,negate(a_real_number))),delta_2(V)) -> less_or_equal(V,n0) less_or_equal(absolute(add(g(U),negate(g(a_real_number)))),V)*.
+10[0:Inp] || less_or_equal(epsilon_0,n0)* -> .
+11[0:Inp] ||  -> less_or_equal(U,n0) less_or_equal(absolute(add(xs(U),negate(a_real_number))),U)*.
+12[0:Inp] || less_or_equal(add(absolute(add(f(xs(U)),negate(f(a_real_number)))),absolute(add(g(xs(U)),negate(g(a_real_number))))),epsilon_0)* -> less_or_equal(U,n0).
+14[0:Res:11.1,1.0] ||  -> less_or_equal(minimum(U,V),n0) less_or_equal(absolute(add(xs(minimum(U,V)),negate(a_real_number))),U)*.
+15[0:Res:11.1,2.0] ||  -> less_or_equal(minimum(U,V),n0) less_or_equal(absolute(add(xs(minimum(U,V)),negate(a_real_number))),V)*.
+55[0:Res:4.2,12.0] || less_or_equal(absolute(add(g(xs(U)),negate(g(a_real_number)))),half(epsilon_0)) less_or_equal(absolute(add(f(xs(U)),negate(f(a_real_number)))),half(epsilon_0))* -> less_or_equal(U,n0).
+170[0:Res:8.2,55.1] || less_or_equal(absolute(add(xs(U),negate(a_real_number))),delta_1(half(epsilon_0))) less_or_equal(absolute(add(g(xs(U)),negate(g(a_real_number)))),half(epsilon_0))* -> less_or_equal(half(epsilon_0),n0) less_or_equal(U,n0).
+353[0:Res:9.2,170.1] || less_or_equal(absolute(add(xs(U),negate(a_real_number))),delta_2(half(epsilon_0))) less_or_equal(absolute(add(xs(U),negate(a_real_number))),delta_1(half(epsilon_0)))* -> less_or_equal(half(epsilon_0),n0) less_or_equal(half(epsilon_0),n0) less_or_equal(U,n0).
+357[0:Con:353.3] || less_or_equal(absolute(add(xs(U),negate(a_real_number))),delta_2(half(epsilon_0))) less_or_equal(absolute(add(xs(U),negate(a_real_number))),delta_1(half(epsilon_0)))* -> less_or_equal(half(epsilon_0),n0) less_or_equal(U,n0).
+385[0:Res:15.1,357.1] || less_or_equal(absolute(add(xs(minimum(U,delta_1(half(epsilon_0)))),negate(a_real_number))),delta_2(half(epsilon_0)))* -> less_or_equal(minimum(U,delta_1(half(epsilon_0))),n0) less_or_equal(half(epsilon_0),n0) less_or_equal(minimum(U,delta_1(half(epsilon_0))),n0).
+396[0:Con:385.3] || less_or_equal(absolute(add(xs(minimum(U,delta_1(half(epsilon_0)))),negate(a_real_number))),delta_2(half(epsilon_0)))* -> less_or_equal(minimum(U,delta_1(half(epsilon_0))),n0) less_or_equal(half(epsilon_0),n0).
+426[0:Res:14.1,396.0] ||  -> less_or_equal(minimum(delta_2(half(epsilon_0)),delta_1(half(epsilon_0))),n0)* less_or_equal(minimum(delta_2(half(epsilon_0)),delta_1(half(epsilon_0))),n0)* less_or_equal(half(epsilon_0),n0).
+441[0:Con:426.1] ||  -> less_or_equal(minimum(delta_2(half(epsilon_0)),delta_1(half(epsilon_0))),n0)* less_or_equal(half(epsilon_0),n0).
+456[0:Res:441.0,3.0] ||  -> less_or_equal(half(epsilon_0),n0) less_or_equal(delta_1(half(epsilon_0)),n0)* less_or_equal(delta_2(half(epsilon_0)),n0).
+461[0:Res:456.1,6.0] ||  -> less_or_equal(half(epsilon_0),n0) less_or_equal(delta_2(half(epsilon_0)),n0)* less_or_equal(half(epsilon_0),n0).
+462[0:Con:461.2] ||  -> less_or_equal(half(epsilon_0),n0) less_or_equal(delta_2(half(epsilon_0)),n0)*.
+463[0:Res:462.1,7.0] ||  -> less_or_equal(half(epsilon_0),n0)* less_or_equal(half(epsilon_0),n0)*.
+464[0:Con:463.1] ||  -> less_or_equal(half(epsilon_0),n0)*.
+465[0:Res:464.0,5.0] ||  -> less_or_equal(epsilon_0,n0)*.
+466[0:Res:465.0,10.0] ||  -> .

@@ -40,11 +40,11 @@ object DataCollector {
 //    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\10 Nov 2016\\FOLU"
 //    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\10 Nov 2016\\FOLU-FORPI"
 //    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\10 Nov 2016\\FORPI-FOLU"
-    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Stats"
+    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\1 Dec 2016\\Stats"
 //    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\10 Nov 2016\\Collected\\folu-all-data.txt"
 //    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\10 Nov 2016\\Collected\\folu-forpi-all-data.txt"
 //    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\10 Nov 2016\\Collected\\forpi-folu-all-data.txt"
-    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Collected\\random-all-data.txt"
+    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\1 Dec 2016\\Collected\\random-all-data-dec1.txt"
     
     val dataFile = new File(finalFileName)
     if (!dataFile.exists()){

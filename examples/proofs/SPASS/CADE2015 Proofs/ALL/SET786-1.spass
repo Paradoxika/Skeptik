@@ -1,0 +1,11 @@
+1[0:Inp] || element(U,V)*+ element(V,U)* element(U,sk1)* -> .
+2[0:Inp] ||  -> element(U,sk1) element(U,sk2(U))*.
+3[0:Inp] ||  -> element(U,sk1) element(sk2(U),U)*.
+5[0:Res:3.1,1.0] || element(U,sk2(U))*+ element(sk2(U),sk1)* -> element(U,sk1).
+6[0:Res:2.1,5.0] || element(sk2(U),sk1)* -> element(U,sk1) element(U,sk1).
+7[0:Con:6.2] || element(sk2(U),sk1)* -> element(U,sk1).
+8[0:Res:3.1,7.0] ||  -> element(sk1,sk1)* element(sk1,sk1)*.
+9[0:Con:8.1] ||  -> element(sk1,sk1)*.
+10[0:Res:9.0,1.0] || element(sk1,sk1)* element(sk1,sk1)* -> .
+11[0:Con:10.1] || element(sk1,sk1)* -> .
+12[0:Res:9.0,11.0] ||  -> .

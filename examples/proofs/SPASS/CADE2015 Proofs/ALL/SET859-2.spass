@@ -1,0 +1,7 @@
+1[0:Inp] || c_lessequals(U,V,tc_set(W))* c_lessequals(V,X,tc_set(W))* -> c_lessequals(U,X,tc_set(W))*.
+2[0:Inp] ||  -> c_lessequals(U,c_Zorn_Osucc(V,U,W),tc_set(tc_set(W)))*.
+3[0:Inp] ||  -> c_lessequals(c_Zorn_Osucc(v_S,v_n,t_a),v_m,tc_set(tc_set(t_a)))*.
+4[0:Inp] || c_lessequals(v_n,v_m,tc_set(tc_set(t_a)))* -> .
+6[0:Res:3.0,1.0] || c_lessequals(U,c_Zorn_Osucc(v_S,v_n,t_a),tc_set(tc_set(t_a)))* -> c_lessequals(U,v_m,tc_set(tc_set(t_a))).
+8[0:Res:6.1,4.0] || c_lessequals(v_n,c_Zorn_Osucc(v_S,v_n,t_a),tc_set(tc_set(t_a)))* -> .
+9[0:Res:2.0,8.0] ||  -> .

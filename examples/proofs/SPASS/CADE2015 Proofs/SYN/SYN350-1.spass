@@ -1,0 +1,18 @@
+1[0:Inp] || f(a,z(U,V)) -> f(z(U,V),a)*.
+3[0:Inp] ||  -> f(U,z(U,V))* f(V,z(U,V))* f(a,z(U,V))*.
+4[0:Inp] || f(U,z(V,U))*+ f(a,z(V,U))* -> f(V,z(V,U))*.
+5[0:Inp] || f(U,V)+ -> f(V,z(U,V))* f(a,z(U,V))*.
+6[0:Inp] || f(U,V) f(V,z(U,V))*+ f(a,z(U,V))* -> .
+8[0:Res:1.1,5.0] || f(a,z(U,V)) -> f(a,z(z(U,V),a))* f(a,z(z(U,V),a))*.
+9[0:Con:8.2] || f(a,z(U,V)) -> f(a,z(z(U,V),a))*.
+13[0:Fac:3.1,3.2] ||  -> f(U,z(U,a))* f(a,z(U,a))*.
+29[0:Res:9.1,6.1] || f(a,z(U,V)) f(z(U,V),a) f(a,z(z(U,V),a))* -> .
+45[0:Res:13.1,4.0] || f(a,z(U,a))* -> f(U,z(U,a))* f(U,z(U,a))*.
+48[0:Con:45.2] || f(a,z(U,a))*+ -> f(U,z(U,a))*.
+51[0:Res:13.1,48.0] ||  -> f(U,z(U,a))* f(U,z(U,a))*.
+53[0:Con:51.1] ||  -> f(U,z(U,a))*.
+60[0:Res:9.1,29.2] || f(a,z(U,V)) f(a,z(U,V)) f(z(U,V),a)* -> .
+61[0:Con:60.1] || f(a,z(U,V)) f(z(U,V),a)* -> .
+65[0:Res:1.1,61.1] || f(a,z(U,V))* f(a,z(U,V))* -> .
+66[0:Con:65.1] || f(a,z(U,V))* -> .
+69[0:Res:53.0,66.0] ||  -> .

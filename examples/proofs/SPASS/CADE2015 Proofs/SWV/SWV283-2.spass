@@ -1,0 +1,14 @@
+1[0:Inp] || c_lessequals(v_sko__upX(U),V,tc_nat) c_in(c_Message_Omsg_ONonce(V),c_Message_Oparts(c_insert(U,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)* -> .
+2[0:Inp] || c_lessequals(c_plus(U,V,tc_nat),W,tc_nat)* -> c_lessequals(V,W,tc_nat).
+3[0:Inp] || c_lessequals(c_plus(U,V,tc_nat),W,tc_nat)* -> c_lessequals(U,W,tc_nat).
+4[0:Inp] || c_lessequals(v_x,U,tc_nat) c_in(c_Message_Omsg_ONonce(U),c_Event_Oused(v_list),tc_Message_Omsg)* -> .
+5[0:Inp] ||  -> c_lessequals(U,v_xd(U),tc_nat)* c_lessequals(V,v_xd(V),tc_nat)*.
+6[0:Inp] ||  -> c_in(c_Message_Omsg_ONonce(v_xd(U)),c_Event_Oused(v_list),tc_Message_Omsg) c_in(c_Message_Omsg_ONonce(v_xd(U)),c_Message_Oparts(c_insert(v_xc,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)* c_in(c_Message_Omsg_ONonce(v_xd(V)),c_Event_Oused(v_list),tc_Message_Omsg) c_in(c_Message_Omsg_ONonce(v_xd(V)),c_Message_Oparts(c_insert(v_xc,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)*.
+7[0:Con:5.1] ||  -> c_lessequals(U,v_xd(U),tc_nat)*.
+8[0:Con:6.2] ||  -> c_in(c_Message_Omsg_ONonce(v_xd(U)),c_Event_Oused(v_list),tc_Message_Omsg) c_in(c_Message_Omsg_ONonce(v_xd(U)),c_Message_Oparts(c_insert(v_xc,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)*.
+9[0:Res:7.0,3.0] ||  -> c_lessequals(U,v_xd(c_plus(U,V,tc_nat)),tc_nat)*.
+11[0:Res:7.0,2.0] ||  -> c_lessequals(U,v_xd(c_plus(V,U,tc_nat)),tc_nat)*.
+29[0:Res:8.1,1.1] || c_lessequals(v_sko__upX(v_xc),v_xd(U),tc_nat) -> c_in(c_Message_Omsg_ONonce(v_xd(U)),c_Event_Oused(v_list),tc_Message_Omsg)*.
+30[0:Res:29.1,4.1] || c_lessequals(v_sko__upX(v_xc),v_xd(U),tc_nat)* c_lessequals(v_x,v_xd(U),tc_nat) -> .
+32[0:Res:9.0,30.0] || c_lessequals(v_x,v_xd(c_plus(v_sko__upX(v_xc),U,tc_nat)),tc_nat)* -> .
+41[0:Res:11.0,32.0] ||  -> .

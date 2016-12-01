@@ -1,0 +1,4 @@
+1[0:Inp] || big_p(U,skf1(U),V)* -> .
+2[0:Inp] ||  -> big_p(U,skf1(U),f(skf1(U)))* big_p(a,skf1(U),h(skf1(U)))*.
+4[0:Res:2.1,1.0] ||  -> big_p(a,skf1(a),f(skf1(a)))*.
+5[0:Res:4.0,1.0] ||  -> .

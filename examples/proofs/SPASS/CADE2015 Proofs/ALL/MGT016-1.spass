@@ -1,0 +1,40 @@
+1[0:Inp] || organization(U,V) -> inertia(U,sk1(V,U),V)*.
+2[0:Inp] || greater(U,V)* organization(W,X) organization(Y,Z) inertia(W,X1,X)*+ inertia(Y,X2,Z)* complexity(W,U,X)* complexity(Y,V,Z)* class(W,X3,X)* class(Y,X3,Z)* -> greater(X1,X2)*.
+3[0:Inp] || greater(U,V)* organization(W,X) organization(Y,X) inertia(W,U,X)*+ inertia(Y,V,X)* reorganization_type(W,Z,X)* reorganization_type(Y,Z,X)* reorganization(W,X,X1)* reorganization(Y,X,X2)* class(W,X3,X)* class(Y,X3,X)* -> greater(X2,X1)* organization(W,X1).
+4[0:Inp] ||  -> organization(sk2,sk8)*.
+5[0:Inp] ||  -> organization(sk3,sk8)*.
+6[0:Inp] || organization(sk3,sk10)* -> .
+7[0:Inp] ||  -> class(sk2,sk5,sk8)*.
+8[0:Inp] ||  -> class(sk3,sk5,sk8)*.
+9[0:Inp] ||  -> reorganization(sk2,sk8,sk9)*.
+10[0:Inp] ||  -> reorganization(sk3,sk8,sk10)*.
+11[0:Inp] ||  -> reorganization_type(sk2,sk4,sk8)*.
+12[0:Inp] ||  -> reorganization_type(sk3,sk4,sk8)*.
+13[0:Inp] ||  -> complexity(sk2,sk6,sk8)*.
+14[0:Inp] ||  -> complexity(sk3,sk7,sk8)*.
+15[0:Inp] ||  -> greater(sk7,sk6)*.
+16[0:Inp] || greater(sk9,sk10)* -> .
+21[0:Res:5.0,1.0] ||  -> inertia(sk3,sk1(sk8,sk3),sk8)*.
+23[0:Res:5.0,3.1] || greater(U,V)* organization(W,sk8) inertia(W,V,sk8)*+ reorganization_type(W,X,sk8)* class(W,Y,sk8)* reorganization(W,sk8,Z)* inertia(sk3,U,sk8)* reorganization_type(sk3,X,sk8)* class(sk3,Y,sk8)* reorganization(sk3,sk8,X1)* -> greater(Z,X1)* organization(sk3,X1).
+32[0:Res:14.0,2.5] || organization(U,V) greater(sk7,W) organization(sk3,sk8) inertia(U,X,V)*+ complexity(U,W,V)* class(U,Y,V)* inertia(sk3,Z,sk8)* class(sk3,Y,sk8)* -> greater(Z,X)*.
+35[0:Res:1.1,32.3] || organization(U,V) organization(U,V) greater(sk7,W) organization(sk3,sk8) complexity(U,W,V)* class(U,X,V)* inertia(sk3,Y,sk8) class(sk3,X,sk8)* -> greater(Y,sk1(V,U))*.
+37[0:Con:35.1] || organization(U,V) greater(sk7,W) organization(sk3,sk8) complexity(U,W,V)*+ class(U,X,V)* inertia(sk3,Y,sk8) class(sk3,X,sk8)* -> greater(Y,sk1(V,U))*.
+45[0:Res:13.0,37.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) class(sk2,U,sk8)*+ inertia(sk3,V,sk8) class(sk3,U,sk8) -> greater(V,sk1(sk8,sk2))*.
+47[0:Res:7.0,45.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) inertia(sk3,U,sk8) class(sk3,sk5,sk8) -> greater(U,sk1(sk8,sk2))*.
+137[0:Res:1.1,23.2] || organization(U,sk8) greater(V,sk1(sk8,U))* organization(U,sk8) reorganization_type(U,W,sk8)* class(U,X,sk8)* reorganization(U,sk8,Y)* inertia(sk3,V,sk8) reorganization_type(sk3,W,sk8)* class(sk3,X,sk8)* reorganization(sk3,sk8,Z)* -> greater(Y,Z)* organization(sk3,Z).
+139[0:Con:137.2] || organization(U,sk8) greater(V,sk1(sk8,U))*+ reorganization_type(U,W,sk8)* class(U,X,sk8)* reorganization(U,sk8,Y)* inertia(sk3,V,sk8) reorganization_type(sk3,W,sk8)* class(sk3,X,sk8)* reorganization(sk3,sk8,Z)* -> greater(Y,Z)* organization(sk3,Z).
+327[0:Res:47.5,139.1] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) inertia(sk3,U,sk8)* class(sk3,sk5,sk8) organization(sk2,sk8) reorganization_type(sk2,V,sk8)* class(sk2,W,sk8)* reorganization(sk2,sk8,X)* inertia(sk3,U,sk8)* reorganization_type(sk3,V,sk8) class(sk3,W,sk8) reorganization(sk3,sk8,Y)* -> greater(X,Y)* organization(sk3,Y).
+343[0:Con:327.5] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) inertia(sk3,U,sk8)*+ class(sk3,sk5,sk8) reorganization_type(sk2,V,sk8)* class(sk2,W,sk8)* reorganization(sk2,sk8,X)* reorganization_type(sk3,V,sk8) class(sk3,W,sk8) reorganization(sk3,sk8,Y)* -> greater(X,Y)* organization(sk3,Y).
+473[0:Res:21.0,343.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) class(sk3,sk5,sk8)+ reorganization_type(sk2,U,sk8)* class(sk2,V,sk8)* reorganization(sk2,sk8,W)* reorganization_type(sk3,U,sk8) class(sk3,V,sk8) reorganization(sk3,sk8,X)* -> greater(W,X)* organization(sk3,X).
+476[0:Res:8.0,473.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) reorganization_type(sk2,U,sk8)*+ class(sk2,V,sk8)* reorganization(sk2,sk8,W)* reorganization_type(sk3,U,sk8) class(sk3,V,sk8) reorganization(sk3,sk8,X)* -> greater(W,X)* organization(sk3,X).
+477[0:Res:11.0,476.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) class(sk2,U,sk8)*+ reorganization(sk2,sk8,V)* reorganization_type(sk3,sk4,sk8) class(sk3,U,sk8) reorganization(sk3,sk8,W)* -> greater(V,W)* organization(sk3,W).
+478[0:Res:7.0,477.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) reorganization(sk2,sk8,U)*+ reorganization_type(sk3,sk4,sk8) class(sk3,sk5,sk8)* reorganization(sk3,sk8,V)* -> greater(U,V)* organization(sk3,V).
+482[0:Res:9.0,478.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) reorganization_type(sk3,sk4,sk8)+ class(sk3,sk5,sk8)* reorganization(sk3,sk8,U)* -> greater(sk9,U) organization(sk3,U).
+483[0:Res:12.0,482.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) class(sk3,sk5,sk8)*+ reorganization(sk3,sk8,U)* -> greater(sk9,U) organization(sk3,U).
+484[0:Res:8.0,483.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) reorganization(sk3,sk8,U)* -> greater(sk9,U) organization(sk3,U).
+485[0:Res:10.0,484.3] || organization(sk2,sk8) greater(sk7,sk6) organization(sk3,sk8) -> greater(sk9,sk10)* organization(sk3,sk10).
+490[0:Res:485.3,16.0] || organization(sk2,sk8) greater(sk7,sk6)* organization(sk3,sk8) -> organization(sk3,sk10).
+491[0:Res:15.0,490.1] || organization(sk2,sk8)* organization(sk3,sk8) -> organization(sk3,sk10).
+492[0:Res:4.0,491.0] || organization(sk3,sk8)* -> organization(sk3,sk10).
+493[0:Res:5.0,492.0] ||  -> organization(sk3,sk10)*.
+498[0:Res:493.0,6.0] ||  -> .

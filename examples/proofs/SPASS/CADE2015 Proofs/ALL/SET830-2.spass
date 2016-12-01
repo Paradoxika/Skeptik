@@ -1,0 +1,23 @@
+1[0:Inp] || c_in(U,c_inter(V,W,X),X)* -> c_in(U,W,X).
+2[0:Inp] || c_in(U,c_inter(V,W,X),X)* -> c_in(U,V,X).
+3[0:Inp] || c_in(U,V,W) c_in(U,X,W) -> c_in(U,c_inter(V,X,W),W)*.
+4[0:Inp] || c_in(U,V,W)* c_lessequals(V,X,tc_set(W))*+ -> c_in(U,X,W)*.
+5[0:Inp] ||  -> c_lessequals(U,V,tc_set(W)) c_in(c_Main_OsubsetI__1(U,V,W),U,W)*.
+6[0:Inp] || c_in(c_Main_OsubsetI__1(U,V,W),V,W)* -> c_lessequals(U,V,tc_set(W)).
+7[0:Inp] ||  -> c_in(v_x,v_Y,t_a)*.
+8[0:Inp] ||  -> c_in(v_x,v_Z,t_a)*.
+9[0:Inp] || c_in(v_x,v_X,t_a)* -> .
+10[0:Inp] || c_lessequals(U,v_Y,tc_set(t_a))* c_lessequals(U,v_Z,tc_set(t_a)) -> c_lessequals(U,v_X,tc_set(t_a)).
+16[0:Res:7.0,3.1] || c_in(v_x,U,t_a) -> c_in(v_x,c_inter(v_Y,U,t_a),t_a)*.
+19[0:Res:4.2,9.0] || c_lessequals(U,v_X,tc_set(t_a))* c_in(v_x,U,t_a) -> .
+20[0:Res:8.0,16.0] ||  -> c_in(v_x,c_inter(v_Y,v_Z,t_a),t_a)*.
+28[0:Res:5.1,2.0] ||  -> c_lessequals(c_inter(U,V,W),X,tc_set(W)) c_in(c_Main_OsubsetI__1(c_inter(U,V,W),X,W),U,W)*.
+32[0:Res:5.1,1.0] ||  -> c_lessequals(c_inter(U,V,W),X,tc_set(W)) c_in(c_Main_OsubsetI__1(c_inter(U,V,W),X,W),V,W)*.
+59[0:Res:28.1,6.0] ||  -> c_lessequals(c_inter(U,V,W),U,tc_set(W))* c_lessequals(c_inter(U,V,W),U,tc_set(W))*.
+62[0:Con:59.1] ||  -> c_lessequals(c_inter(U,V,W),U,tc_set(W))*.
+64[0:Res:62.0,10.0] || c_lessequals(c_inter(v_Y,U,t_a),v_Z,tc_set(t_a))* -> c_lessequals(c_inter(v_Y,U,t_a),v_X,tc_set(t_a)).
+66[0:Res:32.1,6.0] ||  -> c_lessequals(c_inter(U,V,W),V,tc_set(W))* c_lessequals(c_inter(U,V,W),V,tc_set(W))*.
+69[0:Con:66.1] ||  -> c_lessequals(c_inter(U,V,W),V,tc_set(W))*.
+78[0:Res:69.0,64.0] ||  -> c_lessequals(c_inter(v_Y,v_Z,t_a),v_X,tc_set(t_a))*.
+81[0:Res:78.0,19.0] || c_in(v_x,c_inter(v_Y,v_Z,t_a),t_a)* -> .
+83[0:Res:20.0,81.0] ||  -> .

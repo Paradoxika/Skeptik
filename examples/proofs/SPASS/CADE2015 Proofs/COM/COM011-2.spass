@@ -1,0 +1,27 @@
+1[0:Inp] || c_in(U,c_minus(V,W,tc_set(X)),X)* -> c_in(U,V,X).
+2[0:Inp] ||  -> c_lessequals(U,V,tc_set(W)) c_in(c_Main_OsubsetI__1(U,V,W),U,W)*.
+3[0:Inp] || c_in(c_Main_OsubsetI__1(U,V,W),V,W)* -> c_lessequals(U,V,tc_set(W)).
+4[0:Inp] || c_lessequals(U,V,tc_set(W))* c_in(X,c_UNITY_Oconstrains(V,Y,W),tc_UNITY_Oprogram(W))*+ -> c_in(X,c_UNITY_Oconstrains(U,Y,W),tc_UNITY_Oprogram(W))*.
+5[0:Inp] || c_in(U,c_WFair_Otransient(c_minus(V,W,tc_set(X)),X),tc_UNITY_Oprogram(X)) c_in(U,c_UNITY_Oconstrains(c_minus(V,W,tc_set(X)),c_union(V,W,X),X),tc_UNITY_Oprogram(X))* -> c_in(U,c_WFair_Oensures(V,W,X),tc_UNITY_Oprogram(X)).
+6[0:Inp] || c_in(U,c_WFair_Oensures(V,W,X),tc_UNITY_Oprogram(X)) -> c_in(U,c_WFair_OleadsTo(V,W,X),tc_UNITY_Oprogram(X))*.
+7[0:Inp] || c_lessequals(U,V,tc_set(W))* c_in(X,c_WFair_Otransient(V,W),tc_UNITY_Oprogram(W))*+ -> c_in(X,c_WFair_Otransient(U,W),tc_UNITY_Oprogram(W))*.
+8[0:Inp] ||  -> c_in(v_F,c_UNITY_Oconstrains(v_A,c_union(v_A,v_B,t_a),t_a),tc_UNITY_Oprogram(t_a))*.
+9[0:Inp] ||  -> c_in(v_F,c_WFair_Otransient(v_A,t_a),tc_UNITY_Oprogram(t_a))*.
+10[0:Inp] || c_in(v_F,c_WFair_OleadsTo(v_A,v_B,t_a),tc_UNITY_Oprogram(t_a))* -> .
+11[0:Res:9.0,7.0] || c_lessequals(U,v_A,tc_set(t_a)) -> c_in(v_F,c_WFair_Otransient(U,t_a),tc_UNITY_Oprogram(t_a))*.
+13[0:Res:6.1,10.0] || c_in(v_F,c_WFair_Oensures(v_A,v_B,t_a),tc_UNITY_Oprogram(t_a))* -> .
+14[0:Res:8.0,4.0] || c_lessequals(U,v_A,tc_set(t_a)) -> c_in(v_F,c_UNITY_Oconstrains(U,c_union(v_A,v_B,t_a),t_a),tc_UNITY_Oprogram(t_a))*.
+15[0:Res:2.1,3.0] ||  -> c_lessequals(U,U,tc_set(V))* c_lessequals(U,U,tc_set(V))*.
+16[0:Con:15.1] ||  -> c_lessequals(U,U,tc_set(V))*.
+17[0:Res:2.1,1.0] ||  -> c_lessequals(c_minus(U,V,tc_set(W)),X,tc_set(W)) c_in(c_Main_OsubsetI__1(c_minus(U,V,tc_set(W)),X,W),U,W)*.
+20[0:Res:17.1,3.0] ||  -> c_lessequals(c_minus(U,V,tc_set(W)),U,tc_set(W))* c_lessequals(c_minus(U,V,tc_set(W)),U,tc_set(W))*.
+22[0:Con:20.1] ||  -> c_lessequals(c_minus(U,V,tc_set(W)),U,tc_set(W))*.
+24[0:Res:11.1,7.1] || c_lessequals(U,v_A,tc_set(t_a))*+ c_lessequals(V,U,tc_set(t_a))* -> c_in(v_F,c_WFair_Otransient(V,t_a),tc_UNITY_Oprogram(t_a))*.
+28[0:Res:14.1,4.1] || c_lessequals(U,v_A,tc_set(t_a))*+ c_lessequals(V,U,tc_set(t_a))* -> c_in(v_F,c_UNITY_Oconstrains(V,c_union(v_A,v_B,t_a),t_a),tc_UNITY_Oprogram(t_a))*.
+32[0:Res:22.0,24.0] || c_lessequals(U,c_minus(v_A,V,tc_set(t_a)),tc_set(t_a))* -> c_in(v_F,c_WFair_Otransient(U,t_a),tc_UNITY_Oprogram(t_a)).
+33[0:Res:16.0,32.0] ||  -> c_in(v_F,c_WFair_Otransient(c_minus(v_A,U,tc_set(t_a)),t_a),tc_UNITY_Oprogram(t_a))*.
+44[0:Res:22.0,28.0] || c_lessequals(U,c_minus(v_A,V,tc_set(t_a)),tc_set(t_a))*+ -> c_in(v_F,c_UNITY_Oconstrains(U,c_union(v_A,v_B,t_a),t_a),tc_UNITY_Oprogram(t_a))*.
+45[0:Res:16.0,44.0] ||  -> c_in(v_F,c_UNITY_Oconstrains(c_minus(v_A,U,tc_set(t_a)),c_union(v_A,v_B,t_a),t_a),tc_UNITY_Oprogram(t_a))*.
+52[0:Res:45.0,5.1] || c_in(v_F,c_WFair_Otransient(c_minus(v_A,v_B,tc_set(t_a)),t_a),tc_UNITY_Oprogram(t_a))* -> c_in(v_F,c_WFair_Oensures(v_A,v_B,t_a),tc_UNITY_Oprogram(t_a)).
+58[0:Res:33.0,52.0] ||  -> c_in(v_F,c_WFair_Oensures(v_A,v_B,t_a),tc_UNITY_Oprogram(t_a))*.
+59[0:Res:58.0,13.0] ||  -> .

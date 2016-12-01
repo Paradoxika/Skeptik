@@ -1,0 +1,12 @@
+1[0:Inp] ||  -> product(inverse(U),U,identity)*.
+2[0:Inp] ||  -> product(identity,U,U)*.
+3[0:Inp] || product(U,V,W)*+ product(X,V,Y)* product(Z,X,U)* -> product(Z,Y,W)*.
+4[0:Inp] || product(U,V,W)*+ product(X,Y,V)* product(U,X,Z)* -> product(Z,Y,W)*.
+5[0:Inp] || product(a,U,identity)* -> .
+7[0:Res:4.3,5.0] || product(U,V,W)*+ product(X,W,identity)* product(X,U,a)* -> .
+16[0:Res:2.0,3.0] || product(U,V,W)*+ product(X,U,identity)* -> product(X,W,V)*.
+21[0:Res:1.0,16.0] || product(U,inverse(V),identity)* -> product(U,identity,V).
+24[0:Res:2.0,7.0] || product(U,V,identity)*+ product(U,identity,a)* -> .
+36[0:Res:1.0,24.0] || product(inverse(U),identity,a)* -> .
+81[0:Res:1.0,21.0] ||  -> product(inverse(inverse(U)),identity,U)*.
+95[0:Res:81.0,36.0] ||  -> .

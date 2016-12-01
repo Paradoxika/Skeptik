@@ -1,0 +1,27 @@
+1[0:Inp] || element(U,V)*+ set_equal(V,W)* -> element(U,W)*.
+2[0:Inp] || element(U,V)*+ set_equal(W,V)* -> element(U,W)*.
+3[0:Inp] ||  -> set_equal(U,V) element(f(U,V),V)* element(f(U,V),U)*.
+4[0:Inp] || element(f(U,V),U)*+ element(f(U,V),V)* -> set_equal(U,V).
+5[0:Inp] ||  -> set_equal(b,a) set_equal(a,b)*.
+6[0:Inp] || set_equal(a,b)* set_equal(b,a) -> .
+9[0:Res:3.1,1.0] || set_equal(U,V)+ -> set_equal(W,U) element(f(W,U),W)* element(f(W,U),V)*.
+24[0:Res:5.1,9.0] ||  -> set_equal(b,a) set_equal(U,a) element(f(U,a),U)* element(f(U,a),b)*.
+30[0:Fac:24.2,24.3] ||  -> set_equal(b,a) set_equal(b,a) element(f(b,a),b)*.
+36[0:Con:30.1] ||  -> set_equal(b,a) element(f(b,a),b)*.
+39[0:Res:36.1,2.0] || set_equal(U,b) -> set_equal(b,a) element(f(b,a),U)*.
+40[0:Res:36.1,4.0] || element(f(b,a),a)* -> set_equal(b,a) set_equal(b,a).
+41[0:Con:40.2] || element(f(b,a),a)* -> set_equal(b,a).
+54[0:Res:39.2,41.0] || set_equal(a,b)* -> set_equal(b,a) set_equal(b,a).
+55[0:Con:54.2] || set_equal(a,b)* -> set_equal(b,a).
+57[0:Res:5.1,55.0] ||  -> set_equal(b,a)* set_equal(b,a)*.
+58[0:Con:57.1] ||  -> set_equal(b,a)*.
+62[0:Res:58.0,9.0] ||  -> set_equal(U,b) element(f(U,b),U)* element(f(U,b),a)*.
+75[0:Fac:62.1,62.2] ||  -> set_equal(a,b) element(f(a,b),a)*.
+85[0:Res:75.1,2.0] || set_equal(U,a) -> set_equal(a,b) element(f(a,b),U)*.
+86[0:Res:75.1,4.0] || element(f(a,b),b)* -> set_equal(a,b) set_equal(a,b).
+87[0:Con:86.2] || element(f(a,b),b)* -> set_equal(a,b).
+96[0:Res:85.2,87.0] || set_equal(b,a) -> set_equal(a,b)* set_equal(a,b)*.
+97[0:Con:96.2] || set_equal(b,a) -> set_equal(a,b)*.
+106[0:Res:97.1,6.0] || set_equal(b,a)* set_equal(b,a)* -> .
+111[0:Con:106.1] || set_equal(b,a)* -> .
+112[0:Res:58.0,111.0] ||  -> .

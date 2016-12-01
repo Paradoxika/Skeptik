@@ -1,0 +1,13 @@
+1[0:Inp] ||  -> path_connected(skc3)*.
+2[0:Inp] ||  -> a_member_of(skc5,skc3)*.
+3[0:Inp] ||  -> a_member_of(skc4,skc3)*.
+5[0:Inp] || isomorphic_groups(first_homotop_grp(skc3,skc5),first_homotop_grp(skc3,skc4))* -> .
+6[0:Inp] || a_group_isomorphism_from_to(U,V,W)* -> isomorphic_groups(V,W).
+9[0:Inp] || a_path_from_to_in(U,V,W,X) -> a_group_isomorphism_from_to(alpha_hat(U),first_homotop_grp(X,V),first_homotop_grp(X,W))*.
+10[0:Inp] path_connected(U) || a_member_of(V,U) a_member_of(W,U) -> a_path_from_to_in(skf3(U,V,W),W,V,U)*.
+13[0:Res:3.0,10.2] path_connected(skc3) || a_member_of(U,skc3) -> a_path_from_to_in(skf3(skc3,skc4,U),U,skc4,skc3)*.
+16[0:Res:6.1,5.0] || a_group_isomorphism_from_to(U,first_homotop_grp(skc3,skc5),first_homotop_grp(skc3,skc4))* -> .
+19[0:Res:1.0,13.0] || a_member_of(U,skc3) -> a_path_from_to_in(skf3(skc3,skc4,U),U,skc4,skc3)*.
+27[0:Res:9.1,16.0] || a_path_from_to_in(U,skc5,skc4,skc3)* -> .
+30[0:Res:19.1,27.0] || a_member_of(skc5,skc3)* -> .
+31[0:Res:2.0,30.0] ||  -> .

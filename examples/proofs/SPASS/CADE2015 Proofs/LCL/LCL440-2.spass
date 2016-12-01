@@ -1,0 +1,3 @@
+1[0:Inp] ||  -> c_in(c_PropLog_Opl_Oop_A_N_62(U,U,V),c_PropLog_Othms(W,V),tc_PropLog_Opl(V))*.
+2[0:Inp] || c_in(c_PropLog_Opl_Oop_A_N_62(c_PropLog_Opl_Ofalse,c_PropLog_Opl_Ofalse,t_a),c_PropLog_Othms(c_emptyset,t_a),tc_PropLog_Opl(t_a))* -> .
+3[0:Res:1.0,2.0] ||  -> .

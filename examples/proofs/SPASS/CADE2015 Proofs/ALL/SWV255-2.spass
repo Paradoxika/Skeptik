@@ -1,0 +1,12 @@
+1[0:Inp] || c_lessequals(c_plus(U,V,tc_nat),W,tc_nat)* -> c_lessequals(V,W,tc_nat).
+2[0:Inp] || c_lessequals(c_plus(U,V,tc_nat),W,tc_nat)* -> c_lessequals(U,W,tc_nat).
+3[0:Inp] ||  -> c_lessequals(U,v_xb(U),tc_nat)*.
+4[0:Inp] || c_lessequals(v_x,U,tc_nat) c_in(c_Message_Omsg_ONonce(U),c_Message_Oparts(c_insert(v_msg1,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)* -> .
+5[0:Inp] || c_lessequals(v_xa,U,tc_nat) c_in(c_Message_Omsg_ONonce(U),c_Message_Oparts(c_insert(v_msg2,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)* -> .
+6[0:Inp] ||  -> c_in(c_Message_Omsg_ONonce(v_xb(U)),c_Message_Oparts(c_insert(v_msg1,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)* c_in(c_Message_Omsg_ONonce(v_xb(U)),c_Message_Oparts(c_insert(v_msg2,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg).
+7[0:Res:3.0,2.0] ||  -> c_lessequals(U,v_xb(c_plus(U,V,tc_nat)),tc_nat)*.
+10[0:Res:3.0,1.0] ||  -> c_lessequals(U,v_xb(c_plus(V,U,tc_nat)),tc_nat)*.
+37[0:Res:6.0,4.1] || c_lessequals(v_x,v_xb(U),tc_nat) -> c_in(c_Message_Omsg_ONonce(v_xb(U)),c_Message_Oparts(c_insert(v_msg2,c_emptyset,tc_Message_Omsg)),tc_Message_Omsg)*.
+38[0:Res:37.1,5.1] || c_lessequals(v_x,v_xb(U),tc_nat)* c_lessequals(v_xa,v_xb(U),tc_nat) -> .
+40[0:Res:7.0,38.0] || c_lessequals(v_xa,v_xb(c_plus(v_x,U,tc_nat)),tc_nat)* -> .
+54[0:Res:10.0,40.0] ||  -> .

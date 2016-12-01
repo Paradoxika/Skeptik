@@ -1,0 +1,7 @@
+1[0:Inp] || c_in(U,c_Message_Oparts(c_Event_Oknows(c_Message_Oagent_OSpy,V)),tc_Message_Omsg)* -> c_in(U,c_Event_Oused(V),tc_Message_Omsg).
+2[0:Inp] || c_in(U,c_Message_Oanalz(V),tc_Message_Omsg)* -> c_in(U,c_Message_Oparts(V),tc_Message_Omsg).
+3[0:Inp] || c_in(c_Message_Omsg_ONonce(v_NB),c_Event_Oused(v_evs2),tc_Message_Omsg)* -> .
+4[0:Inp] ||  -> c_in(c_Message_Omsg_ONonce(v_NB),c_Message_Oanalz(c_Event_Oknows(c_Message_Oagent_OSpy,v_evs2)),tc_Message_Omsg)*.
+5[0:Res:1.1,3.0] || c_in(c_Message_Omsg_ONonce(v_NB),c_Message_Oparts(c_Event_Oknows(c_Message_Oagent_OSpy,v_evs2)),tc_Message_Omsg)* -> .
+6[0:Res:4.0,2.0] ||  -> c_in(c_Message_Omsg_ONonce(v_NB),c_Message_Oparts(c_Event_Oknows(c_Message_Oagent_OSpy,v_evs2)),tc_Message_Omsg)*.
+7[0:Res:6.0,5.0] ||  -> .
