@@ -14,10 +14,17 @@ import at.logic.skeptik.expression.formula._
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
+/*
+ * jgorzny
+ * Nov 2016
+ * 
+ * Note: not all inference rules are supported.
+ * 
+ */
 
-object ProofParserSkeptikNew extends ProofCombinatorParser[Node] with SkeptikParsersNew with SkeptikSequentParser
+object ProofParserSkeptikOutput extends ProofCombinatorParser[Node] with SkeptikOutputParsers with SkeptikSequentParser
 
-trait SkeptikParsersNew
+trait SkeptikOutputParsers
 extends JavaTokenParsers with RegexParsers with  SkeptikSequentParser with FindsVars {
   
   private var proofMap = new MMap[Int,Node]

@@ -17,6 +17,7 @@ import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import scala.collection.mutable.{Set => MSet}
 /**
  * Created by eze on 2016.07.25..
+ * modified by jgorzny Nov 2016
  */
 object FORPIProofGeneratorTests {
   var n = 0

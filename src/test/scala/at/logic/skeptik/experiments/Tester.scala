@@ -2,7 +2,7 @@ package at.logic.skeptik.experiments
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
-import at.logic.skeptik.parser.ProofParserSkeptikNew
+import at.logic.skeptik.parser.ProofParserSkeptikOutput
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
@@ -43,18 +43,18 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     val pDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Proofs\\"
 
     //wednesday -3
-//    val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 01-03-41 EST 2016-proof-50.txt")
-//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 11-34-37 EST 2016-proof-10.txt")
-//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 13-57-09 EST 2016-proof-107.txt")
-//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 13-57-09 EST 2016-proof-226.txt")
-//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-48.txt")
-//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-86.txt")
-//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-254.txt")
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 01-03-41 EST 2016-proof-50.txt")
+//val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 11-34-37 EST 2016-proof-10.txt")
+//val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 13-57-09 EST 2016-proof-107.txt")
+//val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 13-57-09 EST 2016-proof-226.txt")
+//val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-48.txt")
+//val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-86.txt")
+//val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-254.txt")
     
     
-//    val proof = ProofParserSkeptikNew.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-108.txt")//-4 ; not an issue for RPI
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-108.txt")//-4 ; not an issue for RPI
     
-    val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-41.txt") //rpi blue dot
+    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-41.txt") //rpi blue dot
      println(proof)
 //     println(proof.size)
      

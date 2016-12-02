@@ -9,7 +9,7 @@ import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.parser.ProofParserSPASS
 import at.logic.skeptik.parser.ParserException
 import scala.io.Source
-import at.logic.skeptik.parser.SequentParser
+import at.logic.skeptik.parser.SkeptikSequentParser
 import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent

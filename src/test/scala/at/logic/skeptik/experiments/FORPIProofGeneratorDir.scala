@@ -1,5 +1,5 @@
 package at.logic.skeptik.experiments
-import at.logic.skeptik.parser.ProofParserSkeptikNew
+import at.logic.skeptik.parser.ProofParserSkeptikOutput
 import at.logic.skeptik.algorithm.compressor.{ FOLowerUnits, FORecyclePivotsWithIntersection }
 import at.logic.skeptik.expression.Var
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
@@ -124,7 +124,7 @@ object FORPIProofGeneratorTestsDir {
       val pFileName = file.getAbsolutePath
       print("Proof #: " + h + " " + pFileName)
 
-      val proof = ProofParserSkeptikNew.read(pFileName)//do things
+      val proof = ProofParserSkeptikOutput.read(pFileName)//do things
       
 //      val proofFile = proofDir + "random-results-" + startTime + "-proof-" + h + ".txt"
 //      val proofWriter = new PrintWriter(proofFile)
