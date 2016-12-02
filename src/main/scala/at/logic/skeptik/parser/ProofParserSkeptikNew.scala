@@ -15,10 +15,10 @@ import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 
 
-object ProofParserSkeptikNew extends ProofCombinatorParser[Node] with SkeptikParsersNew with SequentParserNew
+object ProofParserSkeptikNew extends ProofCombinatorParser[Node] with SkeptikParsersNew with SkeptikSequentParser
 
 trait SkeptikParsersNew
-extends JavaTokenParsers with RegexParsers with  SequentParserNew with FindsVars {
+extends JavaTokenParsers with RegexParsers with  SkeptikSequentParser with FindsVars {
   
   private var proofMap = new MMap[Int,Node]
   private var exprMap = new MMap[Int,E]
@@ -36,7 +36,7 @@ extends JavaTokenParsers with RegexParsers with  SequentParserNew with FindsVars
 
   
   def proofLine: Parser[(Int, (Sequent, (String, List[Int])))] =  """.""".r ^^ { 
-    SequentParserNew(_)
+    SkeptikSequentParser(_)
   } 
   
   def pline: Parser[Node] = line ^^ {

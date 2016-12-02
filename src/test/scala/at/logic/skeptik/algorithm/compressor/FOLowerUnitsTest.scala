@@ -1,7 +1,7 @@
 package at.logic.skeptik.algorithm.compressor
 
 import at.logic.skeptik.parser.ProofParserSPASS
-import at.logic.skeptik.parser.SequentParser
+import at.logic.skeptik.parser.SkeptikSequentParser
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
@@ -252,7 +252,7 @@ trait checkProofEquality extends FindDesiredSequent {
     val input = scala.io.Source.fromFile(s)
     val lines = input.getLines
 
-    val sequents = for (l <- lines) yield SequentParser(l)
+    val sequents = for (l <- lines) yield SkeptikSequentParser(l)._2._1
     val traversableSequents = sequents.toTraversable
     if (proofNodesReversed.size != traversableSequents.size) {
       return false

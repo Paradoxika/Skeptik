@@ -16,14 +16,14 @@ import at.logic.skeptik.expression.substitution.immutable.Substitution
 import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 
-object SequentParserNew extends SequentParserNew {
+object SkeptikSequentParser extends SkeptikSequentParser {
   def apply(input: String): (Int, (Sequent, (String, List[Int]))) = parseAll(line, input) match {
     case Success(result, _) => result
     case failure: NoSuccess => scala.sys.error(failure.msg)
   }
 }
 
-trait SequentParserNew
+trait SkeptikSequentParser
   extends JavaTokenParsers with RegexParsers with checkUnifiableVariableName {
 
   def line: Parser[(Int, (Sequent, (String, List[Int])))] = number ~ ": {" ~ sequent ~ lineSuffix ^^ {
