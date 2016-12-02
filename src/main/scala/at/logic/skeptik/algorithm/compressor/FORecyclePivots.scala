@@ -6,7 +6,7 @@ import at.logic.skeptik.judgment.immutable.SetSequent
 import collection.mutable.{ HashMap => MMap, HashSet => MSet }
 
 abstract class FORecyclePivots
-  extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with FOUnitsCollectingBeforeFixing {
+    extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with FOUnitsCollectingBeforeFixing {
 
   def apply(proof: Proof[SequentProofNode]) = {
     val unifiableVars = getAllVars(proof);
@@ -17,7 +17,6 @@ abstract class FORecyclePivots
     if (edgesToDelete.isEmpty) {
       proof
     } else {
-      println(edgesToDelete.edges.size + " edges to delete")
       Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, auxMap, mguMap)))
     }
 
@@ -28,11 +27,11 @@ abstract class FORecyclePivots
 // Intersection trait is defined in FORPILU.scala
 
 trait FOoutIntersection
-  extends FOAbstractRPIAlgorithm {
+    extends FOAbstractRPIAlgorithm {
 
   protected def computeSafeLiterals(node: SequentProofNode,
-    childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
-    edgesToDelete: FOEdgesToDelete): SetSequent =
+                                    childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
+                                    edgesToDelete: FOEdgesToDelete): SetSequent =
     if (childrensSafeLiterals.length == 1)
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     else
@@ -41,11 +40,11 @@ trait FOoutIntersection
 }
 
 trait FOconclusionSequent
-  extends FOAbstractRPIAlgorithm {
+    extends FOAbstractRPIAlgorithm {
 
   protected def computeSafeLiterals(node: SequentProofNode,
-    childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
-    edgesToDelete: FOEdgesToDelete): SetSequent =
+                                    childrensSafeLiterals: Seq[(SequentProofNode, SetSequent)],
+                                    edgesToDelete: FOEdgesToDelete): SetSequent =
     if (childrensSafeLiterals.length == 1) {
       safeLiteralsFromChild(childrensSafeLiterals.head, node, edgesToDelete)
     } else {

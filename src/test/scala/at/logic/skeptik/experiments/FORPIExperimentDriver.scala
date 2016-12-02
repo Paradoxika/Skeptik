@@ -16,6 +16,15 @@ import at.logic.skeptik.algorithm.compressor.CompressionException
 import at.logic.skeptik.algorithm.compressor.checkProofEquality
 import scala.collection.mutable.{HashSet => MSet}
 
+
+/*
+ * jgorzny
+ * November 2016
+ * This file used to collect data for algorithms on the CADE data set 
+ * 
+ * 
+ */
+
 object FORPIExperimentDriver extends checkProofEquality {
 
   def countNonResolutionNodes(p: Proof[SequentProofNode]): Int = {
@@ -73,7 +82,7 @@ object FORPIExperimentDriver extends checkProofEquality {
     val path = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
     val proofList = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt"
 
-    val expPrefix = "CADE-FORPI " + getTimeString()
+    val expPrefix = "CADE-FORPILU " + getTimeString()
     
     val problemSetS = getProblems(proofList, path)
     var errorCount = 0
@@ -119,19 +128,40 @@ object FORPIExperimentDriver extends checkProofEquality {
         
         val startTime = System.nanoTime
         totalNodes = proofLength + totalNodes
-        val compressedProof =  if (proofToTest != null) { 
+        
+        val proofToTestB = try {
+//          val q = FORecyclePivotsWithIntersection(proofToTest)
+          val q = FOLowerUnits(proofToTest)
+          
+          if(q.root.conclusion.ant.size != 0 || q.root.conclusion.suc.size != 0){
+            proofToTest
+          } else {
+            q
+          }
+        } catch {
+          case t: Throwable => {
+            proofToTest
+          }
+        }
+        
+        val compressedProof =  if (proofToTestB != null) {
+//        val compressedProof =  if (proofToTest != null) { 
           try{
-            FORecyclePivotsWithIntersection(proofToTest)
-            
-//            FORecyclePivotsWithIntersection(FOLowerUnits(proofToTest)) //Done 10 Nov 2016
-//                        FOLowerUnits(FORecyclePivotsWithIntersection(proofToTest))//Done 10 Nov 2016
-//               FORecyclePivotsWithIntersection(proofToTest) //Done on 10 oct 2016 //Re-done on Nov 2016
-//                FOLowerUnits(proofToTest)
+            //RPI used in try
+            val p = FORecyclePivotsWithIntersection(proofToTest)
+            if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0) { throw new Exception("not empty") }                         
+            p
+            //LU used in try
+//            val p = FOLowerUnits(proofToTest)            
+//            if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0) { proofToTest } else { p }
           } catch {
             case f: Exception => {
+              //RPI used in try
               compressionErrorLogger.println(probY)
               errorCount = errorCount + 1
               null 
+              //LU used in try
+//              proofToTest
             }
           }
           } else { null }
