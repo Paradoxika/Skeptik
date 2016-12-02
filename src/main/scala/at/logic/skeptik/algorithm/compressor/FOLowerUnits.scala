@@ -1032,7 +1032,11 @@ object FOLowerUnits
       val root = units.map(fixMap).foldLeft(fixMap(proof.root))(placeLoweredResolution)
 
       val p = Proof(root)
-      p
+      if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0){
+        proof
+      } else {
+        p
+      }
     } catch {
       case e: Exception => {
         println("FOLU about to fail because of...")
