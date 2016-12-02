@@ -1,21 +1,20 @@
-package at.logic.skeptik.algorithm.compressor
+package at.logic.skeptik.experiments
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.parser.ProofParserSPASS
-import at.logic.skeptik.parser.ParserException
 import scala.io.Source
-import at.logic.skeptik.parser.SequentParser
-import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
-import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
+import at.logic.skeptik.algorithm.compressor.FOLowerUnits
+import at.logic.skeptik.algorithm.compressor.FORecyclePivotsWithIntersection
 import at.logic.skeptik.expression._
-import collection.mutable.{ HashMap => MMap, HashSet => MSet }
-import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
+import collection.mutable.{HashSet => MSet}
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
-import at.logic.skeptik.proof.sequent.resolution.Contraction
 import java.io.PrintWriter
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
 import java.util.Calendar 
+import at.logic.skeptik.algorithm.compressor.CompressionException
+import at.logic.skeptik.algorithm.compressor.checkProofEquality
+import scala.collection.mutable.{HashSet => MSet}
 
 object FORPIExperimentDriver extends checkProofEquality {
 

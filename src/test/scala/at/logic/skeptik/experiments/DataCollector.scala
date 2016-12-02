@@ -1,4 +1,4 @@
-package at.logic.skeptik.algorithm.FOProofsGenerator
+package at.logic.skeptik.experiments
 
 import java.io.File
 import scala.io.Source

@@ -1,22 +1,21 @@
-package at.logic.skeptik.algorithm.compressor
+package at.logic.skeptik.experiments
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.parser.ProofParserSPASS
-import at.logic.skeptik.parser.ParserException
 import scala.io.Source
-import at.logic.skeptik.parser.SequentParser
-import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
-import at.logic.skeptik.proof.sequent.lk.{ R, Axiom, UncheckedInference }
+import at.logic.skeptik.algorithm.compressor.FOLowerUnits
+import at.logic.skeptik.algorithm.compressor.FORecyclePivotsWithIntersection
 import at.logic.skeptik.expression._
-import collection.mutable.{ HashMap => MMap, HashSet => MSet }
-import at.logic.skeptik.proof.sequent.resolution.FindDesiredSequent
+import collection.mutable.{HashSet => MSet}
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
-import at.logic.skeptik.proof.sequent.resolution.Contraction
 import java.io.PrintWriter
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
+import at.logic.skeptik.algorithm.compressor.CompressionException
+import at.logic.skeptik.algorithm.compressor.checkProofEquality
+import scala.collection.mutable.{HashSet => MSet}
 
-object CADEExperimentDriver extends checkProofEquality {
+object LPARExperimentDriverNoSub extends checkProofEquality {
 
   def countNonResolutionNodes(p: Proof[SequentProofNode]): Int = {
     var count = 0
@@ -62,7 +61,7 @@ object CADEExperimentDriver extends checkProofEquality {
   def main(args: Array[String]): Unit = {
 
     val path = "C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
-    val proofList = "C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt"
+    val proofList ="C:\\Users\\Jan\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt" 
 
     val problemSetS = getProblems(proofList, path)
     //    var errorCountT = 0
@@ -71,7 +70,7 @@ object CADEExperimentDriver extends checkProofEquality {
     //    val elogger = new PrintWriter("errors.elog")
     //    val eTypeLogger = new PrintWriter("errorTypes.elog")
     //    val eProblemsLogger = new PrintWriter("errorProblems.elog")
-    val etempT = new PrintWriter("results-feb23.log")
+    val etempT = new PrintWriter("LPARResults-FORPI-Jun9b.log")
     val header = "proof,compressed?,length,resOnlyLength,compressedLengthAll,compressedLengthResOnly,compressTime,compressRatio,compressSpeed,compressRatioRes,compressSpeedRes,numFOSub,totalTime"
     etempT.println(header)
     etempT.flush
@@ -93,7 +92,7 @@ object CADEExperimentDriver extends checkProofEquality {
         
         val startTime = System.nanoTime
         
-        val compressedProof = FOLowerUnits(proofToTest)
+        val compressedProof = FORecyclePivotsWithIntersection(proofToTest)
 
         if (compressedProof.root.conclusion.ant.size != 0 || compressedProof.root.conclusion.suc.size != 0) {
           etempT.println(probY.substring(79) + ",0," + proofLength + "," + numRes + noDataString + "-ERROR")

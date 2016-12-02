@@ -1,23 +1,20 @@
-package at.logic.skeptik.algorithm.FOProofsGenerator
+package at.logic.skeptik.experiments
 
 import at.logic.skeptik.algorithm.compressor.{ FOLowerUnits, FORecyclePivotsWithIntersection }
-//import at.logic.skeptik.algorithm.compressor.FOSplit.FOCottonSplit
-//import at.logic.skeptik.algorithm.compressor.FOSplit.EPFOSplit
-import at.logic.skeptik.expression.{ App, Var, i, o }
-import at.logic.skeptik.expression.formula.Atom
+import at.logic.skeptik.expression.Var
 import at.logic.skeptik.judgment.immutable.{ SeqSequent => Sequent }
-import at.logic.skeptik.parser.TPTPParsers.ProofParserCNFTPTP
 import at.logic.skeptik.proof.sequent.{ SequentProofNode => Node }
 import java.io.PrintWriter
-import java.io.File
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
-
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
-
-import collection.mutable.{ Set => MSet }
+import collection.mutable.{Set => MSet}
 import at.logic.skeptik.proof.Proof
 import java.util.Calendar
+import at.logic.skeptik.algorithm.FOProofsGenerator.ProofGenerator
+import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
+import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
+import scala.collection.mutable.{Set => MSet}
 /**
  * Created by eze on 2016.07.25..
  */

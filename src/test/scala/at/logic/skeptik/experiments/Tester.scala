@@ -1,0 +1,239 @@
+package at.logic.skeptik.experiments
+
+import at.logic.skeptik.proof.Proof
+import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.parser.ProofParserSkeptikNew
+import at.logic.skeptik.expression._
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
+import at.logic.skeptik.judgment.immutable.{ SetSequent => IClause }
+import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
+import at.logic.skeptik.algorithm.compressor.FOCollectEdgesUsingSafeLiterals
+import at.logic.skeptik.algorithm.compressor.FOAbstractRPIAlgorithm
+import at.logic.skeptik.algorithm.compressor.FOLowerUnits
+import at.logic.skeptik.algorithm.compressor.FORecyclePivotsWithIntersection
+
+import at.logic.skeptik.algorithm.compressor.FOCollectEdgesUsingSafeLiterals
+import at.logic.skeptik.algorithm.compressor.checkProofEquality
+import at.logic.skeptik.judgment.immutable.{SetSequent => IClause}
+
+object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with checkProofEquality {
+  def apply(proof: Proof[SequentProofNode]) = {
+    proof
+    //  FORecyclePivots(proof)
+  }
+  protected def computeSafeLiterals(proof: SequentProofNode,
+                                    childrensSafeLiterals: Seq[(SequentProofNode, IClause)],
+                                    edgesToDelete: FOEdgesToDelete): IClause = {
+    childrensSafeLiterals.filter { x => !edgesToDelete.isMarked(x._1, proof) } match {
+      case Nil =>
+        if (!childrensSafeLiterals.isEmpty) edgesToDelete.markBothEdges(proof)
+        proof.conclusion.toSetSequent
+      case h :: t =>
+        t.foldLeft(safeLiteralsFromChild(h, proof, edgesToDelete)) { (acc, v) =>
+          {
+            acc intersect safeLiteralsFromChild(v, proof, edgesToDelete)
+          }
+        }
+    }
+  }
+  def main(args: Array[String]): Unit = {
+ 
+
+    val pDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Proofs\\"
+
+    //wednesday -3
+//    val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 01-03-41 EST 2016-proof-50.txt")
+//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 11-34-37 EST 2016-proof-10.txt")
+//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 13-57-09 EST 2016-proof-107.txt")
+//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 13-57-09 EST 2016-proof-226.txt")
+//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-48.txt")
+//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-86.txt")
+//val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-254.txt")
+    
+    
+//    val proof = ProofParserSkeptikNew.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-108.txt")//-4 ; not an issue for RPI
+    
+    val proof = ProofParserSkeptikNew.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-41.txt") //rpi blue dot
+     println(proof)
+//     println(proof.size)
+     
+    println("-------------------------------------------------------------------")
+    val iProof = try {
+//     val cProof = FOLowerUnits(FORecyclePivots(proof))
+          val dProof = FOLowerUnits(proof)
+     if(dProof.root.conclusion.ant.size != 0 || dProof.root.conclusion.suc.size != 0){
+       proof
+     } else {
+       dProof
+     }
+     } catch {
+       case _ => {
+         proof
+       }
+     }
+     print(iProof)
+    println("-------------------------------------------------------------------")
+     
+    try{
+     val cProof =  FORecyclePivotsWithIntersection(iProof) //try with iProof
+     println(proof.size, cProof.size)
+     println(cProof)
+    }catch {
+      case f: Throwable =>{
+        f.printStackTrace()
+//println(proof.size, iProof.size)        
+      }
+    }
+     
+
+ 
+    
+     
+//           var LUfail = false
+//      var RPIfail = false
+//      var LURPIfail = false
+//      var RPILUfail = false
+//
+//      var RPIfailAfterLU = false
+//      var LUfailAfterRPI = false
+//      
+//      var luFails = 0
+//      var rpiFails = 0
+//      var rpiluFails = 0
+//      var lurpiFails = 0
+//
+//      val luStartTime = System.nanoTime()
+//
+//      val luProof = try {
+//        FOLowerUnits(proof)
+//      } catch {
+//        case e: Exception => {
+//          LUfail = true
+//          luFails = luFails + 1
+//          proof
+//        }
+//        case a: AssertionError => {
+//          LUfail = true
+//          luFails = luFails + 1
+//          proof
+//        }
+//      }
+//      val luFinishTime = System.nanoTime()
+//
+//      println("LU Done.")
+//      println(luProof)
+//      
+//      val rpiStartTime = System.nanoTime()
+//
+//      val rpiProof = try {
+//        FORecyclePivotsWithIntersection(proof)
+//      } catch {
+//        case e: Exception => {
+//          RPIfail = true
+//          rpiFails = rpiFails + 1
+//          proof
+//        }
+//        case a: AssertionError => {
+//          RPIfail = true
+//          rpiFails = rpiFails + 1
+//          proof
+//        }
+//      }
+//      val rpiFinishTime = System.nanoTime()
+//      println("RPI Done.")
+//      println(rpiProof)
+//
+//      
+//      val luRPIStartTime = System.nanoTime()
+//      val luRPIProof = try {
+//        FOLowerUnits(rpiProof)
+//      } catch {
+//        case e: Exception => {
+//          if (RPIfail) { LURPIfail = true 
+//          } else { LUfailAfterRPI = true }
+//          rpiProof
+//        } 
+//        case a: AssertionError => {
+//          if (RPIfail) { LURPIfail = true 
+//          } else { LUfailAfterRPI = true }
+//          rpiProof
+//        }
+//      }
+//      val luRPIFinishTime = System.nanoTime()
+//      println("LURPI Done.")
+//      val rpiLUStartTime = System.nanoTime()
+//      val rpiLUProof = try {
+//        FORecyclePivotsWithIntersection(luProof)
+//      } catch {
+//        case e: Exception => {
+//          if (LUfail) { RPILUfail = true 
+//          } else { RPIfailAfterLU = true }
+//          luProof
+//        }
+//        case a: AssertionError => {
+//          if (LUfail) { RPILUfail = true  
+//          } else { RPIfailAfterLU = true }
+//          luProof
+//        }
+//      }
+//      val rpiLUFinishTime = System.nanoTime()
+//      println("RPILU Done.")
+//      println(rpiLUProof)
+//     
+//      
+//      val rpiTime = (rpiFinishTime - rpiStartTime)
+//      val luTime = (luFinishTime - luStartTime)
+//      val lurpiTime = (luRPIFinishTime - luRPIStartTime)
+//      val rpiluTime = (rpiLUFinishTime - rpiLUStartTime)
+//      val totalTime = (rpiTime + luTime + lurpiTime + rpiluTime)
+//  
+//      printStats( proof, rpiProof, RPIfail, rpiTime, "-1")
+//      print(",")        
+//      printStats( proof, luProof, LUfail, luTime, "-2")
+//      print(",")
+//      printStats( proof, rpiLUProof, RPILUfail, luTime + rpiluTime, "-3")
+//      print(",")
+//      printStats(proof, luRPIProof, LURPIfail, rpiTime + lurpiTime, "-4")
+  
+
+  
+  }
+  def printStats(sproof: Proof[SequentProofNode], cProof: Proof[SequentProofNode], fail: Boolean, time: Long, failString: String) = {
+    addStatsToLine(fail, sproof.size, countResolutionNodes(sproof), cProof.size, countResolutionNodes(cProof),
+      time, countFOSub(sproof), countFOSub(cProof), failString)
+  }
+
+  def addStatsToLine(fail: Boolean, size: Int, resSize: Int, cSize: Int,
+                     cResSize: Int, time: Long, nFO: Int, nCFO: Int, failString: String) {
+    if (!fail) {
+      val cRatio = ((cSize * 1.0) / (size * 1.0))
+      val cResRatio = ((cResSize * 1.0) / (resSize * 1.0))
+      print(size + "," + resSize + "," + cSize + "," + cResSize + "," + cRatio + "," + cResRatio + "," + nFO + "," + nCFO + "," + time)
+    } else {
+      print(size + "," + resSize + "," + failString + "," + failString + "," + failString + "," + failString + "," + nFO + "," + failString + "," + time)
+    }
+  }  
+    def countFOSub(p: Proof[SequentProofNode]): Int = {
+    var count = 0
+    for (n <- p.nodes) {
+      if (n.isInstanceOf[FOSubstitution]) {
+        count = count + 1
+      }
+    }
+    count
+  }
+  def countResolutionNodes(p: Proof[SequentProofNode]): Int = {
+    var count = 0
+    for (n <- p.nodes) {
+      if (n.isInstanceOf[UnifyingResolution] || n.isInstanceOf[UnifyingResolutionMRR]) {
+        count = count + 1
+      }
+    }
+    count
+  }
+  
+}
+
+
+
