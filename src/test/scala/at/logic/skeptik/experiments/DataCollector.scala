@@ -43,8 +43,16 @@ object DataCollector {
 
     //makeTPTPCountFiles()
 
-    makeRandomCountFiles()
+    //makeRandomCountFiles()
     
+    makeRandomBWFiles()
+  }
+  
+  def makeRandomBWFiles(){
+    val numBinsToUse = 16
+        makeRandomBWfile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-bw-data-dec1.txt",
+      numBinsToUse)   
     
   }
 
@@ -971,5 +979,190 @@ object DataCollector {
     fileWriter.close()
 
   } 
+  
+  //TODO: finish this
+ def makeRandomBWfile(inFileName: String, outFileName: String, numBins: Int) {
+
+    val bin = true //always binning, otherwise we would use raw data
+
+   
+    val fileWriter = makeFileIfNecessaryAndReturnWriter(outFileName)
+
+
+    val header = "bin,luCompResRatio,rpiCompResRatio,lurpiCompResRatio,rpiluCompResRatio,binDescription"
+    
+    fileWriter.println(header)
+
+    val binList = getBinsList(inFileName, numBins)
+    val mins = for (i <- binList) yield i.min
+    val minsList = mins.toList
+    val maxsList = getBinMaxs(binList)
+    //process the data
+    val lines = Source.fromFile(inFileName).getLines
+    lines.next() //skip header
+    
+    for (line <- lines) {
+      val lineScanner = new Scanner(line)
+      lineScanner.useDelimiter(",")
+      
+      //example line:
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,385,199,385,199,1.0,1.0,0,0,31877479,385,199,-2,-2,-2,-2,0,-2,1658448468,385,199,385,199,1.0,1.0,0,0,1689651306,385,199,385,199,1.0,1.0,0,0,1706574572,3396225878,false,true,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\21 Nov 2016\Retest\random-results-Mon Nov 21 22-28-48 EST 2016-proof-9.txt
+
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,
+      val proofNum = lineScanner.next()
+      val fileName = lineScanner.next()
+      val oldProofNum = lineScanner.next()
+
+      //385,199,
+      val len = lineScanner.next().toInt //len is the same for all measured executions
+      val numRes = lineScanner.next().toInt //same for all measured executions
+
+      val binID = findIndex(len, binList)
+      assert(binID != -1)
+      fileWriter.print(binID + ",")
+
+      //385,199,1.0,1.0,0,0,31877479,
+      //RPI data
+      val rpiCompSize = lineScanner.next().toInt
+      val rpiCompResSize = lineScanner.next().toInt
+
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      val rpiCRR = computeResRatio(numRes, rpiCompResSize)
+      fileWriter.print(rpiCRR +",")
+      
+      //LU data
+      //385,199,-2,-2,-2,-2,0,-2,1658448468,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)
+      val luCompSize = lineScanner.next().toInt
+      val luCompResSize = lineScanner.next().toInt
+
+      val luCRR = computeResRatio(numRes, luCompResSize)
+      fileWriter.print(luCRR +",")
+            
+
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //RPILU data
+      //385,199,385,199,1.0,1.0,0,0,1689651306,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)      
+      val rpiluCompSize = lineScanner.next().toInt
+      val rpiluCompResSize = lineScanner.next().toInt
+
+      val rpiluCRR = computeResRatio(numRes, rpiluCompResSize)
+      fileWriter.print(rpiluCRR +",")
+            
+      
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //LURPI data
+      //385,199,385,199,1.0,1.0,0,0,1706574572,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)      
+      val lurpiCompSize = lineScanner.next().toInt
+      val lurpiCompResSize = lineScanner.next().toInt
+
+      val lurpiCRR = computeResRatio(numRes, lurpiCompResSize)
+      fileWriter.print(lurpiCRR +",")
+            
+      
+      //Don't technically need to do this, but we do it so I don't forget to do it later.
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time      
+
+      //And the rest (ignored)
+      //3396225878,false,true,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\21 Nov 2016\Retest\random-results-Mon Nov 21 22-28-48 EST 2016-proof-9.txt
+
+      
+      fileWriter.println(makeBinDescription(minsList(binID),maxsList(binID)))
+      fileWriter.flush()
+
+    }
+
+
+    fileWriter.close()
+
+
+  }    
  
+ def getBinsList(f: String, numBins: Int) = {
+       //process the data
+    val lines = Source.fromFile(f).getLines
+    lines.next() //skip header
+
+    val countMap = new MMap[Int, Int]()
+    for (line <- lines) {
+      val lineScanner = new Scanner(line)
+      lineScanner.useDelimiter(",")
+
+      //example line:
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,385,199,385,199,1.0,1.0,0,0,31877479,385,199,-2,-2,-2,-2,0,-2,1658448468,385,199,385,199,1.0,1.0,0,0,1689651306,385,199,385,199,1.0,1.0,0,0,1706574572,3396225878,false,true,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\21 Nov 2016\Retest\random-results-Mon Nov 21 22-28-48 EST 2016-proof-9.txt
+
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,
+      val proofNum = lineScanner.next()
+      val fileName = lineScanner.next()
+      val oldProofNum = lineScanner.next()
+
+      //385,199,
+      val len = lineScanner.next().toInt //len is the same for all measured executions
+      val numRes = lineScanner.next().toInt //same for all measured executions
+      updateMap(countMap, len)
+    }
+    val out = countMap.keySet
+    val sortedOut = collection.immutable.SortedSet[Int]() ++ countMap.keySet
+    val groupedOut = sortedOut.grouped(numBins).toSeq
+    groupedOut
+ }
+ 
+ def findIndex(len: Int, binList: Seq[SortedSet[Int]]): Int = {
+   for(i <- 0 to binList.size - 1){
+     if(binList(i).contains(len)){
+       return i
+     }
+   }
+   return -1 // error
+ }
+ 
+ def computeResRatio(l: Int, cl: Int): Double = {
+   if(cl < 0){
+     return 0.0
+   }
+   val out = ((l*1.0 - cl*1.0)*1.0) / (l*1.0)
+   if(out < 0.0) { println("negative ratio") }
+   return out
+ }
+ 
+ def getBinMaxs(bins: Seq[SortedSet[Int]]): Array[Int] = {
+   val out = new Array[Int](bins.size)
+   for(i <- 0 to bins.size - 2){
+     out(i) = bins(i+1).min - 1
+   }
+   out(bins.size-1) = bins(bins.size - 1).max
+   out
+ }
+ 
+ def makeBinDescription(m: Int, n: Int): String = {
+   if(m < 100){
+     " " + m + "-" + n
+   } else {
+     m + "-" + n
+   }
+ }
 }

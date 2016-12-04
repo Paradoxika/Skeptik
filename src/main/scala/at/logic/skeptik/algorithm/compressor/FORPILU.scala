@@ -782,19 +782,6 @@ trait FOCollectEdgesUsingSafeLiterals
           //which edge to mark. Better not touch either.
         }
 
-        case UnifyingResolution(left, right, auxL, auxR) if (
-          checkForRes(safeLiterals.ant, auxR) && checkForResSmart(safeLiterals.ant, auxR, p)
-          && checkForRes(safeLiterals.suc, auxR) && checkForResSmart(safeLiterals.suc, auxR, p)) => {
-          //if the pivot appears in both the antecedent and succedent of the safe literals, we don't know
-          //which edge to mark. Better not touch either.
-        }
-
-        case UnifyingResolution(left, right, auxL, auxR) if (
-          checkForRes(safeLiterals.ant, auxL) && checkForResSmart(safeLiterals.ant, auxL, p)
-          && checkForRes(safeLiterals.suc, auxL) && checkForResSmart(safeLiterals.suc, auxL, p)) => {
-          //if the pivot appears in both the antecedent and succedent of the safe literals, we don't know
-          //which edge to mark. Better not touch either.
-        }
 
         case UnifyingResolution(left, right, auxL, auxR) if (checkForRes(safeLiterals.suc, auxL)
           && checkForResSmart(safeLiterals.suc, auxL, p) && finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)) => {
