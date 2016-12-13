@@ -39,20 +39,23 @@ object DataCollector {
   }
 
   def main(arfs: Array[String]): Unit = {
+    val nBins = 16
     //makeBigList()
 
     //makeTPTPCountFiles()
 
     //makeRandomCountFiles()
     
-    makeRandomBWFiles()
+     makeRandomBWFiles(nBins, true)
+    
+    //makeCombinedDataCountFilesSeparate()
+    //makeCombinedDataCountFilesSeparateResolutions(nBins)    
   }
   
-  def makeRandomBWFiles(){
-    val numBinsToUse = 16
-        makeRandomBWfile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-bw-data-dec1.txt",
-      numBinsToUse)   
+  def makeRandomBWFiles(numBinsToUse: Int, useResLen: Boolean){
+        makeRandomBWfile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1s.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-bw-data-dec1s.txt",
+      numBinsToUse, useResLen)   
     
   }
 
@@ -118,6 +121,30 @@ object DataCollector {
       "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-nc-sep-data-dec1.txt",
       numBinsToUse)         
   }
+  
+  def makeCombinedDataCountFilesSeparate(){
+    val numBinsToUse = 16
+   makeCombinedCountFilesSeparate("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1s.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi.txt",       
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\combined-all-nc-sep-data-dec1s.txt",
+      numBinsToUse)      
+    
+  }
+  
+  def makeCombinedDataCountFilesSeparateResolutions(){
+    val numBinsToUse = 12 //was 16
+   makeCombinedCountFilesSeparateResolutions("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1s.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu.txt",
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi.txt",       
+      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\combined-all-nc-sep-data-dec1s-res.txt",
+      numBinsToUse)      
+    
+  }  
 
   //used to make data for num_stacked charts
   def makeTPTPCountFiles() {
@@ -263,7 +290,7 @@ object DataCollector {
 
   }
 
-  def wasCompressed(i: Iterator[String]): (Int, Boolean, String) = {
+  def wasCompressed(i: Iterator[String], useRes: Boolean = false): (Int, Boolean, String) = {
     val line = i.next()
     val lineScanner = new Scanner(line)
     lineScanner.useDelimiter(",")
@@ -271,12 +298,16 @@ object DataCollector {
     val fileName = lineScanner.next()
     val isCompressed = lineScanner.next().toInt //0 or 1
     val len = lineScanner.next().toInt
+    val rLen = lineScanner.next().toInt
     val isCompressedBool = if (isCompressed == 0) {
       false
     } else {
       true
     }
     lineScanner.close()
+    if(useRes){
+      return (rLen, isCompressedBool, fileName)
+    } 
     return (len, isCompressedBool, fileName)
   }
 
@@ -981,7 +1012,7 @@ object DataCollector {
   } 
   
   //TODO: finish this
- def makeRandomBWfile(inFileName: String, outFileName: String, numBins: Int) {
+ def makeRandomBWfile(inFileName: String, outFileName: String, numBins: Int, useResLen: Boolean = false) {
 
     val bin = true //always binning, otherwise we would use raw data
 
@@ -993,7 +1024,7 @@ object DataCollector {
     
     fileWriter.println(header)
 
-    val binList = getBinsList(inFileName, numBins)
+    val binList = getBinsList(inFileName, numBins, useResLen)
     val mins = for (i <- binList) yield i.min
     val minsList = mins.toList
     val maxsList = getBinMaxs(binList)
@@ -1014,9 +1045,11 @@ object DataCollector {
       val oldProofNum = lineScanner.next()
 
       //385,199,
-      val len = lineScanner.next().toInt //len is the same for all measured executions
+      val lenTemp = lineScanner.next().toInt //len is the same for all measured executions
       val numRes = lineScanner.next().toInt //same for all measured executions
 
+      val len = if (useResLen) { numRes } else { lenTemp }
+      
       val binID = findIndex(len, binList)
       assert(binID != -1)
       fileWriter.print(binID + ",")
@@ -1102,7 +1135,7 @@ object DataCollector {
 
   }    
  
- def getBinsList(f: String, numBins: Int) = {
+ def getBinsList(f: String, numBins: Int, useResLen: Boolean = false) = {
        //process the data
     val lines = Source.fromFile(f).getLines
     lines.next() //skip header
@@ -1123,7 +1156,11 @@ object DataCollector {
       //385,199,
       val len = lineScanner.next().toInt //len is the same for all measured executions
       val numRes = lineScanner.next().toInt //same for all measured executions
-      updateMap(countMap, len)
+      if(useResLen){
+        updateMap(countMap, numRes)
+      } else {
+        updateMap(countMap, len)
+      }
     }
     val out = countMap.keySet
     val sortedOut = collection.immutable.SortedSet[Int]() ++ countMap.keySet
@@ -1165,4 +1202,585 @@ object DataCollector {
      m + "-" + n
    }
  }
+ 
+ 
+def makeCombinedCountFilesSeparate(randomInFileName: String,
+    tptpRPILUInFileName: String,
+    tptpLURPIInFileName: String,
+    tptpLUInFileName: String,
+    tptpRPIInFileName: String,
+    outFileName: String, numBins: Int) {
+
+    val bin =  if(numBins > 0) { true } else { false }
+    
+    val fileWriter = makeFileIfNecessaryAndReturnWriter(outFileName)
+
+    //the thing being printed (from the function), for reference
+    //binIndex + "," + numCompressedRPIbin + "," + numCompressedLUbin + "," + numCompressedRPILUbin + "," + numCompressedLURPIbin + "," +
+    //numCompNonuniquebin + "," + numCompressedAllbin + "," + numUncompressedbin + "," + countBin + "," + binDescription)    
+    
+    val header = if (!bin){
+      //TODO: update for tptp
+      "length,numCompressedforpi,numCompressedfolu,numCompressedforpilu,numCompressedfolurpi,numCompressedNonUnique,numCompressedByAll,numNotCompressed,total"
+    } else {
+      //length should be binIndex, but that would require changing the R scripts
+      "length,numCompressedforpi,numCompressedfolu,numCompressedforpilu,numCompressedfolurpi,numCompressedNonUnique,numCompressedByAll,numNotCompressed,total,binDescription" + 
+        "tptpnumCompressedforpi,tptpnumCompressedfolu,tptpnumCompressedforpilu,tptpnumCompressedfolurpi,tptpnumCompressedNonUnique,tptpnumCompressedByAll,tptpnumNotCompressed,tptpTotal"
+    }
+    
+    fileWriter.println(header)
+
+    //process the data - random first
+    val lines = Source.fromFile(randomInFileName).getLines
+    lines.next() //skip header
+
+    val countMap = new MMap[Int, Int]()
+    val compMapRPI = new MMap[Int, Int]()
+    val compMapLU = new MMap[Int, Int]()
+    val compMapLURPI = new MMap[Int, Int]()
+    val compMapRPILU = new MMap[Int, Int]()
+    val compMapAll = new MMap[Int, Int]()
+    val uncompMapAll = new MMap[Int, Int]()
+    
+    
+
+    for (line <- lines) {
+      val lineScanner = new Scanner(line)
+      lineScanner.useDelimiter(",")
+
+      var rpiCompressed = false
+      var luCompressed = false
+      var rpiluCompressed = false
+      var lurpiCompressed = false      
+      
+      //example line:
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,385,199,385,199,1.0,1.0,0,0,31877479,385,199,-2,-2,-2,-2,0,-2,1658448468,385,199,385,199,1.0,1.0,0,0,1689651306,385,199,385,199,1.0,1.0,0,0,1706574572,3396225878,false,true,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\21 Nov 2016\Retest\random-results-Mon Nov 21 22-28-48 EST 2016-proof-9.txt
+
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,
+      val proofNum = lineScanner.next()
+      val fileName = lineScanner.next()
+      val oldProofNum = lineScanner.next()
+
+      //385,199,
+      val len = lineScanner.next().toInt //len is the same for all measured executions
+      val numRes = lineScanner.next().toInt //same for all measured executions
+
+      updateMap(countMap, len)
+
+      //385,199,1.0,1.0,0,0,31877479,
+      //RPI data
+      val rpiCompSize = lineScanner.next().toInt
+      val rpiCompResSize = lineScanner.next().toInt
+      if ((rpiCompSize != len || rpiCompResSize != numRes) && rpiCompSize > 0) {
+        //RPI compressed
+        rpiCompressed = true
+      }
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //LU data
+      //385,199,-2,-2,-2,-2,0,-2,1658448468,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)
+      val luCompSize = lineScanner.next().toInt
+      val luCompResSize = lineScanner.next().toInt
+      //      println("len: " + len + " numRes: " + numRes + " luCSize: " + luCompSize + " luRCsize: " + luCompResSize)
+
+      if ((luCompSize != len || luCompResSize != numRes) && luCompSize > 0) {
+        //LU compressed
+        luCompressed = true
+      }
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //RPILU data
+      //385,199,385,199,1.0,1.0,0,0,1689651306,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)      
+      val rpiluCompSize = lineScanner.next().toInt
+      val rpiluCompResSize = lineScanner.next().toInt
+      if ((rpiluCompSize != len || rpiluCompResSize != numRes) && rpiluCompSize > 0) {
+        //RPILU compressed
+        rpiluCompressed = true
+      }
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //LURPI data
+      //385,199,385,199,1.0,1.0,0,0,1706574572,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)      
+      val lurpiCompSize = lineScanner.next().toInt
+      val lurpiCompResSize = lineScanner.next().toInt
+      if ((lurpiCompSize != len || lurpiCompResSize != numRes) && lurpiCompSize > 0) {
+        //LURPI compressed
+        lurpiCompressed = true
+      }
+      //Don't technically need to do this, but we do it so I don't forget to do it later.
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time      
+
+      //And the rest (ignored)
+      //3396225878,false,true,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\21 Nov 2016\Retest\random-results-Mon Nov 21 22-28-48 EST 2016-proof-9.txt
+
+      val isCompressedressedAll = rpiCompressed && luCompressed && rpiluCompressed && lurpiCompressed
+      val unCompressedAll = !rpiCompressed && !luCompressed && !rpiluCompressed && !lurpiCompressed
+
+      if (isCompressedressedAll) {
+        updateMap(compMapAll, len)
+      }
+      if (rpiCompressed && (!luCompressed && !rpiluCompressed && !lurpiCompressed)) {
+        updateMap(compMapRPI, len)
+      }
+      if (luCompressed && (!rpiCompressed && !rpiluCompressed && !lurpiCompressed)) {
+        updateMap(compMapLU, len)
+      }
+      if (rpiluCompressed && (!luCompressed && !rpiCompressed && !lurpiCompressed)) {
+        updateMap(compMapRPILU, len)
+      }
+      if (lurpiCompressed && (!luCompressed && !rpiluCompressed && !rpiCompressed)) {
+        updateMap(compMapLURPI, len)
+      }
+
+      if (unCompressedAll) {
+        updateMap(uncompMapAll, len)
+      }  
+      
+    }
+
+    /*
+    tptpRPILUInFileName: String,
+    tptpLURPIInFileName: String,
+    tptpLUInFileName: String,
+    tptpRPIInFileName: String,    
+    */
+    
+    //Now process each of the TPTP data files
+    val tptplines = Source.fromFile(tptpRPILUInFileName).getLines
+
+    //process the data
+    val alines = Source.fromFile(tptpRPILUInFileName).getLines
+    alines.next() //skip header
+    val blines = Source.fromFile(tptpLURPIInFileName).getLines
+    blines.next() //skip header
+    val clines = Source.fromFile(tptpLUInFileName).getLines
+    clines.next() //skip header
+    val dlines = Source.fromFile(tptpRPIInFileName).getLines
+    dlines.next() //skip header
+
+    val countMaptptp = new MMap[Int, Int]()
+    val compMapAtptp = new MMap[Int, Int]()
+    val compMapBtptp = new MMap[Int, Int]()
+    val compMapCtptp = new MMap[Int, Int]()
+    val compMapDtptp = new MMap[Int, Int]()
+    val compMapAlltptp = new MMap[Int, Int]()
+    val uncompMapAlltptp = new MMap[Int, Int]()
+
+    for (i <- 0 to tptplines.size - 2) {
+      val (aLen, aComp, aName) = wasCompressed(alines)
+      val (bLen, bComp, bName) = wasCompressed(blines)
+      val (cLen, cComp, cName) = wasCompressed(clines)
+      val (dLen, dComp, dName) = wasCompressed(dlines)
+
+      assert(aName.equals(bName) && aName.equals(cName) && aName.equals(dName))
+      val len = aLen
+
+      val isCompressedAll = aComp && bComp && cComp && dComp
+      val unCompAll = !aComp && !bComp && !cComp && !dComp
+
+      updateMap(countMaptptp, len)
+      if (isCompressedAll) {
+        updateMap(compMapAlltptp, len)
+      }
+      if (aComp && (!bComp && !cComp && !dComp)) {
+        updateMap(compMapAtptp, len)
+      }
+      if (bComp && (!aComp && !cComp && !dComp)) {
+        updateMap(compMapBtptp, len)
+      }
+      if (cComp && (!bComp && !aComp && !dComp)) {
+        updateMap(compMapCtptp, len)
+      }
+      if (dComp && (!bComp && !cComp && !aComp)) {
+        updateMap(compMapDtptp, len)
+      }
+
+      if (unCompAll) {
+        updateMap(uncompMapAlltptp, len)
+      }
+
+    }
+    
+    
+    val sortedKeys = collection.immutable.SortedSet[Int]() ++ countMap.keySet ++ countMaptptp.keySet
+
+    if (!bin) {
+      //TODO: update this
+      writeDataToFileB(sortedKeys, countMap, uncompMapAll, compMapRPI, compMapLU, compMapRPILU, compMapLURPI, compMapAll, fileWriter)
+    } else {
+      val numPerBin = countMap.keySet.size / numBins //make sure it divides evenly! 
+      println("Num per bin: " + numPerBin + " (Make sure this is a good value, or try a new number of bins)")      
+      writeDataToFileBins(sortedKeys, countMap, uncompMapAll, compMapRPI, compMapLU, compMapRPILU, compMapLURPI, compMapAll, fileWriter, numBins,
+          countMaptptp,compMapAtptp,compMapBtptp,compMapCtptp,compMapDtptp,compMapAlltptp,uncompMapAlltptp)
+    }
+    fileWriter.flush()
+    fileWriter.close()
+
+  } 
+
+
+//countMap, uncompMapAll, compMapRPI, compMapLU, compMapRPILU, compMapLURPI
+  def writeDataToFileBins(sortedKeys: SortedSet[Int], countMap: MMap[Int, Int], uncompMap: MMap[Int, Int],
+                          compMapRPI: MMap[Int, Int], compMapLU: MMap[Int, Int],
+                          compMapLURPI: MMap[Int, Int], compMapRPILU: MMap[Int, Int],
+                          compMapAll: MMap[Int, Int], writer: PrintWriter, numBins: Int,
+                          countMapTPTP: MMap[Int, Int],
+                          compMapRPILUTPTP: MMap[Int, Int], compMapLURPITPTP: MMap[Int,Int],
+                          compMapLUTPTP: MMap[Int, Int], compMapRPITPTP: MMap[Int,Int],
+                          compMapAllTPTP: MMap[Int, Int], uncompMapTPTP: MMap[Int, Int]
+                          ) = {
+    val numPerBin = countMap.keySet.size / numBins //make sure it divides evenly!
+  
+    var numProofs = 0
+    
+    var binIndex = 0;
+    val binKeys = sortedKeys.grouped(numPerBin)
+    val binKeysB = sortedKeys.grouped(numPerBin)
+    
+    //      for(i <- binKeys){
+    //      println(i)
+    //      }
+
+    val mins = for (i <- binKeysB) yield i.min
+    val minsList = mins.toList
+    
+    for (i <- binKeys) {
+      
+      var numCompressedRPIbin = 0
+      var numCompressedLUbin = 0
+      var numCompressedRPILUbin = 0
+      var numCompressedLURPIbin = 0
+      var numCompressedAllbin = 0
+       
+      var numUncompressedbin = 0; 
+      var countBin = 0; 
+      
+      var numCompressedRPIbinTPTP = 0
+      var numCompressedLUbinTPTP = 0
+      var numCompressedRPILUbinTPTP = 0
+      var numCompressedLURPIbinTPTP = 0
+      var numCompressedAllbinTPTP = 0
+       
+      var numUncompressedbinTPTP = 0; 
+      var countBinTPTP = 0;       
+      
+      for (k <- i) {
+          val numCompressedRPI = getCompCount(compMapRPI, k)
+          val numCompressedLU = getCompCount(compMapLU, k)
+          val numCompressedRPILU = getCompCount(compMapRPILU, k)
+          val numCompressedLURPI = getCompCount(compMapLURPI, k)
+          val numCompressedAll = getCompCount(compMapAll, k) 
+          val numUncompressed = getCompCount(uncompMap, k)
+          val numCount = getCompCount(countMap,k)
+          
+          val numCompressedRPItptp = getCompCount(compMapRPITPTP, k)
+          val numCompressedLUtptp = getCompCount(compMapLUTPTP, k)
+          val numCompressedRPILUtptp = getCompCount(compMapRPILUTPTP, k)
+          val numCompressedLURPItptp = getCompCount(compMapLURPITPTP, k)
+          val numCompressedAlltptp = getCompCount(compMapAllTPTP, k) 
+          val numUncompressedtptp = getCompCount(uncompMapTPTP, k)
+          val numCounttptp = getCompCount(countMapTPTP,k)
+                    
+          
+          numCompressedRPIbin = numCompressedRPIbin + numCompressedRPI
+          numCompressedLUbin = numCompressedLUbin + numCompressedLU
+          numCompressedRPILUbin = numCompressedRPILUbin + numCompressedRPILU
+          numCompressedLURPIbin = numCompressedLURPIbin + numCompressedLURPI
+          numCompressedAllbin = numCompressedAllbin + numCompressedAll
+          numUncompressedbin = numUncompressedbin + numUncompressed
+          countBin = countBin + numCount
+          
+          numCompressedRPIbinTPTP = numCompressedRPIbinTPTP + numCompressedRPItptp
+          numCompressedLUbinTPTP = numCompressedLUbinTPTP + numCompressedLUtptp
+          numCompressedRPILUbinTPTP = numCompressedRPILUbinTPTP + numCompressedRPILUtptp
+          numCompressedLURPIbinTPTP = numCompressedLURPIbinTPTP + numCompressedLURPItptp
+          numCompressedAllbinTPTP = numCompressedAllbinTPTP + numCompressedAlltptp
+          numUncompressedbinTPTP = numUncompressedbinTPTP + numUncompressedtptp
+          countBinTPTP = countBinTPTP + numCounttptp          
+      }
+            
+      val keyMin = i.min
+      val keyMax = if(binIndex < numBins - 1){
+        minsList(binIndex + 1)-1
+      } else {
+        i.max
+      }
+      
+      var numCompNonuniquebin = (countBin - numUncompressedbin) - (numCompressedAllbin + numCompressedRPIbin + numCompressedLUbin + numCompressedRPILUbin + numCompressedLURPIbin)
+      var numCompNonuniquebinTPTP = (countBinTPTP - numUncompressedbinTPTP) - (numCompressedAllbinTPTP + numCompressedRPIbinTPTP + numCompressedLUbinTPTP + numCompressedRPILUbinTPTP + numCompressedLURPIbinTPTP)
+      //
+
+      val binDescription = keyMin + "-" + keyMax
+      
+      //print all the random data
+      writer.print(binIndex + "," + numCompressedRPIbin + "," + numCompressedLUbin + "," + numCompressedRPILUbin + "," + numCompressedLURPIbin + "," +
+         numCompNonuniquebin + "," + numCompressedAllbin + "," + numUncompressedbin + "," + countBin + "," + binDescription + ",")
+      //append the tptp data
+         //"tptpnumCompressedforpi,tptpnumCompressedfolu,tptpnumCompressedforpilu,tptpnumCompressedfolurpi,
+      writer.print(numCompressedRPIbinTPTP +"," + numCompressedLUbin + "," + numCompressedRPILUbin + "," + numCompressedLURPIbin +",")
+      //tptpnumCompressedNonUnique,tptpnumCompressedByAll,tptpnumNotCompressed,tptpTotal"
+      writer.println(numCompNonuniquebinTPTP +"," + numCompressedAllbinTPTP + "," + numUncompressedbinTPTP + "," + countBinTPTP) 
+      binIndex = binIndex + 1
+      numProofs = numProofs + countBin + countBinTPTP
+    }
+    println("Total proofs: " + numProofs)
+  }  
+  
+def makeCombinedCountFilesSeparateResolutions(randomInFileName: String,
+    tptpRPILUInFileName: String,
+    tptpLURPIInFileName: String,
+    tptpLUInFileName: String,
+    tptpRPIInFileName: String,
+    outFileName: String, numBins: Int) {
+
+    val bin =  if(numBins > 0) { true } else { false }
+    
+    val fileWriter = makeFileIfNecessaryAndReturnWriter(outFileName)
+
+    //the thing being printed (from the function), for reference
+    //binIndex + "," + numCompressedRPIbin + "," + numCompressedLUbin + "," + numCompressedRPILUbin + "," + numCompressedLURPIbin + "," +
+    //numCompNonuniquebin + "," + numCompressedAllbin + "," + numUncompressedbin + "," + countBin + "," + binDescription)    
+    
+    val header = if (!bin){
+      //TODO: update for tptp
+      "length,numCompressedforpi,numCompressedfolu,numCompressedforpilu,numCompressedfolurpi,numCompressedNonUnique,numCompressedByAll,numNotCompressed,total"
+    } else {
+      //length should be binIndex, but that would require changing the R scripts
+      "length,numCompressedforpi,numCompressedfolu,numCompressedforpilu,numCompressedfolurpi,numCompressedNonUnique,numCompressedByAll,numNotCompressed,total,binDescription" + 
+        ",tptpnumCompressedforpi,tptpnumCompressedfolu,tptpnumCompressedforpilu,tptpnumCompressedfolurpi,tptpnumCompressedNonUnique,tptpnumCompressedByAll,tptpnumNotCompressed,tptpTotal"
+    }
+    
+    fileWriter.println(header)
+
+    //process the data - random first
+    val lines = Source.fromFile(randomInFileName).getLines
+    lines.next() //skip header
+
+    val countMap = new MMap[Int, Int]()
+    val compMapRPI = new MMap[Int, Int]()
+    val compMapLU = new MMap[Int, Int]()
+    val compMapLURPI = new MMap[Int, Int]()
+    val compMapRPILU = new MMap[Int, Int]()
+    val compMapAll = new MMap[Int, Int]()
+    val uncompMapAll = new MMap[Int, Int]()
+    
+    
+
+    for (line <- lines) {
+      val lineScanner = new Scanner(line)
+      lineScanner.useDelimiter(",")
+
+      var rpiCompressed = false
+      var luCompressed = false
+      var rpiluCompressed = false
+      var lurpiCompressed = false      
+      
+      //example line:
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,385,199,385,199,1.0,1.0,0,0,31877479,385,199,-2,-2,-2,-2,0,-2,1658448468,385,199,385,199,1.0,1.0,0,0,1689651306,385,199,385,199,1.0,1.0,0,0,1706574572,3396225878,false,true,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\21 Nov 2016\Retest\random-results-Mon Nov 21 22-28-48 EST 2016-proof-9.txt
+
+      //14,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\1 Dec 2016\Stats\random-retest-results-Wed Nov 30 23-43-08 EST 2016.txt,14,
+      val proofNum = lineScanner.next()
+      val fileName = lineScanner.next()
+      val oldProofNum = lineScanner.next()
+
+      //385,199,
+      val len = lineScanner.next().toInt //len is the same for all measured executions
+      val numRes = lineScanner.next().toInt //same for all measured executions
+
+      updateMap(countMap, numRes)
+
+      //385,199,1.0,1.0,0,0,31877479,
+      //RPI data
+      val rpiCompSize = lineScanner.next().toInt
+      val rpiCompResSize = lineScanner.next().toInt
+      if ((rpiCompSize != len || rpiCompResSize != numRes) && rpiCompSize > 0) {
+        //RPI compressed
+        rpiCompressed = true
+      }
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //LU data
+      //385,199,-2,-2,-2,-2,0,-2,1658448468,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)
+      val luCompSize = lineScanner.next().toInt
+      val luCompResSize = lineScanner.next().toInt
+      //      println("len: " + len + " numRes: " + numRes + " luCSize: " + luCompSize + " luRCsize: " + luCompResSize)
+
+      if ((luCompSize != len || luCompResSize != numRes) && luCompSize > 0) {
+        //LU compressed
+        luCompressed = true
+      }
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //RPILU data
+      //385,199,385,199,1.0,1.0,0,0,1689651306,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)      
+      val rpiluCompSize = lineScanner.next().toInt
+      val rpiluCompResSize = lineScanner.next().toInt
+      if ((rpiluCompSize != len || rpiluCompResSize != numRes) && rpiluCompSize > 0) {
+        //RPILU compressed
+        rpiluCompressed = true
+      }
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time
+
+      //LURPI data
+      //385,199,385,199,1.0,1.0,0,0,1706574572,
+      lineScanner.next() //skip proof length (hasn't changed)
+      lineScanner.next() //skip proof res length (hasn't changed)      
+      val lurpiCompSize = lineScanner.next().toInt
+      val lurpiCompResSize = lineScanner.next().toInt
+      if ((lurpiCompSize != len || lurpiCompResSize != numRes) && lurpiCompSize > 0) {
+        //LURPI compressed
+        lurpiCompressed = true
+      }
+      //Don't technically need to do this, but we do it so I don't forget to do it later.
+      lineScanner.next() //skip comp ratio
+      lineScanner.next() //skip res comp ratio
+      lineScanner.next() //skip FO count
+      lineScanner.next() //skip compressed FO count
+      lineScanner.next() //skip time      
+
+      //And the rest (ignored)
+      //3396225878,false,true,D:\Research Data\GSoC14\November 2016 Random Proof Data\Generated\21 Nov 2016\Retest\random-results-Mon Nov 21 22-28-48 EST 2016-proof-9.txt
+
+      val isCompressedressedAll = rpiCompressed && luCompressed && rpiluCompressed && lurpiCompressed
+      val unCompressedAll = !rpiCompressed && !luCompressed && !rpiluCompressed && !lurpiCompressed
+
+      if (isCompressedressedAll) {
+        updateMap(compMapAll, numRes)
+      }
+      if (rpiCompressed && (!luCompressed && !rpiluCompressed && !lurpiCompressed)) {
+        updateMap(compMapRPI, numRes)
+      }
+      if (luCompressed && (!rpiCompressed && !rpiluCompressed && !lurpiCompressed)) {
+        updateMap(compMapLU, numRes)
+      }
+      if (rpiluCompressed && (!luCompressed && !rpiCompressed && !lurpiCompressed)) {
+        updateMap(compMapRPILU, numRes)
+      }
+      if (lurpiCompressed && (!luCompressed && !rpiluCompressed && !rpiCompressed)) {
+        updateMap(compMapLURPI, numRes)
+      }
+
+      if (unCompressedAll) {
+        updateMap(uncompMapAll, numRes)
+      }  
+      
+    }
+
+    /*
+    tptpRPILUInFileName: String,
+    tptpLURPIInFileName: String,
+    tptpLUInFileName: String,
+    tptpRPIInFileName: String,    
+    */
+    
+    //Now process each of the TPTP data files
+    val tptplines = Source.fromFile(tptpRPILUInFileName).getLines
+
+    //process the data
+    val alines = Source.fromFile(tptpRPILUInFileName).getLines
+    alines.next() //skip header
+    val blines = Source.fromFile(tptpLURPIInFileName).getLines
+    blines.next() //skip header
+    val clines = Source.fromFile(tptpLUInFileName).getLines
+    clines.next() //skip header
+    val dlines = Source.fromFile(tptpRPIInFileName).getLines
+    dlines.next() //skip header
+
+    val countMaptptp = new MMap[Int, Int]()
+    val compMapAtptp = new MMap[Int, Int]()
+    val compMapBtptp = new MMap[Int, Int]()
+    val compMapCtptp = new MMap[Int, Int]()
+    val compMapDtptp = new MMap[Int, Int]()
+    val compMapAlltptp = new MMap[Int, Int]()
+    val uncompMapAlltptp = new MMap[Int, Int]()
+
+    for (i <- 0 to tptplines.size - 2) {
+      val (aLen, aComp, aName) = wasCompressed(alines, true)
+      val (bLen, bComp, bName) = wasCompressed(blines, true)
+      val (cLen, cComp, cName) = wasCompressed(clines, true)
+      val (dLen, dComp, dName) = wasCompressed(dlines, true)
+
+      assert(aName.equals(bName) && aName.equals(cName) && aName.equals(dName))
+      val len = aLen
+
+      val isCompressedAll = aComp && bComp && cComp && dComp
+      val unCompAll = !aComp && !bComp && !cComp && !dComp
+
+      updateMap(countMaptptp, len)
+      if (isCompressedAll) {
+        updateMap(compMapAlltptp, len)
+      }
+      if (aComp && (!bComp && !cComp && !dComp)) {
+        updateMap(compMapAtptp, len)
+      }
+      if (bComp && (!aComp && !cComp && !dComp)) {
+        updateMap(compMapBtptp, len)
+      }
+      if (cComp && (!bComp && !aComp && !dComp)) {
+        updateMap(compMapCtptp, len)
+      }
+      if (dComp && (!bComp && !cComp && !aComp)) {
+        updateMap(compMapDtptp, len)
+      }
+
+      if (unCompAll) {
+        updateMap(uncompMapAlltptp, len)
+      }
+
+    }
+    
+    
+    val sortedKeys = collection.immutable.SortedSet[Int]() ++ countMap.keySet ++ countMaptptp.keySet
+
+    if (!bin) {
+      //TODO: update this
+      writeDataToFileB(sortedKeys, countMap, uncompMapAll, compMapRPI, compMapLU, compMapRPILU, compMapLURPI, compMapAll, fileWriter)
+    } else {
+      val numPerBin = countMap.keySet.size / numBins //make sure it divides evenly! 
+      println("Num per bin: " + numPerBin + " (Make sure this is a good value, or try a new number of bins)")      
+      writeDataToFileBins(sortedKeys, countMap, uncompMapAll, compMapRPI, compMapLU, compMapRPILU, compMapLURPI, compMapAll, fileWriter, numBins,
+          countMaptptp,compMapAtptp,compMapBtptp,compMapCtptp,compMapDtptp,compMapAlltptp,uncompMapAlltptp)
+    }
+    fileWriter.flush()
+    fileWriter.close()
+
+  }   
 }
