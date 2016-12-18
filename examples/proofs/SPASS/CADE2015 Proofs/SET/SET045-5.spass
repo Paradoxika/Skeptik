@@ -1,0 +1,7 @@
+2[0:Inp] || element(U,U)* element(U,f(V))*+ -> .
+3[0:Inp] || element(U,V) -> element(U,U)* element(U,f(V))*.
+4[0:Inp] ||  -> element(U,a)*.
+5[0:Res:4.0,3.0] ||  -> element(U,U)* element(U,f(a))*.
+7[0:Fac:5.0,5.1] ||  -> element(f(a),f(a))*.
+18[0:Res:7.0,2.1] || element(f(a),f(a))* -> .
+22[0:Res:7.0,18.0] ||  -> .

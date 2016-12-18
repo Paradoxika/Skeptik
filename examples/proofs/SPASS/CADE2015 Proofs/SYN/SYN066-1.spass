@@ -1,0 +1,8 @@
+3[0:Inp] || big_p(f(U,V),g(U)) -> big_q(h(U,V),g(U))*.
+4[0:Inp] ||  -> big_p(U,V) big_q(i(U,V),U)*.
+5[0:Inp] || big_q(U,V)* -> big_r(W,W)*.
+6[0:Inp] || big_r(a,U)* -> .
+7[0:Res:5.1,6.0] || big_q(U,V)* -> .
+8[0:Res:4.1,7.0] ||  -> big_p(U,V)*.
+9[0:Res:3.1,7.0] || big_p(f(U,V),g(U))* -> .
+10[0:Res:8.0,9.0] ||  -> .

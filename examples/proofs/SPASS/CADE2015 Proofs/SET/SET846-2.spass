@@ -1,0 +1,9 @@
+1[0:Inp] || c_in(U,V,tc_set(W)) -> c_lessequals(U,c_Union(V,W),tc_set(W))*.
+2[0:Inp] ||  -> c_lessequals(U,U,tc_set(V))*.
+3[0:Inp] || c_in(U,c_Zorn_OTFin(V,W),tc_set(tc_set(W))) -> c_in(c_Zorn_Osucc(V,U,W),c_Zorn_OTFin(V,W),tc_set(tc_set(W)))*.
+4[0:Inp] || c_lessequals(U,c_Zorn_OTFin(V,W),tc_set(tc_set(tc_set(W)))) -> c_in(c_Union(U,tc_set(W)),c_Zorn_OTFin(V,W),tc_set(tc_set(W)))*.
+5[0:Inp] || c_lessequals(c_Zorn_Osucc(v_S,c_Union(c_Zorn_OTFin(v_S,t_a),tc_set(t_a)),t_a),c_Union(c_Zorn_OTFin(v_S,t_a),tc_set(t_a)),tc_set(tc_set(t_a)))* -> .
+6[0:Res:1.1,5.0] || c_in(c_Zorn_Osucc(v_S,c_Union(c_Zorn_OTFin(v_S,t_a),tc_set(t_a)),t_a),c_Zorn_OTFin(v_S,t_a),tc_set(tc_set(t_a)))* -> .
+8[0:Res:3.1,6.0] || c_in(c_Union(c_Zorn_OTFin(v_S,t_a),tc_set(t_a)),c_Zorn_OTFin(v_S,t_a),tc_set(tc_set(t_a)))* -> .
+9[0:Res:4.1,8.0] || c_lessequals(c_Zorn_OTFin(v_S,t_a),c_Zorn_OTFin(v_S,t_a),tc_set(tc_set(tc_set(t_a))))* -> .
+10[0:Res:2.0,9.0] ||  -> .

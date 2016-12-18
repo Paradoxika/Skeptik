@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> c_in(c_Pair(U,U,V,V),c_Transitive__Closure_Ortrancl(W,V),tc_prod(V,V))*.
+2[0:Inp] ||  -> c_in(c_Pair(v_x,v_xaa,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+3[0:Inp] || c_in(c_Pair(v_x,U,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_xaa,U,t_a,t_a),c_Transitive__Closure_Ortrancl(v_r,t_a),tc_prod(t_a,t_a))* -> .
+4[0:Res:1.0,3.1] || c_in(c_Pair(v_x,v_xaa,t_a,t_a),v_r,tc_prod(t_a,t_a))* -> .
+5[0:Res:2.0,4.0] ||  -> .

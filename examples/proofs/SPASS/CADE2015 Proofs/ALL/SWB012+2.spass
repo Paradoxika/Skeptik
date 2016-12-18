@@ -1,0 +1,41 @@
+1[0:Inp] ||  -> iext(uri_owl_intersectionOf,uri_ex_PersonAttribute,skc15)*.
+2[0:Inp] ||  -> iext(uri_rdf_first,skc15,uri_owl_DatatypeProperty)*.
+3[0:Inp] ||  -> iext(uri_rdf_rest,skc15,skc14)*.
+4[0:Inp] ||  -> iext(uri_rdf_rest,skc14,skc13)*.
+5[0:Inp] ||  -> iext(uri_rdf_first,skc14,uri_owl_FunctionalProperty)*.
+6[0:Inp] ||  -> iext(uri_rdf_first,skc13,skc12)*.
+7[0:Inp] ||  -> iext(uri_rdf_rest,skc13,uri_rdf_nil)*.
+8[0:Inp] ||  -> iext(uri_owl_hasValue,skc12,uri_foaf_Person)*.
+9[0:Inp] ||  -> iext(uri_owl_onProperty,skc12,uri_rdfs_domain)*.
+12[0:Inp] ||  -> iext(uri_rdf_type,uri_ex_name,uri_ex_PersonAttribute)*.
+13[0:Inp] ||  -> iext(uri_ex_name,uri_ex_alice,literal_plain(dat_str_alice))*.
+14[0:Inp] || iext(uri_rdf_type,U,V)* -> icext(V,U).
+15[0:Inp] || icext(U,V) -> iext(uri_rdf_type,V,U)*.
+17[0:Inp] || SkP0(U,V,W,X)* -> icext(V,W).
+18[0:Inp] || SkP0(U,V,W,X)* -> icext(U,W).
+19[0:Inp] || iext(uri_rdf_type,uri_ex_alice,uri_foaf_Person) iext(uri_rdf_type,uri_ex_name,uri_owl_FunctionalProperty)* -> .
+20[0:Inp] || iext(U,V,W)*+ iext(uri_rdfs_domain,U,X)* -> icext(X,V)*.
+22[0:Inp] || icext(U,V)* iext(uri_owl_hasValue,U,W)*+ iext(uri_owl_onProperty,U,X)* -> iext(X,V,W)*.
+29[0:Inp] || icext(U,V)* iext(uri_rdf_first,W,X)*+ iext(uri_rdf_rest,Y,W)* iext(uri_rdf_first,Y,Z)* iext(uri_rdf_rest,X1,Y)* iext(uri_rdf_first,X1,X2)* iext(uri_owl_intersectionOf,U,X1)* iext(uri_rdf_rest,W,uri_rdf_nil) -> SkP0(X,Z,V,X2)*.
+36[0:Res:12.0,14.0] ||  -> icext(uri_ex_PersonAttribute,uri_ex_name)*.
+40[0:Res:15.1,19.1] || icext(uri_owl_FunctionalProperty,uri_ex_name) iext(uri_rdf_type,uri_ex_alice,uri_foaf_Person)* -> .
+41[0:Res:15.1,40.1] || icext(uri_foaf_Person,uri_ex_alice) icext(uri_owl_FunctionalProperty,uri_ex_name)* -> .
+55[0:Res:13.0,20.0] || iext(uri_rdfs_domain,uri_ex_name,U)* -> icext(U,uri_ex_alice).
+59[0:Res:8.0,22.1] || icext(skc12,U) iext(uri_owl_onProperty,skc12,V)*+ -> iext(V,U,uri_foaf_Person)*.
+84[0:Res:9.0,59.1] || icext(skc12,U) -> iext(uri_rdfs_domain,U,uri_foaf_Person)*.
+102[0:Res:84.1,55.0] || icext(skc12,uri_ex_name) -> icext(uri_foaf_Person,uri_ex_alice)*.
+104[0:Res:6.0,29.1] || icext(U,V)* iext(uri_rdf_rest,W,skc13)+ iext(uri_rdf_first,W,X)* iext(uri_rdf_rest,Y,W)* iext(uri_rdf_first,Y,Z)* iext(uri_owl_intersectionOf,U,Y)* iext(uri_rdf_rest,skc13,uri_rdf_nil) -> SkP0(skc12,X,V,Z)*.
+149[0:Res:4.0,104.1] || icext(U,V)* iext(uri_rdf_first,skc14,W)+ iext(uri_rdf_rest,X,skc14) iext(uri_rdf_first,X,Y)* iext(uri_owl_intersectionOf,U,X)* iext(uri_rdf_rest,skc13,uri_rdf_nil) -> SkP0(skc12,W,V,Y)*.
+153[0:Res:5.0,149.1] || icext(U,V)* iext(uri_rdf_rest,W,skc14)+ iext(uri_rdf_first,W,X)* iext(uri_owl_intersectionOf,U,W)* iext(uri_rdf_rest,skc13,uri_rdf_nil) -> SkP0(skc12,uri_owl_FunctionalProperty,V,X)*.
+154[0:Res:3.0,153.1] || icext(U,V)* iext(uri_rdf_first,skc15,W)+ iext(uri_owl_intersectionOf,U,skc15)* iext(uri_rdf_rest,skc13,uri_rdf_nil) -> SkP0(skc12,uri_owl_FunctionalProperty,V,W)*.
+155[0:Res:2.0,154.1] || icext(U,V)* iext(uri_owl_intersectionOf,U,skc15)*+ iext(uri_rdf_rest,skc13,uri_rdf_nil) -> SkP0(skc12,uri_owl_FunctionalProperty,V,uri_owl_DatatypeProperty)*.
+156[0:Res:1.0,155.1] || icext(uri_ex_PersonAttribute,U) iext(uri_rdf_rest,skc13,uri_rdf_nil) -> SkP0(skc12,uri_owl_FunctionalProperty,U,uri_owl_DatatypeProperty)*.
+158[0:Res:156.2,17.0] || icext(uri_ex_PersonAttribute,U) iext(uri_rdf_rest,skc13,uri_rdf_nil)*+ -> icext(uri_owl_FunctionalProperty,U)*.
+159[0:Res:156.2,18.0] || icext(uri_ex_PersonAttribute,U)* iext(uri_rdf_rest,skc13,uri_rdf_nil)*+ -> icext(skc12,U).
+164[0:Res:7.0,158.1] || icext(uri_ex_PersonAttribute,U) -> icext(uri_owl_FunctionalProperty,U)*.
+165[0:Res:164.1,41.1] || icext(uri_ex_PersonAttribute,uri_ex_name) icext(uri_foaf_Person,uri_ex_alice)* -> .
+166[0:Res:102.1,165.1] || icext(skc12,uri_ex_name) icext(uri_ex_PersonAttribute,uri_ex_name)* -> .
+168[0:Res:36.0,166.1] || icext(skc12,uri_ex_name)* -> .
+170[0:Res:7.0,159.1] || icext(uri_ex_PersonAttribute,U)* -> icext(skc12,U).
+173[0:Res:36.0,170.0] ||  -> icext(skc12,uri_ex_name)*.
+174[0:Res:173.0,168.0] ||  -> .

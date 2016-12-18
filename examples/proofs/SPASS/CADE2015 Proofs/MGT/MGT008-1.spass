@@ -1,0 +1,37 @@
+1[0:Inp] || organization(U,V) -> inertia(U,sk1(V,U),V)*.
+2[0:Inp] || greater(U,V)* organization(W,X) organization(Y,Z) inertia(W,X1,X)*+ inertia(Y,X2,Z)* size(W,U,X)* size(Y,V,Z)* class(W,X3,X)* class(Y,X3,Z)* -> greater(X1,X2)*.
+3[0:Inp] || greater(U,V)* organization(W,X) organization(Y,Z) survival_chance(W,X1,X)*+ survival_chance(Y,X2,Z)* inertia(W,U,X)* inertia(Y,V,Z)* reorganization_free(W,X,X)* reorganization_free(Y,Z,Z)* -> greater(X1,X2)*.
+4[0:Inp] ||  -> organization(sk2,sk9)*.
+5[0:Inp] ||  -> organization(sk3,sk10)*.
+6[0:Inp] ||  -> reorganization_free(sk2,sk9,sk9)*.
+7[0:Inp] ||  -> reorganization_free(sk3,sk10,sk10)*.
+8[0:Inp] ||  -> class(sk2,sk4,sk9)*.
+9[0:Inp] ||  -> class(sk3,sk4,sk10)*.
+10[0:Inp] ||  -> survival_chance(sk2,sk5,sk9)*.
+11[0:Inp] ||  -> survival_chance(sk3,sk6,sk10)*.
+12[0:Inp] ||  -> size(sk2,sk7,sk9)*.
+13[0:Inp] ||  -> size(sk3,sk8,sk10)*.
+14[0:Inp] ||  -> greater(sk8,sk7)*.
+15[0:Inp] || greater(sk6,sk5)* -> .
+20[0:Res:5.0,1.0] ||  -> inertia(sk3,sk1(sk10,sk3),sk10)*.
+24[0:Res:4.0,2.0] || greater(U,V)* organization(W,X) inertia(W,Y,X)*+ size(W,U,X)* class(W,Z,X)* inertia(sk2,X1,sk9)* size(sk2,V,sk9)* class(sk2,Z,sk9)* -> greater(Y,X1)*.
+25[0:Res:4.0,1.0] ||  -> inertia(sk2,sk1(sk9,sk2),sk9)*.
+39[0:Res:11.0,3.3] || greater(U,V)* organization(sk3,sk10) organization(W,X) survival_chance(W,Y,X)*+ inertia(sk3,U,sk10)* inertia(W,V,X)* reorganization_free(sk3,sk10,sk10) reorganization_free(W,X,X)* -> greater(sk6,Y).
+62[0:Res:10.0,39.3] || greater(U,V)* organization(sk3,sk10) organization(sk2,sk9) inertia(sk3,U,sk10)*+ inertia(sk2,V,sk9)* reorganization_free(sk3,sk10,sk10) reorganization_free(sk2,sk9,sk9) -> greater(sk6,sk5).
+97[0:Res:20.0,62.3] || greater(sk1(sk10,sk3),U)* organization(sk3,sk10) organization(sk2,sk9) inertia(sk2,U,sk9) reorganization_free(sk3,sk10,sk10) reorganization_free(sk2,sk9,sk9) -> greater(sk6,sk5).
+158[0:Res:1.1,24.2] || organization(U,V) greater(W,X)* organization(U,V) size(U,W,V)* class(U,Y,V)* inertia(sk2,Z,sk9) size(sk2,X,sk9)* class(sk2,Y,sk9)* -> greater(sk1(V,U),Z)*.
+160[0:Con:158.2] || organization(U,V) greater(W,X)* size(U,W,V)*+ class(U,Y,V)* inertia(sk2,Z,sk9) size(sk2,X,sk9)* class(sk2,Y,sk9)* -> greater(sk1(V,U),Z)*.
+327[0:Res:13.0,160.2] || organization(sk3,sk10) greater(sk8,U) class(sk3,V,sk10)+ inertia(sk2,W,sk9) size(sk2,U,sk9)* class(sk2,V,sk9)* -> greater(sk1(sk10,sk3),W)*.
+346[0:Res:9.0,327.2] || organization(sk3,sk10) greater(sk8,U) inertia(sk2,V,sk9)+ size(sk2,U,sk9)* class(sk2,sk4,sk9) -> greater(sk1(sk10,sk3),V)*.
+347[0:Res:25.0,346.2] || organization(sk3,sk10) greater(sk8,U) size(sk2,U,sk9)*+ class(sk2,sk4,sk9) -> greater(sk1(sk10,sk3),sk1(sk9,sk2))*.
+352[0:Res:12.0,347.2] || organization(sk3,sk10) greater(sk8,sk7) class(sk2,sk4,sk9) -> greater(sk1(sk10,sk3),sk1(sk9,sk2))*.
+357[0:Res:352.3,97.0] || organization(sk3,sk10) greater(sk8,sk7) class(sk2,sk4,sk9) organization(sk3,sk10) organization(sk2,sk9) inertia(sk2,sk1(sk9,sk2),sk9)* reorganization_free(sk3,sk10,sk10) reorganization_free(sk2,sk9,sk9) -> greater(sk6,sk5).
+361[0:Con:357.3] || organization(sk3,sk10) greater(sk8,sk7) class(sk2,sk4,sk9) organization(sk2,sk9) inertia(sk2,sk1(sk9,sk2),sk9)* reorganization_free(sk3,sk10,sk10) reorganization_free(sk2,sk9,sk9) -> greater(sk6,sk5).
+467[0:Res:25.0,361.4] || organization(sk3,sk10) greater(sk8,sk7) class(sk2,sk4,sk9)* organization(sk2,sk9) reorganization_free(sk3,sk10,sk10) reorganization_free(sk2,sk9,sk9) -> greater(sk6,sk5).
+475[0:Res:8.0,467.2] || organization(sk3,sk10) greater(sk8,sk7) organization(sk2,sk9) reorganization_free(sk3,sk10,sk10) reorganization_free(sk2,sk9,sk9)* -> greater(sk6,sk5).
+476[0:Res:6.0,475.4] || organization(sk3,sk10) greater(sk8,sk7) organization(sk2,sk9) reorganization_free(sk3,sk10,sk10)* -> greater(sk6,sk5).
+480[0:Res:7.0,476.3] || organization(sk3,sk10) greater(sk8,sk7) organization(sk2,sk9) -> greater(sk6,sk5)*.
+481[0:Res:480.3,15.0] || organization(sk3,sk10) greater(sk8,sk7)* organization(sk2,sk9) -> .
+482[0:Res:14.0,481.1] || organization(sk3,sk10) organization(sk2,sk9)* -> .
+483[0:Res:4.0,482.1] || organization(sk3,sk10)* -> .
+487[0:Res:5.0,483.0] ||  -> .

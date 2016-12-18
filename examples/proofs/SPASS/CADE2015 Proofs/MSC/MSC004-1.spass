@@ -1,0 +1,20 @@
+1[0:Inp] || has_parts(U,V,W) -> in(object_in(U,W,X,V,Y),W)* has_parts(U,times(V,Y),X).
+2[0:Inp] || has_parts(U,V,W) has_parts(object_in(U,W,X,V,Y),Y,X)* -> has_parts(U,times(V,Y),X).
+3[0:Inp] ||  -> in(john,boy)*.
+4[0:Inp] || in(U,boy)* -> in(U,human).
+5[0:Inp] || in(U,hand) -> has_parts(U,n5,fingers)*.
+6[0:Inp] || in(U,human) -> has_parts(U,n2,arm)*.
+7[0:Inp] || in(U,arm) -> has_parts(U,n1,hand)*.
+8[0:Inp] || has_parts(john,times(times(n2,n1),n5),fingers)* -> .
+9[0:Res:2.2,8.0] || has_parts(john,times(n2,n1),U) has_parts(object_in(john,U,fingers,times(n2,n1),n5),n5,fingers)* -> .
+10[0:Res:1.2,8.0] || has_parts(john,times(n2,n1),U) -> in(object_in(john,U,fingers,times(n2,n1),n5),U)*.
+11[0:Res:3.0,4.0] ||  -> in(john,human)*.
+14[0:Res:5.1,9.1] || in(object_in(john,U,fingers,times(n2,n1),n5),hand)* has_parts(john,times(n2,n1),U) -> .
+15[0:Res:10.1,14.0] || has_parts(john,times(n2,n1),hand)* has_parts(john,times(n2,n1),hand)* -> .
+17[0:Con:15.1] || has_parts(john,times(n2,n1),hand)* -> .
+19[0:Res:7.1,2.1] || in(object_in(U,V,hand,W,n1),arm)* has_parts(U,W,V) -> has_parts(U,times(W,n1),hand).
+33[0:Res:1.1,19.0] || has_parts(U,V,arm) has_parts(U,V,arm) -> has_parts(U,times(V,n1),hand)* has_parts(U,times(V,n1),hand)*.
+34[0:Con:33.1] || has_parts(U,V,arm) -> has_parts(U,times(V,n1),hand)*.
+36[0:Res:34.1,17.0] || has_parts(john,n2,arm)* -> .
+38[0:Res:6.1,36.0] || in(john,human)* -> .
+39[0:Res:11.0,38.0] ||  -> .

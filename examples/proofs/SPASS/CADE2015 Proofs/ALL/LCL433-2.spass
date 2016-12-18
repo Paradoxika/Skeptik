@@ -1,0 +1,15 @@
+1[0:Inp] || c_PropLog_Osat(c_insert(U,V,tc_PropLog_Opl(W)),X,W)* -> c_PropLog_Osat(V,c_PropLog_Opl_Oop_A_N_62(U,X,W),W).
+2[0:Inp] || c_in(U,V,tc_PropLog_Opl(W)) -> c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W))*.
+3[0:Inp] || c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) c_in(c_PropLog_Opl_Oop_A_N_62(U,X,W),c_PropLog_Othms(V,W),tc_PropLog_Opl(W))* -> c_in(X,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)).
+4[0:Inp] || c_in(U,c_PropLog_Othms(V,W),tc_PropLog_Opl(W)) -> c_in(U,c_PropLog_Othms(c_insert(X,V,tc_PropLog_Opl(W)),W),tc_PropLog_Opl(W))*.
+5[0:Inp] ||  -> c_in(U,c_insert(U,V,W),W)*.
+6[0:Inp] ||  -> c_PropLog_Osat(c_insert(v_x,v_F,tc_PropLog_Opl(t_a)),v_xa,t_a)*.
+7[0:Inp] || c_in(v_xa,c_PropLog_Othms(c_insert(v_x,v_F,tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* -> .
+8[0:Inp] || c_PropLog_Osat(v_F,U,t_a) -> c_in(U,c_PropLog_Othms(v_F,t_a),tc_PropLog_Opl(t_a))*.
+9[0:Res:6.0,1.0] ||  -> c_PropLog_Osat(v_F,c_PropLog_Opl_Oop_A_N_62(v_x,v_xa,t_a),t_a)*.
+12[0:Res:3.2,7.0] || c_in(U,c_PropLog_Othms(c_insert(v_x,v_F,tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a)) c_in(c_PropLog_Opl_Oop_A_N_62(U,v_xa,t_a),c_PropLog_Othms(c_insert(v_x,v_F,tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* -> .
+13[0:Res:9.0,8.0] ||  -> c_in(c_PropLog_Opl_Oop_A_N_62(v_x,v_xa,t_a),c_PropLog_Othms(v_F,t_a),tc_PropLog_Opl(t_a))*.
+36[0:Res:4.1,12.1] || c_in(c_PropLog_Opl_Oop_A_N_62(U,v_xa,t_a),c_PropLog_Othms(v_F,t_a),tc_PropLog_Opl(t_a)) c_in(U,c_PropLog_Othms(c_insert(v_x,v_F,tc_PropLog_Opl(t_a)),t_a),tc_PropLog_Opl(t_a))* -> .
+39[0:Res:2.1,36.1] || c_in(U,c_insert(v_x,v_F,tc_PropLog_Opl(t_a)),tc_PropLog_Opl(t_a)) c_in(c_PropLog_Opl_Oop_A_N_62(U,v_xa,t_a),c_PropLog_Othms(v_F,t_a),tc_PropLog_Opl(t_a))* -> .
+52[0:Res:13.0,39.1] || c_in(v_x,c_insert(v_x,v_F,tc_PropLog_Opl(t_a)),tc_PropLog_Opl(t_a))* -> .
+55[0:Res:5.0,52.0] ||  -> .

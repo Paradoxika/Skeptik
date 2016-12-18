@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> mtvisible(c_englishmt)*.
+27[0:Inp] || prettystring(f_subcollectionofwithrelationfromtypefn(c_terrorist,c_hasmembers,c_terroristgroup),U)* -> .
+32[0:Inp] || mtvisible(c_englishmt) -> prettystring(f_subcollectionofwithrelationfromtypefn(c_terrorist,c_hasmembers,c_terroristgroup),s_terroristthathasbeenamemberofaterroristorganization)*.
+44[0:Res:32.1,27.0] || mtvisible(c_englishmt)* -> .
+45[0:Res:1.0,44.0] ||  -> .

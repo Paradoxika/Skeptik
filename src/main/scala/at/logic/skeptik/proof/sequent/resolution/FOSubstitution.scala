@@ -13,7 +13,7 @@ import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
 import at.logic.skeptik.parser.ProofParserSPASS
 
 class FOSubstitution(val premise: SequentProofNode, val sub: Substitution)(implicit unifiableVariables: MSet[Var])
-  extends SequentProofNode with Unary with CanRenameVariables with FindsVars with FindDesiredSequent {
+    extends SequentProofNode with Unary with CanRenameVariables with FindsVars with FindDesiredSequent {
 
   def conclusionContext = conclusion
   def auxFormulas = premise.mainFormulas diff conclusion
@@ -33,19 +33,20 @@ class FOSubstitution(val premise: SequentProofNode, val sub: Substitution)(impli
     new Sequent(antecedent, succedent)
   }
 
-  object FOSubstitution {
-    def apply(premise: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]) = {
-      if(sub != null){
-        new FOSubstitution(premise, sub)
-      } else {
-        premise
-      }
-      
+}
+
+object FOSubstitution {
+  def apply(premise: SequentProofNode, sub: Substitution)(implicit unifiableVariables: MSet[Var]) = {
+    if (sub != null) {
+      new FOSubstitution(premise, sub)
+    } else {
+      premise
     }
 
-    def unapply(p: SequentProofNode) = p match {
-      case p: FOSubstitution => Some((p.premise, p.sub))
-      case _ => None
-    }
+  }
+
+  def unapply(p: SequentProofNode) = p match {
+    case p: FOSubstitution => Some((p.premise, p.sub))
+    case _                 => None
   }
 }

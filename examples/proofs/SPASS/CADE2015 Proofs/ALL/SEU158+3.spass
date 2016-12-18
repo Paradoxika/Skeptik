@@ -1,0 +1,9 @@
+4[0:Inp] ||  -> in(skc4,skc5) subset(singleton(skc4),skc5)*.
+6[0:Inp] || subset(singleton(U),V)* -> in(U,V).
+7[0:Inp] || in(U,V) -> subset(singleton(U),V)*.
+8[0:Inp] || in(skc4,skc5) subset(singleton(skc4),skc5)* -> .
+10[0:Res:4.1,6.0] ||  -> in(skc4,skc5)* in(skc4,skc5)*.
+12[0:Con:10.1] ||  -> in(skc4,skc5)*.
+15[0:Res:7.1,8.1] || in(skc4,skc5)* in(skc4,skc5)* -> .
+16[0:Con:15.1] || in(skc4,skc5)* -> .
+17[0:Res:12.0,16.0] ||  -> .

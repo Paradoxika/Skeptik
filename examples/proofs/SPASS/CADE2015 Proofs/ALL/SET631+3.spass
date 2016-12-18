@@ -1,0 +1,12 @@
+1[0:Inp] || intersect(skc3,skc4)* -> .
+2[0:Inp] ||  -> intersect(skc3,difference(skc4,skc5))*.
+4[0:Inp] || member(U,difference(V,W))* -> member(U,V).
+5[0:Inp] || intersect(U,V) -> member(skf1(V,U),U)*.
+6[0:Inp] || intersect(U,V)*+ -> member(skf1(V,W),V)*.
+8[0:Inp] || member(U,V)* member(U,W)* -> intersect(W,V)*.
+11[0:Res:8.2,1.0] || member(U,skc4) member(U,skc3)* -> .
+17[0:Res:5.1,11.1] || intersect(skc3,U) member(skf1(U,skc3),skc4)* -> .
+18[0:Res:2.0,6.0] ||  -> member(skf1(difference(skc4,skc5),U),difference(skc4,skc5))*.
+23[0:Res:18.0,4.0] ||  -> member(skf1(difference(skc4,skc5),U),skc4)*.
+24[0:Res:23.0,17.1] || intersect(skc3,difference(skc4,skc5))* -> .
+27[0:Res:2.0,24.0] ||  -> .

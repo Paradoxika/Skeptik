@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> element_of_collection(U,top_of_basis(V)) element_of_set(f11(V,U),U)*.
+2[0:Inp] || element_of_set(U,empty_set)* -> .
+3[0:Inp] || element_of_collection(empty_set,top_of_basis(f))* -> .
+4[0:Res:1.0,3.0] ||  -> element_of_set(f11(f,empty_set),empty_set)*.
+5[0:Res:4.0,2.0] ||  -> .

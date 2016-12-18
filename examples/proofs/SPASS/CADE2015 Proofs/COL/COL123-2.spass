@@ -1,0 +1,19 @@
+1[0:Inp] || c_in(U,V,tc_prod(W,W)) -> c_in(U,c_Transitive__Closure_Ortrancl(V,W),tc_prod(W,W))*.
+2[0:Inp] || c_in(c_Pair(U,V,W,W),c_Transitive__Closure_Ortrancl(X,W),tc_prod(W,W))*+ c_in(c_Pair(V,Y,W,W),c_Transitive__Closure_Ortrancl(X,W),tc_prod(W,W))* -> c_in(c_Pair(U,Y,W,W),c_Transitive__Closure_Ortrancl(X,W),tc_prod(W,W))*.
+3[0:Inp] ||  -> c_in(c_Pair(v_y,v_z,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+4[0:Inp] ||  -> c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+5[0:Inp] || c_in(c_Pair(v_x,U,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> c_in(c_Pair(U,v_xaa(U),t_a,t_a),c_Transitive__Closure_Ortrancl(v_r,t_a),tc_prod(t_a,t_a))*.
+6[0:Inp] || c_in(c_Pair(v_x,U,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> c_in(c_Pair(v_y,v_xaa(U),t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+7[0:Inp] || c_in(c_Pair(v_z,U,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_xb,U,t_a,t_a),c_Transitive__Closure_Ortrancl(v_r,t_a),tc_prod(t_a,t_a))* -> .
+8[0:Inp] || c_in(c_Pair(U,V,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(U,W,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> c_in(c_Pair(V,v_xa(U,V,W),t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+9[0:Inp] || c_in(c_Pair(U,V,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(U,W,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> c_in(c_Pair(W,v_xa(U,V,W),t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+19[0:Res:5.1,2.0] || c_in(c_Pair(v_x,U,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_xaa(U),V,t_a,t_a),c_Transitive__Closure_Ortrancl(v_r,t_a),tc_prod(t_a,t_a))* -> c_in(c_Pair(U,V,t_a,t_a),c_Transitive__Closure_Ortrancl(v_r,t_a),tc_prod(t_a,t_a)).
+36[0:Res:1.1,19.1] || c_in(c_Pair(v_xaa(U),V,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_x,U,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> c_in(c_Pair(U,V,t_a,t_a),c_Transitive__Closure_Ortrancl(v_r,t_a),tc_prod(t_a,t_a))*.
+57[0:Res:36.2,7.1] || c_in(c_Pair(v_xaa(v_xb),U,t_a,t_a),v_r,tc_prod(t_a,t_a))* c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_z,U,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> .
+63[0:Res:9.2,57.0] || c_in(c_Pair(U,V,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(U,v_xaa(v_xb),t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_z,v_xa(U,V,v_xaa(v_xb)),t_a,t_a),v_r,tc_prod(t_a,t_a))* -> .
+1367[0:Res:8.2,63.3] || c_in(c_Pair(U,v_z,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(U,v_xaa(v_xb),t_a,t_a),v_r,tc_prod(t_a,t_a))* c_in(c_Pair(U,v_z,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(U,v_xaa(v_xb),t_a,t_a),v_r,tc_prod(t_a,t_a))* c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> .
+1368[0:Con:1367.2] || c_in(c_Pair(U,v_z,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(U,v_xaa(v_xb),t_a,t_a),v_r,tc_prod(t_a,t_a))* c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> .
+1369[0:Res:6.1,1368.1] || c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_y,v_z,t_a,t_a),v_r,tc_prod(t_a,t_a))* c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a)) -> .
+1370[0:Con:1369.2] || c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a)) c_in(c_Pair(v_y,v_z,t_a,t_a),v_r,tc_prod(t_a,t_a))* -> .
+1371[0:Res:3.0,1370.1] || c_in(c_Pair(v_x,v_xb,t_a,t_a),v_r,tc_prod(t_a,t_a))* -> .
+1372[0:Res:4.0,1371.0] ||  -> .

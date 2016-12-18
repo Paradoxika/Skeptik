@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> likes(U,bruce)*.
+2[0:Inp] || likes(U,V)*+ -> likes(lyle,U)*.
+3[0:Inp] || likes(U,sk1(U))* -> .
+4[0:Res:1.0,2.0] ||  -> likes(lyle,U)*.
+5[0:Res:4.0,3.0] ||  -> .

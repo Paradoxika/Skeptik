@@ -1,0 +1,33 @@
+1[0:Inp] || element_of_set(U,union_of_members(V)) -> element_of_set(U,f1(V,U))*.
+2[0:Inp] || element_of_set(U,union_of_members(V)) -> element_of_collection(f1(V,U),V)*.
+3[0:Inp] || element_of_collection(U,V)*+ element_of_set(W,U)* -> element_of_set(W,union_of_members(V))*.
+4[0:Inp] || basis(U,V) -> equal_sets(union_of_members(V),U)*.
+5[0:Inp] || element_of_set(U,V) element_of_collection(V,top_of_basis(W)) -> element_of_set(U,f10(W,V,U))*.
+6[0:Inp] || element_of_set(U,V) element_of_collection(V,top_of_basis(W)) -> element_of_collection(f10(W,V,U),W)*.
+7[0:Inp] ||  -> subset_sets(U,U)*.
+8[0:Inp] || element_of_set(U,V)*+ subset_sets(V,W)* -> element_of_set(U,W)*.
+9[0:Inp] || equal_sets(U,V) -> subset_sets(U,V)*.
+10[0:Inp] ||  -> subset_sets(U,V) element_of_set(in_1st_set(U,V),U)*.
+11[0:Inp] || element_of_set(in_1st_set(U,V),V)* -> subset_sets(U,V).
+12[0:Inp] ||  -> basis(cx,f)*.
+13[0:Inp] || subset_sets(union_of_members(top_of_basis(f)),cx)* -> .
+14[0:Res:12.0,4.0] ||  -> equal_sets(union_of_members(f),cx)*.
+22[0:Res:10.1,8.0] || subset_sets(U,V) -> subset_sets(U,W) element_of_set(in_1st_set(U,W),V)*.
+25[0:Res:6.2,3.0] || element_of_set(U,V) element_of_collection(V,top_of_basis(W)) element_of_set(X,f10(W,V,U))* -> element_of_set(X,union_of_members(W)).
+27[0:Res:22.2,8.0] || subset_sets(U,V)*+ subset_sets(V,W)* -> subset_sets(U,X) element_of_set(in_1st_set(U,X),W)*.
+35[0:Res:9.1,27.0] || equal_sets(U,V)*+ subset_sets(V,W)* -> subset_sets(U,X) element_of_set(in_1st_set(U,X),W)*.
+36[0:Res:14.0,35.0] || subset_sets(cx,U) -> subset_sets(union_of_members(f),V) element_of_set(in_1st_set(union_of_members(f),V),U)*.
+38[0:Res:36.2,11.0] || subset_sets(cx,U) -> subset_sets(union_of_members(f),U)* subset_sets(union_of_members(f),U)*.
+41[0:Con:38.2] || subset_sets(cx,U) -> subset_sets(union_of_members(f),U)*.
+55[0:Res:5.2,25.2] || element_of_set(U,V)* element_of_collection(V,top_of_basis(W))* element_of_set(U,V)* element_of_collection(V,top_of_basis(W))* -> element_of_set(U,union_of_members(W))*.
+56[0:Con:55.2] || element_of_set(U,V)* element_of_collection(V,top_of_basis(W))*+ -> element_of_set(U,union_of_members(W))*.
+57[0:Res:2.1,56.1] || element_of_set(U,union_of_members(top_of_basis(V))) element_of_set(W,f1(top_of_basis(V),U))* -> element_of_set(W,union_of_members(V)).
+62[0:Res:1.1,57.1] || element_of_set(U,union_of_members(top_of_basis(V)))* element_of_set(U,union_of_members(top_of_basis(V)))* -> element_of_set(U,union_of_members(V)).
+63[0:Con:62.1] || element_of_set(U,union_of_members(top_of_basis(V)))* -> element_of_set(U,union_of_members(V)).
+64[0:Res:10.1,63.0] ||  -> subset_sets(union_of_members(top_of_basis(U)),V) element_of_set(in_1st_set(union_of_members(top_of_basis(U)),V),union_of_members(U))*.
+70[0:Res:64.1,8.0] || subset_sets(union_of_members(U),V) -> subset_sets(union_of_members(top_of_basis(U)),W) element_of_set(in_1st_set(union_of_members(top_of_basis(U)),W),V)*.
+223[0:Res:70.2,11.0] || subset_sets(union_of_members(U),V) -> subset_sets(union_of_members(top_of_basis(U)),V)* subset_sets(union_of_members(top_of_basis(U)),V)*.
+232[0:Con:223.2] || subset_sets(union_of_members(U),V) -> subset_sets(union_of_members(top_of_basis(U)),V)*.
+237[0:Res:232.1,13.0] || subset_sets(union_of_members(f),cx)* -> .
+240[0:Res:41.1,237.0] || subset_sets(cx,cx)* -> .
+251[0:Res:7.0,240.0] ||  -> .

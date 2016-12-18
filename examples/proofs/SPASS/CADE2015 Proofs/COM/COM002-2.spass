@@ -1,0 +1,21 @@
+1[0:Inp] || follows(U,V) fails(U,V)* -> .
+2[0:Inp] || fails(U,V)*+ -> fails(W,V)* fails(U,W)*.
+3[0:Inp] || labels(U,V)* fails(V,W)* has(W,goto(U))*+ -> .
+8[0:Inp] ||  -> labels(loop,p3)*.
+13[0:Inp] ||  -> follows(p6,p3)*.
+15[0:Inp] ||  -> follows(p7,p6)*.
+17[0:Inp] ||  -> follows(p8,p7)*.
+18[0:Inp] ||  -> has(p8,goto(loop))*.
+19[0:Inp] ||  -> fails(p3,p3)*.
+21[0:Res:19.0,2.0] ||  -> fails(U,p3)* fails(p3,U)*.
+26[0:Res:21.0,1.1] || follows(U,p3) -> fails(p3,U)*.
+35[0:Res:26.1,2.0] || follows(U,p3)+ -> fails(V,U)* fails(p3,V)*.
+50[0:Res:18.0,3.2] || labels(loop,U) fails(U,p8)* -> .
+117[0:Res:13.0,35.0] ||  -> fails(U,p6)* fails(p3,U)*.
+122[0:Res:117.1,50.1] || labels(loop,p3) -> fails(p8,p6)*.
+124[0:Res:122.1,2.0] || labels(loop,p3)+ -> fails(U,p6)* fails(p8,U)*.
+349[0:Res:8.0,124.0] ||  -> fails(U,p6)* fails(p8,U)*.
+351[0:Res:349.0,1.1] || follows(U,p6) -> fails(p8,U)*.
+355[0:Res:351.1,1.1] || follows(U,p6)*+ follows(p8,U)* -> .
+360[0:Res:15.0,355.0] || follows(p8,p7)* -> .
+361[0:Res:17.0,360.0] ||  -> .

@@ -1,0 +1,16 @@
+1[0:Inp] ||  -> p(south,south,south,south,start)*.
+2[0:Inp] || p(north,north,north,north,U)* -> .
+4[0:Inp] || p(north,north,south,north,U) -> p(south,north,south,north,go_alone(U))*.
+6[0:Inp] || p(north,south,north,south,U) -> p(south,south,north,south,go_alone(U))*.
+9[0:Inp] || p(south,south,north,south,U) -> p(north,north,north,south,take_wolf(U))*.
+11[0:Inp] || p(south,U,south,V,W) -> p(north,U,north,V,take_goat(W))*.
+12[0:Inp] || p(north,U,north,V,W) -> p(south,U,south,V,take_goat(W))*.
+13[0:Inp] || p(south,north,south,south,U) -> p(north,north,south,north,take_cabbage(U))*.
+17[0:Res:11.1,2.0] || p(south,north,south,north,U)* -> .
+19[0:Res:4.1,17.0] || p(north,north,south,north,U)* -> .
+20[0:Res:13.1,19.0] || p(south,north,south,south,U)* -> .
+22[0:Res:12.1,20.0] || p(north,north,north,south,U)* -> .
+24[0:Res:9.1,22.0] || p(south,south,north,south,U)* -> .
+27[0:Res:6.1,24.0] || p(north,south,north,south,U)* -> .
+28[0:Res:11.1,27.0] || p(south,south,south,south,U)* -> .
+29[0:Res:1.0,28.0] ||  -> .

@@ -1,0 +1,11 @@
+1[0:Inp] ||  -> subset(skc7,skc6)*.
+2[0:Inp] ||  -> subset(skc4,skc5)*.
+4[0:Inp] || subset(cartesian_product2(skc7,skc4),cartesian_product2(skc6,skc5))* -> .
+5[0:Inp] || subset(U,V) -> subset(cartesian_product2(U,W),cartesian_product2(V,W))*.
+6[0:Inp] || subset(U,V) -> subset(cartesian_product2(W,U),cartesian_product2(W,V))*.
+7[0:Inp] || subset(U,V)*+ subset(W,U)* -> subset(W,V)*.
+9[0:Res:2.0,6.0] ||  -> subset(cartesian_product2(U,skc4),cartesian_product2(U,skc5))*.
+12[0:Res:1.0,5.0] ||  -> subset(cartesian_product2(skc7,U),cartesian_product2(skc6,U))*.
+26[0:Res:12.0,7.0] || subset(U,cartesian_product2(skc7,V)) -> subset(U,cartesian_product2(skc6,V))*.
+86[0:Res:26.1,4.0] || subset(cartesian_product2(skc7,skc4),cartesian_product2(skc7,skc5))* -> .
+91[0:Res:9.0,86.0] ||  -> .

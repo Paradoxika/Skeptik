@@ -1,0 +1,3 @@
+20[0:Inp] ||  -> element_of_collection(U,top_of_basis(f))*.
+21[0:Inp] || element_of_collection(intersection_of_sets(U,V),top_of_basis(f))* -> .
+26[0:Res:20.0,21.0] ||  -> .

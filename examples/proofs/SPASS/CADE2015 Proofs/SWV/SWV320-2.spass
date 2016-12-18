@@ -1,0 +1,7 @@
+1[0:Inp] || c_in(U,c_OtwayRees_Ootway,tc_List_Olist(tc_Event_Oevent)) c_in(c_Message_Omsg_OKey(c_Public_OshrK(V)),c_Message_Oparts(c_Event_Oknows(c_Message_Oagent_OSpy,U)),tc_Message_Omsg)* -> c_in(V,c_Event_Obad,tc_Message_Oagent).
+2[0:Inp] ||  -> c_in(c_Message_Omsg_OKey(c_Public_OshrK(v_A)),c_Message_Oparts(c_Event_Oknows(c_Message_Oagent_OSpy,v_evs)),tc_Message_Omsg)*.
+3[0:Inp] ||  -> c_in(v_evs,c_OtwayRees_Ootway,tc_List_Olist(tc_Event_Oevent))*.
+4[0:Inp] || c_in(v_A,c_Event_Obad,tc_Message_Oagent)* -> .
+7[0:Res:2.0,1.1] || c_in(v_evs,c_OtwayRees_Ootway,tc_List_Olist(tc_Event_Oevent))* -> c_in(v_A,c_Event_Obad,tc_Message_Oagent).
+8[0:Res:7.1,4.0] || c_in(v_evs,c_OtwayRees_Ootway,tc_List_Olist(tc_Event_Oevent))* -> .
+10[0:Res:3.0,8.0] ||  -> .

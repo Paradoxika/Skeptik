@@ -1,0 +1,5 @@
+1[0:Inp] || c_PropLog_Osat(c_emptyset,U,V) -> c_in(U,c_PropLog_Othms(c_emptyset,V),tc_PropLog_Opl(V))*.
+2[0:Inp] ||  -> c_PropLog_Osat(c_emptyset,v_x,t_a)*.
+3[0:Inp] || c_in(v_x,c_PropLog_Othms(c_emptyset,t_a),tc_PropLog_Opl(t_a))* -> .
+5[0:Res:1.1,3.0] || c_PropLog_Osat(c_emptyset,v_x,t_a)* -> .
+6[0:Res:2.0,5.0] ||  -> .

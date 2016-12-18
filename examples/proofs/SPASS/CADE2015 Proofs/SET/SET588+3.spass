@@ -1,0 +1,22 @@
+1[0:Inp] ||  -> subset(skc3,skc4)*.
+3[0:Inp] || subset(difference(skc3,skc5),difference(skc4,skc5))* -> .
+4[0:Inp] ||  -> subset(U,V) member(skf1(V,U),U)*.
+5[0:Inp] || member(U,difference(V,W))* -> member(U,V).
+6[0:Inp] || member(skf1(U,V),U)*+ -> subset(W,U)*.
+7[0:Inp] || member(U,V) member(U,difference(W,V))* -> .
+8[0:Inp] || member(U,V)*+ subset(V,W)* -> member(U,W)*.
+9[0:Inp] || member(U,V) -> member(U,W) member(U,difference(V,W))*.
+10[0:Res:1.0,8.0] || member(U,skc3)* -> member(U,skc4).
+18[0:Res:4.1,5.0] ||  -> subset(difference(U,V),W) member(skf1(W,difference(U,V)),U)*.
+19[0:Res:4.1,7.1] || member(skf1(U,difference(V,W)),W)* -> subset(difference(V,W),U).
+20[0:Res:4.1,8.0] || subset(U,V) -> subset(U,W) member(skf1(W,U),V)*.
+31[0:Res:9.2,6.0] || member(skf1(difference(U,V),W),U)*+ -> member(skf1(difference(U,V),W),V)* subset(X,difference(U,V))*.
+32[0:Res:18.1,10.0] ||  -> subset(difference(skc3,U),V) member(skf1(V,difference(skc3,U)),skc4)*.
+44[0:Res:32.1,6.0] ||  -> subset(difference(skc3,U),skc4)* subset(V,skc4)*.
+45[0:Con:44.1] ||  -> subset(difference(skc3,U),skc4)*.
+87[0:Res:20.2,31.0] || subset(U,V) -> subset(U,difference(V,W)) member(skf1(difference(V,W),U),W)* subset(X,difference(V,W))*.
+94[0:Con:87.3] || subset(U,V) -> subset(U,difference(V,W)) member(skf1(difference(V,W),U),W)*.
+255[0:Res:94.2,19.0] || subset(difference(U,V),W) -> subset(difference(U,V),difference(W,V))* subset(difference(U,V),difference(W,V))*.
+258[0:Con:255.2] || subset(difference(U,V),W) -> subset(difference(U,V),difference(W,V))*.
+522[0:Res:258.1,3.0] || subset(difference(skc3,skc5),skc4)* -> .
+524[0:Res:45.0,522.0] ||  -> .

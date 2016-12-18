@@ -1,0 +1,13 @@
+1[0:Inp] ||  -> c_lessequals(U,c_Union(V,W),tc_set(W)) c_lessequals(c_Union(V,W),X,tc_set(W)) c_in(c_Zorn_OUnion__lemma0__1(X,U,V,W),V,tc_set(W))*.
+2[0:Inp] || c_lessequals(c_Zorn_OUnion__lemma0__1(U,V,W,X),U,tc_set(X))* -> c_lessequals(V,c_Union(W,X),tc_set(X)) c_lessequals(c_Union(W,X),U,tc_set(X)).
+3[0:Inp] || c_lessequals(U,c_Zorn_OUnion__lemma0__1(V,U,W,X),tc_set(X))* -> c_lessequals(U,c_Union(W,X),tc_set(X)) c_lessequals(c_Union(W,X),V,tc_set(X)).
+4[0:Inp] || c_lessequals(c_Union(v_Y,tc_set(t_a)),v_m,tc_set(tc_set(t_a)))* -> .
+5[0:Inp] || c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(v_Y,tc_set(t_a)),tc_set(tc_set(t_a)))* -> .
+6[0:Inp] || c_in(U,v_Y,tc_set(tc_set(t_a))) -> c_lessequals(U,v_m,tc_set(tc_set(t_a))) c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),U,tc_set(tc_set(t_a)))*.
+9[0:Res:6.2,3.0] || c_in(c_Zorn_OUnion__lemma0__1(U,c_Zorn_Osucc(v_S,v_m,t_a),V,tc_set(t_a)),v_Y,tc_set(tc_set(t_a))) -> c_lessequals(c_Zorn_OUnion__lemma0__1(U,c_Zorn_Osucc(v_S,v_m,t_a),V,tc_set(t_a)),v_m,tc_set(tc_set(t_a)))* c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(V,tc_set(t_a)),tc_set(tc_set(t_a))) c_lessequals(c_Union(V,tc_set(t_a)),U,tc_set(tc_set(t_a))).
+10[0:Res:9.1,2.0] || c_in(c_Zorn_OUnion__lemma0__1(v_m,c_Zorn_Osucc(v_S,v_m,t_a),U,tc_set(t_a)),v_Y,tc_set(tc_set(t_a)))* -> c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(U,tc_set(t_a)),tc_set(tc_set(t_a))) c_lessequals(c_Union(U,tc_set(t_a)),v_m,tc_set(tc_set(t_a))) c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(U,tc_set(t_a)),tc_set(tc_set(t_a))) c_lessequals(c_Union(U,tc_set(t_a)),v_m,tc_set(tc_set(t_a))).
+11[0:Con:10.3] || c_in(c_Zorn_OUnion__lemma0__1(v_m,c_Zorn_Osucc(v_S,v_m,t_a),U,tc_set(t_a)),v_Y,tc_set(tc_set(t_a)))* -> c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(U,tc_set(t_a)),tc_set(tc_set(t_a))) c_lessequals(c_Union(U,tc_set(t_a)),v_m,tc_set(tc_set(t_a))).
+12[0:Res:1.2,11.0] ||  -> c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(v_Y,tc_set(t_a)),tc_set(tc_set(t_a)))* c_lessequals(c_Union(v_Y,tc_set(t_a)),v_m,tc_set(tc_set(t_a))) c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(v_Y,tc_set(t_a)),tc_set(tc_set(t_a)))* c_lessequals(c_Union(v_Y,tc_set(t_a)),v_m,tc_set(tc_set(t_a))).
+13[0:Con:12.2] ||  -> c_lessequals(c_Zorn_Osucc(v_S,v_m,t_a),c_Union(v_Y,tc_set(t_a)),tc_set(tc_set(t_a)))* c_lessequals(c_Union(v_Y,tc_set(t_a)),v_m,tc_set(tc_set(t_a))).
+14[0:Res:13.0,5.0] ||  -> c_lessequals(c_Union(v_Y,tc_set(t_a)),v_m,tc_set(tc_set(t_a)))*.
+15[0:Res:14.0,4.0] ||  -> .

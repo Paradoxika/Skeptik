@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> mtvisible(c_englishmt)*.
+26[0:Inp] || prettystring(f_instancewithrelationtofn(c_footballteam,c_affiliatedwith,c_beloitcollege),U)* -> .
+32[0:Inp] || mtvisible(c_englishmt) -> prettystring(f_instancewithrelationtofn(c_footballteam,c_affiliatedwith,c_beloitcollege),s_thefootballteamwhohasbeenaffiliatedwithbeloitcollege)*.
+42[0:Res:32.1,26.0] || mtvisible(c_englishmt)* -> .
+43[0:Res:1.0,42.0] ||  -> .

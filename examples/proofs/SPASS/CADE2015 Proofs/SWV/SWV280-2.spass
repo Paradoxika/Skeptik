@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> c_lessequals(U,c_plus(U,V,tc_nat),tc_nat)*.
+2[0:Inp] || c_lessequals(v_sko__urX(U),V,tc_nat) c_in(c_Message_Omsg_ONonce(V),c_Event_Oused(U),tc_Message_Omsg)* -> .
+3[0:Inp] ||  -> c_in(c_Message_Omsg_ONonce(U),c_Event_Oused(v_evs),tc_Message_Omsg)*.
+4[0:Res:3.0,2.0] || c_lessequals(v_sko__urX(v_evs),U,tc_nat)* -> .
+5[0:Res:1.0,4.0] ||  -> .

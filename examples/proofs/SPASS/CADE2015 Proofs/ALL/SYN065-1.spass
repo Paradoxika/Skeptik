@@ -1,0 +1,7 @@
+1[0:Inp] ||  -> big_f(U,f(U))*.
+2[0:Inp] ||  -> big_g(U,g(U))*.
+4[0:Inp] || big_g(U,V)* big_f(W,U)* -> big_h(W,V)*.
+7[0:Inp] || big_h(a,U)* -> .
+9[0:Res:4.2,7.0] || big_g(U,V)*+ big_f(a,U)* -> .
+12[0:Res:2.0,9.0] || big_f(a,U)* -> .
+14[0:Res:1.0,12.0] ||  -> .

@@ -1,0 +1,7 @@
+1[0:Inp] || c_in(U,V,W)* c_lessequals(V,X,tc_set(W))* -> c_in(U,X,W)*.
+2[0:Inp] ||  -> c_lessequals(v_Y,v_V,tc_set(t_a))*.
+3[0:Inp] ||  -> c_in(v_x,v_Y,t_a)*.
+4[0:Inp] || c_in(v_x,v_V,t_a)* -> .
+7[0:Res:2.0,1.1] || c_in(U,v_Y,t_a)* -> c_in(U,v_V,t_a).
+9[0:Res:3.0,7.0] ||  -> c_in(v_x,v_V,t_a)*.
+10[0:Res:9.0,4.0] ||  -> .

@@ -1,0 +1,24 @@
+1[0:Inp] ||  -> iext(uri_rdfs_subClassOf,uri_ex_Person,skc7)*.
+3[0:Inp] ||  -> iext(uri_owl_onProperty,skc7,uri_ex_hasAncestor)*.
+4[0:Inp] ||  -> iext(uri_ex_hasAncestor,uri_ex_alice,uri_ex_bob)*.
+5[0:Inp] ||  -> iext(uri_rdf_type,uri_ex_bob,uri_ex_Person)*.
+7[0:Inp] ||  -> iext(uri_rdf_type,uri_ex_hasAncestor,uri_owl_TransitiveProperty)*.
+9[0:Inp] ||  -> iext(uri_owl_minCardinality,skc7,literal_typed(dat_str_1,uri_xsd_nonNegativeInteger))*.
+12[0:Inp] || iext(uri_rdf_type,U,V)* -> icext(V,U).
+14[0:Inp] || iext(uri_ex_hasAncestor,uri_ex_alice,U) iext(uri_ex_hasAncestor,uri_ex_bob,U)* -> .
+15[0:Inp] || icext(U,V)* iext(uri_rdfs_subClassOf,U,W)*+ -> icext(W,V)*.
+21[0:Inp] || icext(uri_owl_TransitiveProperty,U) iext(U,V,W)*+ iext(U,X,V)* -> iext(U,X,W)*.
+23[0:Inp] || icext(U,V)* iext(uri_owl_onProperty,U,W)* iext(uri_owl_minCardinality,U,literal_typed(dat_str_1,uri_xsd_nonNegativeInteger))*+ -> iext(W,V,skf5(V,W))*.
+30[0:Res:7.0,12.0] ||  -> icext(uri_owl_TransitiveProperty,uri_ex_hasAncestor)*.
+32[0:Res:5.0,12.0] ||  -> icext(uri_ex_Person,uri_ex_bob)*.
+42[0:Res:1.0,15.1] || icext(uri_ex_Person,U)* -> icext(skc7,U).
+46[0:Res:32.0,42.0] ||  -> icext(skc7,uri_ex_bob)*.
+77[0:Res:9.0,23.2] || icext(skc7,U) iext(uri_owl_onProperty,skc7,V) -> iext(V,U,skf5(U,V))*.
+122[0:Res:77.2,14.1] || icext(skc7,uri_ex_bob) iext(uri_owl_onProperty,skc7,uri_ex_hasAncestor) iext(uri_ex_hasAncestor,uri_ex_alice,skf5(uri_ex_bob,uri_ex_hasAncestor))* -> .
+127[0:Res:77.2,21.1] || icext(skc7,U) iext(uri_owl_onProperty,skc7,V) icext(uri_owl_TransitiveProperty,V) iext(V,W,U) -> iext(V,W,skf5(U,V))*.
+694[0:Res:127.4,122.2] || icext(skc7,uri_ex_bob) iext(uri_owl_onProperty,skc7,uri_ex_hasAncestor)* icext(uri_owl_TransitiveProperty,uri_ex_hasAncestor) iext(uri_ex_hasAncestor,uri_ex_alice,uri_ex_bob) icext(skc7,uri_ex_bob) iext(uri_owl_onProperty,skc7,uri_ex_hasAncestor)* -> .
+701[0:Con:694.4] || icext(skc7,uri_ex_bob) iext(uri_owl_onProperty,skc7,uri_ex_hasAncestor)* icext(uri_owl_TransitiveProperty,uri_ex_hasAncestor) iext(uri_ex_hasAncestor,uri_ex_alice,uri_ex_bob) -> .
+2196[0:Res:3.0,701.1] || icext(skc7,uri_ex_bob) icext(uri_owl_TransitiveProperty,uri_ex_hasAncestor) iext(uri_ex_hasAncestor,uri_ex_alice,uri_ex_bob)* -> .
+2198[0:Res:4.0,2196.2] || icext(skc7,uri_ex_bob) icext(uri_owl_TransitiveProperty,uri_ex_hasAncestor)* -> .
+2201[0:Res:30.0,2198.1] || icext(skc7,uri_ex_bob)* -> .
+2202[0:Res:46.0,2201.0] ||  -> .

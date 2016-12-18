@@ -1,0 +1,13 @@
+1[0:Inp] || follows(U,V) -> succeeds(U,V)*.
+2[0:Inp] || succeeds(U,V)*+ succeeds(W,U)* -> succeeds(W,V)*.
+3[0:Inp] || labels(U,V)* has(W,goto(U))*+ -> succeeds(V,W)*.
+5[0:Inp] ||  -> labels(loop,p3)*.
+9[0:Inp] ||  -> follows(p8,p3)*.
+10[0:Inp] ||  -> has(p8,goto(loop))*.
+11[0:Inp] || succeeds(p3,p3)* -> .
+22[0:Res:1.1,2.0] || follows(U,V)*+ succeeds(W,U)* -> succeeds(W,V)*.
+24[0:Res:10.0,3.1] || labels(loop,U) -> succeeds(U,p8)*.
+35[0:Res:9.0,22.0] || succeeds(U,p8) -> succeeds(U,p3)*.
+37[0:Res:35.1,11.0] || succeeds(p3,p8)* -> .
+42[0:Res:24.1,37.0] || labels(loop,p3)* -> .
+43[0:Res:5.0,42.0] ||  -> .

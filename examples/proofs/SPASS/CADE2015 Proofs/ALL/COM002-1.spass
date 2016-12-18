@@ -1,0 +1,19 @@
+1[0:Inp] || follows(U,V) -> succeeds(U,V)*.
+2[0:Inp] || succeeds(U,V)*+ succeeds(W,U)* -> succeeds(W,V)*.
+3[0:Inp] || labels(U,V)* has(W,goto(U))*+ -> succeeds(V,W)*.
+8[0:Inp] ||  -> labels(loop,p3)*.
+13[0:Inp] ||  -> follows(p6,p3)*.
+15[0:Inp] ||  -> follows(p7,p6)*.
+17[0:Inp] ||  -> follows(p8,p7)*.
+18[0:Inp] ||  -> has(p8,goto(loop))*.
+19[0:Inp] || succeeds(p3,p3)* -> .
+30[0:Res:1.1,2.0] || follows(U,V)*+ succeeds(W,U)* -> succeeds(W,V)*.
+38[0:Res:18.0,3.1] || labels(loop,U) -> succeeds(U,p8)*.
+55[0:Res:17.0,30.0] || succeeds(U,p8) -> succeeds(U,p7)*.
+56[0:Res:15.0,30.0] || succeeds(U,p7) -> succeeds(U,p6)*.
+57[0:Res:13.0,30.0] || succeeds(U,p6) -> succeeds(U,p3)*.
+69[0:Res:57.1,19.0] || succeeds(p3,p6)* -> .
+82[0:Res:56.1,69.0] || succeeds(p3,p7)* -> .
+85[0:Res:55.1,82.0] || succeeds(p3,p8)* -> .
+91[0:Res:38.1,85.0] || labels(loop,p3)* -> .
+96[0:Res:8.0,91.0] ||  -> .

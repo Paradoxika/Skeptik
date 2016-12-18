@@ -1,0 +1,11 @@
+1[0:Inp] ||  -> subset(skc7,skc6)*.
+2[0:Inp] ||  -> subset(skc4,skc5)*.
+4[0:Inp] || subset(difference(skc7,skc5),difference(skc6,skc4))* -> .
+9[0:Inp] || subset(U,V)*+ subset(W,U)* -> subset(W,V)*.
+10[0:Inp] || subset(U,V) -> subset(difference(U,W),difference(V,W))*.
+11[0:Inp] || subset(U,V) -> subset(difference(W,V),difference(W,U))*.
+16[0:Res:2.0,11.0] ||  -> subset(difference(U,skc5),difference(U,skc4))*.
+20[0:Res:1.0,10.0] ||  -> subset(difference(skc7,U),difference(skc6,U))*.
+26[0:Res:9.2,4.0] || subset(U,difference(skc6,skc4))*+ subset(difference(skc7,skc5),U)* -> .
+79[0:Res:20.0,26.0] || subset(difference(skc7,skc5),difference(skc7,skc4))* -> .
+83[0:Res:16.0,79.0] ||  -> .

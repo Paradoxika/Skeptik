@@ -1,0 +1,25 @@
+1[0:Inp] || p(U,V) p(U,f(U,V))*+ -> q(V,f(U,V))*.
+2[0:Inp] || p(U,V) q(V,f(U,V))*+ -> p(U,f(U,V))*.
+3[0:Inp] || p(U,V) p(f(U,V),f(U,V)) -> q(f(U,V),f(U,V))*.
+4[0:Inp] ||  -> p(U,V) p(f(U,V),f(U,V))*.
+5[0:Inp] || q(f(U,V),f(U,V))* -> p(U,V).
+6[0:Inp] ||  -> q(U,V) q(f(U,V),f(U,V))*.
+7[0:Inp] || q(U,V) q(f(U,V),f(U,V))* -> .
+8[0:Res:6.1,5.0] ||  -> q(U,V)* p(U,V).
+10[0:Res:8.0,7.1] || q(U,V) -> p(f(U,V),f(U,V))*.
+12[0:Res:8.0,2.1] || p(U,V)+ -> p(V,f(U,V))* p(U,f(U,V))*.
+14[0:Res:4.1,12.0] ||  -> p(U,V) p(f(U,V),f(f(U,V),f(U,V)))* p(f(U,V),f(f(U,V),f(U,V)))*.
+15[0:Con:14.2] ||  -> p(U,V) p(f(U,V),f(f(U,V),f(U,V)))*.
+17[0:Res:3.2,7.1] || p(U,V) p(f(U,V),f(U,V))* q(U,V) -> .
+20[0:Res:15.1,1.1] || p(f(U,V),f(U,V)) -> p(U,V) q(f(U,V),f(f(U,V),f(U,V)))*.
+23[0:Res:10.1,17.1] || q(U,V)* p(U,V) q(U,V)* -> .
+25[0:Con:23.2] || q(U,V)* p(U,V) -> .
+27[0:Res:3.2,25.0] || p(U,V) p(f(U,V),f(U,V))* p(f(U,V),f(U,V))* -> .
+29[0:Con:27.2] || p(U,V) p(f(U,V),f(U,V))* -> .
+34[0:Res:20.2,25.0] || p(f(U,V),f(U,V)) p(f(U,V),f(f(U,V),f(U,V)))* -> p(U,V).
+41[0:Res:15.1,34.1] || p(f(U,V),f(U,V))* -> p(U,V) p(U,V).
+42[0:Con:41.2] || p(f(U,V),f(U,V))* -> p(U,V).
+45[0:Res:4.1,42.0] ||  -> p(U,V)* p(U,V)*.
+46[0:Con:45.1] ||  -> p(U,V)*.
+47[0:Res:46.0,29.1] || p(U,V)* -> .
+51[0:Res:46.0,47.0] ||  -> .

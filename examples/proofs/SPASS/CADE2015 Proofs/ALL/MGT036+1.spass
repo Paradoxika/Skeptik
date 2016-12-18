@@ -1,0 +1,34 @@
+1[0:Inp] ||  -> environment(skc3)*.
+2[0:Inp] ||  -> outcompetes(first_movers,efficient_producers,skc2)*.
+3[0:Inp] ||  -> subpopulations(first_movers,efficient_producers,skc3,skc2)*.
+4[0:Inp] ||  -> greater(resilience(efficient_producers),resilience(first_movers))*.
+6[0:Inp] || greater(zero,growth_rate(U,V))*+ -> subpopulations(U,W,X,V)*.
+7[0:Inp] environment(U) || subpopulations(first_movers,efficient_producers,U,V)* -> in_environment(U,V).
+8[0:Inp] || greater(zero,growth_rate(U,V))* greater_or_equal(growth_rate(U,V),zero) -> .
+9[0:Inp] environment(U) || subpopulations(first_movers,efficient_producers,U,V)* -> subpopulations(efficient_producers,first_movers,U,V).
+10[0:Inp] environment(U) || subpopulations(V,W,U,X)*+ -> greater(zero,growth_rate(V,X))* greater_or_equal(growth_rate(V,X),zero).
+11[0:Inp] environment(U) || outcompetes(V,W,X) subpopulations(W,V,U,X)*+ -> greater_or_equal(growth_rate(V,X),zero)*.
+12[0:Inp] environment(U) || outcompetes(V,W,X) subpopulations(W,V,U,X)*+ -> greater(zero,growth_rate(W,X))*.
+13[0:Inp] environment(U) || in_environment(U,V)* greater(zero,growth_rate(W,V))*+ greater(resilience(W),resilience(X))* -> greater(zero,growth_rate(X,V))*.
+16[0:Res:1.0,13.0] || in_environment(skc3,U) greater(zero,growth_rate(V,U))*+ greater(resilience(V),resilience(W))* -> greater(zero,growth_rate(W,U))*.
+17[0:Res:1.0,10.0] || subpopulations(U,V,skc3,W)*+ -> greater(zero,growth_rate(U,W))* greater_or_equal(growth_rate(U,W),zero).
+18[0:Res:1.0,11.0] || outcompetes(U,V,W) subpopulations(V,U,skc3,W)*+ -> greater_or_equal(growth_rate(U,W),zero)*.
+19[0:Res:1.0,12.0] || outcompetes(U,V,W) subpopulations(V,U,skc3,W)*+ -> greater(zero,growth_rate(V,W))*.
+20[0:Res:1.0,9.0] || subpopulations(first_movers,efficient_producers,skc3,U)* -> subpopulations(efficient_producers,first_movers,skc3,U).
+21[0:Res:1.0,7.0] || subpopulations(first_movers,efficient_producers,skc3,U)* -> in_environment(skc3,U).
+32[0:Res:3.0,21.0] ||  -> in_environment(skc3,skc2)*.
+33[0:Res:3.0,20.0] ||  -> subpopulations(efficient_producers,first_movers,skc3,skc2)*.
+43[0:Res:33.0,17.0] ||  -> greater(zero,growth_rate(efficient_producers,skc2))* greater_or_equal(growth_rate(efficient_producers,skc2),zero).
+48[0:Res:43.0,6.0] ||  -> greater_or_equal(growth_rate(efficient_producers,skc2),zero)* subpopulations(efficient_producers,U,V,skc2)*.
+83[0:Res:48.1,18.1] || outcompetes(U,efficient_producers,skc2)+ -> greater_or_equal(growth_rate(efficient_producers,skc2),zero)* greater_or_equal(growth_rate(U,skc2),zero)*.
+86[0:Res:2.0,83.0] ||  -> greater_or_equal(growth_rate(efficient_producers,skc2),zero) greater_or_equal(growth_rate(first_movers,skc2),zero)*.
+88[0:Res:33.0,19.1] || outcompetes(first_movers,efficient_producers,skc2) -> greater(zero,growth_rate(efficient_producers,skc2))*.
+96[0:Res:88.1,8.0] || outcompetes(first_movers,efficient_producers,skc2) greater_or_equal(growth_rate(efficient_producers,skc2),zero)* -> .
+126[0:Res:43.0,16.1] || in_environment(skc3,skc2) greater(resilience(efficient_producers),resilience(U))* -> greater_or_equal(growth_rate(efficient_producers,skc2),zero) greater(zero,growth_rate(U,skc2)).
+138[0:Res:4.0,126.1] || in_environment(skc3,skc2) -> greater_or_equal(growth_rate(efficient_producers,skc2),zero) greater(zero,growth_rate(first_movers,skc2))*.
+140[0:Res:138.2,8.0] || in_environment(skc3,skc2) greater_or_equal(growth_rate(first_movers,skc2),zero)* -> greater_or_equal(growth_rate(efficient_producers,skc2),zero).
+175[0:Res:86.1,140.1] || in_environment(skc3,skc2) -> greater_or_equal(growth_rate(efficient_producers,skc2),zero)* greater_or_equal(growth_rate(efficient_producers,skc2),zero)*.
+179[0:Con:175.2] || in_environment(skc3,skc2) -> greater_or_equal(growth_rate(efficient_producers,skc2),zero)*.
+182[0:Res:179.1,96.1] || in_environment(skc3,skc2) outcompetes(first_movers,efficient_producers,skc2)* -> .
+184[0:Res:2.0,182.1] || in_environment(skc3,skc2)* -> .
+185[0:Res:32.0,184.0] ||  -> .

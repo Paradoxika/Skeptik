@@ -1,0 +1,10 @@
+2[0:Inp] || equalish(U,V)*+ -> equalish(V,U)*.
+3[0:Inp] || equalish(U,V)*+ equalish(W,U)* -> equalish(W,V)*.
+22[0:Inp] || equalish(m,n)* -> .
+23[0:Inp] ||  -> equalish(n,k)*.
+26[0:Inp] ||  -> equalish(m,k)*.
+27[0:Res:26.0,2.0] ||  -> equalish(k,m)*.
+79[0:Res:27.0,3.0] || equalish(U,k)* -> equalish(U,m).
+90[0:Res:23.0,79.0] ||  -> equalish(n,m)*.
+96[0:Res:90.0,2.0] ||  -> equalish(m,n)*.
+100[0:Res:96.0,22.0] ||  -> .

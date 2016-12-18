@@ -1,0 +1,26 @@
+4[0:Inp] ||  -> genlmt(c_ldscdemonstrationspindleheadmt,c_currentworlddatacollectormt_nonhomocentric)*.
+7[0:Inp] ||  -> genlmt(c_machinelearningspindleheadmt,c_miptdatabase19681997_termsmt)*.
+8[0:Inp] ||  -> genlmt(c_miptdatabase19681997_termsmt,c_ldscgeneralcollectormt)*.
+9[0:Inp] ||  -> genlmt(c_ldscgeneralcollectormt,c_ldscdemonstrationspindleheadmt)*.
+24[0:Inp] ||  -> mtvisible(f_contentmtofcdafromeventfn(f_urlreferentfn(f_urlfn(s_http_memberstripodcomindygalfordtriviahtm)),c_translation_32))*.
+64[0:Inp] || tptptypes_7_691(c_tptpcol_16_26939,f_subcollectionofwithrelationtofn(c_ship,c_objectfoundinlocation,c_cityofbostonma))* -> .
+65[0:Inp] ||  -> genlmt(f_contentmtofcdafromeventfn(f_urlreferentfn(f_urlfn(s_http_memberstripodcomindygalfordtriviahtm)),c_translation_32),c_machinelearningspindleheadmt)*.
+66[0:Inp] || tptptypes_8_692(U,V) -> tptptypes_7_691(V,U)*.
+67[0:Inp] || tptptypes_9_693(U,V) -> tptptypes_8_692(U,V)*.
+72[0:Inp] || mtvisible(c_currentworlddatacollectormt_nonhomocentric) -> tptptypes_9_693(f_subcollectionofwithrelationtofn(c_ship,c_objectfoundinlocation,c_cityofbostonma),c_tptpcol_16_26939)*.
+75[0:Inp] mtvisible(U) || genlmt(U,V)* -> mtvisible(V).
+87[0:Inp] || genlmt(U,V)*+ genlmt(W,U)* -> genlmt(W,V)*.
+89[0:Res:24.0,75.0] || genlmt(f_contentmtofcdafromeventfn(f_urlreferentfn(f_urlfn(s_http_memberstripodcomindygalfordtriviahtm)),c_translation_32),U)* -> mtvisible(U).
+90[0:Res:66.1,64.0] || tptptypes_8_692(f_subcollectionofwithrelationtofn(c_ship,c_objectfoundinlocation,c_cityofbostonma),c_tptpcol_16_26939)* -> .
+165[0:Res:67.1,90.0] || tptptypes_9_693(f_subcollectionofwithrelationtofn(c_ship,c_objectfoundinlocation,c_cityofbostonma),c_tptpcol_16_26939)* -> .
+168[0:Res:72.1,165.0] || mtvisible(c_currentworlddatacollectormt_nonhomocentric)* -> .
+224[0:Res:7.0,87.0] || genlmt(U,c_machinelearningspindleheadmt)* -> genlmt(U,c_miptdatabase19681997_termsmt).
+225[0:Res:9.0,87.0] || genlmt(U,c_ldscgeneralcollectormt) -> genlmt(U,c_ldscdemonstrationspindleheadmt)*.
+226[0:Res:8.0,87.0] || genlmt(U,c_miptdatabase19681997_termsmt)* -> genlmt(U,c_ldscgeneralcollectormt).
+229[0:Res:4.0,87.0] || genlmt(U,c_ldscdemonstrationspindleheadmt)* -> genlmt(U,c_currentworlddatacollectormt_nonhomocentric).
+244[0:Res:65.0,224.0] ||  -> genlmt(f_contentmtofcdafromeventfn(f_urlreferentfn(f_urlfn(s_http_memberstripodcomindygalfordtriviahtm)),c_translation_32),c_miptdatabase19681997_termsmt)*.
+257[0:Res:244.0,226.0] ||  -> genlmt(f_contentmtofcdafromeventfn(f_urlreferentfn(f_urlfn(s_http_memberstripodcomindygalfordtriviahtm)),c_translation_32),c_ldscgeneralcollectormt)*.
+282[0:Res:225.1,229.0] || genlmt(U,c_ldscgeneralcollectormt) -> genlmt(U,c_currentworlddatacollectormt_nonhomocentric)*.
+307[0:Res:282.1,89.0] || genlmt(f_contentmtofcdafromeventfn(f_urlreferentfn(f_urlfn(s_http_memberstripodcomindygalfordtriviahtm)),c_translation_32),c_ldscgeneralcollectormt)* -> mtvisible(c_currentworlddatacollectormt_nonhomocentric).
+340[0:Res:257.0,307.0] ||  -> mtvisible(c_currentworlddatacollectormt_nonhomocentric)*.
+341[0:Res:340.0,168.0] ||  -> .

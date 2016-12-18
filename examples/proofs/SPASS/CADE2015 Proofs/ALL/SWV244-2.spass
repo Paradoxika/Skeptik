@@ -1,0 +1,13 @@
+1[0:Inp] || c_in(U,V,tc_Message_Omsg) -> c_in(U,c_Message_Oanalz(V),tc_Message_Omsg)*.
+2[0:Inp] || c_in(U,V,W) -> c_in(U,c_union(X,V,W),W)*.
+3[0:Inp] || c_in(U,V,W) -> c_in(U,c_union(V,X,W),W)*.
+4[0:Inp] || c_in(U,c_union(V,W,X),X)* -> c_in(U,V,X) c_in(U,W,X).
+5[0:Inp] ||  -> c_in(v_X,c_union(c_Message_Osynth(v_G),v_H,tc_Message_Omsg),tc_Message_Omsg)*.
+6[0:Inp] || c_in(v_X,c_union(c_Message_Oanalz(c_union(v_G,v_H,tc_Message_Omsg)),c_Message_Osynth(v_G),tc_Message_Omsg),tc_Message_Omsg)* -> .
+10[0:Res:5.0,4.0] ||  -> c_in(v_X,v_H,tc_Message_Omsg) c_in(v_X,c_Message_Osynth(v_G),tc_Message_Omsg)*.
+11[0:Res:3.1,6.0] || c_in(v_X,c_Message_Oanalz(c_union(v_G,v_H,tc_Message_Omsg)),tc_Message_Omsg)* -> .
+12[0:Res:2.1,6.0] || c_in(v_X,c_Message_Osynth(v_G),tc_Message_Omsg)* -> .
+15[0:Res:10.1,12.0] ||  -> c_in(v_X,v_H,tc_Message_Omsg)*.
+16[0:Res:1.1,11.0] || c_in(v_X,c_union(v_G,v_H,tc_Message_Omsg),tc_Message_Omsg)* -> .
+18[0:Res:2.1,16.0] || c_in(v_X,v_H,tc_Message_Omsg)* -> .
+19[0:Res:15.0,18.0] ||  -> .

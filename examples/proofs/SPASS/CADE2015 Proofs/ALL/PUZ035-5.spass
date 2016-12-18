@@ -1,0 +1,9 @@
+1[0:Inp] ||  -> truth(isa(U,knave)) truth(isa(U,knight))*.
+9[0:Inp] || truth(isa(other,U))*+ truth(isa(asked,V))* -> .
+21[0:Res:1.1,9.0] || truth(isa(asked,U))* -> truth(isa(other,knave)).
+22[0:Res:1.1,21.0] ||  -> truth(isa(asked,knave))* truth(isa(other,knave)).
+23[0:Res:22.0,21.0] ||  -> truth(isa(other,knave))* truth(isa(other,knave))*.
+24[0:Con:23.1] ||  -> truth(isa(other,knave))*.
+26[0:Res:24.0,9.0] || truth(isa(asked,U))* -> .
+27[0:Res:1.1,26.0] ||  -> truth(isa(asked,knave))*.
+28[0:Res:27.0,26.0] ||  -> .

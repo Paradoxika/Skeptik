@@ -1,0 +1,5 @@
+7[0:Inp] || achievable(west(m(s(s(U))),c(V)),boatonwest,east(m(W),c(X)))* -> achievable(west(m(U),c(V)),boatoneast,east(m(s(s(W))),c(X))).
+14[0:Inp] ||  -> achievable(west(U,V),W,east(m(s(X)),c(s(s(s(X))))))*.
+16[0:Inp] || achievable(west(m(n0),c(n0)),U,east(m(s(s(s(n0)))),c(s(s(s(n0))))))* -> .
+18[0:Res:7.1,16.0] || achievable(west(m(s(s(n0))),c(n0)),boatonwest,east(m(s(n0)),c(s(s(s(n0))))))* -> .
+22[0:Res:14.0,18.0] ||  -> .

@@ -1,0 +1,16 @@
+1[0:Inp] || c_in(U,V,W)* c_lessequals(V,c_Tarski_Ointerval(X,Y,Z,W),tc_set(W))*+ -> c_in(c_Pair(U,Z,W,W),X,tc_prod(W,W))*.
+2[0:Inp] || c_in(U,v_A,t_a) c_Tarski_OisLub(V,v_cl,W,t_a)*+ -> c_in(v_sko__4mi(V,v_r,U),V,t_a)* c_in(c_Pair(W,U,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+3[0:Inp] || c_in(U,v_A,t_a) c_in(c_Pair(v_sko__4mi(V,v_r,U),U,t_a,t_a),v_r,tc_prod(t_a,t_a))*+ c_Tarski_OisLub(V,v_cl,W,t_a)* -> c_in(c_Pair(W,U,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+4[0:Inp] ||  -> c_in(v_b,v_A,t_a)*.
+5[0:Inp] ||  -> c_lessequals(v_S,c_Tarski_Ointerval(v_r,v_a,v_b,t_a),tc_set(t_a))*.
+6[0:Inp] ||  -> c_Tarski_OisLub(v_S,v_cl,v_L,t_a)*.
+7[0:Inp] || c_in(c_Pair(v_L,v_b,t_a,t_a),v_r,tc_prod(t_a,t_a))* -> .
+9[0:Res:4.0,2.1] || c_Tarski_OisLub(U,v_cl,V,t_a)*+ -> c_in(v_sko__4mi(U,v_r,v_b),U,t_a)* c_in(c_Pair(V,v_b,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+13[0:Res:5.0,1.1] || c_in(U,v_S,t_a) -> c_in(c_Pair(U,v_b,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+14[0:Res:3.3,7.0] || c_in(v_b,v_A,t_a) c_in(c_Pair(v_sko__4mi(U,v_r,v_b),v_b,t_a,t_a),v_r,tc_prod(t_a,t_a))* c_Tarski_OisLub(U,v_cl,v_L,t_a) -> .
+22[0:Res:6.0,9.0] ||  -> c_in(v_sko__4mi(v_S,v_r,v_b),v_S,t_a) c_in(c_Pair(v_L,v_b,t_a,t_a),v_r,tc_prod(t_a,t_a))*.
+24[0:Res:22.1,7.0] ||  -> c_in(v_sko__4mi(v_S,v_r,v_b),v_S,t_a)*.
+25[0:Res:13.1,14.1] || c_in(v_sko__4mi(U,v_r,v_b),v_S,t_a)* c_in(v_b,v_A,t_a) c_Tarski_OisLub(U,v_cl,v_L,t_a) -> .
+27[0:Res:24.0,25.0] || c_in(v_b,v_A,t_a) c_Tarski_OisLub(v_S,v_cl,v_L,t_a)* -> .
+30[0:Res:6.0,27.1] || c_in(v_b,v_A,t_a)* -> .
+31[0:Res:4.0,30.0] ||  -> .

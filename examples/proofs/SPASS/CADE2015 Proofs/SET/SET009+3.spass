@@ -1,0 +1,25 @@
+1[0:Inp] ||  -> subset(skc3,skc4)*.
+3[0:Inp] || subset(difference(skc5,skc4),difference(skc5,skc3))* -> .
+4[0:Inp] ||  -> subset(U,V) member(skf1(V,U),U)*.
+5[0:Inp] || member(U,difference(V,W))* -> member(U,V).
+6[0:Inp] || member(skf1(U,V),U)*+ -> subset(W,U)*.
+7[0:Inp] || member(U,V) member(U,difference(W,V))* -> .
+8[0:Inp] || member(U,V)*+ subset(V,W)* -> member(U,W)*.
+9[0:Inp] || member(U,V) -> member(U,W) member(U,difference(V,W))*.
+10[0:Res:1.0,8.0] || member(U,skc3)* -> member(U,skc4).
+18[0:Res:4.1,5.0] ||  -> subset(difference(U,V),W) member(skf1(W,difference(U,V)),U)*.
+19[0:Res:4.1,7.1] || member(skf1(U,difference(V,W)),W)* -> subset(difference(V,W),U).
+20[0:Res:4.1,8.0] || subset(U,V) -> subset(U,W) member(skf1(W,U),V)*.
+31[0:Res:9.2,6.0] || member(skf1(difference(U,V),W),U)*+ -> member(skf1(difference(U,V),W),V)* subset(X,difference(U,V))*.
+40[0:Res:20.2,7.1] || subset(U,difference(V,W))*+ member(skf1(X,U),W)* -> subset(U,X).
+83[0:Res:4.1,31.0] ||  -> subset(U,difference(U,V)) member(skf1(difference(U,V),U),V)* subset(W,difference(U,V))*.
+85[0:Res:18.1,31.0] ||  -> subset(difference(U,V),difference(U,W)) member(skf1(difference(U,W),difference(U,V)),W)* subset(X,difference(U,W))*.
+90[0:Con:83.2] ||  -> subset(U,difference(U,V)) member(skf1(difference(U,V),U),V)*.
+95[0:Con:85.2] ||  -> subset(difference(U,V),difference(U,W)) member(skf1(difference(U,W),difference(U,V)),W)*.
+103[0:Res:90.1,10.0] ||  -> subset(U,difference(U,skc3)) member(skf1(difference(U,skc3),U),skc4)*.
+115[0:Res:103.1,19.0] ||  -> subset(difference(U,skc4),difference(difference(U,skc4),skc3))* subset(difference(U,skc4),difference(difference(U,skc4),skc3))*.
+117[0:Con:115.1] ||  -> subset(difference(U,skc4),difference(difference(U,skc4),skc3))*.
+124[0:Res:117.0,40.0] || member(skf1(U,difference(V,skc4)),skc3)* -> subset(difference(V,skc4),U).
+318[0:Res:95.1,124.0] ||  -> subset(difference(U,skc4),difference(U,skc3))* subset(difference(U,skc4),difference(U,skc3))*.
+320[0:Con:318.1] ||  -> subset(difference(U,skc4),difference(U,skc3))*.
+325[0:Res:320.0,3.0] ||  -> .

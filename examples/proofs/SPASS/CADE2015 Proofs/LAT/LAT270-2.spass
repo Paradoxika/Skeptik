@@ -1,0 +1,9 @@
+1[0:Inp] || c_in(U,v_A,t_a) c_in(V,v_A,t_a) c_lessequals(W,c_Tarski_Ointerval(v_r,U,V,t_a),tc_set(t_a))* -> c_lessequals(W,v_A,tc_set(t_a)).
+2[0:Inp] ||  -> c_in(v_a,v_A,t_a)*.
+3[0:Inp] ||  -> c_in(v_b,v_A,t_a)*.
+4[0:Inp] ||  -> c_lessequals(v_S,c_Tarski_Ointerval(v_r,v_a,v_b,t_a),tc_set(t_a))*.
+5[0:Inp] || c_lessequals(v_S,v_A,tc_set(t_a))* -> .
+11[0:Res:4.0,1.2] || c_in(v_a,v_A,t_a) c_in(v_b,v_A,t_a) -> c_lessequals(v_S,v_A,tc_set(t_a))*.
+12[0:Res:11.2,5.0] || c_in(v_a,v_A,t_a)* c_in(v_b,v_A,t_a) -> .
+13[0:Res:2.0,12.0] || c_in(v_b,v_A,t_a)* -> .
+14[0:Res:3.0,13.0] ||  -> .

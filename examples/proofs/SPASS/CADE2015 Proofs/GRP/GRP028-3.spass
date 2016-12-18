@@ -1,0 +1,8 @@
+3[0:Inp] || product(U,V,W)*+ product(X,Y,V)* product(U,X,Z)* -> product(Z,Y,W)*.
+4[0:Inp] ||  -> product(left_solution(U,V),U,V)*.
+5[0:Inp] ||  -> product(U,right_solution(U,V),V)*.
+6[0:Inp] || product(not_identity(U),U,not_identity(U))* -> .
+9[0:Res:4.0,3.0] || product(U,V,W)* product(left_solution(W,X),U,Y)*+ -> product(Y,V,X)*.
+12[0:Res:4.0,9.1] || product(U,V,U)*+ -> product(W,V,W)*.
+15[0:Res:5.0,12.0] ||  -> product(U,right_solution(V,V),U)*.
+18[0:Res:15.0,6.0] ||  -> .

@@ -1,0 +1,5 @@
+1[0:Inp] ||  -> b_holds(key(generate_key(an_a_nonce),a))*.
+2[0:Inp] ||  -> a_holds(key(generate_key(an_a_nonce),b))*.
+3[0:Inp] || b_holds(key(U,a))* a_holds(key(U,b)) -> .
+4[0:Res:2.0,3.0] || b_holds(key(generate_key(an_a_nonce),a))* -> .
+6[0:Res:1.0,4.0] ||  -> .

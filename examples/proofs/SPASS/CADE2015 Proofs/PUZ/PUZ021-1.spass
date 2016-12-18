@@ -1,0 +1,36 @@
+2[0:Inp] ||  -> a_truth(knave(U),V) a_truth(knight(U),V)*.
+3[0:Inp] || a_truth(poor(U),V) a_truth(rich(U),V)* -> .
+5[0:Inp] || says(U,V)* a_truth(knight(U),W)*+ -> a_truth(V,W)*.
+7[0:Inp] || a_truth(U,V)* says(W,U)* a_truth(knave(W),V)*+ -> .
+8[0:Inp] || a_truth(knave(U),V)*+ -> a_truth(W,V)* says(U,W)*.
+9[0:Inp] || a_truth(and__dfg(U,V),W)* -> a_truth(U,W).
+10[0:Inp] || a_truth(and__dfg(U,V),W)* -> a_truth(V,W).
+11[0:Inp] || a_truth(U,V) a_truth(W,V) -> a_truth(and__dfg(W,U),V)*.
+12[0:Inp] || says(me,U) a_truth(and__dfg(knave(me),rich(me)),U)* -> .
+13[0:Inp] ||  -> says(me,U) a_truth(and__dfg(knave(me),rich(me)),U)*.
+14[0:Res:13.1,9.0] ||  -> says(me,U) a_truth(knave(me),U)*.
+15[0:Res:13.1,10.0] ||  -> says(me,U) a_truth(rich(me),U)*.
+17[0:Res:15.1,3.1] || a_truth(poor(me),U)* -> says(me,U).
+19[0:Res:14.1,8.0] ||  -> says(me,U)* a_truth(V,U)* says(me,V)*.
+20[0:Fac:19.0,19.2] ||  -> a_truth(U,U)* says(me,U)*.
+26[0:Res:19.1,17.0] ||  -> says(me,U)* says(me,poor(me))* says(me,U)*.
+27[0:Con:26.0] ||  -> says(me,poor(me))*.
+32[0:Res:20.0,10.0] ||  -> says(me,and__dfg(U,V))* a_truth(V,and__dfg(U,V))*.
+63[0:Res:32.1,17.0] ||  -> says(me,and__dfg(U,poor(me)))* says(me,and__dfg(U,poor(me)))*.
+64[0:Con:63.1] ||  -> says(me,and__dfg(U,poor(me)))*.
+65[0:Res:2.1,5.1] || says(U,V)*+ -> a_truth(knave(U),W)* a_truth(V,W)*.
+85[0:Res:14.1,7.2] || a_truth(U,V)*+ says(me,U)* -> says(me,V)*.
+95[0:Res:15.1,85.0] || says(me,rich(me))* -> says(me,U)* says(me,U)*.
+102[0:Con:95.2] || says(me,rich(me))*+ -> says(me,U)*.
+131[0:Res:11.2,12.1] || a_truth(rich(me),U) a_truth(knave(me),U)* says(me,U) -> .
+174[0:Res:64.0,65.0] ||  -> a_truth(knave(me),U) a_truth(and__dfg(V,poor(me)),U)*.
+207[0:Res:174.1,9.0] ||  -> a_truth(knave(me),U)* a_truth(V,U)*.
+209[0:Con:207.1] ||  -> a_truth(knave(me),U)*.
+210[0:Res:209.0,8.0] ||  -> a_truth(U,V)* says(me,U)*.
+211[0:Res:209.0,7.2] || a_truth(U,V)*+ says(me,U)* -> .
+214[0:Res:209.0,131.1] || a_truth(rich(me),U)* says(me,U) -> .
+235[0:Res:210.1,102.0] ||  -> a_truth(rich(me),U)* says(me,V)*.
+261[0:Res:209.0,211.0] || says(me,knave(me))* -> .
+264[0:Res:235.1,261.0] ||  -> a_truth(rich(me),U)*.
+337[0:Res:264.0,214.0] || says(me,U)* -> .
+356[0:Res:27.0,337.0] ||  -> .

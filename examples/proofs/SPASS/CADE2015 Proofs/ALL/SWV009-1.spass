@@ -1,0 +1,21 @@
+1[0:Inp] ||  -> less(U,V) less_or_equal(V,U)*.
+3[0:Inp] ||  -> less_or_equal(m,p)*.
+4[0:Inp] ||  -> less_or_equal(p,q)*.
+5[0:Inp] ||  -> less_or_equal(q,n)*.
+6[0:Inp] || less_or_equal(U,n) less(V,i) less(j,U) less_or_equal(m,V) -> less_or_equal(a(V),a(U))*.
+7[0:Inp] || less_or_equal(U,V) less_or_equal(V,j) less_or_equal(m,U) -> less_or_equal(a(U),a(V))*.
+8[0:Inp] || less_or_equal(U,V) less_or_equal(V,n) less_or_equal(i,U) -> less_or_equal(a(U),a(V))*.
+9[0:Inp] || less_or_equal(a(p),a(q))* -> .
+11[0:Res:8.3,9.0] || less_or_equal(p,q) less_or_equal(q,n) less_or_equal(i,p)* -> .
+12[0:Res:1.1,11.2] || less_or_equal(p,q)* less_or_equal(q,n) -> less(p,i).
+13[0:Res:7.3,9.0] || less_or_equal(p,q) less_or_equal(q,j) less_or_equal(m,p)* -> .
+14[0:Res:4.0,12.0] || less_or_equal(q,n)* -> less(p,i).
+16[0:Res:5.0,14.0] ||  -> less(p,i)*.
+18[0:Res:3.0,13.2] || less_or_equal(p,q)* less_or_equal(q,j) -> .
+20[0:Res:6.4,9.0] || less_or_equal(q,n) less(p,i) less(j,q) less_or_equal(m,p)* -> .
+21[0:Res:4.0,18.0] || less_or_equal(q,j)* -> .
+23[0:Res:1.1,21.0] ||  -> less(j,q)*.
+24[0:Res:3.0,20.3] || less_or_equal(q,n)* less(p,i) less(j,q) -> .
+26[0:Res:5.0,24.0] || less(p,i) less(j,q)* -> .
+28[0:Res:23.0,26.1] || less(p,i)* -> .
+29[0:Res:16.0,28.0] ||  -> .

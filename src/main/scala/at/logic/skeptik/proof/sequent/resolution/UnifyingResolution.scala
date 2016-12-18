@@ -318,6 +318,15 @@ trait checkUnifiableVariableName {
 
 trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {
 
+  def contractIfHelpful(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
+    val con = Contraction(premise)(unifiableVariables)
+    if (con.conclusion.size < premise.conclusion.size) {
+      con
+    } else {
+      premise
+    }
+  }
+
   def intersectMaps(a: MMap[Var, Set[E]], b: MMap[Var, Set[E]]): MMap[Var, Set[E]] = {
     val out = MMap[Var, Set[E]]()
 
@@ -462,15 +471,16 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     newComputed
   }
 
-  def computeIntersectedMap(computed: Sequent, desired: Sequent, vars: MSet[Var]): (Boolean, MMap[Var, Set[E]]) = {
-    val cVars = vars //Aug11
+  def computeIntersectedMap(computed: Sequent, desired: Sequent, vars: MSet[Var], allowSubset: Boolean): (Boolean, MMap[Var, Set[E]]) = {
+    val cVars = vars
     val antMap = generateSubstitutionOptions(computed.ant, desired.ant, cVars)
-    if (getSetOfVars(computed.ant: _*).size > 0 && antMap.size == 0) {
+
+    if (!allowSubset && getSetOfVars(computed.ant: _*).size > 0 && antMap.size == 0) {
       return (false, MMap[Var, Set[E]]())
     }
 
     val sucMap = generateSubstitutionOptions(computed.suc, desired.suc, cVars)
-    if (getSetOfVars(computed.suc: _*).size > 0 && sucMap.size == 0) {
+    if (!allowSubset && getSetOfVars(computed.suc: _*).size > 0 && sucMap.size == 0) {
       return (false, MMap[Var, Set[E]]())
     }
     val intersectedMap = intersectMaps(antMap, sucMap)
@@ -480,7 +490,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     (true, intersectedMap)
   }
 
-  //July 18 //Aug11
   def findFirstLargeSet(map: MMap[Var, Set[E]], vars: MSet[Var]): Option[Var] = {
     if (map.size == 0) {
       return None
@@ -507,7 +516,9 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   def checkInvalidMapAndReturnSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean): Substitution = {
 
     //Check if map is valid: 
+
     val subsetContainedOrEquals = checkSubsetOrEquality(containmentOnly, computed, desired)
+
     if (validMap(m, vars) && subsetContainedOrEquals) {
       //get the sub
       val sub = getUniqueSubstitutions(m, vars)
@@ -525,6 +536,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     //recurse on the rest
     //Find one variable to recurse on.		
     val bigSetKey = findFirstLargeSet(m, vars)
+
     val bigSet = bigSetKey match {
       case Some(bigKey) => {
         if (vars.contains(bigKey)) {
@@ -537,10 +549,12 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         Set[Var]()
       }
     }
+
     for (mVal <- bigSet) {
+
       val newNewComputed = applySub(newComputed, Substitution((bigSetKey.get, mVal)))
-      val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired, vars)
-      //Aug11
+      val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired, vars, false)
+
       val subsetOrEqualityVerified = checkSubsetOrEquality(containmentOnly, newNewComputed, desired)
       val mapValidAndCorrect = subsetOrEqualityVerified && mapValid
 
@@ -604,7 +618,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     return findRenaming(computed.conclusion, desired.conclusion)
   }
 
-  
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
     if (checkIfConclusionsAreEqual(computed, desired)) {
       return Substitution()
@@ -619,13 +632,14 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         val intersectedMap = intersectMaps(antMap, sucMap)
         val computedVars = getSetOfVars(computedClean)
         if (!validMap(intersectedMap, computedVars)) {
+
           val invalidOut = checkInvalidMapAndReturnSub(intersectedMap, computedVars, computedClean.conclusion, desired, false)
           return checkRenamingSubstitution(invalidOut)
         }
 
         val sub = checkRenamingSubstitution(getUniqueSubstitutions(intersectedMap, computedVars))
         val out = if (sub == null) { sub } else {
-          val newComputed = applySub(computedClean.conclusion, sub) //was computed
+          val newComputed = applySub(computedClean.conclusion, sub)
           val matches = newComputed.ant.toSet.subsetOf(desired.ant.toSet) && newComputed.suc.toSet.subsetOf(desired.suc.toSet)
           if (matches) {
             sub
@@ -688,7 +702,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
         val computedSequentRelaxed = applyRelaxation(computedSequentClean, relaxation)
 
-        //July 28 - changed order of arguments for findRenaming
+        //July 28 - changed order of arguments for findRenaming; they should not change
         desiredEquivToComputedRelaxed = findRenaming(computedSequentRelaxed, desired) != null
         computedCleanIsMoreGeneral = isMoreGeneral(computedSequentClean, desired)
       }
@@ -699,7 +713,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
         val tryContraction = Contraction(Axiom(computedSequentClean), desired)
         //If we got here, Contraction did not fail a requirement, so the desired was found.
-        contractionWorked = true //Oct 28 change
+        contractionWorked = true
       } catch {
         case _: Throwable => {
           //do nothing
@@ -732,7 +746,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
           val sucMap = generateSubstitutionOptions(computed.suc, desired.suc)
           val intersectedMap = intersectMaps(antMap, sucMap)
           if (!validMap(intersectedMap, commonVars)) {
-            return checkInvalidMap(intersectedMap, commonVars, computed, desired) //false
+            return checkInvalidMap(intersectedMap, commonVars, computed, desired)
           } else {
             return true
           }
