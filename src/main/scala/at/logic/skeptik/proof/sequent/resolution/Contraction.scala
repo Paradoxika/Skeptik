@@ -18,27 +18,22 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   def conclusionContext = conclusion
   def auxFormulas = premise.mainFormulas diff conclusion
   def mainFormulas = conclusion intersect premise.mainFormulas
-
   val contraction = checkOrContract(premise.conclusion, desired)(unifiableVariables)
-
   def newAnt = contraction._1
   def newSuc = contraction._2
-
   def subs = contraction._3
-
+  
   override lazy val conclusion = {
     val antecedent = newAnt
     val succedent = newSuc
     new Sequent(antecedent, succedent)
   }
-
+  
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
-
     val renaming = findRenaming(premise, desired)
     if (renaming != null) {
       return (desired.ant, desired.suc, null)
     }
-
     if (premise.logicalSize > 0) {
       require(premise.logicalSize > desired.logicalSize)
     }
@@ -47,54 +42,39 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
     } else {
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
-
       val renamingDistinct = findRenaming(premiseDistinct, desiredDistinct)
-
       if (renamingDistinct == null) {
-
         if (premise.ant.size == desired.ant.size && premise.suc.size == desired.suc.size) {
           require(false) //there was no contraction performed, yet we couldn't find a renaming. They're not the same
         }
-
         desiredIsSafe(premise, desired) //the 'require' is in this call, eventually.
-
       }
       (desired.ant, desired.suc, null)
     }
   }
 
   def desiredIsSafe(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]) = {
-
     val sucMaps = getMaps(premise.suc, desired.suc)
     val antMaps = getMaps(premise.ant, desired.ant)
-
     val allMaps = antMaps ++ sucMaps
     val finalMerge = buildMap(allMaps, desired)
-
   }
 
   def getMaps(premiseHalf: Seq[E], desiredHalf: Seq[E]): Seq[Seq[Substitution]] = {
 
     val allSubs = for {
-
       premiseLiteral <- premiseHalf
-
       instances = for {
         desiredLiteral <- desiredHalf
         unifier = unify((desiredLiteral, premiseLiteral) :: Nil)
-
         if !unifier.isEmpty
       } yield (desiredLiteral, unifier.get)
-
       if (checkEmpty(instances, premiseLiteral, desiredHalf))
-
       subs = for {
         pair <- instances
         if (pair._2.size > 0)
       } yield pair._2
-
       if (subs.length > 0)
-
     } yield subs
     allSubs
   }
@@ -181,7 +161,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
       val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
       val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
-
       val sA = addAntecedents(cleanAnt.distinct.toList)
       val sS = addSuccedents(cleanSuc.distinct.toList)
       val seqOut = sS union sA

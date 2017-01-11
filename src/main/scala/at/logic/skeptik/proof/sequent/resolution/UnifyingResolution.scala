@@ -615,10 +615,58 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def findRenaming(computed: SequentProofNode, desired: SequentProofNode)(implicit unifiableVariables: MSet[Var]): Substitution = {
-    return findRenaming(computed.conclusion, desired.conclusion)
+    return findRenaming(computed.conclusion, desired.conclusion) //oiriginal?
+//    return findRenaming(desired.conclusion, computed.conclusion) 
+    //return fastFindRenaming(computed.conclusion, desired.conclusion)
+//    return fastFindRenaming(desired.conclusion, computed.conclusion, true)
   }
 
+  
+  def fastFindRenaming(computed: Sequent, desired: Sequent, strictRenaming: Boolean): Substitution = {
+    if(checkIfConclusionsAreEqual(computed, desired)) { return Substitution() }
+    if(computed.ant.size != desired.ant.size || computed.suc.size != desired.suc.size){
+      return null
+    }
+    val pairs = MSet[(E,E)]()
+    for(ca <- computed.ant){
+      for(da <- desired.ant) {
+        pairs.add((ca,da))
+      }
+    }
+    for(cs <- computed.suc){
+      for(ds <- desired.suc) {
+        pairs.add((cs,ds))
+      }
+    }  
+    val cVars = getSetOfVars(Axiom(computed))
+    val sigma = unify(pairs.toList)(cVars)
+    sigma match {
+      case Some(sub) => {
+        if(strictRenaming){
+          if(checkSubstitutions(sub)){
+            sub
+          } else {
+            null
+          } 
+        } else {
+          sub
+        }
+      }
+      case None => { null }
+    }
+  }
+  
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
+    val computedClean = fixSharedNoFilter(Axiom(computed), Axiom(desired),0, unifiableVariables).conclusion
+    val ap =  fastFindRenaming(computedClean, desired, true) //Does not work when source literals can match to more than one target
+    val out = if(ap == null) { findRenamingSlow(computed, desired)(unifiableVariables) } else { ap }
+    return out
+//    return findRenamingSlow(computed, desired)(unifiableVariables) //out
+  }
+  
+  
+  
+  def findRenamingSlow(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
     if (checkIfConclusionsAreEqual(computed, desired)) {
       return Substitution()
     } else {

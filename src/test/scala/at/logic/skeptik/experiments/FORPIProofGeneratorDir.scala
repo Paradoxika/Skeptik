@@ -119,12 +119,20 @@ object FORPIProofGeneratorTestsDir {
     val files = getListOfFiles(pDir)
     
     var h = 0
+    var totalParseTime = 0.asInstanceOf[Long]
+    
     
     for (file <- files) {
       val pFileName = file.getAbsolutePath
       print("Proof #: " + h + " " + pFileName)
 
+      val parseStartTime = System.nanoTime()      
+      
       val proof = ProofParserSkeptikOutput.read(pFileName)//do things
+      
+      val parseEndTime = System.nanoTime()
+      
+      totalParseTime = totalParseTime + (parseEndTime - parseStartTime)
       
 //      val proofFile = proofDir + "random-results-" + startTime + "-proof-" + h + ".txt"
 //      val proofWriter = new PrintWriter(proofFile)
@@ -316,7 +324,10 @@ object FORPIProofGeneratorTestsDir {
 //    println("FORPI\nReduced: " + rpiN + " proof(s)\nFailed in: " + rpiF + " proof(s)\nThe average compression was to " + rpiAv / rpiN)
 //    println("Total compression ratio: " + ((proofsLenghtsSum - rpiProofsLenghtsSum) * 1.0) / proofsLenghtsSum)
 //    println("Number of fails RPI: " + rpiFail)
+    println("parse time: " + totalParseTime)
+    println("started: " + startTime)
     println("ended: " + getTimeString())
+    
   }
 
   def printStats(statWriter: PrintWriter, proof: Proof[Node], cProof: Proof[Node], fail: Boolean, time: Long, failString: String) = {

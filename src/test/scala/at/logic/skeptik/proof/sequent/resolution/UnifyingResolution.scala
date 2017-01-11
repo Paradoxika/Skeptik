@@ -698,10 +698,13 @@ The desired in this situation is false (requires V in computed to go to V and Y 
     
     
   println("OUTPUT OF INTEREST -------------")
-  println("7a: " + findSeqTest7A)
-  println("7b: " + findSeqTest7B)
-  val out = tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars)
-  println("out: " + out)
+//  println("7a: " + findSeqTest7A)
+//  println("7b: " + findSeqTest7B)
+//  val out = tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars)
+//  println("out: " + out)
+  println(leftNodeD)
+  println(rightNodeD)
+  println(desiredE)
   println("^^^^^^^^^^^^^^^^^^^^^")
 
   "CanRenameVariables" should {

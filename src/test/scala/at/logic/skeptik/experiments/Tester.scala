@@ -3,6 +3,7 @@ package at.logic.skeptik.experiments
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
 import at.logic.skeptik.parser.ProofParserSkeptikOutput
+import at.logic.skeptik.parser.ProofParserSPASS
 import at.logic.skeptik.expression._
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
@@ -50,41 +51,79 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
 //val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-48.txt")
 //val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-86.txt")
 //val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-254.txt")
-    
-    
 //    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-108.txt")//-4 ; not an issue for RPI
+    //val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-41.txt") //rpi blue dot
+
     
-    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-41.txt") //rpi blue dot
-     println(proof)
+    
+//  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-279.txt")//initial - unif
+//  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-68.txt") //now fixed - unif
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN632-1.spass") //bad comp
+    
+    
+    //Jan 6
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-112.txt") //change fR to FL ****
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 11-36-10 EST 2016-proof-20.txt") //change fR to FL ****
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-273.txt") //change fR to fL ****
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 14-31-43 EST 2016-proof-201.txt") // check both including auxR too
+    
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 13-57-09 EST 2016-proof-149.txt")
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 14-31-43 EST 2016-proof-150.txt")
+    
+    //these are fixed
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN569-1.spass")     
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN562-1.spass")
+//    
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN632-1.spass")     
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\MGT\\MGT003-1.spass")     
+    
+  
+  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-06-12 EST 2016-proof-99.txt")
+  
+    println(proof)
 //     println(proof.size)
      
     println("-------------------------------------------------------------------")
     val iProof = try {
-//     val cProof = FOLowerUnits(FORecyclePivots(proof))
-          val dProof = FOLowerUnits(proof)
+     val dProof = FORecyclePivotsWithIntersection(proof)
+//          val dProof = FOLowerUnits(proof)
      if(dProof.root.conclusion.ant.size != 0 || dProof.root.conclusion.suc.size != 0){
+       println(dProof)
+       println("Bad compression.")
        proof
      } else {
+       println(dProof)
        dProof
      }
      } catch {
-       case _ => {
+       case e: Exception => {
+         e.printStackTrace()
          proof
        }
      }
-     print(iProof)
-    println("-------------------------------------------------------------------")
-     
-    try{
-     val cProof =  FORecyclePivotsWithIntersection(iProof) //try with iProof
-     println(proof.size, cProof.size)
-     println(cProof)
-    }catch {
-      case f: Throwable =>{
-        f.printStackTrace()
-//println(proof.size, iProof.size)        
+       def countResolutionNodes(p: Proof[SequentProofNode]): Int = {
+    var count = 0
+    for (n <- p.nodes) {
+      if (n.isInstanceOf[UnifyingResolution] || n.isInstanceOf[UnifyingResolutionMRR]) {
+        count = count + 1
       }
     }
+    count
+  }
+     println(countResolutionNodes(iProof))
+     
+     //print(iProof)
+//    println("-------------------------------------------------------------------")
+//    try{
+//     val cProof =  FORecyclePivotsWithIntersection(iProof) //try with iProof
+//     println(proof.size, cProof.size)
+//     println(cProof)
+//    }catch {
+//      case f: Throwable =>{
+//        f.printStackTrace()
+////println(proof.size, iProof.size)        
+//      }
+//    }
      
 
  

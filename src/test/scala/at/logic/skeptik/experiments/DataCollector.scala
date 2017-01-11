@@ -40,13 +40,13 @@ object DataCollector {
 
   def main(arfs: Array[String]): Unit = {
     val nBins = 16
-    //makeBigList()
+    makeBigList("9 Jan 2017g","jan9g")
 
     //makeTPTPCountFiles()
 
     //makeRandomCountFiles()
     
-     makeRandomBWFiles(nBins, true)
+     //makeRandomBWFiles(nBins, true)
     
     //makeCombinedDataCountFilesSeparate()
     //makeCombinedDataCountFilesSeparateResolutions(nBins)    
@@ -59,9 +59,9 @@ object DataCollector {
     
   }
 
-  def makeBigList() = {
-    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\1 Dec 2016\\Stats"
-    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\1 Dec 2016\\Collected\\random-all-data-dec1.txt"
+  def makeBigList(dir: String, sname: String) = {
+    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\" + dir + "\\Stats"
+    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\" + dir + "\\Collected\\random-all-data-"+sname+".txt"
 
     val dataFile = new File(finalFileName)
     if (!dataFile.exists()) {
