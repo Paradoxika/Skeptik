@@ -30,20 +30,17 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
   }
   
   def checkOrContract(premise: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
-    val renaming = findRenaming(premise, desired)
-    if (renaming != null) {
-      return (desired.ant, desired.suc, null)
-    }
+
     if (premise.logicalSize > 0) {
       require(premise.logicalSize >= desired.logicalSize)
     }
     if (desired.logicalSize == 0) {
       contract(premise, null)
     } else {
-//    val renaming = findRenaming(premise, desired)
-//    if (renaming != null) {
-//      return (desired.ant, desired.suc, null)
-//    }      
+    val renaming = findRenaming(premise, desired)
+    if (renaming != null) {
+      return (desired.ant, desired.suc, null)
+    }      
       val premiseDistinct = addAntecedents(premise.ant.distinct.toList) union addSuccedents(premise.suc.distinct.toList)
       val desiredDistinct = addAntecedents(desired.ant.distinct.toList) union addSuccedents(desired.suc.distinct.toList)
       val renamingDistinct = findRenaming(premiseDistinct, desiredDistinct)
@@ -164,11 +161,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       }
 
       val seqOut = applySub(seq, sub)
-//      val cleanSuc = (for (auxL <- seq.suc) yield sub(auxL))
-//      val cleanAnt = (for (auxL <- seq.ant) yield sub(auxL))
-//      val sA = addAntecedents(cleanAnt.distinct.toList)
-//      val sS = addSuccedents(cleanSuc.distinct.toList)
-//      val seqOut = sS union sA
+
 
       if (subs == null) {
         contract(seqOut, List[Substitution](sub))
