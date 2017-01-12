@@ -231,17 +231,18 @@ object FOLowerUnits
       return null.asInstanceOf[Sequent]
     }
     val updatedCarry = if (sub != null) {
-      val updatedAnt = if (oldCarry.ant != null) {
-        oldCarry.ant.map(e => sub(e)).toList
-      } else {
-        List[E]()
-      }
-      val updatedSuc = if (oldCarry.suc != null) {
-        oldCarry.suc.map(e => sub(e)).toList
-      } else {
-        List[E]()
-      }
-      addAntecedents(updatedAnt) union addSuccedents(updatedSuc)
+      applySub(oldCarry, sub)
+//      val updatedAnt = if (oldCarry.ant != null) {
+//        oldCarry.ant.map(e => sub(e)).toList
+//      } else {
+//        List[E]()
+//      }
+//      val updatedSuc = if (oldCarry.suc != null) {
+//        oldCarry.suc.map(e => sub(e)).toList
+//      } else {
+//        List[E]()
+//      }
+//      addAntecedents(updatedAnt) union addSuccedents(updatedSuc)
     } else {
       oldCarry
     }
