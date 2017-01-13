@@ -232,17 +232,6 @@ object FOLowerUnits
     }
     val updatedCarry = if (sub != null) {
       applySub(oldCarry, sub)
-//      val updatedAnt = if (oldCarry.ant != null) {
-//        oldCarry.ant.map(e => sub(e)).toList
-//      } else {
-//        List[E]()
-//      }
-//      val updatedSuc = if (oldCarry.suc != null) {
-//        oldCarry.suc.map(e => sub(e)).toList
-//      } else {
-//        List[E]()
-//      }
-//      addAntecedents(updatedAnt) union addSuccedents(updatedSuc)
     } else {
       oldCarry
     }
@@ -912,7 +901,7 @@ object FOLowerUnits
         }
       } else {
         //only right is non-unit
-        val contracted = contractIfHelpful(right)(vars) //Contraction(right)(vars)
+        val contracted = contractIfHelpful(right)(vars) 
         finishResolution(left, contracted, true)(vars)
       }
     } else {
