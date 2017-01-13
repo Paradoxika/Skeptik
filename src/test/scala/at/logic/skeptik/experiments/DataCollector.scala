@@ -40,7 +40,7 @@ object DataCollector {
 
   def main(arfs: Array[String]): Unit = {
     val nBins = 16
-    makeBigList("10 Jan 2017c","jan10c")
+    makeBigList("10 Jan 2017d","jan10d")
 
     //makeTPTPCountFiles()
 

@@ -236,7 +236,7 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   // Main functions
-  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var], auxMap: MMap[SequentProofNode, E], mguMap: MMap[SequentProofNode, Substitution],
+  protected def fixProofNodes(edgesToDelete: EdgesToDelete, unifiableVariables: MSet[Var], 
                               safeMap: MMap[SequentProofNode, Sequent])(p: SequentProofNode, fixedPremises: Seq[SequentProofNode]): SequentProofNode = {
     lazy val fixedLeft = fixedPremises.head;
     lazy val fixedRight = fixedPremises.last;
@@ -250,7 +250,6 @@ abstract class FOAbstractRPILUAlgorithm
           p //if we can find the old conclusion from the fixed node, it's the same. memory optimization
         } catch {
           case t: Throwable => {
-            //            val con = contractIfHelpful(fixedLeft)(unifiableVariables)
             if (!checkContracted(p.conclusion, fixedLeft.conclusion)) {
               fixedLeft
             } else {
@@ -272,13 +271,9 @@ abstract class FOAbstractRPILUAlgorithm
 
       // Delete nodes and edges
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, left) => {
-        val sub = p.asInstanceOf[UnifyingResolution].mgu
-        mguMap.put(fixedRight, sub)
         fixedRight
       }
       case UnifyingResolution(left, right, _, _) if edgesToDelete.isMarked(p, right) => {
-        val sub = p.asInstanceOf[UnifyingResolution].mgu
-        mguMap.put(fixedLeft, sub)
         fixedLeft
       }
 
@@ -321,9 +316,6 @@ abstract class FOAbstractRPILUAlgorithm
       // Main case (rebuild a resolution)
       case UnifyingResolution(left, right, auxL, auxR) => {
 
-        val nonEmptyLeftMap = !auxMap.get(left).isEmpty && !mguMap.get(left).isEmpty
-        val nonEmptyRightMap = !auxMap.get(right).isEmpty && !mguMap.get(right).isEmpty
-
         val ambiguousErrorStringMRR = "Resolution (MRR): the resolvent is ambiguous."
         val ambiguousErrorString = "Resolution: the resolvent is ambiguous."
 
@@ -346,13 +338,7 @@ abstract class FOAbstractRPILUAlgorithm
         } catch {
           case e: Exception => {
             if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
-              if (nonEmptyLeftMap && !nonEmptyRightMap) {
-                val oldMGU = mguMap.get(left).get
-                fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
-              } else {
-                val oldMGU = mguMap.get(right).get
-                fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
-              }
+                fixAmbiguous(fixedLeft, fixedRight, null, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
             } else {
               try {
                 val a = UnifyingResolution(fixedRight, fixedLeft)(unifiableVariables)
@@ -360,7 +346,7 @@ abstract class FOAbstractRPILUAlgorithm
               } catch {
                 case f: Exception => {
                   val a = attemptGreedyContraction(contractIfHelpful(fixedLeft)(unifiableVariables), fixedRight,
-                    fixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, mguMap, p.conclusion)(unifiableVariables)
+                    fixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
                   a
                 }
               }
@@ -405,7 +391,7 @@ abstract class FOAbstractRPILUAlgorithm
 
   def attemptGreedyContraction(fixedLeft: SequentProofNode, fixedRight: SequentProofNode, newFixedRight: SequentProofNode,
                                ambiguousErrorString: String, ambiguousErrorStringMRR: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E,
-                               mguMap: MMap[SequentProofNode, Substitution], oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
+                               oldConclusion: Sequent)(implicit unifiableVariables: MSet[Var]): SequentProofNode = {
 
     try {
       UnifyingResolution(fixedLeft, newFixedRight)(unifiableVariables)
@@ -441,13 +427,7 @@ abstract class FOAbstractRPILUAlgorithm
           k
         } catch {
           case f: Exception => {
-
-            val oldMGU = if (!mguMap.get(left).isEmpty) {
-              mguMap.get(left).get
-            } else {
-              null
-            }
-            fixAmbiguous(fixedLeft, fixedRight, oldMGU, left, right, auxL, auxR, oldConclusion, false)(unifiableVariables)
+            fixAmbiguous(fixedLeft, fixedRight, null, left, right, auxL, auxR, oldConclusion, false)(unifiableVariables)
           }
         }
 
@@ -737,32 +717,25 @@ trait FOCollectEdgesUsingSafeLiterals
 
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new FOEdgesToDelete()
-    var auxMap = new MMap[SequentProofNode, E]()
-    var mguMap = new MMap[SequentProofNode, Substitution]()
     val safeMap = new MMap[SequentProofNode, Sequent]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
       safeMap.put(p, safeLiterals.toSeqSequent)
       p match {
 
-        case UnifyingResolution(left, right, auxL, auxR) if (
-          (checkForResSmart(safeLiterals.ant, auxR, p) && checkForResSmart(safeLiterals.suc, auxL, p))
-          || checkForResBoth(safeLiterals.toSeqSequent, auxL, p) || checkForResBoth(safeLiterals.toSeqSequent, auxR, p)) => {
-          //if the pivot appears in both the antecedent and succedent of the safe literals, we don't know
-          //which edge to mark. Better not touch either.
-        }
+//        case UnifyingResolution(left, right, auxL, auxR) if (
+//          (checkForResSmart(safeLiterals.ant, auxR, p) && checkForResSmart(safeLiterals.suc, auxL, p))
+//          || checkForResBoth(safeLiterals.toSeqSequent, auxL, p) || checkForResBoth(safeLiterals.toSeqSequent, auxR, p)) => {
+//          //if the pivot appears in both the antecedent and succedent of the safe literals, we don't know
+//          //which edge to mark. Better not touch either.
+//        }
 
         case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.suc, auxL, p) &&
           finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)) => {
-          auxMap.put(p, auxL)
-          mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
-
           edgesToDelete.markRightEdge(p)
         }
         case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.ant, auxR, p) &&
           finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)) => {
-          auxMap.put(p, auxR)
-          mguMap.put(p, p.asInstanceOf[UnifyingResolution].mgu)
           edgesToDelete.markLeftEdge(p)
         }
         case _ =>
@@ -770,7 +743,7 @@ trait FOCollectEdgesUsingSafeLiterals
       (p, safeLiterals)
     }
     nodeCollection.bottomUp(visit)
-    (edgesToDelete, auxMap, mguMap, safeMap)
+    (edgesToDelete, safeMap)
   }
 }
 

@@ -78,15 +78,15 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
 //    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\MGT\\MGT003-1.spass")     
     
   
-  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 14-31-43 EST 2016-proof-201.txt")
+  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-295.txt")
   
     println(proof)
 //     println(proof.size)
      
     println("-------------------------------------------------------------------")
     val iProof = try {
-     val dProof = FORecyclePivotsWithIntersection(proof)
-//          val dProof = FOLowerUnits(proof)
+//     val dProof = FORecyclePivotsWithIntersection(proof)
+          val dProof = FOLowerUnits(proof)
      if(dProof.root.conclusion.ant.size != 0 || dProof.root.conclusion.suc.size != 0){
        println(dProof)
        println("Bad compression.")
@@ -110,7 +110,7 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     }
     count
   }
-     println(countResolutionNodes(iProof))
+     println(countResolutionNodes(iProof) + " "  + countResolutionNodes(proof))
      
      //print(iProof)
 //    println("-------------------------------------------------------------------")

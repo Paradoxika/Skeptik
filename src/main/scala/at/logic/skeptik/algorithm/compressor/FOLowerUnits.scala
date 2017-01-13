@@ -503,7 +503,14 @@ object FOLowerUnits
     val contractedFixedRight = contractIfHelpful(newFixedRight)(vars)
 
     val out = try {
-      UnifyingResolutionMRR(contractedFixedLeft, contractedFixedRight, contractIfHelpful(Axiom(newGoalD))(vars).conclusion)(vars)
+      val contracted = contractIfHelpful(Axiom(newGoalD))(vars)
+      try{
+      UnifyingResolutionMRR(contractedFixedLeft, contractedFixedRight, contracted.conclusion)(vars)
+      } catch {
+        case f: Exception => {
+          UnifyingResolutionMRR(contractedFixedRight, contractedFixedLeft, contracted.conclusion)(vars)
+        }
+      }
     } catch {
       case e: Exception => {
 
@@ -832,7 +839,7 @@ object FOLowerUnits
     }
 
     val rightsUnit = findUnitInSeq(newRight, units, vars)
-
+    
     val rightUnitIsAnt = if (rightsUnit.conclusion.suc.size > 0) {
       false
     } else {
@@ -920,10 +927,10 @@ object FOLowerUnits
 
         try {
           //was finalL, finalR
-          UnifyingResolution(contractedL, contractedR)(vars)
-
+          UnifyingResolution.resolve(contractedR, contractedL, vars)
         } catch {
           case e: Exception => {
+            e.printStackTrace()
             smartContraction(left, right, units, vars)
           }
         }
