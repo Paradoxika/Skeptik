@@ -698,10 +698,13 @@ The desired in this situation is false (requires V in computed to go to V and Y 
     
     
   println("OUTPUT OF INTEREST -------------")
-  println("7a: " + findSeqTest7A)
-  println("7b: " + findSeqTest7B)
-  val out = tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars)
-  println("out: " + out)
+//  println("7a: " + findSeqTest7A)
+//  println("7b: " + findSeqTest7B)
+//  val out = tester.findRenaming(findSeqTest7A, findSeqTest7B)(usedVars)
+//  println("out: " + out)
+  println(leftNodeD)
+  println(rightNodeD)
+  println(desiredE)
   println("^^^^^^^^^^^^^^^^^^^^^")
 
   "CanRenameVariables" should {
@@ -750,31 +753,31 @@ The desired in this situation is false (requires V in computed to go to V and Y 
       resultF must beEqualTo(true)
     }
     "return the correct leftPremise" in {
-      URur.leftPremise must beEqualTo(URleftNode)
+      URur.asInstanceOf[UnifyingResolution].leftPremise must beEqualTo(URleftNode)
     }
     "return the correct rightPremise" in {
-      URur.rightPremise must beEqualTo(URrightNode)
+      URur.asInstanceOf[UnifyingResolution].rightPremise must beEqualTo(URrightNode)
     }
     "return the correct clean left (no shared)" in {
-      URurB.leftClean must beEqualTo(URleftNodeB)
+      URurB.asInstanceOf[UnifyingResolution].leftClean must beEqualTo(URleftNodeB)
     }
     "return the correct clean left (shared)" in {
-      findRenaming(URurC.leftClean.conclusion, URleftNodeC.conclusion)(usedVars) != null must beEqualTo(true)
+      findRenaming(URurC.asInstanceOf[UnifyingResolution].leftClean.conclusion, URleftNodeC.conclusion)(usedVars) != null must beEqualTo(true)
     }
     "return the correct auxL" in {
-      findRenaming(Sequent()(URur.auxL), Sequent()(App(Var("q", i -> i), a)))(usedVars) != null must beEqualTo(true)
+      findRenaming(Sequent()(URur.asInstanceOf[UnifyingResolution].auxL), Sequent()(App(Var("q", i -> i), a)))(usedVars) != null must beEqualTo(true)
     }
     "return the correct auxR" in {
-      findRenaming(Sequent()(URur.auxR), Sequent()(App(Var("q", i -> i), y)))(usedVars) != null must beEqualTo(true)
+      findRenaming(Sequent()(URur.asInstanceOf[UnifyingResolution].auxR), Sequent()(App(Var("q", i -> i), y)))(usedVars) != null must beEqualTo(true)
     }
     "return the correct leftAuxFormulas" in {
-      findRenaming(URur.leftAuxFormulas, Sequent()(App(Var("q", i -> i), a)))(usedVars) != null must beEqualTo(true)
+      findRenaming(URur.asInstanceOf[UnifyingResolution].leftAuxFormulas, Sequent()(App(Var("q", i -> i), a)))(usedVars) != null must beEqualTo(true)
     }
     "return the correct rightAuxFormulas" in {
-      findRenaming(URur.rightAuxFormulas, Sequent(App(Var("q", i -> i), y))())(usedVars) != null must beEqualTo(true)
+      findRenaming(URur.asInstanceOf[UnifyingResolution].rightAuxFormulas, Sequent(App(Var("q", i -> i), y))())(usedVars) != null must beEqualTo(true)
     }
     "return the correct mgu" in {
-      URur.mgu must beEqualTo(Substitution((x, a)))
+      URur.asInstanceOf[UnifyingResolution].mgu must beEqualTo(Substitution((x, a)))
     }
     "return the correct conclusion context" in {
       findRenaming(URur.conclusionContext, Sequent(App(Var("p", i -> i), y))())(usedVars) != null must beEqualTo(true)

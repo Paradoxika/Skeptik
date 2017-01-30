@@ -231,17 +231,7 @@ object FOLowerUnits
       return null.asInstanceOf[Sequent]
     }
     val updatedCarry = if (sub != null) {
-      val updatedAnt = if (oldCarry.ant != null) {
-        oldCarry.ant.map(e => sub(e)).toList
-      } else {
-        List[E]()
-      }
-      val updatedSuc = if (oldCarry.suc != null) {
-        oldCarry.suc.map(e => sub(e)).toList
-      } else {
-        List[E]()
-      }
-      addAntecedents(updatedAnt) union addSuccedents(updatedSuc)
+      applySub(oldCarry, sub)
     } else {
       oldCarry
     }
@@ -502,7 +492,14 @@ object FOLowerUnits
     val contractedFixedRight = contractIfHelpful(newFixedRight)(vars)
 
     val out = try {
-      UnifyingResolutionMRR(contractedFixedLeft, contractedFixedRight, contractIfHelpful(Axiom(newGoalD))(vars).conclusion)(vars)
+      val contracted = contractIfHelpful(Axiom(newGoalD))(vars)
+      try{
+      UnifyingResolutionMRR(contractedFixedLeft, contractedFixedRight, contracted.conclusion)(vars)
+      } catch {
+        case f: Exception => {
+          UnifyingResolutionMRR(contractedFixedRight, contractedFixedLeft, contracted.conclusion)(vars)
+        }
+      }
     } catch {
       case e: Exception => {
 
@@ -831,7 +828,7 @@ object FOLowerUnits
     }
 
     val rightsUnit = findUnitInSeq(newRight, units, vars)
-
+    
     val rightUnitIsAnt = if (rightsUnit.conclusion.suc.size > 0) {
       false
     } else {
@@ -904,7 +901,7 @@ object FOLowerUnits
         }
       } else {
         //only right is non-unit
-        val contracted = contractIfHelpful(right)(vars) //Contraction(right)(vars)
+        val contracted = contractIfHelpful(right)(vars) 
         finishResolution(left, contracted, true)(vars)
       }
     } else {
@@ -919,10 +916,10 @@ object FOLowerUnits
 
         try {
           //was finalL, finalR
-          UnifyingResolution(contractedL, contractedR)(vars)
-
+          UnifyingResolution.resolve(contractedR, contractedL, vars)
         } catch {
           case e: Exception => {
+            e.printStackTrace()
             smartContraction(left, right, units, vars)
           }
         }
