@@ -2,6 +2,8 @@ package at.logic.skeptik.experiments
 
 import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.proof.sequent.SequentProofNode
+import at.logic.skeptik.parser.ProofParserSPASS
+
 import at.logic.skeptik.expression._
 import at.logic.skeptik.judgment.immutable.{ SetSequent => IClause }
 import at.logic.skeptik.algorithm.compressor.FOCollectEdgesUsingSafeLiterals
@@ -41,11 +43,11 @@ object TesterB extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLitera
   def main(args: Array[String]): Unit = {    
 
 
-
-    
-    //////
-    
-    
+    val proof = ProofParserSPASS.read("D:\\Git Repositories\\Skeptik\\examples\\proofs\\SPASS\\aicom-ce.spass")     
+      
+    println(proof)
+    val cProof = FORecyclePivotsWithIntersection(proof)
+    println(cProof)
 
     
     
