@@ -195,7 +195,7 @@ object FORPIProofGeneratorTestsDir {
       val rpiStartTime = System.nanoTime()
 
       val rpiProof = try {
-        val p = FORecyclePivotsWithIntersection(proof)
+        val p = FORecyclePivotsWithIntersection(proof, pFileName)
         if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0){
           RPIfail = true
           rpiFails = rpiFails +1

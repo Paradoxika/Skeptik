@@ -44,7 +44,8 @@ object TesterB extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLitera
 
 
     val proof = ProofParserSPASS.read("D:\\Git Repositories\\Skeptik\\examples\\proofs\\SPASS\\aicom-ce.spass")     
-      
+//          val proof = ProofParserSPASS.read("D:\\Git Repositories\\Skeptik\\examples\\proofs\\SPASS\\aicom-ceb.spass")     
+
     println(proof)
     val cProof = FORecyclePivotsWithIntersection(proof)
     println(cProof)

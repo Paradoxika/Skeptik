@@ -92,7 +92,9 @@ abstract class FOAbstractRPILUAlgorithm
 
     def oldMGU = p.asInstanceOf[UnifyingResolution].mgu
     def newAux = if (!skip) { oldMGU(aux) } else { aux }
+//    def newAux = aux //PR
     for (safeLit <- safeLiteralsHalf) {
+//      println("newAux: " + newAux + " safeLit: " + safeLit)
       val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
       unify((newAux, safeLit) :: Nil)(uvars) match {
         case Some(_) => {
@@ -103,6 +105,7 @@ abstract class FOAbstractRPILUAlgorithm
         }
       }
     }
+//    println("checkForResSmart - false")
     false
   }
 
@@ -121,20 +124,51 @@ abstract class FOAbstractRPILUAlgorithm
 
   }
 
+  //TODO: when this is used, the safe is actually the list 'lits'
+//  def checkAll(lits: Set[E], safe: E): Boolean = {
+//    val sName = getPredName(safe)
+//    for (lit <- lits) {
+//      val lName = getPredName(lit)
+//      if (lName.equals(sName)) {
+//        val vars = getSetOfVars(safe) //PR
+////        val vars = getSetOfVars(safe) union getSetOfVars(lit)
+//        val sigma = unify((lit, safe) :: Nil)(vars)
+//        if (sigma.isEmpty) {
+//          println("CheckAll returning false because of " + lit + " and " + safe)
+//          return false
+//        
+//        } else { //PR - this else branch
+//          println("CheckAll cleared " +  lit + " and " + safe)
+//        }
+//      }
+//    }
+//    true
+//  }
+  
   def checkAll(lits: Set[E], safe: E): Boolean = {
+    var out = false
     val sName = getPredName(safe)
     for (lit <- lits) {
       val lName = getPredName(lit)
-      if (lName.equals(sName)) {
-        val vars = getSetOfVars(safe)
+      val varsX = getSetOfVars(safe) union getSetOfVars(lit)
+        val sigmaX = unify((lit, safe) :: Nil)(varsX)      
+      if (!sigmaX.isEmpty) {
+        val vars = getSetOfVars(safe) //PR
+//        val vars = getSetOfVars(safe) union getSetOfVars(lit)
         val sigma = unify((lit, safe) :: Nil)(vars)
         if (sigma.isEmpty) {
-          return false
+//          println("CheckAll returning false because of " + lit + " and " + safe)
+//          return false
+        
+        } else { //PR - this else branch
+//          println("CheckAll cleared " +  lit + " and " + safe)
+           out = out || true
         }
       }
     }
-    true
-  }
+//    true
+    out
+  }  
 
   class FOEdgesToDelete extends EdgesToDelete {
 
@@ -203,11 +237,12 @@ abstract class FOAbstractRPILUAlgorithm
     def vars = MSet[Var]() ++ antVars ++ sucVars
 
     val allMatchesOkay = checkAllPairs(seqToDelete, safeClean.conclusion)
-
+//    println("AMO: " + allMatchesOkay)
     if (fastFindRenaming(safeClean.conclusion, seqToDelete, false) != null) {
+      
       allMatchesOkay
     } else {
-      desiredIsContained(safeClean.conclusion, seqToDelete) && allMatchesOkay
+      desiredIsContained(safeClean.conclusion, seqToDelete) && allMatchesOkay //PR
     }
 
   }
@@ -678,6 +713,9 @@ trait FOCollectEdgesUsingSafeLiterals
     val safeMap = new MMap[SequentProofNode, Sequent]()
     def visit(p: SequentProofNode, childrensSafeLiterals: Seq[(SequentProofNode, IClause)]) = {
       val safeLiterals = computeSafeLiterals(p, childrensSafeLiterals, edgesToDelete)
+//      println("Node: " + p)
+//      println("Safe: " + safeLiterals)
+      
       safeMap.put(p, safeLiterals.toSeqSequent)
       p match {
        
@@ -690,7 +728,23 @@ trait FOCollectEdgesUsingSafeLiterals
           finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)) => {
           edgesToDelete.markLeftEdge(p)
         }
-        case _ =>
+          
+//          //Debug case
+//        case UnifyingResolution(left, right, auxL, auxR) => {
+////          println("left: " + left)
+////          println("right: " + right)
+////          println("auxL: " + auxL)
+////          println("auxR: " + auxR)
+//          
+//          
+////          println("auxLcheck: " + checkForResSmart(safeLiterals.ant, auxL, p))
+////          println("rightcheck: " + finalCheck(safeLiterals.toSeqSequent, right.conclusion, false))          
+////          println("auxRcheck: " + checkForResSmart(safeLiterals.suc, auxR, p))
+////          println("leftcheck: " + finalCheck(safeLiterals.toSeqSequent, left.conclusion, false))
+//          
+//        }          
+          
+        case _ => 
       }
       (p, safeLiterals)
     }

@@ -5,6 +5,9 @@ import at.logic.skeptik.proof.Proof
 import at.logic.skeptik.judgment.immutable.SetSequent
 import collection.mutable.{ HashMap => MMap, HashSet => MSet }
 
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
+import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
+
 abstract class FORecyclePivots
     extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with FOUnitsCollectingBeforeFixing {
 
@@ -17,10 +20,39 @@ abstract class FORecyclePivots
       println("No edges to delete")
       proof
     } else {
-      Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, safeMap))) 
+      println("Num to delete: " + edgesToDelete.edges.size)
+      val out = Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, safeMap)))
+      out
     }
 
   }
+  
+  def apply(proof: Proof[SequentProofNode], name: String) = {
+    val unifiableVars = getAllVars(proof);
+    val firstPassResults = collectEdgesToDelete(proof)
+    val edgesToDelete = firstPassResults._1
+    val safeMap = firstPassResults._2 
+    if (edgesToDelete.isEmpty) {
+      println("No edges to delete")
+      proof
+    } else {
+      val out = Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, safeMap)))
+        def countResolutionNodes(p: Proof[SequentProofNode]): Int = {
+    var count = 0
+    for (n <- p.nodes) {
+      if (n.isInstanceOf[UnifyingResolution] || n.isInstanceOf[UnifyingResolutionMRR]) {
+        count = count + 1
+      }
+    }
+    count
+  }
+      if (out.size == proof.size && countResolutionNodes(proof) == countResolutionNodes(out)){
+        scala.tools.nsc.io.File("edges.txt").appendAll("Possible case found. " + name + " \n")
+      }
+      out
+    }
+
+  }  
 
 }
 
