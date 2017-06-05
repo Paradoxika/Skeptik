@@ -16,6 +16,8 @@ import at.logic.skeptik.algorithm.FOProofsGenerator.ProofGenerator
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import scala.collection.mutable.{Set => MSet}
+import java.io.FileWriter
+
 /**
  * Created by eze on 2016.07.25..
  * modified by jgorzny (November 2016)
@@ -125,6 +127,14 @@ object FORPIProofGeneratorTestsDir {
     for (file <- files) {
       val pFileName = file.getAbsolutePath
       print("Proof #: " + h + " " + pFileName)
+      
+          val fw = new FileWriter("checking-subs.txt", true)
+try {
+  fw.write("Proof #: " + h + " " + pFileName + "\n")
+
+}
+finally fw.close() 
+  
 
       val parseStartTime = System.nanoTime()      
       

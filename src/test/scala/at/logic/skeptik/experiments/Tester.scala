@@ -78,10 +78,12 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     
 //    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\MGT\\MGT004-1.spass")     
     
-    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 16-54-07 EST 2016-proof-70.txt")
+    //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 16-54-07 EST 2016-proof-70.txt")
   
 //  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-295.txt")
   
+    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 11-49-03 EST 2016-proof-105.txt")
+    
     println(proof)
 //     println(proof.size)
      
@@ -112,7 +114,7 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     }
     count
   }
-     println(countResolutionNodes(iProof) + " "  + countResolutionNodes(proof))
+     println(countResolutionNodes(proof) + " "  + countResolutionNodes(iProof))
      println(proof.size + " " + iProof.size)
      
      //print(iProof)

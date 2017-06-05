@@ -19,6 +19,7 @@ import at.logic.skeptik.algorithm.unifier.{ MartelliMontanari => unify }
 import at.logic.skeptik.expression.substitution.immutable.Substitution
 import at.logic.skeptik.parser.ProofParserSPASS.addAntecedents
 import at.logic.skeptik.parser.ProofParserSPASS.addSuccedents
+import java.io.FileWriter
 
 abstract class FOAbstractRPILUAlgorithm
     extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables with FindMGU {
@@ -69,9 +70,9 @@ abstract class FOAbstractRPILUAlgorithm
   //This checks the aux after the original mgu was applied
   //prevents some terrible attempts to lower
   //NOTE: p MUST be a unifying resolution node
-  protected def checkForResSmart(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode, skip: Boolean = false): Boolean = {
+  protected def checkForResSmart(safeLiteralsHalf: Set[E], aux: E, p: SequentProofNode, skip: Boolean = false): (Boolean, Substitution) = {
     if (safeLiteralsHalf.size < 1) {
-      return false
+      return (false, null)
     }
 
     /* 
@@ -97,8 +98,8 @@ abstract class FOAbstractRPILUAlgorithm
 //      println("newAux: " + newAux + " safeLit: " + safeLit)
       val uvars = (getSetOfVars(newAux) union getSetOfVars(safeLit))
       unify((newAux, safeLit) :: Nil)(uvars) match {
-        case Some(_) => {
-          return true
+        case Some(s) => {
+          return (true, s)
         }
         case None => {
           //Do nothing
@@ -106,7 +107,7 @@ abstract class FOAbstractRPILUAlgorithm
       }
     }
 //    println("checkForResSmart - false")
-    false
+    (false, null)
   }
 
   def getPredName(lit: E): String = {
@@ -203,26 +204,27 @@ abstract class FOAbstractRPILUAlgorithm
   }
 
   //ensure that the node that will be replacing the unifying resolution is entirely safe  
-  protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent, allowSubset: Boolean): Boolean = {
+  protected def finalCheck(safeLit: Sequent, seqToDelete: Sequent, allowSubset: Boolean): (Boolean, Substitution) = {
 
-    def desiredIsContained(safe: Sequent, toDelete: Sequent): Boolean = {
+    def desiredIsContained(safe: Sequent, toDelete: Sequent): (Boolean, Substitution) = {
       if (checkIfConclusionsAreEqual(safe, toDelete)) {
-        return true
+        return (true, Substitution())
       } else if (toDelete.ant.toSet.subsetOf(safe.ant.toSet) && toDelete.suc.toSet.subsetOf(safe.suc.toSet)) {
-        return true
+        return (true, Substitution())
       } else {
         val cVars = getSetOfVars(toDelete.ant: _*) union getSetOfVars(toDelete.suc: _*)
 
         val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(safe, toDelete, cVars, allowSubset)
 
         if (mapIsUniquelyValid) {
-          if (!checkMapSub(intersectedMap, cVars, toDelete, safe)) {
-            return false
+          if (!checkMapSub(intersectedMap, cVars, toDelete, safe)._1) {
+            return (false, null)
           } else {
-            return true
+            return (true,checkMapSub(intersectedMap, cVars, toDelete, safe)._2)
           }
         } else {
-          return checkInvalidMap(intersectedMap, cVars, toDelete, safe, true)
+          val t = checkInvalidMapB(intersectedMap, cVars, toDelete, safe, true)
+          return (t == null, t)
 
         }
       }
@@ -240,9 +242,9 @@ abstract class FOAbstractRPILUAlgorithm
 //    println("AMO: " + allMatchesOkay)
     if (fastFindRenaming(safeClean.conclusion, seqToDelete, false) != null) {
       
-      allMatchesOkay
+      (allMatchesOkay, fastFindRenaming(safeClean.conclusion, seqToDelete, false))
     } else {
-      desiredIsContained(safeClean.conclusion, seqToDelete) && allMatchesOkay //PR
+      (desiredIsContained(safeClean.conclusion, seqToDelete)._1 && allMatchesOkay,desiredIsContained(safeClean.conclusion, seqToDelete)._2)  //PR
     }
 
   }
@@ -326,13 +328,13 @@ abstract class FOAbstractRPILUAlgorithm
       case UnifyingResolution(left, right, pivot, _) if (findRenaming(fixedLeft.conclusion, p.conclusion)(unifiableVariables) != null) => {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
-        assert(!checkForResSmart(fixedLeft.conclusion.toSetSequent.suc, pivot, p))
+        assert(!checkForResSmart(fixedLeft.conclusion.toSetSequent.suc, pivot, p)._1)
         fixedLeft
       }
       case UnifyingResolution(left, right, _, pivot) if (findRenaming(fixedRight.conclusion, p.conclusion)(unifiableVariables) != null) => {
         //If we're doing this, its because the fixed parent doesn't contain the pivot, so we replace it with 
         //the fixed parent; so the pivot better be missing.
-        assert(!checkForResSmart(fixedRight.conclusion.toSetSequent.ant, pivot, p))
+        assert(!checkForResSmart(fixedRight.conclusion.toSetSequent.ant, pivot, p)._1)
         fixedRight
       }
 
@@ -381,20 +383,20 @@ abstract class FOAbstractRPILUAlgorithm
 
         val bothEq = checkIfConclusionsAreEqual(fixedLeft, left) && checkIfConclusionsAreEqual(fixedRight, right)
 
-        if (finalCheck(oldSafe, out.conclusion, true) || bothEq) {
+        if (finalCheck(oldSafe, out.conclusion, true)._1 || bothEq) {
           out
         } else {
           //fixedRight
           if (checkIfConclusionsAreEqual(fixedLeft, left)) {
             fixedRight
-            if (finalCheck(oldSafe, fixedRight.conclusion, true)) {
+            if (finalCheck(oldSafe, fixedRight.conclusion, true)._1) {
               fixedRight
             } else {
               out
             }
           } else if (checkIfConclusionsAreEqual(fixedRight, right)) {
             fixedLeft
-            if (finalCheck(oldSafe, fixedLeft.conclusion, true)) {
+            if (finalCheck(oldSafe, fixedLeft.conclusion, true)._1) {
               fixedLeft
             } else {
               out
@@ -632,14 +634,14 @@ abstract class FOAbstractRPILUAlgorithm
 abstract class FOAbstractRPIAlgorithm
     extends FOAbstractRPILUAlgorithm with CanRenameVariables {
 
-  def findActualAux(seqHalf: Seq[E], aux: E, mgu: Substitution): E = {
-    for (s <- seqHalf) {
-      if (mgu(s).equals(aux)) {
-        return s
-      }
-    }
-    aux
-  }
+//  def findActualAux(seqHalf: Seq[E], aux: E, mgu: Substitution): E = {
+//    for (s <- seqHalf) {
+//      if (mgu(s).equals(aux)) {
+//        return s
+//      }
+//    }
+//    aux
+//  }
 
   protected def safeLiteralsFromChild(childWithSafeLiterals: (SequentProofNode, IClause),
                                       parent: SequentProofNode, edgesToDelete: FOEdgesToDelete) = {
@@ -652,6 +654,7 @@ abstract class FOAbstractRPIAlgorithm
         } else {
           val sub = child.asInstanceOf[UnifyingResolution].mgu
           def auxRb = sub(auxR)
+          println("ADDING auxRb: " + auxRb)
           addLiteralSmart(safeLiterals, auxRb, false)
         }
 
@@ -661,6 +664,7 @@ abstract class FOAbstractRPIAlgorithm
         } else {
           val sub = child.asInstanceOf[UnifyingResolution].mgu
           def auxLb = sub(auxL)
+          println("ADDING auxLb: " + auxLb)
           addLiteralSmart(safeLiterals, auxLb, true)
         }
 
@@ -708,6 +712,40 @@ abstract class FOAbstractRPIAlgorithm
 trait FOCollectEdgesUsingSafeLiterals
     extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 
+  def isSubSubstitutionAndPrint(a: Substitution, b: Substitution, sl: Sequent, auxR: E, auxL: E, right: SequentProofNode, left: SequentProofNode, marked: String) = {
+    println("FIRST SUB:  " + a)
+    println("SECOND SUB: " + b)
+    
+    
+    val fw = new FileWriter("checking-subs.txt", true)
+try {
+  fw.write("FIRST SUB:  " + a + "\n")
+    fw.write("SECOND SUB: " + b + "\n")
+    val contained = if(a != null && b != null) { a.toList.forall(b.toList.contains) } else { false }
+      fw.write("F in S?     " + contained + "\n")
+     print("F in S?     " + contained + "\n")
+      
+      if(!contained){
+        fw.write("AUXR: " + auxR + "\n")
+        fw.write("AUXL: " + auxL + "\n")
+        fw.write("SAFE: " + sl + "\n")
+        fw.write("RIGHT: " + right + "\n")
+        fw.write("LEFT: " + left + "\n")
+        fw.write(marked + "\n")
+        
+        
+        print("AUXR: " + auxR + "\n")
+        print("AUXL: " + auxL + "\n")
+        print("SAFE: " + sl + "\n")
+        print("RIGHT: " + right + "\n")
+        print("LEFT: " + left + "\n")
+        print(marked + "\n")        
+      }
+}
+finally fw.close() 
+  }
+  
+  
   protected def collectEdgesToDelete(nodeCollection: Proof[SequentProofNode]) = {
     val edgesToDelete = new FOEdgesToDelete()
     val safeMap = new MMap[SequentProofNode, Sequent]()
@@ -720,12 +758,18 @@ trait FOCollectEdgesUsingSafeLiterals
       p match {
        
         
-        case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.suc, auxR, p) &&        
-          finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)) => {
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.suc, auxR, p)._1 &&        
+          finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)._1) => {
+            val firstSub = checkForResSmart(safeLiterals.suc, auxR, p)._2
+            val secondSub = finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)._2
+            isSubSubstitutionAndPrint(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING RIGHT")
           edgesToDelete.markRightEdge(p)
         }
-        case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.ant, auxL, p) &&
-          finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)) => {
+        case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.ant, auxL, p)._1 &&
+          finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)._1) => {
+            val firstSub = checkForResSmart(safeLiterals.ant, auxL, p)._2
+            val secondSub = finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)._2
+            isSubSubstitutionAndPrint(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING LEFT")
           edgesToDelete.markLeftEdge(p)
         }
           

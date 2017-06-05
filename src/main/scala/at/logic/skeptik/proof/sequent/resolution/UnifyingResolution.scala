@@ -437,11 +437,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     v
   }
 
-  def checkMapSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): Boolean = {
+  def checkMapSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): (Boolean, Substitution) = {
     //apply to sub
     val newComputed = applyUniqueSubstitutions(m, vars, computed)
     val finalCheck = newComputed.ant.toSet.subsetOf(desired.ant.toSet) && newComputed.suc.toSet.subsetOf(desired.suc.toSet)
-    finalCheck
+    (finalCheck, getUniqueSubstitutions(m, vars))
 
   }
 
@@ -572,6 +572,10 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     return checkInvalidMapAndReturnSub(m, vars, computed, desired, containmentOnly) != null
   }
 
+  def checkInvalidMapB(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean = false): Substitution = {
+    return checkInvalidMapAndReturnSub(m, vars, computed, desired, containmentOnly)
+  }  
+  
   def checkIfConclusionsAreEqual(x: SequentProofNode, y: SequentProofNode): Boolean = {
     return checkIfConclusionsAreEqual(x.conclusion, y.conclusion)
   }
