@@ -808,13 +808,32 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 
 					safeMap.put(p, safeLiterals.toSeqSequent)
 					p match {
+					  
+			  case UnifyingResolution(left, right, auxL, auxR) => {
+			    val auxLcheck = checkForResSmart(safeLiterals.suc, auxL, p)
+			    val sigmaL = auxLcheck._2 
+//			    val auxLfinalCheck = if (auxLcheck._1) { finalCheck(safeLiterals.toSeqSequent, left.conclusion, false) } else { (false, null) }
+			    val auxLfinalCheck = if (auxLcheck._1) { finalCheck(safeLiterals.toSeqSequent, applySub(left.conclusion, sigmaL), false) } else { (false, null) }
+			    
+			    if (auxLcheck._1 && auxLfinalCheck._1) {
+			      edgesToDelete.markRightEdge(p)
+			    } else {
+			      val auxRcheck = checkForResSmart(safeLiterals.ant, auxR, p)
+			      val sigmaR = auxRcheck._2 
+//			      val auxRfinalCheck = if (auxRcheck._1) { finalCheck(safeLiterals.toSeqSequent, right.conclusion, false) } else { (false, null) }
+			      val auxRfinalCheck = if (auxRcheck._1) { finalCheck(safeLiterals.toSeqSequent, applySub(right.conclusion, sigmaR), false) } else { (false, null) }
+			      if(auxRcheck._1 && auxRfinalCheck._1){
+			        edgesToDelete.markLeftEdge(p)
+			      }
+			    }
+			  }
 
-
-					case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.suc, auxR, p)._1 &&        
+			  /*
+					case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.suc, auxL, p)._1 &&        
 							finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)._1) => {
-								val firstSub = checkForResSmart(safeLiterals.suc, auxR, p)._2
-										val secondSub = finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)._2
-										isSubSubstitutionAndPrint(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING RIGHT")
+//								val firstSub = checkForResSmart(safeLiterals.suc, auxR, p)._2
+//										val secondSub = finalCheck(safeLiterals.toSeqSequent, left.conclusion, false)._2
+//										isSubSubstitutionAndPrint(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING RIGHT")
 
 										//Both are here in test case
 										val firstSubB = checkForResSmart(safeLiterals.suc, auxL, p)._2
@@ -822,18 +841,19 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 										println("subB: " + firstSubB)
 										println("newLeft: " + newLeft)
 										
-										wouldChangeMatter(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING RIGHT", newLeft.toSeqSequent, firstSubB)
+//										wouldChangeMatter(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING RIGHT", newLeft.toSeqSequent, firstSubB)
 
 
 										edgesToDelete.markRightEdge(p)
 							}
-					case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.ant, auxL, p)._1 &&
+					case UnifyingResolution(left, right, auxL, auxR) if (checkForResSmart(safeLiterals.ant, auxR, p)._1 &&
 							finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)._1) => {
-								val firstSub = checkForResSmart(safeLiterals.ant, auxL, p)._2
-										val secondSub = finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)._2
-										isSubSubstitutionAndPrint(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING LEFT")
+//								val firstSub = checkForResSmart(safeLiterals.ant, auxL, p)._2
+//										val secondSub = finalCheck(safeLiterals.toSeqSequent, right.conclusion, false)._2
+//										isSubSubstitutionAndPrint(firstSub, secondSub, safeLiterals.toSeqSequent, auxR, auxL, right, left, "MARKING LEFT")
 										edgesToDelete.markLeftEdge(p)
 							}
+							*/
 
 							//          //Debug case
 							//        case UnifyingResolution(left, right, auxL, auxR) => {

@@ -505,6 +505,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
   def checkInvalidMapAndReturnSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean): Substitution = {
 
+    println("invalid map: " + computed + " " + desired)
+    
     //Check if map is valid: 
 
     val subsetContainedOrEquals = checkSubsetOrEquality(containmentOnly, computed, desired)
@@ -648,10 +650,13 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
   
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
-    val computedClean = fixSharedNoFilter(Axiom(computed), Axiom(desired),0, unifiableVariables).conclusion
-    val ap =  fastFindRenaming(computedClean, desired, true) //Does not work when source literals can match to more than one target
-    val out = if(ap == null) { findRenamingSlow(computed, desired)(unifiableVariables) } else { ap }
-    return out
+//    val computedClean = fixSharedNoFilter(Axiom(computed), Axiom(desired),0, unifiableVariables).conclusion
+//    val ap =  fastFindRenaming(computedClean, desired, true) //Does not work when source literals can match to more than one target
+//    val out = if(ap == null) { findRenamingSlow(computed, desired)(unifiableVariables) } else { ap }
+//    return out
+    println("c: " + computed)
+    println("d: " + desired)
+    findRenamingSlow(computed, desired)(unifiableVariables)
   }
   
   
@@ -769,5 +774,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     findRenamingSlow(a,b,true) != null
   }
 
+  
+  
 }
 

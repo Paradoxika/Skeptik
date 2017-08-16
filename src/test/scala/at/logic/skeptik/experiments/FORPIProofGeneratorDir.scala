@@ -113,6 +113,7 @@ object FORPIProofGeneratorTestsDir {
     //    var c = 0
 
 //    val proofDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Proofs\\"
+    val compressedProofDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Compressed\\15 Aug 2017\\Proofs\\"
     val startTime = getTimeString()
     val outfile = "random-retest-results-" + startTime + ".txt"
     val stats = new PrintWriter(outfile)
@@ -157,6 +158,19 @@ finally fw.close()
 //      var luproof: Proof[Node] = null
 //      var luRPIproof: Proof[Node] = null
 
+      
+      def printCompressedProof(proof: Proof[Node], pre: String, suf: String, h: Int, alg: String) = {
+        val proofFile = pre + h.toString() + "-" + alg + "-" + suf
+        val proofWriter =new PrintWriter(proofFile)
+        printProof(proofWriter, proof)
+        proofWriter.flush()
+        proofWriter.close()
+  
+      }
+      
+      val collectedProofPrefix = compressedProofDir + "random-results-" + startTime + "-proof-"
+      val collectedProofSuffix = ".txt"
+      
       println(" Compression starting...")
 
       val oSize = proof.toSeq.size
@@ -183,6 +197,7 @@ finally fw.close()
           luFails = luFails +1
           proof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"lu")
           p
         }
       } catch {
@@ -211,6 +226,7 @@ finally fw.close()
           rpiFails = rpiFails +1
           proof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"rpi")
           p
         }
       
@@ -238,6 +254,7 @@ finally fw.close()
           LURPIfail = true //definitely want to report fail here
           rpiProof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"lurpi")          
           p
         }        
       } catch {
@@ -261,6 +278,7 @@ finally fw.close()
           RPILUfail = true //definitely want to report fail here
           luProof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"rpilu")          
           p
         }                
       } catch {

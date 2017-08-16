@@ -82,15 +82,21 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
   
 //  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-295.txt")
   
-    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 11-49-03 EST 2016-proof-105.txt")
+//    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 11-49-03 EST 2016-proof-105.txt")
+    
+        val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-283.txt")
+
     
     println(proof)
 //     println(proof.size)
      
     println("-------------------------------------------------------------------")
     val iProof = try {
-     val dProof = FORecyclePivotsWithIntersection(proof)
+//     val dProof = FORecyclePivotsWithIntersection(proof)
 //          val dProof = FOLowerUnits(proof)
+//          val dProof = FORecyclePivotsWithIntersection(FOLowerUnits(proof))
+                val dProof = FOLowerUnits(FORecyclePivotsWithIntersection(proof))
+
      if(dProof.root.conclusion.ant.size != 0 || dProof.root.conclusion.suc.size != 0){
        println(dProof)
        println("Bad compression.")
