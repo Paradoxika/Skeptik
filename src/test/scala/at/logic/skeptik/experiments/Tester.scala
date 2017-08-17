@@ -62,7 +62,7 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     
     
     //Jan 6
-    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-112.txt") //change fR to FL ****
+//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-112.txt") //change fR to FL ****
 //    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 11-36-10 EST 2016-proof-20.txt") //change fR to FL ****
 //    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-273.txt") //change fR to fL ****
 //    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 14-31-43 EST 2016-proof-201.txt") // check both including auxR too
@@ -85,7 +85,7 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
 //    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 11-49-03 EST 2016-proof-105.txt")
     
 //        val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-283.txt") //does not finish quickly (prior to aug 16)
-        
+      //Aug 2017  
 //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-171.txt")         
 //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-310.txt")         
 //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 12-19-23 EST 2016-proof-24.txt")         
@@ -94,7 +94,21 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     
 //    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 15-06-12 EST 2016-proof-115.txt")
 
+    
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\MGT\\MGT007-1.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN687-1.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\GRP\\GRP031-2.spass") 
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN636-1.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN562-1.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN622-1.spass") //bad comp
+    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN570-1.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN325-1.spass")
 
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\COM\\COM002-2.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN632-1.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\MGT\\MGT004-1.spass") //bad comp
+//    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\SYN\\SYN569-1.spass") 
+    
     println(proof)
 //     println(proof.size)
      

@@ -135,6 +135,7 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
 
   def contract(seq: Sequent, subs: List[Substitution])(implicit unifiableVariables: MSet[Var]): (Seq[E], Seq[E], List[Substitution]) = {
 
+    
     def isUnifiable(p: (E, E))(implicit unifiableVariables: MSet[Var]) = unify(p :: Nil)(unifiableVariables) match {
       case None => false
       case Some(u) => {
@@ -156,10 +157,12 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       val sub = unify(p :: Nil)(unifiableVariables) match {
         case None => throw new Exception("Contraction failed.")
         case Some(u) => {
+//          if (occurCheck(p, u)) { 
+//            println("u: " + u)
+//            u } else { Substitution () }
           u
         }
       }
-
       val seqOut = applySub(seq, sub)
 
 

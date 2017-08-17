@@ -87,8 +87,8 @@ trait SPASSParsers
       val desiredSequent = newAxiomFromLists(lp ++ seq._1, seq._2).conclusion.toSeqSequent
 
       
-      println("FirstNode: " + firstPremise)
-      println("SecondNode: " + secondPremise)
+//      println("FirstNode: " + firstPremise)
+//      println("SecondNode: " + secondPremise)
       
       val ax = try {
         UnifyingResolution(firstPremise, secondPremise, desiredSequent)(vars)
