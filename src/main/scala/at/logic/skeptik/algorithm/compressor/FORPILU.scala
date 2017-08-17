@@ -216,6 +216,9 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 			} else if (toDelete.ant.toSet.subsetOf(safe.ant.toSet) && toDelete.suc.toSet.subsetOf(safe.suc.toSet)) {
 				return (true, Substitution())
 			} else {
+//			  println("checking the hard way.")
+//			  println("safe:     " + safe)
+//			  println("toDelete: " + toDelete)
 				val cVars = getSetOfVars(toDelete.ant: _*) union getSetOfVars(toDelete.suc: _*)
 
 						val (mapIsUniquelyValid, intersectedMap) = computeIntersectedMap(safe, toDelete, cVars, allowSubset)
@@ -361,11 +364,11 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 												fixedRight
 											}
 								} else {
-//								  println("RESp: fl: " + fixedLeft)
-//								  println("RESp: fr: " + fixedRight)
-//								  println("RESp: l: " + left)
-//								  println("RESp: r: " + right)
-//								  println("RESp:oc: " + p.conclusion)
+								  println("RESp: fl: " + fixedLeft)
+								  println("RESp: fr: " + fixedRight)
+								  println("RESp: l: " + left)
+								  println("RESp: r: " + right)
+								  println("RESp:oc: " + p.conclusion)
 //									val res = UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
 									val res = UnifyingResolution(fixedLeft, fixedRight)(unifiableVariables)
 //									println("RESp: " + res)
@@ -374,16 +377,16 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 
 							} catch {
 							case e: Exception => {
-								if (e.getMessage() != null && e.getMessage.equals(ambiguousErrorString)) {
+								if (e.getMessage() != null && e.getMessage.contains(ambiguousErrorString)) {
 									fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
 								} else {
-//								  println("111: " + e.getMessage())
+								  println("111: " + e.getMessage())
 									try {
 										val a = UnifyingResolution(fixedRight, fixedLeft)(unifiableVariables)
 												a
 									} catch {
 									case f: Exception => {
-//									  println("222: " + f.getMessage())
+									  println("222: " + f.getMessage())
 										val a = attemptGreedyContraction(contractIfHelpful(fixedLeft)(unifiableVariables), fixedRight,
 												fixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
 												a
@@ -462,8 +465,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 //				   if (oldConclusion.logicalSize > 0){
 				  val fixLeftCon = contractIfHelpful(fixedLeft)(unifiableVariables)
 				  val fixRightCon = contractIfHelpful(fixedRight)(unifiableVariables) 
-if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
-     fixRightCon.conclusion.logicalSize < fixedRight.conclusion.logicalSize){
+           if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
+                 fixRightCon.conclusion.logicalSize < fixedRight.conclusion.logicalSize){
 				  val quickFinish = UnifyingResolution(fixLeftCon, fixRightCon, oldConclusion)(unifiableVariables)
 				   println("aaa " + contractIfHelpful(fixedLeft)(unifiableVariables))
 				   println("aaa returning: " + quickFinish)
@@ -480,7 +483,7 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 //				return fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, oldConclusion, true)(unifiableVariables)
 			} catch {
 			case h: Exception => {
-//			  println("555 " + h.getMessage())
+			  println("555 " + h.getMessage())
 				//do nothing; we'll do something else below
 			}
 			}
@@ -490,31 +493,33 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 						k
 			} catch {
 			case f: Exception => {
-//			  println("666" + f.getMessage())
+			  println("666" + f.getMessage())
 				fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, oldConclusion, false)(unifiableVariables)
 			}
 			}
 
 		}
 		case e: Exception => {
-//		  println("777 " + e.getMessage())
-//		  println("oldConclusion: " + oldConclusion)
+		  println("777 " + e.getMessage())
+		  println("oldConclusion: " + oldConclusion)
 		  
-		  if(checkIfConclusionsAreEqual(fixedLeft, left)) { //println("zzz1"); 
+		  if(checkIfConclusionsAreEqual(fixedLeft, left)) { 
+		    println("zzz1"); 
 		  return fixedLeft }
-		  if(checkIfConclusionsAreEqual(fixedRight, right)) { //println("zzz2");
+		  if(checkIfConclusionsAreEqual(fixedRight, right)) { 
+		    println("zzz2");
 		  return fixedRight }
 		  
 		  if (checkSubsetOrEquality(true,right.conclusion, fixedRight.conclusion)) {
-//					  println("011e")
+					  println("011e")
 						return fixedLeft
 		  }
 		  if (checkSubsetOrEquality(true, left.conclusion, fixedLeft.conclusion)) {
-//					  println("011f")
+					  println("011f")
 						return fixedRight
 		  }		  
 		  if (checkSubsetOrEquality(true, fixedLeft.conclusion, left.conclusion)) {
-//					  println("011g")
+					  println("011g")
 						return fixedRight
 		  }		  
 		  if (checkSubsetOrEquality(true, fixedRight.conclusion, right.conclusion)) {
@@ -525,16 +530,16 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 		  
 			val oldConclusionIsNotEmpty = !(oldConclusion.ant.size == 0 && oldConclusion.suc.size == 0)
 					if (checkIfConclusionsAreEqual(fixedRight, fixedLeft)) {
-//					  println("00")
+					  println("00")
 						fixedRight
 					} else if (checkSubsetOrEquality(true, fixedRight.conclusion, oldConclusion)) {
-//					  println("01")
+					  println("01")
 						fixedRight
 //					} else if (checkSubsetOrEquality(true, oldConclusion, fixedRight.conclusion)) {
 //					  println("01a")
 //					  fixedRight						
 					} else if (checkSubsetOrEquality(true, fixedLeft.conclusion, oldConclusion)) {
-//					  println("02")
+					  println("02")
 						fixedLeft
 					} else {
 
@@ -542,12 +547,12 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 
 							val out =
 									if (contractFixedFindsTarget(fixedLeft, oldConclusion) != null && oldConclusion.logicalSize > 0) {
-//										println("05")
+										println("05")
 									  val t = contractFixedFindsTarget(fixedLeft, oldConclusion)
 //									  println("t: " + t)
 												t
 									} else if (contractFixedFindsTarget(fixedRight, oldConclusion) != null && oldConclusion.logicalSize > 0) {
-//									  println("06")
+									  println("06")
 										val t = contractFixedFindsTarget(fixedRight, oldConclusion)
 												t
 									} else {
@@ -567,11 +572,11 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 							out
 						} catch {
 						case f: Exception => {
-//						  println("09xxx")
-//						  println("l:  " + left)
-//						  println("fl: " + fixedLeft)
-//						  println("r:  " + right)
-//						  println("fr: " + fixedRight)
+						  println("09xxx")
+						  println("l:  " + left)
+						  println("fl: " + fixedLeft)
+						  println("r:  " + right)
+						  println("fr: " + fixedRight)
 							f.printStackTrace()
 							fixedLeft
 //							fixedRight
