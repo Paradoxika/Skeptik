@@ -62,7 +62,7 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     
     
     //Jan 6
-//    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-112.txt") //change fR to FL ****
+    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-112.txt") //change fR to FL ****
 //    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 11-36-10 EST 2016-proof-20.txt") //change fR to FL ****
 //    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Mon Nov 21 23-12-55 EST 2016-proof-273.txt") //change fR to fL ****
 //    val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 14-31-43 EST 2016-proof-201.txt") // check both including auxR too
@@ -78,24 +78,32 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     
 //    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\MGT\\MGT004-1.spass")     
     
-    //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 16-54-07 EST 2016-proof-70.txt")
+//    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 16-54-07 EST 2016-proof-70.txt")
   
 //  val proof = ProofParserSkeptikOutput.read(pDir + "random-results-Tue Nov 22 15-27-23 EST 2016-proof-295.txt")
   
 //    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 11-49-03 EST 2016-proof-105.txt")
     
-        val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-283.txt")
-
+//        val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-283.txt") //does not finish quickly (prior to aug 16)
+        
+//val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-171.txt")         
+//val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-310.txt")         
+//val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 12-19-23 EST 2016-proof-24.txt")         
+//val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 13-57-09 EST 2016-proof-149.txt")         
+//val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 14-31-43 EST 2016-proof-5.txt")         
     
+//    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 15-06-12 EST 2016-proof-115.txt")
+
+
     println(proof)
 //     println(proof.size)
      
     println("-------------------------------------------------------------------")
     val iProof = try {
-//     val dProof = FORecyclePivotsWithIntersection(proof)
+     val dProof = FORecyclePivotsWithIntersection(proof)
 //          val dProof = FOLowerUnits(proof)
 //          val dProof = FORecyclePivotsWithIntersection(FOLowerUnits(proof))
-                val dProof = FOLowerUnits(FORecyclePivotsWithIntersection(proof))
+//                val dProof = FOLowerUnits(FORecyclePivotsWithIntersection(proof))
 
      if(dProof.root.conclusion.ant.size != 0 || dProof.root.conclusion.suc.size != 0){
        println(dProof)
