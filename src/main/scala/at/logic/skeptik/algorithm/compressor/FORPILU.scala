@@ -234,6 +234,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 			}
 		}
 
+//		println("checking
+		
 		def antVars = getSetOfVars(seqToDelete.ant: _*)
 				def sucVars = getSetOfVars(seqToDelete.suc: _*)
 				def antVarsB = getSetOfVars(safeLit.ant: _*)
@@ -245,7 +247,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				val allMatchesOkay = checkAllPairs(seqToDelete, safeClean.conclusion)
 				//    println("AMO: " + allMatchesOkay)
 				if (fastFindRenaming(safeClean.conclusion, seqToDelete, false) != null) {
-
+				    println("ffr: " + safeClean + " " + seqToDelete)
 					(allMatchesOkay, fastFindRenaming(safeClean.conclusion, seqToDelete, false))
 				} else {
 					(desiredIsContained(safeClean.conclusion, seqToDelete)._1 && allMatchesOkay,desiredIsContained(safeClean.conclusion, seqToDelete)._2)  //PR
@@ -440,7 +442,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 			UnifyingResolution(fixedLeft, newFixedRight)(unifiableVariables)
 		} catch {
 		case e: Exception if (e.getMessage() != null && (e.getMessage.contains(ambiguousErrorString) || e.getMessage.contains(ambiguousErrorStringMRR))) => {
-//		  println("444: " + e.getMessage())
+		  println("444: " + e.getMessage())
 			try {
 				if (checkIfConclusionsAreEqual(contractIfHelpful(fixedLeft)(unifiableVariables), left) && checkIfConclusionsAreEqual(contractIfHelpful(fixedRight)(unifiableVariables), right)) {
 					//If the fixed are the same as the old, nothing is changed in this part. Use the old conclusion as a goal
@@ -483,7 +485,7 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 			}
 			}
 			try {
-				val k = UnifyingResolutionMRR(fixedLeft, contractIfHelpful(fixedRight)(unifiableVariables))(unifiableVariables)
+				val k = UnifyingResolution(fixedLeft, contractIfHelpful(fixedRight)(unifiableVariables))(unifiableVariables)
 				println("XXX " + k)
 						k
 			} catch {
@@ -649,6 +651,8 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 				val leftEq = findRenaming(fLeft, left) != null
 				val rightEq = findRenaming(fLeft, left) != null //TODO: should these be referencing left or right?
 				
+				val instantiatedAux = unify((auxL,auxR)::Nil)(getSetOfVars(auxL) union getSetOfVars(auxR))
+				
 //				println("vars??? " + unifiableVariables)
 //		    println("actual fleft? " + fLeft)
 //		    
@@ -660,8 +664,8 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 		    
 				val cleaningMGU = findRenaming(left, leftClean)//(getSetOfVars(left))
 				val cleaningMGUb = findRenaming(leftClean, left)//(getSetOfVars(left))
-//				println("left: " + left)
-//				println("right:" + right)
+				println("left: " + left)
+				println("right:" + right)
 //				println("cleaningMGU:  " + cleaningMGU)
 //				println("cleaningMGUb: " + cleaningMGUb)
 				
@@ -674,11 +678,16 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 
 				println("auxL: " + auxL)
 				println("auxR: " + auxR)
-//				println("mgu: " + newMGU)
+				println("mgu: " + newMGU)
+				
+				println("instantiated auxL: " + newMGU(auxL))
 //				println("to remove: " + newMGU(cleaningMGUb(auxL)) )
 //				println("to remove b: " + cleaningMGU(auxR))
 				
-				val (auxLtoRemove, auxLsub) = if (!fLeft.conclusion.suc.contains(newMGU(auxL))) {
+				println("newmgu(auxl): " + newMGU(auxL))
+				
+				
+				val (auxLtoRemove: E, auxLsub) = if (!fLeft.conclusion.suc.contains(newMGU(auxL))) {
 				  println("aa")
 				  findAuxUnifFormula(fLeft.conclusion.suc.toList, newMGU(auxL))
 				} else {
@@ -687,6 +696,15 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 				
 		println("auxLtoRemove " + auxLtoRemove)
 		println("auxLsub " + auxLsub)
+		
+						val newmguauxlclean = fixSharedNoFilter(Axiom(Sequent(newMGU(auxL))()),Axiom(Sequent(auxLtoRemove)()),0,unifiableVariables)
+						val auxrenamingSub = unify((newmguauxlclean.conclusion.ant.head, auxLtoRemove)::Nil)(getSetOfVars(auxLtoRemove)) match {
+		  case Some(u) => {u}
+		  case _ => null
+						}
+						println("wtf-: " + auxrenamingSub)
+						println("wtf: " + newmguauxlclean)
+						
 				 val removeMGUl = if (!fLeft.conclusion.suc.contains(auxL)){
 		      newMGU
 		    } else {
@@ -696,8 +714,11 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 //				val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxL, newMGU, leftEq, false)
 				val (leftRemainder, leftSub) = findRemainder(fLeftClean, auxLtoRemove, Substitution(), leftEq, false)
 		
-//				println("leftRemainder: " + leftRemainder)
+				println("leftRemainder: " + leftRemainder)
+				println("leftSub: " + leftSub)
 				
+//				val leftRemainderUpdated = applySub(leftRemainder,auxrenamingSub)
+//				println("leftRemainderUpdated: " + leftRemainderUpdated)
 				
 				val fRightClean = fRight.conclusion
 
@@ -713,18 +734,25 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 		    } else {
 		      Substitution()
 		    }
-//		    println("auxRtoRemove: " + auxRtoRemove) 
+		    println("auxRtoRemove: " + auxRtoRemove) 
 				
 				val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, Substitution(), rightEq, true) //TODO: should this "Substitution()" be "newMGU"?
 //val (rightRemainder, rightSub) = findRemainder(fRightClean, auxR, newMGU, rightEq, true) 		 //needed for 1662
 //		val (rightRemainder, rightSub) = findRemainder(fRightClean, auxRtoRemove, removeMGU, rightEq, true) 		
 				val rightRemainderWithNewMGU = makeFOSub(Axiom(rightRemainder), newMGU).conclusion
+				
+				println("right remainder final? " + rightRemainderWithNewMGU)
+				
 				val tempLeft = makeFOSub(makeFOSub(Axiom(leftRemainder), leftSub), newMGU)
-
+//				val tempLeft = Axiom(leftRemainderUpdated)
+				println("templeft: " + tempLeft)
+				
 				val tempRight = Axiom(rightRemainderWithNewMGU)
 				val cleanLeftRemainder = fixSharedNoFilter(tempLeft, tempRight, 0, unifiableVariables).conclusion
+				
+				
 				println("cleanLeftRemainder: " + cleanLeftRemainder)
-				println("tempLeft: " + applySub(tempLeft.conclusion, auxLsub))
+				println("tempLeft: " + applySub(tempLeft.conclusion, auxLsub)) //auxLsub
 //				val newTarget = rightRemainderWithNewMGU.union(tempLeft.conclusion)   
 				val newTarget = rightRemainderWithNewMGU.union(applySub(tempLeft.conclusion, auxLsub))   
 
@@ -735,6 +763,14 @@ if(fixLeftCon.conclusion.logicalSize < fixedLeft.conclusion.logicalSize ||
 //        println("FA: nfr: " + newFinalLeft)
 //        println("FINAL TARGET: " + newTarget)
         println("oc: " + oldConclusion)
+        
+//        try{
+//          val toReturn = UnifyingResolution(fLeft, fRight, newTarget)
+//          println("toReturn: " + toReturn)
+//          return toReturn
+//        } catch {
+//          case y: Exception => { println(y.getMessage()) }
+//        }
         
 				val out =
 				try {
@@ -1035,7 +1071,7 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 			    
 			    println("left: " + left)
 			    println("mgu: " + p.asInstanceOf[UnifyingResolution].mgu)
-			    println("safe: " + safeLiterals.suc + " should contain " + auxL)
+			    println("safe: " + safeLiterals.ant + "-" + safeLiterals.suc + " should contain " + auxL)
 			    println(" and: " + applySub(left.conclusion, sigmaL))
 
 			      val auxRcheck = checkForResSmart(safeLiterals.ant, auxR, p)
@@ -1044,15 +1080,15 @@ extends FOAbstractRPIAlgorithm with FindDesiredSequent {
 //			    val auxLfinalCheck = if (auxLcheck._1) { finalCheck(safeLiterals.toSeqSequent, left.conclusion, false) } else { (false, null) }
 			    val auxLfinalCheck = if (auxLcheck._1) { finalCheck(safeLiterals.toSeqSequent, applySub(left.conclusion, sigmaL), true) } else { (false, null) }
 			    
-			    if (auxLcheck._1 && auxLfinalCheck._1) {
-			      println("marking right")
+			    if (auxLcheck._1 && auxLfinalCheck._1 && auxLfinalCheck._2 != null) {
+			      println("marking right " + auxLfinalCheck._2)
 			      edgesToDelete.markRightEdge(p)
 			    } else {
 
 //			      val auxRfinalCheck = if (auxRcheck._1) { finalCheck(safeLiterals.toSeqSequent, right.conclusion, false) } else { (false, null) }
 			      val auxRfinalCheck = if (auxRcheck._1) { finalCheck(safeLiterals.toSeqSequent, applySub(right.conclusion, sigmaR), true) } else { (false, null) }
-			      if(auxRcheck._1 && auxRfinalCheck._1){
-			        println("marking left")
+			      if(auxRcheck._1 && auxRfinalCheck._1 && auxRfinalCheck._2 != null){
+			        println("marking left " + "" + auxRfinalCheck._2)
 			        edgesToDelete.markLeftEdge(p)
 			      }
 			    }

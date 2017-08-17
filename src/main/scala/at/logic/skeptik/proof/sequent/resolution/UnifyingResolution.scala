@@ -320,7 +320,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   def contractIfHelpful(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
     val con = Contraction(premise)(unifiableVariables)
     if (con.conclusion.size < premise.conclusion.size) {
-      println("contraction was helpful to get: " + con)
+//      println("contraction was helpful to get: " + con)
       con
     } else {
       premise
