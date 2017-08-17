@@ -10,6 +10,7 @@ import collection.mutable.{ HashMap => MMap, HashSet => MSet }
 import collection.Map
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolution
 import at.logic.skeptik.proof.sequent.resolution.UnifyingResolutionMRR
+import at.logic.skeptik.proof.sequent.resolution.MRRException
 import at.logic.skeptik.proof.sequent.resolution.FOSubstitution
 import at.logic.skeptik.proof.sequent.resolution.Contraction
 import at.logic.skeptik.proof.sequent.resolution.CanRenameVariables
@@ -350,7 +351,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				// Main case (rebuild a resolution)
 				case UnifyingResolution(left, right, auxL, auxR) => {
 
-					val ambiguousErrorStringMRR = "Resolution (MRR): the resolvent is ambiguous."
+					val ambiguousErrorStringMRR = "Resolution (MRR): the resolvent is ambiguous"
 							val ambiguousErrorString = "Resolution: the resolvent is ambiguous."
 
 							val out = try {
@@ -370,16 +371,92 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 								  println("RESp: l: " + left)
 								  println("RESp: r: " + right)
 								  println("RESp:oc: " + p.conclusion)
-//									val res = UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+//									val res = UnifyingResolution(fixedLeft, fixedRight)(unifiableVariables)
+//									val resMRR = UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+//									println("RESp  : " + res)
+//									println("RESRRp: " + resMRR)
+//											res
+//									resMRR
+											
+									//These two for debugging
+								  println("COMPARE THESE")
+									try {
+									  val resmrr = UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+									  println("MRR succeeds: " + resmrr)
+									} catch {
+									  case mrrE: Exception => {
+									    println("MRR fails: " +  mrrE.getMessage)
+									    
+									    
+//									    if(mrrE.getMessage.contains("ambiguous")){
+//									      								return   try {
+////										val a = UnifyingResolution(fixedRight, fixedLeft)(unifiableVariables) //original
+//										val a = UnifyingResolution(fixedLeft, fixedRight)(unifiableVariables)
+//										
+//										    println("fffffaaa: " + a )
+//												a
+//									} catch {
+////									case f: Exception if !f.getMessage.contains("ambiguous")=> {
+//									case f: Exception => {									    
+//									  println("ffff: " + f.getMessage())
+//										val a = attemptGreedyContraction(contractIfHelpful(fixedLeft)(unifiableVariables), fixedRight,
+//												fixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
+//												println("222: a: " +a)
+//												a
+//									}
+//									}
+//									    }
+									    
+									    
+									    
+									  }
+									}
+                  try {
+									  val resmrr = UnifyingResolution(fixedLeft, fixedRight)(unifiableVariables)
+									  println("Reg succeeds: " + resmrr)
+									} catch {
+									  case mrrE: Exception => {
+									    println("Reg fails: " +  mrrE.getMessage)
+									  }
+									}			
+								  
+								  
 									val res = UnifyingResolution(fixedLeft, fixedRight)(unifiableVariables)
-//									println("RESp: " + res)
+//									val resMRR = UnifyingResolutionMRR(fixedLeft, fixedRight)(unifiableVariables)
+//									println("RESp  : " + res)
+//									println("RESRRp: " + resMRR)
 											res
+//									resMRR	
+									
+
+									
 								}
 
+			
 							} catch {
 							case e: Exception => {
-								if (e.getMessage() != null && e.getMessage.contains(ambiguousErrorString)) {
-									fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
+							  println("THIS: " + e.getMessage())
+								if (e.getMessage() != null && (e.getMessage.contains(ambiguousErrorString) || e.getMessage.contains(ambiguousErrorStringMRR))) {
+							     try {
+							       val a = attemptGreedyContraction(contractIfHelpful(fixedLeft)(unifiableVariables), fixedRight,
+												fixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
+												println("222: a: " +a)
+												a
+							     } catch {
+							       case aaae: Exception => {
+							         fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
+							       }
+							     }
+							  
+//							  if (e.getMessage() != null && (e.getMessage.contains(ambiguousErrorString))) {
+//									fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
+//									
+									
+//							  } else if (e.getMessage() != null && (e.getMessage.contains(ambiguousErrorStringMRR))) {
+//										val a = attemptGreedyContraction(contractIfHelpful(fixedLeft)(unifiableVariables), fixedRight,
+//												fixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
+//												println("222: a: " +a)
+//												a
 								} else {
 								  println("111: " + e.getMessage())
 								  println("111: left: " + left)
@@ -445,6 +522,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				}
 		}
 	}
+	
+
 
 	def attemptGreedyContraction(fixedLeft: SequentProofNode, fixedRight: SequentProofNode, newFixedRight: SequentProofNode,
 			ambiguousErrorString: String, ambiguousErrorStringMRR: String, left: SequentProofNode, right: SequentProofNode, auxL: E, auxR: E,
@@ -721,10 +800,19 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 //				println("newmgu(auxl): " + newMGU(auxL))
 				
 				
-				val (auxLtoRemove: E, auxLsub) = if (!fLeft.conclusion.suc.contains(newMGU(auxL))) {
-//				  println("aa")
-				  findAuxUnifFormula(fLeft.conclusion.suc.toList, newMGU(auxL))
+				val (auxLtoRemove, auxLsub) = if (!fLeft.conclusion.suc.contains(newMGU(auxL))) {
+//				  println("aa1")
+//				  try{
+				    val out = findAuxUnifFormula(fLeft.conclusion.suc.toList, newMGU(auxL))
+//				  }catch{
+//				    case ae: Exception => { 
+//				      println("something went wrong.")
+//				      if(ae != null) { println(ae.getMessage()) } 
+//				      (auxL, Substitution()) }
+//				  }
+				    if (out._1 == null || out._2 == null) { (auxL, Substitution()) } else { out }
 				} else {
+				  println("aa2")
 				  (auxL, Substitution())
 				}
 				
@@ -758,7 +846,8 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 
 				val auxRtoRemove = if (!fRight.conclusion.ant.contains(auxR)) {
 //				  println("bb")
-				  findAuxUnifFormula(fRight.conclusion.ant.toList, auxR)
+				  val out = findAuxUnifFormula(fRight.conclusion.ant.toList, auxR)
+				  if(out._1 == null || out._2 == null) { out._1 } else { out }
 				} else {
 				  auxR
 				}				
@@ -896,13 +985,17 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 	    val hSub = unifiesRenamingOnly(h,target) 
 	    if (hSub != null){ return (h,hSub) }//TODO: rename
 	  }
+	  println("going to null out?")
+	  //(null.asInstanceOf[E],null.asInstanceOf[Substitution])
 	  (null,null)
 	}
 	
 	
 	def unifiesRenamingOnly(s: E, t: E): Substitution = {
 	  val u = getUnifier(s,t)(getSetOfVars(s))
-	  if (u == null) { return null }
+	  if (u == null) { 
+	    println("returning null??")
+	    return null }
 	  u
 	}
 	
