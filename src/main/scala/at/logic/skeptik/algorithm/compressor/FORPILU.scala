@@ -757,6 +757,7 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 				
 				
 				println("cleanLeftRemainder: " + cleanLeftRemainder)
+		    println("templeft: (before auxL????) " + tempLeft.conclusion)
 				println("tempLeft: " + applySub(tempLeft.conclusion, auxLsub)) //auxLsub
 //				val newTarget = rightRemainderWithNewMGU.union(tempLeft.conclusion)   
 				val newTarget = rightRemainderWithNewMGU.union(applySub(tempLeft.conclusion, auxLsub))   
@@ -769,13 +770,13 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 //        println("FINAL TARGET: " + newTarget)
         println("oc: " + oldConclusion)
         
-//        try{
-//          val toReturn = UnifyingResolution(fLeft, fRight, newTarget)
-//          println("toReturn: " + toReturn)
-//          return toReturn
-//        } catch {
-//          case y: Exception => { println(y.getMessage()) }
-//        }
+        try{
+          val toReturn = UnifyingResolution(fLeft, fRight, newTarget)
+          println("toReturn: " + toReturn)
+          return toReturn
+        } catch {
+          case y: Exception => { println(y.getMessage()) }
+        }
         
 				val out =
 				try {
