@@ -444,18 +444,38 @@ extends AbstractRPILUAlgorithm with FindDesiredSequent with CanRenameVariables w
 //								    val as = Contraction(fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables))(unifiableVariables)
 								    val fixAmbigAttempt = fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
 //								    val asA = fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, true)(unifiableVariables)
+								    
+//								    val asA = try {
+//								      fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, true)(unifiableVariables)
+//								    } catch {
+//								      case fail: Exception => { null }
+//								    }
+								    
 //								    val asB = fixAmbiguous(fixedLeft, fixedRight, left, right, auxL, auxR, p.conclusion, false)(unifiableVariables)
 							       val greedyAttempt = attemptGreedyContraction(contractIfHelpful(fixedLeft)(unifiableVariables), fixedRight,
 												fixedRight, ambiguousErrorString, ambiguousErrorStringMRR, left, right, auxL, auxR, p.conclusion)(unifiableVariables)
 												println("ttttttttt: attempGreedy: " +greedyAttempt)
 												println("ttttttttt: fixAmbiguous: " +fixAmbigAttempt)
-//												val toMatch = Contraction(asA, greedyAttempt.conclusion)(unifiableVariables)
-//												println("ttttttttt: fixAmbiguousSkpped: " + toMatch)
-//												val useGreedy = checkIfConclusionsAreEqual(toMatch,greedyAttempt)
-//												println("If this is not seen, error.")
+//												val uu = finalCheck(greedyAttempt.conclusion,fixAmbigAttempt.conclusion,true)._1
+												val uv = finalCheck(fixAmbigAttempt.conclusion,greedyAttempt.conclusion,true)._1
+//												println("" + uu +" " + uv)
+												
+//												var useGreedy = false
+//												try {
+//												  if(asA != null){
+//												  val toMatch = Contraction(asA, greedyAttempt.conclusion)(unifiableVariables)
+//												  println("ttttttttt: fixAmbiguousSkpped: " + toMatch)
+//												  val useGreedyTemp = checkIfConclusionsAreEqual(toMatch,greedyAttempt)
+//												  useGreedy = useGreedyTemp
+//												  println("If this is not seen, error.")
+//												  }
+//												} catch {
+//												  case another: Exception => {}
+//												}
 //									  if (finalCheck(fixedLeft.conclusion,a.conclusion,true)._1) { println("WOULD RETURN C?") }
 										if (checkIfConclusionsAreEqual(fixAmbigAttempt,fixedRight) || checkIfConclusionsAreEqual(fixAmbigAttempt,fixedLeft)
 //										    || useGreedy
+										    || uv
 										     ){
 //										  if (checkIfConclusionsAreEqual(asA,asB)){												
 //										    as
