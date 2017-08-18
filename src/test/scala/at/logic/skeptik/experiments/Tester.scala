@@ -86,7 +86,7 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     
 //        val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-283.txt") //does not finish quickly (prior to aug 16)
       //Aug 2017  
-val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-171.txt")         
+//val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-171.txt")         
 //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 23-12-55 EST 2016-proof-310.txt")         
 //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 12-19-23 EST 2016-proof-24.txt")         
 //val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 13-57-09 EST 2016-proof-149.txt") //mrr         
@@ -115,16 +115,21 @@ val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2
 //    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 15-27-23 EST 2016-proof-76.txt")
 //    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 16-40-48 EST 2016-proof-6.txt") //QF in FA
     
+//val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Tue Nov 22 15-27-23 EST 2016-proof-214.txt") //hung?
+    
+    
+    //LU
+    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 22-28-48 EST 2016-proof-1.txt")
     
     println(proof)
 //     println(proof.size)
      
     println("-------------------------------------------------------------------")
     val iProof = try {
-     val dProof = FORecyclePivotsWithIntersection(proof)
+//     val dProof = FORecyclePivotsWithIntersection(proof)
 //          val dProof = FOLowerUnits(proof)
 //          val dProof = FORecyclePivotsWithIntersection(FOLowerUnits(proof))
-//                val dProof = FOLowerUnits(FORecyclePivotsWithIntersection(proof))
+                val dProof = FOLowerUnits(FORecyclePivotsWithIntersection(proof))
 
      if(dProof.root.conclusion.ant.size != 0 || dProof.root.conclusion.suc.size != 0){
        println(dProof)

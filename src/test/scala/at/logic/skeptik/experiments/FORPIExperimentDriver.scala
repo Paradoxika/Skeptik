@@ -130,8 +130,8 @@ object FORPIExperimentDriver extends checkProofEquality {
         totalNodes = proofLength + totalNodes
         
         val proofToTestB = try {
-          val q = FORecyclePivotsWithIntersection(proofToTest)
-//          val q = FOLowerUnits(proofToTest)
+//          val q = FORecyclePivotsWithIntersection(proofToTest)
+          val q = FOLowerUnits(proofToTest)
           
           
           if(q.root.conclusion.ant.size != 0 || q.root.conclusion.suc.size != 0){
