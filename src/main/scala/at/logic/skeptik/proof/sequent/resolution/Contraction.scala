@@ -157,9 +157,6 @@ class Contraction(val premise: SequentProofNode, val desired: Sequent)(implicit 
       val sub = unify(p :: Nil)(unifiableVariables) match {
         case None => throw new Exception("Contraction failed.")
         case Some(u) => {
-//          if (occurCheck(p, u)) { 
-//            println("u: " + u)
-//            u } else { Substitution () }
           u
         }
       }
