@@ -1,0 +1,10 @@
+1: { ⊢ (p U V)} 	: Axiom()[]
+2: {(p (f V U) (f V U)), (p U (f V U)) ⊢ (q V U)} 	: Axiom()[]
+3: {(p U (f V U)) ⊢ (q V U)} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (q V U)} 	: UnifyingResolution(1, 3)[]
+5: {(p V (f U V)), (p (f U V) (f U V)), (q U (f U V)), (q (f U V) (f U V)) ⊢ } 	: Axiom()[]
+6: {(p V (f U V)), (q U (f U V)), (q (f U V) (f U V)) ⊢ } 	: UnifyingResolution(1, 5)[]
+7: {(p V (f U V)), (q U (f U V)) ⊢ } 	: UnifyingResolution(4, 6)[]
+8: {(q U (f U V)) ⊢ } 	: UnifyingResolution(1, 7)[]
+9: { ⊢ } 	: UnifyingResolution(4, 8)[]
+

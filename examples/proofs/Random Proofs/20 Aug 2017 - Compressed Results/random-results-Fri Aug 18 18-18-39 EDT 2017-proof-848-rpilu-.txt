@@ -1,0 +1,13 @@
+1: { ⊢ (p30 c8 c19)} 	: Axiom()[]
+2: {(p30 c8 V131) ⊢ (p119 c33)} 	: Axiom()[]
+3: {(p30 c8 c19) ⊢ (p119 c33)} 	: FOSubstitution(2)[]
+4: {(p30 V132 c19), (p119 V130) ⊢ (p54 c1 (f1 V130 c41))} 	: Axiom()[]
+5: {(p30 c8 c19), (p119 V130) ⊢ (p54 c1 (f1 V130 c41))} 	: FOSubstitution(4)[]
+6: {(p30 c8 c19), (p30 c8 c19) ⊢ (p54 c1 (f1 c33 c41))} 	: UnifyingResolutionMRR(3, 5)[]
+7: {(p30 c8 c19) ⊢ (p54 c1 (f1 c33 c41))} 	: Contraction(6)[]
+8: {(p54 V29 V30) ⊢ (p55 V29 V30)} 	: Axiom()[]
+9: {(p55 V29 V30) ⊢ } 	: Axiom()[]
+10: {(p54 V29 V30) ⊢ } 	: UnifyingResolutionMRR(8, 9)[]
+11: {(p30 c8 c19) ⊢ } 	: UnifyingResolution(7, 10)[]
+12: { ⊢ } 	: UnifyingResolution(1, 11)[]
+

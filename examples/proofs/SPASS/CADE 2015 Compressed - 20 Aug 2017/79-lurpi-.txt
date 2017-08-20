@@ -1,0 +1,10 @@
+1: { ⊢ (c_in v_b v_A t_a)} 	: Axiom()[]
+2: { ⊢ (c_in v_a v_A t_a)} 	: Axiom()[]
+3: { ⊢ (c_lessequals v_S (c_Tarski_Ointerval v_r v_a v_b t_a) (tc_set t_a))} 	: Axiom()[]
+4: {(c_lessequals W (c_Tarski_Ointerval v_r U V t_a) (tc_set t_a)), (c_in V v_A t_a), (c_in U v_A t_a) ⊢ (c_lessequals W v_A (tc_set t_a))} 	: Axiom()[]
+5: {(c_in v_b v_A t_a), (c_in v_a v_A t_a) ⊢ (c_lessequals v_S v_A (tc_set t_a))} 	: UnifyingResolution(3, 4)[]
+6: {(c_lessequals v_S v_A (tc_set t_a)) ⊢ } 	: Axiom()[]
+7: {(c_in v_b v_A t_a), (c_in v_a v_A t_a) ⊢ } 	: UnifyingResolution(5, 6)[]
+8: {(c_in v_b v_A t_a) ⊢ } 	: UnifyingResolution(2, 7)[]
+9: { ⊢ } 	: UnifyingResolution(1, 8)[]
+

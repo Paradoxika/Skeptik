@@ -1,0 +1,4 @@
+1: { ⊢ (big_p U V)} 	: Axiom()[]
+2: {(big_p (f U V) (g U V)) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

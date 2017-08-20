@@ -1,0 +1,6 @@
+1: { ⊢ (c_lessequals U (c_plus U V tc_nat) tc_nat)} 	: Axiom()[]
+2: { ⊢ (c_in (c_Message_Omsg_ONonce U) (c_Event_Oused v_evs) tc_Message_Omsg)} 	: Axiom()[]
+3: {(c_in (c_Message_Omsg_ONonce V) (c_Event_Oused U) tc_Message_Omsg), (c_lessequals (v_sko__urX U) V tc_nat) ⊢ } 	: Axiom()[]
+4: {(c_lessequals (v_sko__urX v_evs) V tc_nat) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

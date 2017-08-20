@@ -1,0 +1,8 @@
+1: { ⊢ (p110 V109), (p25 (f12 V109 (f1 (f10 c35) (f8 (f0 c6 c12) c18 c7))))} 	: Axiom()[]
+2: {(p110 c2) ⊢ } 	: Axiom()[]
+3: { ⊢ (p25 (f12 c2 (f1 (f10 c35) (f8 (f0 c6 c12) c18 c7))))} 	: UnifyingResolutionMRR(1, 2)[]
+4: { ⊢ (p42 V2)} 	: Axiom()[]
+5: {(p42 V2), (p25 V2) ⊢ } 	: Axiom()[]
+6: {(p25 V2) ⊢ } 	: UnifyingResolutionMRR(4, 5)[]
+7: { ⊢ } 	: UnifyingResolution(3, 6)[]
+

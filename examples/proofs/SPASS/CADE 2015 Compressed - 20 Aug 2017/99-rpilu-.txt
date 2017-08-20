@@ -1,0 +1,4 @@
+1: { ⊢ (c_lessequals c_0 (v_h U V) t_c)} 	: Axiom()[]
+2: {(c_lessequals c_0 (v_h v_xa v_xb) t_c) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

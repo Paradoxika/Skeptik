@@ -1,0 +1,10 @@
+1: { ⊢ (c_lessequals U U (tc_set V))} 	: Axiom()[]
+2: {(c_lessequals U (c_Zorn_OTFin V W) (tc_set (tc_set (tc_set W)))) ⊢ (c_in (c_Union U (tc_set W)) (c_Zorn_OTFin V W) (tc_set (tc_set W)))} 	: Axiom()[]
+3: {(c_in U (c_Zorn_OTFin V W) (tc_set (tc_set W))) ⊢ (c_in (c_Zorn_Osucc V U W) (c_Zorn_OTFin V W) (tc_set (tc_set W)))} 	: Axiom()[]
+4: {(c_in U V (tc_set W)) ⊢ (c_lessequals U (c_Union V W) (tc_set W))} 	: Axiom()[]
+5: {(c_lessequals (c_Zorn_Osucc v_S (c_Union (c_Zorn_OTFin v_S t_a) (tc_set t_a)) t_a) (c_Union (c_Zorn_OTFin v_S t_a) (tc_set t_a)) (tc_set (tc_set t_a))) ⊢ } 	: Axiom()[]
+6: {(c_in (c_Zorn_Osucc v_S (c_Union (c_Zorn_OTFin v_S t_a) (tc_set t_a)) t_a) (c_Zorn_OTFin v_S t_a) (tc_set (tc_set t_a))) ⊢ } 	: UnifyingResolution(4, 5)[]
+7: {(c_in (c_Union (c_Zorn_OTFin v_S t_a) (tc_set t_a)) (c_Zorn_OTFin v_S t_a) (tc_set (tc_set t_a))) ⊢ } 	: UnifyingResolution(3, 6)[]
+8: {(c_lessequals (c_Zorn_OTFin v_S t_a) (c_Zorn_OTFin v_S t_a) (tc_set (tc_set (tc_set t_a)))) ⊢ } 	: UnifyingResolution(2, 7)[]
+9: { ⊢ } 	: UnifyingResolution(1, 8)[]
+

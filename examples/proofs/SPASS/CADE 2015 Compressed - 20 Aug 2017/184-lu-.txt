@@ -1,0 +1,7 @@
+1: { ⊢ (subclass U U)} 	: Axiom()[]
+2: {(subclass V U), (subclass U V) ⊢ (equalish V U)} 	: Axiom()[]
+3: {(equalish x x) ⊢ } 	: Axiom()[]
+4: {(subclass x x), (subclass x x) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: {(subclass x x) ⊢ } 	: Contraction(4)[]
+6: { ⊢ } 	: UnifyingResolution(1, 5)[]
+

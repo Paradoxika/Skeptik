@@ -1,0 +1,4 @@
+1: { ⊢ (c_in (c_Pair U U tc_Comb_Ocomb tc_Comb_Ocomb) c_Comb_Oparcontract (tc_prod tc_Comb_Ocomb tc_Comb_Ocomb))} 	: Axiom()[]
+2: {(c_in (c_Pair (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D v_xb v_z) (c_Comb_Ocomb_Oop_A_D_D v_yb v_z)) U tc_Comb_Ocomb tc_Comb_Ocomb) c_Comb_Oparcontract (tc_prod tc_Comb_Ocomb tc_Comb_Ocomb)) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

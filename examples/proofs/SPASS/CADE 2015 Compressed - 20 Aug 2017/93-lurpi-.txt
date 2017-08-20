@@ -1,0 +1,11 @@
+1: { ⊢ (p2 U U)} 	: Axiom()[]
+2: {(p2 U W), (p2 U V) ⊢ (p2 W V)} 	: Axiom()[]
+3: { ⊢ (p10 (f7 c11) (f3 (f4 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 c12)))))))))))))))))))} 	: Axiom()[]
+4: {(p2 U X), (p2 V W), (p10 U V) ⊢ (p10 X W)} 	: Axiom()[]
+5: {(p2 (f7 c11) X), (p2 (f3 (f4 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 c12)))))))))))))))))) W) ⊢ (p10 X W)} 	: UnifyingResolution(3, 4)[]
+6: {(p2 U W), (p2 U (f3 (f4 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 (f5 c12))))))))))))))))))), (p2 (f7 c11) X) ⊢ (p10 X W)} 	: UnifyingResolutionMRR(2, 5)[]
+7: {(p2 (f7 c11) V) ⊢ (p10 V (f7 c11))} 	: Contraction(6)[]
+8: {(p10 U U) ⊢ } 	: Axiom()[]
+9: {(p2 (f7 c11) (f7 c11)) ⊢ } 	: UnifyingResolution(7, 8)[]
+10: { ⊢ } 	: UnifyingResolution(1, 9)[]
+

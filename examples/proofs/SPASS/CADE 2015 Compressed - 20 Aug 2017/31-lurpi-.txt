@@ -1,0 +1,4 @@
+1: { ⊢ (p U V (sk1 V U))} 	: Axiom()[]
+2: {(p U U V) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

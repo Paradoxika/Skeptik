@@ -1,0 +1,6 @@
+1: { ⊢ (p36 c16), (p17 c38)} 	: Axiom()[]
+2: {(p36 c16) ⊢ } 	: Axiom()[]
+3: { ⊢ (p17 c38)} 	: UnifyingResolutionMRR(1, 2)[]
+4: {(p17 c38) ⊢ } 	: Axiom()[]
+5: { ⊢ } 	: UnifyingResolution(3, 4)[]
+

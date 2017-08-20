@@ -1,0 +1,12 @@
+1: { ⊢ (subset skc6 skc7)} 	: Axiom()[]
+2: {(subset U V) ⊢ (subset (cartesian_product2 W U) (cartesian_product2 W V))} 	: Axiom()[]
+3: { ⊢ (subset (cartesian_product2 W skc6) (cartesian_product2 W skc7))} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (subset skc9 skc8)} 	: Axiom()[]
+5: {(subset U V) ⊢ (subset (cartesian_product2 U W) (cartesian_product2 V W))} 	: Axiom()[]
+6: { ⊢ (subset (cartesian_product2 skc9 W) (cartesian_product2 skc8 W))} 	: UnifyingResolution(4, 5)[]
+7: {(subset W U), (subset U V) ⊢ (subset W V)} 	: Axiom()[]
+8: {(subset (cartesian_product2 skc9 skc6) (cartesian_product2 skc8 skc7)) ⊢ } 	: Axiom()[]
+9: {(subset (cartesian_product2 skc9 skc6) U), (subset U (cartesian_product2 skc8 skc7)) ⊢ } 	: UnifyingResolution(7, 8)[]
+10: {(subset (cartesian_product2 skc9 skc6) (cartesian_product2 skc9 skc7)) ⊢ } 	: UnifyingResolution(6, 9)[]
+11: { ⊢ } 	: UnifyingResolution(3, 10)[]
+

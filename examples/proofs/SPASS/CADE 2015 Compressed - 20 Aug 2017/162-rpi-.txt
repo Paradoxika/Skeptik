@@ -1,0 +1,9 @@
+1: { ⊢ (product U (right_solution U V) V)} 	: Axiom()[]
+2: { ⊢ (product (left_solution U V) U V)} 	: Axiom()[]
+3: {(product U X Z), (product X Y V), (product U V W) ⊢ (product Z Y W)} 	: Axiom()[]
+4: {(product (left_solution V W) X Z), (product X Y V) ⊢ (product Z Y W)} 	: UnifyingResolution(2, 3)[]
+5: {(product X Y X) ⊢ (product Z Y Z)} 	: UnifyingResolution(2, 4)[]
+6: { ⊢ (product Z (right_solution X X) Z)} 	: UnifyingResolution(1, 5)[]
+7: {(product (not_identity U) U (not_identity U)) ⊢ } 	: Axiom()[]
+8: { ⊢ } 	: UnifyingResolution(6, 7)[]
+

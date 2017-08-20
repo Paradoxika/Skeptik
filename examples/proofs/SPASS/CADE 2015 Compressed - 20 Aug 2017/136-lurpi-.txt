@@ -1,0 +1,10 @@
+1: { ⊢ (c_in v_evs2 c_Yahalom_Oyahalom (tc_List_Olist tc_Event_Oevent))} 	: Axiom()[]
+2: { ⊢ (c_in (c_Event_Oevent_OGets v_Ba (c_Message_Omsg_OMPair (c_Message_Omsg_OAgent v_Aa) (c_Message_Omsg_ONonce v_NB))) (c_List_Oset v_evs2 tc_Event_Oevent) tc_Event_Oevent)} 	: Axiom()[]
+3: {(c_in (c_Event_Oevent_OGets V W) (c_List_Oset U tc_Event_Oevent) tc_Event_Oevent), (c_in U c_Yahalom_Oyahalom (tc_List_Olist tc_Event_Oevent)) ⊢ (c_in W (c_Message_Oanalz (c_Event_Oknows c_Message_Oagent_OSpy U)) tc_Message_Omsg)} 	: Axiom()[]
+4: {(c_in v_evs2 c_Yahalom_Oyahalom (tc_List_Olist tc_Event_Oevent)) ⊢ (c_in (c_Message_Omsg_OMPair (c_Message_Omsg_OAgent v_Aa) (c_Message_Omsg_ONonce v_NB)) (c_Message_Oanalz (c_Event_Oknows c_Message_Oagent_OSpy v_evs2)) tc_Message_Omsg)} 	: UnifyingResolution(2, 3)[]
+5: { ⊢ (c_in (c_Message_Omsg_OMPair (c_Message_Omsg_OAgent v_Aa) (c_Message_Omsg_ONonce v_NB)) (c_Message_Oanalz (c_Event_Oknows c_Message_Oagent_OSpy v_evs2)) tc_Message_Omsg)} 	: UnifyingResolution(1, 4)[]
+6: {(c_in (c_Message_Omsg_OMPair U V) (c_Message_Oanalz W) tc_Message_Omsg) ⊢ (c_in V (c_Message_Oanalz W) tc_Message_Omsg)} 	: Axiom()[]
+7: {(c_in (c_Message_Omsg_ONonce v_NB) (c_Message_Oanalz (c_Event_Oknows c_Message_Oagent_OSpy v_evs2)) tc_Message_Omsg) ⊢ } 	: Axiom()[]
+8: {(c_in (c_Message_Omsg_OMPair U (c_Message_Omsg_ONonce v_NB)) (c_Message_Oanalz (c_Event_Oknows c_Message_Oagent_OSpy v_evs2)) tc_Message_Omsg) ⊢ } 	: UnifyingResolution(6, 7)[]
+9: { ⊢ } 	: UnifyingResolution(5, 8)[]
+

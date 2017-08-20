@@ -1,0 +1,6 @@
+1: { ⊢ (p48 c39 c11)} 	: Axiom()[]
+2: {(p48 V0 V1) ⊢ (p49 V0 V1)} 	: Axiom()[]
+3: {(p49 V0 V1) ⊢ } 	: Axiom()[]
+4: {(p48 V0 V1) ⊢ } 	: UnifyingResolutionMRR(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

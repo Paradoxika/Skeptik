@@ -1,0 +1,4 @@
+1: { ⊢ (element_of_collection U (top_of_basis f))} 	: Axiom()[]
+2: {(element_of_collection (intersection_of_sets U V) (top_of_basis f)) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

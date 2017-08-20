@@ -1,0 +1,6 @@
+1: { ⊢ (mtvisible c_currentworlddatacollectormt_nonhomocentric)} 	: Axiom()[]
+2: {(mtvisible c_currentworlddatacollectormt_nonhomocentric) ⊢ (tptpofobject (f_instancewithrelationtofn c_airport_physical c_airporthasiatacode s_tlh) (f_tptpquantityfn_21 n_170))} 	: Axiom()[]
+3: {(tptpofobject (f_instancewithrelationtofn c_airport_physical c_airporthasiatacode s_tlh) U) ⊢ } 	: Axiom()[]
+4: {(mtvisible c_currentworlddatacollectormt_nonhomocentric) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

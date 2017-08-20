@@ -1,0 +1,9 @@
+1: { ⊢ (g (f U) U), (g U a)} 	: Axiom()[]
+2: { ⊢ (g U (f U)), (g U a)} 	: Axiom()[]
+3: {(g V a), (g U V) ⊢ } 	: Axiom()[]
+4: {(g (f U) a) ⊢ (g U a)} 	: UnifyingResolutionMRR(2, 3)[]
+5: { ⊢ (g a a), (g a a)} 	: UnifyingResolutionMRR(1, 4)[]
+6: { ⊢ (g a a)} 	: Contraction(5)[]
+7: {(g a a) ⊢ } 	: Contraction(3)[]
+8: { ⊢ } 	: UnifyingResolution(6, 7)[]
+

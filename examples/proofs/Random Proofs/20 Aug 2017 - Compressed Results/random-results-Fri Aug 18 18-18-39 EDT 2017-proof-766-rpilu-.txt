@@ -1,0 +1,11 @@
+1: { ⊢ (p36 V44)} 	: Axiom()[]
+2: {(p36 V241) ⊢ (p108 V248 (f11 (f13 (f12 (f13 (f5 V249 c11)) V250))) V251 (f8 V252 V253 V254)), (p149 V241)} 	: Axiom()[]
+3: {(p36 V241) ⊢ (p108 c1 (f11 (f13 (f12 (f13 (f5 c40 c11)) c16))) c15 (f8 c14 c28 c2)), (p149 V241)} 	: FOSubstitution(2)[]
+4: {(p149 c33) ⊢ (p108 V242 (f11 (f13 (f12 (f13 (f5 V243 V244)) c16))) V245 (f8 V246 V247 c2))} 	: Axiom()[]
+5: {(p149 c33) ⊢ (p108 c1 (f11 (f13 (f12 (f13 (f5 c40 c11)) c16))) c15 (f8 c14 c28 c2))} 	: FOSubstitution(4)[]
+6: {(p36 c33) ⊢ (p108 c1 (f11 (f13 (f12 (f13 (f5 c40 c11)) c16))) c15 (f8 c14 c28 c2)), (p108 c1 (f11 (f13 (f12 (f13 (f5 c40 c11)) c16))) c15 (f8 c14 c28 c2))} 	: UnifyingResolutionMRR(3, 5)[]
+7: {(p36 c33) ⊢ (p108 c1 (f11 (f13 (f12 (f13 (f5 c40 c11)) c16))) c15 (f8 c14 c28 c2))} 	: Contraction(6)[]
+8: { ⊢ (p108 c1 (f11 (f13 (f12 (f13 (f5 c40 c11)) c16))) c15 (f8 c14 c28 c2))} 	: UnifyingResolution(1, 7)[]
+9: {(p108 c1 (f11 (f13 (f12 (f13 (f5 c40 c11)) c16))) c15 (f8 c14 c28 c2)) ⊢ } 	: Axiom()[]
+10: { ⊢ } 	: UnifyingResolution(8, 9)[]
+

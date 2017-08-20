@@ -1,0 +1,8 @@
+1: { ⊢ (c_Tarski_OisLub v_S v_cl v_L t_a)} 	: Axiom()[]
+2: { ⊢ (c_in v_x v_S t_a)} 	: Axiom()[]
+3: {(c_Tarski_OisLub V v_cl W t_a), (c_in U V t_a) ⊢ (c_in (c_Pair U W t_a t_a) v_r (tc_prod t_a t_a))} 	: Axiom()[]
+4: {(c_in (c_Pair v_x v_L t_a t_a) v_r (tc_prod t_a t_a)) ⊢ } 	: Axiom()[]
+5: {(c_Tarski_OisLub V v_cl v_L t_a), (c_in v_x V t_a) ⊢ } 	: UnifyingResolution(3, 4)[]
+6: {(c_Tarski_OisLub v_S v_cl v_L t_a) ⊢ } 	: UnifyingResolution(2, 5)[]
+7: { ⊢ } 	: UnifyingResolution(1, 6)[]
+

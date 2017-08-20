@@ -1,0 +1,4 @@
+1: { ⊢ (c_in (v_x U) U tc_IntDef_Oint)} 	: Axiom()[]
+2: {(c_in U c_emptyset V) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

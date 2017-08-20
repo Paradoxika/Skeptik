@@ -1,0 +1,6 @@
+1: { ⊢ (p127 V184), (p70 (f6 V184) c23)} 	: Axiom()[]
+2: {(p127 c22) ⊢ } 	: Axiom()[]
+3: { ⊢ (p70 (f6 c22) c23)} 	: UnifyingResolutionMRR(1, 2)[]
+4: {(p70 V77 V76) ⊢ } 	: Axiom()[]
+5: { ⊢ } 	: UnifyingResolution(3, 4)[]
+

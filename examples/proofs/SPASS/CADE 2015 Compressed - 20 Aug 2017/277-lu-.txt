@@ -1,0 +1,8 @@
+1: { ⊢ (there_exists (domain__dfg c2))} 	: Axiom()[]
+2: { ⊢ (equalish (domain__dfg c2) (codomain c1))} 	: Axiom()[]
+3: {(equalish (domain__dfg U) (codomain V)), (there_exists (domain__dfg U)) ⊢ (there_exists (compose U V))} 	: Axiom()[]
+4: {(there_exists (compose c2 c1)) ⊢ } 	: Axiom()[]
+5: {(equalish (domain__dfg c2) (codomain c1)), (there_exists (domain__dfg c2)) ⊢ } 	: UnifyingResolution(3, 4)[]
+6: {(there_exists (domain__dfg c2)) ⊢ } 	: UnifyingResolution(2, 5)[]
+7: { ⊢ } 	: UnifyingResolution(1, 6)[]
+

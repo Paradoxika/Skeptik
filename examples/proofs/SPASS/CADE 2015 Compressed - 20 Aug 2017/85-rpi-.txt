@@ -1,0 +1,13 @@
+1: { ⊢ (p22 (f20 V U W X) (f14 (f11 V (f12 U W)))), (p2 U (f3 c24))} 	: Axiom()[]
+2: {(p22 U (f14 (f11 c25 (f12 c23 c26)))) ⊢ (p21 (f5 (f6 c27 (f9 (f11 c25 (f12 c23 c26)) c28 c27))) (f5 (f6 c27 U)))} 	: Axiom()[]
+3: { ⊢ (p21 (f5 (f6 V (f20 W U X V))) (f15 (f19 (f11 W (f12 U X)) V) (f16 (f3 (f17 (f18 c24)))))), (p2 U (f3 c24))} 	: Axiom()[]
+4: {(p21 W U), (p21 U V) ⊢ (p21 W V)} 	: Axiom()[]
+5: {(p21 W (f5 (f6 Z (f20 NEW2 X1 X Z)))) ⊢ (p2 X1 (f3 c24)), (p21 W (f15 (f19 (f11 NEW2 (f12 X1 X)) Z) (f16 (f3 (f17 (f18 c24))))))} 	: UnifyingResolution(3, 4)[]
+6: {(p22 (f20 NEW2 X1 X c27) (f14 (f11 c25 (f12 c23 c26)))) ⊢ (p2 X1 (f3 c24)), (p21 (f5 (f6 c27 (f9 (f11 c25 (f12 c23 c26)) c28 c27))) (f15 (f19 (f11 NEW2 (f12 X1 X)) c27) (f16 (f3 (f17 (f18 c24))))))} 	: UnifyingResolution(2, 5)[]
+7: {(p21 (f5 (f6 c27 (f9 (f11 c25 (f12 c23 c26)) c28 c27))) (f15 (f19 (f11 c25 (f12 c23 c26)) c27) (f16 (f3 (f17 (f18 c24)))))) ⊢ } 	: Axiom()[]
+8: {(p22 (f20 c25 c23 c26 c27) (f14 (f11 c25 (f12 c23 c26)))) ⊢ (p2 c23 (f3 c24))} 	: UnifyingResolution(6, 7)[]
+9: { ⊢ (p2 c23 (f3 c24)), (p2 c23 (f3 c24))} 	: UnifyingResolution(1, 8)[]
+10: { ⊢ (p2 c23 (f3 c24))} 	: Contraction(9)[]
+11: {(p2 c23 (f3 c24)) ⊢ } 	: Axiom()[]
+12: { ⊢ } 	: UnifyingResolution(10, 11)[]
+

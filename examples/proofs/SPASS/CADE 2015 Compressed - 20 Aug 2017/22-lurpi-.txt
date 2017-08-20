@@ -1,0 +1,8 @@
+1: { ⊢ (iext uri_owl_propertyDisjointWith uri_skos_prefLabel uri_skos_altLabel)} 	: Axiom()[]
+2: { ⊢ (iext uri_skos_prefLabel uri_ex_foo (literal_plain dat_str_foo))} 	: Axiom()[]
+3: { ⊢ (iext uri_skos_altLabel uri_ex_foo (literal_plain dat_str_foo))} 	: Axiom()[]
+4: {(iext uri_owl_propertyDisjointWith X U), (iext X V W), (iext U V W) ⊢ } 	: Axiom()[]
+5: {(iext uri_owl_propertyDisjointWith X uri_skos_altLabel), (iext X uri_ex_foo (literal_plain dat_str_foo)) ⊢ } 	: UnifyingResolution(3, 4)[]
+6: {(iext uri_owl_propertyDisjointWith uri_skos_prefLabel uri_skos_altLabel) ⊢ } 	: UnifyingResolution(2, 5)[]
+7: { ⊢ } 	: UnifyingResolution(1, 6)[]
+

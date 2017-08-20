@@ -1,0 +1,10 @@
+1: { ⊢ (e exists__dfg)} 	: Axiom()[]
+2: {(e U) ⊢ (r U (u0r3 U))} 	: Axiom()[]
+3: { ⊢ (r exists__dfg (u0r3 exists__dfg))} 	: UnifyingResolution(1, 2)[]
+4: {(r U W), (r V W), (e U) ⊢ (a V)} 	: Axiom()[]
+5: {(a exists__dfg) ⊢ } 	: Axiom()[]
+6: {(r U W), (r exists__dfg W), (e U) ⊢ } 	: UnifyingResolution(4, 5)[]
+7: {(r exists__dfg W), (r exists__dfg W) ⊢ } 	: UnifyingResolution(1, 6)[]
+8: {(r exists__dfg U) ⊢ } 	: Contraction(7)[]
+9: { ⊢ } 	: UnifyingResolution(3, 8)[]
+

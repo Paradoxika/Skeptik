@@ -1,0 +1,11 @@
+1: { ⊢ (equalish n k)} 	: Axiom()[]
+2: { ⊢ (equalish m k)} 	: Axiom()[]
+3: {(equalish U V) ⊢ (equalish V U)} 	: Axiom()[]
+4: { ⊢ (equalish k m)} 	: UnifyingResolution(2, 3)[]
+5: {(equalish W U), (equalish U V) ⊢ (equalish W V)} 	: Axiom()[]
+6: {(equalish W k) ⊢ (equalish W m)} 	: UnifyingResolution(4, 5)[]
+7: { ⊢ (equalish n m)} 	: UnifyingResolution(1, 6)[]
+8: { ⊢ (equalish m n)} 	: UnifyingResolution(7, 3)[]
+9: {(equalish m n) ⊢ } 	: Axiom()[]
+10: { ⊢ } 	: UnifyingResolution(8, 9)[]
+

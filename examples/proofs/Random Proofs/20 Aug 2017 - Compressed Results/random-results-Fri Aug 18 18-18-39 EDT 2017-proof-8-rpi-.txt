@@ -1,0 +1,11 @@
+1: { ⊢ (p21 V4 V4), (p19 V4)} 	: Axiom()[]
+2: {(p21 V4 V4) ⊢ (p18 V4)} 	: Axiom()[]
+3: { ⊢ (p19 V4), (p18 V4)} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (p20 c36)} 	: Axiom()[]
+5: {(p20 V5), (p19 V5) ⊢ } 	: Axiom()[]
+6: {(p19 c36) ⊢ } 	: UnifyingResolution(4, 5)[]
+7: { ⊢ (p18 c36)} 	: UnifyingResolution(3, 6)[]
+8: {(p18 V7), (p18 c36) ⊢ } 	: Axiom()[]
+9: {(p18 c36) ⊢ } 	: Contraction(8)[]
+10: { ⊢ } 	: UnifyingResolution(7, 9)[]
+

@@ -1,0 +1,6 @@
+1: { ⊢ (disjoint (singleton U) V), (in U V)} 	: Axiom()[]
+2: {(disjoint (singleton skc4) skc5) ⊢ } 	: Axiom()[]
+3: { ⊢ (in skc4 skc5)} 	: UnifyingResolution(1, 2)[]
+4: {(in skc4 skc5) ⊢ } 	: Axiom()[]
+5: { ⊢ } 	: UnifyingResolution(3, 4)[]
+

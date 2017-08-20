@@ -1,0 +1,9 @@
+1: { ⊢ (member (skf1 V U) U), (subset U V)} 	: Axiom()[]
+2: {(member U (difference V W)) ⊢ (member U V)} 	: Axiom()[]
+3: { ⊢ (subset (difference V W) X1), (member (skf1 X1 (difference V W)) V)} 	: UnifyingResolution(1, 2)[]
+4: {(member (skf1 U V) U) ⊢ (subset W U)} 	: Axiom()[]
+5: { ⊢ (subset (difference U Z) U), (subset W U)} 	: UnifyingResolution(3, 4)[]
+6: { ⊢ (subset (difference U V) U)} 	: Contraction(5)[]
+7: {(subset (difference skc3 skc2) skc3) ⊢ } 	: Axiom()[]
+8: { ⊢ } 	: UnifyingResolution(6, 7)[]
+

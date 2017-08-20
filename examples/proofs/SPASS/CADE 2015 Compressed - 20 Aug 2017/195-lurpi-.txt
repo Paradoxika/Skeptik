@@ -1,0 +1,10 @@
+1: { ⊢ (truth (isa U knight)), (truth (isa U knave))} 	: Axiom()[]
+2: {(truth (isa asked V)), (truth (isa other U)) ⊢ } 	: Axiom()[]
+3: {(truth (isa asked V)) ⊢ (truth (isa other knave))} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (truth (isa asked knave)), (truth (isa other knave))} 	: UnifyingResolution(1, 3)[]
+5: { ⊢ (truth (isa other knave)), (truth (isa other knave))} 	: UnifyingResolution(4, 3)[]
+6: { ⊢ (truth (isa other knave))} 	: Contraction(5)[]
+7: {(truth (isa asked V)) ⊢ } 	: UnifyingResolution(6, 2)[]
+8: { ⊢ (truth (isa asked knave))} 	: UnifyingResolution(1, 7)[]
+9: { ⊢ } 	: UnifyingResolution(8, 7)[]
+

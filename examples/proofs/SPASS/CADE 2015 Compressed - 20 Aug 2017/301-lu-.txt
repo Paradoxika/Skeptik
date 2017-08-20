@@ -1,0 +1,6 @@
+1: { ⊢ (c_in (c_Pair (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D c_Comb_Ocomb_OS U) V) W) (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D U W) (c_Comb_Ocomb_Oop_A_D_D V W)) tc_Comb_Ocomb tc_Comb_Ocomb) c_Comb_Oparcontract (tc_prod tc_Comb_Ocomb tc_Comb_Ocomb))} 	: Axiom()[]
+2: { ⊢ (c_in (c_Pair U U tc_Comb_Ocomb tc_Comb_Ocomb) c_Comb_Oparcontract (tc_prod tc_Comb_Ocomb tc_Comb_Ocomb))} 	: Axiom()[]
+3: {(c_in (c_Pair (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D c_Comb_Ocomb_OS v_x) v_ya) v_z) U tc_Comb_Ocomb tc_Comb_Ocomb) c_Comb_Oparcontract (tc_prod tc_Comb_Ocomb tc_Comb_Ocomb)), (c_in (c_Pair (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D v_x v_z) (c_Comb_Ocomb_Oop_A_D_D v_ya v_z)) U tc_Comb_Ocomb tc_Comb_Ocomb) c_Comb_Oparcontract (tc_prod tc_Comb_Ocomb tc_Comb_Ocomb)) ⊢ } 	: Axiom()[]
+4: {(c_in (c_Pair (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D c_Comb_Ocomb_OS v_x) v_ya) v_z) (c_Comb_Ocomb_Oop_A_D_D (c_Comb_Ocomb_Oop_A_D_D v_x v_z) (c_Comb_Ocomb_Oop_A_D_D v_ya v_z)) tc_Comb_Ocomb tc_Comb_Ocomb) c_Comb_Oparcontract (tc_prod tc_Comb_Ocomb tc_Comb_Ocomb)) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

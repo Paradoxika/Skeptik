@@ -1,0 +1,11 @@
+1: { ⊢ (big_f skc2 (f skc2)), (big_f skc2 skc3)} 	: Axiom()[]
+2: {(big_f U skc3) ⊢ (big_f U (f skc2))} 	: Axiom()[]
+3: {(big_f skc2 skc3) ⊢ (big_f skc2 (f skc2))} 	: FOSubstitution(2)[]
+4: { ⊢ (big_f skc2 (f skc2)), (big_f skc2 (f skc2))} 	: UnifyingResolutionMRR(1, 3)[]
+5: { ⊢ (big_f skc2 (f skc2))} 	: Contraction(4)[]
+6: {(big_f skc2 (f skc2)), (big_f skc2 U) ⊢ (big_f (skf2 U) U)} 	: Axiom()[]
+7: {(big_f (skf2 U) (f skc2)), (big_f skc2 (f skc2)) ⊢ } 	: Axiom()[]
+8: {(big_f skc2 (f skc2)), (big_f skc2 (f skc2)), (big_f skc2 (f skc2)) ⊢ } 	: UnifyingResolutionMRR(6, 7)[]
+9: {(big_f skc2 (f skc2)) ⊢ } 	: Contraction(8)[]
+10: { ⊢ } 	: UnifyingResolution(5, 9)[]
+

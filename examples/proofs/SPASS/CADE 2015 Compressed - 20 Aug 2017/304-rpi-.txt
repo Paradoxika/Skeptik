@@ -1,0 +1,13 @@
+1: { ⊢ (relation_of2_as_subset skc6 skc5 skc7)} 	: Axiom()[]
+2: {(relation_of2_as_subset U V W) ⊢ (subset (relation_rng U) W)} 	: Axiom()[]
+3: { ⊢ (subset (relation_rng skc6) skc7)} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (subset skc7 skc4)} 	: Axiom()[]
+5: {(subset W U), (subset U V) ⊢ (subset W V)} 	: Axiom()[]
+6: {(subset W skc7) ⊢ (subset W skc4)} 	: UnifyingResolution(4, 5)[]
+7: {(relation_of2_as_subset U W X), (subset (relation_rng U) V) ⊢ (relation_of2_as_subset U W V)} 	: Axiom()[]
+8: {(relation_of2_as_subset skc6 skc5 skc4) ⊢ } 	: Axiom()[]
+9: {(relation_of2_as_subset skc6 skc5 X), (subset (relation_rng skc6) skc4) ⊢ } 	: UnifyingResolution(7, 8)[]
+10: {(subset (relation_rng skc6) skc4) ⊢ } 	: UnifyingResolution(1, 9)[]
+11: {(subset (relation_rng skc6) skc7) ⊢ } 	: UnifyingResolution(6, 10)[]
+12: { ⊢ } 	: UnifyingResolution(3, 11)[]
+
