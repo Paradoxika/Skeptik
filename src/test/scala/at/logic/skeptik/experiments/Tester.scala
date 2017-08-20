@@ -119,7 +119,11 @@ object Tester extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiteral
     
     
     //LU
-    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 22-28-48 EST 2016-proof-1.txt")
+//    val proof = ProofParserSkeptikOutput.read("D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Retest\\random-results-Mon Nov 21 22-28-48 EST 2016-proof-1.txt")
+    
+    
+    //combined CADE
+    val proof = ProofParserSPASS.read("D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs\\GRP\\GRP028-4.spass")//     
     
     println(proof)
 //     println(proof.size)

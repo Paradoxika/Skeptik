@@ -97,6 +97,15 @@ object FORPIProofGeneratorTestsDir {
     List[File]()
   }
 }  
+ 
+       def printCompressedProof(proof: Proof[Node], pre: String, suf: String, h: Int, alg: String) = {
+        val proofFile = pre + h.toString() + "-" + alg + "-" + suf
+        val proofWriter =new PrintWriter(proofFile)
+        printProof(proofWriter, proof)
+        proofWriter.flush()
+        proofWriter.close()
+  
+      }
   
   def compressionTests(): Unit = {
     var proofsLenghtsSum = 0
@@ -159,14 +168,7 @@ finally fw.close()
 //      var luRPIproof: Proof[Node] = null
 
       
-      def printCompressedProof(proof: Proof[Node], pre: String, suf: String, h: Int, alg: String) = {
-        val proofFile = pre + h.toString() + "-" + alg + "-" + suf
-        val proofWriter =new PrintWriter(proofFile)
-        printProof(proofWriter, proof)
-        proofWriter.flush()
-        proofWriter.close()
-  
-      }
+
       
       val collectedProofPrefix = compressedProofDir + "random-results-" + startTime + "-proof-"
       val collectedProofSuffix = ".txt"

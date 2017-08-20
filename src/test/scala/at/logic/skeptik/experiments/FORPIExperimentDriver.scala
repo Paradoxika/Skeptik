@@ -15,6 +15,7 @@ import java.util.Calendar
 import at.logic.skeptik.algorithm.compressor.CompressionException
 import at.logic.skeptik.algorithm.compressor.checkProofEquality
 import scala.collection.mutable.{HashSet => MSet}
+import at.logic.skeptik.experiments.FORPIProofGeneratorTestsDir.printCompressedProof
 
 
 /*
@@ -78,10 +79,16 @@ object FORPIExperimentDriver extends checkProofEquality {
   }
   
   def main(args: Array[String]): Unit = {
+    val logProofs = false
+    val useBoth = false
+    
     val prefixLen = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs".length() 
     val path = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
     val proofList = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\all_good_nov10.txt"
 
+    val compressedProofDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Compressed\\15 Aug 2017 - CADE\\Proofs\\"
+    
+    
     val expPrefix = "CADE-FORPILU " + getTimeString()
     
     val problemSetS = getProblems(proofList, path)
@@ -130,8 +137,8 @@ object FORPIExperimentDriver extends checkProofEquality {
         totalNodes = proofLength + totalNodes
         
         val proofToTestB = try {
-//          val q = FORecyclePivotsWithIntersection(proofToTest)
-          val q = FOLowerUnits(proofToTest)
+          val q = FORecyclePivotsWithIntersection(proofToTest)
+//          val q = FOLowerUnits(proofToTest)
           
           
           if(q.root.conclusion.ant.size != 0 || q.root.conclusion.suc.size != 0){
@@ -145,11 +152,19 @@ object FORPIExperimentDriver extends checkProofEquality {
           }
         }
         
-        val compressedProof =  if (proofToTestB != null) {
+        if(proofToTestB != null && logProofs) {
+          val collectedProofPrefix = compressedProofDir + "CADE-results-" + startTime + "-proof-"
+          val collectedProofSuffix = ".txt"
+          printCompressedProof(proofToTestB, compressedProofDir, collectedProofSuffix, totalCount, "rpi")
+        }
+        
+         
+        val compressedProof = if (proofToTestB != null && useBoth) {
 //        val compressedProof =  if (proofToTest != null) { 
           try{
             //RPI used in try
-            val p = FORecyclePivotsWithIntersection(proofToTest)
+//            val p = FORecyclePivotsWithIntersection(proofToTest)
+            val p = FOLowerUnits(proofToTest)
             if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0) { throw new Exception("not empty") }                         
             p
             //LU used in try
@@ -167,6 +182,12 @@ object FORPIExperimentDriver extends checkProofEquality {
           }
           } else { null }
 
+        if(proofToTestB != null && logProofs) {
+          val collectedProofPrefix = compressedProofDir + "CADE-results-" + startTime + "-proof-"
+          val collectedProofSuffix = ".txt"
+          printCompressedProof(proofToTestB, compressedProofDir, collectedProofSuffix, totalCount, "lurpi")
+        }
+        
         compressedNodes = if (compressedProof != null) { compressedNodes + compressedProof.size} else { compressedNodes} 
         
         if (compressedProof == null || compressedProof.root.conclusion.ant.size != 0 || compressedProof.root.conclusion.suc.size != 0) {
