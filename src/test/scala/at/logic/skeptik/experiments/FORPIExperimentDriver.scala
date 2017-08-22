@@ -79,7 +79,7 @@ object FORPIExperimentDriver extends checkProofEquality {
   }
   
   def main(args: Array[String]): Unit = {
-    val logProofs = false
+    val logProofs = true
     val useBoth = true
     
     val prefixLen = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs".length() 
@@ -89,7 +89,7 @@ object FORPIExperimentDriver extends checkProofEquality {
     val compressedProofDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Compressed\\15 Aug 2017 - CADE\\Proofs\\"
     
     
-    val expPrefix = "CADE-FOLURPI " + getTimeString()
+    val expPrefix = "CADE-FORPILU " + getTimeString()
     
     val problemSetS = getProblems(proofList, path)
     var errorCount = 0
@@ -137,8 +137,8 @@ object FORPIExperimentDriver extends checkProofEquality {
         totalNodes = proofLength + totalNodes
         
         val proofToTestB = try {
-          val q = FORecyclePivotsWithIntersection(proofToTest)
-//          val q = FOLowerUnits(proofToTest)
+//          val q = FORecyclePivotsWithIntersection(proofToTest)
+          val q = FOLowerUnits(proofToTest)
           
           
           if(q.root.conclusion.ant.size != 0 || q.root.conclusion.suc.size != 0){
@@ -163,8 +163,8 @@ object FORPIExperimentDriver extends checkProofEquality {
 //        val compressedProof =  if (proofToTest != null) { 
           try{
             //RPI used in try
-//            val p = FORecyclePivotsWithIntersection(proofToTest)
-            val p = FOLowerUnits(proofToTest)
+            val p = FORecyclePivotsWithIntersection(proofToTest)
+//            val p = FOLowerUnits(proofToTest)
             if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0) { throw new Exception("not empty") }                         
             p
             //LU used in try
