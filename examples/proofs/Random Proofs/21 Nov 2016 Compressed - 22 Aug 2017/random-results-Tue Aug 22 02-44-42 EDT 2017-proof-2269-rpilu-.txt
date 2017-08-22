@@ -1,0 +1,11 @@
+1: { ⊢ (p24 V2)} 	: Axiom()[]
+2: {(p24 V2) ⊢ (p23 V2)} 	: Axiom()[]
+3: { ⊢ (p23 V2)} 	: UnifyingResolutionMRR(1, 2)[]
+4: {(p23 V2) ⊢ (p25 V2), (p22 V2)} 	: Axiom()[]
+5: {(p25 V2) ⊢ } 	: Axiom()[]
+6: {(p23 V2) ⊢ (p22 V2)} 	: UnifyingResolutionMRR(4, 5)[]
+7: { ⊢ (p22 V2)} 	: UnifyingResolutionMRR(3, 6)[]
+8: {(p22 V24), (p22 V23), (p22 c8) ⊢ } 	: Axiom()[]
+9: {(p22 c8) ⊢ } 	: Contraction(8)[]
+10: { ⊢ } 	: UnifyingResolution(7, 9)[]
+

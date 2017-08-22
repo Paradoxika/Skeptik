@@ -1,6 +1,0 @@
-1: { ⊢ (p75 V95 V96), (p20 V95 V96)} 	: Axiom()[]
-2: {(p75 c11 c9) ⊢ } 	: Axiom()[]
-3: { ⊢ (p20 c11 c9)} 	: UnifyingResolutionMRR(1, 2)[]
-4: {(p20 V13 V12) ⊢ } 	: Axiom()[]
-5: { ⊢ } 	: UnifyingResolution(3, 4)[]
-

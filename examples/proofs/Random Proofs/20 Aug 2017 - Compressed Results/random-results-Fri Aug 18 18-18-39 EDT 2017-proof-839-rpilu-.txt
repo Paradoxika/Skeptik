@@ -1,6 +1,0 @@
-1: { ⊢ (p35 V35)} 	: Axiom()[]
-2: { ⊢ (p55 c21 (f4 c23))} 	: Axiom()[]
-3: {(p55 c21 (f4 c23)), (p35 (f1 c39 (f8 c14 c6))) ⊢ } 	: Axiom()[]
-4: {(p35 (f1 c39 (f8 c14 c6))) ⊢ } 	: UnifyingResolutionMRR(2, 3)[]
-5: { ⊢ } 	: UnifyingResolution(1, 4)[]
-

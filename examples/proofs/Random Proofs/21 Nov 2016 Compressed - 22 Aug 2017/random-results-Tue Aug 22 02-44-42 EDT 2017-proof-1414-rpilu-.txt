@@ -1,0 +1,5 @@
+1: { ⊢ (p21 c25)} 	: Axiom()[]
+2: {(p21 V10), (p21 V7) ⊢ } 	: Axiom()[]
+3: {(p21 V7) ⊢ } 	: Contraction(2)[]
+4: { ⊢ } 	: UnifyingResolution(1, 3)[]
+
