@@ -317,9 +317,10 @@ trait checkUnifiableVariableName {
 
 trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {
 
-  def contractIfHelpful(premise: SequentProofNode, contractAxioms: Boolean = false)(implicit unifiableVariables: MSet[Var]) = {
+  def contractIfHelpful(premise: SequentProofNode, contractAxioms: Boolean = false, contractSubs: Boolean = false)(implicit unifiableVariables: MSet[Var]) = {
     val con = Contraction(premise)(unifiableVariables)
-    if (con.conclusion.size < premise.conclusion.size && (!premise.isInstanceOf[Axiom] || contractAxioms)) {      
+    if (con.conclusion.size < premise.conclusion.size && (!premise.isInstanceOf[Axiom] || contractAxioms) 
+       && (!premise.isInstanceOf[FOSubstitution]|| contractSubs)) {      
       con
     } else {
       premise

@@ -89,7 +89,7 @@ object FORPIExperimentDriver extends checkProofEquality {
     val compressedProofDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Compressed\\15 Aug 2017 - CADE\\Proofs\\"
     
     
-    val expPrefix = "CADE-FORPILU " + getTimeString()
+    val expPrefix = "CADE-FOLURPI " + getTimeString()
     
     val problemSetS = getProblems(proofList, path)
     var errorCount = 0
@@ -155,7 +155,7 @@ object FORPIExperimentDriver extends checkProofEquality {
         if(proofToTestB != null && logProofs) {
           val collectedProofPrefix = compressedProofDir + "CADE-results-" + startTime + "-proof-"
           val collectedProofSuffix = ".txt"
-          printCompressedProof(proofToTestB, compressedProofDir, collectedProofSuffix, totalCount, "rpi")
+          printCompressedProof(proofToTestB, compressedProofDir, collectedProofSuffix, totalCount, "lu")
         }
         
          
@@ -163,8 +163,8 @@ object FORPIExperimentDriver extends checkProofEquality {
 //        val compressedProof =  if (proofToTest != null) { 
           try{
             //RPI used in try
-//            val p = FORecyclePivotsWithIntersection(proofToTest)
-            val p = FOLowerUnits(proofToTest)
+            val p = FORecyclePivotsWithIntersection(proofToTest)
+//            val p = FOLowerUnits(proofToTest)
             if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0) { throw new Exception("not empty") }                         
             p
             //LU used in try
@@ -180,12 +180,14 @@ object FORPIExperimentDriver extends checkProofEquality {
 //              proofToTest
             }
           }
-          } else { null }
+          } else { 
+            if (!useBoth && proofToTestB != null) { proofToTestB } else { null }
+          }
 
         if(proofToTestB != null && logProofs) {
           val collectedProofPrefix = compressedProofDir + "CADE-results-" + startTime + "-proof-"
           val collectedProofSuffix = ".txt"
-          printCompressedProof(proofToTestB, compressedProofDir, collectedProofSuffix, totalCount, "lurpi")
+          printCompressedProof(proofToTestB, compressedProofDir, collectedProofSuffix, totalCount, "rpilu")
         }
         
         compressedNodes = if (compressedProof != null) { compressedNodes + compressedProof.size} else { compressedNodes} 

@@ -16,12 +16,13 @@ extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with FOUnits
 		val firstPassResults = collectEdgesToDelete(proof)
 				val edgesToDelete = firstPassResults._1
 				val safeMap = firstPassResults._2 
+				val containsFOSubs = firstPassResults._3
 				if (edgesToDelete.isEmpty) {
 					println("No edges to delete")
 					proof
 				} else {
 					println("Num to delete: " + edgesToDelete.edges.size)
-					val out = Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, safeMap)))
+					val out = Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, safeMap, containsFOSubs)))
 					out
 				}
 
@@ -32,11 +33,13 @@ extends FOAbstractRPIAlgorithm with FOCollectEdgesUsingSafeLiterals with FOUnits
 		val firstPassResults = collectEdgesToDelete(proof)
 				val edgesToDelete = firstPassResults._1
 				val safeMap = firstPassResults._2 
+								val containsFOSubs = firstPassResults._3
+
 				if (edgesToDelete.isEmpty) {
 					println("No edges to delete")
 					proof
 				} else {
-					val out = Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, safeMap)))
+					val out = Proof(proof.foldDown(fixProofNodes(edgesToDelete, unifiableVars, safeMap,containsFOSubs)))
 							def countResolutionNodes(p: Proof[SequentProofNode]): Int = {
 						var count = 0
 								for (n <- p.nodes) {
