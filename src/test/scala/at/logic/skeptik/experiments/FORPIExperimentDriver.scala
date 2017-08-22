@@ -80,7 +80,7 @@ object FORPIExperimentDriver extends checkProofEquality {
   
   def main(args: Array[String]): Unit = {
     val logProofs = false
-    val useBoth = false
+    val useBoth = true
     
     val prefixLen = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\GoodProofs".length() 
     val path = "D:\\Documents\\Google Summer of Code 2014\\Experiments\\NoMRR\\"
@@ -163,8 +163,8 @@ object FORPIExperimentDriver extends checkProofEquality {
 //        val compressedProof =  if (proofToTest != null) { 
           try{
             //RPI used in try
-            val p = FORecyclePivotsWithIntersection(proofToTest)
-//            val p = FOLowerUnits(proofToTest)
+//            val p = FORecyclePivotsWithIntersection(proofToTest)
+            val p = FOLowerUnits(proofToTest)
             if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0) { throw new Exception("not empty") }                         
             p
             //LU used in try

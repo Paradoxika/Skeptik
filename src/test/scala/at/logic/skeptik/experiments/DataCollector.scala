@@ -10,7 +10,7 @@ import collection.SortedSet
 object DataCollector {
 
 //  def outDir = "November 2016 - Charts - R"
-  def chartsDir = "August 2017 - Charts - R"
+  def chartsDir = "August 2017b - Charts - R"
   
 //  def proofDataDir = "November 2016 Random Proof Data"
   def proofDataDir = "August 2017 Random Proof Data"
@@ -48,8 +48,9 @@ object DataCollector {
     val nBins = 16
 //    makeBigList("13 Jan 2017","jan13")
 //    makeBigList("18 Aug 2017","aug18") //Adds header to file created by FORPIProofGeneratorDir (and similar)
-
-    makeTPTPCountFiles()
+//      makeBigList("22 Aug 2017","aug22")
+    
+//    makeTPTPCountFiles()
 
 //    makeRandomCountFiles("dec1")
     
@@ -57,7 +58,8 @@ object DataCollector {
     
 //    makeCombinedDataCountFilesSeparate("dec1s")
 //    makeCombinedDataCountFilesSeparateResolutions(16,"dec1s") //or 12?
-      makeCombinedDataCountFilesSeparateResolutions(14,"aug18") //Used to create data for combined-stacked bar plot/histogram.
+//      makeCombinedDataCountFilesSeparateResolutions(14,"aug18") //Used to create data for combined-stacked bar plot/histogram.
+    makeCombinedDataCountFilesSeparateResolutions(14,"aug22")
   }
   
   def makeRandomBWFiles(numBinsToUse: Int, useResLen: Boolean, date: String){
