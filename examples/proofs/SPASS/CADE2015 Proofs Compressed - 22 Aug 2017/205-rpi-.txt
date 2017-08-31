@@ -1,0 +1,6 @@
+1: { ⊢ (likes U bruce)} 	: Axiom()[]
+2: {(likes U V) ⊢ (likes lyle U)} 	: Axiom()[]
+3: { ⊢ (likes lyle U)} 	: UnifyingResolution(1, 2)[]
+4: {(likes U (sk1 U)) ⊢ } 	: Axiom()[]
+5: { ⊢ } 	: UnifyingResolution(3, 4)[]
+

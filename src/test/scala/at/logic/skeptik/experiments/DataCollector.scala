@@ -9,6 +9,12 @@ import collection.SortedSet
 
 object DataCollector {
 
+//  def outDir = "November 2016 - Charts - R"
+  def chartsDir = "August 2017b - Charts - R"
+  
+//  def proofDataDir = "November 2016 Random Proof Data"
+  def proofDataDir = "August 2017 Random Proof Data"
+  
   def getListOfFiles(dir: String): List[File] = {
     val d = new File(dir)
     if (d.exists && d.isDirectory) {
@@ -40,28 +46,32 @@ object DataCollector {
 
   def main(arfs: Array[String]): Unit = {
     val nBins = 16
-    makeBigList("13 Jan 2017","jan13")
-
-    //makeTPTPCountFiles()
-
-    //makeRandomCountFiles()
+//    makeBigList("13 Jan 2017","jan13")
+//    makeBigList("18 Aug 2017","aug18") //Adds header to file created by FORPIProofGeneratorDir (and similar)
+//      makeBigList("22 Aug 2017","aug22")
     
-     //makeRandomBWFiles(nBins, true)
+//    makeTPTPCountFiles()
+
+//    makeRandomCountFiles("dec1")
     
-    //makeCombinedDataCountFilesSeparate()
-    //makeCombinedDataCountFilesSeparateResolutions(nBins)    
+//     makeRandomBWFiles(nBins, true, "dec1s")
+    
+//    makeCombinedDataCountFilesSeparate("dec1s")
+//    makeCombinedDataCountFilesSeparateResolutions(16,"dec1s") //or 12?
+//      makeCombinedDataCountFilesSeparateResolutions(14,"aug18") //Used to create data for combined-stacked bar plot/histogram.
+    makeCombinedDataCountFilesSeparateResolutions(14,"aug22")
   }
   
-  def makeRandomBWFiles(numBinsToUse: Int, useResLen: Boolean){
-        makeRandomBWfile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1s.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-bw-data-dec1s.txt",
+  def makeRandomBWFiles(numBinsToUse: Int, useResLen: Boolean, date: String){
+        makeRandomBWfile("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-data-" + date + ".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-bw-data-" + date + ".txt",
       numBinsToUse, useResLen)   
     
   }
 
   def makeBigList(dir: String, sname: String) = {
-    val dataDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\" + dir + "\\Stats"
-    val finalFileName = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\" + dir + "\\Collected\\random-all-data-"+sname+".txt"
+    val dataDir = "D:\\Research Data\\GSoC14\\" + proofDataDir + "\\Generated\\" + dir + "\\Stats"
+    val finalFileName = "D:\\Research Data\\GSoC14\\" + proofDataDir + "\\Generated\\" + dir + "\\Collected\\random-all-data-"+sname+".txt"
 
     val dataFile = new File(finalFileName)
     if (!dataFile.exists()) {
@@ -102,75 +112,75 @@ object DataCollector {
   }
 
   //used to make data for num_stacked charts
-  def makeRandomCountFiles() {
+  def makeRandomCountFiles(date: String) {
     val numBinsToUse = 16 //0 or negative for no binning
         
-    makeRandomCountFiles("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-forpi-nc-data-dec1.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-folu-nc-data-dec1.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-forpilu-nc-data-dec1.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-folurpi-nc-data-dec1.txt",
+    makeRandomCountFiles("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-data-"+ date +".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-forpi-nc-data-"+ date +".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-folu-nc-data-"+ date +".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-forpilu-nc-data-"+ date +".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-folurpi-nc-data-"+ date +".txt",
       numBinsToUse)
       
       
-    makeRandomCountFilesCombined("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-nc-data-dec1.txt",
+    makeRandomCountFilesCombined("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-data-"+ date +".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-nc-data-"+ date +".txt",
       numBinsToUse)   
       
-   makeRandomCountFilesSeparate("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-nc-sep-data-dec1.txt",
+   makeRandomCountFilesSeparate("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-data-"+ date +".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-nc-sep-data-"+ date +".txt",
       numBinsToUse)         
   }
   
-  def makeCombinedDataCountFilesSeparate(){
+  def makeCombinedDataCountFilesSeparate(date: String){
     val numBinsToUse = 16
-   makeCombinedCountFilesSeparate("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1s.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi.txt",       
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\combined-all-nc-sep-data-dec1s.txt",
+   makeCombinedCountFilesSeparate("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-data-" + date + ".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpilu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folurpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpi.txt",       
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\combined-all-nc-sep-data-" + date + ".txt",
       numBinsToUse)      
     
   }
   
-  def makeCombinedDataCountFilesSeparateResolutions(){
-    val numBinsToUse = 12 //was 16
-   makeCombinedCountFilesSeparateResolutions("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\random-all-data-dec1s.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi.txt",       
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\combined-all-nc-sep-data-dec1s-res.txt",
+  def makeCombinedDataCountFilesSeparateResolutions(numBinsToUse: Int, date: String){
+//    val numBinsToUse = 12 //was 16
+   makeCombinedCountFilesSeparateResolutions("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\random-all-data-" + date + ".txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpilu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folurpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpi.txt",       
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\combined-all-nc-sep-data-" + date + "-res.txt",
       numBinsToUse)      
     
   }  
 
   //used to make data for num_stacked charts
   def makeTPTPCountFiles() {
-    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu-nc.txt")
+    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folu-nc.txt")
 
-    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi-nc.txt")
+    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpi-nc.txt")
 
-    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi-nc.txt")
+    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folurpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folurpi-nc.txt")
 
-    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu-nc.txt")
+    makeTPTPCountFile("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpilu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpilu-nc.txt")
 
-    makeTPTPCountFileAll("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-all-nc.txt")
+    makeTPTPCountFileAll("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpilu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folurpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-all-nc.txt")
 
-    makeTPTPCountFileAllSeparate("D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpilu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folurpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-folu.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-forpi.txt",
-      "D:\\Research Scripts\\GSoC14\\November 2016 - Charts - R\\cade-all-nc-sep.txt", "forpilu", "folurpi", "folu", "forpi")
+    makeTPTPCountFileAllSeparate("D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpilu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folurpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-folu.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-forpi.txt",
+      "D:\\Research Scripts\\GSoC14\\" + chartsDir + "\\cade-all-nc-sep.txt", "forpilu", "folurpi", "folu", "forpi")
 
   }
 

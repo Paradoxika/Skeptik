@@ -1,0 +1,10 @@
+1: { ⊢ (member (not_subclass_element U V) U), (subclass U V)} 	: Axiom()[]
+2: {(member (not_subclass_element U V) V) ⊢ (subclass U V)} 	: Axiom()[]
+3: { ⊢ (subclass V V), (subclass V V)} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (subclass U U)} 	: Contraction(3)[]
+5: {(subclass V U), (subclass U V) ⊢ (equalish V U)} 	: Axiom()[]
+6: {(equalish x x) ⊢ } 	: Axiom()[]
+7: {(subclass x x), (subclass x x) ⊢ } 	: UnifyingResolution(5, 6)[]
+8: {(subclass x x) ⊢ } 	: Contraction(7)[]
+9: { ⊢ } 	: UnifyingResolution(4, 8)[]
+

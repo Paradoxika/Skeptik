@@ -1,0 +1,6 @@
+1: { ⊢ (achievable (west U V) W (east (m (s X)) (c (s (s (s X))))))} 	: Axiom()[]
+2: {(achievable (west (m (s (s U))) (c V)) boatonwest (east (m W) (c X))) ⊢ (achievable (west (m U) (c V)) boatoneast (east (m (s (s W))) (c X)))} 	: Axiom()[]
+3: {(achievable (west (m n0) (c n0)) U (east (m (s (s (s n0)))) (c (s (s (s n0)))))) ⊢ } 	: Axiom()[]
+4: {(achievable (west (m (s (s n0))) (c n0)) boatonwest (east (m (s n0)) (c (s (s (s n0)))))) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

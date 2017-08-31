@@ -1,0 +1,18 @@
+1[0:Inp] || q(Y) r(X) p(X,Y,c)  -> .
+2[0:Inp] || -> p(XP,b,XP) .
+3[0:Res:1.2,2.0] || q(b) r(c) -> . 
+4[0:Inp] || -> r(c) .
+5[0:Res:3.0,4.0] || q(b) -> .
+6[0:Inp] || r(Z) q(Z) p(Z,Z,c) p(W,W,b) -> q(b) .
+7[0:Res:5.0,6.4] || r(Z) q(Z) p(Z,Z,c) p(W,W,b) -> .
+8[0:Inp] || -> r(ZP) s(ZP) .
+9[0:Res:8.0,7.0] || q(Z)  p(Z,Z,c) p(W,W,b) -> s(Z) .
+10[0:Inp] || -> q(ZDP) s(ZDP) .
+11[0:Res:10.0,9.0] || p(Z,Z,c) p(W,W,b) -> s(Z) s(Z).
+12[0:Con:11.2] || p(Z,Z,c) p(W,W,b) -> s(Z).
+13[0:Inp] || -> p(ZTP, ZTP, c) .
+14[0:Res:12.0,13.0] || p(W,W,b) -> s(Z).
+15[0:Inp] || s(d) -> .
+16[0:Res:14.0,15.0] || p(W,W,b) -> .
+17[0:Inp] || -> p(WP,WP,b).
+18[0:Res:16.0,17.0] || -> .

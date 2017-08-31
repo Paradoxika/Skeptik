@@ -1,0 +1,12 @@
+1: { ⊢ (p138 V0 V1)} 	: Axiom()[]
+2: {(p138 V0 V1) ⊢ (p61 V0 V1)} 	: Axiom()[]
+3: { ⊢ (p61 V0 V1)} 	: UnifyingResolution(1, 2)[]
+4: {(p61 V164 V162) ⊢ (p133 V164 V162), (p131 V162)} 	: Axiom()[]
+5: {(p133 c0 V162) ⊢ } 	: Axiom()[]
+6: {(p61 c0 V162) ⊢ (p131 V162)} 	: UnifyingResolution(4, 5)[]
+7: { ⊢ (p132 c31)} 	: Axiom()[]
+8: {(p132 V163), (p131 V163) ⊢ } 	: Axiom()[]
+9: {(p131 c31) ⊢ } 	: UnifyingResolution(7, 8)[]
+10: {(p61 c0 c31) ⊢ } 	: UnifyingResolution(6, 9)[]
+11: { ⊢ } 	: UnifyingResolution(3, 10)[]
+

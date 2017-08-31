@@ -1,0 +1,13 @@
+1: { ⊢ (product U (inverse U) identity)} 	: Axiom()[]
+2: { ⊢ (product U identity U)} 	: Axiom()[]
+3: {(product U X Z), (product X Y V), (product U V W) ⊢ (product Z Y W)} 	: Axiom()[]
+4: {(product W X Z), (product X Y identity) ⊢ (product Z Y W)} 	: UnifyingResolution(2, 3)[]
+5: {(product W X Z) ⊢ (product Z (inverse X) W)} 	: UnifyingResolution(1, 4)[]
+6: {(product Z X U), (product X V Y), (product U V W) ⊢ (product Z Y W)} 	: Axiom()[]
+7: {(product U a identity) ⊢ } 	: Axiom()[]
+8: {(product X1 V identity), (product X V a), (product U X X1) ⊢ } 	: UnifyingResolution(6, 7)[]
+9: {(product X1 V identity), (product identity V a) ⊢ } 	: UnifyingResolution(2, 8)[]
+10: {(product identity (inverse X1) a) ⊢ } 	: UnifyingResolution(1, 9)[]
+11: {(product a X1 identity) ⊢ } 	: UnifyingResolution(5, 10)[]
+12: { ⊢ } 	: UnifyingResolution(1, 11)[]
+

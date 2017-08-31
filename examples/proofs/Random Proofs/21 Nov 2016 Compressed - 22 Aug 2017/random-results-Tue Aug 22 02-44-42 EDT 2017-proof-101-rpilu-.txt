@@ -1,0 +1,4 @@
+1: { ⊢ (p19 c41 c34)} 	: Axiom()[]
+2: {(p19 V11 V12) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

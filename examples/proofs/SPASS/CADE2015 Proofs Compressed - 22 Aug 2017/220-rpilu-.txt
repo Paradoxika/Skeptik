@@ -1,0 +1,10 @@
+1: { ⊢ (an_open_function_from_onto (the_projection_function U V W) (the_product_top_space_over X W) (apply X U))} 	: Axiom()[]
+2: { ⊢ (a_continuous_function_from_onto (the_projection_function U V W) (the_product_top_space_over V W) (apply V U))} 	: Axiom()[]
+3: { ⊢ (a_locally_compact_top_space (the_product_top_space_over skc3 skc4))} 	: Axiom()[]
+4: {(a_continuous_function_from_onto V U W), (an_open_function_from_onto V U W), (a_locally_compact_top_space U) ⊢ (a_locally_compact_top_space W)} 	: Axiom()[]
+5: {(a_continuous_function_from_onto V (the_product_top_space_over skc3 skc4) W), (an_open_function_from_onto V (the_product_top_space_over skc3 skc4) W) ⊢ (a_locally_compact_top_space W)} 	: UnifyingResolution(3, 4)[]
+6: {(an_open_function_from_onto (the_projection_function U skc3 skc4) (the_product_top_space_over skc3 skc4) (apply skc3 U)) ⊢ (a_locally_compact_top_space (apply skc3 U))} 	: UnifyingResolution(2, 5)[]
+7: { ⊢ (a_locally_compact_top_space (apply skc3 U))} 	: UnifyingResolution(1, 6)[]
+8: {(a_locally_compact_top_space (apply skc3 skc5)) ⊢ } 	: Axiom()[]
+9: { ⊢ } 	: UnifyingResolution(7, 8)[]
+

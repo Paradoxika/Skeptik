@@ -1,0 +1,10 @@
+1: { ⊢ (subset (singleton skc2) skc3), (in skc2 skc3)} 	: Axiom()[]
+2: {(subset (singleton U) V) ⊢ (in U V)} 	: Axiom()[]
+3: { ⊢ (in skc2 skc3), (in skc2 skc3)} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (in skc2 skc3)} 	: Contraction(3)[]
+5: {(in U V) ⊢ (subset (singleton U) V)} 	: Axiom()[]
+6: {(subset (singleton skc2) skc3), (in skc2 skc3) ⊢ } 	: Axiom()[]
+7: {(in skc2 skc3), (in skc2 skc3) ⊢ } 	: UnifyingResolution(5, 6)[]
+8: {(in skc2 skc3) ⊢ } 	: Contraction(7)[]
+9: { ⊢ } 	: UnifyingResolution(4, 8)[]
+

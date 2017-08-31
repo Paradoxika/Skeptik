@@ -1,0 +1,13 @@
+1: { ⊢ (sum__dfg U additive_identity U)} 	: Axiom()[]
+2: {(sum__dfg U V X), (sum__dfg U V W) ⊢ (equalish X W)} 	: Axiom()[]
+3: {(sum__dfg W additive_identity X) ⊢ (equalish X W)} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ (equalish X X)} 	: UnifyingResolution(1, 3)[]
+5: {(equalish U additive_identity) ⊢ (product U (h U V) V)} 	: Axiom()[]
+6: { ⊢ (product additive_identity U additive_identity)} 	: Axiom()[]
+7: {(product U V X), (product U V W) ⊢ (equalish X W)} 	: Axiom()[]
+8: {(equalish b additive_identity) ⊢ } 	: Axiom()[]
+9: {(product U V b), (product U V additive_identity) ⊢ } 	: UnifyingResolution(7, 8)[]
+10: {(product additive_identity V b) ⊢ } 	: UnifyingResolution(6, 9)[]
+11: {(equalish additive_identity additive_identity) ⊢ } 	: UnifyingResolution(5, 10)[]
+12: { ⊢ } 	: UnifyingResolution(4, 11)[]
+

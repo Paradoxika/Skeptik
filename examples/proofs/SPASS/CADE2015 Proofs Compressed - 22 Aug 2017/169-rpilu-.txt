@@ -1,0 +1,4 @@
+1: { ⊢ (c_lessequals (c_HOL_Oabs (v_f U V) t_c) (c_times v_x (v_h U V) t_c) t_c)} 	: Axiom()[]
+2: {(c_lessequals (c_HOL_Oabs (v_f (v_xa U) (v_xb U)) t_c) (c_times U (v_h (v_xa U) (v_xb U)) t_c) t_c) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

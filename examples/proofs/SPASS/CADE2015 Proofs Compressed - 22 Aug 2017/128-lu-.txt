@@ -1,0 +1,6 @@
+1: { ⊢ (c_PropLog_Osat c_emptyset v_x t_a)} 	: Axiom()[]
+2: {(c_PropLog_Osat c_emptyset U V) ⊢ (c_in U (c_PropLog_Othms c_emptyset V) (tc_PropLog_Opl V))} 	: Axiom()[]
+3: {(c_in v_x (c_PropLog_Othms c_emptyset t_a) (tc_PropLog_Opl t_a)) ⊢ } 	: Axiom()[]
+4: {(c_PropLog_Osat c_emptyset v_x t_a) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

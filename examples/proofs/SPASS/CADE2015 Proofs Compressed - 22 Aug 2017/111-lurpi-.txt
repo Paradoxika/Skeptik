@@ -1,0 +1,6 @@
+1: { ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 U c_PropLog_Opl_Ofalse V) c_PropLog_Opl_Ofalse V) U V) (c_PropLog_Othms W V) (tc_PropLog_Opl V))} 	: Axiom()[]
+2: {(c_in U (c_PropLog_Othms V W) (tc_PropLog_Opl W)) ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 X U W) (c_PropLog_Othms V W) (tc_PropLog_Opl W))} 	: Axiom()[]
+3: {(c_in (c_PropLog_Opl_Oop_A_N_62 v_p (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 v_pa c_PropLog_Opl_Ofalse t_a) c_PropLog_Opl_Ofalse t_a) v_pa t_a) t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a)) ⊢ } 	: Axiom()[]
+4: {(c_in (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 v_pa c_PropLog_Opl_Ofalse t_a) c_PropLog_Opl_Ofalse t_a) v_pa t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a)) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

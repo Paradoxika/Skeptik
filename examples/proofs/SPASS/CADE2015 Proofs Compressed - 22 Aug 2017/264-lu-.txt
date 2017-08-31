@@ -1,0 +1,4 @@
+1: { ⊢ (iext uri_ex_p uri_ex_s (literal_plain dat_str_foo))} 	: Axiom()[]
+2: {(iext uri_ex_p uri_ex_s U) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

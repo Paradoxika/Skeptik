@@ -1,0 +1,12 @@
+1: { ⊢ (p4 (f5 c7 c10 c9) c9)} 	: Axiom()[]
+2: { ⊢ (p4 (f5 c7 U c8) (f5 c7 U c9))} 	: Axiom()[]
+3: { ⊢ (p4 U U)} 	: Axiom()[]
+4: {(p4 U W), (p4 U V) ⊢ (p4 W V)} 	: Axiom()[]
+5: {(p4 V W) ⊢ (p4 W V)} 	: UnifyingResolution(3, 4)[]
+6: { ⊢ (p4 (f5 c7 U c9) (f5 c7 U c8))} 	: UnifyingResolution(2, 5)[]
+7: {(p4 (f5 c7 (f6 U V W) V) (f5 c7 (f6 U V W) W)), (p4 (f5 c7 U V) V) ⊢ (p4 (f5 c7 U W) W)} 	: Axiom()[]
+8: {(p4 (f5 c7 U c9) c9) ⊢ (p4 (f5 c7 U c8) c8)} 	: UnifyingResolution(6, 7)[]
+9: { ⊢ (p4 (f5 c7 c10 c8) c8)} 	: UnifyingResolution(1, 8)[]
+10: {(p4 (f5 c7 c10 c8) c8) ⊢ } 	: Axiom()[]
+11: { ⊢ } 	: UnifyingResolution(9, 10)[]
+

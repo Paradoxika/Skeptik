@@ -1,0 +1,8 @@
+1: { ⊢ (c_lessequals U (c_Zorn_Osucc V U W) (tc_set (tc_set W)))} 	: Axiom()[]
+2: { ⊢ (c_lessequals v_x v_y (tc_set (tc_set t_a)))} 	: Axiom()[]
+3: {(c_lessequals V X (tc_set W)), (c_lessequals U V (tc_set W)) ⊢ (c_lessequals U X (tc_set W))} 	: Axiom()[]
+4: {(c_lessequals v_x (c_Zorn_Osucc v_S v_y t_a) (tc_set (tc_set t_a))) ⊢ } 	: Axiom()[]
+5: {(c_lessequals V (c_Zorn_Osucc v_S v_y t_a) (tc_set (tc_set t_a))), (c_lessequals v_x V (tc_set (tc_set t_a))) ⊢ } 	: UnifyingResolution(3, 4)[]
+6: {(c_lessequals v_y (c_Zorn_Osucc v_S v_y t_a) (tc_set (tc_set t_a))) ⊢ } 	: UnifyingResolution(2, 5)[]
+7: { ⊢ } 	: UnifyingResolution(1, 6)[]
+

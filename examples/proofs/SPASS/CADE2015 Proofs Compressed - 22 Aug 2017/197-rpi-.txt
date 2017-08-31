@@ -1,0 +1,6 @@
+1: { ⊢ (c_in (c_Pair U U V V) (c_Transitive__Closure_Ortrancl W V) (tc_prod V V))} 	: Axiom()[]
+2: { ⊢ (c_in (c_Pair v_y v_x t_a t_a) (c_Transitive__Closure_Ortrancl v_r t_a) (tc_prod t_a t_a))} 	: Axiom()[]
+3: {(c_in (c_Pair v_x U t_a t_a) (c_Transitive__Closure_Ortrancl v_r t_a) (tc_prod t_a t_a)), (c_in (c_Pair v_y U t_a t_a) (c_Transitive__Closure_Ortrancl v_r t_a) (tc_prod t_a t_a)) ⊢ } 	: Axiom()[]
+4: {(c_in (c_Pair v_x v_x t_a t_a) (c_Transitive__Closure_Ortrancl v_r t_a) (tc_prod t_a t_a)) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

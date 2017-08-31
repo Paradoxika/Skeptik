@@ -1,0 +1,13 @@
+1: { ⊢ (c_lessequals U U (tc_set V))} 	: Axiom()[]
+2: { ⊢ (c_in (c_Main_OsubsetI__1 U V W) U W), (c_lessequals U V (tc_set W))} 	: Axiom()[]
+3: {(c_in U V tc_Message_Omsg) ⊢ (c_in U (c_Message_Oanalz V) tc_Message_Omsg)} 	: Axiom()[]
+4: {(c_in (c_Main_OsubsetI__1 U V W) V W) ⊢ (c_lessequals U V (tc_set W))} 	: Axiom()[]
+5: {(c_in (c_Main_OsubsetI__1 U (c_Message_Oanalz X) tc_Message_Omsg) X tc_Message_Omsg) ⊢ (c_lessequals U (c_Message_Oanalz X) (tc_set tc_Message_Omsg))} 	: UnifyingResolution(3, 4)[]
+6: { ⊢ (c_lessequals X (c_Message_Oanalz X) (tc_set tc_Message_Omsg)), (c_lessequals X (c_Message_Oanalz X) (tc_set tc_Message_Omsg))} 	: UnifyingResolution(2, 5)[]
+7: { ⊢ (c_lessequals U (c_Message_Oanalz U) (tc_set tc_Message_Omsg))} 	: Contraction(6)[]
+8: {(c_lessequals (c_Message_Oanalz W) (c_Message_Oanalz X) (tc_set tc_Message_Omsg)), (c_lessequals (c_Message_Oanalz U) (c_Message_Oanalz V) (tc_set tc_Message_Omsg)) ⊢ (c_lessequals (c_Message_Oanalz (c_union U W tc_Message_Omsg)) (c_Message_Oanalz (c_union V X tc_Message_Omsg)) (tc_set tc_Message_Omsg))} 	: Axiom()[]
+9: {(c_lessequals (c_Message_Oanalz (c_union v_G v_H tc_Message_Omsg)) (c_Message_Oanalz (c_union (c_Message_Oanalz v_G) v_H tc_Message_Omsg)) (tc_set tc_Message_Omsg)) ⊢ } 	: Axiom()[]
+10: {(c_lessequals (c_Message_Oanalz v_H) (c_Message_Oanalz v_H) (tc_set tc_Message_Omsg)), (c_lessequals (c_Message_Oanalz v_G) (c_Message_Oanalz (c_Message_Oanalz v_G)) (tc_set tc_Message_Omsg)) ⊢ } 	: UnifyingResolution(8, 9)[]
+11: {(c_lessequals (c_Message_Oanalz v_H) (c_Message_Oanalz v_H) (tc_set tc_Message_Omsg)) ⊢ } 	: UnifyingResolution(7, 10)[]
+12: { ⊢ } 	: UnifyingResolution(1, 11)[]
+

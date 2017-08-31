@@ -1,0 +1,12 @@
+1: { ⊢ (element (f U) U), (element U a)} 	: Axiom()[]
+2: { ⊢ (element U (f U)), (element U a)} 	: Axiom()[]
+3: {(element V a), (element V U), (element U V) ⊢ } 	: Axiom()[]
+4: {(element (f U) a), (element (f U) U) ⊢ (element U a)} 	: UnifyingResolution(2, 3)[]
+5: {(element (f U) a) ⊢ (element U a), (element U a)} 	: UnifyingResolution(1, 4)[]
+6: {(element (f U) a) ⊢ (element U a)} 	: Contraction(5)[]
+7: { ⊢ (element a a), (element a a)} 	: UnifyingResolution(1, 6)[]
+8: { ⊢ (element a a)} 	: Contraction(7)[]
+9: {(element a a), (element a a) ⊢ } 	: UnifyingResolution(8, 3)[]
+10: {(element a a) ⊢ } 	: Contraction(9)[]
+11: { ⊢ } 	: UnifyingResolution(8, 10)[]
+

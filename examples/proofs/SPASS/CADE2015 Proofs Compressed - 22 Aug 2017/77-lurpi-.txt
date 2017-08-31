@@ -1,0 +1,6 @@
+1: { ⊢ (b_holds (key (generate_key an_a_nonce) a))} 	: Axiom()[]
+2: { ⊢ (a_holds (key (generate_key an_a_nonce) b))} 	: Axiom()[]
+3: {(a_holds (key U b)), (b_holds (key U a)) ⊢ } 	: Axiom()[]
+4: {(b_holds (key (generate_key an_a_nonce) a)) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

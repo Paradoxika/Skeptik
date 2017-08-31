@@ -1,0 +1,4 @@
+1: { ⊢ (genls c_tptpcol_16_50958 c_tptpcol_15_50957)} 	: Axiom()[]
+2: {(genls c_tptpcol_16_50958 c_tptpcol_15_50957) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

@@ -1,0 +1,11 @@
+1: { ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 v_p v_pa t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a))} 	: Axiom()[]
+2: { ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 v_p (c_PropLog_Opl_Oop_A_N_62 v_pa v_q t_a) t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a))} 	: Axiom()[]
+3: { ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 U (c_PropLog_Opl_Oop_A_N_62 V W X) X) (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 U V X) (c_PropLog_Opl_Oop_A_N_62 U W X) X) X) (c_PropLog_Othms Y X) (tc_PropLog_Opl X))} 	: Axiom()[]
+4: {(c_in (c_PropLog_Opl_Oop_A_N_62 U X W) (c_PropLog_Othms V W) (tc_PropLog_Opl W)), (c_in U (c_PropLog_Othms V W) (tc_PropLog_Opl W)) ⊢ (c_in X (c_PropLog_Othms V W) (tc_PropLog_Opl W))} 	: Axiom()[]
+5: {(c_in (c_PropLog_Opl_Oop_A_N_62 Z (c_PropLog_Opl_Oop_A_N_62 NEW2 X4 W) W) (c_PropLog_Othms V W) (tc_PropLog_Opl W)) ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 (c_PropLog_Opl_Oop_A_N_62 Z NEW2 W) (c_PropLog_Opl_Oop_A_N_62 Z X4 W) W) (c_PropLog_Othms V W) (tc_PropLog_Opl W))} 	: UnifyingResolution(3, 4)[]
+6: {(c_in (c_PropLog_Opl_Oop_A_N_62 Z (c_PropLog_Opl_Oop_A_N_62 NEW2 X4 W) W) (c_PropLog_Othms V W) (tc_PropLog_Opl W)), (c_in (c_PropLog_Opl_Oop_A_N_62 Z NEW2 W) (c_PropLog_Othms V W) (tc_PropLog_Opl W)) ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 Z X4 W) (c_PropLog_Othms V W) (tc_PropLog_Opl W))} 	: UnifyingResolution(5, 4)[]
+7: {(c_in (c_PropLog_Opl_Oop_A_N_62 v_p v_pa t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a)) ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 v_p v_q t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a))} 	: UnifyingResolution(2, 6)[]
+8: { ⊢ (c_in (c_PropLog_Opl_Oop_A_N_62 v_p v_q t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a))} 	: UnifyingResolution(1, 7)[]
+9: {(c_in (c_PropLog_Opl_Oop_A_N_62 v_p v_q t_a) (c_PropLog_Othms v_H t_a) (tc_PropLog_Opl t_a)) ⊢ } 	: Axiom()[]
+10: { ⊢ } 	: UnifyingResolution(8, 9)[]
+

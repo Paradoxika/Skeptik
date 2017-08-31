@@ -1,0 +1,13 @@
+1: { ⊢ (intersect skc3 (difference skc4 skc5))} 	: Axiom()[]
+2: {(intersect U V) ⊢ (member (skf1 V W) V)} 	: Axiom()[]
+3: {(member U (difference V W)) ⊢ (member U V)} 	: Axiom()[]
+4: {(intersect X (difference V W)) ⊢ (member (skf1 (difference V W) NEW1) V)} 	: UnifyingResolution(2, 3)[]
+5: {(intersect U V) ⊢ (member (skf1 V U) U)} 	: Axiom()[]
+6: {(member U W), (member U V) ⊢ (intersect W V)} 	: Axiom()[]
+7: {(intersect skc3 skc4) ⊢ } 	: Axiom()[]
+8: {(member U skc3), (member U skc4) ⊢ } 	: UnifyingResolution(6, 7)[]
+9: {(intersect skc3 V), (member (skf1 V skc3) skc4) ⊢ } 	: UnifyingResolution(5, 8)[]
+10: {(intersect X (difference skc4 W)), (intersect skc3 (difference skc4 W)) ⊢ } 	: UnifyingResolution(4, 9)[]
+11: {(intersect skc3 (difference skc4 W)) ⊢ } 	: Contraction(10)[]
+12: { ⊢ } 	: UnifyingResolution(1, 11)[]
+

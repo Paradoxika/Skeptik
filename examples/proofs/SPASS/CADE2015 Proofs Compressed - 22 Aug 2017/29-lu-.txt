@@ -1,0 +1,4 @@
+1: { ⊢ (c_in (c_Event_Oevent_ONotes c_Message_Oagent_OSpy (c_Message_Omsg_OMPair (c_Message_Omsg_ONonce v_NA) (c_Message_Omsg_OMPair (c_Message_Omsg_ONonce v_NB) v_k))) (c_List_Oset v_evso tc_Event_Oevent) tc_Event_Oevent)} 	: Axiom()[]
+2: {(c_in (c_Event_Oevent_ONotes c_Message_Oagent_OSpy (c_Message_Omsg_OMPair (c_Message_Omsg_ONonce v_NA) (c_Message_Omsg_OMPair (c_Message_Omsg_ONonce v_NB) U))) (c_List_Oset v_evso tc_Event_Oevent) tc_Event_Oevent) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

@@ -1,0 +1,5 @@
+1: { ⊢ (big_p a (skf1 U) (h (skf1 U))), (big_p U (skf1 U) (f (skf1 U)))} 	: Axiom()[]
+2: {(big_p U (skf1 U) V) ⊢ } 	: Axiom()[]
+3: { ⊢ (big_p a (skf1 a) (f (skf1 a)))} 	: UnifyingResolution(1, 2)[]
+4: { ⊢ } 	: UnifyingResolution(3, 2)[]
+

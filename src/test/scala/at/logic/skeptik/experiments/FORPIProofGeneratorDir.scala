@@ -16,6 +16,8 @@ import at.logic.skeptik.algorithm.FOProofsGenerator.ProofGenerator
 import at.logic.skeptik.judgment.immutable.{SeqSequent => Sequent}
 import at.logic.skeptik.proof.sequent.{SequentProofNode => Node}
 import scala.collection.mutable.{Set => MSet}
+import java.io.FileWriter
+
 /**
  * Created by eze on 2016.07.25..
  * modified by jgorzny (November 2016)
@@ -95,6 +97,15 @@ object FORPIProofGeneratorTestsDir {
     List[File]()
   }
 }  
+ 
+       def printCompressedProof(proof: Proof[Node], pre: String, suf: String, h: Int, alg: String) = {
+        val proofFile = pre + h.toString() + "-" + alg + "-" + suf
+        val proofWriter =new PrintWriter(proofFile)
+        printProof(proofWriter, proof)
+        proofWriter.flush()
+        proofWriter.close()
+  
+      }
   
   def compressionTests(): Unit = {
     var proofsLenghtsSum = 0
@@ -111,6 +122,7 @@ object FORPIProofGeneratorTestsDir {
     //    var c = 0
 
 //    val proofDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Generated\\21 Nov 2016\\Proofs\\"
+    val compressedProofDir = "D:\\Research Data\\GSoC14\\November 2016 Random Proof Data\\Compressed\\15 Aug 2017\\Proofs\\"
     val startTime = getTimeString()
     val outfile = "random-retest-results-" + startTime + ".txt"
     val stats = new PrintWriter(outfile)
@@ -125,6 +137,14 @@ object FORPIProofGeneratorTestsDir {
     for (file <- files) {
       val pFileName = file.getAbsolutePath
       print("Proof #: " + h + " " + pFileName)
+      
+          val fw = new FileWriter("checking-subs.txt", true)
+try {
+  fw.write("Proof #: " + h + " " + pFileName + "\n")
+
+}
+finally fw.close() 
+  
 
       val parseStartTime = System.nanoTime()      
       
@@ -147,6 +167,12 @@ object FORPIProofGeneratorTestsDir {
 //      var luproof: Proof[Node] = null
 //      var luRPIproof: Proof[Node] = null
 
+      
+
+      
+      val collectedProofPrefix = compressedProofDir + "random-results-" + startTime + "-proof-"
+      val collectedProofSuffix = ".txt"
+      
       println(" Compression starting...")
 
       val oSize = proof.toSeq.size
@@ -173,6 +199,7 @@ object FORPIProofGeneratorTestsDir {
           luFails = luFails +1
           proof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"lu")
           p
         }
       } catch {
@@ -195,12 +222,13 @@ object FORPIProofGeneratorTestsDir {
       val rpiStartTime = System.nanoTime()
 
       val rpiProof = try {
-        val p = FORecyclePivotsWithIntersection(proof)
+        val p = FORecyclePivotsWithIntersection(proof, pFileName)
         if(p.root.conclusion.ant.size != 0 || p.root.conclusion.suc.size != 0){
           RPIfail = true
           rpiFails = rpiFails +1
           proof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"rpi")
           p
         }
       
@@ -228,6 +256,7 @@ object FORPIProofGeneratorTestsDir {
           LURPIfail = true //definitely want to report fail here
           rpiProof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"lurpi")          
           p
         }        
       } catch {
@@ -251,6 +280,7 @@ object FORPIProofGeneratorTestsDir {
           RPILUfail = true //definitely want to report fail here
           luProof
         } else {
+          printCompressedProof(p,collectedProofPrefix,collectedProofSuffix,h,"rpilu")          
           p
         }                
       } catch {

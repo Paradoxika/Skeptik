@@ -1,0 +1,4 @@
+1: { ⊢ (f U V)} 	: Axiom()[]
+2: {(f (y U) (y U)) ⊢ } 	: Axiom()[]
+3: { ⊢ } 	: UnifyingResolution(1, 2)[]
+

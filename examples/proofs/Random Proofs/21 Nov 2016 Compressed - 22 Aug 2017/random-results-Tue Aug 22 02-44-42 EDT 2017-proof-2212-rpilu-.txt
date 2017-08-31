@@ -1,0 +1,6 @@
+1: { ⊢ (p105 V104), (p101 V104)} 	: Axiom()[]
+2: {(p105 c28) ⊢ } 	: Axiom()[]
+3: { ⊢ (p101 c28)} 	: UnifyingResolutionMRR(1, 2)[]
+4: {(p101 V91) ⊢ } 	: Axiom()[]
+5: { ⊢ } 	: UnifyingResolution(3, 4)[]
+

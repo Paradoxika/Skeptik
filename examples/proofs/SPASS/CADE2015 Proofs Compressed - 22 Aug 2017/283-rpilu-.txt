@@ -1,0 +1,13 @@
+1: { ⊢ (c_lessequals U (v_x U) tc_nat)} 	: Axiom()[]
+2: {(c_lessequals (c_plus U V tc_nat) W tc_nat) ⊢ (c_lessequals V W tc_nat)} 	: Axiom()[]
+3: { ⊢ (c_lessequals V (v_x (c_plus U V tc_nat)) tc_nat)} 	: UnifyingResolution(1, 2)[]
+4: {(c_lessequals (c_plus U V tc_nat) W tc_nat) ⊢ (c_lessequals U W tc_nat)} 	: Axiom()[]
+5: { ⊢ (c_lessequals U (v_x (c_plus U V tc_nat)) tc_nat)} 	: UnifyingResolution(1, 4)[]
+6: { ⊢ (c_in (c_Message_Omsg_ONonce (v_x U)) (c_Message_Oparts (c_insert v_msg c_emptyset tc_Message_Omsg)) tc_Message_Omsg), (c_in (c_Message_Omsg_ONonce (v_x U)) (c_Event_Oused v_list) tc_Message_Omsg)} 	: Axiom()[]
+7: {(c_in (c_Message_Omsg_ONonce V) (c_Message_Oparts (c_insert U c_emptyset tc_Message_Omsg)) tc_Message_Omsg), (c_lessequals (v_sko__upX U) V tc_nat) ⊢ } 	: Axiom()[]
+8: {(c_lessequals (v_sko__upX v_msg) (v_x NEW11) tc_nat) ⊢ (c_in (c_Message_Omsg_ONonce (v_x NEW11)) (c_Event_Oused v_list) tc_Message_Omsg)} 	: UnifyingResolution(6, 7)[]
+9: {(c_in (c_Message_Omsg_ONonce U) (c_Event_Oused v_list) tc_Message_Omsg), (c_lessequals v_N U tc_nat) ⊢ } 	: Axiom()[]
+10: {(c_lessequals (v_sko__upX v_msg) (v_x NEW11) tc_nat), (c_lessequals v_N (v_x NEW11) tc_nat) ⊢ } 	: UnifyingResolution(8, 9)[]
+11: {(c_lessequals v_N (v_x (c_plus (v_sko__upX v_msg) V tc_nat)) tc_nat) ⊢ } 	: UnifyingResolution(5, 10)[]
+12: { ⊢ } 	: UnifyingResolution(3, 11)[]
+

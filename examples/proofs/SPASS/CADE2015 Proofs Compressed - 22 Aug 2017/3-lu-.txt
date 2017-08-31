@@ -1,0 +1,12 @@
+1: { ⊢ (e exists__dfg)} 	: Axiom()[]
+2: {(e U) ⊢ (r U (u0r3 U))} 	: Axiom()[]
+3: {(e exists__dfg) ⊢ (r exists__dfg (u0r3 exists__dfg))} 	: FOSubstitution(2)[]
+4: {(r U W), (r V W), (e U) ⊢ (a V)} 	: Axiom()[]
+5: {(a exists__dfg) ⊢ } 	: Axiom()[]
+6: {(r U W), (r exists__dfg W), (e U) ⊢ } 	: UnifyingResolutionMRR(4, 5)[]
+7: {(r exists__dfg W), (r exists__dfg W), (e exists__dfg) ⊢ } 	: FOSubstitution(6)[]
+8: {(r exists__dfg W), (e exists__dfg) ⊢ } 	: Contraction(7)[]
+9: {(e exists__dfg), (e exists__dfg) ⊢ } 	: UnifyingResolutionMRR(3, 8)[]
+10: {(e exists__dfg) ⊢ } 	: Contraction(9)[]
+11: { ⊢ } 	: UnifyingResolution(1, 10)[]
+

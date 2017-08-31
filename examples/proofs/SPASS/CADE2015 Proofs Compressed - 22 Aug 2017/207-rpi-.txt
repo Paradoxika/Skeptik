@@ -1,0 +1,6 @@
+1: { ⊢ (mtvisible c_englishmt)} 	: Axiom()[]
+2: {(mtvisible c_englishmt) ⊢ (prettystring (f_instancewithrelationtofn c_footballteam c_affiliatedwith c_beloitcollege) s_thefootballteamwhohasbeenaffiliatedwithbeloitcollege)} 	: Axiom()[]
+3: {(prettystring (f_instancewithrelationtofn c_footballteam c_affiliatedwith c_beloitcollege) U) ⊢ } 	: Axiom()[]
+4: {(mtvisible c_englishmt) ⊢ } 	: UnifyingResolution(2, 3)[]
+5: { ⊢ } 	: UnifyingResolution(1, 4)[]
+

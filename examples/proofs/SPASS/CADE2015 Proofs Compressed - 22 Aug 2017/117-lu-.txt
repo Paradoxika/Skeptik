@@ -1,0 +1,6 @@
+1: { ⊢ (element_of_set (f11 V U) U), (element_of_collection U (top_of_basis V))} 	: Axiom()[]
+2: {(element_of_collection empty_set (top_of_basis f)) ⊢ } 	: Axiom()[]
+3: { ⊢ (element_of_set (f11 f empty_set) empty_set)} 	: UnifyingResolution(1, 2)[]
+4: {(element_of_set U empty_set) ⊢ } 	: Axiom()[]
+5: { ⊢ } 	: UnifyingResolution(3, 4)[]
+

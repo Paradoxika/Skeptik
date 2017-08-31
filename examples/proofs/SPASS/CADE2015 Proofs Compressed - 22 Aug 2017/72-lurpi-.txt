@@ -1,0 +1,8 @@
+1: { ⊢ (c_in v_x v_Z t_a)} 	: Axiom()[]
+2: { ⊢ (c_lessequals v_Z v_V (tc_set t_a))} 	: Axiom()[]
+3: {(c_lessequals V X (tc_set W)), (c_in U V W) ⊢ (c_in U X W)} 	: Axiom()[]
+4: {(c_in U v_Z t_a) ⊢ (c_in U v_V t_a)} 	: UnifyingResolution(2, 3)[]
+5: { ⊢ (c_in v_x v_V t_a)} 	: UnifyingResolution(1, 4)[]
+6: {(c_in v_x v_V t_a) ⊢ } 	: Axiom()[]
+7: { ⊢ } 	: UnifyingResolution(5, 6)[]
+

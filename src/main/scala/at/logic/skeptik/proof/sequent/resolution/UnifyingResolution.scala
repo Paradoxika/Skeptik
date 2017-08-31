@@ -317,9 +317,10 @@ trait checkUnifiableVariableName {
 
 trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with CanRenameVariables {
 
-  def contractIfHelpful(premise: SequentProofNode)(implicit unifiableVariables: MSet[Var]) = {
+  def contractIfHelpful(premise: SequentProofNode, contractAxioms: Boolean = false, contractSubs: Boolean = false)(implicit unifiableVariables: MSet[Var]) = {
     val con = Contraction(premise)(unifiableVariables)
-    if (con.conclusion.size < premise.conclusion.size) {
+    if (con.conclusion.size < premise.conclusion.size && (!premise.isInstanceOf[Axiom] || contractAxioms) 
+       && (!premise.isInstanceOf[FOSubstitution]|| contractSubs)) {      
       con
     } else {
       premise
@@ -358,7 +359,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
 
-  def generateSubstitutionOptions(computed: Seq[E], desired: Seq[E], vars: MSet[Var] = null) = {
+  def generateSubstitutionOptions(computed: Seq[E], desired: Seq[E], vars: MSet[Var] = null, requireOnlyRenamings: Boolean = false) = {
     val map = new MMap[Var, Set[E]]()
     for (c <- computed) {
       var cVars = getSetOfVars(c)
@@ -375,7 +376,8 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
         u match {
           case Some(s) => {
-
+            val allRenamings = checkSubstitutions(s)
+            if(!requireOnlyRenamings || (requireOnlyRenamings && allRenamings)){
             for (cv <- cVars) {
 
               if (map.keySet.contains(cv)) {
@@ -395,6 +397,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
                 }
               }
 
+            }
             }
 
           }
@@ -437,11 +440,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     v
   }
 
-  def checkMapSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): Boolean = {
+  def checkMapSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent): (Boolean, Substitution) = {
     //apply to sub
     val newComputed = applyUniqueSubstitutions(m, vars, computed)
     val finalCheck = newComputed.ant.toSet.subsetOf(desired.ant.toSet) && newComputed.suc.toSet.subsetOf(desired.suc.toSet)
-    finalCheck
+    (finalCheck, getUniqueSubstitutions(m, vars))
 
   }
 
@@ -504,7 +507,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
 
   def checkInvalidMapAndReturnSub(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean): Substitution = {
-
+    
     //Check if map is valid: 
 
     val subsetContainedOrEquals = checkSubsetOrEquality(containmentOnly, computed, desired)
@@ -518,7 +521,6 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
 
     //apply to sub
     val newComputed = applyUniqueSubstitutions(m, vars, computed)
-
     if (checkSubsetOrEquality(containmentOnly, newComputed, desired)) {
       return getUniqueSubstitutions(m, getSetOfVars(Axiom(newComputed)))
     }
@@ -539,10 +541,11 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
         Set[Var]()
       }
     }
-
+    
     for (mVal <- bigSet) {
-
-      val newNewComputed = applySub(newComputed, Substitution((bigSetKey.get, mVal)))
+      val replacement = (bigSetKey.get, mVal)
+      val newNewComputed = applySub(newComputed, Substitution(replacement))
+      
       val (mapValid, newMap) = computeIntersectedMap(newNewComputed, desired, vars, false)
 
       val subsetOrEqualityVerified = checkSubsetOrEquality(containmentOnly, newNewComputed, desired)
@@ -568,10 +571,15 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     null
   }
 
+  //TODO: remove one of these.
   def checkInvalidMap(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean = false): Boolean = {
     return checkInvalidMapAndReturnSub(m, vars, computed, desired, containmentOnly) != null
   }
 
+  def checkInvalidMapB(m: MMap[Var, Set[E]], vars: MSet[Var], computed: Sequent, desired: Sequent, containmentOnly: Boolean = false): Substitution = {
+    return checkInvalidMapAndReturnSub(m, vars, computed, desired, containmentOnly)
+  }  
+  
   def checkIfConclusionsAreEqual(x: SequentProofNode, y: SequentProofNode): Boolean = {
     return checkIfConclusionsAreEqual(x.conclusion, y.conclusion)
   }
@@ -644,10 +652,12 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
   }
   
   def findRenaming(computed: Sequent, desired: Sequent)(implicit unifiableVariables: MSet[Var]): Substitution = {
-    val computedClean = fixSharedNoFilter(Axiom(computed), Axiom(desired),0, unifiableVariables).conclusion
-    val ap =  fastFindRenaming(computedClean, desired, true) //Does not work when source literals can match to more than one target
-    val out = if(ap == null) { findRenamingSlow(computed, desired)(unifiableVariables) } else { ap }
-    return out
+//    val computedClean = fixSharedNoFilter(Axiom(computed), Axiom(desired),0, unifiableVariables).conclusion
+//    val ap =  fastFindRenaming(computedClean, desired, true) //Does not work when source literals can match to more than one target
+//    val out = if(ap == null) { findRenamingSlow(computed, desired)(unifiableVariables) } else { ap }
+//    return out
+
+    findRenamingSlow(computed, desired)(unifiableVariables)
   }
   
   
@@ -658,10 +668,10 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     } else {
       if (computed.logicalSize == desired.logicalSize) {
         val computedClean = fixSharedNoFilter(Axiom(computed), Axiom(desired), 0, unifiableVariables)
-
+               
         //Note that this no longer assumes the sequents have no common variables!
-        val antMap = generateSubstitutionOptions(computedClean.conclusion.ant, desired.ant)
-        val sucMap = generateSubstitutionOptions(computedClean.conclusion.suc, desired.suc)
+        val antMap = generateSubstitutionOptions(computedClean.conclusion.ant, desired.ant,null,true)
+        val sucMap = generateSubstitutionOptions(computedClean.conclusion.suc, desired.suc,null,true)
 
         val intersectedMap = intersectMaps(antMap, sucMap)
         val computedVars = getSetOfVars(computedClean)
@@ -765,5 +775,7 @@ trait FindDesiredSequent extends FindsVars with checkUnifiableVariableName with 
     findRenamingSlow(a,b,true) != null
   }
 
+  
+  
 }
 

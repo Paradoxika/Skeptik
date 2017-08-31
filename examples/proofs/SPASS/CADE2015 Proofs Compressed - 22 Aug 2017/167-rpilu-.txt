@@ -1,0 +1,11 @@
+1: { ⊢ (element (sk2 U) U), (element U sk1)} 	: Axiom()[]
+2: { ⊢ (element U (sk2 U)), (element U sk1)} 	: Axiom()[]
+3: {(element U sk1), (element V U), (element U V) ⊢ } 	: Axiom()[]
+4: {(element (sk2 V) sk1), (element V (sk2 V)) ⊢ (element V sk1)} 	: UnifyingResolutionMRR(1, 3)[]
+5: {(element (sk2 V) sk1) ⊢ (element V sk1), (element V sk1)} 	: UnifyingResolutionMRR(2, 4)[]
+6: {(element (sk2 V) sk1) ⊢ (element V sk1)} 	: Contraction(5)[]
+7: { ⊢ (element sk1 sk1), (element sk1 sk1)} 	: UnifyingResolutionMRR(1, 6)[]
+8: { ⊢ (element sk1 sk1)} 	: Contraction(7)[]
+9: {(element sk1 sk1) ⊢ } 	: Contraction(3)[]
+10: { ⊢ } 	: UnifyingResolution(8, 9)[]
+

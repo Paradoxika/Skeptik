@@ -1,0 +1,8 @@
+1: { ⊢ (big_f U (f U))} 	: Axiom()[]
+2: { ⊢ (big_g U (g U))} 	: Axiom()[]
+3: {(big_f W U), (big_g U V) ⊢ (big_h W V)} 	: Axiom()[]
+4: {(big_h a U) ⊢ } 	: Axiom()[]
+5: {(big_g X U), (big_f a X) ⊢ } 	: UnifyingResolution(3, 4)[]
+6: {(big_f a X) ⊢ } 	: UnifyingResolution(2, 5)[]
+7: { ⊢ } 	: UnifyingResolution(1, 6)[]
+
